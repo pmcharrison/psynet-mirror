@@ -1,13 +1,19 @@
-# from datetime import datetime
-# from flask import render_template
-# from json import dumps
+from datetime import datetime
+from flask import render_template_string
+from json import dumps
 
-# from dallinger.config import get_config
+import importlib.resources as pkg_resources
+
+from dallinger.config import get_config
+import dallinger.experiment
+
 # from dallinger.experiment import Experiment
 
-# import logging
-# logging.basicConfig(level = logging.INFO)
-# logger = logging.getLogger(__file__)
+import logging
+logging.basicConfig(level = logging.INFO)
+logger = logging.getLogger(__file__)
+
+from dlgr_monitor import templates
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -17,10 +23,11 @@ def json_serial(obj):
         return serial
     raise TypeError ("Type not serializable")
 
-
-
-class Monitored(Experiment):
+class Experiment(dallinger.experiment.Experiment):
     """Define the structure of the experiment."""
+
+    def __init__(self, session=None):
+        super(Experiment, self).__init__(session)
 
     def network_structure(self):
         from dallinger import models
@@ -130,4 +137,8 @@ class Monitored(Experiment):
         stat = self.network_stats()
         data = {"status": "success", "net_structure": res}
         msg = stat['msg'].replace("\n",'<br>')
-        return render_template('network-monitor.html', my_data = dumps(data, default = json_serial), my_msg = msg)
+        html = pkg_resources.read_text(templates, "network-monitor.html")
+        return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
+
+def get():
+    return pkg_resources.read_text(templates, "network-monitor.html")
