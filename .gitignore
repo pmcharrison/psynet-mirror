@@ -1,1 +1,4 @@
 __pycache__/
+build
+dist
+dlgr_monitor.egg-info

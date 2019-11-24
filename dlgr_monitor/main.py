@@ -7,12 +7,6 @@ import importlib.resources as pkg_resources
 from dallinger.config import get_config
 import dallinger.experiment
 
-# from dallinger.experiment import Experiment
-
-import logging
-logging.basicConfig(level = logging.INFO)
-logger = logging.getLogger(__file__)
-
 from dlgr_monitor import templates
 
 def json_serial(obj):

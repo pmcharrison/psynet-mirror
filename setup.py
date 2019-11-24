@@ -19,7 +19,8 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.7',
-    include_package_data=True
+    include_package_data=True,
+    install_requires=["datetime", "flask", "json", "dallinger"]
 )
 
 # python3.7 setup.py sdist bdist_wheel
