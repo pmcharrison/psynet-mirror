@@ -1,46 +1,14 @@
-"""Monte Carlo Markov Chains with people."""
-import random
-import time
-from operator import attrgetter
-from datetime import datetime
+# from datetime import datetime
+# from flask import render_template
+# from json import dumps
 
-from dallinger import recruiters
-from jinja2 import TemplateNotFound
-from flask import Blueprint, Response, request, render_template, abort
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
+# from dallinger.config import get_config
+# from dallinger.experiment import Experiment
 
-from sqlalchemy import exc
+# import logging
+# logging.basicConfig(level = logging.INFO)
+# logger = logging.getLogger(__file__)
 
-from dallinger.bots import BotBase
-from dallinger.experiment import Experiment
-from dallinger import db, models
-from dallinger.networks import Chain
-from dallinger.experiment_server.utils import success_response
-from dallinger.config import get_config
-from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
-from dallinger.experiment_server.utils import (
-    crossdomain,
-    nocache,
-    ValidatesBrowser,
-    error_page,
-    error_response,
-    success_response,
-    ExperimentError,
-)
-
-
-import json
-from json import dumps
-
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
-
-
-# VSS
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
 
@@ -51,11 +19,12 @@ def json_serial(obj):
 
 
 
-class Monitor(Experiment):
+class Monitored(Experiment):
     """Define the structure of the experiment."""
 
-          # MONITOR     
     def network_structure(self):
+        from dallinger import models
+        from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
 
         # get the necessary data
         networks = Network.query.all()
@@ -65,7 +34,7 @@ class Monitor(Experiment):
         trans= Transformation.query.all() #this does not work
         participants= Participant.query.all()
 
-        jsources= []
+        # jsources= []
         jnodes= []
         jnetworks= []
         jvectors= []
@@ -117,20 +86,23 @@ class Monitor(Experiment):
 
     # MONITOR
     def network_stats(self):
+        from dallinger import models
+        from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
+
         stat=dict()
         networks = Network.query.all()
         nodes  =   Node.query.all()
-        vectors =  Vector.query.all()
+        # vectors =  Vector.query.all()
         infos =  Info.query.all()
         participants= Participant.query.all()
 
         experiment_networks=set([net.id for net in networks if (net.role!= "practice")])
 
         failed_nodes=[node for node in nodes if node.failed]
-        suc_nodes=[node for node in nodes if not(node.failed)]
-        suc_nodes_experiment=[node for node in nodes if (not(node.failed) and (node.network_id in experiment_networks))]
+        # suc_nodes=[node for node in nodes if not(node.failed)]
+        # suc_nodes_experiment=[node for node in nodes if (not(node.failed) and (node.network_id in experiment_networks))]
         failed_infos=[info for info in infos if info.failed]
-        suc_infos=[info for info in infos if not(info.failed)]
+        # suc_infos=[info for info in infos if not(info.failed)]
 
 
         msg_networks="# networks = {} (experiment= {})".format(len(networks),len(experiment_networks))
@@ -153,21 +125,9 @@ class Monitor(Experiment):
         
         return stat
 
-
-
-# MONITOR
-@extra_routes.route("/monitor/", methods=["GET"])
-def monitor():
-    exp = MCMCP(db.session)
-    res=exp.network_structure()
-    stat=exp.network_stats()
-    data = {"status": "success", "net_structure": res}
-
-    msg=stat['msg'].replace("\n",'<br>')
-    print (stat)
-    return render_template('network-monitor.html',my_data=dumps(data, default=json_serial),my_msg=msg)
-
-
-
-
-
+    def render_monitor_template(self):
+        res = self.network_structure()
+        stat = self.network_stats()
+        data = {"status": "success", "net_structure": res}
+        msg = stat['msg'].replace("\n",'<br>')
+        return render_template('network-monitor.html', my_data = dumps(data, default = json_serial), my_msg = msg)
