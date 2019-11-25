@@ -39,5 +39,13 @@ class MCMP(dlgr_monitor.main.Experiment):
     ...
 ```
 
+Add the route:
+
+``` python
+@extra_routes.route("/monitor", methods=["GET"])
+def get_monitor():
+    return MCMCP(db.session).render_monitor_template()
+```
+
 Now, when you run your experiment, you should be able to access the monitor
 route by visiting `/monitor`.

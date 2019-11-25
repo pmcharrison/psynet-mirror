@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    install_requires=["datetime", "flask", "dallinger"]
+    install_requires=["datetime", "flask", "dallinger", "importlib.resources"]
 )
 
 # python3.7 setup.py sdist bdist_wheel
