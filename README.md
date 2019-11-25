@@ -5,8 +5,10 @@ This implements a monitoring page for Dallinger experiments.
 ## Installation
 
 ```
-pip install dlgr_monitor
+pip install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-monitor
 ```
+
+Note that you must have set up your GitLab SSH keys already.
 
 ## Usage
 
