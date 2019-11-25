@@ -14,6 +14,14 @@ Note that you must have set up your GitLab SSH keys already.
 
 Suppose that you have already implemented an experiment in Dallinger,
 and you wish to add a monitor route.
+
+First, add `dlgr-monitor` to the required depenencies
+by adding the following line to your `requirements.txt` file:
+
+```
+git+ssh://git@gitlab.com/computational-audition-lab/dlgr-monitor
+```
+
 Open the `experiment.py` file, and import the monitor package as follows:
 
 ``` python
