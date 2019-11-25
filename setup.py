@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.7',
     include_package_data=True,
-    install_requires=["datetime", "flask", "json", "dallinger"]
+    install_requires=["datetime", "flask", "dallinger"]
 )
 
 # python3.7 setup.py sdist bdist_wheel
