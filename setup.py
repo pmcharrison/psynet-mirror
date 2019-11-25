@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dlgr_monitor", # Replace with your own username
-    version="0.0.2",
+    version="0.0.3",
     author="Peter Harrison, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Implementing a monitor route for Dallinger experiments",
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    install_requires=["datetime", "flask", "dallinger", "importlib.resources"]
+    install_requires=["datetime", "flask", "dallinger", "importlib_resources"]
 )
 
 # python3.7 setup.py sdist bdist_wheel

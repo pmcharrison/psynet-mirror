@@ -2,7 +2,7 @@ from datetime import datetime
 from flask import render_template_string
 from json import dumps
 
-import importlib.resources as pkg_resources
+import importlib_resources as pkg_resources
 
 from dallinger.config import get_config
 import dallinger.experiment
