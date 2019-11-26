@@ -32,23 +32,21 @@
         /// set display options and groups.
         function getOptions() {
           var options = {
-                        layout: {
-                            //improvedLayout: false,
-                             hierarchical: {
-                                 direction: 'UD',
-                                 sortMethod: 'directed',
-                             }
-                         },
-                         interaction: {dragNodes :false},
-                         physics: {
-                            enabled: true,
-                            timestep: 1.0
-                         },
-                         nodes: {
-                           shapeProperties: {
-                            interpolation: false    // 'true' for intensive zooming
-                           }
-                          },
+            layout: {
+                improvedLayout: false,
+                 hierarchical: {
+                     direction: 'UD',
+                     sortMethod: 'directed',
+                     edgeMinimization: false,
+                     nodeSpacing: 80,
+                     treeSpacing: 200
+                 }
+             },
+             interaction: {dragNodes :false},
+             physics: {
+                enabled: false,
+                stabilization:  false
+             },
                         // nodes: {
                         //
                         //         size: 20,
@@ -135,7 +133,7 @@
                                         face: 'FontAwesome',
                                         code: '\uf0c2',
                                         size: 80,
-                                        color: 'rgb(60,60,80)'
+                                        color: 'rgb(60,60,120)'
                                     },
                                      font: {
                                           size: 14,
@@ -203,8 +201,8 @@
           var edges = [];
           var list_of_nodes=[]; // list of objects with nodes
           var list_of_participants=[]; // list of objects with participants
-          var map_infoid_to_infonum=[];
-
+          var list_of_node_indx=[]; // list of objects with nodes
+          
           // find all participants and make list, also asigned unique colors to nodes
           for (var i = 0; i< ndata.net_structure.participants.length; i++) {
             participant=ndata.net_structure.participants[i];
@@ -226,6 +224,7 @@
               node=ndata.net_structure.nodes[i];
               count_nodes++; // count the nodes
               list_of_nodes[node.id]=node;
+              list_of_node_indx[node.id]=count_nodes;
 
               /// find if the node is a source:
               if (node.type.toLowerCase().search('source')>0) {
@@ -264,7 +263,7 @@
 
              // actually push the node to node list
               nodes.push({
-                id: node.id,
+                id: list_of_node_indx[node.id],
                 label: msg+String(node.id), color:clr,
                 title: ('<pre><code><font size="-2">'+ JSON.stringify(node, null, 2) + '</font></code></pre>'),
                 group: mgroup,
@@ -283,8 +282,8 @@
               mclr='blue'
               }
               edges.push({
-                from: from,
-                to: to,
+                from: list_of_node_indx[from],
+                to: list_of_node_indx[to],
                 arrows:'to',
                 title: ('<pre><code><font size="-2">'+ JSON.stringify(vector, null, 2) + '</font></code></pre>'),
                 color: mclr
@@ -295,9 +294,6 @@
             for (var i = 0; i< ndata.net_structure.infos.length; i++) {
               info=ndata.net_structure.infos[i];
               count_nodes++;
-
-              map_infoid_to_infonum[info.id]=count_nodes
-              
               my_node_id=count_nodes;
               to=my_node_id;
               from=info.origin_id;
@@ -325,7 +321,7 @@
               });
               if (participant_id>0) {
                 edges.push({
-                from: from,
+                from: list_of_node_indx[from],
                 to: to,
                 dashes:true,
                 label: "participant: "+ String(participant_id), font: {size:15, color:participant.clr, strokeWidth:0, strokeColor:'yellow',align: 'top'},
@@ -334,7 +330,7 @@
               });
               } else {
               edges.push({
-                from: from,
+                from: list_of_node_indx[from],
                 to: to,
                 dashes:true,
                 //label: participant_id,      font: {align: 'top'},
@@ -344,35 +340,6 @@
               }
             }
 
-            // create edges for transformation
-            for (var i = 0; i< ndata.net_structure.trans.length; i++) {
-              tran=ndata.net_structure.trans[i]
-              var from = tran.origin_id;
-              var to = tran.destination_id;
-              var from_n=map_infoid_to_infonum[from];
-              var to_n=map_infoid_to_infonum[to];
-              
-              if (tran.failed) {
-                rr=200
-                gg=100
-                bb=100
-                mclr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')'
-              } else {
-                //mclr='black'
-                rr=200
-                gg=200
-                bb=200
-                mclr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')'
-              }
-              edges.push({
-                from: from_n,
-                to: to_n,
-                arrows:'to',
-                dashes:true,
-                title: ('<pre><code><font size="-2">'+ JSON.stringify(tran, null, 2) + '</font></code></pre>'),
-                color: mclr
-              });
-            }
             //practice father of all practice networks
             count_nodes++;
             my_node_id=count_nodes;
@@ -432,7 +399,7 @@
                   node=ndata.net_structure.nodes[j];
                     if ((node.type.toLowerCase().search('source')>0) && (node.network_id==net.id))  {
                       is_found=true
-                      to=node.id
+                      to=list_of_node_indx[node.id]
                       break
                     }
                 }
@@ -481,32 +448,33 @@
                   color: 'white',
                   font: {align: 'inside'}
                 });
+
+            //     // Create a mother node for all nodes and connect it to father nodes
+            // count_nodes++;
+            // my_node_id=count_nodes;
+            // nodes.push({
+            //         id: my_node_id,
+            //         label: 'My experiment',
+            //         title: ('My experiment'),
+            //         group: 'experiment_father',
+            //         font: {align: 'inside'}
+            //       });
+            // eve_mother_of_all=my_node_id;
+
+            // edges.push({
+            //       from: eve_mother_of_all,
+            //       to: practice_father,
+            //       color: 'white',
+            //       font: {align: 'inside'}
+            //     });
+            //     edges.push({
+            //       from: eve_mother_of_all,
+            //       to: experiment_father,
+            //       color: 'white',
+            //       font: {align: 'inside'}
+            //     });
+
             }
-
-            // Create a mother node for all nodes and connect it to father nodes
-            count_nodes++;
-            my_node_id=count_nodes;
-            nodes.push({
-                    id: my_node_id,
-                    label: 'My experiment',
-                    title: ('My experiment'),
-                    group: 'experiment_father',
-                    font: {align: 'inside'}
-                  });
-            eve_mother_of_all=my_node_id;
-
-            edges.push({
-                  from: eve_mother_of_all,
-                  to: practice_father,
-                  color: 'white',
-                  font: {align: 'inside'}
-                });
-                edges.push({
-                  from: eve_mother_of_all,
-                  to: experiment_father,
-                  color: 'white',
-                  font: {align: 'inside'}
-                });
 
           return {nodes:nodes, edges:edges};
         }

@@ -32,7 +32,7 @@ class Experiment(dallinger.experiment.Experiment):
         nodes  =   Node.query.all()
         vectors =  Vector.query.all()
         infos =  Info.query.all()
-        trans= Transformation.query.all() #this does not work
+        # trans= Transformation.query.all() #this does not work
         participants= Participant.query.all()
 
         # jsources= []
@@ -61,14 +61,14 @@ class Experiment(dallinger.experiment.Experiment):
             js={'origin_id':orig, 'destination_id':dest,'id':vid, 'failed':vfail}
             #self.log js
             jvectors.append(js)
-        for t in trans:
-            #self.log "now in vector -----------HERE ---------"
-            orig=t.info_in_id
-            dest=t.info_out_id
-            tid=t.id
-            tfail=t.failed
-            js={'origin_id':orig, 'destination_id':dest,'id':tid, 'failed':tfail}
-            jtrans.append(js)
+        # for t in trans:
+        #     #self.log "now in vector -----------HERE ---------"
+        #     orig=t.info_in_id
+        #     dest=t.info_out_id
+        #     tid=t.id
+        #     tfail=t.failed
+        #     js={'origin_id':orig, 'destination_id':dest,'id':tid, 'failed':tfail}
+        #     jtrans.append(js)
         for i in infos:
             #self.log "info id: {} --------------------HERE--------".format(i.id)
             js=i.__json__()
