@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dlgr_monitor", # Replace with your own username
-    version="0.0.3",
+    version="0.0.4",
     author="Peter Harrison, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Implementing a monitor route for Dallinger experiments",
