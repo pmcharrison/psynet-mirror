@@ -96,20 +96,29 @@ class Experiment(dallinger.experiment.Experiment):
         # vectors =  Vector.query.all()
         infos =  Info.query.all()
         participants= Participant.query.all()
-
+    
         experiment_networks=set([net.id for net in networks if (net.role!= "practice")])
-
+    
         failed_nodes=[node for node in nodes if node.failed]
         # suc_nodes=[node for node in nodes if not(node.failed)]
         # suc_nodes_experiment=[node for node in nodes if (not(node.failed) and (node.network_id in experiment_networks))]
         failed_infos=[info for info in infos if info.failed]
         # suc_infos=[info for info in infos if not(info.failed)]
-
-
+    
+    
         msg_networks="# networks = {} (experiment= {})".format(len(networks),len(experiment_networks))
         msg_nodes=   "# nodes = {} [failed= {} ({} %)]".format(len(nodes), len(failed_nodes), round(100.0*len(failed_nodes)/(0.001+len(nodes))))
         msg_infos=   "# infos = {} [failed= {} ({} %)]".format(len(infos), len(failed_infos), round(100.0*len(failed_infos)/(0.001+len(infos))))
-
+        
+        active_participants=0
+        relevant_participants=[p for p in participants if (p.status=="working")]
+        for participant in relevant_participants:
+            # experiment_nets_for_p=len([node for node in nodes if ((node.participant_id==participant.id) and (node.network_id in experiment_networks))])
+            nets_for_p=len([node for node in nodes if (node.participant_id==participant.id)])
+            if (nets_for_p<=1): #make sure player played at least one valid nodes
+                continue
+            active_participants=active_participants+1
+        msg_part =   "# participants = {} working: {} active: {}".format(len(participants),len(relevant_participants),active_participants)
     
         stat['n_participants']=len(participants)
         stat['n_networks']=len(networks)
@@ -121,7 +130,7 @@ class Experiment(dallinger.experiment.Experiment):
         stat['msg_networks']=msg_networks
         stat['msg_nodes']=msg_nodes
         stat['msg_infos']=msg_infos
-        stat['msg']="{}\n{}\n{}\n".format(msg_networks,msg_nodes,msg_infos)
+        stat['msg']="{}\n{}\n{}\n{}\n".format(msg_part,msg_networks,msg_nodes,msg_infos)
         
         
         return stat
