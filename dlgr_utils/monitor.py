@@ -2,12 +2,10 @@ from datetime import datetime
 from flask import render_template_string
 from json import dumps
 
-import importlib_resources as pkg_resources
-
 from dallinger.config import get_config
 import dallinger.experiment
 
-from dlgr_monitor import templates
+from dlgr_utils.misc import get_template
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -140,8 +138,5 @@ class Experiment(dallinger.experiment.Experiment):
         stat = self.network_stats()
         data = {"status": "success", "net_structure": res}
         msg = stat['msg'].replace("\n",'<br>')
-        html = pkg_resources.read_text(templates, "network-monitor.html")
+        html = get_template("network-monitor.html")
         return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
-
-def get():
-    return pkg_resources.read_text(templates, "network-monitor.html")

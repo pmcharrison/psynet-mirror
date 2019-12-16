@@ -1,0 +1,70 @@
+{% extends "layout.html" %}
+
+{% macro make_questions(questions) %}
+    {% for q in questions %}
+        <div style="padding:1em">
+            {{make_question(q)}}
+        </div>
+    {% endfor %}
+{% endmacro %}
+
+{% macro make_question(x) %}
+    {% if x.type == "dropdown" %}
+        {{ dropdown(x.id, x.question, x.values, x.labels) }}
+    {% elif x.type == "info" %}
+        <h3>{{ x.info }}</h3>
+    {% endif %}
+{% endmacro %}
+
+{% macro dropdown(id, question, values, labels) %}
+    <div class="row question">
+        <div class="col-md-8">{{question}}</div>
+        <div class="col-md-4">
+            <select id="{{id}}" name="{{id}}" class="questionnaire-field">
+                <option value="empty"></option>
+                {% for i in range(values | count) %}
+                    <option value={{values[i]}}>{{labels[i]}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+{% endmacro %}
+
+{% block body %}
+    <div class="main_div">
+        {% block questions %}
+            <form>
+                {{ make_questions(questions) }}
+            </form>
+        {% endblock %}  
+
+        <hr>
+
+        <div class="instructionsnav">
+            <div class="row">
+                <div class="col-xs-2"></div>
+                <div class="col-xs-7"></div>
+                <div class="col-xs-3"><button type="button" id="submit-questionnaire" class="btn btn-primary btn-lg continue" onclick="attempt_submit()">Continue</button></div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+  <script type="text/javascript">
+    function attempt_submit() {
+        const fields = document.querySelectorAll(".questionnaire-field");
+        clear = true;
+        for (var i = 0; i < fields.length; i ++) {
+            if (fields[i].value == "empty") {
+                clear = false;
+                alert("Please complete all questions before continuing.");
+                break;
+            }
+        }
+        if (clear) {
+            dallinger.submitQuestionnaire();
+        }
+    }
+  </script>
+{% endblock %}

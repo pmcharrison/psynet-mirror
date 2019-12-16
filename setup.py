@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="dlgr_utils", # Replace with your own username
-    version="0.0.6",
+    version="0.0.8",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    install_requires=["datetime", "flask", "dallinger", "importlib_resources"]
+    install_requires=["datetime", "flask", "dallinger", "importlib_resources", "pandas"]
 )
 
 # python3.7 setup.py sdist bdist_wheel
