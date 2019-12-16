@@ -6,36 +6,37 @@ pip install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
 
 Note that you must have set up your GitLab SSH keys already.
 
+# Adding `dlgr_utils` to your Dallinger experiment
+
+This is simply achieved by adding the following line to your `requirements.txt` file:
+
+```
+-e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils#egg=dlgr_utils
+```
+
 # Monitor
 
-This implements a monitoring page for Dallinger experiments.
-
-## Usage
+The `monitor` module implements a monitoring page for Dallinger experiments.
 
 Suppose that you have already implemented an experiment in Dallinger,
 and you wish to add a monitor route.
 
-Add `dlgr_monitor` to the required dependencies
-by adding the following line to your `requirements.txt` file:
+Add `dlgr_utils` to your `requirements.txt` file, as described above.
 
-```
--e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-monitor#egg=dlgr_monitor
-```
-
-Open the `experiment.py` file, and import the monitor package as follows:
+Open the `experiment.py` file, and import the monitor module as follows:
 
 ``` python
-import dlgr_monitor.main
+import dlgr_utils.monitor
 ```
 
 Now, find your experiment class, which typically will specialise 
 Dallinger's built-in `Experiment` class.
 Change your code so that it now specialises the monitor route's
-`Experiment` class, which is found in `dlgr_monitor.main`.
+`Experiment` class, which is found in `dlgr_utils.monitor`.
 For example:
 
 ``` python
-class MCMP(dlgr_monitor.main.Experiment):
+class MCMP(dlgr_utils.monitor.Experiment):
     ...
 ```
 
