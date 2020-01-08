@@ -31,7 +31,7 @@
 {% endmacro %}
 
 {% block body %}
-    <div class="main_div">
+    <div class="main_div" id="questionnaire" name="{{name}}" next_page={{next_page}}>
         {% block questions %}
             <form>
                 {{ make_questions(questions) }}
@@ -63,8 +63,39 @@
             }
         }
         if (clear) {
-            dallinger.submitQuestionnaire();
+            var x = document.getElementById("questionnaire");
+            var name = x.getAttribute("name");
+            var next_page = x.getAttribute("next_page")
+            submit_responses(name, next_page = next_page);
         }
     }
+
+    submit_responses = function (questionnaire_name, next_page = "") {
+        when_done = function() {
+            if (next_page == "") {
+                dallinger.submitAssignment();
+            } else {
+                dallinger.goToPage(next_page);
+            }
+        }
+
+        var formSerialized = $("form").serializeArray(),
+        spinner = dallinger.BusyForm(),
+        formDict = {},
+        xhr;
+
+        formSerialized.forEach(function (field) {
+            formDict[field.name] = field.value;
+        });
+
+        xhr = dallinger.post('/question/' + dallinger.identity.participantId, {
+            question: questionnaire_name,
+            number: 1,
+            response: JSON.stringify(formDict)
+        });
+        spinner.freeze([$('form :input')]);
+        xhr.done(when_done)
+        xhr.always(function () { spinner.unfreeze(); });
+  };
   </script>
 {% endblock %}
