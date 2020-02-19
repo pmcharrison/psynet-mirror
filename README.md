@@ -18,6 +18,15 @@ This is simply achieved by adding the following line to your `requirements.txt` 
 
 The `monitor` module implements a monitoring page for Dallinger experiments.
 
+## Minimal demo of monitor
+
+This repository includes a minimal demo of the monitor route.
+You can launch this demo by running `dallinger debug --verbose` from
+the top level of the repository. 
+You must have already installed the `dlgr_utils` package (see instructions above).
+
+## Adding the monitor to an experiment
+
 Suppose that you have already implemented an experiment in Dallinger,
 and you wish to add a monitor route.
 
