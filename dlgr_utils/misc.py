@@ -1,5 +1,5 @@
 import importlib_resources
-from dlgr_utils import templates
+from . import templates
 
 def get_template(name):
     assert isinstance(name, str)

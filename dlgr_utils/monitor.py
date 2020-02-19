@@ -5,7 +5,8 @@ from json import dumps
 from dallinger.config import get_config
 import dallinger.experiment
 
-from dlgr_utils.misc import get_template
+from . import misc
+# from dlgr_utils.misc import get_template
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -138,5 +139,5 @@ class Experiment(dallinger.experiment.Experiment):
         stat = self.network_stats()
         data = {"status": "success", "net_structure": res}
         msg = stat['msg'].replace("\n",'<br>')
-        html = get_template("network-monitor.html")
+        html = misc.get_template("network-monitor.html")
         return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
