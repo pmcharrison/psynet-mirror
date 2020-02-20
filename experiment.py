@@ -14,17 +14,18 @@ from dallinger.experiment_server.utils import (
 
 import rpdb
 
-import dlgr_utils.monitor
+from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
-from dlgr_utils.participant import Participant
-from dlgr_utils.page import Page, InfoPage
+from dlgr_utils.participant import Participant, get_participant
+from dlgr_utils.page import Page, InfoPage, Timeline
+from dlgr_utils.utils import get_api_arg
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 
-class Exp(dlgr_utils.monitor.Experiment):
+class Exp(Experiment):
     # You can customise these parameters ####
     num_networks = 3
     num_nodes_per_network = 5
@@ -33,6 +34,11 @@ class Exp(dlgr_utils.monitor.Experiment):
     use_sources = True
     use_transformations = True
     ####
+
+    timeline = Timeline([
+        InfoPage("Page 1"),
+        InfoPage("Page 2")
+    ])
 
     assert num_nodes_per_network > 0
 
@@ -104,3 +110,8 @@ def init_participant(participant_id):
 @extra_routes.route("/test", methods=["GET"])
 def get_test_page():
     return InfoPage("Content", "Title").render()
+
+@extra_routes.route("/timeline", methods=["GET"])
+def get_timeline():
+    participant_id = get_api_arg(request.args, "participant_id")
+    participant = get_participant(participant_id)
