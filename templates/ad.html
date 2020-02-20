@@ -33,7 +33,7 @@
 {% block scripts %}
 <script>
     function openwindow(event) {
-        popup = window.open('{{ server_location }}/welcome?recruiter={{ recruiter }}&hit_id={{ hitid }}&assignment_id={{ assignmentid }}&worker_id={{ workerid }}&mode={{ mode }}','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width='+1024+',height='+768+'');
+        popup = window.open('{{ server_location }}/begin?recruiter={{ recruiter }}&hit_id={{ hitid }}&assignment_id={{ assignmentid }}&worker_id={{ workerid }}&mode={{ mode }}','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width='+1024+',height='+768+'');
         event.target.setAttribute("disabled", "");
     }
 
@@ -82,7 +82,7 @@
                             </p>
 
                             <p>
-                                <a id="begin-button">Click here</a> to initialise a participant.
+                                <a id="begin-button">Click here</a> to begin as a participant.
                             </p>
                             
                             <!-- <div class="alert alert-warning">

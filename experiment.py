@@ -86,14 +86,14 @@ class Exp(Experiment):
             info = Info(node)
             self.session.add(info)
 
-extra_routes = Exp.extra_routes
+extra_routes = Exp().extra_routes()
    
 
-@extra_routes.route("/test", methods=["GET"])
-def get_test_page():
-    return InfoPage("Content", "Title").render()
+# @extra_routes.route("/test", methods=["GET"])
+# def get_test_page():
+#     return InfoPage("Content", "Title").render()
 
-@extra_routes.route("/timeline", methods=["GET"])
-def get_timeline():
-    participant_id = get_api_arg(request.args, "participant_id")
-    participant = get_participant(participant_id)
+# @extra_routes.route("/timeline", methods=["GET"])
+# def get_timeline():
+#     participant_id = get_api_arg(request.args, "participant_id")
+#     participant = get_participant(participant_id)

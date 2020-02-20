@@ -7,7 +7,17 @@ def get_template(name):
     assert isinstance(name, str)
     return importlib_resources.read_text(templates, name)
 
-class Page:
+class Elt:
+    pass
+
+class CodeBlock(Elt):
+    def __init__(self, function):
+        self.function = function
+
+    def execute(self, experiment, participant):
+        self.function(experiment=experiment, participant=participant)
+
+class Page(Elt):
     def __init__(
         self,
         template_path=None,
@@ -15,6 +25,7 @@ class Page:
         template_arg={},
         label="untitled",
         on_complete=lambda: None,
+        validate=lambda: None
 
     ):
         if template_path is None and template_str is None:
@@ -38,6 +49,12 @@ class Page:
     def render(self):
         return flask.render_template_string(self.template_str, **self.template_arg)
 
+    def process_response(self, data, participant):
+        pass
+
+class ReactivePage(Elt):
+    pass
+
 class InfoPage(Page):
     def __init__(self, content, title=None, **kwargs):
         super().__init__(
@@ -48,3 +65,45 @@ class InfoPage(Page):
             },
             **kwargs
         )
+
+class BeginPage(Page):
+    def __init__(self, content="Welcome to the experiment!", title="Welcome", **kwargs):
+        super().__init__(
+            template_str=get_template("begin.html"),
+            template_arg={
+                "content": content,
+                "title": title
+            },
+            **kwargs
+        )
+
+class Timeline():
+    def __init__(self, elts):
+        self.elts = elts
+        self.check_elts(elts)        
+
+    def check_elts(self, elts):
+        assert isinstance(elts, list)
+        assert len(elts) > 0
+        assert isinstance(elts[-1], Page) or isinstance(elts[-1], ReactivePage)
+
+    def __len__(self):
+        return len(self.elts)
+
+    def __getitem__(self, key):
+        return self.elts[key]
+
+    def get_current_elt(self, participant):
+        n = participant.elt_id 
+        N = len(self)
+        if n >= N:
+            raise ValueError(f"Tried to get element {n + 1} of a timeline with only {N} element(s).")
+        else:
+            return self[n]
+
+    # def advance_page(self, participant):
+        
+class RejectedResponse:
+    def __init__(self, message="Invalid response, please try again."):
+        self.message = message
+        

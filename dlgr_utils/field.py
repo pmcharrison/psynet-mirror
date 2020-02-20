@@ -10,6 +10,8 @@ def claim_field(db_index, type=None):
         return IntField(db_index).function
     elif type is bool:
         return BoolField(db_index).function
+    elif type is str:
+        return StrField(db_index).function
     elif type is dict:
         return DictField(db_index).function
     elif type is object:
@@ -59,6 +61,10 @@ class BoolField(Field):
             return repr(int(x))
 
         super().__init__(db_index, from_db, to_db, bool, Boolean)
+
+class StrField(Field):
+    def __init__(self, db_index):
+        super().__init__(db_index, from_db=str, to_db=str, python_type=str, sql_type=String)
 
 class DictField(Field):
     def __init__(self, db_index):

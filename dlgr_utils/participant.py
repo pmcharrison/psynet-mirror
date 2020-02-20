@@ -56,11 +56,17 @@ class VarStore:
 def var(self):
     return VarStore(self)
 
+@property 
+def initialised(self):
+    return self.position is not None
+
 Participant.var = var
-Participant.position = field.claim_field(1, int)
-Participant.complete = field.claim_field(2, bool)
-Participant.vars = field.claim_field(3, dict)
-Participant.answer = field.claim_field(4, object)
+Participant.elt_id = field.claim_field(1, int)
+Participant.page_uuid = field.claim_field(1, str)
+Participant.complete = field.claim_field(3, bool)
+Participant.vars = field.claim_field(4, dict)
+Participant.answer = field.claim_field(5, object)
+Participant.initialised = initialised
 
 def get_participant(participant_id):
     return Participant.query.get(participant_id)

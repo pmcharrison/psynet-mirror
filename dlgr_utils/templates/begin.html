@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <h1>{{title}}</h1>
+
+        {{content}}
+
+        <!-- {{next_button(next_page)}} -->
+
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{super()}}
+    <script>
+        dallinger.identity.participantId = "undefined";
+        dallinger.createParticipant().fail(function(resp) {
+            dallinger.error(resp);
+        }).error(function(resp) {
+            dallinger.error(resp);
+        });
+    </script>
+{% endblock %}

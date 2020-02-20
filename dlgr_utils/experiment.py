@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template_string, Blueprint
+from flask import render_template_string, Blueprint, request, render_template
 from json import dumps
 
 from dallinger import db
@@ -7,15 +7,19 @@ from dallinger.config import get_config
 import dallinger.experiment
 
 from dallinger.experiment_server.utils import (
-    success_response
+    success_response,
+    error_response
 )
 
-from . import page
 from .participant import Participant, get_participant
+from .page import get_template, Timeline, Page, InfoPage, BeginPage, RejectedResponse
+from .utils import get_api_arg
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
+
+import rpdb
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -25,6 +29,11 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 class Experiment(dallinger.experiment.Experiment):
+    timeline = Timeline([
+        InfoPage("Placeholder timeline")
+    ])
+
+    begin_page = BeginPage()
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -103,28 +112,80 @@ class Experiment(dallinger.experiment.Experiment):
         stat = self.network_stats()
         data = {"status": "success", "net_structure": res}
         msg = stat['msg'].replace("\n",'<br>')
-        html = page.get_template("network-monitor.html")
+        html = get_template("network-monitor.html")
         return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
 
     def init_participant(self, participant_id):
         logger.info("Initialising participant {}...".format(participant_id))
 
         participant = get_participant(participant_id)
-        participant.position = 0
+        participant.elt_id = 0
         participant.complete = False
 
         self.save()
         return success_response()
 
-    extra_routes = Blueprint(
-        "extra_routes", __name__, template_folder="templates", static_folder="static"
-    )
+    def process_response(self, participant_id, data, page_uuid):
+        participant = get_participant(participant_id)
+        if page_uuid == participant.page_uuid:
+            res = self.timeline.get_current_elt(participant).process_response(data, participant)
+            if res is RejectedResponse:
+                return self.response_rejected(message=res.message)            
+            else:
+                self.timeline.advance_page(participant)
+                return self.response_approved()
+        else:
+            logger.warn(
+                f"Participant {participant_id}'s tried to submit data with the wrong page_uuid" +
+                f"(submitted = {page_uuid}, required = {participant.page_uuid})."
+            )
+            return error_response()
 
-@Experiment.extra_routes.route("/monitor", methods=["GET"])
-def route_monitor():
-    return Experiment(db.session).render_monitor_template()
+    def response_approved(self):
+        return success_response(
+            submission="approved"
+        )
 
-@Experiment.extra_routes.route("/init-participant/<int:participant_id>", methods=["POST"])
-def route_init_participant(participant_id):
-    return Experiment(db.session).init_participant(participant_id)
+    def response_rejected(self, message):
+        return success_response(
+            submission="rejected",
+            message=message
+        )
+
+    def extra_routes(self):
+        #pylint: disable=unused-variable
+
+        routes = Blueprint(
+            "extra_routes", __name__, template_folder="templates", static_folder="static"
+        )
+
+        @routes.route("/monitor", methods=["GET"])
+        def route_monitor():
+            return Experiment(db.session).render_monitor_template()
+
+        @routes.route("/init-participant/<int:participant_id>", methods=["POST"])
+        def route_init_participant(participant_id):
+            return Experiment(db.session).init_participant(participant_id)
+
+        @routes.route("/begin", methods=["GET"])
+        def route_begin():
+            return self.begin_page.render()
+
+        @routes.route("/timeline", methods=["GET"])
+        def route_timeline():
+            participant_id = get_api_arg(request.args, "participant_id")
+            participant = get_participant(participant_id)
+
+            if not participant.initialised:
+                self.init_participant(participant_id)
+
+            return self.timeline[participant.elt_id]
+
+        @routes.route("/response", methods=["POST"])
+        def route_response():
+            participant_id = get_api_arg(request.args, "participant_id")
+            page_uuid = get_api_arg(request.args, "page_uuid")
+            data = get_api_arg(request.args, "data", use_default=True, default=None)
+            return self.process_response(participant_id, data, page_uuid)
+
     
