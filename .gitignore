@@ -3,3 +3,4 @@ build
 dist
 dlgr_monitor.egg-info
 .vscode/settings.json
+server.log
