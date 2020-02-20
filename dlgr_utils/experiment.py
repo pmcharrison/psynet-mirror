@@ -126,27 +126,30 @@ class Experiment(dallinger.experiment.Experiment):
         return success_response()
 
     def process_response(self, participant_id, data, page_uuid):
+        logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
             res = self.timeline.get_current_elt(participant).process_response(data, participant)
             if res is RejectedResponse:
                 return self.response_rejected(message=res.message)            
             else:
-                self.timeline.advance_page(participant)
+                self.timeline.advance_page(self, participant)
                 return self.response_approved()
         else:
             logger.warn(
-                f"Participant {participant_id}'s tried to submit data with the wrong page_uuid" +
+                f"Participant {participant_id} tried to submit data with the wrong page_uuid" +
                 f"(submitted = {page_uuid}, required = {participant.page_uuid})."
             )
             return error_response()
 
     def response_approved(self):
+        logger.info("The response was approved.")
         return success_response(
             submission="approved"
         )
 
     def response_rejected(self, message):
+        logger.info(f"The response was rejected with the following message: '{message}'.")
         return success_response(
             submission="rejected",
             message=message
@@ -161,11 +164,12 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/monitor", methods=["GET"])
         def route_monitor():
-            return Experiment(db.session).render_monitor_template()
+            # return Experiment(db.session).render_monitor_template()
+            return self.render_monitor_template()
 
-        @routes.route("/init-participant/<int:participant_id>", methods=["POST"])
-        def route_init_participant(participant_id):
-            return Experiment(db.session).init_participant(participant_id)
+        # @routes.route("/init-participant/<int:participant_id>", methods=["POST"])
+        # def route_init_participant(participant_id):
+        #     return Experiment(db.session).init_participant(participant_id)
 
         @routes.route("/begin", methods=["GET"])
         def route_begin():
@@ -179,6 +183,7 @@ class Experiment(dallinger.experiment.Experiment):
             if not participant.initialised:
                 self.init_participant(participant_id)
 
+            self.save()
             return self.timeline[participant.elt_id]
 
         @routes.route("/response", methods=["POST"])
@@ -186,6 +191,6 @@ class Experiment(dallinger.experiment.Experiment):
             participant_id = get_api_arg(request.args, "participant_id")
             page_uuid = get_api_arg(request.args, "page_uuid")
             data = get_api_arg(request.args, "data", use_default=True, default=None)
-            return self.process_response(participant_id, data, page_uuid)
-
-    
+            res = self.process_response(participant_id, data, page_uuid)
+            self.save()
+            return res

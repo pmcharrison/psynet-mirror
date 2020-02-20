@@ -101,7 +101,16 @@ class Timeline():
         else:
             return self[n]
 
-    # def advance_page(self, participant):
+    def advance_page(self, experiment, participant):
+        finished = False
+        while not finished:
+            participant.elt_id += 1
+            new_elt = self.get_current_elt(participant)
+            if new_elt is CodeBlock:
+                new_elt.execute(experiment, participant)
+            else:
+                finished = True
+
         
 class RejectedResponse:
     def __init__(self, message="Invalid response, please try again."):
