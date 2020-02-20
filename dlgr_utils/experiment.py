@@ -1,11 +1,21 @@
 from datetime import datetime
-from flask import render_template_string
+from flask import render_template_string, Blueprint
 from json import dumps
 
+from dallinger import db
 from dallinger.config import get_config
 import dallinger.experiment
 
+from dallinger.experiment_server.utils import (
+    success_response
+)
+
 from . import page
+from .participant import Participant, get_participant
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -95,3 +105,26 @@ class Experiment(dallinger.experiment.Experiment):
         msg = stat['msg'].replace("\n",'<br>')
         html = page.get_template("network-monitor.html")
         return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
+
+    def init_participant(self, participant_id):
+        logger.info("Initialising participant {}...".format(participant_id))
+
+        participant = get_participant(participant_id)
+        participant.position = 0
+        participant.complete = False
+
+        self.save()
+        return success_response()
+
+    extra_routes = Blueprint(
+        "extra_routes", __name__, template_folder="templates", static_folder="static"
+    )
+
+@Experiment.extra_routes.route("/monitor", methods=["GET"])
+def route_monitor():
+    return Experiment(db.session).render_monitor_template()
+
+@Experiment.extra_routes.route("/init-participant/<int:participant_id>", methods=["POST"])
+def route_init_participant(participant_id):
+    return Experiment(db.session).init_participant(participant_id)
+    

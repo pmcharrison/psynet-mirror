@@ -62,6 +62,9 @@ Participant.complete = field.claim_field(2, bool)
 Participant.vars = field.claim_field(3, dict)
 Participant.answer = field.claim_field(4, object)
 
+def get_participant(participant_id):
+    return Participant.query.get(participant_id)
+
 # def _get_global(key):
 #     raise NotImplementedError
 

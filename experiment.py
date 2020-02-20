@@ -86,26 +86,8 @@ class Exp(Experiment):
             info = Info(node)
             self.session.add(info)
 
-extra_routes = Blueprint(
-    "extra_routes", __name__, template_folder="templates", static_folder="static"
-)
-
-@extra_routes.route("/monitor", methods=["GET"])
-def get_monitor():
-    return Exp(db.session).render_monitor_template()
-
-@extra_routes.route("/init-participant/<int:participant_id>", methods=["POST"])
-def init_participant(participant_id):
-    exp = Exp(db.session)
-
-    logger.info("Initialising participant {}...".format(participant_id))
-
-    participant = Participant.query.get(participant_id)
-    participant.position = 0
-    participant.complete = False
-
-    exp.save()
-    return success_response()
+extra_routes = Exp.extra_routes
+   
 
 @extra_routes.route("/test", methods=["GET"])
 def get_test_page():
