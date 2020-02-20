@@ -67,7 +67,7 @@ class InfoPage(Page):
         )
 
 class BeginPage(Page):
-    def __init__(self, content="Welcome to the experiment!", title="Welcome", **kwargs):
+    def __init__(self, content="Starting experiment... (try refreshing if nothing happens after 5 seconds)", title="", **kwargs):
         super().__init__(
             template_str=get_template("begin.html"),
             template_arg={

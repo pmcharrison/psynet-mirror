@@ -2,7 +2,7 @@
 
 {% block body %}
     <div class="main_div">
-        <h1>{{title}}</h1>
+        <!-- <h1>{{title}}</h1> -->
 
         {{content}}
 
@@ -16,7 +16,9 @@
 {{super()}}
     <script>
         dallinger.identity.participantId = "undefined";
-        dallinger.createParticipant().fail(function(resp) {
+        dallinger.createParticipant().done(function(resp) {
+            dallinger.goToPage("timeline");
+        }).fail(function(resp) {
             dallinger.error(resp);
         }).error(function(resp) {
             dallinger.error(resp);

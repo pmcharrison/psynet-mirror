@@ -184,7 +184,7 @@ class Experiment(dallinger.experiment.Experiment):
                 self.init_participant(participant_id)
 
             self.save()
-            return self.timeline[participant.elt_id]
+            return self.timeline.get_current_elt(participant).render()
 
         @routes.route("/response", methods=["POST"])
         def route_response():
