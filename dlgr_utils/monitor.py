@@ -5,7 +5,7 @@ from json import dumps
 from dallinger.config import get_config
 import dallinger.experiment
 
-from . import misc
+from . import page
 # from dlgr_utils.misc import get_template
 
 def json_serial(obj):
@@ -139,5 +139,5 @@ class Experiment(dallinger.experiment.Experiment):
         stat = self.network_stats()
         data = {"status": "success", "net_structure": res}
         msg = stat['msg'].replace("\n",'<br>')
-        html = misc.get_template("network-monitor.html")
+        html = page.get_template("network-monitor.html")
         return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)

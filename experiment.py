@@ -17,6 +17,7 @@ import rpdb
 import dlgr_utils.monitor
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant
+from dlgr_utils.page import Page, InfoPage
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -96,6 +97,10 @@ def init_participant(participant_id):
     participant = Participant.query.get(participant_id)
     participant.position = 0
     participant.complete = False
-    
+
     exp.save()
     return success_response()
+
+@extra_routes.route("/test", methods=["GET"])
+def get_test_page():
+    return InfoPage("Content", "Title").render()

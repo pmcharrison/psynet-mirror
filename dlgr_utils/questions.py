@@ -7,7 +7,7 @@ from flask import render_template_string
 
 from dallinger.models import Participant
 
-from . import misc
+from . import page
 from . import definitions
 
 class Question():
@@ -32,7 +32,7 @@ def render_questions(questions, name = "final", next_page = ""):
     assert isinstance(name, str)
     assert isinstance(next_page, str)
 
-    html = misc.get_template("questions.html")
+    html = page.get_template("questions.html")
     return render_template_string(html, questions = questions, name = name, next_page = next_page)
 
 def get_gold_msi():
