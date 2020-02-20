@@ -6,7 +6,7 @@ from dallinger.models import Network, Info, Transformation, Node
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 from dallinger import db, recruiters
-from dallinger.models import Participant
+# from dallinger.models import Participant
 
 from dallinger.experiment_server.utils import (
     success_response
@@ -15,13 +15,13 @@ from dallinger.experiment_server.utils import (
 import rpdb
 
 import dlgr_utils.monitor
-from dlgr_utils.misc import claim_field
+from dlgr_utils.field import claim_field
+from dlgr_utils.participant import Participant
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-Participant.test = claim_field(1, type=int)
 
 class Exp(dlgr_utils.monitor.Experiment):
     # You can customise these parameters ####
@@ -94,7 +94,8 @@ def init_participant(participant_id):
     logger.info("Initialising participant {}...".format(participant_id))
 
     participant = Participant.query.get(participant_id)
-    participant.test = 3
-
+    participant.position = 0
+    participant.complete = False
+    
     exp.save()
     return success_response()
