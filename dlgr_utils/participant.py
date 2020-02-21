@@ -58,7 +58,7 @@ def var(self):
 
 @property 
 def initialised(self):
-    return self.position is not None
+    return self.elt_id is not None
 
 Participant.var = var
 Participant.elt_id = field.claim_field(1, int)

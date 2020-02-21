@@ -38,6 +38,10 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
+    @classmethod
+    def new(cls, session):
+        return cls(session)
+
     def network_structure(self):
         from dallinger import models
         from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
@@ -164,12 +168,7 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/monitor", methods=["GET"])
         def route_monitor():
-            # return Experiment(db.session).render_monitor_template()
             return self.render_monitor_template()
-
-        # @routes.route("/init-participant/<int:participant_id>", methods=["POST"])
-        # def route_init_participant(participant_id):
-        #     return Experiment(db.session).init_participant(participant_id)
 
         @routes.route("/begin", methods=["GET"])
         def route_begin():
@@ -177,20 +176,24 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/timeline", methods=["GET"])
         def route_timeline():
+            exp = self.new(db.session)
             participant_id = get_api_arg(request.args, "participant_id")
             participant = get_participant(participant_id)
 
             if not participant.initialised:
-                self.init_participant(participant_id)
+                exp.init_participant(participant_id)
 
-            self.save()
-            return self.timeline.get_current_elt(participant).render()
+            exp.save()
+            return exp.timeline.get_current_elt(participant).render()
 
         @routes.route("/response", methods=["POST"])
         def route_response():
+            exp = self.new(db.session)
             participant_id = get_api_arg(request.args, "participant_id")
             page_uuid = get_api_arg(request.args, "page_uuid")
             data = get_api_arg(request.args, "data", use_default=True, default=None)
-            res = self.process_response(participant_id, data, page_uuid)
-            self.save()
+            res = exp.process_response(participant_id, data, page_uuid)
+            exp.save()
             return res
+
+        return routes
