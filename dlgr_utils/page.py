@@ -9,7 +9,8 @@ def get_template(name):
     return importlib_resources.read_text(templates, name)
 
 class Elt:
-    pass
+    def render(self, experiment, participant):
+        raise NotImplementedError
 
 class CodeBlock(Elt):
     def __init__(self, function):
@@ -48,7 +49,7 @@ class Page(Elt):
         self.on_complete = on_complete
         self.js_vars = js_vars
 
-    def render(self, participant):
+    def render(self, experiment, participant):
         internal_js_vars = {
             "page_uuid": participant.page_uuid
         }
@@ -62,7 +63,18 @@ class Page(Elt):
         pass
 
 class ReactivePage(Elt):
-    pass
+    def __init__(self, function):
+        self.function = function
+
+    def resolve(self, experiment, participant):
+        page = self.function(experiment=experiment, participant=participant)
+        if not isinstance(page, Page):
+            raise TypeError("The ReactivePage function must return an object of class Page.")
+        return page
+
+    # def render(self, experiment, participant):
+    #     page = self.resolve(experiment=experiment, participant=participant)
+    #     return page.render(experiment=experiment, participant=participant)
 
 class InfoPage(Page):
     def __init__(self, content, title=None, **kwargs):
@@ -114,19 +126,23 @@ class Timeline():
     def __getitem__(self, key):
         return self.elts[key]
 
-    def get_current_elt(self, participant):
+    def get_current_elt(self, experiment, participant, resolve=True):
         n = participant.elt_id 
         N = len(self)
         if n >= N:
             raise ValueError(f"Tried to get element {n + 1} of a timeline with only {N} element(s).")
         else:
-            return self[n]
+            res = self[n]
+            if isinstance(res, ReactivePage) and resolve:
+                return res.resolve(experiment, participant)
+            else:
+                return res
 
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
             participant.elt_id += 1
-            new_elt = self.get_current_elt(participant)
+            new_elt = self.get_current_elt(experiment, participant, resolve=False)
             if new_elt is CodeBlock:
                 new_elt.execute(experiment, participant)
             else:

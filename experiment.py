@@ -17,11 +17,13 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage
+from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage, ReactivePage
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
+
+from datetime import datetime
 
 
 class Exp(Experiment):
@@ -37,6 +39,7 @@ class Exp(Experiment):
     timeline = Timeline([
         InfoPage("Page 1"),
         InfoPage("Page 2"),
+        ReactivePage(lambda experiment, participant: InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}.")),
         FinalPage()
     ])
 

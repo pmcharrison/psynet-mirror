@@ -136,7 +136,7 @@ class Experiment(dallinger.experiment.Experiment):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
-            res = self.timeline.get_current_elt(participant).process_response(data, participant)
+            res = self.timeline.get_current_elt(self, participant).process_response(data, participant)
             if res is RejectedResponse:
                 return self.response_rejected(message=res.message)            
             else:
@@ -176,7 +176,6 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/begin", methods=["GET"])
         def route_begin():
             return render_template("begin.html")
-            # return self.begin_page.render()
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
@@ -204,7 +203,7 @@ class Experiment(dallinger.experiment.Experiment):
                 if not participant.initialised:
                     exp.init_participant(participant_id)
                 exp.save()
-                return exp.timeline.get_current_elt(participant).render(participant)
+                return exp.timeline.get_current_elt(self, participant).render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
         def route_response():
