@@ -178,16 +178,33 @@ class Experiment(dallinger.experiment.Experiment):
             return render_template("begin.html")
             # return self.begin_page.render()
 
-        @routes.route("/timeline/<int:participant_id>", methods=["GET"])
-        def route_timeline(participant_id):
+        @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
+        def route_timeline(participant_id, assignment_id):
+            from dallinger.experiment_server.utils import error_page
             exp = self.new(db.session)
             participant = get_participant(participant_id)
 
-            if not participant.initialised:
-                exp.init_participant(participant_id)
+            if participant.assignment_id != assignment_id:
+                logger.error(
+                    f"Mismatch between provided assignment_id ({assignment_id})  " +
+                    f"and actual assignment_id {participant.assignment_id} "
+                    f"for participant {participant_id}."
+                )
+                msg = (
+                    "There was a problem authenticating your session, " +
+                    "did you switch browsers? Unfortunately this is not currently " +
+                    "supported by our system."
+                )
+                return error_page(
+                    participant=participant,
+                    error_text=msg
+                )
 
-            exp.save()
-            return exp.timeline.get_current_elt(participant).render(participant)
+            else:
+                if not participant.initialised:
+                    exp.init_participant(participant_id)
+                exp.save()
+                return exp.timeline.get_current_elt(participant).render(participant)
 
         @routes.route("/response", methods=["POST"])
         def route_response():

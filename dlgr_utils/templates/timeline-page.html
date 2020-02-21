@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+
+{% block scripts %}
+    {{super()}}
+    <script>
+        if (dallinger.identity.participantId == undefined) {
+            alert(
+                "Your participant ID is undefined, perhaps because you " +
+                "switched browsers during the test. " +
+                "Unfortunately this behaviour is not currently supported."
+            );
+            throw console.error("Undefined participant ID.");
+        }
+    </script>
+{% endblock %}

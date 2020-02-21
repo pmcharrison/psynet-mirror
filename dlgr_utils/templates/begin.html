@@ -20,7 +20,7 @@
         dallinger.identity.participantId = "undefined";
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
-                dallinger.goToPage("timeline/" + dallinger.identity.participantId);
+                dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
             }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);

@@ -14,13 +14,14 @@
 {% endmacro %}
 
 {% block scripts %}
+    {{super()}}
     <script>
         {{ init_js_vars }}
         next_page = function(data=null) {
             submit_response(data).done(function(response) {
                 if (response.submission == "approved") {
                     console.log("Response received successfully.");
-                    dallinger.goToPage("timeline/" + dallinger.identity.participantId);
+                    dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
                 } else if (response.submission == "rejected") {
                     console.log("Response rejected.");
                     alert(response.message);
