@@ -1,6 +1,7 @@
 import importlib_resources
 import flask
 
+from .utils import dict_to_js_vars
 from . import templates
 
 def get_template(name):
@@ -25,8 +26,8 @@ class Page(Elt):
         template_arg={},
         label="untitled",
         on_complete=lambda: None,
-        validate=lambda: None
-
+        validate=lambda: None,
+        js_vars = {}
     ):
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
@@ -45,9 +46,17 @@ class Page(Elt):
         self.template_arg = template_arg
         self.label = label
         self.on_complete = on_complete
+        self.js_vars = js_vars
 
-    def render(self):
-        return flask.render_template_string(self.template_str, **self.template_arg)
+    def render(self, participant):
+        internal_js_vars = {
+            "page_uuid": participant.page_uuid
+        }
+        all_template_arg = {
+            **self.template_arg, 
+            "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars}))
+        }
+        return flask.render_template_string(self.template_str, **all_template_arg)
 
     def process_response(self, data, participant):
         pass
@@ -60,22 +69,33 @@ class InfoPage(Page):
         super().__init__(
             template_str=get_template("info-page.html"),
             template_arg={
-                "content": content,
-                "title": title
+                "content": "" if content is None else content,
+                "title": "" if title is None else title
             },
             **kwargs
         )
 
-class BeginPage(Page):
-    def __init__(self, content="Starting experiment... (try refreshing if nothing happens after 5 seconds)", title="", **kwargs):
+class FinalPage(Page):
+    def __init__(self, content="Experiment complete, please wait...", title=None, wait_sec=750):
         super().__init__(
-            template_str=get_template("begin.html"),
+            template_str=get_template("final-page.html"),
             template_arg={
-                "content": content,
-                "title": title
+                "content": "" if content is None else content,
+                "title": "" if title is None else title
             },
-            **kwargs
+            js_vars={"wait_sec": wait_sec}
         )
+
+# class BeginPage(Page):
+#     def __init__(self, content="Starting experiment... (try refreshing if nothing happens after 5 seconds)", title="", **kwargs):
+#         super().__init__(
+#             template_str=get_template("begin.html"),
+#             template_arg={
+#                 "content": content,
+#                 "title": title
+#             },
+#             **kwargs
+#         )
 
 class Timeline():
     def __init__(self, elts):
@@ -85,7 +105,8 @@ class Timeline():
     def check_elts(self, elts):
         assert isinstance(elts, list)
         assert len(elts) > 0
-        assert isinstance(elts[-1], Page) or isinstance(elts[-1], ReactivePage)
+        if not isinstance(elts[-1], FinalPage):
+            raise ValueError("The final element in the timeline must be a FinalPage.")
 
     def __len__(self):
         return len(self.elts)
@@ -109,6 +130,7 @@ class Timeline():
             if new_elt is CodeBlock:
                 new_elt.execute(experiment, participant)
             else:
+                participant.page_uuid = experiment.make_uuid()
                 finished = True
 
         

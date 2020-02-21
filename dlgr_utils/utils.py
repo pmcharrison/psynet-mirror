@@ -1,18 +1,34 @@
-def get_api_arg(arguments: dict, desired: str, use_default = False, default = None):
-    if arguments is None:
+import json
+from functools import reduce
+
+def get_arg_from_dict(x, desired: str, use_default = False, default = None):
+    if desired not in x:
         if use_default:
             return default
         else:
-            raise APIMissingJSON
-    elif desired not in arguments:
-        if use_default:
-            return default
-        else:
-            raise APIArgumentError
-    return arguments[desired]
+            raise ValueError
+    return x[desired]
 
-class APIArgumentError(ValueError):
-    pass
+# def get_json_arg_from_request(request, desired: str, use_default = False, default = None):
+#     arguments = request.json
+#     if arguments is None:
+#         if use_default:
+#             return default
+#         else:
+#             raise APIMissingJSON
+#     elif desired not in arguments:
+#         if use_default:
+#             return default
+#         else:
+#             raise APIArgumentError
+#     return arguments[desired]
 
-class APIMissingJSON(ValueError):
-    pass
+# class APIArgumentError(ValueError):
+#     pass
+
+# class APIMissingJSON(ValueError):
+#     pass
+
+def dict_to_js_vars(x):
+    y = [f"var {key} = JSON.parse('{json.dumps(value)}'); " for key, value in x.items()]
+    return reduce(lambda a, b: a + b, y )

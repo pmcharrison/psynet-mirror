@@ -62,7 +62,7 @@ def initialised(self):
 
 Participant.var = var
 Participant.elt_id = field.claim_field(1, int)
-Participant.page_uuid = field.claim_field(1, str)
+Participant.page_uuid = field.claim_field(2, str)
 Participant.complete = field.claim_field(3, bool)
 Participant.vars = field.claim_field(4, dict)
 Participant.answer = field.claim_field(5, object)

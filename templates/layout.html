@@ -7,7 +7,7 @@
 <div class="row">
     <div class="col-xs-10"></div>
     <div class="col-xs-2">
-        <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="dallinger.goToPage('{{next_page}}');">Next</button>
+        <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="next_page();">Next</button>
     </div>
 </div>
 
@@ -15,12 +15,12 @@
 
 {% block scripts %}
     <script>
-        {{ js_from_python }}
+        {{ init_js_vars }}
         next_page = function(data=null) {
-            submit_response(data).done(function(resp) {
+            submit_response(data).done(function(response) {
                 if (response.submission == "approved") {
                     console.log("Response received successfully.");
-                    dallinger.goToPage("timeline");
+                    dallinger.goToPage("timeline/" + dallinger.identity.participantId);
                 } else if (response.submission == "rejected") {
                     console.log("Response rejected.");
                     alert(response.message);
@@ -36,10 +36,26 @@
 
         submit_response = function(data) {
             return dallinger.post("/response", {
-                "participant_id": dallinger.identity.participantId,
-                "page_uuid": page_uuid,
-                "data": JSON.stringify(data)
+                "message": JSON.stringify({
+                    "participant_id": dallinger.identity.participantId,
+                    "page_uuid": page_uuid,
+                    "data": JSON.stringify(data)
+                })
             });
         }
+
+        // post_as_json = function(url, data) {
+        //     xhr = new XMLHttpRequest();
+        //     xhr.open("POST", url, true);
+        //     xhr.setRequestHeader("Content-type", "application/json");
+        //     // xhr.onreadystatechange = function () { 
+        //     //     if (xhr.readyState == 4 && xhr.status == 200) {
+        //     //         var json = JSON.parse(xhr.responseText);
+        //     //         console.log(json.email + ", " + json.name)
+        //     //     }
+        //     // }
+        //     var data = JSON.stringify(data);
+        //     xhr.send(data);
+        // }
     </script>
 {% endblock %}

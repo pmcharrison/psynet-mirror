@@ -4,7 +4,9 @@
     <div class="main_div">
         <!-- <h1>{{title}}</h1> -->
 
-        {{content}}
+        <!-- {{content}} -->
+
+        Starting experiment...
 
         <!-- {{next_button(next_page)}} -->
 
@@ -17,7 +19,9 @@
     <script>
         dallinger.identity.participantId = "undefined";
         dallinger.createParticipant().done(function(resp) {
-            dallinger.goToPage("timeline");
+            setTimeout(function() {
+                dallinger.goToPage("timeline/" + dallinger.identity.participantId);
+            }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);
         }).error(function(resp) {

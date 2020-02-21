@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <h1>{{title}}</h1>
+
+        {{content}}
+        
+    </div>
+{% endblock %}
+
+{% block scripts %}
+{{super()}}
+    <script>
+        setTimeout(dallinger.submitAssignment, wait_sec);
+    </script>
+{% endblock %}

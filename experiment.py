@@ -17,8 +17,7 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.page import Page, InfoPage, Timeline
-from dlgr_utils.utils import get_api_arg
+from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -37,7 +36,8 @@ class Exp(Experiment):
 
     timeline = Timeline([
         InfoPage("Page 1"),
-        InfoPage("Page 2")
+        InfoPage("Page 2"),
+        FinalPage()
     ])
 
     assert num_nodes_per_network > 0
@@ -88,12 +88,3 @@ class Exp(Experiment):
 
 extra_routes = Exp().extra_routes()
    
-
-# @extra_routes.route("/test", methods=["GET"])
-# def get_test_page():
-#     return InfoPage("Content", "Title").render()
-
-# @extra_routes.route("/timeline", methods=["GET"])
-# def get_timeline():
-#     participant_id = get_api_arg(request.args, "participant_id")
-#     participant = get_participant(participant_id)

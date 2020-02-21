@@ -1,5 +1,6 @@
 from datetime import datetime
 from flask import render_template_string, Blueprint, request, render_template
+import json
 from json import dumps
 
 from dallinger import db
@@ -12,8 +13,8 @@ from dallinger.experiment_server.utils import (
 )
 
 from .participant import Participant, get_participant
-from .page import get_template, Timeline, Page, InfoPage, BeginPage, RejectedResponse
-from .utils import get_api_arg
+from .page import get_template, Timeline, Page, InfoPage, FinalPage, RejectedResponse
+from .utils import get_arg_from_dict
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -30,10 +31,11 @@ def json_serial(obj):
 
 class Experiment(dallinger.experiment.Experiment):
     timeline = Timeline([
-        InfoPage("Placeholder timeline")
+        InfoPage("Placeholder timeline"),
+        FinalPage()
     ])
 
-    begin_page = BeginPage()
+    # begin_page = BeginPage()
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -123,7 +125,8 @@ class Experiment(dallinger.experiment.Experiment):
         logger.info("Initialising participant {}...".format(participant_id))
 
         participant = get_participant(participant_id)
-        participant.elt_id = 0
+        participant.elt_id = -1
+        self.timeline.advance_page(self, participant)
         participant.complete = False
 
         self.save()
@@ -172,26 +175,27 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/begin", methods=["GET"])
         def route_begin():
-            return self.begin_page.render()
+            return render_template("begin.html")
+            # return self.begin_page.render()
 
-        @routes.route("/timeline", methods=["GET"])
-        def route_timeline():
+        @routes.route("/timeline/<int:participant_id>", methods=["GET"])
+        def route_timeline(participant_id):
             exp = self.new(db.session)
-            participant_id = get_api_arg(request.args, "participant_id")
             participant = get_participant(participant_id)
 
             if not participant.initialised:
                 exp.init_participant(participant_id)
 
             exp.save()
-            return exp.timeline.get_current_elt(participant).render()
+            return exp.timeline.get_current_elt(participant).render(participant)
 
         @routes.route("/response", methods=["POST"])
         def route_response():
             exp = self.new(db.session)
-            participant_id = get_api_arg(request.args, "participant_id")
-            page_uuid = get_api_arg(request.args, "page_uuid")
-            data = get_api_arg(request.args, "data", use_default=True, default=None)
+            message = json.loads(request.values["message"])
+            participant_id = get_arg_from_dict(message, "participant_id")
+            page_uuid = get_arg_from_dict(message, "page_uuid")
+            data = get_arg_from_dict(message, "data", use_default=True, default=None)
             res = exp.process_response(participant_id, data, page_uuid)
             exp.save()
             return res
