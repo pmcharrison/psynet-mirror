@@ -132,11 +132,20 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, data, page_uuid):
+    def process_response(self, participant_id, data, metadata, page_uuid):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
-            res = self.timeline.get_current_elt(self, participant).process_response(data, participant)
+
+            res = self.timeline.get_current_elt(
+                self, participant
+            ).process_response(
+                input=data, 
+                metadata=metadata,
+                experiment=self,
+                participant=participant,
+            )
+
             if res is RejectedResponse:
                 return self.response_rejected(message=res.message)            
             else:
@@ -211,8 +220,9 @@ class Experiment(dallinger.experiment.Experiment):
             message = json.loads(request.values["message"])
             participant_id = get_arg_from_dict(message, "participant_id")
             page_uuid = get_arg_from_dict(message, "page_uuid")
-            data = get_arg_from_dict(message, "data", use_default=True, default=None)
-            res = exp.process_response(participant_id, data, page_uuid)
+            data = json.loads(get_arg_from_dict(message, "data", use_default=True, default=None))
+            metadata = json.loads(get_arg_from_dict(message, "metadata"))
+            res = exp.process_response(participant_id, data, metadata, page_uuid)
             exp.save()
             return res
 

@@ -1,13 +1,15 @@
-from sqlalchemy import Boolean, String, Integer, exc
+from sqlalchemy import Boolean, String, Integer, exc, Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
 import json
 import rpdb
 
-def claim_field(db_index, type=None):
+def claim_field(db_index, type=object):
     if type is int:
         return IntField(db_index).function
+    elif type is float:
+        return FloatField(db_index).function
     elif type is bool:
         return BoolField(db_index).function
     elif type is str:
@@ -20,7 +22,7 @@ def claim_field(db_index, type=None):
         raise NotImplementedError
         
 class Field():
-    def __init__(self, db_index, from_db, to_db, python_type, sql_type, null_value=lambda: None):
+    def __init__(self, db_index, from_db, to_db, permitted_python_types, sql_type, null_value=lambda: None):
         assert 1 <= db_index and db_index <= 5    
         db_field = f"property{db_index}"
 
@@ -37,8 +39,7 @@ class Field():
             if value is null_value():
                 db_value = None
             else:
-                if not isinstance(value, python_type):
-                    raise TypeError
+                check_type(value, permitted_python_types)
                 db_value = to_db(value)
             setattr(self, db_field, db_value)
 
@@ -48,9 +49,21 @@ class Field():
 
         self.function = function
 
+def check_type(x, allowed):
+    match = False
+    for t in allowed:
+        if isinstance(x, t):
+            match = True
+    if not match:
+        raise TypeError(f"{x} did not have a type in the approved list ({allowed}).")
+
 class IntField(Field):
     def __init__(self, db_index):
-        super().__init__(db_index, from_db=int, to_db=int, python_type=int, sql_type=Integer)
+        super().__init__(db_index, from_db=int, to_db=int, permitted_python_types=[int], sql_type=Integer)
+
+class FloatField(Field):
+    def __init__(self, db_index):
+        super().__init__(db_index, from_db=float, to_db=float, permitted_python_types=[int, float], sql_type=Float)
 
 class BoolField(Field):
     def __init__(self, db_index):
@@ -60,11 +73,11 @@ class BoolField(Field):
         def to_db(x):
             return repr(int(x))
 
-        super().__init__(db_index, from_db, to_db, bool, Boolean)
+        super().__init__(db_index, from_db, to_db, [bool], Boolean)
 
 class StrField(Field):
     def __init__(self, db_index):
-        super().__init__(db_index, from_db=str, to_db=str, python_type=str, sql_type=String)
+        super().__init__(db_index, from_db=str, to_db=str, permitted_python_types=[str], sql_type=String)
 
 class DictField(Field):
     def __init__(self, db_index):
@@ -72,7 +85,7 @@ class DictField(Field):
             db_index,
             from_db=json.loads, 
             to_db=json.dumps, 
-            python_type=dict, 
+            permitted_python_types=[dict], 
             sql_type=String, 
             null_value=lambda: {}
         )
@@ -83,6 +96,6 @@ class ObjectField(Field):
             db_index, 
             from_db=json.loads, 
             to_db=json.dumps, 
-            python_type=object, 
+            permitted_python_types=[object], 
             sql_type=String
         )

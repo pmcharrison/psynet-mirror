@@ -18,7 +18,7 @@
     <script>
         {{ init_js_vars }}
         next_page = function(data=null) {
-            submit_response(data).done(function(response) {
+            submit_generic_response(data).done(function(response) {
                 if (response.submission == "approved") {
                     console.log("Response received successfully.");
                     dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
@@ -28,21 +28,27 @@
                 } else {
                     throw Error("Received a malformed response.");
                 }            
-           }).error(function(resp) {
-            dallinger.error(resp);
-        });
+            }).fail(function(resp) {
+                dallinger.error(resp);
+            }).error(function(resp) {
+                dallinger.error(resp);
+            });
         spinner.freeze([$('form :input')]);
         xhr.done(when_done)
         }
 
-        submit_response = function(data) {
+        submit_generic_response = function(data) {
+            var metadata = {
+                "time_taken": 3.0
+            };
             return dallinger.post("/response", {
                 "message": JSON.stringify({
                     "participant_id": dallinger.identity.participantId,
                     "page_uuid": page_uuid,
-                    "data": JSON.stringify(data)
+                    "data": JSON.stringify(data),
+                    "metadata": JSON.stringify(metadata)
                 })
-            });
+            })
         }
 
         // post_as_json = function(url, data) {

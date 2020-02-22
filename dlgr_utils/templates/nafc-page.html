@@ -1,0 +1,48 @@
+{% extends "timeline-page.html" %}
+
+{% macro make_buttons(buttons, arrange_vertically) %}
+<div>
+    {% for x in buttons %}
+        {% if arrange_vertically %}
+            <div style="padding:1em">
+        {% endif %}
+            {{make_button(x)}}
+        {% if arrange_vertically %}
+        </div>
+        {% endif %}
+    {% endfor %}
+</div>
+{% endmacro %}
+
+{% macro make_button(x) %}
+    <button type="button"
+            class="btn btn-primary submit-response" 
+            id="{{ x.id }}"
+            {% if x.begin_disabled %}
+                disabled="false"
+            {% endif %}
+            onClick="clicked_button(this.id);"
+            style="min-width: {{ x.min_width }}">
+    {{ x.label }}
+    </button>
+{% endmacro %}
+
+{% block body %}
+    <div class="main_div">
+        {{prompt}}
+        
+        {{make_buttons(buttons, arrange_vertically)}}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    <script>
+        clicked_button = function(id) {
+            $(".submit-response").attr('disabled',true);
+            next_page({
+                "answer": id
+            });
+        }
+    </script>
+{% endblock %}

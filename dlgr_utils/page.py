@@ -1,8 +1,21 @@
 import importlib_resources
 import flask
 
+from typing import List, Optional
+
 from .utils import dict_to_js_vars
 from . import templates
+
+from dallinger.models import Question
+from dallinger.db import Base
+from dallinger.models import SharedMixin
+
+from sqlalchemy import ForeignKey
+from sqlalchemy import Column, String, Text, Enum, Integer, Boolean, DateTime, Float
+from sqlalchemy.orm import relationship
+
+from .participant import Participant
+from .field import claim_field
 
 def get_template(name):
     assert isinstance(name, str)
@@ -22,13 +35,11 @@ class CodeBlock(Elt):
 class Page(Elt):
     def __init__(
         self,
-        template_path=None,
-        template_str=None, 
-        template_arg={},
-        label="untitled",
-        on_complete=lambda: None,
-        validate=lambda: None,
-        js_vars = {}
+        template_path: Optional[str] = None,
+        template_str: Optional[str] = None, 
+        template_arg: dict = {},
+        label: str = "untitled",
+        js_vars: dict = {}
     ):
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
@@ -39,15 +50,20 @@ class Page(Elt):
             with open(template_path, "r") as file:
                 template_str = file.read()
 
+        assert len(label) <= 250
         assert isinstance(template_arg, dict)
         assert isinstance(label, str)
-        assert callable(on_complete)
 
         self.template_str = template_str
         self.template_arg = template_arg
         self.label = label
-        self.on_complete = on_complete
         self.js_vars = js_vars
+
+    def process_response(self, input, experiment, participant, **kwargs):
+        pass
+
+    def validate(self, parsed_response, experiment, participant, **kwargs):
+        pass
 
     def render(self, experiment, participant):
         internal_js_vars = {
@@ -59,9 +75,6 @@ class Page(Elt):
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
-    def process_response(self, data, participant):
-        pass
-
 class ReactivePage(Elt):
     def __init__(self, function):
         self.function = function
@@ -71,10 +84,6 @@ class ReactivePage(Elt):
         if not isinstance(page, Page):
             raise TypeError("The ReactivePage function must return an object of class Page.")
         return page
-
-    # def render(self, experiment, participant):
-    #     page = self.resolve(experiment=experiment, participant=participant)
-    #     return page.render(experiment=experiment, participant=participant)
 
 class InfoPage(Page):
     def __init__(self, content, title=None, **kwargs):
@@ -98,16 +107,64 @@ class FinalPage(Page):
             js_vars={"wait_sec": wait_sec}
         )
 
-# class BeginPage(Page):
-#     def __init__(self, content="Starting experiment... (try refreshing if nothing happens after 5 seconds)", title="", **kwargs):
-#         super().__init__(
-#             template_str=get_template("begin.html"),
-#             template_arg={
-#                 "content": content,
-#                 "title": title
-#             },
-#             **kwargs
-#         )
+class Button():
+    def __init__(self, id, label, begin_disabled=False):
+        self.id = id
+        self.label = label
+        self.begin_disabled = begin_disabled
+
+class NAFCPage(Page):
+    def __init__(
+        self,
+        label: str,
+        prompt: str,
+        choices: List[str],
+        labels=None,
+        arrange_vertically=False,
+        min_width="300px"
+    ):
+        self.prompt = prompt
+        self.choices = choices 
+        self.labels = choices if labels is None else labels
+        
+        assert isinstance(self.labels, List)
+        assert len(self.choices) == len(self.labels)
+
+        if arrange_vertically:
+            raise NotImplementedError
+
+        buttons = [
+            Button(id=choice, label=label)
+            for choice, label in zip(self.choices, self.labels)
+        ]
+        super().__init__(
+            template_str=get_template("nafc-page.html"),
+            label=label,
+            template_arg={
+                "prompt": prompt,
+                "buttons": buttons
+            }
+        )
+
+    def process_response(self, input, metadata, experiment, participant, **kwargs):
+        resp = Response(
+            participant=participant,
+            question_label=self.label, 
+            answer=input["answer"],
+            time_taken=metadata["time_taken"],
+            details={
+                "prompt": self.prompt,
+                "choices": self.choices,
+                "labels": self.labels
+            }
+        )
+        participant.answer = resp.answer
+        experiment.session.add(resp)
+        experiment.save()
+        return resp
+
+    def validate(self, parsed_response, experiment, participant, **kwargs):
+        pass
 
 class Timeline():
     def __init__(self, elts):
@@ -149,8 +206,37 @@ class Timeline():
                 participant.page_uuid = experiment.make_uuid()
                 finished = True
 
+    def process_response(self, input, experiment, participant):
+        elt = self.get_current_elt(experiment, participant)
+        parsed_response = elt.process_response(
+            input=input,
+            experiment=experiment,
+            participant=participant
+        )
+        validation = elt.validate(
+            parsed_response=parsed_response,
+            experiment=experiment,
+            participant=participant
+        )
+        return validation
         
 class RejectedResponse:
     def __init__(self, message="Invalid response, please try again."):
         self.message = message
-        
+
+class Response(Question):
+    __mapper_args__ = {"polymorphic_identity": "response"}
+
+    answer = claim_field(1)
+    time_taken = claim_field(2, float)
+
+    def __init__(self, participant, question_label, answer, time_taken, details):
+        super().__init__(
+            participant=participant,
+            question=question_label,
+            response="",
+            number=-1
+        )
+        self.answer = answer
+        self.details = details
+        self.time_taken = time_taken

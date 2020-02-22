@@ -2,7 +2,7 @@
 
 from flask import Blueprint, Response, render_template, abort, request, Markup
 from dallinger.experiment import Experiment
-from dallinger.models import Network, Info, Transformation, Node
+from dallinger.models import Network, Info, Transformation, Node, Question
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 from dallinger import db, recruiters
@@ -17,14 +17,13 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage, ReactivePage
+from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage, ReactivePage, NAFCPage
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 from datetime import datetime
-
 
 class Exp(Experiment):
     # You can customise these parameters ####
@@ -38,7 +37,11 @@ class Exp(Experiment):
 
     timeline = Timeline([
         InfoPage("Page 1"),
-        InfoPage("Page 2"),
+        NAFCPage(
+            label="test_nafc",
+            prompt="What's your favourite colour?",
+            choices=["Red", "Green", "Blue"]
+        ),
         ReactivePage(lambda experiment, participant: InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}.")),
         FinalPage()
     ])
