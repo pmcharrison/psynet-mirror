@@ -108,9 +108,10 @@ class FinalPage(Page):
         )
 
 class Button():
-    def __init__(self, id, label, begin_disabled=False):
+    def __init__(self, id, label, min_width, begin_disabled=False):
         self.id = id
         self.label = label
+        self.min_width = min_width
         self.begin_disabled = begin_disabled
 
 class NAFCPage(Page):
@@ -121,7 +122,7 @@ class NAFCPage(Page):
         choices: List[str],
         labels=None,
         arrange_vertically=False,
-        min_width="300px"
+        min_width="100px"
     ):
         self.prompt = prompt
         self.choices = choices 
@@ -134,7 +135,7 @@ class NAFCPage(Page):
             raise NotImplementedError
 
         buttons = [
-            Button(id=choice, label=label)
+            Button(id=choice, label=label, min_width=min_width)
             for choice, label in zip(self.choices, self.labels)
         ]
         super().__init__(
