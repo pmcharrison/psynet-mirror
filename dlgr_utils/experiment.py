@@ -13,7 +13,7 @@ from dallinger.experiment_server.utils import (
 )
 
 from .participant import Participant, get_participant
-from .page import get_template, Timeline, Page, InfoPage, FinalPage, RejectedResponse
+from .timeline import get_template, Timeline, Page, InfoPage, FinalPage, RejectedResponse
 from .utils import get_arg_from_dict
 
 import logging
