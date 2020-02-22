@@ -30,8 +30,13 @@
 {% block body %}
     <div class="main_div">
         {{prompt}}
+
+        <hr>
         
-        {{make_buttons(buttons, arrange_vertically)}}
+        <div class="row">
+            {{make_buttons(buttons, arrange_vertically)}}
+        </div>
+
     </div>
 {% endblock %}
 

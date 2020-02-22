@@ -36,13 +36,19 @@ class Exp(Experiment):
     ####
 
     timeline = Timeline([
-        InfoPage("Page 1"),
+        ReactivePage(
+            lambda experiment, participant: 
+                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}.")
+        ),
         NAFCPage(
             label="test_nafc",
             prompt="What's your favourite colour?",
             choices=["Red", "Green", "Blue"]
         ),
-        ReactivePage(lambda experiment, participant: InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}.")),
+        ReactivePage(
+            lambda experiment, participant: 
+                InfoPage(f"OK, your favourite colour is {participant.answer.lower()}.")
+        ),
         FinalPage()
     ])
 
