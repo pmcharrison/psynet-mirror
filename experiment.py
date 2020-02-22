@@ -17,7 +17,7 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage, ReactivePage, NAFCPage
+from dlgr_utils.page import Page, InfoPage, Timeline, FinalPage, ReactivePage, NAFCPage, CodeBlock
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -44,6 +44,10 @@ class Exp(Experiment):
             label="test_nafc",
             prompt="What's your favourite colour?",
             choices=["Red", "Green", "Blue"]
+        ),
+        CodeBlock(
+            lambda experiment, participant:
+                participant.set_var("favourite_colour", participant.answer)
         ),
         ReactivePage(
             lambda experiment, participant: 

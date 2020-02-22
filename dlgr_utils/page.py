@@ -201,7 +201,7 @@ class Timeline():
         while not finished:
             participant.elt_id += 1
             new_elt = self.get_current_elt(experiment, participant, resolve=False)
-            if new_elt is CodeBlock:
+            if isinstance(new_elt, CodeBlock):
                 new_elt.execute(experiment, participant)
             else:
                 participant.page_uuid = experiment.make_uuid()

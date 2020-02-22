@@ -125,10 +125,11 @@ class Experiment(dallinger.experiment.Experiment):
         logger.info("Initialising participant {}...".format(participant_id))
 
         participant = get_participant(participant_id)
+        # participant.var.initialise()
         participant.elt_id = -1
         self.timeline.advance_page(self, participant)
         participant.complete = False
-
+        
         self.save()
         return success_response()
 
