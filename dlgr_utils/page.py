@@ -151,6 +151,7 @@ class NAFCPage(Page):
             participant=participant,
             question_label=self.label, 
             answer=input["answer"],
+            page_type=type(self).__name__,
             time_taken=metadata["time_taken"],
             details={
                 "prompt": self.prompt,
@@ -229,8 +230,9 @@ class Response(Question):
 
     answer = claim_field(1)
     time_taken = claim_field(2, float)
+    page_type = claim_field(3, str)
 
-    def __init__(self, participant, question_label, answer, time_taken, details):
+    def __init__(self, participant, question_label, answer, page_type, time_taken, details):
         super().__init__(
             participant=participant,
             question=question_label,
@@ -240,3 +242,4 @@ class Response(Question):
         self.answer = answer
         self.details = details
         self.time_taken = time_taken
+        self.page_type = page_type
