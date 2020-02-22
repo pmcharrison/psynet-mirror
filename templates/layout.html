@@ -17,6 +17,8 @@
     {{super()}}
     <script>
         {{ init_js_vars }}
+        var page_load_time = new Date();
+
         next_page = function(data=null) {
             submit_generic_response(data).done(function(response) {
                 if (response.submission == "approved") {
@@ -38,8 +40,10 @@
         }
 
         submit_generic_response = function(data) {
+            var current_time = new Date();
+
             var metadata = {
-                "time_taken": 3.0
+                "time_taken": (current_time - page_load_time) / 1000
             };
             return dallinger.post("/response", {
                 "message": JSON.stringify({
