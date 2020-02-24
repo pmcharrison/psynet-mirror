@@ -40,6 +40,50 @@ class CodeBlock(Elt):
     def execute(self, experiment, participant):
         self.function(experiment=experiment, participant=participant)
 
+class GoTo(Elt):
+    def __init__(self, jump_by: int):
+        self.jump_by = jump_by
+
+    def resolve(self, experiment, participant):
+        return self.jump_by
+
+class ReactiveGoTo(GoTo):
+    def __init__(
+        self,  
+        jump_by=lambda experiment, particiant: True,
+        condition=lambda experiment, participant: True
+    ):
+        if not (isinstance(jump_by, int) or check_function_args(jump_by, ("experiment", "participant"))):
+            raise TypeError(
+                "<jump_by> must either be an integer or a function of the form "
+                "f(experiment, participant) that returns an integer."
+            )
+        if not (isinstance(condition, bool) or check_function_args(condition, ("experiment", "participant"))):
+            raise TypeError(
+                "<test> must either be an Boolean or a function of the form "
+                "f(experiment, participant)."
+            )
+        self.jump_by = jump_by if callable(jump_by) else lambda experiment, participant: jump_by
+        self.condition = condition if callable(condition) else lambda experiment, participant: condition
+
+    def resolve(self, experiment, participant):
+        cond = self.condition(experiment, participant)
+        if not isinstance(cond, bool):
+            raise TypeError("ReactiveGoTo.jump_by must return a Boolean.")
+        if cond:
+            val = self.jump_by(experiment, participant) 
+            if not isinstance(val, int):
+                raise TypeError("ReactiveGoTo.jump_by must return an integer.")
+            return val
+        else: 
+            return 1
+
+def check_function_args(f, args):
+    return (
+        callable(f) 
+        and f.__code__.co_varnames == tuple(args)
+    )
+
 class Page(Elt):
     def __init__(
         self,
@@ -241,6 +285,10 @@ class Timeline():
             new_elt = self.get_current_elt(experiment, participant, resolve=False)
             if isinstance(new_elt, CodeBlock):
                 new_elt.execute(experiment, participant)
+            elif isinstance(new_elt, GoTo):
+                # We subtract 1 because elt_id will be incremented again when
+                # we return to the beginning of this while loop.
+                participant.elt_id += new_elt.resolve(experiment, participant) - 1
             else:
                 assert isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage)
                 finished = True
@@ -292,7 +340,6 @@ def is_list_of_elts(x: list):
     return True
 
 def join(*args):
-
     for i, arg in enumerate(args):
         if not (isinstance(arg, Elt) or is_list_of_elts(args)):
             raise TypeError(f"Element {i} of the input to join() was neither an Elt nor a list of Elts.")        
@@ -310,3 +357,13 @@ def join(*args):
             return Exception("An unexpected error occurred.")    
 
     return reduce(f, args)
+
+def while_loop(test, logic):
+    assert callable(test)
+    assert isinstance(logic, Elt) or is_list_of_elts(logic)
+    if isinstance(logic, Elt):
+        logic = [logic]
+    if len(logic) == 0:
+        raise ValueError("<logic> may not be empty.")
+    
+
