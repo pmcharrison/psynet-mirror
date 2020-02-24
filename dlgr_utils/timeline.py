@@ -14,6 +14,14 @@ from sqlalchemy import ForeignKey
 from sqlalchemy import Column, String, Text, Enum, Integer, Boolean, DateTime, Float
 from sqlalchemy.orm import relationship
 
+from functools import reduce
+
+import rpdb
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
 from .participant import Participant
 from .field import claim_field
 
@@ -35,11 +43,12 @@ class CodeBlock(Elt):
 class Page(Elt):
     def __init__(
         self,
+        time_allotted: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None, 
         template_arg: dict = {},
         label: str = "untitled",
-        js_vars: dict = {}
+        js_vars: dict = {},
     ):
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
@@ -54,10 +63,13 @@ class Page(Elt):
         assert isinstance(template_arg, dict)
         assert isinstance(label, str)
 
+        self.time_allotted = time_allotted
         self.template_str = template_str
         self.template_arg = template_arg
         self.label = label
         self.js_vars = js_vars
+
+        self.expected_repetitions = 1 
 
     def process_response(self, input, experiment, participant, **kwargs):
         pass
@@ -76,18 +88,26 @@ class Page(Elt):
         return flask.render_template_string(self.template_str, **all_template_arg)
 
 class ReactivePage(Elt):
-    def __init__(self, function):
+    def __init__(self, function, time_allotted: float):
         self.function = function
+        self.time_allotted = time_allotted
 
     def resolve(self, experiment, participant):
         page = self.function(experiment=experiment, participant=participant)
+        if self.time_allotted != page.time_allotted:
+            logger.warn(
+                f"Observed a mismatch between a reactive page's time_allotted slot ({self.time_allotted}) " +
+                f"and the time_allotted slot of the generated page ({page.time_allotted}). " +
+                f"The former will take precedent."
+            )
         if not isinstance(page, Page):
             raise TypeError("The ReactivePage function must return an object of class Page.")
         return page
 
 class InfoPage(Page):
-    def __init__(self, content, title=None, **kwargs):
+    def __init__(self, content, time_allotted=None, title=None, **kwargs):
         super().__init__(
+            time_allotted=time_allotted,
             template_str=get_template("info-page.html"),
             template_arg={
                 "content": "" if content is None else content,
@@ -96,9 +116,10 @@ class InfoPage(Page):
             **kwargs
         )
 
-class FinalPage(Page):
+class EndPage(Page):
     def __init__(self, content="Experiment complete, please wait...", title=None, wait_sec=750):
         super().__init__(
+            time_allotted=0,
             template_str=get_template("final-page.html"),
             template_arg={
                 "content": "" if content is None else content,
@@ -106,6 +127,16 @@ class FinalPage(Page):
             },
             js_vars={"wait_sec": wait_sec}
         )
+
+    def finalise_participant(self, experiment, participant):
+        pass
+
+class SuccessfulEndPage(EndPage):
+    def finalise_participant(self, experiment, participant):
+        participant.complete = True
+
+class UnsuccessfulEndPage(EndPage):
+    pass
 
 class Button():
     def __init__(self, id, label, min_width, begin_disabled=False):
@@ -119,7 +150,8 @@ class NAFCPage(Page):
         self,
         label: str,
         prompt: str,
-        choices: List[str],
+        choices: List[str],        
+        time_allotted=None,
         labels=None,
         arrange_vertically=False,
         min_width="100px"
@@ -139,6 +171,7 @@ class NAFCPage(Page):
             for choice, label in zip(self.choices, self.labels)
         ]
         super().__init__(
+            time_allotted=time_allotted,
             template_str=get_template("nafc-page.html"),
             label=label,
             template_arg={
@@ -169,15 +202,19 @@ class NAFCPage(Page):
         pass
 
 class Timeline():
-    def __init__(self, elts):
+    def __init__(self, *args):
+        elts = join(*args)
         self.elts = elts
         self.check_elts(elts)        
 
     def check_elts(self, elts):
         assert isinstance(elts, list)
         assert len(elts) > 0
-        if not isinstance(elts[-1], FinalPage):
-            raise ValueError("The final element in the timeline must be a FinalPage.")
+        if not isinstance(elts[-1], EndPage):
+            raise ValueError("The final element in the timeline must be a EndPage.")
+        for i, elt in enumerate(elts):
+            if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
+                raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
 
     def __len__(self):
         return len(self.elts)
@@ -205,8 +242,11 @@ class Timeline():
             if isinstance(new_elt, CodeBlock):
                 new_elt.execute(experiment, participant)
             else:
-                participant.page_uuid = experiment.make_uuid()
+                assert isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage)
                 finished = True
+                participant.page_uuid = experiment.make_uuid()
+                if isinstance(new_elt, EndPage):
+                    new_elt.finalise_participant(experiment, participant)
 
     def process_response(self, input, experiment, participant):
         elt = self.get_current_elt(experiment, participant)
@@ -244,3 +284,29 @@ class Response(Question):
         self.details = details
         self.time_taken = time_taken
         self.page_type = page_type
+
+def is_list_of_elts(x: list):
+    for val in x:
+        if not isinstance(val, Elt):
+            return False
+    return True
+
+def join(*args):
+
+    for i, arg in enumerate(args):
+        if not (isinstance(arg, Elt) or is_list_of_elts(args)):
+            raise TypeError(f"Element {i} of the input to join() was neither an Elt nor a list of Elts.")        
+
+    def f(x, y):
+        if isinstance(x, Elt) and isinstance(y, Elt):
+            return [x, y]
+        elif isinstance(x, Elt) and isinstance(y, list):
+            return [x] + y
+        elif isinstance(x, list) and isinstance(y, Elt):
+            return x + [y]
+        elif isinstance(x, list) and isinstance(y, list):
+            return x + y
+        else:
+            return Exception("An unexpected error occurred.")    
+
+    return reduce(f, args)

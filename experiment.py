@@ -17,7 +17,7 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.timeline import Page, InfoPage, Timeline, FinalPage, ReactivePage, NAFCPage, CodeBlock
+from dlgr_utils.timeline import Page, InfoPage, Timeline, SuccessfulEndPage, ReactivePage, NAFCPage, CodeBlock
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -35,15 +35,17 @@ class Exp(Experiment):
     use_transformations = True
     ####
 
-    timeline = Timeline([
-        ReactivePage(
+    timeline = Timeline(
+        ReactivePage(            
             lambda experiment, participant: 
-                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}.")
+                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
+            time_allotted=5
         ),
         NAFCPage(
-            label="test_nafc",
+            label="test_nafc",            
             prompt="What's your favourite colour?",
-            choices=["Red", "Green", "Blue"]
+            choices=["Red", "Green", "Blue"],
+            time_allotted=5
         ),
         CodeBlock(
             lambda experiment, participant:
@@ -51,10 +53,11 @@ class Exp(Experiment):
         ),
         ReactivePage(
             lambda experiment, participant: 
-                InfoPage(f"OK, your favourite colour is {participant.answer.lower()}.")
+                InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
+            time_allotted=3
         ),
-        FinalPage()
-    ])
+        SuccessfulEndPage()
+    )
 
     assert num_nodes_per_network > 0
 
