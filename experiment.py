@@ -17,7 +17,7 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.timeline import Page, InfoPage, Timeline, SuccessfulEndPage, ReactivePage, NAFCPage, CodeBlock
+from dlgr_utils.timeline import Page, InfoPage, Timeline, SuccessfulEndPage, ReactivePage, NAFCPage, CodeBlock, while_loop
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -40,6 +40,16 @@ class Exp(Experiment):
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
             time_allotted=5
+        ),
+        CodeBlock(lambda experiment, participant: participant.set_answer("No")),
+        while_loop(
+            lambda experiment, participant: participant.answer == "No",
+            NAFCPage(
+                label="loop_nafc",
+                prompt="Would you like to stay in this loop?",
+                choices=["Yes", "No"],
+                time_allotted=3
+            )
         ),
         NAFCPage(
             label="test_nafc",            

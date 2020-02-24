@@ -41,9 +41,15 @@ def initialised(self):
 
 def _set_var(self, name, value):
     self.var.__setattr__(name, value)
+    return self
+
+def _set_answer(self, value):
+    self.answer = value
+    return self
 
 Participant.var = var
 Participant.set_var = _set_var
+Participant.set_answer = _set_answer
 Participant.elt_id = field.claim_field(1, int)
 Participant.page_uuid = field.claim_field(2, str)
 Participant.complete = field.claim_field(3, bool)

@@ -358,12 +358,19 @@ def join(*args):
 
     return reduce(f, args)
 
-def while_loop(test, logic):
-    assert callable(test)
+def while_loop(condition, logic):
+    if not check_function_args(logic, ("experiment", "participant")):
+        raise TypeError("<condition> must be a function of the form f(experiment, participant).")
     assert isinstance(logic, Elt) or is_list_of_elts(logic)
     if isinstance(logic, Elt):
         logic = [logic]
     if len(logic) == 0:
         raise ValueError("<logic> may not be empty.")
+
+    return join(
+        ReactiveGoTo(jump_by=len(logic) + 2, condition=condition),
+        logic, 
+        ReactiveGoTo(jump_by=-len(logic) - 1)
+    )
     
 
