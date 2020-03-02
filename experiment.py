@@ -41,9 +41,9 @@ class Exp(Experiment):
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
             time_allotted=5
         ),
-        CodeBlock(lambda experiment, participant: participant.set_answer("No")),
+        CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         while_loop(
-            lambda experiment, participant: participant.answer == "No",
+            lambda experiment, participant: participant.answer == "Yes",
             NAFCPage(
                 label="loop_nafc",
                 prompt="Would you like to stay in this loop?",

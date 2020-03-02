@@ -33,6 +33,9 @@ class Elt:
     def render(self, experiment, participant):
         raise NotImplementedError
 
+    def multiply_expected_repetitions(self, factor):
+        return self
+
 class CodeBlock(Elt):
     def __init__(self, function):
         self.function = function
@@ -51,7 +54,8 @@ class ReactiveGoTo(GoTo):
     def __init__(
         self,  
         jump_by=lambda experiment, particiant: True,
-        condition=lambda experiment, participant: True
+        condition=lambda experiment, participant: True,
+        negate: bool = False
     ):
         if not (isinstance(jump_by, int) or check_function_args(jump_by, ("experiment", "participant"))):
             raise TypeError(
@@ -65,16 +69,17 @@ class ReactiveGoTo(GoTo):
             )
         self.jump_by = jump_by if callable(jump_by) else lambda experiment, participant: jump_by
         self.condition = condition if callable(condition) else lambda experiment, participant: condition
+        self.negate = negate
 
     def resolve(self, experiment, participant):
         cond = self.condition(experiment, participant)
         if not isinstance(cond, bool):
             raise TypeError("ReactiveGoTo.jump_by must return a Boolean.")
-        if cond:
-            val = self.jump_by(experiment, participant) 
-            if not isinstance(val, int):
+        if cond != self.negate:
+            jump_by = self.jump_by(experiment, participant) 
+            if not isinstance(jump_by, int):
                 raise TypeError("ReactiveGoTo.jump_by must return an integer.")
-            return val
+            return jump_by
         else: 
             return 1
 
@@ -131,6 +136,10 @@ class Page(Elt):
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
+    def multiply_expected_repetitions(self, factor: float):
+        self.expected_repetitions = self.expected_repetitions * factor
+        return self
+
 class ReactivePage(Elt):
     def __init__(self, function, time_allotted: float):
         self.function = function
@@ -138,7 +147,7 @@ class ReactivePage(Elt):
 
     def resolve(self, experiment, participant):
         page = self.function(experiment=experiment, participant=participant)
-        if self.time_allotted != page.time_allotted:
+        if self.time_allotted != page.time_allotted and page.time_allotted is not None:
             logger.warn(
                 f"Observed a mismatch between a reactive page's time_allotted slot ({self.time_allotted}) " +
                 f"and the time_allotted slot of the generated page ({page.time_allotted}). " +
@@ -147,6 +156,10 @@ class ReactivePage(Elt):
         if not isinstance(page, Page):
             raise TypeError("The ReactivePage function must return an object of class Page.")
         return page
+
+    def expected_repetitions(self, factor: float):
+        self.expected_repetitions = self.expected_repetitions * factor
+        return self
 
 class InfoPage(Page):
     def __init__(self, content, time_allotted=None, title=None, **kwargs):
@@ -341,36 +354,48 @@ def is_list_of_elts(x: list):
 
 def join(*args):
     for i, arg in enumerate(args):
-        if not (isinstance(arg, Elt) or is_list_of_elts(args)):
-            raise TypeError(f"Element {i} of the input to join() was neither an Elt nor a list of Elts.")        
+        if not (isinstance(arg, Elt) or is_list_of_elts(arg)):
+            raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts.")        
 
-    def f(x, y):
-        if isinstance(x, Elt) and isinstance(y, Elt):
-            return [x, y]
-        elif isinstance(x, Elt) and isinstance(y, list):
-            return [x] + y
-        elif isinstance(x, list) and isinstance(y, Elt):
-            return x + [y]
-        elif isinstance(x, list) and isinstance(y, list):
-            return x + y
-        else:
-            return Exception("An unexpected error occurred.")    
+    if len(args) == 0:
+        return []
+    elif len(args) == 1 and isinstance(args[0], Elt):
+        return [args[0]]
+    else:
+        def f(x, y):
+            if isinstance(x, Elt) and isinstance(y, Elt):
+                return [x, y]
+            elif isinstance(x, Elt) and isinstance(y, list):
+                return [x] + y
+            elif isinstance(x, list) and isinstance(y, Elt):
+                return x + [y]
+            elif isinstance(x, list) and isinstance(y, list):
+                return x + y
+            else:
+                return Exception("An unexpected error occurred.")    
 
-    return reduce(f, args)
+        return reduce(f, args)
 
-def while_loop(condition, logic):
-    if not check_function_args(logic, ("experiment", "participant")):
+def while_loop(condition, logic, expected_repetitions: int):
+    if not check_function_args(condition, ("experiment", "participant")):
         raise TypeError("<condition> must be a function of the form f(experiment, participant).")
     assert isinstance(logic, Elt) or is_list_of_elts(logic)
     if isinstance(logic, Elt):
         logic = [logic]
     if len(logic) == 0:
         raise ValueError("<logic> may not be empty.")
-
+    
     return join(
-        ReactiveGoTo(jump_by=len(logic) + 2, condition=condition),
-        logic, 
-        ReactiveGoTo(jump_by=-len(logic) - 1)
+        ReactiveGoTo(jump_by=len(logic) + 2, condition=condition, negate=True),
+        multiply_expected_repetitions(logic, expected_repetitions), 
+        GoTo(jump_by=-len(logic) - 1)
     )
     
-
+def multiply_expected_repetitions(logic, factor: float):
+    assert isinstance(logic, Elt) or is_list_of_elts(logic)
+    if isinstance(logic, Elt):
+        logic.multiply_expected_repetitions(factor)
+    else:
+        for elt in logic:
+            elt.multiply_expected_repetitions(factor)
+    return logic
