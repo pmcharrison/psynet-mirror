@@ -88,15 +88,15 @@ class GoTo(Elt):
         target_elt_id = target_elt.get_position_in_timeline(experiment.timeline)
         participant.elt_id = target_elt_id - 1
 
-class ReactiveGoTo(Elt):
+class ReactiveGoTo(GoTo):
     def __init__(
         self, 
         function, # function taking experiment, participant and returning a key
         targets # dict of possible target elements
-    ):
-        self.check_args()
+    ):  
         self.function = function
         self.targets = targets        
+        self.check_args()
 
     def check_args(self):
         self.check_function()
@@ -109,7 +109,7 @@ class ReactiveGoTo(Elt):
     def check_targets(self):
         try:
             assert isinstance(self.targets, dict)
-            for target in self.targets.items():
+            for target in self.targets.values():
                 assert isinstance(target, Elt)
         except:
             raise TypeError("<targets> must be a dictionary of Elt objects.")
@@ -205,6 +205,9 @@ class ReactivePage(Elt):
         self.time_allotted = time_allotted
         self.expected_repetitions = 1
 
+    def consume(self, experiment, participant):
+        participant.page_uuid = experiment.make_uuid()
+
     def resolve(self, experiment, participant):
         page = self.function(experiment=experiment, participant=participant)
         if self.time_allotted != page.time_allotted and page.time_allotted is not None:
@@ -246,7 +249,7 @@ class EndPage(Page):
         )
 
     def consume(self, experiment, participant):
-        super().__init__(experiment, participant)
+        super().consume(experiment, participant)
         self.finalise_participant(experiment, participant)
 
     def finalise_participant(self, experiment, participant):
@@ -460,23 +463,33 @@ def check_condition_and_logic(condition, logic):
         raise ValueError("<logic> may not be empty.")
     return logic
 
-class StartWhile(ReactiveGoTo):
-    def __init__(self, id, condition, end_loop, jump_on_negative=False):
-        super().__init__(condition, target=end_loop, jump_on_negative=jump_on_negative)
+class StartWhile(NullElt):
+    def __init__(self, id):
+        # targets = {
+        #     True: self,
+        #     False: end_while
+        # }
+        # super().__init__(condition, targets)
+        super().__init__()
         self.id = id
 
 class EndWhile(NullElt):
-    pass
+    def __init__(self, id):
+        super().__init__()
+        self.id = id
 
-def while_loop(id, condition, logic, expected_repetitions: int, fix_time_credit=True):
+def while_loop(id, condition, logic, expected_repetitions: int, fix_time_credit=True):   
+    start_while = StartWhile(id)
+    end_while = EndWhile(id)
+
     logic = check_condition_and_logic(condition, logic)
-    
-    end_while = EndWhile()
-    start_while = StartWhile(id, condition, end_while, jump_on_negative=True)
+    logic = multiply_expected_repetitions(logic, expected_repetitions)
+
+    conditional_logic = join(logic, GoTo(start_while))
 
     elts = join(
         start_while,
-        multiply_expected_repetitions(logic, expected_repetitions), 
+        conditional(id, condition, conditional_logic),
         end_while
     )
 

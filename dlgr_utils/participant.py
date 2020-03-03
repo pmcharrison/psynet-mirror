@@ -88,6 +88,9 @@ class TimeCreditStore:
         self.max_pending_credit = 0.0
         self.confirmed_credit += time_allotted
 
+    def get_bonus(self):
+        return self.wage_per_hour * self.confirmed_credit / (60 * 60)
+
     def estimate_time_credit(self):
         return self.confirmed_credit + self.pending_credit
 

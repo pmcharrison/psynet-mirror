@@ -115,6 +115,9 @@ class Experiment(dallinger.experiment.Experiment):
             'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n"
         }
     
+    def bonus(self, participant):
+        return participant.time_credit.get_bonus()
+
     def render_monitor_template(self):
         res = self.network_structure()
         stat = self.network_stats()

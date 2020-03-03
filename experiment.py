@@ -78,6 +78,7 @@ class Exp(Experiment):
         # ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         while_loop(
+            "example_loop",
             lambda experiment, participant: participant.answer == "Yes",
             NAFCPage(
                 label="loop_nafc",
