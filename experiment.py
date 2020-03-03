@@ -54,8 +54,10 @@ class Exp(Experiment):
             InfoPage(
                 "It's nice to hear that you like chocolate!", 
                 time_allotted=3
-            )
+            ), 
+            always_give_time_credit=True
         ),
+        CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         while_loop(
             lambda experiment, participant: participant.answer == "Yes",
             NAFCPage(

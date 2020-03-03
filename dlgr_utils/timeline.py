@@ -364,7 +364,7 @@ class Timeline():
             elif isinstance(new_elt, BeginConditional):
                 participant.append_conditional
             elif isinstance(new_elt, EndConditional):
-                assert False
+                pass
             else:
                 assert isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage)
                 finished = True
