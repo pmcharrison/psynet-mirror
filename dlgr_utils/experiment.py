@@ -159,9 +159,6 @@ class Experiment(dallinger.experiment.Experiment):
             )
             return error_response()
 
-    def estimate_progress(self, participant):
-        return 0.2
-
     def response_approved(self):
         logger.info("The response was approved.")
         return success_response(

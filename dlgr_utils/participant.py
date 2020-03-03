@@ -36,7 +36,8 @@ class TimeCreditStore:
         "is_fixed", 
         "pending_credit", 
         "max_pending_credit", 
-        "wage_per_hour"
+        "wage_per_hour",
+        "experiment_total_credit"
     ]
 
     def __init__(self, participant):
@@ -64,6 +65,7 @@ class TimeCreditStore:
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
         self.wage_per_hour = experiment.wage_per_hour
+        self.experiment_total_credit = experiment.timeline.estimate_total_time_credit()
 
     def increment(self, value: float):
         if self.is_fixed:
@@ -85,6 +87,16 @@ class TimeCreditStore:
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
         self.confirmed_credit += time_allotted
+
+    def estimate_time_credit(self):
+        return self.confirmed_credit + self.pending_credit
+
+    def estimate_bonus(self):
+        return self.wage_per_hour * self.estimate_time_credit() / (60 * 60)
+
+    def estimate_progress(self):
+        return self.estimate_time_credit() / self.experiment_total_credit
+
 
 @property
 def var(self):
@@ -114,12 +126,15 @@ def _initialise(self, experiment):
     self.complete = False
     self.time_credit.initialise(experiment)
 
-@property
-def estimated_bonus(self):
-    return self.time_credit.wage_per_hour * (self.time_credit.confirmed_credit + self.time_credit.pending_credit) / (60 * 60)
+def _estimate_progress(self):
+    return 1.0 if self.complete else self.time_credit.estimate_progress()
+
+# @property 
+# def estimated_time_credit(self):
+#     return self.time_credit.confirmed_credit + self.time_credit.pending_credit
 
 Participant.time_credit = time_credit
-Participant.estimated_bonus = estimated_bonus
+Participant.estimate_progress = _estimate_progress
 Participant.var = var
 Participant.get_var = _get_var
 Participant.set_var = _set_var

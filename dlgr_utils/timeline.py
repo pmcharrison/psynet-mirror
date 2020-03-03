@@ -25,12 +25,16 @@ logger = logging.getLogger(__file__)
 from .participant import Participant
 from .field import claim_field
 
+import json
+
 def get_template(name):
     assert isinstance(name, str)
     return importlib_resources.read_text(templates, name)
 
 class Elt:
-    time_allotted = 0.0
+    returns_time_credit = False
+    time_allotted = None
+    expected_repetitions = None
 
     def render(self, experiment, participant):
         raise NotImplementedError
@@ -102,6 +106,8 @@ def check_function_args(f, args):
     )
 
 class Page(Elt):
+    returns_time_credit = True
+
     def __init__(
         self,
         time_allotted: Optional[float] = None,
@@ -145,18 +151,17 @@ class Page(Elt):
         all_template_arg = {
             **self.template_arg, 
             "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
-            "progress_bar": self.create_progress_bar(experiment, participant),
+            "progress_bar": self.create_progress_bar(participant),
             "footer": self.create_footer(experiment, participant)
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
-    def create_progress_bar(self, experiment, participant):
-        return ProgressBar(experiment.estimate_progress(participant))
+    def create_progress_bar(self, participant):
+        return ProgressBar(participant.estimate_progress())
 
     def create_footer(self, experiment, participant):
         return Footer([
-                f"Estimated bonus: <strong>&#36;{participant.estimated_bonus:.2f}</strong>",
-                "Hello!"
+                f"Estimated bonus: <strong>&#36;{participant.time_credit.estimate_bonus():.2f}</strong>"
             ],
             escape=False)
 
@@ -165,9 +170,12 @@ class Page(Elt):
         return self
 
 class ReactivePage(Elt):
+    returns_time_credit = True
+
     def __init__(self, function, time_allotted: float):
         self.function = function
         self.time_allotted = time_allotted
+        self.expected_repetitions = 1
 
     def resolve(self, experiment, participant):
         page = self.function(experiment=experiment, participant=participant)
@@ -294,8 +302,7 @@ class Timeline():
         if not isinstance(elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be a EndPage.")
         for i, elt in enumerate(elts):
-            # if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
-            if elt.time_allotted is None:
+            if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
                 raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
 
     def __len__(self):
@@ -320,7 +327,8 @@ class Timeline():
         finished = False
         while not finished:
             old_elt = self.get_current_elt(experiment, participant, resolve=False)
-            participant.time_credit.increment(old_elt.time_allotted)
+            if old_elt.returns_time_credit:
+                participant.time_credit.increment(old_elt.time_allotted)
             participant.elt_id += 1
             new_elt = self.get_current_elt(experiment, participant, resolve=False)
             if isinstance(new_elt, CodeBlock):
@@ -339,6 +347,7 @@ class Timeline():
                 participant.page_uuid = experiment.make_uuid()
                 if isinstance(new_elt, EndPage):
                     new_elt.finalise_participant(experiment, participant)
+        logger.info(f"participant.details = {json.dumps(participant.details)}")
 
     def process_response(self, input, experiment, participant):
         elt = self.get_current_elt(experiment, participant)
@@ -353,6 +362,16 @@ class Timeline():
             participant=participant
         )
         return validation
+
+    def estimate_total_time_credit(self):
+        return estimate_time_credit(self.elts)
+
+def estimate_time_credit(elts):
+    return sum([
+        elt.time_allotted * elt.expected_repetitions
+        for elt in elts
+        if elt.returns_time_credit
+    ])
         
 class RejectedResponse:
     def __init__(self, message="Invalid response, please try again."):
@@ -407,7 +426,7 @@ def join(*args):
 
         return reduce(f, args)
 
-def while_loop(condition, logic, expected_repetitions: int):
+def while_loop(condition, logic, expected_repetitions: int, fix_time_credit=True):
     if not check_function_args(condition, ("experiment", "participant")):
         raise TypeError("<condition> must be a function of the form f(experiment, participant).")
     assert isinstance(logic, Elt) or is_list_of_elts(logic)
@@ -416,12 +435,25 @@ def while_loop(condition, logic, expected_repetitions: int):
     if len(logic) == 0:
         raise ValueError("<logic> may not be empty.")
     
-    return join(
+    elts = join(
         ReactiveGoTo(jump_by=len(logic) + 2, condition=condition, negate=True),
         multiply_expected_repetitions(logic, expected_repetitions), 
         GoTo(jump_by=-len(logic) - 1)
     )
+
+    if fix_time_credit:
+        time_allotted = estimate_time_credit(logic)
+        return fix_time(elts, time_allotted)
+    else:
+        return elts
     
+def fix_time(elts, time_allotted):
+    return join(
+        BeginFixTime(time_allotted),
+        elts,
+        EndFixTime(time_allotted)
+    )
+
 def multiply_expected_repetitions(logic, factor: float):
     assert isinstance(logic, Elt) or is_list_of_elts(logic)
     if isinstance(logic, Elt):
@@ -437,6 +469,8 @@ class ProgressBar():
         self.percentage = round(progress * 100)
         if self.percentage > 99:
             self.percentage = 99
+        elif self.percentage < 1:
+            self.percentage = 5
 
 class Footer():
     def __init__(self, text_to_show: List[str], escape=True, show=True):
