@@ -97,7 +97,6 @@ class TimeCreditStore:
     def estimate_progress(self):
         return self.estimate_time_credit() / self.experiment_total_credit
 
-
 @property
 def var(self):
     return VarStore(self)
@@ -129,6 +128,11 @@ def _initialise(self, experiment):
 def _estimate_progress(self):
     return 1.0 if self.complete else self.time_credit.estimate_progress()
 
+def _append_conditional(self, id: str):
+    # We need to create a new list otherwise the change may not be recognised
+    # by SQLAlchemy(?)
+    self.conditionals = self.conditionals + [id]
+
 # @property 
 # def estimated_time_credit(self):
 #     return self.time_credit.confirmed_credit + self.time_credit.pending_credit
@@ -143,6 +147,8 @@ Participant.elt_id = field.claim_field(1, int)
 Participant.page_uuid = field.claim_field(2, str)
 Participant.complete = field.claim_field(3, bool)
 Participant.answer = field.claim_field(4, object)
+Participant.conditionals = field.claim_field(5, list)
+Participant.append_conditional = _append_conditional
 Participant.initialised = initialised
 Participant.initialise = _initialise
 

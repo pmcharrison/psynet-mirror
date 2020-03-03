@@ -71,8 +71,19 @@ class ReactiveGoTo(GoTo):
         self,  
         jump_by=lambda experiment, particiant: True,
         condition=lambda experiment, participant: True,
-        negate: bool = False
+        jump_on_negative: bool = False,
+        if_condition_is_true=lambda experiment, participant: None,
+        if_condition_is_false=lambda experiment, participant: None
     ):
+       
+        self.check_args(jump_by, condition, if_condition_is_true, if_condition_is_false)
+        self.jump_by = jump_by if callable(jump_by) else lambda experiment, participant: jump_by
+        self.condition = condition if callable(condition) else lambda experiment, participant: condition
+        self.jump_on_negative = jump_on_negative
+        self.if_condition_is_true = if_condition_is_true
+        self.if_condition_is_false = if_condition_is_false
+
+    def check_args(self, jump_by, condition, if_condition_is_true, if_condition_is_false):
         if not (isinstance(jump_by, int) or check_function_args(jump_by, ("experiment", "participant"))):
             raise TypeError(
                 "<jump_by> must either be an integer or a function of the form "
@@ -83,15 +94,22 @@ class ReactiveGoTo(GoTo):
                 "<test> must either be an Boolean or a function of the form "
                 "f(experiment, participant)."
             )
-        self.jump_by = jump_by if callable(jump_by) else lambda experiment, participant: jump_by
-        self.condition = condition if callable(condition) else lambda experiment, participant: condition
-        self.negate = negate
+        if not check_function_args(if_condition_is_true, ("experiment", "participant")):
+            raise TypeError("<if_condition_is_true> must be a function of the form f(experiment, participant).")
+        if not check_function_args(if_condition_is_false, ("experiment", "participant")):
+            raise TypeError("<if_condition_is_false> must be a function of the form f(experiment, participant).")
 
     def resolve(self, experiment, participant):
         cond = self.condition(experiment, participant)
         if not isinstance(cond, bool):
             raise TypeError("ReactiveGoTo.jump_by must return a Boolean.")
-        if cond != self.negate:
+
+        if cond:
+            self.if_condition_is_true(experiment, participant)
+        else: 
+            self.if_condition_is_false(experiment, participant)
+
+        if cond != self.jump_on_negative:
             jump_by = self.jump_by(experiment, participant) 
             if not isinstance(jump_by, int):
                 raise TypeError("ReactiveGoTo.jump_by must return an integer.")
@@ -336,18 +354,25 @@ class Timeline():
             elif isinstance(new_elt, GoTo):
                 # We subtract 1 because elt_id will be incremented again when
                 # we return to the beginning of this while loop.
+                # new_elt.resolve() is permitted to have side effects,
+                # it need not be idempotent. It will only be called once.
                 participant.elt_id += new_elt.resolve(experiment, participant) - 1
             elif isinstance(new_elt, BeginFixTime):
                 participant.time_credit.begin_fix_time(new_elt.time_allotted)
             elif isinstance(new_elt, EndFixTime):
                 participant.time_credit.end_fix_time(new_elt.time_allotted)
+            elif isinstance(new_elt, BeginConditional):
+                participant.append_conditional
+            elif isinstance(new_elt, EndConditional):
+                assert False
             else:
                 assert isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage)
                 finished = True
                 participant.page_uuid = experiment.make_uuid()
                 if isinstance(new_elt, EndPage):
                     new_elt.finalise_participant(experiment, participant)
-        logger.info(f"participant.details = {json.dumps(participant.details)}")
+            logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
+        logger.info(f"participant.conditionals = {json.dumps(participant.conditionals)}")
 
     def process_response(self, input, experiment, participant):
         elt = self.get_current_elt(experiment, participant)
@@ -426,7 +451,7 @@ def join(*args):
 
         return reduce(f, args)
 
-def while_loop(condition, logic, expected_repetitions: int, fix_time_credit=True):
+def check_condition_and_logic(condition, logic):
     if not check_function_args(condition, ("experiment", "participant")):
         raise TypeError("<condition> must be a function of the form f(experiment, participant).")
     assert isinstance(logic, Elt) or is_list_of_elts(logic)
@@ -434,9 +459,13 @@ def while_loop(condition, logic, expected_repetitions: int, fix_time_credit=True
         logic = [logic]
     if len(logic) == 0:
         raise ValueError("<logic> may not be empty.")
+    return logic
+
+def while_loop(condition, logic, expected_repetitions: int, fix_time_credit=True):
+    logic = check_condition_and_logic(condition, logic)
     
     elts = join(
-        ReactiveGoTo(jump_by=len(logic) + 2, condition=condition, negate=True),
+        ReactiveGoTo(jump_by=len(logic) + 2, condition=condition, jump_on_negative=True),
         multiply_expected_repetitions(logic, expected_repetitions), 
         GoTo(jump_by=-len(logic) - 1)
     )
@@ -446,7 +475,45 @@ def while_loop(condition, logic, expected_repetitions: int, fix_time_credit=True
         return fix_time(elts, time_allotted)
     else:
         return elts
+
+def conditional(id, condition, logic, always_give_time_credit=True):
+    logic = check_condition_and_logic(condition, logic)
+
+    def if_condition_is_true(experiment, participant):
+        participant.append_conditional(id)
+
+    def if_condition_is_false(experiment, participant):
+        participant.append_conditional(f"NOT_{id}")
+
+    elts = join(
+        ReactiveGoTo(
+            jump_by=len(logic) + 3, 
+            condition=condition, 
+            jump_on_negative=True,
+            if_condition_is_true=if_condition_is_true,
+            if_condition_is_false=if_condition_is_false
+        ),
+        BeginConditional(id),
+        logic,
+        EndConditional(id)
+    )
+
+    if always_give_time_credit:
+        time_allotted = estimate_time_credit(logic)
+        return fix_time(elts, time_allotted)
+    else:
+        return elts
+
+class ConditionalElt(Elt):
+    def __init__(self, id: str):
+        self.id = id
+
+class BeginConditional(ConditionalElt):
+    pass
     
+class EndConditional(ConditionalElt):
+    pass
+   
 def fix_time(elts, time_allotted):
     return join(
         BeginFixTime(time_allotted),

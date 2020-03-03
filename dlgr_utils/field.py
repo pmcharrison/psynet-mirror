@@ -16,6 +16,8 @@ def claim_field(db_index, type=object):
         return StrField(db_index).function
     elif type is dict:
         return DictField(db_index).function
+    elif type is list:
+        return ListField(db_index).function
     elif type is object:
         return ObjectField(db_index).function
     else:
@@ -88,6 +90,17 @@ class DictField(Field):
             permitted_python_types=[dict], 
             sql_type=String, 
             null_value=lambda: {}
+        )
+
+class ListField(Field):
+    def __init__(self, db_index):
+        super().__init__(
+            db_index,
+            from_db=json.loads, 
+            to_db=json.dumps, 
+            permitted_python_types=[list], 
+            sql_type=String, 
+            null_value=lambda: []
         )
 
 class ObjectField(Field):
