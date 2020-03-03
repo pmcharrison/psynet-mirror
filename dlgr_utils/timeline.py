@@ -1,7 +1,7 @@
 import importlib_resources
 import flask
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from .utils import dict_to_js_vars
 from . import templates
@@ -144,9 +144,21 @@ class Page(Elt):
         }
         all_template_arg = {
             **self.template_arg, 
-            "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars}))
+            "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
+            "progress_bar": self.create_progress_bar(experiment, participant),
+            "footer": self.create_footer(experiment, participant)
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
+
+    def create_progress_bar(self, experiment, participant):
+        return ProgressBar(experiment.estimate_progress(participant))
+
+    def create_footer(self, experiment, participant):
+        return Footer([
+                f"Estimated bonus: <strong>&#36;{participant.estimated_bonus:.2f}</strong>",
+                "Hello!"
+            ],
+            escape=False)
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
@@ -418,3 +430,15 @@ def multiply_expected_repetitions(logic, factor: float):
         for elt in logic:
             elt.multiply_expected_repetitions(factor)
     return logic
+
+class ProgressBar():
+    def __init__(self, progress: float, show=True):
+        self.show = show
+        self.percentage = round(progress * 100)
+        if self.percentage > 99:
+            self.percentage = 99
+
+class Footer():
+    def __init__(self, text_to_show: List[str], escape=True, show=True):
+        self.show = show
+        self.text_to_show = [x if escape else flask.Markup(x) for x in text_to_show]

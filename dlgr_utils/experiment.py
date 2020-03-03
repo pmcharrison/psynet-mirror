@@ -35,6 +35,8 @@ class Experiment(dallinger.experiment.Experiment):
         SuccessfulEndPage()
     )
 
+    wage_per_hour = 9.0
+
     # begin_page = BeginPage()
 
     def __init__(self, session=None):
@@ -125,7 +127,7 @@ class Experiment(dallinger.experiment.Experiment):
         logger.info("Initialising participant {}...".format(participant_id))
 
         participant = get_participant(participant_id)
-        participant.initialise()
+        participant.initialise(self)
         self.timeline.advance_page(self, participant)
         
         self.save()
@@ -156,6 +158,9 @@ class Experiment(dallinger.experiment.Experiment):
                 f"(submitted = {page_uuid}, required = {participant.page_uuid})."
             )
             return error_response()
+
+    def estimate_progress(self, participant):
+        return 0.2
 
     def response_approved(self):
         logger.info("The response was approved.")

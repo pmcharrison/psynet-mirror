@@ -1,5 +1,39 @@
 {% extends "layout.html" %}
 
+{% block body %}
+    {% block header %}
+        <div class="header">
+            {% if progress_bar.show %}
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="{{progress_bar.percentage}}"
+                    aria-valuemin="0" aria-valuemax="100" style="width:{{progress_bar.percentage}}%">
+                        {{progress_bar.percentage}}%
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% endblock %}
+
+    <div class="main_div">
+        {% block main_body %}
+        {% endblock %}
+    </div>
+
+    {% block footer %}
+        {% if footer.show %}    
+            <nav class="navbar navbar-fixed-bottom" style="padding: 8px; padding-left: 20px; padding-right: 20px; background-color: #4989C8; color: white; margin: 0px; line-height: 33px;">
+                <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                    {% for text in footer.text_to_show %}
+                        <div style="margin: 0px">
+                            {{text}}
+                        </div>
+                    {% endfor %}
+                </div>
+            </nav>
+        {% endif %}
+    {% endblock %}
+{% endblock %}
+
 {% block scripts %}
     {{super()}}
     <script>

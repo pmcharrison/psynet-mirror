@@ -31,11 +31,19 @@ class VarStore:
             self.__dict__["_participant"].details = all_vars
 
 class TimeCreditStore:
+    fields = [
+        "confirmed_credit",
+        "is_fixed", 
+        "pending_credit", 
+        "max_pending_credit", 
+        "wage_per_hour"
+    ]
+
     def __init__(self, participant):
         self.participant = participant
 
     def get_internal_name(self, name):
-        assert name in ["confirmed_credit", "is_fixed", "pending_credit", "max_pending_credit"]
+        assert name in self.fields
         return f"_time_credit__{name}"
 
     def __getattr__(self, name):
@@ -50,11 +58,12 @@ class TimeCreditStore:
         else:
             self.participant.set_var(self.get_internal_name(name), value)
 
-    def initialise(self):
+    def initialise(self, experiment):
         self.confirmed_credit = 0.0
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
+        self.wage_per_hour = experiment.wage_per_hour
 
     def increment(self, value: float):
         if self.is_fixed:
@@ -100,12 +109,17 @@ def _set_answer(self, value):
     self.answer = value
     return self
 
-def _initialise(self):
+def _initialise(self, experiment):
     self.elt_id = -1
     self.complete = False
-    self.time_credit.initialise()
+    self.time_credit.initialise(experiment)
+
+@property
+def estimated_bonus(self):
+    return self.time_credit.wage_per_hour * (self.time_credit.confirmed_credit + self.time_credit.pending_credit) / (60 * 60)
 
 Participant.time_credit = time_credit
+Participant.estimated_bonus = estimated_bonus
 Participant.var = var
 Participant.get_var = _get_var
 Participant.set_var = _set_var
