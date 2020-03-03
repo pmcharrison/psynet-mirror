@@ -556,33 +556,16 @@ class EndSwitchBranch(GoToElt):
         super().__init__(target=final_elt)
         self.name = name
 
-def conditional(id, condition, logic, always_give_time_credit=True):
-    logic = check_condition_and_logic(condition, logic)
-
-    def if_condition_is_true(experiment, participant):
-        participant.append_conditional(id)
-
-    def if_condition_is_false(experiment, participant):
-        participant.append_conditional(f"NOT_{id}")
-
-    elts = join(
-        ReactiveGoTo(
-            jump_by=len(logic) + 3, 
-            condition=condition, 
-            jump_on_negative=True,
-            if_condition_is_true=if_condition_is_true,
-            if_condition_is_false=if_condition_is_false
-        ),
-        BeginConditional(id),
-        logic,
-        EndConditional(id)
+def conditional(id, condition, logic_if_true, logic_if_false=None, always_give_time_credit=True):
+    return switch(
+        id, 
+        function=condition, 
+        branches={
+            True: logic_if_true,
+            False: NullElt() if logic_if_false is None else logic_if_false
+        }, 
+        always_give_time_credit=always_give_time_credit
     )
-
-    if always_give_time_credit:
-        time_allotted = estimate_time_credit(logic)
-        return fix_time(elts, time_allotted)
-    else:
-        return elts
 
 class ConditionalElt(Elt):
     def __init__(self, id: str):
