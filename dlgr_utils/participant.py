@@ -30,14 +30,67 @@ class VarStore:
             all_vars[name] = value
             self.__dict__["_participant"].details = all_vars
 
+class TimeCreditStore:
+    def __init__(self, participant):
+        self.participant = participant
+
+    def get_internal_name(self, name):
+        assert name in ["confirmed_credit", "is_fixed", "pending_credit", "max_pending_credit"]
+        return f"_time_credit__{name}"
+
+    def __getattr__(self, name):
+        if name is "participant":
+            return self.__dict__["participant"]
+        else:
+            return self.participant.get_var(self.get_internal_name(name))
+
+    def __setattr__(self, name, value):
+        if name is "participant":
+            self.__dict__["participant"] = value
+        else:
+            self.participant.set_var(self.get_internal_name(name), value)
+
+    def initialise(self):
+        self.confirmed_credit = 0.0
+        self.is_fixed = False
+        self.pending_credit = 0.0
+        self.max_pending_credit = 0.0
+
+    def increment(self, value: float):
+        if self.is_fixed:
+            self.pending_credit += value
+            if self.pending_credit > self.max_pending_credit:
+                self.pending_credit = self.max_pending_credit
+        else:
+            self.confirmed_credit += value
+    
+    def begin_fix_time(self, time_allotted: float):
+        assert not self.is_fixed
+        self.is_fixed = True
+        self.pending_credit = 0.0
+        self.max_pending_credit = time_allotted
+
+    def end_fix_time(self, time_allotted: float):
+        assert self.is_fixed
+        self.is_fixed = False
+        self.pending_credit = 0.0
+        self.max_pending_credit = 0.0
+        self.confirmed_credit += time_allotted
 
 @property
 def var(self):
     return VarStore(self)
 
+@property
+def time_credit(self):
+    return TimeCreditStore(self)
+
 @property 
 def initialised(self):
     return self.elt_id is not None
+
+def _get_var(self, name):
+    return self.__getattr__(name)
 
 def _set_var(self, name, value):
     self.var.__setattr__(name, value)
@@ -47,7 +100,14 @@ def _set_answer(self, value):
     self.answer = value
     return self
 
+def _initialise(self):
+    self.elt_id = -1
+    self.complete = False
+    self.time_credit.initialise()
+
+Participant.time_credit = time_credit
 Participant.var = var
+Participant.get_var = _get_var
 Participant.set_var = _set_var
 Participant.set_answer = _set_answer
 Participant.elt_id = field.claim_field(1, int)
@@ -55,6 +115,7 @@ Participant.page_uuid = field.claim_field(2, str)
 Participant.complete = field.claim_field(3, bool)
 Participant.answer = field.claim_field(4, object)
 Participant.initialised = initialised
+Participant.initialise = _initialise
 
 def get_participant(participant_id):
     return Participant.query.get(participant_id)

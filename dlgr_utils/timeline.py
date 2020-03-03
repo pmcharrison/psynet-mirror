@@ -30,6 +30,8 @@ def get_template(name):
     return importlib_resources.read_text(templates, name)
 
 class Elt:
+    time_allotted = 0.0
+
     def render(self, experiment, participant):
         raise NotImplementedError
 
@@ -42,6 +44,16 @@ class CodeBlock(Elt):
 
     def execute(self, experiment, participant):
         self.function(experiment=experiment, participant=participant)
+
+class FixTime(Elt):
+    def __init__(self, time_allotted: float):
+        self.time_allotted = time_allotted
+
+class BeginFixTime(FixTime):
+    pass
+
+class EndFixTime(FixTime):
+    pass
 
 class GoTo(Elt):
     def __init__(self, jump_by: int):
@@ -157,7 +169,7 @@ class ReactivePage(Elt):
             raise TypeError("The ReactivePage function must return an object of class Page.")
         return page
 
-    def expected_repetitions(self, factor: float):
+    def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
 
@@ -270,7 +282,8 @@ class Timeline():
         if not isinstance(elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be a EndPage.")
         for i, elt in enumerate(elts):
-            if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
+            # if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
+            if elt.time_allotted is None:
                 raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
 
     def __len__(self):
@@ -294,6 +307,8 @@ class Timeline():
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
+            old_elt = self.get_current_elt(experiment, participant, resolve=False)
+            participant.time_credit.increment(old_elt.time_allotted)
             participant.elt_id += 1
             new_elt = self.get_current_elt(experiment, participant, resolve=False)
             if isinstance(new_elt, CodeBlock):
@@ -302,6 +317,10 @@ class Timeline():
                 # We subtract 1 because elt_id will be incremented again when
                 # we return to the beginning of this while loop.
                 participant.elt_id += new_elt.resolve(experiment, participant) - 1
+            elif isinstance(new_elt, BeginFixTime):
+                participant.time_credit.begin_fix_time(new_elt.time_allotted)
+            elif isinstance(new_elt, EndFixTime):
+                participant.time_credit.end_fix_time(new_elt.time_allotted)
             else:
                 assert isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage)
                 finished = True
