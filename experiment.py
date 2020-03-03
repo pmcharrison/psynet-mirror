@@ -49,7 +49,8 @@ class Exp(Experiment):
                 prompt="Would you like to stay in this loop?",
                 choices=["Yes", "No"],
                 time_allotted=3
-            )
+            ), 
+            expected_repetitions=3
         ),
         NAFCPage(
             label="test_nafc",            

@@ -90,7 +90,7 @@ def initialised(self):
     return self.elt_id is not None
 
 def _get_var(self, name):
-    return self.__getattr__(name)
+    return self.var.__getattr__(name)
 
 def _set_var(self, name, value):
     self.var.__setattr__(name, value)

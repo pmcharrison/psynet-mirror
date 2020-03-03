@@ -2,7 +2,7 @@
 
 {% macro next_button(next_page) %}
 
-<hr>
+<!-- <hr> -->
 
 <div class="row">
     <div class="col-xs-10"></div>
@@ -12,6 +12,39 @@
 </div>
 
 {% endmacro %}
+
+{% block body %}
+    {% block header %}
+    <div class="header">
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" aria-valuenow="75"
+            aria-valuemin="0" aria-valuemax="100" style="width:75%">
+                75%
+            </div>
+        </div>
+    </div>
+    {% endblock %}
+
+    <div class="main_div">
+        {% block main_body %}
+        {% endblock %}
+    </div>
+
+    {% block footer %}
+    <nav class="navbar navbar-fixed-bottom" style="padding: 8px; padding-left: 20px; padding-right: 20px; background-color: #4989C8; color: white; margin: 0px; line-height: 33px;">
+        <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+            <div style="margin: 0px">
+                Estimated bonus: &#36;2.00
+            </div>
+            <div style="margin: 0px">
+                Hope you're having fun!
+            </div>
+        </div>
+
+
+    </nav>
+    {% endblock %}
+{% endblock %}
 
 {% block scripts %}
     {{super()}}

@@ -1,16 +1,13 @@
 {% extends "timeline-page.html" %}
 
-{% block body %}
-    <div class="main_div">
-        <h1>{{title}}</h1>
+{% block main_body %}
+    <h1>{{title}}</h1>
 
-        {{content}}
-        
-    </div>
+    {{content}}
 {% endblock %}
 
 {% block scripts %}
-{{super()}}
+    {{super()}}
     <script>
         setTimeout(dallinger.submitAssignment, wait_sec);
     </script>

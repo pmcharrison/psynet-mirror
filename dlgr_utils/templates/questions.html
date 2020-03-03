@@ -31,6 +31,7 @@
 {% endmacro %}
 
 {% block body %}
+    {{super()}}
     <div class="main_div" id="questionnaire" name="{{name}}" next_page={{next_page}}>
         {% block questions %}
             <form>
