@@ -17,7 +17,7 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.timeline import Page, InfoPage, Timeline, SuccessfulEndPage, ReactivePage, NAFCPage, CodeBlock, while_loop, conditional
+from dlgr_utils.timeline import Page, InfoPage, Timeline, SuccessfulEndPage, ReactivePage, NAFCPage, CodeBlock, while_loop, conditional, switch
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -48,13 +48,28 @@ class Exp(Experiment):
             choices=["Yes", "No"],
             time_allotted=3
         ),
-        conditional(
+        # conditional(
+        #     "like_chocolate",
+        #     lambda experiment, participant: participant.answer == "Yes",
+        #     InfoPage(
+        #         "It's nice to hear that you like chocolate!", 
+        #         time_allotted=3
+        #     ), 
+        #     always_give_time_credit=True
+        # ),
+        switch(
             "like_chocolate",
-            lambda experiment, participant: participant.answer == "Yes",
-            InfoPage(
-                "It's nice to hear that you like chocolate!", 
-                time_allotted=3
-            ), 
+            lambda experiment, participant: participant.answer,
+            {
+                "Yes": InfoPage(
+                    "It's nice to hear that you like chocolate!", 
+                    time_allotted=3
+                ), 
+                "No": InfoPage(
+                    "I'm sorry to hear that you don't like chocolate...", 
+                    time_allotted=3
+                ), 
+            },
             always_give_time_credit=True
         ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),

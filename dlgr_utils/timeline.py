@@ -42,6 +42,15 @@ class Elt:
     def multiply_expected_repetitions(self, factor):
         return self
 
+    def get_position_in_timeline(self, timeline):
+        for i, elt in enumerate(timeline):
+            if self == elt:
+                return i
+        raise ValueError("Elt not found in timeline.")
+
+class NullElt(Elt):
+    pass
+
 class CodeBlock(Elt):
     def __init__(self, function):
         self.function = function
@@ -58,6 +67,10 @@ class BeginFixTime(FixTime):
 
 class EndFixTime(FixTime):
     pass
+
+class GoToElt(Elt):
+    def __init__(self, target):
+        self.target = target
 
 class GoTo(Elt):
     def __init__(self, jump_by: int):
@@ -344,6 +357,7 @@ class Timeline():
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
+            # This should be refactored into different methods
             old_elt = self.get_current_elt(experiment, participant, resolve=False)
             if old_elt.returns_time_credit:
                 participant.time_credit.increment(old_elt.time_allotted)
@@ -357,6 +371,12 @@ class Timeline():
                 # new_elt.resolve() is permitted to have side effects,
                 # it need not be idempotent. It will only be called once.
                 participant.elt_id += new_elt.resolve(experiment, participant) - 1
+            elif isinstance(new_elt, GoToElt):
+                participant.elt_id = new_elt.target.get_position_in_timeline(self) - 1
+            elif isinstance(new_elt, BeginSwitch):
+                target_elt = new_elt.get_branch_start(experiment, participant)
+                target_elt_id = target_elt.get_position_in_timeline(self)
+                participant.elt_id = target_elt_id - 1
             elif isinstance(new_elt, BeginFixTime):
                 participant.time_credit.begin_fix_time(new_elt.time_allotted)
             elif isinstance(new_elt, EndFixTime):
@@ -364,6 +384,8 @@ class Timeline():
             elif isinstance(new_elt, BeginConditional):
                 participant.append_conditional
             elif isinstance(new_elt, EndConditional):
+                pass
+            elif isinstance(new_elt, NullElt):
                 pass
             else:
                 assert isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage)
@@ -475,6 +497,64 @@ def while_loop(condition, logic, expected_repetitions: int, fix_time_credit=True
         return fix_time(elts, time_allotted)
     else:
         return elts
+
+def check_branches(branches):
+    try:
+        assert isinstance(branches, dict)
+        for branch_name, branch_elts in branches.items():
+            assert isinstance(branch_elts, Elt) or is_list_of_elts(branch_elts)
+            if isinstance(branch_elts, Elt):
+                branches[branch_name] = [branch_elts]
+        return branches
+    except AssertionError:
+        raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
+
+def switch(id, function, branches, always_give_time_credit=True):
+    if not check_function_args(function, ("experiment", "participant")):
+        raise TypeError("<function> must be a function of the form f(experiment, participant).")
+    branches = check_branches(branches)
+   
+    all_branch_starts = dict()
+    all_elts = []
+    final_elt = EndSwitch(id) 
+
+    for branch_name, branch_elts in branches.items():
+        branch_start = BeginSwitchBranch(branch_name)
+        branch_end = EndSwitchBranch(branch_name, final_elt)
+        all_branch_starts[branch_name] = branch_start
+        all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
+
+    return [BeginSwitch(id, function, all_branch_starts)] + all_elts + [final_elt]
+
+class BeginSwitch(Elt):
+    def __init__(self, id, function, all_branch_starts):
+        self.id = id
+        self.function = function
+        self.all_branch_starts = all_branch_starts
+
+    def get_branch_start(self, experiment, participant):
+        val = self.function(experiment=experiment, participant=participant)
+        try:
+            return self.all_branch_starts[val]
+        except KeyError:
+            raise ValueError(
+                f"The switch function returned {val}, which is not present among the branch identifiers: " +
+                f"{list(self.all_branch_starts)}."
+        )
+
+class EndSwitch(NullElt):
+    def __init__(self, id):
+        self.id = id
+
+class BeginSwitchBranch(NullElt):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+class EndSwitchBranch(GoToElt):
+    def __init__(self, name, final_elt):
+        super().__init__(target=final_elt)
+        self.name = name
 
 def conditional(id, condition, logic, always_give_time_credit=True):
     logic = check_condition_and_logic(condition, logic)
