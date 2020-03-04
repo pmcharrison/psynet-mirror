@@ -3,6 +3,11 @@ from . import field
 from sqlalchemy.ext.hybrid import hybrid_property
 import rpdb
 import json
+import os
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 class UndefinedVariableError(Exception):
     pass
@@ -38,14 +43,16 @@ class TimeCreditStore:
         "pending_credit", 
         "max_pending_credit", 
         "wage_per_hour",
-        "experiment_total_credit"
+        "experiment_max_time_credit",
+        "experiment_max_bonus"
     ]
 
     def __init__(self, participant):
         self.participant = participant
 
     def get_internal_name(self, name):
-        assert name in self.fields
+        if name not in self.fields:
+            raise ValueError(f"{name} is not a valid field for TimeCreditStore.")
         return f"_time_credit__{name}"
 
     def __getattr__(self, name):
@@ -66,7 +73,20 @@ class TimeCreditStore:
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
         self.wage_per_hour = experiment.wage_per_hour
-        self.experiment_total_credit = experiment.timeline.estimate_total_time_credit()
+
+        experiment_estimated_time_credit = experiment.timeline.estimate_time_credit()
+        self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(mode="time")
+        self.experiment_max_bonus = experiment_estimated_time_credit.get_max(mode="bonus", wage_per_hour=experiment.wage_per_hour)
+        self.export_estimated_payments(experiment_estimated_time_credit, experiment)
+    
+    def export_estimated_payments(self, experiment_estimated_time_credit, experiment, path="experiment-estimated-payments.json"):
+        with open(path, "w+") as file:
+            summary = experiment_estimated_time_credit.summarise(
+                mode="bonus", 
+                wage_per_hour=experiment.wage_per_hour
+            )
+            json.dump(summary, file, indent=4)
+        logger.info(f"Exported estimated payment summary to {os.path.abspath(path)}.")
 
     def increment(self, value: float):
         if self.is_fixed:
@@ -99,7 +119,7 @@ class TimeCreditStore:
         return self.wage_per_hour * self.estimate_time_credit() / (60 * 60)
 
     def estimate_progress(self):
-        return self.estimate_time_credit() / self.experiment_total_credit
+        return self.estimate_time_credit() / self.experiment_max_time_credit
 
 @property
 def var(self):

@@ -105,7 +105,6 @@ class ReactiveGoTo(GoTo):
     
     def check_function(self):
         if not check_function_args(self.function, ("experiment", "participant")):
-            rpdb.set_trace()
             raise TypeError("<function> must be a function of the form f(experiment, participant).")
 
     def check_targets(self):
@@ -334,7 +333,6 @@ class Timeline():
         self.check_elts()        
         self.add_elt_ids()
         self.estimated_time_credit = self.estimate_time_credit()
-        rpdb.set_trace()
 
     def check_elts(self):
         assert isinstance(self.elts, list)
@@ -363,30 +361,32 @@ class Timeline():
             self.label = label
             self.children = children
 
-        def unclass(self):
+        def summarise(self, mode, wage_per_hour=None):
             return [
                 self.label, 
-                {key: child.unclass() for key, child in self.children.items()}
+                {key: child.summarise(mode, wage_per_hour) for key, child in self.children.items()}
             ]
 
-        def get_max(self):
+        def get_max(self, mode, wage_per_hour=None):
             return max([
-                child.get_max() for child in self.children.values()
+                child.get_max(mode, wage_per_hour) for child in self.children.values()
             ])
 
     class Leaf():
         def __init__(self, value: float):
             self.value = value
 
-        def unclass(self):
-            return self.value
+        def summarise(self, mode, wage_per_hour=None):
+            if mode == "time":
+                return self.value
+            elif mode == "bonus":
+                assert wage_per_hour is not None
+                return self.value * wage_per_hour / (60 * 60)
 
-        def get_max(self):
-            return self.value
+        def get_max(self, mode, wage_per_hour=None):
+            return self.summarise(mode, wage_per_hour)
 
     def estimate_time_credit(self, starting_elt_id=0):
-        logger.info(f"Estimating time credit with starting_elt_id = {starting_elt_id}.")
-
         elt_id = starting_elt_id
         time_credit = 0
         counter = 0
@@ -400,8 +400,6 @@ class Timeline():
 
             if elt.returns_time_credit:
                 time_credit += elt.time_allotted * elt.expected_repetitions
-
-            logger.info(f"elt_id = {elt_id}, time_credit = {time_credit}.")
             
             if isinstance(elt, BeginSwitch) and elt.log_chosen_branch:
                 return self.Branch(
@@ -469,8 +467,8 @@ class Timeline():
         )
         return validation
 
-    def estimate_total_time_credit(self):
-        return estimate_time_credit(self.elts)
+    # def estimate_total_time_credit(self):
+    #     return estimate_time_credit(self.elts)
 
 def estimate_time_credit(elts):
     return sum([

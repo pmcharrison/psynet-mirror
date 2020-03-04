@@ -61,21 +61,6 @@ class Exp(Experiment):
             ), 
             always_give_time_credit=True
         ),
-        # switch(
-        #     "like_chocolate",
-        #     lambda experiment, participant: participant.answer,
-        #     {
-        #         "Yes": InfoPage(
-        #             "It's nice to hear that you like chocolate!", 
-        #             time_allotted=3
-        #         ), 
-        #         "No": InfoPage(
-        #             "I'm sorry to hear that you don't like chocolate...", 
-        #             time_allotted=3
-        #         ), 
-        #     },
-        #     always_give_time_credit=True
-        # ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         while_loop(
             "example_loop",
