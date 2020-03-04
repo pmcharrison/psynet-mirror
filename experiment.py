@@ -64,13 +64,13 @@ class Exp(Experiment):
             lambda experiment, participant: participant.answer == "Yes",
             InfoPage(
                 "It's nice to hear that you like chocolate!", 
-                time_allotted=300
+                time_allotted=5
             ), 
             InfoPage(
                 "I'm sorry to hear that you don't like chocolate...", 
                 time_allotted=3
             ), 
-            always_give_time_credit=True
+            fix_time_credit=False
         ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         while_loop(
@@ -97,7 +97,8 @@ class Exp(Experiment):
                 "Red": InfoPage("Red is a nice colour, wait 1s.", time_allotted=1),
                 "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_allotted=2),
                 "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_allotted=3)
-            }
+            }, 
+            fix_time_credit=False
         ),
         CodeBlock(
             lambda experiment, participant:

@@ -368,10 +368,9 @@ class Timeline():
         except AssertionError:
             raise ValueError(
                 "Nested 'fix-time' constructs detected. This typically means you have "
-                "nested conditionals with always_give_time_credit=True "
-                "or while loops with fix_time_credit=True. "
+                "nested conditionals or whiel loops with fix_time_credit=True. "
                 "Such constructs cannot be nested; instead you should choose one level "
-                "at which to set always_give_time_credit=True or fix_time_credit=True."
+                "at which to set fix_time_credit=True."
             )
 
     def add_elt_ids(self):
@@ -424,10 +423,10 @@ class Timeline():
         def get_max(self, mode, wage_per_hour=None):
             return self.summarise(mode, wage_per_hour)
 
-    def estimate_time_credit(self, starting_elt_id=0):
+    def estimate_time_credit(self, starting_elt_id=0, starting_credit=0.0, starting_counter=0):
         elt_id = starting_elt_id
-        time_credit = 0
-        counter = 0
+        time_credit = starting_credit
+        counter = starting_counter
 
         while True:
             counter += 1
@@ -452,7 +451,11 @@ class Timeline():
                 return self.Branch(
                     label=elt.label,
                     children={
-                        key: self.estimate_time_credit(starting_elt_id=branch_start_elt.id)
+                        key: self.estimate_time_credit(
+                            starting_elt_id=branch_start_elt.id, 
+                            starting_credit=time_credit,
+                            starting_counter=counter
+                        )
                         for key, branch_start_elt in elt.branch_start_elts.items()
                     }
                 )
@@ -619,7 +622,7 @@ def while_loop(label, condition, logic, expected_repetitions: int, fix_time_cred
             label, 
             condition, 
             conditional_logic, 
-            always_give_time_credit=False,
+            fix_time_credit=False,
             log_chosen_branch=False
         ),
         end_while
@@ -642,7 +645,7 @@ def check_branches(branches):
     except AssertionError:
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
-def switch(label, function, branches, always_give_time_credit=True, log_chosen_branch=True):
+def switch(label, function, branches, fix_time_credit=True, log_chosen_branch=True):
     if not check_function_args(function, ("experiment", "participant")):
         raise TypeError("<function> must be a function of the form f(experiment, participant).")
     branches = check_branches(branches)
@@ -660,7 +663,7 @@ def switch(label, function, branches, always_give_time_credit=True, log_chosen_b
     start_switch = StartSwitch(label, function, branch_start_elts=all_branch_starts, log_chosen_branch=log_chosen_branch)
     combined_elts = [start_switch] + all_elts + [final_elt]
 
-    if always_give_time_credit:
+    if fix_time_credit:
         time_allotted = max([
             estimate_time_credit(branch_elts)
             for branch_elts in branches.values()
@@ -703,7 +706,7 @@ def conditional(
     condition, 
     logic_if_true, 
     logic_if_false=None, 
-    always_give_time_credit=True,
+    fix_time_credit=True,
     log_chosen_branch=True
     ):
     return switch(
@@ -713,7 +716,7 @@ def conditional(
             True: logic_if_true,
             False: NullElt() if logic_if_false is None else logic_if_false
         }, 
-        always_give_time_credit=always_give_time_credit,
+        fix_time_credit=fix_time_credit,
         log_chosen_branch=log_chosen_branch
     )
 
