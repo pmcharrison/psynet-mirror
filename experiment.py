@@ -53,7 +53,7 @@ class Exp(Experiment):
             lambda experiment, participant: participant.answer == "Yes",
             InfoPage(
                 "It's nice to hear that you like chocolate!", 
-                time_allotted=3
+                time_allotted=300
             ), 
             InfoPage(
                 "I'm sorry to hear that you don't like chocolate...", 

@@ -18,8 +18,6 @@ from functools import reduce
 
 import inspect
 
-import rpdb
-
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
@@ -335,6 +333,8 @@ class Timeline():
         self.elts = elts
         self.check_elts()        
         self.add_elt_ids()
+        self.estimated_time_credit = self.estimate_time_credit()
+        rpdb.set_trace()
 
     def check_elts(self):
         assert isinstance(self.elts, list)
@@ -357,6 +357,67 @@ class Timeline():
                     "in the same timeline. This kind of reusing is not permitted, instead you should " +
                     "create a fresh instantiation of each element."
             )
+
+    class Branch():
+        def __init__(self, label: str, children: dict):
+            self.label = label
+            self.children = children
+
+        def unclass(self):
+            return [
+                self.label, 
+                {key: child.unclass() for key, child in self.children.items()}
+            ]
+
+        def get_max(self):
+            return max([
+                child.get_max() for child in self.children.values()
+            ])
+
+    class Leaf():
+        def __init__(self, value: float):
+            self.value = value
+
+        def unclass(self):
+            return self.value
+
+        def get_max(self):
+            return self.value
+
+    def estimate_time_credit(self, starting_elt_id=0):
+        logger.info(f"Estimating time credit with starting_elt_id = {starting_elt_id}.")
+
+        elt_id = starting_elt_id
+        time_credit = 0
+        counter = 0
+
+        while True:
+            counter += 1
+            if counter > 1e6:
+                raise Exception("Got stuck in the estimate_time_credit() while loop, this shouldn't happen.")
+
+            elt = self.elts[elt_id]
+
+            if elt.returns_time_credit:
+                time_credit += elt.time_allotted * elt.expected_repetitions
+
+            logger.info(f"elt_id = {elt_id}, time_credit = {time_credit}.")
+            
+            if isinstance(elt, BeginSwitch) and elt.log_chosen_branch:
+                return self.Branch(
+                    label=elt.label,
+                    children={
+                        key: self.estimate_time_credit(starting_elt_id=branch_start_elt.id)
+                        for key, branch_start_elt in elt.branch_start_elts.items()
+                    }
+                )
+            elif isinstance(elt, EndSwitchBranch):
+                # Jump to the end of the switch section
+                elt_id = elt.target.id
+            elif isinstance(elt, EndPage):
+                return self.Leaf(time_credit)
+            else: 
+                elt_id += 1
 
     def __len__(self):
         return len(self.elts)
@@ -482,23 +543,23 @@ def check_condition_and_logic(condition, logic):
     return logic
 
 class StartWhile(NullElt):
-    def __init__(self, id):
+    def __init__(self, label):
         # targets = {
         #     True: self,
         #     False: end_while
         # }
         # super().__init__(condition, targets)
         super().__init__()
-        self.id = id
+        self.label = label
 
 class EndWhile(NullElt):
-    def __init__(self, id):
+    def __init__(self, label):
         super().__init__()
-        self.id = id
+        self.label = label
 
-def while_loop(id, condition, logic, expected_repetitions: int, fix_time_credit=True):   
-    start_while = StartWhile(id)
-    end_while = EndWhile(id)
+def while_loop(label, condition, logic, expected_repetitions: int, fix_time_credit=True):   
+    start_while = StartWhile(label)
+    end_while = EndWhile(label)
 
     logic = check_condition_and_logic(condition, logic)
     logic = multiply_expected_repetitions(logic, expected_repetitions)
@@ -508,7 +569,7 @@ def while_loop(id, condition, logic, expected_repetitions: int, fix_time_credit=
     elts = join(
         start_while,
         conditional(
-            id, 
+            label, 
             condition, 
             conditional_logic, 
             always_give_time_credit=False,
@@ -534,14 +595,14 @@ def check_branches(branches):
     except AssertionError:
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
-def switch(id, function, branches, always_give_time_credit=True, log_chosen_branch=True):
+def switch(label, function, branches, always_give_time_credit=True, log_chosen_branch=True):
     if not check_function_args(function, ("experiment", "participant")):
         raise TypeError("<function> must be a function of the form f(experiment, participant).")
     branches = check_branches(branches)
    
     all_branch_starts = dict()
     all_elts = []
-    final_elt = EndSwitch(id) 
+    final_elt = EndSwitch(label) 
 
     for branch_name, branch_elts in branches.items():
         branch_start = BeginSwitchBranch(branch_name)
@@ -549,26 +610,36 @@ def switch(id, function, branches, always_give_time_credit=True, log_chosen_bran
         all_branch_starts[branch_name] = branch_start
         all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
 
-    begin_switch = BeginSwitch(id, function, all_branch_starts, log_chosen_branch=log_chosen_branch)
+    begin_switch = BeginSwitch(label, function, branch_start_elts=all_branch_starts, log_chosen_branch=log_chosen_branch)
+    combined_elts = [begin_switch] + all_elts + [final_elt]
 
-    return [begin_switch] + all_elts + [final_elt]
+    if always_give_time_credit:
+        time_allotted = max([
+            estimate_time_credit(branch_elts)
+            for branch_elts in branches.values()
+        ])
+        return fix_time(combined_elts, time_allotted)
+    else:
+        return combined_elts
 
 class BeginSwitch(ReactiveGoTo):
-    def __init__(self, id, function, all_branch_starts, log_chosen_branch=True):
+    def __init__(self, label, function, branch_start_elts, log_chosen_branch=True):
         if log_chosen_branch:
             def function_2(experiment, participant):
                 val = function(experiment, participant)
-                log_entry = [id, val]
+                log_entry = [label, val]
                 participant.append_branch_log(log_entry)
                 return val
-            super().__init__(function_2, targets=all_branch_starts)
+            super().__init__(function_2, targets=branch_start_elts)
         else:
-            super().__init__(function, targets=all_branch_starts)
-        self.id = id
+            super().__init__(function, targets=branch_start_elts)
+        self.label = label
+        self.branch_start_elts = branch_start_elts
+        self.log_chosen_branch = log_chosen_branch
 
 class EndSwitch(NullElt):
-    def __init__(self, id):
-        self.id = id
+    def __init__(self, label):
+        self.label = label
 
 class BeginSwitchBranch(NullElt):
     def __init__(self, name):
@@ -581,7 +652,7 @@ class EndSwitchBranch(GoTo):
         self.name = name
 
 def conditional(
-    id,
+    label,
     condition, 
     logic_if_true, 
     logic_if_false=None, 
@@ -589,7 +660,7 @@ def conditional(
     log_chosen_branch=True
     ):
     return switch(
-        id, 
+        label, 
         function=condition, 
         branches={
             True: logic_if_true,
@@ -600,8 +671,8 @@ def conditional(
     )
 
 class ConditionalElt(Elt):
-    def __init__(self, id: str):
-        self.id = id
+    def __init__(self, label: str):
+        self.label = label
 
 class BeginConditional(ConditionalElt):
     pass
@@ -626,13 +697,13 @@ def multiply_expected_repetitions(logic, factor: float):
     return logic
 
 class ProgressBar():
-    def __init__(self, progress: float, show=True):
+    def __init__(self, progress: float, show=True, min_pct=5, max_pct=99):
         self.show = show
         self.percentage = round(progress * 100)
-        if self.percentage > 99:
-            self.percentage = 99
-        elif self.percentage < 1:
-            self.percentage = 5
+        if self.percentage > max_pct:
+            self.percentage = max_pct
+        elif self.percentage < min_pct:
+            self.percentage = min_pct
 
 class Footer():
     def __init__(self, text_to_show: List[str], escape=True, show=True):
