@@ -14,7 +14,7 @@ from dallinger.experiment_server.utils import (
 
 import rpdb
 
-from dlgr_utils.experiment import Experiment
+import dlgr_utils.experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
 from dlgr_utils.timeline import (
@@ -36,7 +36,10 @@ logger = logging.getLogger(__file__)
 
 from datetime import datetime
 
-class Exp(Experiment):
+# Weird bug: if you instead import Experiment from dlgr_utils.experiment,
+# Dallinger won't allow you to override the bonus method
+# (or at least you can override it but it won't work).
+class Exp(dlgr_utils.experiment.Experiment):
     # You can customise these parameters ####
     num_networks = 3
     num_nodes_per_network = 5
