@@ -382,6 +382,13 @@ class Timeline():
             elif mode == "bonus":
                 assert wage_per_hour is not None
                 return self.value * wage_per_hour / (60 * 60)
+            elif mode == "all":
+                return {
+                    "time_seconds": self.summarise(mode="time"),
+                    "time_minutes": self.summarise(mode="time") / 60,
+                    "time_hours": self.summarise(mode="time") / (60 * 60),
+                    "bonus": self.summarise(mode="bonus", wage_per_hour=wage_per_hour)
+                }
 
         def get_max(self, mode, wage_per_hour=None):
             return self.summarise(mode, wage_per_hour)

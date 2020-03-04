@@ -79,6 +79,15 @@ class Exp(Experiment):
             choices=["Red", "Green", "Blue"],
             time_allotted=5
         ),
+        switch(
+            "colour",
+            lambda experiment, participant: participant.answer,
+            branches = {
+                "Red": InfoPage("Red is a nice colour, wait 1s.", time_allotted=1),
+                "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_allotted=2),
+                "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_allotted=3)
+            }
+        ),
         CodeBlock(
             lambda experiment, participant:
                 participant.set_var("favourite_colour", participant.answer)

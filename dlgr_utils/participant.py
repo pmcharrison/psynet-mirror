@@ -82,7 +82,7 @@ class TimeCreditStore:
     def export_estimated_payments(self, experiment_estimated_time_credit, experiment, path="experiment-estimated-payments.json"):
         with open(path, "w+") as file:
             summary = experiment_estimated_time_credit.summarise(
-                mode="bonus", 
+                mode="all", 
                 wage_per_hour=experiment.wage_per_hour
             )
             json.dump(summary, file, indent=4)
