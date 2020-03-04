@@ -16,6 +16,8 @@ from sqlalchemy.orm import relationship
 
 from functools import reduce
 
+import inspect
+
 import rpdb
 
 import logging
@@ -105,6 +107,7 @@ class ReactiveGoTo(GoTo):
     
     def check_function(self):
         if not check_function_args(self.function, ("experiment", "participant")):
+            rpdb.set_trace()
             raise TypeError("<function> must be a function of the form f(experiment, participant).")
 
     def check_targets(self):
@@ -128,7 +131,7 @@ class ReactiveGoTo(GoTo):
 def check_function_args(f, args):
     return (
         callable(f) 
-        and f.__code__.co_varnames == tuple(args)
+        and [str(x) for x in inspect.signature(f).parameters] == list(args)
     )
 
 class Page(Elt):
@@ -344,9 +347,9 @@ class Timeline():
 
     def add_elt_ids(self):
         for i, elt in enumerate(self.elts):
-            elt.id = id
+            elt.id = i
         for i, elt in enumerate(self.elts):
-            if i != elt.id:
+            if elt.id != i:
                 raise ValueError(
                     f"Failed to set unique IDs for each element in the timeline " +
                     f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). " +
@@ -389,7 +392,7 @@ class Timeline():
                 finished = True
 
             logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
-        logger.info(f"participant.conditionals = {json.dumps(participant.conditionals)}")
+        logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
 
     def process_response(self, input, experiment, participant):
         elt = self.get_current_elt(experiment, participant)
@@ -504,7 +507,13 @@ def while_loop(id, condition, logic, expected_repetitions: int, fix_time_credit=
 
     elts = join(
         start_while,
-        conditional(id, condition, conditional_logic),
+        conditional(
+            id, 
+            condition, 
+            conditional_logic, 
+            always_give_time_credit=False,
+            log_chosen_branch=False
+        ),
         end_while
     )
 
@@ -525,7 +534,7 @@ def check_branches(branches):
     except AssertionError:
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
-def switch(id, function, branches, always_give_time_credit=True):
+def switch(id, function, branches, always_give_time_credit=True, log_chosen_branch=True):
     if not check_function_args(function, ("experiment", "participant")):
         raise TypeError("<function> must be a function of the form f(experiment, participant).")
     branches = check_branches(branches)
@@ -540,11 +549,21 @@ def switch(id, function, branches, always_give_time_credit=True):
         all_branch_starts[branch_name] = branch_start
         all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
 
-    return [BeginSwitch(id, function, all_branch_starts)] + all_elts + [final_elt]
+    begin_switch = BeginSwitch(id, function, all_branch_starts, log_chosen_branch=log_chosen_branch)
+
+    return [begin_switch] + all_elts + [final_elt]
 
 class BeginSwitch(ReactiveGoTo):
-    def __init__(self, id, function, all_branch_starts):
-        super().__init__(function, targets=all_branch_starts)
+    def __init__(self, id, function, all_branch_starts, log_chosen_branch=True):
+        if log_chosen_branch:
+            def function_2(experiment, participant):
+                val = function(experiment, participant)
+                log_entry = [id, val]
+                participant.append_branch_log(log_entry)
+                return val
+            super().__init__(function_2, targets=all_branch_starts)
+        else:
+            super().__init__(function, targets=all_branch_starts)
         self.id = id
 
 class EndSwitch(NullElt):
@@ -561,7 +580,14 @@ class EndSwitchBranch(GoTo):
         super().__init__(target=final_elt)
         self.name = name
 
-def conditional(id, condition, logic_if_true, logic_if_false=None, always_give_time_credit=True):
+def conditional(
+    id,
+    condition, 
+    logic_if_true, 
+    logic_if_false=None, 
+    always_give_time_credit=True,
+    log_chosen_branch=True
+    ):
     return switch(
         id, 
         function=condition, 
@@ -569,7 +595,8 @@ def conditional(id, condition, logic_if_true, logic_if_false=None, always_give_t
             True: logic_if_true,
             False: NullElt() if logic_if_false is None else logic_if_false
         }, 
-        always_give_time_credit=always_give_time_credit
+        always_give_time_credit=always_give_time_credit,
+        log_chosen_branch=log_chosen_branch
     )
 
 class ConditionalElt(Elt):

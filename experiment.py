@@ -55,10 +55,10 @@ class Exp(Experiment):
                 "It's nice to hear that you like chocolate!", 
                 time_allotted=3
             ), 
-            # InfoPage(
-            #     "I'm sorry to hear that you don't like chocolate...", 
-            #     time_allotted=3
-            # ), 
+            InfoPage(
+                "I'm sorry to hear that you don't like chocolate...", 
+                time_allotted=3
+            ), 
             always_give_time_credit=True
         ),
         # switch(

@@ -2,6 +2,7 @@ from dallinger.models import Participant
 from . import field
 from sqlalchemy.ext.hybrid import hybrid_property
 import rpdb
+import json
 
 class UndefinedVariableError(Exception):
     pass
@@ -131,10 +132,18 @@ def _initialise(self, experiment):
 def _estimate_progress(self):
     return 1.0 if self.complete else self.time_credit.estimate_progress()
 
-def _append_conditional(self, id: str):
+def _append_branch_log(self, entry: str):
     # We need to create a new list otherwise the change may not be recognised
     # by SQLAlchemy(?)
-    self.conditionals = self.conditionals + [id]
+    if not isinstance(entry, list) or len(entry) != 2 or not isinstance(entry[0], str):
+        raise ValueError(f"Log entry must be a list of length 2 where the first element is a string (received {entry}).")
+    if json.loads(json.dumps(entry)) != entry:
+        raise ValueError(
+            f"The provided log entry cannot be accurately serialised to JSON (received {entry}). " +
+            "Please simplify the log entry (this is typically determined by the output type of the user-provided function " +
+            "in switch() or conditional())."
+        )
+    self.branch_log = self.branch_log + [entry]
 
 # @property 
 # def estimated_time_credit(self):
@@ -150,8 +159,8 @@ Participant.elt_id = field.claim_field(1, int)
 Participant.page_uuid = field.claim_field(2, str)
 Participant.complete = field.claim_field(3, bool)
 Participant.answer = field.claim_field(4, object)
-Participant.conditionals = field.claim_field(5, list)
-Participant.append_conditional = _append_conditional
+Participant.branch_log = field.claim_field(5, list)
+Participant.append_branch_log = _append_branch_log
 Participant.initialised = initialised
 Participant.initialise = _initialise
 
