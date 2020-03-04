@@ -347,9 +347,32 @@ class Timeline():
         assert len(self.elts) > 0
         if not isinstance(self.elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be a EndPage.")
+        self.check_for_time_allotted()
+        self.check_start_fix_times()
+
+    def check_for_time_allotted(self):
         for i, elt in enumerate(self.elts):
             if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
                 raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
+
+    def check_start_fix_times(self):
+        try:
+            fix_time = False
+            for elt in self.elts:
+                if isinstance(elt, StartFixTime):
+                    assert not fix_time
+                    fix_time = True
+                elif isinstance(elt, EndFixTime):
+                    assert fix_time
+                    fix_time = False
+        except AssertionError:
+            raise ValueError(
+                "Nested 'fix-time' constructs detected. This typically means you have "
+                "nested conditionals with always_give_time_credit=True "
+                "or while loops with fix_time_credit=True. "
+                "Such constructs cannot be nested; instead you should choose one level "
+                "at which to set always_give_time_credit=True or fix_time_credit=True."
+            )
 
     def add_elt_ids(self):
         for i, elt in enumerate(self.elts):
@@ -476,8 +499,8 @@ class Timeline():
             if isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage):
                 finished = True
 
-            logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
-        logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
+            # logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
+        # logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
 
     def process_response(self, input, experiment, participant):
         elt = self.get_current_elt(experiment, participant)

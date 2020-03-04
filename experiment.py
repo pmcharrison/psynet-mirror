@@ -17,7 +17,18 @@ import rpdb
 from dlgr_utils.experiment import Experiment
 from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.timeline import Page, InfoPage, Timeline, SuccessfulEndPage, ReactivePage, NAFCPage, CodeBlock, while_loop, conditional, switch
+from dlgr_utils.timeline import (
+    Page, 
+    InfoPage, 
+    Timeline,
+    SuccessfulEndPage, 
+    ReactivePage, 
+    NAFCPage, 
+    CodeBlock, 
+    while_loop, 
+    conditional, 
+    switch
+)
 
 import logging
 logging.basicConfig(level=logging.INFO)
