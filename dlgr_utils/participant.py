@@ -96,7 +96,7 @@ class TimeCreditStore:
         else:
             self.confirmed_credit += value
     
-    def begin_fix_time(self, time_allotted: float):
+    def start_fix_time(self, time_allotted: float):
         assert not self.is_fixed
         self.is_fixed = True
         self.pending_credit = 0.0

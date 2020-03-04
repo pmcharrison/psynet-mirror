@@ -66,10 +66,18 @@ class CodeBlock(Elt):
 class FixTime(Elt):
     def __init__(self, time_allotted: float):
         self.time_allotted = time_allotted
+        self.expected_repetitions = 1
 
-class BeginFixTime(FixTime):
+    def multiply_expected_repetitions(self, factor):
+        self.expected_repetitions = self.expected_repetitions * factor
+
+class StartFixTime(FixTime):
+    def __init__(self, time_allotted, end_fix_time):
+        super().__init__(time_allotted)
+        self.end_fix_time = end_fix_time
+
     def consume(self, experiment, participant):
-        participant.time_credit.begin_fix_time(self.time_allotted)
+        participant.time_credit.start_fix_time(self.time_allotted)
 
 class EndFixTime(FixTime):
     def consume(self, experiment, participant):
@@ -84,7 +92,7 @@ class GoTo(Elt):
 
     def consume(self, experiment, participant):
         # We subtract 1 because elt_id will be incremented again when
-        # we return to the beginning of the advance page loop.
+        # we return to the startning of the advance page loop.
         target_elt = self.get_target(experiment, participant)
         target_elt_id = target_elt.id
         participant.elt_id = target_elt_id - 1
@@ -264,11 +272,11 @@ class UnsuccessfulEndPage(EndPage):
     pass
 
 class Button():
-    def __init__(self, id, label, min_width, begin_disabled=False):
+    def __init__(self, id, label, min_width, start_disabled=False):
         self.id = id
         self.label = label
         self.min_width = min_width
-        self.begin_disabled = begin_disabled
+        self.start_disabled = start_disabled
 
 class NAFCPage(Page):
     def __init__(
@@ -405,10 +413,19 @@ class Timeline():
 
             elt = self.elts[elt_id]
 
+            # logger.info(f"elt_id = {elt_id}, elt = {elt}")
+
             if elt.returns_time_credit:
                 time_credit += elt.time_allotted * elt.expected_repetitions
             
-            if isinstance(elt, BeginSwitch) and elt.log_chosen_branch:
+            if isinstance(elt, StartFixTime):
+                elt_id = elt.end_fix_time.id
+
+            elif isinstance(elt, EndFixTime):
+                time_credit += elt.time_allotted * elt.expected_repetitions
+                elt_id += 1
+
+            elif isinstance(elt, StartSwitch) and elt.log_chosen_branch:
                 return self.Branch(
                     label=elt.label,
                     children={
@@ -416,11 +433,13 @@ class Timeline():
                         for key, branch_start_elt in elt.branch_start_elts.items()
                     }
                 )
+
             elif isinstance(elt, EndSwitchBranch):
-                # Jump to the end of the switch section
                 elt_id = elt.target.id
+
             elif isinstance(elt, EndPage):
                 return self.Leaf(time_credit)
+
             else: 
                 elt_id += 1
 
@@ -610,13 +629,13 @@ def switch(label, function, branches, always_give_time_credit=True, log_chosen_b
     final_elt = EndSwitch(label) 
 
     for branch_name, branch_elts in branches.items():
-        branch_start = BeginSwitchBranch(branch_name)
+        branch_start = StartSwitchBranch(branch_name)
         branch_end = EndSwitchBranch(branch_name, final_elt)
         all_branch_starts[branch_name] = branch_start
         all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
 
-    begin_switch = BeginSwitch(label, function, branch_start_elts=all_branch_starts, log_chosen_branch=log_chosen_branch)
-    combined_elts = [begin_switch] + all_elts + [final_elt]
+    start_switch = StartSwitch(label, function, branch_start_elts=all_branch_starts, log_chosen_branch=log_chosen_branch)
+    combined_elts = [start_switch] + all_elts + [final_elt]
 
     if always_give_time_credit:
         time_allotted = max([
@@ -627,7 +646,7 @@ def switch(label, function, branches, always_give_time_credit=True, log_chosen_b
     else:
         return combined_elts
 
-class BeginSwitch(ReactiveGoTo):
+class StartSwitch(ReactiveGoTo):
     def __init__(self, label, function, branch_start_elts, log_chosen_branch=True):
         if log_chosen_branch:
             def function_2(experiment, participant):
@@ -646,7 +665,7 @@ class EndSwitch(NullElt):
     def __init__(self, label):
         self.label = label
 
-class BeginSwitchBranch(NullElt):
+class StartSwitchBranch(NullElt):
     def __init__(self, name):
         super().__init__()
         self.name = name
@@ -679,18 +698,16 @@ class ConditionalElt(Elt):
     def __init__(self, label: str):
         self.label = label
 
-class BeginConditional(ConditionalElt):
+class StartConditional(ConditionalElt):
     pass
     
 class EndConditional(ConditionalElt):
     pass
    
 def fix_time(elts, time_allotted):
-    return join(
-        BeginFixTime(time_allotted),
-        elts,
-        EndFixTime(time_allotted)
-    )
+    end_fix_time = EndFixTime(time_allotted)
+    start_fix_time = StartFixTime(time_allotted, end_fix_time)
+    return join(start_fix_time, elts, end_fix_time)
 
 def multiply_expected_repetitions(logic, factor: float):
     assert isinstance(logic, Elt) or is_list_of_elts(logic)

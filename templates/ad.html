@@ -33,11 +33,11 @@
 {% block scripts %}
 <script>
     function openwindow(event) {
-        popup = window.open('{{ server_location }}/begin?recruiter={{ recruiter }}&hit_id={{ hitid }}&assignment_id={{ assignmentid }}&worker_id={{ workerid }}&mode={{ mode }}','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width='+1024+',height='+768+'');
+        popup = window.open('{{ server_location }}/start?recruiter={{ recruiter }}&hit_id={{ hitid }}&assignment_id={{ assignmentid }}&worker_id={{ workerid }}&mode={{ mode }}','Popup','toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no,width='+1024+',height='+768+'');
         event.target.setAttribute("disabled", "");
     }
 
-    document.getElementById("begin-button").onclick = openwindow;
+    document.getElementById("start-button").onclick = openwindow;
 </script>
 {% endblock %}
 
@@ -82,16 +82,9 @@
                             </p>
 
                             <p>
-                                <a id="begin-button">Click here</a> to begin as a participant.
+                                <a id="start-button">Click here</a> to begin as a participant.
                             </p>
                             
-                            <!-- <div class="alert alert-warning">
-                                <b>Warning</b>: Please disable pop-up blockers before continuing.
-                            </div> -->
-<!-- 
-                            <button type="button" id="begin-button" class="btn btn-primary btn-lg">
-                            Begin Experiment
-                            </button> -->
                         {% endblock live %}
                     {% endif %}
                 {% endblock ad %}

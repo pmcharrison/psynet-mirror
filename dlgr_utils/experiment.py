@@ -37,8 +37,6 @@ class Experiment(dallinger.experiment.Experiment):
 
     wage_per_hour = 9.0
 
-    # begin_page = BeginPage()
-
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
@@ -186,9 +184,9 @@ class Experiment(dallinger.experiment.Experiment):
         def route_monitor():
             return self.render_monitor_template()
 
-        @routes.route("/begin", methods=["GET"])
-        def route_begin():
-            return render_template("begin.html")
+        @routes.route("/start", methods=["GET"])
+        def route_start():
+            return render_template("start.html")
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
