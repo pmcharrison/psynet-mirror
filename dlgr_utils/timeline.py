@@ -35,6 +35,7 @@ class Elt:
     returns_time_credit = False
     time_allotted = None
     expected_repetitions = None
+    id = None
 
     def consume(self, experiment, participant):
         raise NotImplementedError
@@ -45,11 +46,11 @@ class Elt:
     def multiply_expected_repetitions(self, factor):
         return self
 
-    def get_position_in_timeline(self, timeline):
-        for i, elt in enumerate(timeline):
-            if self == elt:
-                return i
-        raise ValueError("Elt not found in timeline.")
+    # def get_position_in_timeline(self, timeline):
+    #     for i, elt in enumerate(timeline):
+    #         if self == elt:
+    #             return i
+    #     raise ValueError("Elt not found in timeline.")
 
 class NullElt(Elt):
     def consume(self, experiment, participant):
@@ -85,7 +86,7 @@ class GoTo(Elt):
         # We subtract 1 because elt_id will be incremented again when
         # we return to the beginning of the advance page loop.
         target_elt = self.get_target(experiment, participant)
-        target_elt_id = target_elt.get_position_in_timeline(experiment.timeline)
+        target_elt_id = target_elt.id
         participant.elt_id = target_elt_id - 1
 
 class ReactiveGoTo(GoTo):
@@ -329,16 +330,30 @@ class Timeline():
     def __init__(self, *args):
         elts = join(*args)
         self.elts = elts
-        self.check_elts(elts)        
+        self.check_elts()        
+        self.add_elt_ids()
 
-    def check_elts(self, elts):
-        assert isinstance(elts, list)
-        assert len(elts) > 0
-        if not isinstance(elts[-1], EndPage):
+    def check_elts(self):
+        assert isinstance(self.elts, list)
+        assert len(self.elts) > 0
+        if not isinstance(self.elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be a EndPage.")
-        for i, elt in enumerate(elts):
+        for i, elt in enumerate(self.elts):
             if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
                 raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
+
+    def add_elt_ids(self):
+        for i, elt in enumerate(self.elts):
+            elt.id = id
+        for i, elt in enumerate(self.elts):
+            if i != elt.id:
+                raise ValueError(
+                    f"Failed to set unique IDs for each element in the timeline " +
+                    f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). " +
+                    "This usually means that the same Python object instantiation is reused multiple times " +
+                    "in the same timeline. This kind of reusing is not permitted, instead you should " +
+                    "create a fresh instantiation of each element."
+            )
 
     def __len__(self):
         return len(self.elts)
