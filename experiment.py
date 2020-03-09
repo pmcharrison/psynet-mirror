@@ -50,6 +50,10 @@ class Exp(dlgr_utils.experiment.Experiment):
     ####
 
     timeline = Timeline(
+        InfoPage(
+            "Welcome to the experiment!",
+            time_allotted=5
+        ),
         ReactivePage(            
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
@@ -85,7 +89,8 @@ class Exp(dlgr_utils.experiment.Experiment):
                 choices=["Yes", "No"],
                 time_allotted=3
             ), 
-            expected_repetitions=3
+            expected_repetitions=3,
+            fix_time_credit=True
         ),
         NAFCPage(
             label="test_nafc",            

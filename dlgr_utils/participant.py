@@ -175,11 +175,13 @@ Participant.var = var
 Participant.get_var = _get_var
 Participant.set_var = _set_var
 Participant.set_answer = _set_answer
+
 Participant.elt_id = field.claim_field(1, int)
 Participant.page_uuid = field.claim_field(2, str)
 Participant.complete = field.claim_field(3, bool)
 Participant.answer = field.claim_field(4, object)
 Participant.branch_log = field.claim_field(5, list)
+
 Participant.append_branch_log = _append_branch_log
 Participant.initialised = initialised
 Participant.initialise = _initialise
