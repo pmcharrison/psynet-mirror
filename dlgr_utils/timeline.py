@@ -560,8 +560,8 @@ def is_list_of_elts(x: list):
 
 def join(*args):
     for i, arg in enumerate(args):
-        if not (isinstance(arg, Elt) or is_list_of_elts(arg)):
-            raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts.")        
+        if not (isinstance(arg, Elt) or is_list_of_elts(arg) or isinstance(arg, Module)):
+            raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module.")        
 
     if len(args) == 0:
         return []
@@ -569,6 +569,10 @@ def join(*args):
         return [args[0]]
     else:
         def f(x, y):
+            if isinstance(x, Module):
+                x = x.elts
+            if isinstance(y, Module):
+                y = y.elts
             if isinstance(x, Elt) and isinstance(y, Elt):
                 return [x, y]
             elif isinstance(x, Elt) and isinstance(y, list):
@@ -757,3 +761,22 @@ class Footer():
     def __init__(self, text_to_show: List[str], escape=True, show=True):
         self.show = show
         self.text_to_show = [x if escape else flask.Markup(x) for x in text_to_show]
+
+class Module():
+    def __init__(self, label: str, elts: list):
+        self.label = label
+        self.elts = join(
+            StartModule(label),
+            elts,
+            EndModule(label)
+        )
+
+class StartModule(NullElt):
+    def __init__(self, label):
+        super().__init__()
+        self.label = label
+
+class EndModule(NullElt):
+    def __init__(self, label):
+        super().__init__()
+        self.label = label
