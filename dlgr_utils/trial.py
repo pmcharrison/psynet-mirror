@@ -86,15 +86,22 @@ class NetworkTrialGenerator(TrialGenerator):
     """
 
     #### The following method is overwritten from TrialGenerator.
+    #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
     def prepare_trial(self, experiment, participant):
-        network = self.find_network(participant=participant, experiment=experiment)
-        self.grow_network(network=network, participant=participant, experiment=experiment)
-        node = self.find_node(network=network, participant=participant, experiment=experiment)
-        self._create_trial(node=node, participant=participant, experiment=experiment)
+        networks = self.find_networks(participant=participant, experiment=experiment)
+        for network in networks:
+            self.grow_network(network=network, participant=participant, experiment=experiment)
+            node = self.find_node(network=network, participant=participant, experiment=experiment)
+            if node is not None:
+                return self._create_trial(node=node, participant=participant, experiment=experiment)
+        return None 
     ####
 
-    def find_network(self, participant, experiment):
-        """Should find the appropriate network for the participant's next trial."""
+    def find_networks(self, participant, experiment):
+        """
+        Should return a list of all available networks for the participant's next trial, ordered 
+        in preference (most preferred to least preferred).
+        """
         raise NotImplementedError
 
     def grow_network(self, network, participant, experiment):

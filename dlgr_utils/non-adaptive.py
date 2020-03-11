@@ -6,6 +6,12 @@ from .trial import NetworkTrialGenerator
 # def _count_non_adaptive_networks():
 # def _non_adaptive_experiment_setup_routine(experiment):
 
+# def get_ranks(x: list, reference: list):
+#     try:
+#         return [reference.index(_x) for _x in x]
+#     except ValueError:
+#         raise ValueError("One or more values of <x> were not found in <reference>.")
+
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(self, stimulus_set, namespace, max_repetitions=1):
         self.stimulus_set = stimulus_set
@@ -26,17 +32,18 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             network_spec.create_network(namespace)
         experiment.save()
         
-    def find_network(self, participant, experiment):
+    def find_networks(self, participant, experiment):
         """Should find the appropriate network for the participant's next trial."""
+        block_order = participant.var.block_order
         networks = NonAdaptiveNetwork.query \
                                      .filter_by(
                                         namespace=self.namespace,
                                         participant_group=participant.var.participant_group,
-                                        phase=participant.var.phase,
-                                        block=participant.var.block # need to make sure we increment block if no space left
+                                        phase=participant.var.phase
+                                        # block=participant.var.block 
                                      ).all()
-        assert len(networks) == 1
-        return networks[0]
+        networks.sort(key=lambda network: block_order.index(network.block))
+        return networks
 
     def grow_network(self, network, participant, experiment):
         """Networks never get expanded in a non-adaptive experiment."""
@@ -44,11 +51,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def find_node(self, network, participant, experiment):
         """Should find the node (i.e. stimulus) to which the participant should be attached for the next trial."""
-        stimulus_counts = participant.var.stimulus_counts
-
-        # STUFF MISSING HERE
-
-        completed_stimuli = tuple(participant.var.stimulus_counts)
+        completed_stimuli = tuple(participant.var.completed_stimuli)
         candidates = Stimulus.query \
                              .filter_by(network_id=network.id)
                              .filter(not_(Stimulus.id._in(completed_stimuli)))
