@@ -22,7 +22,7 @@ def claim_field(db_index, type=object):
         return ObjectField(db_index).function
     else:
         raise NotImplementedError
-        
+
 class Field():
     def __init__(self, db_index, from_db, to_db, permitted_python_types, sql_type, null_value=lambda: None):
         assert 1 <= db_index and db_index <= 5    

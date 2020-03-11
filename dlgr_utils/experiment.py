@@ -40,6 +40,14 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
+        if session:
+            self.setup()
+
+    def setup(self):
+        for elt in self.timeline.elts:
+            if isinstance(elt, ExperimentSetupRoutine):
+                elt.run(experiment=self)
+
     @classmethod
     def new(cls, session):
         return cls(session)

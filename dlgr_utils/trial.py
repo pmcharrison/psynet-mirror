@@ -22,6 +22,14 @@ class TrialGenerator(Module):
     #
     # Users will typically want to create a subclass of this class
     # that implements a custom prepare_trial function.
+    #
+    # If the experiment needs pre-initialised networks, then
+    # you can create these networks using experiment_setup_routine.
+    # Note that this is (currently) called every time the Experiment 
+    # class is initialised, so it should be idempotent (calling it 
+    # multiple times should have no effect) and be efficient
+    # (so that it doesn't incur a repeated costly overhead). 
+    #
     # It typically won't be necessary to override finalise_trial,
     # but the option is there if you want it.
 
@@ -32,6 +40,9 @@ class TrialGenerator(Module):
     def finalise_trial(self, answer, trial, experiment, participant):
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
+
+    def experiment_setup_routine(self, experiment):
+        pass
 
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
@@ -58,6 +69,7 @@ class TrialGenerator(Module):
         return self.trial_class.query.get(trial_id)
 
     elts = join(
+        ExperimentSetupRoutine(self),
         CodeBlock(self._prepare_trial),
         ReactivePage(self._show_trial),
         CodeBlock(self.finalise_trial)

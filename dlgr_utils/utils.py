@@ -1,5 +1,6 @@
 import json
 from functools import reduce
+from sqlalchemy.sql import func
 
 def get_arg_from_dict(x, desired: str, use_default = False, default = None):
     if desired not in x:
@@ -8,6 +9,9 @@ def get_arg_from_dict(x, desired: str, use_default = False, default = None):
         else:
             raise ValueError
     return x[desired]
+
+def sql_sample_one(x):
+    return x.order_by(func.random()).first()
 
 # def get_json_arg_from_request(request, desired: str, use_default = False, default = None):
 #     arguments = request.json

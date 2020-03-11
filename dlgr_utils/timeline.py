@@ -791,3 +791,20 @@ class EndModule(NullElt):
     def __init__(self, label):
         super().__init__()
         self.label = label
+
+class ExperimentSetupRoutine(NullElt):
+    def __init__(self, function):
+        if callable(function):
+            if not check_function_args(function, ["experiment"]):
+                raise TypeError("<function> must be a function of the form f(experiment), or an object with an equivalent method.")
+            run = function
+        else:
+            if not (hasattr(function, "experiment_setup_routine") and callable(function.experiment_setup_routine)):
+                raise TypeError("<function> has no method called <experiment_setup_routine>.")
+            if not check_function_args(function.experiment_setup_routine, ["self", "experiment"]):
+                raise TypeError("<function.experiment_setup_routine> must have the form f(self, experiment).")
+            
+            def run(experiment):
+                function.experiment_setup_routine(experiment)
+
+        self.run = run
