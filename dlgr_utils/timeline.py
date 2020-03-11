@@ -570,9 +570,9 @@ def join(*args):
     else:
         def f(x, y):
             if isinstance(x, Module):
-                x = x.elts
+                x = x.resolve()
             if isinstance(y, Module):
-                y = y.elts
+                y = y.resolve()
             if isinstance(x, Elt) and isinstance(y, Elt):
                 return [x, y]
             elif isinstance(x, Elt) and isinstance(y, list):
@@ -763,11 +763,22 @@ class Footer():
         self.text_to_show = [x if escape else flask.Markup(x) for x in text_to_show]
 
 class Module():
-    def __init__(self, label: str, elts: list):
-        self.label = label
-        self.elts = join(
+    default_label = None
+    default_elts = None
+
+    def __init__(self, label: str = None, elts: list = None):
+        if self.default_label is None and label is None:
+            raise ValueError("Either one of <default_label> or <label> must not be none.")
+        if self.default_elts is None and elts is None:
+            raise ValueError("Either one of <default_elts> or <elts> must not be none.")
+
+        self.label = label if label is not None else default_label
+        self.elts = elts if elts is not None else default_elts
+
+    def resolve(self):
+        return join(
             StartModule(label),
-            elts,
+            self.elts,
             EndModule(label)
         )
 
