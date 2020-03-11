@@ -68,7 +68,12 @@ class TrialGenerator(Module):
         self.trial_class = trial_class
 
 class NetworkTrialGenerator(TrialGenerator):
-    #### The following method is overwritten from TrialGenerator
+    """Trial generator for network-based experiments.
+    The user should override find_network, grow_network, find_node, and create_trial.
+    Do not override prepare_trial.
+    """
+
+    #### The following method is overwritten from TrialGenerator.
     def prepare_trial(self, experiment, participant):
         network = self.find_network(participant=participant, experiment=experiment)
         self.grow_network(network=network, participant=participant, experiment=experiment)
@@ -97,4 +102,3 @@ class NetworkTrialGenerator(TrialGenerator):
         experiment.session.add(trial)
         experiment.save()
         return trial
-        
