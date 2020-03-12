@@ -65,10 +65,10 @@ class Imitate(Module):
 class Item():
     pass
 
-def imitation_experiment(
-    stimuli,
+# def imitation_experiment(
+#     stimuli,
 
-)
+# )
 
 # class Experiment(dlgr_utils.experiment.Experiment):
 #     timeline = Timeline(

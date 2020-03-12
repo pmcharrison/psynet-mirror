@@ -1,2 +1,3 @@
-# init-hook='import sys; sys.path.append(".")'
+[MASTER]
+init-hook='import sys; sys.path.append(".")'
 disable=C

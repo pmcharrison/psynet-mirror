@@ -4,7 +4,6 @@ import json
 from json import dumps
 
 from dallinger import db
-from dallinger.config import get_config
 import dallinger.experiment
 
 from dallinger.experiment_server.utils import (
@@ -12,15 +11,13 @@ from dallinger.experiment_server.utils import (
     error_response
 )
 
-from .participant import Participant, get_participant
-from .timeline import get_template, Timeline, Page, InfoPage, SuccessfulEndPage, RejectedResponse
+from .participant import get_participant
+from .timeline import get_template, Timeline, InfoPage, SuccessfulEndPage, RejectedResponse, ExperimentSetupRoutine
 from .utils import get_arg_from_dict
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
-
-import rpdb
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -30,6 +27,8 @@ def json_serial(obj):
     raise TypeError ("Type not serializable")
 
 class Experiment(dallinger.experiment.Experiment):
+    # pylint: disable=abstract-method
+
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_allotted=5),
         SuccessfulEndPage()
@@ -142,7 +141,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, data, metadata, page_uuid):
+    def process_response(self, participant_id, response, metadata, page_uuid):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
@@ -150,7 +149,7 @@ class Experiment(dallinger.experiment.Experiment):
             res = self.timeline.get_current_elt(
                 self, participant
             ).process_response(
-                input=data, 
+                response=response, 
                 metadata=metadata,
                 experiment=self,
                 participant=participant,

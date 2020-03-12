@@ -1,7 +1,5 @@
 from dallinger.models import Participant
 from . import field
-from sqlalchemy.ext.hybrid import hybrid_property
-import rpdb
 import json
 import os
 
@@ -49,6 +47,15 @@ class TimeCreditStore:
 
     def __init__(self, participant):
         self.participant = participant
+        self.confirmed_credit = None
+        self.is_fixed = None
+        self.pending_credit = None
+        self.max_pending_credit = None
+        self.wage_per_hour = None
+        self.experiment_max_time_credit = None
+        self.experiment_max_time_credit = None
+        self.experiment_max_bonus = None
+        self.confirmed_credit = None
 
     def get_internal_name(self, name):
         if name not in self.fields:
@@ -86,7 +93,7 @@ class TimeCreditStore:
                 wage_per_hour=experiment.wage_per_hour
             )
             json.dump(summary, file, indent=4)
-        logger.info(f"Exported estimated payment summary to {os.path.abspath(path)}.")
+        logger.info("Exported estimated payment summary to %s.", os.path.abspath(path))
 
     def increment(self, value: float):
         if self.is_fixed:

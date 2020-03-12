@@ -1,24 +1,23 @@
-from sqlalchemy import Boolean, String, Integer, exc, Float
+from sqlalchemy import Boolean, String, Integer, Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
 import json
-import rpdb
 
-def claim_field(db_index, type=object):
-    if type is int:
+def claim_field(db_index, field_type=object):
+    if field_type is int:
         return IntField(db_index).function
-    elif type is float:
+    elif field_type is float:
         return FloatField(db_index).function
-    elif type is bool:
+    elif field_type is bool:
         return BoolField(db_index).function
-    elif type is str:
+    elif field_type is str:
         return StrField(db_index).function
-    elif type is dict:
+    elif field_type is dict:
         return DictField(db_index).function
-    elif type is list:
+    elif field_type is list:
         return ListField(db_index).function
-    elif type is object:
+    elif field_type is object:
         return ObjectField(db_index).function
     else:
         raise NotImplementedError

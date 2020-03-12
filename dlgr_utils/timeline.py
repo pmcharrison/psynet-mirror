@@ -1,18 +1,14 @@
+# pylint: disable=abstract-method
+
 import importlib_resources
 import flask
 
-from typing import List, Optional, Union
+from typing import List, Optional, Dict
 
 from .utils import dict_to_js_vars
 from . import templates
 
 from dallinger.models import Question
-from dallinger.db import Base
-from dallinger.models import SharedMixin
-
-from sqlalchemy import ForeignKey
-from sqlalchemy import Column, String, Text, Enum, Integer, Boolean, DateTime, Float
-from sqlalchemy.orm import relationship
 
 from functools import reduce
 
@@ -22,10 +18,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-from .participant import Participant
 from .field import claim_field
-
-import json
 
 def get_template(name):
     assert isinstance(name, str)
@@ -44,6 +37,7 @@ class Elt:
         raise NotImplementedError
 
     def multiply_expected_repetitions(self, factor):
+        # pylint: disable=unused-argument
         return self
 
     # def get_position_in_timeline(self, timeline):
@@ -88,6 +82,7 @@ class GoTo(Elt):
         self.target = target
 
     def get_target(self, experiment, participant):
+        # pylint: disable=unused-argument
         return self.target
 
     def consume(self, experiment, participant):
@@ -103,6 +98,7 @@ class ReactiveGoTo(GoTo):
         function, # function taking experiment, participant and returning a key
         targets # dict of possible target elements
     ):  
+        # pylint: disable=super-init-not-called
         self.function = function
         self.targets = targets        
         self.check_args()
@@ -147,10 +143,15 @@ class Page(Elt):
         time_allotted: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None, 
-        template_arg: dict = {},
+        template_arg: Optional[Dict] = None,
         label: str = "untitled",
-        js_vars: dict = {},
+        js_vars: Optional[Dict] = None,
     ):
+        if template_arg is None:
+            template_arg = {}
+        if js_vars is None:
+            js_vars = {}
+
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
         if template_path is not None and template_str is not None:
@@ -175,7 +176,7 @@ class Page(Elt):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
-    def process_response(self, input, experiment, participant, **kwargs):
+    def process_response(self, response, metadata, experiment, participant, **kwargs):
         pass
 
     def validate(self, parsed_response, experiment, participant, **kwargs):
@@ -197,6 +198,7 @@ class Page(Elt):
         return ProgressBar(participant.estimate_progress())
 
     def create_footer(self, experiment, participant):
+        # pylint: disable=unused-argument
         return Footer([
                 f"Estimated bonus: <strong>&#36;{participant.time_credit.estimate_bonus():.2f}</strong>"
             ],
@@ -220,7 +222,7 @@ class ReactivePage(Elt):
     def resolve(self, experiment, participant):
         page = self.function(experiment=experiment, participant=participant)
         if self.time_allotted != page.time_allotted and page.time_allotted is not None:
-            logger.warn(
+            logger.warning(
                 f"Observed a mismatch between a reactive page's time_allotted slot ({self.time_allotted}) " +
                 f"and the time_allotted slot of the generated page ({page.time_allotted}). " +
                 f"The former will take precedent."
@@ -272,8 +274,8 @@ class UnsuccessfulEndPage(EndPage):
     pass
 
 class Button():
-    def __init__(self, id, label, min_width, start_disabled=False):
-        self.id = id
+    def __init__(self, button_id, label, min_width, start_disabled=False):
+        self.id = button_id
         self.label = label
         self.min_width = min_width
         self.start_disabled = start_disabled
@@ -300,7 +302,7 @@ class NAFCPage(Page):
             raise NotImplementedError
 
         buttons = [
-            Button(id=choice, label=label, min_width=min_width)
+            Button(button_id=choice, label=label, min_width=min_width)
             for choice, label in zip(self.choices, self.labels)
         ]
         super().__init__(
@@ -313,11 +315,11 @@ class NAFCPage(Page):
             }
         )
 
-    def process_response(self, input, metadata, experiment, participant, **kwargs):
+    def process_response(self, response, metadata, experiment, participant, **kwargs):
         resp = Response(
             participant=participant,
             question_label=self.label, 
-            answer=input["answer"],
+            answer=response["answer"],
             page_type=type(self).__name__,
             time_taken=metadata["time_taken"],
             details={
@@ -357,14 +359,14 @@ class Timeline():
 
     def check_start_fix_times(self):
         try:
-            fix_time = False
+            _fix_time = False
             for elt in self.elts:
                 if isinstance(elt, StartFixTime):
                     assert not fix_time
-                    fix_time = True
+                    _fix_time = True
                 elif isinstance(elt, EndFixTime):
                     assert fix_time
-                    fix_time = False
+                    _fix_time = False
         except AssertionError:
             raise ValueError(
                 "Nested 'fix-time' constructs detected. This typically means you have "
@@ -505,10 +507,10 @@ class Timeline():
             # logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
         # logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
 
-    def process_response(self, input, experiment, participant):
+    def process_response(self, response, experiment, participant):
         elt = self.get_current_elt(experiment, participant)
         parsed_response = elt.process_response(
-            input=input,
+            response=response,
             experiment=experiment,
             participant=participant
         )
@@ -772,14 +774,14 @@ class Module():
         if self.default_elts is None and elts is None:
             raise ValueError("Either one of <default_elts> or <elts> must not be none.")
 
-        self.label = label if label is not None else default_label
-        self.elts = elts if elts is not None else default_elts
+        self.label = label if label is not None else self.default_label
+        self.elts = elts if elts is not None else self.default_elts
 
     def resolve(self):
         return join(
-            StartModule(label),
+            StartModule(self.label),
             self.elts,
-            EndModule(label)
+            EndModule(self.label)
         )
 
 class StartModule(NullElt):

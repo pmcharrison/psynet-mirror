@@ -3,8 +3,7 @@ from dallinger.models import Info
 from ..field import claim_field
 
 from ..timeline import (
-    Page,
-    InfoPage,
+    ReactivePage,
     CodeBlock,
     ExperimentSetupRoutine,
     Module,
@@ -12,6 +11,7 @@ from ..timeline import (
 )
 
 class Trial(Info):
+    # pylint: disable=unused-argument
     participant_id = claim_field(1, int)
     answer = claim_field(2)
 
@@ -48,6 +48,7 @@ class TrialGenerator(Module):
         raise NotImplementedError
 
     def finalise_trial(self, answer, trial, experiment, participant):
+        # pylint: disable=unused-argument
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
 
@@ -61,7 +62,7 @@ class TrialGenerator(Module):
         experiment.save()
 
     def _show_trial(self, experiment, participant):
-        trial = self._get_current_trial(self, participant)
+        trial = self._get_current_trial(participant)
         return trial.show(experiment=experiment, participant=participant)
 
     def _finalise_trial(self, experiment, participant):
@@ -78,16 +79,15 @@ class TrialGenerator(Module):
         trial_id = participant.var.current_trial
         return self.trial_class.query.get(trial_id)
 
-    def __init__(self, label, trial_class):
-        self.label = label
+    def __init__(self, label, trial_class, time_allotted):
+        elts = join(
+            ExperimentSetupRoutine(self),
+            CodeBlock(self._prepare_trial),
+            ReactivePage(self._show_trial, time_allotted=time_allotted),
+            CodeBlock(self.finalise_trial)
+        )
+        super().__init__(label=label, elts=elts)
         self.trial_class = trial_class
-
-        self.elts = join(
-        ExperimentSetupRoutine(self),
-        CodeBlock(self._prepare_trial),
-        ReactivePage(self._show_trial),
-        CodeBlock(self.finalise_trial)
-    )
 
 class NetworkTrialGenerator(TrialGenerator):
     """Trial generator for network-based experiments.
