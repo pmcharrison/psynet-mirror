@@ -137,6 +137,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             self.setup()
 
     def setup(self):
+        super().setup()
         if not self.networks():
             for role in self.network_roles:
                 for _ in range(self.num_networks):

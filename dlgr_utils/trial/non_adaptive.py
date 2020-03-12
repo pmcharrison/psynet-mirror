@@ -1,45 +1,51 @@
 import random
 
+from sqlalchemy.sql.expression import not_
+
 import dallinger.models
 
 from ..field import claim_field
-from .main import NetworkTrialGenerator, Trail
+from .main import NetworkTrialGenerator
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(self, stimulus_set, namespace, max_repetitions=1):
+        # pylint: disable=super-init-not-called
         self.stimulus_set = stimulus_set
         self.namespace = namespace
         self.max_repetitions = max_repetitions
 
     def count_networks(self):
-        return NonAdaptiveNetwork.query \
-                                 .filter_by(namespace=self.namespace)
-                                 .count()
+        return (
+            NonAdaptiveNetwork.query
+                              .filter_by(namespace=self.namespace)
+                              .count()
+        )
 
     def experiment_setup_routine(self, experiment):
-        if self.count_networks > 0:
+        if self.count_networks() > 0:
             self.create_networks(experiment)
 
     def create_networks(self, experiment):
-        for network_spec in stimulus_set.network_specs:
-            network_spec.create_network(namespace)
+        for network_spec in self.stimulus_set.network_specs:
+            network_spec.create_network(self.namespace)
         experiment.save()
         
     def find_networks(self, participant, experiment):
         """Should find the appropriate network for the participant's next trial."""
         block_order = participant.var.block_order
-        networks = NonAdaptiveNetwork.query \
-                                     .filter_by(
-                                        namespace=self.namespace,
-                                        participant_group=participant.var.participant_group,
-                                        phase=participant.var.phase
-                                     ).all()
+        networks = (
+            NonAdaptiveNetwork.query
+                              .filter_by(
+                                  namespace=self.namespace,
+                                  participant_group=participant.var.participant_group,
+                                  phase=participant.var.phase
+                              ).all()
+        )
         networks.sort(key=lambda network: block_order.index(network.block))
         return networks
 
     def grow_network(self, network, participant, experiment):
         """Networks never get expanded in a non-adaptive experiment."""
-        pass
 
     def find_node(self, network, participant, experiment):
         """Should find the node (i.e. stimulus) to which the participant should be attached for the next trial."""
@@ -50,20 +56,26 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             return self.find_stimulus_version(stimulus, participant, experiment)
 
     def find_stimulus(self, network, participant, experiment):
+        # pylint: disable=unused-argument,protected-access
         completed_stimuli = tuple(participant.var.completed_stimuli)
-        candidates = Stimulus.query \
-                             .filter_by(network_id=network.id)
-                             .filter(not_(Stimulus.id._in(completed_stimuli)))
-                             .all()
+        candidates = (
+            Stimulus.query
+                    .filter_by(network_id=network.id)
+                    .filter(not_(Stimulus.id._in(completed_stimuli)))
+                    .all()
+        )
         if len(candidates) == 0:
             return None
         else: 
             return random.choice(candidates)
 
     def find_stimulus_version(self, stimulus, participant, experiment):
-        candidates = StimulusVersion.query \
-                                    .filter_by(stimulus_id=stimulus.id)
-                                    .all()
+        # pylint: disable=unused-argument
+        candidates = (
+            StimulusVersion.query
+                           .filter_by(stimulus_id=stimulus.id)
+                           .all()
+        )
         assert len(candidates) > 0
         return random.choice(candidates)
 
@@ -72,8 +84,9 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
 class NonAdaptiveNetwork(dallinger.models.Network):
     """
-    A network corresponds to a unique combination of namespace, role, participant group, and block.
+    A network corresponds to a unique combination of namespace, phase, participant group, and block.
     """
+    #pylint: disable=abstract-method
     
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
     
@@ -81,15 +94,22 @@ class NonAdaptiveNetwork(dallinger.models.Network):
     participant_group = claim_field(2, str)
     block = claim_field(3, str)
     
-    phase = role
+    @property 
+    def phase(self):
+        return self.role
 
-    def __init__(self, namespace: str, role: str, participant_group: str, block: str):
-        self.role = role
-        self.participant_group = participant_group
+    @phase.setter
+    def phase(self, value):
+        self.role = value
+
+    def __init__(self, namespace, phase, participant_group, block, stimulus_set, experiment):
         self.namespace = namespace
+        self.phase = phase
+        self.participant_group = participant_group
+        self.block = block
 
-        if self.is_populated:
-            self.populate()
+        if not self.is_populated:
+            self.populate(stimulus_set, experiment)
 
     @property
     def is_populated(self):
@@ -97,13 +117,13 @@ class NonAdaptiveNetwork(dallinger.models.Network):
 
     def populate(self, stimulus_set, experiment):
         stimulus_specs = [
-            x in stimulus_set.stimulus_specs 
-            if x.role = self.role
+            x for x in stimulus_set.stimulus_specs 
+            if x.phase == self.phase
             and x.participant_group == self.participant_group
-            and x.block = self.block
+            and x.block == self.block
         ]
         for stimulus_spec in stimulus_specs:
-            stimulus_spec.add_to_network(network=self)
+            stimulus_spec.add_stimulus_to_network(network=self, experiment=experiment)
         experiment.save()
 
 
@@ -111,7 +131,7 @@ class Stimulus(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
     def __init__(self, stimulus_spec, network):
-        assert network.role == stimulus_spec.role
+        assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
 
@@ -123,7 +143,7 @@ class StimulusSpec():
         self, 
         details,
         version_specs,
-        role,
+        phase,
         participant_group=None,
         block="default"
     ):
@@ -134,12 +154,12 @@ class StimulusSpec():
 
         self.details = details
         self.version_specs = version_specs
-        self.role = role
+        self.phase = phase
         self.participant_group = participant_group
         self.block = block
 
-    def add_to_network(self, network):
-        stimulus = Stimulus(stimulus_spec, network=self)
+    def add_stimulus_to_network(self, network, experiment):
+        stimulus = Stimulus(self, network=network)
         experiment.session.add(stimulus)
         
         for version_spec in self.version_specs:
@@ -153,55 +173,59 @@ class StimulusVersion(dallinger.models.Node):
 
     def __init__(self, stimulus_version_spec, stimulus, network):
         super().__init__(network=network)
-        stimulus_id = stimulus.id
-        self.details = stimulus_spec.details
+        self.stimulus_id = stimulus.id
+        self.details = stimulus_version_spec.details
 
     def connect_to_parent(self, parent):
         self.connect(parent, direction="from")
 
 class StimulusVersionSpec():
-    def __init__(parent_spec, details):
+    def __init__(self, parent_spec, details):
         assert isinstance(parent_spec, StimulusSpec)
 
         self.parent_spec = parent_spec
         self.details = details
 
 class StimulusSet():
-    def __init__(self, stimulus_specs:
+    def __init__(self, stimulus_specs):
         assert isinstance(stimulus_specs, list)
+
+        self.stimulus_specs = stimulus_specs
 
         network_specs = set()
         
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
             network_specs.add((
-                s.role,
+                s.phase,
                 s.participant_group, 
                 s.block
             ))
 
-        self.stimulus_specs = stimulus_specs
-
         self.network_specs = [
             NetworkSpec(
-                role=x[0],
+                phase=x[0],
                 participant_group=x[1], 
-                block=x[2]
+                block=x[2],
+                stimulus_set=self
             )
             for x in network_specs
         ]
 
 class NetworkSpec():
-    def __init__(self, role, participant_group, block):
-        self.role = role
+    def __init__(self, phase, participant_group, block, stimulus_set):
+        self.phase = phase
         self.participant_group = participant_group
         self.block = block
+        self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
 
     def create_network(self, namespace, experiment):
         network = NonAdaptiveNetwork(
             namespace=namespace,
-            role=self.role,
+            phase=self.phase,
             participant_group=self.participant_group,
-            block=self.block
+            block=self.block,
+            stimulus_set=self.stimulus_set,
+            experiment=experiment
         )
         experiment.session.add(network)
