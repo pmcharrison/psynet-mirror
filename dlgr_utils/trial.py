@@ -11,7 +11,14 @@ from .timeline import (
 )
 
 class Trial(Info):
-    answer = claim_field(1)
+    participant_id = claim_field(1, int)
+    answer = claim_field(2)
+
+    stimulus_version = origin
+
+    def __init__(self, experiment, node, participant):
+        super().__init__(origin=node)
+        self.participant_id = participant.id
 
     def show(self, experiment, participant):
         """Should return a Page object that returns an answer that can be stored in Trial.answer."""
@@ -81,7 +88,8 @@ class TrialGenerator(Module):
 
 class NetworkTrialGenerator(TrialGenerator):
     """Trial generator for network-based experiments.
-    The user should override find_network, grow_network, find_node, and create_trial.
+    The user should override find_network, grow_network, and find_node.
+    They can also override create_trial if they want.
     Do not override prepare_trial.
     """
 
@@ -112,12 +120,8 @@ class NetworkTrialGenerator(TrialGenerator):
         """Should find the node to which the participant should be attached for the next trial."""
         raise NotImplementedError
 
-    def create_trial(self, node, participant, experiment):
-        """Should create and return a trial object for the participant at the current node."""
-        raise NotImplementedError
-
     def _create_trial(self, node, participant, experiment):
-        trial = self.create_trial(node=node, participant=participant, experiment=experiment)
+        trial = self.trial_class(experiment=experiment, node=node, participant=participant)
         experiment.session.add(trial)
         experiment.save()
         return trial

@@ -1,16 +1,9 @@
+import random
+
 import dallinger.models
 
 from .field import claim_field
-from .trial import NetworkTrialGenerator
-
-# def _count_non_adaptive_networks():
-# def _non_adaptive_experiment_setup_routine(experiment):
-
-# def get_ranks(x: list, reference: list):
-#     try:
-#         return [reference.index(_x) for _x in x]
-#     except ValueError:
-#         raise ValueError("One or more values of <x> were not found in <reference>.")
+from .trial import NetworkTrialGenerator, Trail
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(self, stimulus_set, namespace, max_repetitions=1):
@@ -40,7 +33,6 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
                                         namespace=self.namespace,
                                         participant_group=participant.var.participant_group,
                                         phase=participant.var.phase
-                                        # block=participant.var.block 
                                      ).all()
         networks.sort(key=lambda network: block_order.index(network.block))
         return networks
@@ -51,16 +43,29 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def find_node(self, network, participant, experiment):
         """Should find the node (i.e. stimulus) to which the participant should be attached for the next trial."""
+        stimulus = self.find_stimulus(network, participant, experiment)
+        if stimulus is None:
+            return None
+        else:
+            return self.find_stimulus_version(stimulus, participant, experiment)
+
+    def find_stimulus(self, network, participant, experiment):
         completed_stimuli = tuple(participant.var.completed_stimuli)
         candidates = Stimulus.query \
                              .filter_by(network_id=network.id)
                              .filter(not_(Stimulus.id._in(completed_stimuli)))
+                             .all()
+        if len(candidates) == 0:
+            return None
+        else: 
+            return random.choice(candidates)
 
-        raise NotImplementedError
-
-    def create_trial(self, node, participant, experiment):
-        """Should create and return a trial object for the participant at the current node."""
-        raise NotImplementedError
+    def find_stimulus_version(self, stimulus, participant, experiment):
+        candidates = StimulusVersion.query \
+                                    .filter_by(stimulus_id=stimulus.id)
+                                    .all()
+        assert len(candidates) > 0
+        return random.choice(candidates)
 
 # def with_namespace(label, namespace):
 #     return f"__{namespace}__{label}"
@@ -98,15 +103,14 @@ class NonAdaptiveNetwork(dallinger.models.Network):
             and x.block = self.block
         ]
         for stimulus_spec in stimulus_specs:
-            stimulus = Stimulus(stimulus_spec, network=self)
-            experiment.session.add(stimulus)
+            stimulus_spec.add_to_network(network=self)
         experiment.save()
 
 
 class Stimulus(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
-    def __init__(stimulus_spec, network):
+    def __init__(self, stimulus_spec, network):
         assert network.role == stimulus_spec.role
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
@@ -116,15 +120,51 @@ class Stimulus(dallinger.models.Node):
 
 class StimulusSpec():
     def __init__(
+        self, 
         details,
+        version_specs,
         role,
         participant_group=None,
         block="default"
     ):
+        assert isinstance(version_specs, list)
+        assert len(version_specs) > 0
+        for version_spec in version_specs:
+            assert isinstance(version_spec, StimulusVersionSpec)
+
         self.details = details
+        self.version_specs = version_specs
         self.role = role
         self.participant_group = participant_group
         self.block = block
+
+    def add_to_network(self, network):
+        stimulus = Stimulus(stimulus_spec, network=self)
+        experiment.session.add(stimulus)
+        
+        for version_spec in self.version_specs:
+            version = StimulusVersion(version_spec, stimulus, network)
+            experiment.session.add(version)
+
+class StimulusVersion(dallinger.models.Node):
+    __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
+
+    stimulus_id = claim_field(1, int)
+
+    def __init__(self, stimulus_version_spec, stimulus, network):
+        super().__init__(network=network)
+        stimulus_id = stimulus.id
+        self.details = stimulus_spec.details
+
+    def connect_to_parent(self, parent):
+        self.connect(parent, direction="from")
+
+class StimulusVersionSpec():
+    def __init__(parent_spec, details):
+        assert isinstance(parent_spec, StimulusSpec)
+
+        self.parent_spec = parent_spec
+        self.details = details
 
 class StimulusSet():
     def __init__(self, stimulus_specs:
