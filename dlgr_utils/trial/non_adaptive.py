@@ -2,8 +2,8 @@ import random
 
 import dallinger.models
 
-from .field import claim_field
-from .trial import NetworkTrialGenerator, Trail
+from ..field import claim_field
+from .main import NetworkTrialGenerator, Trail
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(self, stimulus_set, namespace, max_repetitions=1):

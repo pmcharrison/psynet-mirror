@@ -1,11 +1,12 @@
 from dallinger.models import Info
 
-from .field import claim_field
+from ..field import claim_field
 
-from .timeline import (
+from ..timeline import (
     Page,
     InfoPage,
     CodeBlock,
+    ExperimentSetupRoutine,
     Module,
     join
 )
@@ -14,7 +15,9 @@ class Trial(Info):
     participant_id = claim_field(1, int)
     answer = claim_field(2)
 
-    stimulus_version = origin
+    @property
+    def stimulus_version(self):
+        return self.origin
 
     def __init__(self, experiment, node, participant):
         super().__init__(origin=node)
@@ -75,16 +78,16 @@ class TrialGenerator(Module):
         trial_id = participant.var.current_trial
         return self.trial_class.query.get(trial_id)
 
-    elts = join(
+    def __init__(self, label, trial_class):
+        self.label = label
+        self.trial_class = trial_class
+
+        self.elts = join(
         ExperimentSetupRoutine(self),
         CodeBlock(self._prepare_trial),
         ReactivePage(self._show_trial),
         CodeBlock(self.finalise_trial)
     )
-
-    def __init__(self, label, trial_class):
-        self.label = label
-        self.trial_class = trial_class
 
 class NetworkTrialGenerator(TrialGenerator):
     """Trial generator for network-based experiments.
