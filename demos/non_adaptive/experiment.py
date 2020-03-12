@@ -1,0 +1,37 @@
+# pylint: disable=unused-import
+
+import dlgr_utils.experiment
+from dlgr_utils.field import claim_field
+from dlgr_utils.participant import Participant, get_participant
+from dlgr_utils.timeline import (
+    Page, 
+    InfoPage, 
+    Timeline,
+    SuccessfulEndPage, 
+    ReactivePage, 
+    NAFCPage, 
+    CodeBlock, 
+    while_loop, 
+    conditional, 
+    switch
+)
+from dlgr_utils.trial.main import Trial
+from dlgr_utils.trial.non_adaptive import NonAdaptiveTrialGenerator
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
+from datetime import datetime
+
+# Weird bug: if you instead import Experiment from dlgr_utils.experiment,
+# Dallinger won't allow you to override the bonus method
+# (or at least you can override it but it won't work).
+class Exp(dlgr_utils.experiment.Experiment):
+    # pylint: disable=abstract-method
+    timeline = Timeline(
+        InfoPage("Hello!", time_allotted=3),
+        SuccessfulEndPage()
+    )
+
+extra_routes = Exp().extra_routes()

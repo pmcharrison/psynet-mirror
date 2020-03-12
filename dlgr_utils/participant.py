@@ -1,3 +1,5 @@
+# pylint: disable=attribute-defined-outside-init
+
 from dallinger.models import Participant
 from . import field
 import json
@@ -6,6 +8,8 @@ import os
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
+
+import rpdb
 
 class UndefinedVariableError(Exception):
     pass
@@ -47,15 +51,6 @@ class TimeCreditStore:
 
     def __init__(self, participant):
         self.participant = participant
-        self.confirmed_credit = None
-        self.is_fixed = None
-        self.pending_credit = None
-        self.max_pending_credit = None
-        self.wage_per_hour = None
-        self.experiment_max_time_credit = None
-        self.experiment_max_time_credit = None
-        self.experiment_max_bonus = None
-        self.confirmed_credit = None
 
     def get_internal_name(self, name):
         if name not in self.fields:
