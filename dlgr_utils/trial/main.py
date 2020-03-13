@@ -48,6 +48,21 @@ class TrialGenerator(Module):
     # It typically won't be necessary to override finalise_trial,
     # but the option is there if you want it.
 
+    def __init__(self, trial_class, phase, time_allotted_per_trial, expected_num_trials):
+        self.trial_class = trial_class
+        self.trial_type = trial_class.__name__
+        self.phase = phase
+        self.time_allotted_per_trial = time_allotted_per_trial
+        self.expected_num_trials = expected_num_trials
+
+        elts = join(
+            ExperimentSetupRoutine(self.experiment_setup_routine),
+            CodeBlock(self.init_participant),
+            self._trial_loop(),
+            CodeBlock(self.on_complete)
+        )
+        super().__init__(label=self.with_namespace(), elts=elts)
+
     def prepare_trial(self, experiment, participant):
         """Should return a Trial object."""
         raise NotImplementedError
@@ -62,9 +77,15 @@ class TrialGenerator(Module):
         raise NotImplementedError
 
     def finalise_trial(self, answer, trial, experiment, participant):
-        # pylint: disable=unused-argument
+        # pylint: disable=unused-argument,no-self-use
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
+
+    def with_namespace(self, x=None, shared_between_phases=False):
+        prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
+        if x is None:
+            return prefix
+        return f"{prefix}__{x}"
 
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
@@ -92,7 +113,7 @@ class TrialGenerator(Module):
 
     def _construct_feedback_logic(self):
         return conditional(
-            label=f"{self.label}_feedback",
+            label=self.with_namespace("feedback"),
             condition=lambda experiment, participant: (
                 self._get_current_trial(participant)
                     .gives_feedback(experiment, participant)
@@ -111,7 +132,7 @@ class TrialGenerator(Module):
         return join(
             CodeBlock(self._prepare_trial),
             while_loop(
-                self.label, 
+                self.with_namespace("trial_loop"), 
                 lambda experiment, participant: self._get_current_trial(participant) is not None,
                 logic=join(
                     ReactivePage(self._show_trial, time_allotted=self.time_allotted_per_trial),
@@ -119,25 +140,10 @@ class TrialGenerator(Module):
                     CodeBlock(self.finalise_trial),
                     CodeBlock(self._prepare_trial)
                 ),
-                expected_repetitions=self.expected_repetitions,
+                expected_repetitions=self.expected_num_trials,
                 fix_time_credit=False
             ),
         )
-
-    def __init__(self, label, trial_class, time_allotted_per_trial, expected_repetitions):
-        self.label = label
-        self.trial_class = trial_class
-        self.time_allotted_per_trial = time_allotted_per_trial
-        self.expected_repetitions = expected_repetitions
-
-        elts = join(
-            ExperimentSetupRoutine(self.experiment_setup_routine),
-            CodeBlock(self.init_participant),
-            self._trial_loop(),
-            CodeBlock(self.on_complete)
-        )
-        super().__init__(label=label, elts=elts)
-        
 
 class NetworkTrialGenerator(TrialGenerator):
     """Trial generator for network-based experiments.

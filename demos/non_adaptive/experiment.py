@@ -33,8 +33,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-from datetime import datetime
-
 ##########################################################################################
 #### Stimuli
 ##########################################################################################
@@ -70,7 +68,14 @@ class AnimalTrial(Trial):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        NonAdaptiveTrialGenerator("animals", AnimalTrial, stimulus_set, time_allotted_per_trial = 3),
+        NonAdaptiveTrialGenerator(
+            AnimalTrial, 
+            phase="experiment",
+            stimulus_set=stimulus_set, 
+            time_allotted_per_trial=3,
+            expected_num_trials=stimulus_set.estimate_num_trials_per_participant(),
+            new_participant_group=True
+        ),
         SuccessfulEndPage()
     )
 

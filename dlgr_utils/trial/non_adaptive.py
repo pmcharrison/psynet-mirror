@@ -1,4 +1,5 @@
 import random
+from statistics import mean
 
 from sqlalchemy.sql.expression import not_
 
@@ -43,29 +44,35 @@ class NonAdaptiveTrial(Trial):
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(
-        self, 
-        label, 
+        self,  
         trial_class, 
+        phase,
         stimulus_set,
-        time_allotted_per_trial
+        time_allotted_per_trial,
+        expected_num_trials: int,
+        new_participant_group: bool
     ):
-        super().__init__(label, trial_class, time_allotted_per_trial)
+        super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
         self.stimulus_set = stimulus_set
-        self.namespace = label
+        self.new_participant_group = new_participant_group
 
     def init_participant(self, experiment, participant):
-        if not participant.has_var("block_order"):
-            participant.var.block_order = {}
+        self.init_block_order(experiment, participant)
+        self.init_participant_group(experiment, participant)
 
-        if self.label in participant.var.block_order:
-            raise ValueError(f"The label {self.label} was already taken.")
+    def init_block_order(self, experiment, participant):
+        participant.new_var(
+            self.with_namespace("block_order"),
+            self.choose_block_order(experiment=experiment, participant=participant)
+        )
 
-        participant.var.block_order = {
-            **participant.var.block_order, 
-            self.label: self.choose_block_order(experiment=experiment, participant=participant)
-        }
-
-        raise NotImplementedError
+    def init_participant_group(self, experiment, participant):
+        var_id = self.with_namespace("participant_group", shared_between_phases=True)
+        if self.new_participant_group:
+            participant.new_var(var_id, self.assign_participant_group(experiment=experiment, participant=participant))
+        else:
+            if not participant.has_var(var_id):
+                raise ValueError("<assign_participant_group> was False but the participant hasn't yet been assigned to a group.")
 
     def on_complete(self, experiment, participant):
         pass
@@ -84,26 +91,35 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         random.shuffle(blocks)
         return blocks
 
+    def assign_participant_group(self, experiment, participant):
+        # pylint: disable=unused-argument
+        """
+        By default this function randomly chooses from the available participant groups. 
+        Override it for alternative behaviour.
+        """
+        participant_groups = self.stimulus_set.participant_groups
+        return random.choice(participant_groups)
+
     def count_networks(self):
         return (
             NonAdaptiveNetwork.query
-                              .filter_by(namespace=self.namespace)
+                              .filter_by(trial_type=self.trial_type)
                               .count()
         )
 
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
-            network_spec.create_network(self.namespace)
+            network_spec.create_network(trial_type=self.trial_type)
         experiment.save()
         
     def find_networks(self, participant, experiment):
         # pylint: disable=protected-access
         """Should find the appropriate network for the participant's next trial."""
-        block_order = participant.var.block_order[self.label]
+        block_order = participant.get_var(self.with_namespace("block_order"))
         networks = (
             NonAdaptiveNetwork.query
                               .filter_by(
-                                  namespace=self.namespace,
+                                  trial_type=self.trial_type,
                                   participant_group=participant.var.participant_group,
                                   phase=participant.var.phase
                               )
@@ -148,18 +164,15 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         assert len(candidates) > 0
         return random.choice(candidates)
 
-# def with_namespace(label, namespace):
-#     return f"__{namespace}__{label}"
-
 class NonAdaptiveNetwork(dallinger.models.Network):
     """
-    A network corresponds to a unique combination of namespace, phase, participant group, and block.
+    A network corresponds to a unique combination of trial_type, phase, participant group, and block.
     """
     #pylint: disable=abstract-method
     
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
     
-    namespace = claim_field(1, str)
+    trial_type = claim_field(1, str)
     participant_group = claim_field(2, str)
     block = claim_field(3, str)
     
@@ -171,8 +184,8 @@ class NonAdaptiveNetwork(dallinger.models.Network):
     def phase(self, value):
         self.role = value
 
-    def __init__(self, namespace, phase, participant_group, block, stimulus_set, experiment):
-        self.namespace = namespace
+    def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment):
+        self.trial_type = trial_type
         self.phase = phase
         self.participant_group = participant_group
         self.block = block
@@ -221,7 +234,7 @@ class StimulusSpec():
         definition,
         version_specs,
         phase,
-        participant_group=None,
+        participant_group="default",
         block="default"
     ):
         assert isinstance(definition, dict)
@@ -269,6 +282,9 @@ class StimulusSet():
         self.stimulus_specs = stimulus_specs
 
         network_specs = set()
+        self.blocks = set()
+        self.num_trials_by_participant_group = dict()
+        self.participant_groups = set()
         
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
@@ -277,6 +293,14 @@ class StimulusSet():
                 s.participant_group, 
                 s.block
             ))
+
+            self.blocks.add(s.block)
+            self.participant_groups.add(s.participant_group)
+            
+            if s.participant_group in self.num_trials_by_participant_group:
+                self.num_trials_by_participant_group[s.participant_group] += 1
+            else:
+                self.num_trials_by_participant_group[s.participant_group] = 1
 
         self.network_specs = [
             NetworkSpec(
@@ -288,6 +312,9 @@ class StimulusSet():
             for x in network_specs
         ]
 
+    def estimate_num_trials_per_participant(self):
+        return mean([x for x in self.num_trials_by_participant_group.values()])
+
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):
         self.phase = phase
@@ -295,9 +322,9 @@ class NetworkSpec():
         self.block = block
         self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
 
-    def create_network(self, namespace, experiment):
+    def create_network(self, trial_type, experiment):
         network = NonAdaptiveNetwork(
-            namespace=namespace,
+            trial_type=trial_type,
             phase=self.phase,
             participant_group=self.participant_group,
             block=self.block,

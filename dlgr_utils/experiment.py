@@ -49,10 +49,6 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(elt, ExperimentSetupRoutine):
                 elt.function(experiment=self)
 
-    @classmethod
-    def new(cls, session):
-        return cls(session)
-
     def network_structure(self):
         from dallinger import models
         from dallinger.models import Vector, Network, Node, Info, Transformation, Participant

@@ -150,6 +150,11 @@ def _set_var(self, name, value):
     self.var.__setattr__(name, value)
     return self
 
+def _new_var(self, name, value):
+    if self.has_var(name):
+        raise ValueError(f"Participant already has a variable called {name}.")
+    self.set_var(name, value)
+
 def _set_answer(self, value):
     self.answer = value
     return self
@@ -185,6 +190,7 @@ Participant.var = var
 Participant.get_var = _get_var
 Participant.has_var = _has_var
 Participant.set_var = _set_var
+Participant.new_var = _new_var
 Participant.set_answer = _set_answer
 
 Participant.elt_id = field.claim_field(1, int)
