@@ -53,6 +53,37 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.stimulus_set = stimulus_set
         self.namespace = label
 
+    def init_participant(self, experiment, participant):
+        if not participant.has_var("block_order"):
+            participant.var.block_order = {}
+
+        if self.label in participant.var.block_order:
+            raise ValueError(f"The label {self.label} was already taken.")
+
+        participant.var.block_order = {
+            **participant.var.block_order, 
+            self.label: self.choose_block_order(experiment=experiment, participant=participant)
+        }
+
+        raise NotImplementedError
+
+    def on_complete(self, experiment, participant):
+        pass
+
+    def experiment_setup_routine(self, experiment):
+        if self.count_networks() > 0:
+            self.create_networks(experiment)
+
+    def choose_block_order(self, experiment, participant):
+        # pylint: disable=unused-argument
+        """
+        By default this function shuffles the blocks randomly for each participant. 
+        Override it for alternative behaviour.
+        """
+        blocks = self.stimulus_set.blocks
+        random.shuffle(blocks)
+        return blocks
+
     def count_networks(self):
         return (
             NonAdaptiveNetwork.query
@@ -60,25 +91,24 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
                               .count()
         )
 
-    def experiment_setup_routine(self, experiment):
-        if self.count_networks() > 0:
-            self.create_networks(experiment)
-
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
             network_spec.create_network(self.namespace)
         experiment.save()
         
     def find_networks(self, participant, experiment):
+        # pylint: disable=protected-access
         """Should find the appropriate network for the participant's next trial."""
-        block_order = participant.var.block_order
+        block_order = participant.var.block_order[self.label]
         networks = (
             NonAdaptiveNetwork.query
                               .filter_by(
                                   namespace=self.namespace,
                                   participant_group=participant.var.participant_group,
                                   phase=participant.var.phase
-                              ).all()
+                              )
+                              .filter(NonAdaptiveNetwork.block._in(tuple(block_order)))
+                              .all()
         )
         networks.sort(key=lambda network: block_order.index(network.block))
         return networks

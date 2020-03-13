@@ -22,6 +22,7 @@ logger = logging.getLogger(__file__)
 
 from .field import claim_field
 
+# pylint: disable=unused-import
 import rpdb
 
 def get_template(name):
@@ -799,34 +800,14 @@ class EndModule(NullElt):
         self.label = label
 
 class ExperimentSetupRoutine(NullElt):
-    def __init__(self, source):
-        def run(experiment):
-            if self._is_function(source):
-                self._check_function_args(source)
-                source(experiment)
-            else:
-                self._check_method(source)
-                source.experiment_setup_routine(experiment)
-        self.run = run
+    def __init__(self, function):
+        self.check_function(function)
+        self.function = function
+
+    def check_function(self, function):
+        if not self._is_function(function) and check_function_args(function, ["experiment"]):
+            raise TypeError("<function> must be a function or method of the form f(experiment).")
 
     @staticmethod
     def _is_function(x):
         return callable(x)
-
-    @staticmethod
-    def _check_function_args(x):
-        if not check_function_args(x, ["experiment"]):
-            raise TypeError(
-                "<source> must be a function of the form f(experiment)"
-                "or an object with an equivalent method."
-            )
-
-    @staticmethod
-    def _check_method(x):
-        if not (hasattr(x, "experiment_setup_routine") and callable(x.experiment_setup_routine)):
-            raise TypeError("<x> has no method called <experiment_setup_routine>.")
-
-        if not check_function_args(x.experiment_setup_routine, ["experiment"]):
-            raise TypeError(
-                "<x.experiment_setup_routine> must take a single argument, <experiment>."
-            )

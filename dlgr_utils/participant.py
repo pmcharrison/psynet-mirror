@@ -9,6 +9,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
+# pylint: disable=unused-import
 import rpdb
 
 class UndefinedVariableError(Exception):
@@ -135,6 +136,13 @@ def time_credit(self):
 def initialised(self):
     return self.elt_id is not None
 
+def _has_var(self, name):
+    try:
+        self.get_var(name)
+        return True
+    except UndefinedVariableError:
+        return False
+
 def _get_var(self, name):
     return self.var.__getattr__(name)
 
@@ -175,6 +183,7 @@ Participant.time_credit = time_credit
 Participant.estimate_progress = _estimate_progress
 Participant.var = var
 Participant.get_var = _get_var
+Participant.has_var = _has_var
 Participant.set_var = _set_var
 Participant.set_answer = _set_answer
 

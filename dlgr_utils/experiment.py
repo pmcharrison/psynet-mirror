@@ -47,7 +47,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup(self):
         for elt in self.timeline.elts:
             if isinstance(elt, ExperimentSetupRoutine):
-                elt.run(experiment=self)
+                elt.function(experiment=self)
 
     @classmethod
     def new(cls, session):

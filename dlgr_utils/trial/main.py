@@ -8,6 +8,7 @@ from ..timeline import (
     ExperimentSetupRoutine,
     Module,
     conditional,
+    while_loop,
     join
 )
 
@@ -51,13 +52,19 @@ class TrialGenerator(Module):
         """Should return a Trial object."""
         raise NotImplementedError
 
+    def experiment_setup_routine(self, experiment):
+        raise NotImplementedError
+
+    def init_participant(self, experiment, participant):
+        raise NotImplementedError
+
+    def on_complete(self, experiment, participant):
+        raise NotImplementedError
+
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
-
-    def experiment_setup_routine(self, experiment):
-        pass
 
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
@@ -83,7 +90,6 @@ class TrialGenerator(Module):
         trial_id = participant.var.current_trial
         return self.trial_class.query.get(trial_id)
 
-
     def _construct_feedback_logic(self):
         return conditional(
             label=f"{self.label}_feedback",
@@ -100,18 +106,38 @@ class TrialGenerator(Module):
             ), 
             fix_time_credit=False
         )
-
-    def __init__(self, label, trial_class, time_allotted_per_trial):
-        self.label = label
-        elts = join(
-            ExperimentSetupRoutine(self),
+        
+    def _trial_loop(self):
+        return join(
             CodeBlock(self._prepare_trial),
-            ReactivePage(self._show_trial, time_allotted=time_allotted_per_trial),
-            self._construct_feedback_logic(),
-            CodeBlock(self.finalise_trial)
+            while_loop(
+                self.label, 
+                lambda experiment, participant: self._get_current_trial(participant) is not None,
+                logic=join(
+                    ReactivePage(self._show_trial, time_allotted=self.time_allotted_per_trial),
+                    self._construct_feedback_logic(),
+                    CodeBlock(self.finalise_trial),
+                    CodeBlock(self._prepare_trial)
+                ),
+                expected_repetitions=self.expected_repetitions,
+                fix_time_credit=False
+            ),
+        )
+
+    def __init__(self, label, trial_class, time_allotted_per_trial, expected_repetitions):
+        self.label = label
+        self.trial_class = trial_class
+        self.time_allotted_per_trial = time_allotted_per_trial
+        self.expected_repetitions = expected_repetitions
+
+        elts = join(
+            ExperimentSetupRoutine(self.experiment_setup_routine),
+            CodeBlock(self.init_participant),
+            self._trial_loop(),
+            CodeBlock(self.on_complete)
         )
         super().__init__(label=label, elts=elts)
-        self.trial_class = trial_class
+        
 
 class NetworkTrialGenerator(TrialGenerator):
     """Trial generator for network-based experiments.
@@ -120,7 +146,7 @@ class NetworkTrialGenerator(TrialGenerator):
     Do not override prepare_trial.
     """
 
-    #### The following method is overwritten from TrialGenerator.
+    #### The following methods are overwritten from TrialGenerator.
     #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
     def prepare_trial(self, experiment, participant):
         networks = self.find_networks(participant=participant, experiment=experiment)
@@ -130,6 +156,16 @@ class NetworkTrialGenerator(TrialGenerator):
             if node is not None:
                 return self._create_trial(node=node, participant=participant, experiment=experiment)
         return None 
+
+    def experiment_setup_routine(self, experiment):
+        """Networks should be created here."""
+        raise NotImplementedError
+
+    def init_participant(self, experiment, participant):
+        raise NotImplementedError
+
+    def on_complete(self, experiment, participant):
+        raise NotImplementedError
     ####
 
     def find_networks(self, participant, experiment):
