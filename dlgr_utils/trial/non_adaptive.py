@@ -282,9 +282,9 @@ class StimulusSet():
         self.stimulus_specs = stimulus_specs
 
         network_specs = set()
-        self.blocks = set()
+        blocks = set()
+        participant_groups = set()
         self.num_trials_by_participant_group = dict()
-        self.participant_groups = set()
         
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
@@ -294,8 +294,8 @@ class StimulusSet():
                 s.block
             ))
 
-            self.blocks.add(s.block)
-            self.participant_groups.add(s.participant_group)
+            blocks.add(s.block)
+            participant_groups.add(s.participant_group)
             
             if s.participant_group in self.num_trials_by_participant_group:
                 self.num_trials_by_participant_group[s.participant_group] += 1
@@ -311,6 +311,9 @@ class StimulusSet():
             )
             for x in network_specs
         ]
+
+        self.blocks = sorted(list(blocks))
+        self.participant_groups = sorted(list(participant_groups))
 
     def estimate_num_trials_per_participant(self):
         return mean([x for x in self.num_trials_by_participant_group.values()])
