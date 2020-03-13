@@ -1,4 +1,10 @@
-# pylint: disable=unused-import
+# pylint: disable=unused-import,abstract-method
+
+##########################################################################################
+#### Imports
+##########################################################################################
+
+from flask import Markup
 
 import dlgr_utils.experiment
 from dlgr_utils.field import claim_field
@@ -29,6 +35,10 @@ logger = logging.getLogger(__file__)
 
 from datetime import datetime
 
+##########################################################################################
+#### Stimuli
+##########################################################################################
+
 stimulus_set = StimulusSet([
     StimulusSpec(
         definition={"animal": animal},
@@ -40,20 +50,27 @@ stimulus_set = StimulusSet([
         ],
         phase="experiment"
     )
-    for animal in ["cat", "dog", "fish", "pony"]
+    for animal in ["cats", "dogs", "fish", "ponies"]
 ])
 
 class AnimalTrial(Trial):
     def show_trial(self, experiment, participant):
-        
+        return NAFCPage(
+            "animal_trial", 
+            Markup(f"<p style='color: {self.definition.color}'>How much do you like {self.definition.animal}?</p>"),
+            ["Not at all", "A little", "Very much"]
+        )
+
+##########################################################################################
+#### Experiment
+##########################################################################################
 
 # Weird bug: if you instead import Experiment from dlgr_utils.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
-    # pylint: disable=abstract-method
     timeline = Timeline(
-        InfoPage("Hello!", time_allotted=3),
+        NonAdaptiveTrialGenerator("animals", AnimalTrial, stimulus_set, time_allotted_per_trial = 3),
         SuccessfulEndPage()
     )
 

@@ -3,7 +3,9 @@
 import importlib_resources
 import flask
 
-from typing import List, Optional, Dict
+from flask import Markup
+
+from typing import List, Optional, Dict, Union
 
 from .utils import dict_to_js_vars
 from . import templates
@@ -19,6 +21,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 from .field import claim_field
+
+import rpdb
 
 def get_template(name):
     assert isinstance(name, str)
@@ -130,10 +134,10 @@ class ReactiveGoTo(GoTo):
         )
 
 def check_function_args(f, args):
-    return (
-        callable(f) 
-        and [str(x) for x in inspect.signature(f).parameters] == list(args)
-    )
+    if not callable(f):
+        raise TypeError("<f> is not a function (but it should be).")
+    else:
+        return [str(x) for x in inspect.signature(f).parameters] == list(args)
 
 class Page(Elt):
     returns_time_credit = True
@@ -284,7 +288,7 @@ class NAFCPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: str,
+        prompt: Union[str, Markup],
         choices: List[str],        
         time_allotted=None,
         labels=None,
@@ -562,7 +566,7 @@ def is_list_of_elts(x: list):
 
 def join(*args):
     for i, arg in enumerate(args):
-        if not (isinstance(arg, Elt) or is_list_of_elts(arg) or isinstance(arg, Module)):
+        if not (isinstance(arg, (Elt, Module)) or is_list_of_elts(arg)):
             raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module.")        
 
     if len(args) == 0:
@@ -795,18 +799,34 @@ class EndModule(NullElt):
         self.label = label
 
 class ExperimentSetupRoutine(NullElt):
-    def __init__(self, function):
-        if callable(function):
-            if not check_function_args(function, ["experiment"]):
-                raise TypeError("<function> must be a function of the form f(experiment), or an object with an equivalent method.")
-            run = function
-        else:
-            if not (hasattr(function, "experiment_setup_routine") and callable(function.experiment_setup_routine)):
-                raise TypeError("<function> has no method called <experiment_setup_routine>.")
-            if not check_function_args(function.experiment_setup_routine, ["self", "experiment"]):
-                raise TypeError("<function.experiment_setup_routine> must have the form f(self, experiment).")
-            
-            def run(experiment):
-                function.experiment_setup_routine(experiment)
-
+    def __init__(self, source):
+        def run(experiment):
+            if self._is_function(source):
+                self._check_function_args(source)
+                source(experiment)
+            else:
+                self._check_method(source)
+                source.experiment_setup_routine(experiment)
         self.run = run
+
+    @staticmethod
+    def _is_function(x):
+        return callable(x)
+
+    @staticmethod
+    def _check_function_args(x):
+        if not check_function_args(x, ["experiment"]):
+            raise TypeError(
+                "<source> must be a function of the form f(experiment)"
+                "or an object with an equivalent method."
+            )
+
+    @staticmethod
+    def _check_method(x):
+        if not (hasattr(x, "experiment_setup_routine") and callable(x.experiment_setup_routine)):
+            raise TypeError("<x> has no method called <experiment_setup_routine>.")
+
+        if not check_function_args(x.experiment_setup_routine, ["experiment"]):
+            raise TypeError(
+                "<x.experiment_setup_routine> must take a single argument, <experiment>."
+            )

@@ -8,6 +8,7 @@ from ..field import claim_field
 from .main import Trial, NetworkTrialGenerator
 
 class NonAdaptiveTrial(Trial):
+    # Refactor this bit with claim_field equivalent.
     @property
     def definition(self):
         return self.contents
@@ -41,11 +42,16 @@ class NonAdaptiveTrial(Trial):
         return None
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
-    def __init__(self, stimulus_set, namespace, max_repetitions=1):
-        # pylint: disable=super-init-not-called
+    def __init__(
+        self, 
+        label, 
+        trial_class, 
+        stimulus_set,
+        time_allotted_per_trial
+    ):
+        super().__init__(label, trial_class, time_allotted_per_trial)
         self.stimulus_set = stimulus_set
-        self.namespace = namespace
-        self.max_repetitions = max_repetitions
+        self.namespace = label
 
     def count_networks(self):
         return (

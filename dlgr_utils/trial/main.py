@@ -97,14 +97,16 @@ class TrialGenerator(Module):
                         .show_feedback(experiment=experiment, participant=participant)
                 ),
                 time_allotted=0
-            )
+            ), 
+            fix_time_credit=False
         )
 
-    def __init__(self, label, trial_class, time_allotted):
+    def __init__(self, label, trial_class, time_allotted_per_trial):
+        self.label = label
         elts = join(
             ExperimentSetupRoutine(self),
             CodeBlock(self._prepare_trial),
-            ReactivePage(self._show_trial, time_allotted=time_allotted),
+            ReactivePage(self._show_trial, time_allotted=time_allotted_per_trial),
             self._construct_feedback_logic(),
             CodeBlock(self.finalise_trial)
         )
