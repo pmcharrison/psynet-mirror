@@ -7,6 +7,7 @@ from ..timeline import (
     CodeBlock,
     ExperimentSetupRoutine,
     Module,
+    conditional,
     join
 )
 
@@ -15,17 +16,20 @@ class Trial(Info):
     participant_id = claim_field(1, int)
     answer = claim_field(2)
 
-    @property
-    def stimulus_version(self):
-        return self.origin
-
     def __init__(self, experiment, node, participant):
         super().__init__(origin=node)
         self.participant_id = participant.id
 
-    def show(self, experiment, participant):
+    def show_trial(self, experiment, participant):
         """Should return a Page object that returns an answer that can be stored in Trial.answer."""
         raise NotImplementedError
+
+    def show_feedback(self, experiment, participant):
+        """Should return a Page object displaying feedback (or None, which means no feedback)"""
+        return None
+
+    def gives_feedback(self, experiment, participant):
+        return self.show_feedback(experiment=experiment, participant=participant) is not None
 
 class TrialGenerator(Module):
     # Generic trial generation module.
@@ -63,7 +67,7 @@ class TrialGenerator(Module):
 
     def _show_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
-        return trial.show(experiment=experiment, participant=participant)
+        return trial.show_trial(experiment=experiment, participant=participant)
 
     def _finalise_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
@@ -79,11 +83,29 @@ class TrialGenerator(Module):
         trial_id = participant.var.current_trial
         return self.trial_class.query.get(trial_id)
 
+
+    def _construct_feedback_logic(self):
+        return conditional(
+            label=f"{self.label}_feedback",
+            condition=lambda experiment, participant: (
+                self._get_current_trial(participant)
+                    .gives_feedback(experiment, participant)
+            ),
+            logic_if_true=ReactivePage(
+                lambda experiment, participant: (
+                    self._get_current_trial(participant)
+                        .show_feedback(experiment=experiment, participant=participant)
+                ),
+                time_allotted=0
+            )
+        )
+
     def __init__(self, label, trial_class, time_allotted):
         elts = join(
             ExperimentSetupRoutine(self),
             CodeBlock(self._prepare_trial),
             ReactivePage(self._show_trial, time_allotted=time_allotted),
+            self._construct_feedback_logic(),
             CodeBlock(self.finalise_trial)
         )
         super().__init__(label=label, elts=elts)

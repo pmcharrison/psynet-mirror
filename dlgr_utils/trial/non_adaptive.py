@@ -5,7 +5,40 @@ from sqlalchemy.sql.expression import not_
 import dallinger.models
 
 from ..field import claim_field
-from .main import NetworkTrialGenerator
+from .main import Trial, NetworkTrialGenerator
+
+class NonAdaptiveTrial(Trial):
+    @property
+    def definition(self):
+        return self.contents
+
+    @definition.setter
+    def definition(self, definition):
+        self.contents = definition
+
+    @property
+    def stimulus_version(self):
+        return self.origin
+
+    @property
+    def stimulus(self):
+        return self.origin.origin
+
+    def __init__(self, experiment, node, participant):
+        super().__init__(origin=node)
+        self.participant_id = participant.id
+        self.definition = {
+            **self.stimulus.definition, 
+            **self.stimulus_version.definition
+        }
+
+    def show_trial(self, experiment, participant):
+        """Should return a Page object that returns an answer that can be stored in Trial.answer."""
+        raise NotImplementedError
+
+    def show_feedback(self, experiment, participant):
+        """Should return a Page object displaying feedback (or None, which means no feedback)"""
+        return None
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(self, stimulus_set, namespace, max_repetitions=1):
@@ -130,29 +163,38 @@ class NonAdaptiveNetwork(dallinger.models.Network):
 class Stimulus(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
+    @property
+    def definition(self):
+        return self.details
+
+    @definition.setter
+    def definition(self, definition):
+        self.details = definition
+
     def __init__(self, stimulus_spec, network):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
 
         super().__init__(network=network)
-        self.details = stimulus_spec.details
+        self.definition = stimulus_spec.definition
 
 class StimulusSpec():
     def __init__(
         self, 
-        details,
+        definition,
         version_specs,
         phase,
         participant_group=None,
         block="default"
     ):
+        assert isinstance(definition, dict)
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:
             assert isinstance(version_spec, StimulusVersionSpec)
 
-        self.details = details
+        self.definition = definition
         self.version_specs = version_specs
         self.phase = phase
         self.participant_group = participant_group
@@ -174,17 +216,15 @@ class StimulusVersion(dallinger.models.Node):
     def __init__(self, stimulus_version_spec, stimulus, network):
         super().__init__(network=network)
         self.stimulus_id = stimulus.id
-        self.details = stimulus_version_spec.details
+        self.definition = stimulus_version_spec.definition
 
     def connect_to_parent(self, parent):
         self.connect(parent, direction="from")
 
 class StimulusVersionSpec():
-    def __init__(self, parent_spec, details):
-        assert isinstance(parent_spec, StimulusSpec)
-
-        self.parent_spec = parent_spec
-        self.details = details
+    def __init__(self, definition):
+        assert isinstance(definition, dict)
+        self.definition = definition
 
 class StimulusSet():
     def __init__(self, stimulus_specs):
