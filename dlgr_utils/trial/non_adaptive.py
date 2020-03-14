@@ -61,24 +61,50 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.init_participant_group(experiment, participant)
 
     def init_block_order(self, experiment, participant):
-        participant.new_var(
-            self.with_namespace("block_order"),
+        self.set_block_order(
+            participant, 
             self.choose_block_order(experiment=experiment, participant=participant)
         )
 
     def init_participant_group(self, experiment, participant):
-        var_id = self.with_namespace("participant_group", shared_between_phases=True)
         if self.new_participant_group:
-            participant.new_var(var_id, self.assign_participant_group(experiment=experiment, participant=participant))
-        else:
-            if not participant.has_var(var_id):
-                raise ValueError("<assign_participant_group> was False but the participant hasn't yet been assigned to a group.")
+            self.set_participant_group(
+                participant,
+                self.assign_participant_group(experiment=experiment, participant=participant)
+            )
+        elif not self.has_participant_group(participant):
+            raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
+        
+
+    @property
+    def block_order_var_id(self):
+        return self.with_namespace("block_order")
+
+    def set_block_order(self, participant, block_order):
+        participant.new_var(self.block_order_var_id, block_order)
+
+    def get_block_order(self, participant):
+        return participant.get_var(self.with_namespace("block_order"))
+
+
+    @property
+    def participant_group_var_id(self):
+        return self.with_namespace("participant_group", shared_between_phases=True)
+
+    def set_participant_group(self, participant, participant_group):
+        participant.new_var(self.participant_group_var_id, participant_group)
+
+    def get_participant_group(self, participant):
+        return participant.get_var(self.participant_group_var_id)
+
+    def has_participant_group(self, participant):
+        return participant.has_var(self.participant_group_var_id)
 
     def on_complete(self, experiment, participant):
         pass
 
     def experiment_setup_routine(self, experiment):
-        if self.count_networks() > 0:
+        if self.count_networks() == 0:
             self.create_networks(experiment)
 
     def choose_block_order(self, experiment, participant):
@@ -109,7 +135,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
-            network_spec.create_network(trial_type=self.trial_type)
+            network_spec.create_network(trial_type=self.trial_type, experiment=experiment)
         experiment.save()
         
     def find_networks(self, participant, experiment):
@@ -120,10 +146,10 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             NonAdaptiveNetwork.query
                               .filter_by(
                                   trial_type=self.trial_type,
-                                  participant_group=participant.var.participant_group,
-                                  phase=participant.var.phase
+                                  participant_group=self.get_participant_group(participant),
+                                  phase=self.phase
                               )
-                              .filter(NonAdaptiveNetwork.block._in(tuple(block_order)))
+                              .filter(NonAdaptiveNetwork.block.in_(block_order))
                               .all()
         )
         networks.sort(key=lambda network: block_order.index(network.block))
@@ -137,8 +163,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         stimulus = self.find_stimulus(network, participant, experiment)
         if stimulus is None:
             return None
-        else:
-            return self.find_stimulus_version(stimulus, participant, experiment)
+        return self.find_stimulus_version(stimulus, participant, experiment)
 
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
@@ -151,8 +176,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         )
         if len(candidates) == 0:
             return None
-        else: 
-            return random.choice(candidates)
+        return random.choice(candidates)
 
     def find_stimulus_version(self, stimulus, participant, experiment):
         # pylint: disable=unused-argument

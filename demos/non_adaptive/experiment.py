@@ -76,6 +76,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             expected_num_trials=stimulus_set.estimate_num_trials_per_participant(),
             new_participant_group=True
         ),
+        InfoPage("You finished the animal questions!", time_allotted=3),
         SuccessfulEndPage()
     )
 

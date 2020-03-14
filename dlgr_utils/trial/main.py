@@ -89,8 +89,11 @@ class TrialGenerator(Module):
 
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
-        experiment.session.add(trial)
-        participant.var.current_trial = trial.id
+        if trial is not None:
+            experiment.session.add(trial)
+            participant.var.current_trial = trial.id
+        else:
+            participant.var.current_trial = None
         experiment.save()
 
     def _show_trial(self, experiment, participant):
@@ -109,6 +112,8 @@ class TrialGenerator(Module):
 
     def _get_current_trial(self, participant):
         trial_id = participant.var.current_trial
+        if trial_id is None:
+            return None
         return self.trial_class.query.get(trial_id)
 
     def _construct_feedback_logic(self):
@@ -191,6 +196,4 @@ class NetworkTrialGenerator(TrialGenerator):
 
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(experiment=experiment, node=node, participant=participant)
-        experiment.session.add(trial)
-        experiment.save()
         return trial
