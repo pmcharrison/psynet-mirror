@@ -85,6 +85,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.stimulus_set = stimulus_set
         self.new_participant_group = new_participant_group
         self.max_trials_per_block = max_trials_per_block
+        self.allow_repeated_stimuli = allow_repeated_stimuli
         expected_num_trials = self.estimate_num_trials()
         super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
 
@@ -94,19 +95,24 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.init_completed_stimuli_in_phase(participant)
         self.init_num_completed_trials_in_phase(participant)
 
+    def estimate_num_trials_in_block(self, num_stimuli_in_block):
+        if self.allow_repeated_stimuli:
+            return self.max_trials_per_block
+        else:
+            if self.max_trials_per_block is None:
+                return num_stimuli_in_block
+            else:
+                return min(num_stimuli_in_block, self.max_trials_per_block)
+
     def estimate_num_trials(self):
         "Suitable for overriding."
         # Ripe for refactoring
         return mean([
             sum([
-                    (
-                        num_trials_in_block 
-                        if self.max_trials_per_block is None 
-                        else min(num_trials_in_block, self.max_trials_per_block)
-                    )
-                    for num_trials_in_block in num_trials_by_block.values()
+                self.estimate_num_trials_in_block(num_stimuli_in_block)
+                for num_stimuli_in_block in num_stimuli_by_block.values()
             ])
-            for participant_group, num_trials_by_block 
+            for participant_group, num_stimuli_by_block 
             in self.stimulus_set.num_stimuli.items()
         ])
 
@@ -267,13 +273,11 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         # pylint: disable=unused-argument,protected-access
         if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
             return None
-        completed_stimuli_in_phase = self.get_completed_stimuli_in_phase(participant)
-        candidates = (
-            Stimulus.query
-                    .filter_by(network_id=network.id) # networks are guaranteed to be from the correct phase
-                    .filter(not_(Stimulus.id.in_(completed_stimuli_in_phase)))
-                    .all()
-        )
+        candidates = Stimulus.query.filter_by(network_id=network.id) # networks are guaranteed to be from the correct phase
+        if not self.allow_repeated_stimuli:
+            completed_stimuli_in_phase = self.get_completed_stimuli_in_phase(participant)
+            candidates = candidates.filter(not_(Stimulus.id.in_(completed_stimuli_in_phase)))
+        candidates = candidates.all()
         if len(candidates) == 0:
             return None
         return random.choice(candidates)
