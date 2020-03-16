@@ -44,10 +44,10 @@ class Exp(dlgr_utils.experiment.Experiment):
     num_networks = 3
     num_nodes_per_network = 5
     num_infos_per_node = 2
-    network_roles = ["practice", "experiment"]    
+    network_roles = ["practice", "experiment"]
+#    network_roles = ["male", "female","other"] 
+#    network_roles = ["role1", "role2","role3","role4","role5","role6"]    
     use_sources = True
-    use_transformations = True
-    ####
 
     timeline = Timeline(
         InfoPage(

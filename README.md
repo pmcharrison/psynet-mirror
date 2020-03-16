@@ -1,10 +1,45 @@
 # Installation
 
+## User installation
+
+These instructions are for if you just want to use `dlgr_utils` in an 
+experiment and you don't need to run the demo or edit the source:
+
 ```
-pip install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
+pip3 install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
 ```
 
 Note that you must have set up your GitLab SSH keys already.
+
+## Developer installation (RECOMMENDED)
+
+These instructions are for if you want to run the `dlgr_utils` demo,
+or if you want to edit the source:
+
+Choose a location to put your installation, e.g. `~/cap`.
+
+``` 
+cd ~/cap
+git clone 
+```
+
+This will create folder called `dlgr_utils`.
+Navigate to this folder:
+
+```
+cd dlgr_utils
+```
+
+Install with pip3 (make sure you are in the appropriate virtual environment
+already, e.g. by running `workon dlgr_env`):
+
+```
+pip3 install -e .
+```
+
+The `-e` flag makes it editable.
+
+Run the demo with `dallinger debug --verbose`.
 
 # Adding `dlgr_utils` to your Dallinger experiment
 

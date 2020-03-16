@@ -8,6 +8,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast, not_
 
 import dallinger.models
+import dallinger.nodes
 
 from ..field import claim_field
 from .main import Trial, NetworkTrialGenerator
@@ -325,6 +326,8 @@ class NonAdaptiveNetwork(dallinger.models.Network):
         return dallinger.models.Node.query.filter_by(network_id=self.id).count() > 0
 
     def populate(self, stimulus_set, experiment):
+        source = dallinger.nodes.Source(network=self)
+        experiment.session.add(source)
         stimulus_specs = [
             x for x in stimulus_set.stimulus_specs 
             if x.phase == self.phase
@@ -332,7 +335,7 @@ class NonAdaptiveNetwork(dallinger.models.Network):
             and x.block == self.block
         ]
         for stimulus_spec in stimulus_specs:
-            stimulus_spec.add_stimulus_to_network(network=self, experiment=experiment)
+            stimulus_spec.add_stimulus_to_network(network=self, source=source, experiment=experiment)
         experiment.save()
 
 
@@ -361,13 +364,14 @@ class Stimulus(dallinger.models.Node):
         return self.network.block
 
 
-    def __init__(self, stimulus_spec, network):
+    def __init__(self, stimulus_spec, network, source):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
 
         super().__init__(network=network)
         self.definition = stimulus_spec.definition
+        source.connect(whom=self)
 
 class StimulusSpec():
     def __init__(
@@ -390,8 +394,8 @@ class StimulusSpec():
         self.participant_group = participant_group
         self.block = block
 
-    def add_stimulus_to_network(self, network, experiment):
-        stimulus = Stimulus(self, network=network)
+    def add_stimulus_to_network(self, network, source, experiment):
+        stimulus = Stimulus(self, network=network, source=source)
         experiment.session.add(stimulus)
         
         for version_spec in self.version_specs:
