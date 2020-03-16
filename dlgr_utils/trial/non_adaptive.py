@@ -2,6 +2,7 @@ import random
 import json
 from statistics import mean
 from typing import Optional
+from collections import Counter
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -86,6 +87,9 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.new_participant_group = new_participant_group
         self.max_trials_per_block = max_trials_per_block
         self.allow_repeated_stimuli = allow_repeated_stimuli
+        self.max_unique_stimuli_per_block = max_unique_stimuli_per_block
+        self.active_balancing_within_participants = active_balancing_within_participants
+
         expected_num_trials = self.estimate_num_trials()
         super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
 
@@ -118,7 +122,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def finalise_trial(self, answer, trial, experiment, participant):
         super().finalise_trial(answer, trial, experiment, participant)
-        self.append_completed_stimuli_in_phase(participant, trial.stimulus_id)
+        self.increment_completed_stimuli_in_phase_and_block(participant, trial.block, trial.stimulus_id)
         self.increment_num_completed_trials_in_phase(participant)
 
     def init_block_order(self, experiment, participant):
@@ -135,9 +139,6 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             )
         elif not self.has_participant_group(participant):
             raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
-
-    def init_completed_stimuli_in_phase(self, participant):
-        self.set_completed_stimuli_in_phase(participant, list())
 
     @property 
     def num_completed_trials_in_phase_var_id(self):
@@ -183,18 +184,36 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         return participant.has_var(self.participant_group_var_id)
 
 
-    def get_completed_stimuli_in_phase(self, participant):
-        return participant.get_var(self.with_namespace("completed_stimuli_in_phase"))
-
-    def set_completed_stimuli_in_phase(self, participant, value):
-        participant.set_var(self.with_namespace("completed_stimuli_in_phase"), value)
-
-    def append_completed_stimuli_in_phase(self, participant, value):
-        assert isinstance(value, int)
-        self.set_completed_stimuli_in_phase(
-            participant,
-            self.get_completed_stimuli_in_phase(participant) + [value]
+    def init_completed_stimuli_in_phase(self, participant):
+        participant.set_var(
+            self.with_namespace("completed_stimuli_in_phase"),
+            {
+                block: Counter()
+                for block in self.stimulus_set.blocks
+            }
         )
+
+    def get_completed_stimuli_in_phase(self, participant):
+        all_counters = participant.get_var(self.with_namespace("completed_stimuli_in_phase"))
+        return {
+            block: Counter(counter)
+            for block, counter in all_counters.items()
+        }
+
+    def get_completed_stimuli_in_phase_and_block(self, participant, block):
+        all_counters = self.get_completed_stimuli_in_phase(participant)
+        return all_counters[block]
+
+    def increment_completed_stimuli_in_phase_and_block(self, participant, block, stimulus_id):
+        all_counters = self.get_completed_stimuli_in_phase(participant)
+        all_counters[block][stimulus_id] += 1
+        participant.set_var(self.with_namespace("completed_stimuli_in_phase"), all_counters)
+
+    # def append_completed_stimuli_in_phase(self, participant, block, stimulus_id):
+    #     assert isinstance(value, int)
+    #     counter = self.get_completed_stimuli_in_phase(participant, block)
+    #     counter[value] += 1
+    #     self.set_completed_stimuli_in_phase(participant, block, counter)
 
     def on_complete(self, experiment, participant):
         pass
@@ -271,13 +290,31 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
+        # This function is a bit long, maybe we can refactor.
         if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
             return None
+        
+        completed_stimuli = self.get_completed_stimuli_in_phase_and_block(participant, block=network.block)
+
+        if self.max_unique_stimuli_per_block is None:
+            allow_new_stimulus = True
+        else:
+            num_unique_completed_stimuli = len(completed_stimuli)
+            allow_new_stimulus = num_unique_completed_stimuli < self.max_unique_stimuli_per_block
+
         candidates = Stimulus.query.filter_by(network_id=network.id) # networks are guaranteed to be from the correct phase
         if not self.allow_repeated_stimuli:
-            completed_stimuli_in_phase = self.get_completed_stimuli_in_phase(participant)
-            candidates = candidates.filter(not_(Stimulus.id.in_(completed_stimuli_in_phase)))
+            candidates = candidates.filter(not_(Stimulus.id.in_(list(completed_stimuli.keys()))))
+        if not allow_new_stimulus:
+            candidates = candidates.filter(Stimulus.id.in_(list(completed_stimuli.keys())))
         candidates = candidates.all()
+        if self.active_balancing_within_participants:
+            candidate_counts = [completed_stimuli[candidate.id] for candidate in candidates]
+            min_count = 0 if len(candidate_counts) == 0 else min(candidate_counts)
+            candidates = [
+                candidate for candidate, candidate_count in zip(candidates, candidate_counts) 
+                if candidate_count == min_count
+            ]
         if len(candidates) == 0:
             return None
         return random.choice(candidates)

@@ -82,10 +82,12 @@ class Exp(dlgr_utils.experiment.Experiment):
             stimulus_set=stimulus_set, 
             time_allotted_per_trial=3,
             new_participant_group=True,
-            max_trials_per_block=2,
-            allow_repeated_stimuli=False
+            max_trials_per_block=4,
+            allow_repeated_stimuli=True,
+            max_unique_stimuli_per_block=2,
+            active_balancing_within_participants=True
         ),
-        InfoPage("You finished the animal questions!", time_allotted=3),
+        InfoPage("You finished the animal questions!", time_allotted=0),
         SuccessfulEndPage()
     )
 
