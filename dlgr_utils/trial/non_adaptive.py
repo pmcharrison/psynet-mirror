@@ -81,7 +81,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         allow_repeated_stimuli=False,
         max_unique_stimuli_per_block: Optional[int]=None,
         active_balancing_within_participants=True,
-        active_balancing_across_participant=False
+        active_balancing_across_participants=True
     ):
         self.stimulus_set = stimulus_set
         self.new_participant_group = new_participant_group
@@ -89,6 +89,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.allow_repeated_stimuli = allow_repeated_stimuli
         self.max_unique_stimuli_per_block = max_unique_stimuli_per_block
         self.active_balancing_within_participants = active_balancing_within_participants
+        self.active_balancing_across_participants = active_balancing_across_participants
 
         expected_num_trials = self.estimate_num_trials()
         super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
@@ -124,6 +125,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         super().finalise_trial(answer, trial, experiment, participant)
         self.increment_completed_stimuli_in_phase_and_block(participant, trial.block, trial.stimulus_id)
         self.increment_num_completed_trials_in_phase(participant)
+        trial.stimulus.num_completed_trials += 1
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
@@ -290,36 +292,58 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
-        # This function is a bit long, maybe we can refactor.
         if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
             return None
-        
         completed_stimuli = self.get_completed_stimuli_in_phase_and_block(participant, block=network.block)
-
-        if self.max_unique_stimuli_per_block is None:
-            allow_new_stimulus = True
-        else:
-            num_unique_completed_stimuli = len(completed_stimuli)
-            allow_new_stimulus = num_unique_completed_stimuli < self.max_unique_stimuli_per_block
-
+        allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
         candidates = Stimulus.query.filter_by(network_id=network.id) # networks are guaranteed to be from the correct phase
         if not self.allow_repeated_stimuli:
-            candidates = candidates.filter(not_(Stimulus.id.in_(list(completed_stimuli.keys()))))
+            candidates = self.filter_out_repeated_stimuli(candidates, completed_stimuli)
         if not allow_new_stimulus:
-            candidates = candidates.filter(Stimulus.id.in_(list(completed_stimuli.keys())))
+            candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
         candidates = candidates.all()
         if self.active_balancing_within_participants:
-            candidate_counts = [completed_stimuli[candidate.id] for candidate in candidates]
-            min_count = 0 if len(candidate_counts) == 0 else min(candidate_counts)
-            candidates = [
-                candidate for candidate, candidate_count in zip(candidates, candidate_counts) 
-                if candidate_count == min_count
-            ]
+            candidates = self.balance_within_participants(candidates, completed_stimuli)
+        if self.active_balancing_across_participants:
+            candidates = self.balance_across_participants(candidates)
         if len(candidates) == 0:
             return None
         return random.choice(candidates)
 
-    def find_stimulus_version(self, stimulus, participant, experiment):
+    def check_allow_new_stimulus(self, completed_stimuli):
+        if self.max_unique_stimuli_per_block is None:
+            return True
+        num_unique_completed_stimuli = len(completed_stimuli)
+        return num_unique_completed_stimuli < self.max_unique_stimuli_per_block
+
+    @staticmethod
+    def filter_out_repeated_stimuli(candidates, completed_stimuli):
+        return candidates.filter(not_(Stimulus.id.in_(list(completed_stimuli.keys()))))
+
+    @staticmethod
+    def filter_out_new_stimuli(candidates, completed_stimuli):
+        return candidates.filter(Stimulus.id.in_(list(completed_stimuli.keys())))
+
+    @staticmethod
+    def balance_within_participants(candidates, completed_stimuli):
+        candidate_counts_within = [completed_stimuli[candidate.id] for candidate in candidates]
+        min_count_within = 0 if len(candidate_counts_within) == 0 else min(candidate_counts_within)
+        return [
+            candidate for candidate, candidate_count_within in zip(candidates, candidate_counts_within) 
+            if candidate_count_within == min_count_within
+        ]
+
+    @staticmethod
+    def balance_across_participants(candidates):
+        candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
+        min_count_across = 0 if len(candidate_counts_across) == 0 else min(candidate_counts_across)
+        return [
+            candidate for candidate, candidate_count_across in zip(candidates, candidate_counts_across) 
+            if candidate_count_across == min_count_across
+        ]
+
+    @staticmethod
+    def find_stimulus_version(stimulus, participant, experiment):
         # pylint: disable=unused-argument
         candidates = (
             StimulusVersion.query
@@ -383,6 +407,8 @@ class NonAdaptiveNetwork(dallinger.models.Network):
 class Stimulus(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
+    num_completed_trials = claim_field(1, int)
+
     @property
     def definition(self):
         return self.details
@@ -412,6 +438,7 @@ class Stimulus(dallinger.models.Node):
 
         super().__init__(network=network)
         self.definition = stimulus_spec.definition
+        self.num_completed_trials = 0
         source.connect(whom=self)
 
 class StimulusSpec():

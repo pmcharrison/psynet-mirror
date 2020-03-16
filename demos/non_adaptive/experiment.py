@@ -82,13 +82,18 @@ class Exp(dlgr_utils.experiment.Experiment):
             stimulus_set=stimulus_set, 
             time_allotted_per_trial=3,
             new_participant_group=True,
-            max_trials_per_block=4,
+            max_trials_per_block=2,
             allow_repeated_stimuli=True,
-            max_unique_stimuli_per_block=2,
-            active_balancing_within_participants=True
+            max_unique_stimuli_per_block=None,
+            active_balancing_within_participants=True,
+            active_balancing_across_participants=True
         ),
         InfoPage("You finished the animal questions!", time_allotted=0),
         SuccessfulEndPage()
     )
+
+    def __init__(self, session=None):
+        super().__init__(session)
+        self.initial_recruitment_size = 2
 
 extra_routes = Exp().extra_routes()
