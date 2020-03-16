@@ -1,33 +1,44 @@
 import random
+import json
 from statistics import mean
 
-from sqlalchemy.sql.expression import not_
+from sqlalchemy import String
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.sql.expression import cast, not_
 
 import dallinger.models
 
 from ..field import claim_field
 from .main import Trial, NetworkTrialGenerator
 
+import rpdb
+
 class NonAdaptiveTrial(Trial):
+    __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
+
     # Refactor this bit with claim_field equivalent.
     @property
     def definition(self):
-        return self.contents
+        return json.loads(self.contents)
 
     @definition.setter
     def definition(self, definition):
-        self.contents = definition
+        self.contents = json.dumps(definition)
 
     @property
     def stimulus_version(self):
         return self.origin
 
     @property
+    def stimulus_id(self):
+        return self.origin.stimulus_id
+
+    @property
     def stimulus(self):
-        return self.origin.origin
+        return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
     def __init__(self, experiment, node, participant):
-        super().__init__(origin=node)
+        super().__init__(experiment, node, participant)
         self.participant_id = participant.id
         self.definition = {
             **self.stimulus.definition, 
@@ -59,6 +70,11 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def init_participant(self, experiment, participant):
         self.init_block_order(experiment, participant)
         self.init_participant_group(experiment, participant)
+        self.init_completed_stimuli(participant)
+
+    def finalise_trial(self, answer, trial, experiment, participant):
+        super().finalise_trial(answer, trial, experiment, participant)
+        self.append_completed_stimuli(participant, trial.stimulus_id)
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
@@ -74,7 +90,9 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             )
         elif not self.has_participant_group(participant):
             raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
-        
+
+    def init_completed_stimuli(self, participant):
+        self.set_completed_stimuli(participant, list())
 
     @property
     def block_order_var_id(self):
@@ -99,6 +117,20 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def has_participant_group(self, participant):
         return participant.has_var(self.participant_group_var_id)
+
+
+    def get_completed_stimuli(self, participant):
+        return participant.get_var(self.with_namespace("completed_stimuli"))
+
+    def set_completed_stimuli(self, participant, value):
+        participant.set_var(self.with_namespace("completed_stimuli"), value)
+
+    def append_completed_stimuli(self, participant, value):
+        assert isinstance(value, int)
+        self.set_completed_stimuli(
+            participant,
+            self.get_completed_stimuli(participant) + [value]
+        )
 
     def on_complete(self, experiment, participant):
         pass
@@ -167,11 +199,11 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
-        completed_stimuli = tuple(participant.var.completed_stimuli)
+        completed_stimuli = self.get_completed_stimuli(participant)
         candidates = (
             Stimulus.query
                     .filter_by(network_id=network.id)
-                    .filter(not_(Stimulus.id._in(completed_stimuli)))
+                    .filter(not_(Stimulus.id.in_(completed_stimuli)))
                     .all()
         )
         if len(candidates) == 0:
@@ -200,13 +232,17 @@ class NonAdaptiveNetwork(dallinger.models.Network):
     participant_group = claim_field(2, str)
     block = claim_field(3, str)
     
-    @property 
+    @hybrid_property 
     def phase(self):
         return self.role
 
     @phase.setter
     def phase(self, value):
         self.role = value
+
+    @phase.expression
+    def phase(self):
+        return cast(self.role, String)
 
     def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment):
         self.trial_type = trial_type
@@ -286,10 +322,19 @@ class StimulusVersion(dallinger.models.Node):
 
     stimulus_id = claim_field(1, int)
 
+    @property
+    def definition(self):
+        return self.details
+
+    @definition.setter
+    def definition(self, definition):
+        self.details = definition
+
     def __init__(self, stimulus_version_spec, stimulus, network):
         super().__init__(network=network)
         self.stimulus_id = stimulus.id
         self.definition = stimulus_version_spec.definition
+        self.connect_to_parent(stimulus)
 
     def connect_to_parent(self, parent):
         self.connect(parent, direction="from")

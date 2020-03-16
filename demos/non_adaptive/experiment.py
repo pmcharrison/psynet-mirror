@@ -21,9 +21,9 @@ from dlgr_utils.timeline import (
     conditional, 
     switch
 )
-from dlgr_utils.trial.main import Trial
 from dlgr_utils.trial.non_adaptive import (
     NonAdaptiveTrialGenerator,
+    NonAdaptiveTrial,
     StimulusSet,
     StimulusSpec,
     StimulusVersionSpec
@@ -42,20 +42,25 @@ stimulus_set = StimulusSet([
         definition={"animal": animal},
         version_specs=[
             StimulusVersionSpec(
-                definition={"text_colour": text_colour}
+                definition={"text_color": text_color}
             )
-            for text_colour in ["red", "green", "blue"]
+            for text_color in ["red", "green", "blue"]
         ],
         phase="experiment"
     )
     for animal in ["cats", "dogs", "fish", "ponies"]
 ])
 
-class AnimalTrial(Trial):
+class AnimalTrial(NonAdaptiveTrial):
+    __mapper_args__ = {"polymorphic_identity": "animal_trial"}
+
     def show_trial(self, experiment, participant):
+        text_color = self.definition["text_color"]
+        animal = self.definition["animal"]
+        
         return NAFCPage(
             "animal_trial", 
-            Markup(f"<p style='color: {self.definition.color}'>How much do you like {self.definition.animal}?</p>"),
+            Markup(f"<p style='color: {text_color}'>How much do you like {animal}?</p>"),
             ["Not at all", "A little", "Very much"]
         )
 

@@ -12,8 +12,16 @@ from ..timeline import (
     join
 )
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
+import rpdb
+
 class Trial(Info):
     # pylint: disable=unused-argument
+    __mapper_args__ = {"polymorphic_identity": "trial"}
+
     participant_id = claim_field(1, int)
     answer = claim_field(2)
 
@@ -142,7 +150,7 @@ class TrialGenerator(Module):
                 logic=join(
                     ReactivePage(self._show_trial, time_allotted=self.time_allotted_per_trial),
                     self._construct_feedback_logic(),
-                    CodeBlock(self.finalise_trial),
+                    CodeBlock(self._finalise_trial),
                     CodeBlock(self._prepare_trial)
                 ),
                 expected_repetitions=self.expected_num_trials,
@@ -160,12 +168,16 @@ class NetworkTrialGenerator(TrialGenerator):
     #### The following methods are overwritten from TrialGenerator.
     #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
     def prepare_trial(self, experiment, participant):
+        logger.info("Preparing trial for participant %i.", participant.id)
         networks = self.find_networks(participant=participant, experiment=experiment)
+        logger.info("Found %i network(s) for participant %i.", len(networks), participant.id)
         for network in networks:
             self.grow_network(network=network, participant=participant, experiment=experiment)
             node = self.find_node(network=network, participant=participant, experiment=experiment)
             if node is not None:
+                logger.info("Attached node %i to participant %i.", node.id, participant.id)
                 return self._create_trial(node=node, participant=participant, experiment=experiment)
+        logger.info("Found no available nodes for participant %i, exiting.", participant.id)
         return None 
 
     def experiment_setup_routine(self, experiment):
