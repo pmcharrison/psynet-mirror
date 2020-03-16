@@ -16,8 +16,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-import rpdb
 # pylint: disable=unused-import
+import rpdb
 
 class Trial(Info):
     # pylint: disable=unused-argument

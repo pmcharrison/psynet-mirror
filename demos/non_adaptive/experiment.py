@@ -81,8 +81,8 @@ class Exp(dlgr_utils.experiment.Experiment):
             phase="experiment",
             stimulus_set=stimulus_set, 
             time_allotted_per_trial=3,
-            expected_num_trials=stimulus_set.estimate_num_trials_per_participant(),
-            new_participant_group=True
+            new_participant_group=True,
+            max_trials_per_block=1
         ),
         InfoPage("You finished the animal questions!", time_allotted=3),
         SuccessfulEndPage()

@@ -1,6 +1,7 @@
 import random
 import json
 from statistics import mean
+from typing import Optional
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -11,6 +12,7 @@ import dallinger.models
 from ..field import claim_field
 from .main import Trial, NetworkTrialGenerator
 
+# pylint: disable=unused-import
 import rpdb
 
 class NonAdaptiveTrial(Trial):
@@ -72,21 +74,45 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         phase,
         stimulus_set,
         time_allotted_per_trial,
-        expected_num_trials: int,
-        new_participant_group: bool
+        new_participant_group: bool,
+        max_trials_per_block: Optional[int]=None,
+        allow_repeated_stimuli=False,
+        max_unique_stimuli_per_block: Optional[int]=None,
+        active_balancing_within_participants=True,
+        active_balancing_across_participant=False
     ):
-        super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
         self.stimulus_set = stimulus_set
         self.new_participant_group = new_participant_group
+        self.max_trials_per_block = max_trials_per_block
+        expected_num_trials = self.estimate_num_trials()
+        super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
 
     def init_participant(self, experiment, participant):
         self.init_block_order(experiment, participant)
         self.init_participant_group(experiment, participant)
-        self.init_completed_stimuli(participant)
+        self.init_completed_stimuli_in_phase(participant)
+        self.init_num_completed_trials_in_phase(participant)
+
+    def estimate_num_trials(self):
+        "Suitable for overriding."
+        # Ripe for refactoring
+        return mean([
+            sum([
+                    (
+                        num_trials_in_block 
+                        if self.max_trials_per_block is None 
+                        else min(num_trials_in_block, self.max_trials_per_block)
+                    )
+                    for num_trials_in_block in num_trials_by_block.values()
+            ])
+            for participant_group, num_trials_by_block 
+            in self.stimulus_set.num_stimuli.items()
+        ])
 
     def finalise_trial(self, answer, trial, experiment, participant):
         super().finalise_trial(answer, trial, experiment, participant)
-        self.append_completed_stimuli(participant, trial.stimulus_id)
+        self.append_completed_stimuli_in_phase(participant, trial.stimulus_id)
+        self.increment_num_completed_trials_in_phase(participant)
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
@@ -103,8 +129,27 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         elif not self.has_participant_group(participant):
             raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
 
-    def init_completed_stimuli(self, participant):
-        self.set_completed_stimuli(participant, list())
+    def init_completed_stimuli_in_phase(self, participant):
+        self.set_completed_stimuli_in_phase(participant, list())
+
+    @property 
+    def num_completed_trials_in_phase_var_id(self):
+        return self.with_namespace("num_completed_trials_in_phase")
+
+    def set_num_completed_trials_in_phase(self, participant, value):
+        participant.set_var(self.num_completed_trials_in_phase_var_id, value)
+
+    def get_num_completed_trials_in_phase(self, participant):
+        return participant.get_var(self.num_completed_trials_in_phase_var_id)
+
+    def init_num_completed_trials_in_phase(self, participant):
+        self.set_num_completed_trials_in_phase(participant, 0)
+
+    def increment_num_completed_trials_in_phase(self, participant):
+        self.set_num_completed_trials_in_phase(
+            participant,
+            self.get_num_completed_trials_in_phase(participant) + 1
+        )
 
     @property
     def block_order_var_id(self):
@@ -131,17 +176,17 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         return participant.has_var(self.participant_group_var_id)
 
 
-    def get_completed_stimuli(self, participant):
-        return participant.get_var(self.with_namespace("completed_stimuli"))
+    def get_completed_stimuli_in_phase(self, participant):
+        return participant.get_var(self.with_namespace("completed_stimuli_in_phase"))
 
-    def set_completed_stimuli(self, participant, value):
-        participant.set_var(self.with_namespace("completed_stimuli"), value)
+    def set_completed_stimuli_in_phase(self, participant, value):
+        participant.set_var(self.with_namespace("completed_stimuli_in_phase"), value)
 
-    def append_completed_stimuli(self, participant, value):
+    def append_completed_stimuli_in_phase(self, participant, value):
         assert isinstance(value, int)
-        self.set_completed_stimuli(
+        self.set_completed_stimuli_in_phase(
             participant,
-            self.get_completed_stimuli(participant) + [value]
+            self.get_completed_stimuli_in_phase(participant) + [value]
         )
 
     def on_complete(self, experiment, participant):
@@ -209,13 +254,23 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             return None
         return self.find_stimulus_version(stimulus, participant, experiment)
 
+    def count_completed_trials_in_network(self, network, participant):
+        return (
+            self.trial_class
+                .query
+                .filter_by(network_id=network.id, participant_id=participant.id)
+                .count()
+        )
+        
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
-        completed_stimuli = self.get_completed_stimuli(participant)
+        if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
+            return None
+        completed_stimuli_in_phase = self.get_completed_stimuli_in_phase(participant)
         candidates = (
             Stimulus.query
-                    .filter_by(network_id=network.id)
-                    .filter(not_(Stimulus.id.in_(completed_stimuli)))
+                    .filter_by(network_id=network.id) # networks are guaranteed to be from the correct phase
+                    .filter(not_(Stimulus.id.in_(completed_stimuli_in_phase)))
                     .all()
         )
         if len(candidates) == 0:
@@ -234,7 +289,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
 class NonAdaptiveNetwork(dallinger.models.Network):
     """
-    A network corresponds to a unique combination of trial_type, phase, participant group, and block.
+    Networks correspond to blocks. Different trial types and phases correspond to different blocks too.
     """
     #pylint: disable=abstract-method
     
@@ -396,7 +451,7 @@ class StimulusSet():
         network_specs = set()
         blocks = set()
         participant_groups = set()
-        self.num_trials_by_participant_group = dict()
+        self.num_stimuli = dict()
         
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
@@ -409,10 +464,13 @@ class StimulusSet():
             blocks.add(s.block)
             participant_groups.add(s.participant_group)
             
-            if s.participant_group in self.num_trials_by_participant_group:
-                self.num_trials_by_participant_group[s.participant_group] += 1
-            else:
-                self.num_trials_by_participant_group[s.participant_group] = 1
+            # This logic could be refactored by defining a special dictionary class
+            if s.participant_group not in self.num_stimuli:
+                self.num_stimuli[s.participant_group] = dict()
+            if s.block not in self.num_stimuli[s.participant_group]:
+                self.num_stimuli[s.participant_group][s.block] = 0
+
+            self.num_stimuli[s.participant_group][s.block] += 1
 
         self.network_specs = [
             NetworkSpec(
@@ -426,9 +484,6 @@ class StimulusSet():
 
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
-
-    def estimate_num_trials_per_participant(self):
-        return mean([x for x in self.num_trials_by_participant_group.values()])
 
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):
