@@ -37,6 +37,18 @@ class NonAdaptiveTrial(Trial):
     def stimulus(self):
         return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
+    @property
+    def phase(self):
+        return self.stimulus.phase
+
+    @property
+    def participant_group(self):
+        return self.stimulus.participant_group
+
+    @property
+    def block(self):
+        return self.stimulus.block
+
     def __init__(self, experiment, node, participant):
         super().__init__(experiment, node, participant)
         self.participant_id = participant.id
@@ -280,6 +292,20 @@ class Stimulus(dallinger.models.Node):
     def definition(self, definition):
         self.details = definition
 
+    
+    @property 
+    def phase(self):
+        return self.network.phase
+
+    @property 
+    def participant_group(self):
+        return self.network.participant_group
+
+    @property 
+    def block(self):
+        return self.network.block
+
+
     def __init__(self, stimulus_spec, network):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
@@ -329,6 +355,23 @@ class StimulusVersion(dallinger.models.Node):
     @definition.setter
     def definition(self, definition):
         self.details = definition
+
+    
+    @property 
+    def stimulus(self):
+        return Stimulus.query.filter_by(id=self.stimulus_id).one()
+
+    @property
+    def phase(self):
+        return self.stimulus.phase
+
+    @property
+    def participant_group(self):
+        return self.stimulus.participant_group
+
+    @property
+    def block(self):
+        return self.stimulus.block
 
     def __init__(self, stimulus_version_spec, stimulus, network):
         super().__init__(network=network)

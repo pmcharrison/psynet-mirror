@@ -46,9 +46,11 @@ stimulus_set = StimulusSet([
             )
             for text_color in ["red", "green", "blue"]
         ],
-        phase="experiment"
+        phase="experiment",
+        block=block
     )
     for animal in ["cats", "dogs", "fish", "ponies"]
+    for block in ["A", "B", "C"]
 ])
 
 class AnimalTrial(NonAdaptiveTrial):
@@ -57,10 +59,11 @@ class AnimalTrial(NonAdaptiveTrial):
     def show_trial(self, experiment, participant):
         text_color = self.definition["text_color"]
         animal = self.definition["animal"]
-        
+        block = self.block
+
         return NAFCPage(
             "animal_trial", 
-            Markup(f"<p style='color: {text_color}'>How much do you like {animal}?</p>"),
+            Markup(f"<h3>Block {block}</h3> <p style='color: {text_color}'>How much do you like {animal}?</p>"),
             ["Not at all", "A little", "Very much"]
         )
 
