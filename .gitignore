@@ -4,3 +4,8 @@ dist
 dlgr_monitor.egg-info
 .vscode/settings.json
 server.log
+dlgr_utils.egg-info/dependency_links.txt
+dlgr_utils.egg-info/PKG-INFO
+dlgr_utils.egg-info/requires.txt
+dlgr_utils.egg-info/SOURCES.txt
+dlgr_utils.egg-info/top_level.txt

@@ -14,12 +14,15 @@
             border: 1px solid lightgray;
         }
     </style>
-    <link   rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <!-- <link   rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"> -->
+    <link   rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <link   rel="stylesheet" href="/static/css/vis-network.min.css">
     <!-- <script src="/static/scripts/reqwest.min.js" type="text/javascript"> </script> -->
     <!-- <script src="/static/scripts/vis/vis.js" type="text/javascript"> </script> -->
     <!-- <link   href="/static/scripts/vis/vis-network.min.css" rel="stylesheet" type="text/css"/> -->
-    <script src="https://unpkg.com/vis@4.17.0/dist/vis.min.js" type="text/javascript"></script>
-    <link   href="https://unpkg.com/vis@4.17.0/dist/vis-network.min.css" rel="stylesheet" type="text/css"/>
+    <script src="/static/scripts/vis.min.js" type="text/javascript"></script>
+    <!-- NORI: I CHANGED THIS TO STATIC REFERENCE FOR PERFORMANCE -->
+    <!-- <link   href="https://unpkg.com/vis@4.17.0/dist/vis-network.min.css" rel="stylesheet" type="text/css"/> -->
 
 
     <script type="text/javascript">
@@ -47,15 +50,6 @@
                 enabled: false,
                 stabilization:  false
              },
-                        // nodes: {
-                        //
-                        //         size: 20,
-                        //         font: {
-                        //             size: 15,
-                        //             color: '#000000'
-                        //         },
-                        //         borderWidth: 2
-                        //     },
 
                         edges: {
                                 width: 2
@@ -87,7 +81,7 @@
                                           color: '#ffffff'
                                     }
                                 },
-                                practice_networks_open: {
+                                group_networks_open: {
                                     shape: 'icon',
                                     icon: {
                                         face: 'FontAwesome',
@@ -97,24 +91,12 @@
                                     },
                                      font: {
                                           size: 14,
-                                          color: '#000000'
+                                          color: 'green'
                                         }
                                 },
-                                experiment_networks_open: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 80,
-                                        color: 'rgb(100,100,250)'
-                                    },
-                                     font: {
-                                          size: 14,
-                                          color: '#000000'
-                                        }
-                                },
+                               
 
-                                 practice_networks_close: {
+                                 group_networks_close: {
                                     shape: 'icon',
                                     icon: {
                                         face: 'FontAwesome',
@@ -124,25 +106,11 @@
                                     },
                                      font: {
                                           size: 14,
-                                          color: '#000000'
+                                          color: 'blue'
                                         }
                                 },
-                                experiment_networks_close: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 80,
-                                        color: 'rgb(60,60,120)'
-                                    },
-                                     font: {
-                                          size: 14,
-                                          color: '#000000'
-                                        }
-                                },
-
-
-                                practice_father: {
+                              
+                                group_father: {
                                     shape: 'icon',
                                     icon: {
                                         face: 'FontAwesome',
@@ -155,20 +123,7 @@
                                           color: '#000000'
                                         }
                                 },
-                                experiment_father: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 120,
-                                        color:'rgb(100,100,250)'
 
-                                    },
-                                    font: {
-                                          size: 25,
-                                          color: '#000000'
-                                        }
-                                },
                                 good_infos: {
                                     shape: 'icon',
                                     icon: {
@@ -203,7 +158,41 @@
           var list_of_participants=[]; // list of objects with participants
           var list_of_node_indx=[]; // list of objects with nodes
           
-          // find all participants and make list, also asigned unique colors to nodes
+          /// These lines finds all the roles that involved  in this networks
+          roles=[]; // list of unique roles
+          networks_roles=[]; // the role of each network
+          for (var i = 0; i< ndata.net_structure.networks.length; i++) {
+                          net=ndata.net_structure.networks[i];
+                          my_role=net.role
+
+                          is_found = false;
+                          for (var j=0;j<roles.length;j++) {
+                            if (my_role.localeCompare(roles[j])==0) {
+                              is_found=true;
+                              break;
+                            }
+
+                          }
+                        if (!is_found) {
+                              
+                              networks_roles[net.id]=roles.length;
+                              roles[roles.length]=my_role;
+
+                        } else{
+                          networks_roles[net.id]=j;
+                        }
+          }
+
+          roles_colors=[]; ///  assign pseudorandom colors for each role
+          for (var j=0;j<roles.length;j++) {
+            rr= 50 + (((j+3)*11557)  % 200); // pseudorandom colors
+            gg= 50 + (((j+3171)*31511) % 200);
+            bb= 50 +  (((j+371)*11517) % 200);
+            clr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')';
+            roles_colors[j]=clr;
+          }
+
+          // find all participants and make list, also asigned unique colors to partiicipants
           for (var i = 0; i< ndata.net_structure.participants.length; i++) {
             participant=ndata.net_structure.participants[i];
             participant_id=participant.id;
@@ -340,52 +329,31 @@
               }
             }
 
-            //practice father of all practice networks
-            count_nodes++;
+          group_fathres=[];
+          for (var j=0;j<roles.length;j++) {
+             //group fathers of all practice networks
+             count_nodes++;
             my_node_id=count_nodes;
+            clr=roles_colors[j]
+            gtitle=roles[j] + ' networks'
+
             nodes.push({
                     id: my_node_id,
-                    label: 'practice networks',
-                    title: ('practice networks'),
-                    group: 'practice_father',
-                    font: {align: 'inside'}
+                    label: gtitle,
+                    title: gtitle,
+                    group: 'group_father',
+                    font: {align: 'inside'},
+                    icon: {
+                                        face: 'FontAwesome',
+                                        code: '\uf0c2',
+                                        size: 120,
+                                        color: clr
+                                    }
                   });
-            practice_father=my_node_id;
+                  group_fathres[j]=my_node_id;
+          }
+           
 
-             //experiment father of all experiment networks
-            count_nodes++;
-            my_node_id=count_nodes;
-            nodes.push({
-                    id: my_node_id,
-                    label: 'experiment networks',
-                    title: ('experiment networks'),
-                    group: 'experiment_father',
-                    font: {align: 'inside'}
-                  });
-            experiment_father=my_node_id;
-
-            //  count_nodes++;
-            // my_node_id=count_nodes;
-            // nodes.push({
-            //         id: my_node_id,
-            //         label:'root'
-            //       });
-            // experiment_root=my_node_id;
-
-            //  edges.push({
-            //       from: experiment_root,
-            //       to: experiment_father,
-            //       //arrows:'to', dashes:true,
-            //       //title: ('<pre><code><font size="-2">'+ JSON.stringify(info, null, 2) + '</font></code></pre>),
-            //       color: 'black'
-            //     });
-            //  edges.push({
-            //       from: experiment_root,
-            //       to: practice_father,
-            //       //arrows:'to', dashes:true,
-            //       //title: ('<pre><code><font size="-2">'+ JSON.stringify(info, null, 2) + '</font></code></pre>),
-            //       color: 'black'
-            //     });
           //connect network to correct source
           for (var i = 0; i< ndata.net_structure.networks.length; i++) {
                 net=ndata.net_structure.networks[i];
@@ -393,6 +361,18 @@
                 my_node_id=count_nodes;
                 from=my_node_id;
                 is_found=false;
+                
+                min_id=99999999
+                // find the node with minimal id that belong to this network
+                for (var j = 0; j< ndata.net_structure.nodes.length; j++) {
+                  node=ndata.net_structure.nodes[j];
+                    if ((node.id<=min_id) && (node.network_id==net.id))  {
+                      min_id=node.id
+                      to_min=list_of_node_indx[node.id]
+                      
+                    }
+                }
+
 
                 // find the source that belong to this network
                 for (var j = 0; j< ndata.net_structure.nodes.length; j++) {
@@ -403,34 +383,33 @@
                       break
                     }
                 }
+                
                 if (!is_found) {
-                    to=my_node_id
+                  to=to_min // use a default strategy that the source is the minimal id
+                    //to=my_node_id
                 }
 
-                if (net.role.toLowerCase().search('practice')>-1) {
+                
                   if (net.property1=='True') {
-                      mgroup='practice_networks_open';
+                      mgroup='group_networks_open';
                     } else {
-                      mgroup='practice_networks_close';
+                      mgroup='group_networks_close';
                     }
-
-                  father=practice_father // find fatehr network
-             } else {
-                  if (net.property1=='True') {
-                      mgroup='experiment_networks_open';
-                  } else {
-                      mgroup='practice_networks_close';
-                  }
-
-                  father=experiment_father // find fatehr network
-
-                }
+                    
+                    father=group_fathres[networks_roles[net.id]]; // find father network
+                    clr=roles_colors[networks_roles[net.id]];
                 nodes.push({
                   id: my_node_id,
                   label: "network:"+ String(net.id),
                   title: ('<pre><code><font size="-2">'+ JSON.stringify(net, null, 2) + '</font></code></pre>'),
                   group: mgroup,
-                  font: {align: 'inside'}
+                  font: {align: 'inside'},
+                  icon: {
+                                        face: 'FontAwesome',
+                                        code: '\uf0c2',
+                                        color: clr
+                                    }
+
                 });
                  edges.push({
                   from: from,
@@ -449,30 +428,7 @@
                   font: {align: 'inside'}
                 });
 
-            //     // Create a mother node for all nodes and connect it to father nodes
-            // count_nodes++;
-            // my_node_id=count_nodes;
-            // nodes.push({
-            //         id: my_node_id,
-            //         label: 'My experiment',
-            //         title: ('My experiment'),
-            //         group: 'experiment_father',
-            //         font: {align: 'inside'}
-            //       });
-            // eve_mother_of_all=my_node_id;
-
-            // edges.push({
-            //       from: eve_mother_of_all,
-            //       to: practice_father,
-            //       color: 'white',
-            //       font: {align: 'inside'}
-            //     });
-            //     edges.push({
-            //       from: eve_mother_of_all,
-            //       to: experiment_father,
-            //       color: 'white',
-            //       font: {align: 'inside'}
-            //     });
+         
 
             }
 
