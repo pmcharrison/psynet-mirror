@@ -33,6 +33,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
+import rpdb
+
 ##########################################################################################
 #### Stimuli
 ##########################################################################################
@@ -67,6 +69,17 @@ class AnimalTrial(NonAdaptiveTrial):
             ["Not at all", "A little", "Very much"]
         )
 
+class AnimalTrialGenerator(NonAdaptiveTrialGenerator):
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a tuple (score: float, passed: bool)"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == "Not at all":
+                score +=1
+        passed = score == 0
+        return (score, passed)
+
+
 ##########################################################################################
 #### Experiment
 ##########################################################################################
@@ -76,7 +89,7 @@ class AnimalTrial(NonAdaptiveTrial):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        NonAdaptiveTrialGenerator(
+        AnimalTrialGenerator(
             AnimalTrial, 
             phase="experiment",
             stimulus_set=stimulus_set, 
@@ -86,7 +99,9 @@ class Exp(dlgr_utils.experiment.Experiment):
             allow_repeated_stimuli=True,
             max_unique_stimuli_per_block=None,
             active_balancing_within_participants=True,
-            active_balancing_across_participants=True
+            active_balancing_across_participants=True,
+            check_performance_at_end=True,
+            check_performance_every_trial=False
         ),
         InfoPage("You finished the animal questions!", time_allotted=0),
         SuccessfulEndPage()

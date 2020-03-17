@@ -81,7 +81,9 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         allow_repeated_stimuli=False,
         max_unique_stimuli_per_block: Optional[int]=None,
         active_balancing_within_participants=True,
-        active_balancing_across_participants=True
+        active_balancing_across_participants=True,
+        check_performance_at_end=False,
+        check_performance_every_trial=False
     ):
         self.stimulus_set = stimulus_set
         self.new_participant_group = new_participant_group
@@ -92,7 +94,14 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.active_balancing_across_participants = active_balancing_across_participants
 
         expected_num_trials = self.estimate_num_trials()
-        super().__init__(trial_class, phase, time_allotted_per_trial, expected_num_trials)
+        super().__init__(
+            trial_class, 
+            phase,
+            time_allotted_per_trial, 
+            expected_num_trials=expected_num_trials,
+            check_performance_at_end=check_performance_at_end,
+            check_performance_every_trial=check_performance_every_trial
+        )
 
     def init_participant(self, experiment, participant):
         self.init_block_order(experiment, participant)

@@ -567,8 +567,8 @@ def is_list_of_elts(x: list):
 
 def join(*args):
     for i, arg in enumerate(args):
-        if not (isinstance(arg, (Elt, Module)) or is_list_of_elts(arg)):
-            raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module.")        
+        if not ((arg is None) or (isinstance(arg, (Elt, Module)) or is_list_of_elts(arg))):
+            raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module ({arg}).")        
 
     if len(args) == 0:
         return []
@@ -580,7 +580,11 @@ def join(*args):
                 x = x.resolve()
             if isinstance(y, Module):
                 y = y.resolve()
-            if isinstance(x, Elt) and isinstance(y, Elt):
+            if x is None:
+                return y
+            elif y is None:
+                return x
+            elif isinstance(x, Elt) and isinstance(y, Elt):
                 return [x, y]
             elif isinstance(x, Elt) and isinstance(y, list):
                 return [x] + y

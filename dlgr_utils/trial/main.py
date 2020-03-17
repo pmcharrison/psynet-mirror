@@ -5,6 +5,8 @@ from ..field import claim_field
 from ..timeline import (
     ReactivePage,
     CodeBlock,
+    InfoPage,
+    UnsuccessfulEndPage,
     ExperimentSetupRoutine,
     Module,
     conditional,
@@ -57,18 +59,30 @@ class TrialGenerator(Module):
     # It typically won't be necessary to override finalise_trial,
     # but the option is there if you want it.
 
-    def __init__(self, trial_class, phase, time_allotted_per_trial, expected_num_trials):
+    def __init__(
+        self,
+        trial_class, 
+        phase, 
+        time_allotted_per_trial, 
+        expected_num_trials,
+        check_performance_at_end=False,
+        check_performance_every_trial=False
+        # latest performance check is saved in as a participant variable (value, success)
+    ):
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
         self.phase = phase
         self.time_allotted_per_trial = time_allotted_per_trial
         self.expected_num_trials = expected_num_trials
+        self.check_performance_at_end = check_performance_at_end
+        self.check_performance_every_trial = check_performance_every_trial
 
         elts = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
             CodeBlock(self.init_participant),
             self._trial_loop(),
-            CodeBlock(self.on_complete)
+            CodeBlock(self.on_complete),
+            self._check_performance_logic() if check_performance_at_end else None
         )
         super().__init__(label=self.with_namespace(), elts=elts)
 
@@ -90,11 +104,54 @@ class TrialGenerator(Module):
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
 
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a tuple (score: float, passed: bool)"""
+        raise NotImplementedError
+
     def with_namespace(self, x=None, shared_between_phases=False):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
         if x is None:
             return prefix
         return f"{prefix}__{x}"
+
+    def check_fail_logic(self):
+        """Should return a test element or a sequence of test elements. Can be overridden."""
+        return join(
+            InfoPage(
+                "Unfortunately you did not meet the performance criteria to continue in the experiment. "
+                "You will still be paid for the time you spent already. "
+                "Thank you for taking part!",
+                time_allotted=0
+            ),
+            UnsuccessfulEndPage()
+        )
+
+    def _check_performance_logic(self):
+        def eval_checks(experiment, participant):
+            participant_trials = self.get_participant_trials(participant)
+            (score, passed) = self.performance_check(
+                experiment=experiment, 
+                participant=participant, 
+                participant_trials=participant_trials
+            )
+            assert isinstance(score, (float, int))
+            assert isinstance(passed, bool)
+            participant.set_var(self.with_namespace("performance_check"), {
+                "score": score,
+                "passed": passed
+            })
+            return not passed
+
+        return conditional(
+            "performance_check",
+            condition=eval_checks,
+            logic_if_true=self.check_fail_logic(),
+            fix_time_credit=False,
+            log_chosen_branch=False
+        )
+
+    def get_participant_trials(self, participant):
+        return self.trial_class.query.filter_by(participant_id=participant.id).all()
 
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
@@ -152,6 +209,7 @@ class TrialGenerator(Module):
                     ReactivePage(self._show_trial, time_allotted=self.time_allotted_per_trial),
                     self._construct_feedback_logic(),
                     CodeBlock(self._finalise_trial),
+                    self._check_performance_logic() if self.check_performance_every_trial else None,
                     CodeBlock(self._prepare_trial)
                 ),
                 expected_repetitions=self.expected_num_trials,
