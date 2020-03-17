@@ -1,19 +1,12 @@
 import random
-import json
-from statistics import mean
-from typing import Optional
-from collections import Counter
-
-from sqlalchemy import String
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql.expression import cast, not_
+from sqlalchemy.sql.expression import not_
 
 import dallinger.models
 import dallinger.nodes
 import dallinger.networks
 
 from ..field import claim_field
-from .main import Trial, NetworkTrialGenerator
+from .main import Trial, TrialNetwork, NetworkTrialGenerator
 
 # pylint: disable=unused-import
 import rpdb
@@ -159,10 +152,11 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         super().finalise_trial(answer, trial, experiment, participant)
         self.add_to_participated_networks(participant, trial.network_id)
 
-class ChainNetwork(dallinger.networks.Network):
+class ChainNetwork(TrialNetwork):
+    # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
-    head_node_id = claim_field(1, int)
+    head_node_id = claim_field(2, int)
 
     def get_head(self, node_class):
         if self.head_node_id is None:
@@ -172,7 +166,8 @@ class ChainNetwork(dallinger.networks.Network):
     def set_head(self, head):
         self.head_node_id = head.id
 
-    def add_node(self, node, node_class):
+    def add_node(self, node):
+        node_class = node.__class__
         head = self.get_head(node_class)
         if head is not None:
             head.connect(whom=node)
@@ -180,8 +175,23 @@ class ChainNetwork(dallinger.networks.Network):
         if self.num_nodes >= self.max_size:
             self.full = True
 
+class WithinChainNetwork(ChainNetwork):
+    # pylint: disable=abstract-method
+    __mapper_args__ = {"polymorphic_identity": "within_chain_network"}
+
+    participant_id = claim_field(3, int)
+    
+    def __init__(self, trial_type, phase, experiment, participant_id):
+        super().__init__(trial_type, phase, experiment)
+        self.participant_id = participant_id
+
+class AcrossChainNetwork(ChainNetwork):
+    # pylint: disable=abstract-method
+    __mapper_args__ = {"polymorphic_identity": "across_chain_network"}
 
 class ChainNode(dallinger.models.Node):
+    __mapper_args__ = {"polymorphic_identity": "chain_node"}
+
     def query_successful_trials(self, trial_class):
         return trial_class.query.filter_by(
             origin_id=self.id, failed=False, complete=True
@@ -194,6 +204,7 @@ class ChainNode(dallinger.models.Node):
         return self.query_successful_trials(trial_class).count()
 
 class ChainTrial(Trial):
+    # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_trial"}
 
     @property 

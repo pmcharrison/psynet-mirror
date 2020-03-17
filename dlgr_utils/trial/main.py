@@ -115,6 +115,7 @@ class TrialGenerator(Module):
         raise NotImplementedError
 
     def init_participant(self, experiment, participant):
+        # pylint: disable=unused-argument
         self.init_num_completed_trials_in_phase(participant)
 
     def on_complete(self, experiment, participant):
@@ -128,8 +129,9 @@ class TrialGenerator(Module):
         self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
+        # pylint: disable=unused-argument
         """Should return a tuple (score: float, passed: bool)"""
-        raise NotImplementedError
+        return (0, True)
 
     def with_namespace(self, x=None, shared_between_phases=False):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
@@ -346,6 +348,9 @@ class TrialNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
 
     trial_type = claim_field(1, str)
+
+    def add_node(self, node):
+        raise NotImplementedError
 
     # Phase ####
     

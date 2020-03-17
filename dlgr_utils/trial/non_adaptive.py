@@ -1,12 +1,9 @@
 import random
-import json
 from statistics import mean
 from typing import Optional
 from collections import Counter
 
-from sqlalchemy import String
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql.expression import cast, not_
+from sqlalchemy.sql.expression import not_
 
 import dallinger.models
 import dallinger.nodes
@@ -19,6 +16,9 @@ import rpdb
 
 class NonAdaptiveTrial(Trial):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
+
+    def show_trial(self, experiment, participant):
+        raise NotImplementedError
 
     @property
     def stimulus_version(self):
