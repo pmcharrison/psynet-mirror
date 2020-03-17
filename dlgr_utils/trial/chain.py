@@ -140,7 +140,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         if head.num_successful_trials(self.trial_class) >= self.trials_per_node:
             node = self.create_node(head.get_successful_trials(self.trial_class), network, participant, experiment)
             experiment.session.add(node)
-            network.add_node(node)
+            network.add_node(node, self.node_class)
 
     def create_node(self, trials, network, participant, experiment):
         raise NotImplementedError
@@ -158,17 +158,16 @@ class ChainNetwork(TrialNetwork):
 
     head_node_id = claim_field(2, int)
 
-    def get_head(self, node_class):
+    def get_head(self):
         if self.head_node_id is None:
             return None
-        return node_class.query.filter_by(id=self.head_node_id)
+        return ChainNode.query.filter_by(id=self.head_node_id)
 
     def set_head(self, head):
         self.head_node_id = head.id
 
     def add_node(self, node):
-        node_class = node.__class__
-        head = self.get_head(node_class)
+        head = self.get_head()
         if head is not None:
             head.connect(whom=node)
         self.set_head(node)
@@ -181,13 +180,34 @@ class WithinChainNetwork(ChainNetwork):
 
     participant_id = claim_field(3, int)
     
-    def __init__(self, trial_type, phase, experiment, participant_id):
+    def __init__(self, trial_type, phase, experiment, participant):
         super().__init__(trial_type, phase, experiment)
-        self.participant_id = participant_id
+        self.participant_id = participant.id
+        self.add_source(experiment, participant)
+
+    def add_source(self, experiment, participant):
+        source = self.new_source(experiment, participant)
+        experiment.session.add(source)
+        self.add_node(source)
+
+    def new_source(self, experiment, participant):
+        raise NotImplementedError
 
 class AcrossChainNetwork(ChainNetwork):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "across_chain_network"}
+
+    def __init__(self, trial_type, phase, experiment):
+        super().__init__(trial_type, phase, experiment)
+        self.add_source(experiment)
+
+    def add_source(self, experiment):
+        source = self.new_source(experiment)
+        experiment.session.add(source)
+        self.add_node(source)
+
+    def new_source(self, experiment):
+        raise NotImplementedError
 
 class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
