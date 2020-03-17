@@ -12,22 +12,13 @@ import dallinger.models
 import dallinger.nodes
 
 from ..field import claim_field
-from .main import Trial, NetworkTrialGenerator
+from .main import Trial, TrialNetwork, NetworkTrialGenerator
 
 # pylint: disable=unused-import
 import rpdb
 
 class NonAdaptiveTrial(Trial):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
-
-    # Refactor this bit with claim_field equivalent.
-    @property
-    def definition(self):
-        return json.loads(self.contents)
-
-    @definition.setter
-    def definition(self, definition):
-        self.contents = json.dumps(definition)
 
     @property
     def stimulus_version(self):
@@ -54,20 +45,12 @@ class NonAdaptiveTrial(Trial):
         return self.stimulus.block
 
     def __init__(self, experiment, node, participant):
-        super().__init__(experiment, node, participant)
-        self.participant_id = participant.id
-        self.definition = {
+        definition = {
             **self.stimulus.definition, 
             **self.stimulus_version.definition
         }
+        super().__init__(experiment, node, participant, definition)
 
-    def show_trial(self, experiment, participant):
-        """Should return a Page object that returns an answer that can be stored in Trial.answer."""
-        raise NotImplementedError
-
-    def show_feedback(self, experiment, participant):
-        """Should return a Page object displaying feedback (or None, which means no feedback)"""
-        return None
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(
@@ -96,8 +79,9 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         expected_num_trials = self.estimate_num_trials()
         super().__init__(
             trial_class, 
-            phase,
-            time_allotted_per_trial, 
+            network_class=NonAdaptiveNetwork,
+            phase=phase,
+            time_allotted_per_trial=time_allotted_per_trial, 
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial
@@ -107,7 +91,6 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         self.init_block_order(experiment, participant)
         self.init_participant_group(experiment, participant)
         self.init_completed_stimuli_in_phase(participant)
-        self.init_num_completed_trials_in_phase(participant)
 
     def estimate_num_trials_in_block(self, num_stimuli_in_block):
         if self.allow_repeated_stimuli:
@@ -133,7 +116,6 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def finalise_trial(self, answer, trial, experiment, participant):
         super().finalise_trial(answer, trial, experiment, participant)
         self.increment_completed_stimuli_in_phase_and_block(participant, trial.block, trial.stimulus_id)
-        self.increment_num_completed_trials_in_phase(participant)
         trial.stimulus.num_completed_trials += 1
 
     def init_block_order(self, experiment, participant):
@@ -150,25 +132,6 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             )
         elif not self.has_participant_group(participant):
             raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
-
-    @property 
-    def num_completed_trials_in_phase_var_id(self):
-        return self.with_namespace("num_completed_trials_in_phase")
-
-    def set_num_completed_trials_in_phase(self, participant, value):
-        participant.set_var(self.num_completed_trials_in_phase_var_id, value)
-
-    def get_num_completed_trials_in_phase(self, participant):
-        return participant.get_var(self.num_completed_trials_in_phase_var_id)
-
-    def init_num_completed_trials_in_phase(self, participant):
-        self.set_num_completed_trials_in_phase(participant, 0)
-
-    def increment_num_completed_trials_in_phase(self, participant):
-        self.set_num_completed_trials_in_phase(
-            participant,
-            self.get_num_completed_trials_in_phase(participant) + 1
-        )
 
     @property
     def block_order_var_id(self):
@@ -251,13 +214,6 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         """
         participant_groups = self.stimulus_set.participant_groups
         return random.choice(participant_groups)
-
-    def count_networks(self):
-        return (
-            NonAdaptiveNetwork.query
-                              .filter_by(trial_type=self.trial_type)
-                              .count()
-        )
 
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
@@ -362,7 +318,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         assert len(candidates) > 0
         return random.choice(candidates)
 
-class NonAdaptiveNetwork(dallinger.models.Network):
+class NonAdaptiveNetwork(TrialNetwork):
     """
     Networks correspond to blocks. Different trial types and phases correspond to different blocks too.
     """
@@ -370,34 +326,15 @@ class NonAdaptiveNetwork(dallinger.models.Network):
     
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
     
-    trial_type = claim_field(1, str)
     participant_group = claim_field(2, str)
     block = claim_field(3, str)
-    
-    @hybrid_property 
-    def phase(self):
-        return self.role
-
-    @phase.setter
-    def phase(self, value):
-        self.role = value
-
-    @phase.expression
-    def phase(self):
-        return cast(self.role, String)
 
     def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment):
-        self.trial_type = trial_type
-        self.phase = phase
         self.participant_group = participant_group
         self.block = block
-
-        if not self.is_populated:
+        super().__init__(trial_type, phase, experiment)
+        if self.count_nodes() == 0:
             self.populate(stimulus_set, experiment)
-
-    @property
-    def is_populated(self):
-        return dallinger.models.Node.query.filter_by(network_id=self.id).count() > 0
 
     def populate(self, stimulus_set, experiment):
         source = dallinger.nodes.Source(network=self)

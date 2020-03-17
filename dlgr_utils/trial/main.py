@@ -1,4 +1,7 @@
-from dallinger.models import Info
+import json
+
+import dallinger.models
+from dallinger.models import Info, Network
 
 from ..field import claim_field
 
@@ -14,6 +17,10 @@ from ..timeline import (
     join
 )
 
+from sqlalchemy import String
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.sql.expression import cast
+
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
@@ -25,12 +32,25 @@ class Trial(Info):
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
 
+    # Properties ###
     participant_id = claim_field(1, int)
     answer = claim_field(2)
 
-    def __init__(self, experiment, node, participant):
+    # Refactor this bit with claim_field equivalent.
+    @property
+    def definition(self):
+        return json.loads(self.contents)
+
+    @definition.setter
+    def definition(self, definition):
+        self.contents = json.dumps(definition)
+
+    #################
+
+    def __init__(self, experiment, node, participant, definition):
         super().__init__(origin=node)
         self.participant_id = participant.id
+        self.definition = definition
 
     def show_trial(self, experiment, participant):
         """Should return a Page object that returns an answer that can be stored in Trial.answer."""
@@ -62,6 +82,7 @@ class TrialGenerator(Module):
     def __init__(
         self,
         trial_class, 
+        network_class,
         phase, 
         time_allotted_per_trial, 
         expected_num_trials,
@@ -71,6 +92,7 @@ class TrialGenerator(Module):
     ):
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
+        self.network_class = network_class
         self.phase = phase
         self.time_allotted_per_trial = time_allotted_per_trial
         self.expected_num_trials = expected_num_trials
@@ -94,7 +116,7 @@ class TrialGenerator(Module):
         raise NotImplementedError
 
     def init_participant(self, experiment, participant):
-        raise NotImplementedError
+        self.init_num_completed_trials_in_phase(participant)
 
     def on_complete(self, experiment, participant):
         raise NotImplementedError
@@ -103,6 +125,7 @@ class TrialGenerator(Module):
         # pylint: disable=unused-argument,no-self-use
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
+        self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
@@ -217,6 +240,35 @@ class TrialGenerator(Module):
             ),
         )
 
+    def count_networks(self):
+        return (
+            self.network_class.query
+                              .filter_by(
+                                  trial_type=self.trial_type,
+                                  phase=self.phase
+                                )   
+                              .count()
+        )
+
+    @property 
+    def num_completed_trials_in_phase_var_id(self):
+        return self.with_namespace("num_completed_trials_in_phase")
+
+    def set_num_completed_trials_in_phase(self, participant, value):
+        participant.set_var(self.num_completed_trials_in_phase_var_id, value)
+
+    def get_num_completed_trials_in_phase(self, participant):
+        return participant.get_var(self.num_completed_trials_in_phase_var_id)
+
+    def init_num_completed_trials_in_phase(self, participant):
+        self.set_num_completed_trials_in_phase(participant, 0)
+
+    def increment_num_completed_trials_in_phase(self, participant):
+        self.set_num_completed_trials_in_phase(
+            participant,
+            self.get_num_completed_trials_in_phase(participant) + 1
+        )
+
 class NetworkTrialGenerator(TrialGenerator):
     """Trial generator for network-based experiments.
     The user should override find_network, grow_network, and find_node.
@@ -268,3 +320,33 @@ class NetworkTrialGenerator(TrialGenerator):
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(experiment=experiment, node=node, participant=participant)
         return trial
+
+class TrialNetwork(Network):
+    __mapper_args__ = {"polymorphic_identity": "trial_network"}
+
+    trial_type = claim_field(1, str)
+
+    # Phase ####
+    
+    @hybrid_property 
+    def phase(self):
+        return self.role
+
+    @phase.setter
+    def phase(self, value):
+        self.role = value
+
+    @phase.expression
+    def phase(self):
+        return cast(self.role, String)
+    
+    ####
+
+    def __init__(self, trial_type, phase, experiment):
+        # pylint: disable=unused-argument
+        self.trial_type = trial_type
+        self.phase = phase
+        
+    def count_nodes(self):
+        return dallinger.models.Node.query.filter_by(network_id=self.id).count()
+
