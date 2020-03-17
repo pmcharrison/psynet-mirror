@@ -34,7 +34,8 @@ class Trial(Info):
 
     # Properties ###
     participant_id = claim_field(1, int)
-    answer = claim_field(2)
+    complete = claim_field(2, bool)
+    answer = claim_field(3)
 
     # Refactor this bit with claim_field equivalent.
     @property
@@ -82,17 +83,15 @@ class TrialGenerator(Module):
     def __init__(
         self,
         trial_class, 
-        network_class,
         phase, 
         time_allotted_per_trial, 
         expected_num_trials,
-        check_performance_at_end=False,
-        check_performance_every_trial=False
+        check_performance_at_end,
+        check_performance_every_trial
         # latest performance check is saved in as a participant variable (value, success)
     ):
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
-        self.network_class = network_class
         self.phase = phase
         self.time_allotted_per_trial = time_allotted_per_trial
         self.expected_num_trials = expected_num_trials
@@ -125,6 +124,7 @@ class TrialGenerator(Module):
         # pylint: disable=unused-argument,no-self-use
         """This can be optionally customised, for example to add some more postprocessing."""
         trial.answer = answer
+        trial.complete = True
         self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
@@ -240,16 +240,6 @@ class TrialGenerator(Module):
             ),
         )
 
-    def count_networks(self):
-        return (
-            self.network_class.query
-                              .filter_by(
-                                  trial_type=self.trial_type,
-                                  phase=self.phase
-                                )   
-                              .count()
-        )
-
     @property 
     def num_completed_trials_in_phase_var_id(self):
         return self.with_namespace("num_completed_trials_in_phase")
@@ -275,6 +265,27 @@ class NetworkTrialGenerator(TrialGenerator):
     They can also override create_trial if they want.
     Do not override prepare_trial.
     """
+
+    def __init__(
+        self,
+        trial_class, 
+        network_class,
+        phase, 
+        time_allotted_per_trial, 
+        expected_num_trials,
+        check_performance_at_end=False,
+        check_performance_every_trial=False
+        # latest performance check is saved in as a participant variable (value, success)
+    ):
+        super().__init__(
+            trial_class=trial_class, 
+            phase=phase, 
+            time_allotted_per_trial=time_allotted_per_trial, 
+            expected_num_trials=expected_num_trials,
+            check_performance_at_end=check_performance_at_end,
+            check_performance_every_trial=check_performance_every_trial
+        )
+        self.network_class = network_class
 
     #### The following methods are overwritten from TrialGenerator.
     #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
@@ -321,6 +332,16 @@ class NetworkTrialGenerator(TrialGenerator):
         trial = self.trial_class(experiment=experiment, node=node, participant=participant)
         return trial
 
+    def count_networks(self):
+        return (
+            self.network_class.query
+                              .filter_by(
+                                  trial_type=self.trial_type,
+                                  phase=self.phase
+                                )   
+                              .count()
+        )
+
 class TrialNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
 
@@ -347,6 +368,7 @@ class TrialNetwork(Network):
         self.trial_type = trial_type
         self.phase = phase
         
-    def count_nodes(self):
+    @property
+    def num_nodes(self):
         return dallinger.models.Node.query.filter_by(network_id=self.id).count()
 

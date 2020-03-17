@@ -18,15 +18,11 @@ from .main import Trial, NetworkTrialGenerator
 # pylint: disable=unused-import
 import rpdb
 
-class ChainTrial(Trial):
-    __mapper_args__ = {"polymorphic_identity": "chain_trial"}
-
-    phase = claim_field(3, str)
-
 
 class ChainTrialGenerator(NetworkTrialGenerator):
     def __init__(
         self,  
+        node_class,
         trial_class, 
         phase,
         time_allotted_per_trial,
@@ -34,13 +30,14 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         num_trials_per_participant,
         num_chains_per_participant,
         num_chains_per_experiment,
-        responses_per_node,
+        trials_per_node,
         active_balancing_across_chains,
         check_performance_at_end,
         check_performance_every_trial
     ):
         assert chain_type in ["within", "across"]
 
+        self.node_class = node_class
         self.trial_class = trial_class
         self.phase = phase
         self.time_allotted_per_trial = time_allotted_per_trial
@@ -48,7 +45,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.num_trials_per_participant = num_trials_per_participant
         self.num_chains_per_participant = num_chains_per_participant
         self.num_chains_per_experiment = num_chains_per_experiment
-        self.responses_per_node = responses_per_node
+        self.trials_per_node = trials_per_node
         self.active_balancing_across_chains = active_balancing_across_chains
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
@@ -70,7 +67,9 @@ class ChainTrialGenerator(NetworkTrialGenerator):
     
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
-        self.init_participated_networks(participant) # how many times can a participant visit the same network? 1 or Inf, lets say
+        self.init_participated_networks(participant)
+        if self.chain_type == "within":
+            self.create_networks_within(experiment, participant)
     
     #### Participated networks
     def init_participated_networks(self, participant):
@@ -85,18 +84,27 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         participant.set_var(self.with_namespace("participated_networks"), networks)
 
     def experiment_setup_routine(self, experiment):
-        if self.count_networks() == 0:
-            self.create_networks(experiment)
-
-    def create_networks(self, experiment):
-        if self.chain_type == "across":
+        if self.count_networks() == 0 and self.chain_type == "across":
             self.create_networks_across(experiment)
+
+    def create_networks_within(self, experiment, participant):
+        for _ in range(self.num_chains_per_participant):
+            self.create_network_within(experiment, participant)
 
     def create_networks_across(self, experiment):
         for _ in range(self.num_chains_per_experiment):
-            self.create_network(experiment)
+            self.create_network_across(experiment)
 
-    def create_network(self, experiment):
+    def create_network_within(self, experiment, participant):
+        network = self.network_class(
+            trial_type=self.trial_type,
+            phase=self.phase,
+            experiment=experiment,
+            participant=participant
+        )
+        experiment.session.add(network)
+
+    def create_network_across(self, experiment):
         network = self.network_class(
             trial_type=self.trial_type,
             phase=self.phase,
@@ -119,7 +127,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             networks = self.exclude_participated(networks, participant)
 
         if self.active_balancing_across_chains:    
-            networks.sort(key=lambda network: network.count_nodes())
+            networks.sort(key=lambda network: network.num_nodes)
         else:
             random.shuffle(networks)
 
@@ -134,68 +142,60 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             not_(self.network_class.id.in_(self.get_participated_networks(participant)))
         )
     
-    def finalise_trial(self, answer, trial, experiment, participant):
-        # super().finalise_trial(answer, trial, experiment, participant)
-        # self.increment_completed_stimuli_in_phase_and_block(participant, trial.block, trial.stimulus_id)
-        # self.increment_num_completed_trials_in_phase(participant)
-        # trial.stimulus.num_completed_trials += 1
-        pass
+    def grow_network(self, network, participant, experiment):
+        head = network.head
+        if head.num_successful_trials(self.trial_class) >= self.trials_per_node:
+            node = self.create_node(head.get_successful_trials(self.trial_class), network, participant, experiment)
+            experiment.session.add(node)
+            network.add_node(node)
 
-class ChainNetwork(dallinger.networks.Chain):
+    def create_node(self, trials, network, participant, experiment):
+        raise NotImplementedError
+
+    def find_node(self, network, participant, experiment): 
+        return network.head
+
+    def finalise_trial(self, answer, trial, experiment, participant):
+        super().finalise_trial(answer, trial, experiment, participant)
+        self.add_to_participated_networks(participant, trial.network_id)
+
+class ChainNetwork(dallinger.networks.Network):
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
-# class AcrossChainTrialGenerator(ChainTrialGenerator):
-#     def __init__(
-#         self,  
-#         trial_class, 
-#         network_class,
-#         phase,
-#         time_allotted_per_trial,
-#         num_trials_per_participant,
-#         num_chains_per_experiment,
-#         responses_per_node=1,
-#         active_balancing_across_chains=False,
-#         check_performance_at_end=False,
-#         check_performance_every_trial=False
-#     ):
-#         super().__init__(
-#             trial_class, 
-#             network_class=AcrossChainNetwork,
-#             phase=phase,
-#             time_allotted_per_trial=time_allotted_per_trial, 
-#             expected_num_trials=num_trials_per_participant,
-#             check_performance_at_end=check_performance_at_end,
-#             check_performance_every_trial=check_performance_every_trial
-#         )
-#         self.num_chains_per_experiment = num_chains_per_experiment
+    head_node_id = claim_field(1, int)
 
-#     def self.create_networks(self, experiment):
-#         raise NotImplementedError
+    def get_head(self, node_class):
+        if self.head_node_id is None:
+            return None
+        return node_class.query.filter_by(id=self.head_node_id)
 
-# class WithinChainTrialGenerator(ChainTrialGenerator):
-#     def __init__(
-#         self,  
-#         trial_class, 
-#         network_class,
-#         phase,
-#         time_allotted_per_trial,
-#         num_trials_per_participant,
-#         num_chains_per_participant,
-#         responses_per_node=1,
-#         active_balancing_across_chains=False,
-#         check_performance_at_end=False,
-#         check_performance_every_trial=False
-#     ):
-#         super().__init__(
-#             trial_class, 
-#             network_class=WithinChainNetwork,
-#             phase=phase,
-#             time_allotted_per_trial=time_allotted_per_trial, 
-#             expected_num_trials=num_trials_per_participant,
-#             check_performance_at_end=check_performance_at_end,
-#             check_performance_every_trial=check_performance_every_trial
-#         )
-#         self.num_chains_per_participant = num_chains_per_experiment
+    def set_head(self, head):
+        self.head_node_id = head.id
 
-#     def self.create_networks(self, experiment):
-#         raise NotImplementedError
+    def add_node(self, node, node_class):
+        head = self.get_head(node_class)
+        if head is not None:
+            head.connect(whom=node)
+        self.set_head(node)
+        if self.num_nodes >= self.max_size:
+            self.full = True
+
+
+class ChainNode(dallinger.models.Node):
+    def query_successful_trials(self, trial_class):
+        return trial_class.query.filter_by(
+            origin_id=self.id, failed=False, complete=True
+        )
+
+    def get_successful_trials(self, trial_class):
+        return self.query_successful_trials(trial_class).all()
+
+    def num_successful_trials(self, trial_class):
+        return self.query_successful_trials(trial_class).count()
+
+class ChainTrial(Trial):
+    __mapper_args__ = {"polymorphic_identity": "chain_trial"}
+
+    @property 
+    def phase(self):
+        return self.origin.phase

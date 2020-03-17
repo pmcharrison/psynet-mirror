@@ -251,7 +251,12 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         return (
             self.trial_class
                 .query
-                .filter_by(network_id=network.id, participant_id=participant.id)
+                .filter_by(
+                    network_id=network.id, 
+                    participant_id=participant.id,
+                    failed=False,
+                    complete=True
+                )
                 .count()
         )
         
@@ -333,7 +338,7 @@ class NonAdaptiveNetwork(TrialNetwork):
         self.participant_group = participant_group
         self.block = block
         super().__init__(trial_type, phase, experiment)
-        if self.count_nodes() == 0:
+        if self.num_nodes == 0:
             self.populate(stimulus_set, experiment)
 
     def populate(self, stimulus_set, experiment):
