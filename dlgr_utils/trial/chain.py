@@ -53,9 +53,14 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
 
+        if chain_type == "within":
+            network_class = WithinChainNetwork 
+        elif chain_type == "across":
+            network_class = AcrossChainNetwork
+
         super().__init__(
             trial_class, 
-            network_class=ChainNetwork,
+            network_class=network_class,
             phase=phase,
             time_allotted_per_trial=time_allotted_per_trial, 
             expected_num_trials=num_trials_per_participant,
@@ -85,8 +90,11 @@ class ChainTrialGenerator(NetworkTrialGenerator):
 
     def create_networks(self, experiment):
         if self.chain_type == "across":
-            for _ in range(self.num_chains_per_experiment):
-                self.create_network(experiment)
+            self.create_networks_across(experiment)
+
+    def create_networks_across(self, experiment):
+        for _ in range(self.num_chains_per_experiment):
+            self.create_network(experiment)
 
     def create_network(self, experiment):
         network = self.network_class(
@@ -98,6 +106,33 @@ class ChainTrialGenerator(NetworkTrialGenerator):
     
     def on_complete(self, experiment, participant):
         pass
+
+    def find_networks(self, participant, experiment):
+        networks = self.network_class.query.filter_by(
+            trial_type=self.trial_type,
+            phase=self.phase,
+            full=False
+        )
+        if self.chain_type == "within":
+            networks = self.filter_by_participant_id(networks, participant)
+        elif self.chain_type == "across":
+            networks = self.exclude_participated(networks, participant)
+
+        if self.active_balancing_across_chains:    
+            networks.sort(key=lambda network: network.count_nodes())
+        else:
+            random.shuffle(networks)
+
+        return networks
+
+    @staticmethod
+    def filter_by_participant_id(networks, participant):
+        return networks.filter_by(participant_id=participant.id)
+
+    def exclude_participated(self, networks, participant):
+        return networks.filter(
+            not_(self.network_class.id.in_(self.get_participated_networks(participant)))
+        )
     
     def finalise_trial(self, answer, trial, experiment, participant):
         # super().finalise_trial(answer, trial, experiment, participant)
