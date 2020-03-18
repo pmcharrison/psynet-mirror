@@ -24,6 +24,7 @@ from dlgr_utils.timeline import (
     SuccessfulEndPage, 
     ReactivePage, 
     NAFCPage, 
+    TextInputPage,
     CodeBlock, 
     while_loop, 
     conditional, 
@@ -54,6 +55,12 @@ class Exp(dlgr_utils.experiment.Experiment):
         InfoPage(
             "Welcome to the experiment!",
             time_allotted=5
+        ),
+        TextInputPage(
+            "message",
+            "Write me a message!",
+            time_allotted=5,
+            one_line=False
         ),
         reactive_seq(
             "test",

@@ -422,6 +422,57 @@ class NAFCPage(Page):
     def validate(self, parsed_response, experiment, participant, **kwargs):
         pass
 
+class TextInputPage(Page):
+    def __init__(
+        self,
+        label: str,
+        prompt: Union[str, Markup],     
+        time_allotted=None,
+        one_line=True,
+        width=None, # e.g. "100px"
+        height=None
+    ):
+        self.prompt = prompt
+
+        if one_line and height is not None:
+            raise ValueError("If <one_line> is True, then <height> must be None.")
+
+        style = (
+            "" if width is None else f"width:{width}"
+            " "
+            "" if height is None else f"height:{height}"
+        )
+
+        super().__init__(
+            time_allotted=time_allotted,
+            template_str=get_template("text-input-page.html"),
+            label=label,
+            template_arg={
+                "prompt": prompt,
+                "one_line": one_line,
+                "style": style
+            }
+        )
+
+    def process_response(self, response, metadata, experiment, participant, **kwargs):
+        resp = Response(
+            participant=participant,
+            question_label=self.label, 
+            answer=response["answer"],
+            page_type=type(self).__name__,
+            time_taken=metadata["time_taken"],
+            details={
+                "prompt": self.prompt
+            }
+        )
+        participant.answer = resp.answer
+        experiment.session.add(resp)
+        experiment.save()
+        return resp
+
+    def validate(self, parsed_response, experiment, participant, **kwargs):
+        pass
+
 class Timeline():
     def __init__(self, *args):
         elts = join(*args)
