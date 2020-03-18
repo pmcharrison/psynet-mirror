@@ -15,6 +15,7 @@ import rpdb
 class ChainTrialGenerator(NetworkTrialGenerator):
     def __init__(
         self,  
+        network_class,
         node_class,
         trial_class, 
         phase,
@@ -42,11 +43,6 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.active_balancing_across_chains = active_balancing_across_chains
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
-
-        if chain_type == "within":
-            network_class = WithinChainNetwork 
-        elif chain_type == "across":
-            network_class = AcrossChainNetwork
 
         super().__init__(
             trial_class, 
@@ -82,13 +78,13 @@ class ChainTrialGenerator(NetworkTrialGenerator):
 
     def create_networks_within(self, experiment, participant):
         for _ in range(self.num_chains_per_participant):
-            self.create_network_within(experiment, participant)
+            self.create_network(experiment, participant)
 
     def create_networks_across(self, experiment):
         for _ in range(self.num_chains_per_experiment):
-            self.create_network_across(experiment)
+            self.create_network(experiment)
 
-    def create_network_within(self, experiment, participant):
+    def create_network(self, experiment, participant=None):
         network = self.network_class(
             trial_type=self.trial_type,
             phase=self.phase,
@@ -96,14 +92,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             participant=participant
         )
         experiment.session.add(network)
-
-    def create_network_across(self, experiment):
-        network = self.network_class(
-            trial_type=self.trial_type,
-            phase=self.phase,
-            experiment=experiment
-        )
-        experiment.session.add(network)
+        return network
     
     def on_complete(self, experiment, participant):
         pass
@@ -157,6 +146,12 @@ class ChainNetwork(TrialNetwork):
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
     head_node_id = claim_field(2, int)
+    participant_id = claim_field(3, int)
+
+    def __init__(self, trial_type, phase, experiment, participant):
+        super().__init__(trial_type, phase, experiment)
+        self.participant_id = participant.id
+        self.add_source(experiment, participant)
 
     def get_head(self):
         if self.head_node_id is None:
@@ -174,18 +169,7 @@ class ChainNetwork(TrialNetwork):
         if self.num_nodes >= self.max_size:
             self.full = True
 
-class WithinChainNetwork(ChainNetwork):
-    # pylint: disable=abstract-method
-    __mapper_args__ = {"polymorphic_identity": "within_chain_network"}
-
-    participant_id = claim_field(3, int)
-    
-    def __init__(self, trial_type, phase, experiment, participant):
-        super().__init__(trial_type, phase, experiment)
-        self.participant_id = participant.id
-        self.add_source(experiment, participant)
-
-    def add_source(self, experiment, participant):
+    def add_source(self, experiment, participant=None):
         source = self.new_source(experiment, participant)
         experiment.session.add(source)
         self.add_node(source)
@@ -193,24 +177,25 @@ class WithinChainNetwork(ChainNetwork):
     def new_source(self, experiment, participant):
         raise NotImplementedError
 
-class AcrossChainNetwork(ChainNetwork):
-    # pylint: disable=abstract-method
-    __mapper_args__ = {"polymorphic_identity": "across_chain_network"}
-
-    def __init__(self, trial_type, phase, experiment):
-        super().__init__(trial_type, phase, experiment)
-        self.add_source(experiment)
-
-    def add_source(self, experiment):
-        source = self.new_source(experiment)
-        experiment.session.add(source)
-        self.add_node(source)
-
-    def new_source(self, experiment):
-        raise NotImplementedError
 
 class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
+
+    @property
+    def definition(self):
+        return self.details
+
+    @definition.setter
+    def definition(self, definition):
+        self.details = definition
+    
+    @property 
+    def phase(self):
+        return self.network.phase
+
+    def __init__(self, definition, network):
+        super().__init__(network=network)
+        self.definition = definition
 
     def query_successful_trials(self, trial_class):
         return trial_class.query.filter_by(

@@ -5,3 +5,4 @@ dlgr_monitor.egg-info
 .vscode/settings.json
 server.log
 dlgr_utils.egg-info
+.DS_Store
