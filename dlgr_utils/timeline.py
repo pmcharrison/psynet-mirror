@@ -280,13 +280,14 @@ def reactive_seq(
                 "participant": participant
             }
         )
+        assert len(elts) == num_pages
         res = elts[pos]
         assert isinstance(res, Page)
         return res
 
     prepare_logic = CodeBlock(lambda participant: (
         participant
-            .set_var(with_namespace("complete"), True)
+            .set_var(with_namespace("complete"), False)
             .set_var(with_namespace("pos"), 0)
             .set_var(with_namespace("seq_length"), num_pages)
     ))
@@ -295,8 +296,8 @@ def reactive_seq(
         lambda participant: (
             participant
                 .set_var(
-                    "complete", 
-                    participant.get_var("pos") >= num_pages - 1
+                    with_namespace("complete"), 
+                    participant.get_var(with_namespace("pos")) >= num_pages - 1
                 )
                 .inc_var(with_namespace("pos"))
         )   

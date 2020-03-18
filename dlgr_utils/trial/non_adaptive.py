@@ -89,6 +89,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         )
 
     def init_participant(self, experiment, participant):
+        super().init_participant(experiment, participant)
         self.init_block_order(experiment, participant)
         self.init_participant_group(experiment, participant)
         self.init_completed_stimuli_in_phase(participant)

@@ -27,7 +27,8 @@ from dlgr_utils.timeline import (
     CodeBlock, 
     while_loop, 
     conditional, 
-    switch
+    switch,
+    reactive_seq
 )
 
 import logging
@@ -53,6 +54,15 @@ class Exp(dlgr_utils.experiment.Experiment):
         InfoPage(
             "Welcome to the experiment!",
             time_allotted=5
+        ),
+        reactive_seq(
+            "test",
+            lambda: [
+                InfoPage("Reactive 1"),
+                InfoPage("Reactive 2")
+            ],
+            num_pages=2,
+            time_allotted=2
         ),
         ReactivePage(            
             lambda experiment, participant: 
@@ -80,18 +90,18 @@ class Exp(dlgr_utils.experiment.Experiment):
             fix_time_credit=False
         ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
-        while_loop(
-            "example_loop",
-            lambda experiment, participant: participant.answer == "Yes",
-            NAFCPage(
-                label="loop_nafc",
-                prompt="Would you like to stay in this loop?",
-                choices=["Yes", "No"],
-                time_allotted=3
-            ), 
-            expected_repetitions=3,
-            fix_time_credit=True
-        ),
+        # while_loop(
+        #     "example_loop",
+        #     lambda experiment, participant: participant.answer == "Yes",
+        #     NAFCPage(
+        #         label="loop_nafc",
+        #         prompt="Would you like to stay in this loop?",
+        #         choices=["Yes", "No"],
+        #         time_allotted=3
+        #     ), 
+        #     expected_repetitions=3,
+        #     fix_time_credit=True
+        # ),
         NAFCPage(
             label="test_nafc",            
             prompt="What's your favourite colour?",

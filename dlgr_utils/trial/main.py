@@ -244,8 +244,8 @@ class TrialGenerator(Module):
                         num_pages=self.trial_class.num_pages, 
                         time_allotted=self.time_allotted_per_trial
                     ),
-                    self._construct_feedback_logic(),
                     CodeBlock(self._finalise_trial),
+                    self._construct_feedback_logic(),
                     self._check_performance_logic() if self.check_performance_every_trial else None,
                     CodeBlock(self._prepare_trial)
                 ),
@@ -319,12 +319,7 @@ class NetworkTrialGenerator(TrialGenerator):
     def experiment_setup_routine(self, experiment):
         """Networks should be created here."""
         raise NotImplementedError
-
-    def init_participant(self, experiment, participant):
-        raise NotImplementedError
-
-    def on_complete(self, experiment, participant):
-        raise NotImplementedError
+    
     ####
 
     def find_networks(self, participant, experiment):

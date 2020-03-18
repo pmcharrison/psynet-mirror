@@ -76,6 +76,9 @@ class AnimalTrial(NonAdaptiveTrial):
             page
         ]
 
+    def show_feedback(self, experiment, participant):
+        return InfoPage(f"You responded '{self.answer}'.")
+
 class AnimalTrialGenerator(NonAdaptiveTrialGenerator):
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
