@@ -1,5 +1,16 @@
 {% extends "layout.html" %}
 
+{% macro next_button() %}
+<hr>
+
+<div class="row">
+    <div class="col-xs-10"></div>
+    <div class="col-xs-2">
+        <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="next_page();">Next</button>
+    </div>
+</div>
+{% endmacro %}
+
 {% block body %}
     {% block header %}
         <div class="header">
@@ -44,6 +55,47 @@
                 "Unfortunately this behaviour is not currently supported."
             );
             throw console.error("Undefined participant ID.");
+        }
+    </script>
+
+    <script>
+        {{ init_js_vars }}
+        var page_load_time = new Date();
+
+        next_page = function(data=null) {
+            submit_generic_response(data).done(function(response) {
+                if (response.submission == "approved") {
+                    console.log("Response received successfully.");
+                    dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                } else if (response.submission == "rejected") {
+                    console.log("Response rejected.");
+                    alert(response.message);
+                } else {
+                    throw Error("Received a malformed response.");
+                }            
+            }).fail(function(resp) {
+                dallinger.error(resp);
+            }).error(function(resp) {
+                dallinger.error(resp);
+            });
+        spinner.freeze([$('form :input')]);
+        xhr.done(when_done)
+        }
+
+        submit_generic_response = function(data) {
+            var current_time = new Date();
+
+            var metadata = {
+                "time_taken": (current_time - page_load_time) / 1000
+            };
+            return dallinger.post("/response", {
+                "message": JSON.stringify({
+                    "participant_id": dallinger.identity.participantId,
+                    "page_uuid": page_uuid,
+                    "data": JSON.stringify(data),
+                    "metadata": JSON.stringify(metadata)
+                })
+            })
         }
     </script>
 {% endblock %}
