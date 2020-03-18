@@ -63,11 +63,16 @@ class AnimalTrial(NonAdaptiveTrial):
         animal = self.definition["animal"]
         block = self.block
 
-        return NAFCPage(
+        page = NAFCPage(
             "animal_trial", 
             Markup(f"<h3>Block {block}</h3> <p style='color: {text_color}'>How much do you like {animal}?</p>"),
             ["Not at all", "A little", "Very much"]
         )
+
+        return [
+            InfoPage("Get ready..."),
+            page
+        ]
 
 class AnimalTrialGenerator(NonAdaptiveTrialGenerator):
     def performance_check(self, experiment, participant, participant_trials):

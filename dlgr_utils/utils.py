@@ -1,4 +1,5 @@
 import json
+import inspect
 from functools import reduce
 from sqlalchemy.sql import func
 
@@ -36,3 +37,17 @@ def sql_sample_one(x):
 def dict_to_js_vars(x):
     y = [f"var {key} = JSON.parse('{json.dumps(value)}'); " for key, value in x.items()]
     return reduce(lambda a, b: a + b, y )
+
+def call_function(function, args: dict):
+    requested_args = get_function_args(function)
+    arg_values = [args[requested] for requested in requested_args]
+    return function(*arg_values)
+
+def get_function_args(f):
+    return [str(x) for x in inspect.signature(f).parameters]
+
+def check_function_args(f, args):
+    if not callable(f):
+        raise TypeError("<f> is not a function (but it should be).")
+    return [str(x) for x in inspect.signature(f).parameters] == list(args)
+    

@@ -7,14 +7,12 @@ from flask import Markup
 
 from typing import List, Optional, Dict, Union
 
-from .utils import dict_to_js_vars
+from .utils import dict_to_js_vars, call_function, check_function_args
 from . import templates
 
 from dallinger.models import Question
 
 from functools import reduce
-
-import inspect
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +58,11 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        self.function(experiment=experiment, participant=participant)
+        call_function(self.function, {
+            "self": self,
+            "experiment": experiment,
+            "participant": participant
+        })
 
 class FixTime(Elt):
     def __init__(self, time_allotted: float):
@@ -125,7 +127,13 @@ class ReactiveGoTo(GoTo):
             raise TypeError("<targets> must be a dictionary of Elt objects.")
 
     def get_target(self, experiment, participant):
-        val = self.function(experiment=experiment, participant=participant)
+        val = call_function(
+            self.function,
+            {
+                "experiment": experiment,
+                "participant": participant
+            }
+        )
         try:
             return self.targets[val]
         except KeyError:
@@ -133,12 +141,6 @@ class ReactiveGoTo(GoTo):
                 f"ReactiveGoTo returned {val}, which is not present among the target keys: " +
                 f"{list(self.targets)}."
         )
-
-def check_function_args(f, args):
-    if not callable(f):
-        raise TypeError("<f> is not a function (but it should be).")
-    else:
-        return [str(x) for x in inspect.signature(f).parameters] == list(args)
 
 class Page(Elt):
     returns_time_credit = True
@@ -220,12 +222,21 @@ class ReactivePage(Elt):
         self.function = function
         self.time_allotted = time_allotted
         self.expected_repetitions = 1
+        self.pos_in_reactive_seq = None
 
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
     def resolve(self, experiment, participant):
-        page = self.function(experiment=experiment, participant=participant)
+        page = call_function(
+            self.function,
+            {
+                "self": self,
+                "experiment": experiment,
+                "participant": participant
+            }
+        )
+        # page = self.function(experiment=experiment, participant=participant)
         if self.time_allotted != page.time_allotted and page.time_allotted is not None:
             logger.warning(
                 f"Observed a mismatch between a reactive page's time_allotted slot ({self.time_allotted}) " +
@@ -239,6 +250,57 @@ class ReactivePage(Elt):
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
+
+    def set_pos_in_reactive_seq(self, val):
+        assert isinstance(val, int)
+        self.pos_in_reactive_seq = val
+        return self
+
+
+def reactive_seq(
+    label,
+    function, 
+    num_elts: int,
+    times_allotted: list
+): 
+    """Function must return a list of pages when evaluated."""
+    assert num_elts == len(times_allotted)
+
+    def with_namespace(x=None):
+        prefix = f"__reactive_seq__{label}"
+        if x is None:
+            return prefix
+        return f"{prefix}__{x}"
+
+    def new_function(self, experiment, participant):
+        pos = participant.get_var(with_namespace("pos"))
+        elts = call_function(
+            function,
+            {
+                "experiment": experiment,
+                "participant": participant
+            }
+        )
+        res = elts[pos]
+        assert isinstance(res, Page)
+        return res
+
+    # return join(
+    #     CodeBlock(lambda participant: participant.set_var(with_namespace("complete"), True))
+    #     while_loop(
+    #         with_namespace(label), 
+    #         lambda participant: not participant.get_var(with_namespace("complete")), 
+    #         [
+    #             ReactivePage(new_function),
+    #         ]
+    # )
+
+
+
+    return [
+        ReactivePage(new_function, time_allotted).set_pos_in_reactive_seq(i)
+        for i, time_allotted in zip(range(num_elts), times_allotted)
+    ]
 
 class InfoPage(Page):
     def __init__(self, content, time_allotted=None, title=None, **kwargs):
