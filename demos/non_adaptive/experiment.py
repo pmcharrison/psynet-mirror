@@ -58,6 +58,8 @@ stimulus_set = StimulusSet([
 class AnimalTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "animal_trial"}
 
+    num_pages = 2
+
     def show_trial(self, experiment, participant):
         text_color = self.definition["text_color"]
         animal = self.definition["animal"]
@@ -114,6 +116,6 @@ class Exp(dlgr_utils.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 2
+        self.initial_recruitment_size = 1
 
 extra_routes = Exp().extra_routes()

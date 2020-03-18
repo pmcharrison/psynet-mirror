@@ -14,6 +14,7 @@ from ..timeline import (
     Module,
     conditional,
     while_loop,
+    reactive_seq,
     join
 )
 
@@ -37,6 +38,10 @@ class Trial(Info):
     complete = claim_field(2, bool)
     answer = claim_field(3)
 
+    @property
+    def num_pages(self):
+        raise NotImplementedError
+
     # Refactor this bit with claim_field equivalent.
     @property
     def definition(self):
@@ -48,13 +53,15 @@ class Trial(Info):
 
     #################
 
-    def __init__(self, experiment, node, participant, definition):
+    def __init__(self, experiment, node, participant):
         super().__init__(origin=node)
         self.participant_id = participant.id
-        self.definition = definition
 
     def show_trial(self, experiment, participant):
-        """Should return a Page object that returns an answer that can be stored in Trial.answer."""
+        """
+        Should return a Page object that returns an answer that can be stored in Trial.answer.
+        Alternatively 
+        """
         raise NotImplementedError
 
     def show_feedback(self, experiment, participant):
@@ -231,7 +238,12 @@ class TrialGenerator(Module):
                 self.with_namespace("trial_loop"), 
                 lambda experiment, participant: self._get_current_trial(participant) is not None,
                 logic=join(
-                    ReactivePage(self._show_trial, time_allotted=self.time_allotted_per_trial),
+                    reactive_seq(
+                        "show_trial", 
+                        self._show_trial, 
+                        num_pages=self.trial_class.num_pages, 
+                        time_allotted=self.time_allotted_per_trial
+                    ),
                     self._construct_feedback_logic(),
                     CodeBlock(self._finalise_trial),
                     self._check_performance_logic() if self.check_performance_every_trial else None,

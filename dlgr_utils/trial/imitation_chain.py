@@ -22,5 +22,3 @@ class ImitationChainTrialGenerator(ChainTrialGenerator):
 class ImitationChainNetwork(ChainNetwork):
     def new_source(self, experiment, participant):
         raise NotImplementedError
-
-# Need to implement open and close

@@ -138,6 +138,7 @@ class Experiment(dallinger.experiment.Experiment):
 
         participant = get_participant(participant_id)
         participant.initialise(self)
+        
         self.timeline.advance_page(self, participant)
         
         self.save()

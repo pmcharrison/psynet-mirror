@@ -150,6 +150,12 @@ def _set_var(self, name, value):
     self.var.__setattr__(name, value)
     return self
 
+def _inc_var(self, name, value=1):
+    original = self.get_var(name)
+    new = original + value
+    self.set_var(name, new)
+    return self
+
 def _new_var(self, name, value):
     if self.has_var(name):
         raise ValueError(f"Participant already has a variable called {name}.")
@@ -190,6 +196,7 @@ Participant.var = var
 Participant.get_var = _get_var
 Participant.has_var = _has_var
 Participant.set_var = _set_var
+Participant.inc_var = _inc_var
 Participant.new_var = _new_var
 Participant.set_answer = _set_answer
 

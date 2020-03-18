@@ -46,8 +46,17 @@ def call_function(function, args: dict):
 def get_function_args(f):
     return [str(x) for x in inspect.signature(f).parameters]
 
-def check_function_args(f, args):
+def check_function_args(f, args, exact=True):
     if not callable(f):
         raise TypeError("<f> is not a function (but it should be).")
-    return [str(x) for x in inspect.signature(f).parameters] == list(args)
+    actual = [str(x) for x in inspect.signature(f).parameters]
+    if exact:
+        if actual != list(args):
+            raise ValueError(f"Invalid argument list: {actual}")
+    else:
+        for a in actual:
+            if a not in args:
+                raise ValueError(f"Invalid argument: {a}")
+    return True
+
     

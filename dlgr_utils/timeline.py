@@ -115,8 +115,7 @@ class ReactiveGoTo(GoTo):
         self.check_targets()
     
     def check_function(self):
-        if not check_function_args(self.function, ("experiment", "participant")):
-            raise TypeError("<function> must be a function of the form f(experiment, participant).")
+        check_function_args(self.function, ("self", "experiment", "participant"), exact=False)
 
     def check_targets(self):
         try:
@@ -130,6 +129,7 @@ class ReactiveGoTo(GoTo):
         val = call_function(
             self.function,
             {
+                "self": self,
                 "experiment": experiment,
                 "participant": participant
             }
@@ -222,7 +222,7 @@ class ReactivePage(Elt):
         self.function = function
         self.time_allotted = time_allotted
         self.expected_repetitions = 1
-        self.pos_in_reactive_seq = None
+        # self.pos_in_reactive_seq = None
 
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
@@ -251,21 +251,19 @@ class ReactivePage(Elt):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
 
-    def set_pos_in_reactive_seq(self, val):
-        assert isinstance(val, int)
-        self.pos_in_reactive_seq = val
-        return self
+    # def set_pos_in_reactive_seq(self, val):
+    #     assert isinstance(val, int)
+    #     self.pos_in_reactive_seq = val
+    #     return self
 
 
 def reactive_seq(
     label,
     function, 
-    num_elts: int,
-    times_allotted: list
+    num_pages: int,
+    time_allotted: int
 ): 
     """Function must return a list of pages when evaluated."""
-    assert num_elts == len(times_allotted)
-
     def with_namespace(x=None):
         prefix = f"__reactive_seq__{label}"
         if x is None:
@@ -277,6 +275,7 @@ def reactive_seq(
         elts = call_function(
             function,
             {
+                "self": self,
                 "experiment": experiment,
                 "participant": participant
             }
@@ -285,22 +284,41 @@ def reactive_seq(
         assert isinstance(res, Page)
         return res
 
-    # return join(
-    #     CodeBlock(lambda participant: participant.set_var(with_namespace("complete"), True))
-    #     while_loop(
-    #         with_namespace(label), 
-    #         lambda participant: not participant.get_var(with_namespace("complete")), 
-    #         [
-    #             ReactivePage(new_function),
-    #         ]
-    # )
+    prepare_logic = CodeBlock(lambda participant: (
+        participant
+            .set_var(with_namespace("complete"), True)
+            .set_var(with_namespace("pos"), 0)
+            .set_var(with_namespace("seq_length"), num_pages)
+    ))
 
+    update_logic = CodeBlock(
+        lambda participant: (
+            participant
+                .set_var(
+                    "complete", 
+                    participant.get_var("pos") >= num_pages - 1
+                )
+                .inc_var(with_namespace("pos"))
+        )   
+    )
 
+    show_elts = ReactivePage(
+        new_function, 
+        time_allotted=time_allotted / num_pages
+    )
 
-    return [
-        ReactivePage(new_function, time_allotted).set_pos_in_reactive_seq(i)
-        for i, time_allotted in zip(range(num_elts), times_allotted)
-    ]
+    condition = lambda participant: not participant.get_var(with_namespace("complete"))
+
+    return join(
+        prepare_logic,
+        while_loop(
+            label=with_namespace(label), 
+            condition=condition, 
+            logic=[show_elts, update_logic], 
+            expected_repetitions=num_pages,
+            fix_time_credit=False
+        )
+    )
 
 class InfoPage(Page):
     def __init__(self, content, time_allotted=None, title=None, **kwargs):
@@ -560,6 +578,7 @@ class Timeline():
         finished = False
         while not finished:
             old_elt = self.get_current_elt(experiment, participant, resolve=False)
+            logger.info(f"elt_id = {participant.elt_id}, elt = {old_elt}")
             if old_elt.returns_time_credit:
                 participant.time_credit.increment(old_elt.time_allotted)
 
@@ -660,8 +679,6 @@ def join(*args):
         return reduce(f, args)
 
 def check_condition_and_logic(condition, logic):
-    if not check_function_args(condition, ("experiment", "participant")):
-        raise TypeError("<condition> must be a function of the form f(experiment, participant).")
     assert isinstance(logic, Elt) or is_list_of_elts(logic)
     if isinstance(logic, Elt):
         logic = [logic]
@@ -723,8 +740,7 @@ def check_branches(branches):
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
 def switch(label, function, branches, fix_time_credit=True, log_chosen_branch=True):
-    if not check_function_args(function, ("experiment", "participant")):
-        raise TypeError("<function> must be a function of the form f(experiment, participant).")
+    check_function_args(function, ("self", "experiment", "participant"), exact=False)
     branches = check_branches(branches)
    
     all_branch_starts = dict()
