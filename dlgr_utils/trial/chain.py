@@ -18,9 +18,10 @@ class ChainNetwork(TrialNetwork):
     head_node_id = claim_field(2, int)
     participant_id = claim_field(3, int)
 
-    def __init__(self, trial_type, source_class, phase, experiment, participant):
+    def __init__(self, trial_type, source_class, phase, experiment, participant=None):
         super().__init__(trial_type, phase, experiment)
-        self.participant_id = participant.id
+        if participant is not None:
+            self.participant_id = participant.id
         experiment.session.add(self)
         experiment.save()
         self.add_source(source_class, experiment, participant)
