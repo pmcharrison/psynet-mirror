@@ -6,7 +6,8 @@
 
 from flask import Markup
 from statistics import mean
-from random import random
+import random
+import re
 
 import dlgr_utils.experiment
 from dlgr_utils.field import claim_field
@@ -22,7 +23,9 @@ from dlgr_utils.timeline import (
     NumberInputPage,
     while_loop, 
     conditional, 
-    switch
+    switch,
+    FailedValidation,
+    TextInputPage
 )
 from dlgr_utils.trial.imitation_chain import (
     ImitationChainTrialGenerator, ImitationChainTrial
@@ -42,14 +45,31 @@ import rpdb
 #### Stimuli
 ##########################################################################################
 
+class FixedDigitInputPage(TextInputPage):
+    num_digits = 7
+
+    def format_answer(self, answer, metadata, experiment, participant):
+        try:
+            pattern = re.compile("^[0-9]*$")
+            assert len(answer) == self.num_digits
+            assert pattern.match(answer)
+            return int(answer)
+        except (ValueError, AssertionError):
+            return "INVALID_RESPONSE"
+
+    def validate(self, parsed_response, experiment, participant, **kwargs):
+        if parsed_response.answer == "INVALID_RESPONSE":
+            return FailedValidation("Please enter a 7-digit number.")
+        return None
+
 class Trial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     num_pages = 2
 
     def show_trial(self, experiment, participant):
-        page_1 = InfoPage(f"Try to remember this number: {self.definition}")
-        page_2 = NumberInputPage("number", "What was the number?")
+        page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
+        page_2 = FixedDigitInputPage("number", "What was the number?")
 
         return [
             page_1, 
@@ -58,13 +78,13 @@ class Trial(ImitationChainTrial):
 
 class TrialGenerator(ImitationChainTrialGenerator):
     def summarise_answers(self, trials, participant, experiment):
-        return mean([trial.answer for trial in trials])
+        return round(mean([trial.answer for trial in trials]))
 
 class Source(ChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_definition(self, network, experiment, participant):
-        return random()
+        return random.randint(0, 9999999)
 
 ##########################################################################################
 #### Experiment
@@ -84,7 +104,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             num_trials_per_participant=9,
             num_chains_per_participant=3,
             num_chains_per_experiment=None,
-            trials_per_node=1,
+            trials_per_node=2,
             active_balancing_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False
