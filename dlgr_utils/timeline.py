@@ -516,17 +516,17 @@ class Timeline():
     def check_start_fix_times(self):
         try:
             _fix_time = False
-            for elt in self.elts:
+            for i, elt in enumerate(self.elts):
                 if isinstance(elt, StartFixTime):
-                    assert not fix_time
+                    assert not _fix_time
                     _fix_time = True
                 elif isinstance(elt, EndFixTime):
-                    assert fix_time
+                    assert _fix_time
                     _fix_time = False
         except AssertionError:
             raise ValueError(
                 "Nested 'fix-time' constructs detected. This typically means you have "
-                "nested conditionals or whiel loops with fix_time_credit=True. "
+                "nested conditionals or while loops with fix_time_credit=True. "
                 "Such constructs cannot be nested; instead you should choose one level "
                 "at which to set fix_time_credit=True."
             )
@@ -649,7 +649,6 @@ class Timeline():
         finished = False
         while not finished:
             old_elt = self.get_current_elt(experiment, participant, resolve=False)
-            logger.info(f"elt_id = {participant.elt_id}, elt = {old_elt}")
             if old_elt.returns_time_credit:
                 participant.time_credit.increment(old_elt.time_allotted)
 

@@ -81,7 +81,7 @@ class TrialGenerator(ImitationChainTrialGenerator):
         return round(mean([trial.answer for trial in trials]))
 
     trial_timeout_sec = 60
-    trial_timeout_check_interval = 5
+    trial_timeout_check_interval = 30
 
 
 class Source(ChainSource):

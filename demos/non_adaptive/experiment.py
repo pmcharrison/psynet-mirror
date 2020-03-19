@@ -58,7 +58,7 @@ stimulus_set = StimulusSet([
 class AnimalTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "animal_trial"}
 
-    num_pages = 2
+    # num_pages = 2
 
     def show_trial(self, experiment, participant):
         text_color = self.definition["text_color"]
@@ -71,13 +71,10 @@ class AnimalTrial(NonAdaptiveTrial):
             ["Not at all", "A little", "Very much"]
         )
 
-        return [
-            InfoPage("Get ready..."),
-            page
-        ]
+        return page
 
-    def show_feedback(self, experiment, participant):
-        return InfoPage(f"You responded '{self.answer}'.")
+    # def show_feedback(self, experiment, participant):
+    #     return InfoPage(f"You responded '{self.answer}'.")
 
 class AnimalTrialGenerator(NonAdaptiveTrialGenerator):
     def performance_check(self, experiment, participant, participant_trials):
@@ -111,7 +108,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             active_balancing_within_participants=True,
             active_balancing_across_participants=True,
             check_performance_at_end=True,
-            check_performance_every_trial=False
+            check_performance_every_trial=True
         ),
         InfoPage("You finished the animal questions!", time_allotted=0),
         SuccessfulEndPage()

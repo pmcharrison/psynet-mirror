@@ -56,27 +56,21 @@ class Exp(dlgr_utils.experiment.Experiment):
             "Welcome to the experiment!",
             time_allotted=5
         ),
+        ReactivePage(            
+            lambda experiment, participant: 
+                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
+            time_allotted=5
+        ),
         TextInputPage(
             "message",
             "Write me a message!",
             time_allotted=5,
             one_line=False
         ),
-        reactive_seq(
-            "test",
-            lambda: [
-                InfoPage("Reactive 1"),
-                InfoPage("Reactive 2")
-            ],
-            num_pages=2,
-            time_allotted=2
-        ),
-        ReactivePage(            
-            lambda experiment, participant: 
-                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
+        ReactivePage(
+            lambda participant: InfoPage(f"Your message: '{participant.answer}'"),
             time_allotted=5
         ),
-        CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         NAFCPage(
             label="chocolate",
             prompt="Do you like chocolate?",
@@ -97,43 +91,43 @@ class Exp(dlgr_utils.experiment.Experiment):
             fix_time_credit=False
         ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
-        # while_loop(
-        #     "example_loop",
-        #     lambda experiment, participant: participant.answer == "Yes",
-        #     NAFCPage(
-        #         label="loop_nafc",
-        #         prompt="Would you like to stay in this loop?",
-        #         choices=["Yes", "No"],
-        #         time_allotted=3
-        #     ), 
-        #     expected_repetitions=3,
-        #     fix_time_credit=True
+        while_loop(
+            "example_loop",
+            lambda experiment, participant: participant.answer == "Yes",
+            NAFCPage(
+                label="loop_nafc",
+                prompt="Would you like to stay in this loop?",
+                choices=["Yes", "No"],
+                time_allotted=3
+            ), 
+            expected_repetitions=3,
+            fix_time_credit=True
+        ),
+        # NAFCPage(
+        #     label="test_nafc",            
+        #     prompt="What's your favourite colour?",
+        #     choices=["Red", "Green", "Blue"],
+        #     time_allotted=5
         # ),
-        NAFCPage(
-            label="test_nafc",            
-            prompt="What's your favourite colour?",
-            choices=["Red", "Green", "Blue"],
-            time_allotted=5
-        ),
-        switch(
-            "colour",
-            lambda experiment, participant: participant.answer,
-            branches = {
-                "Red": InfoPage("Red is a nice colour, wait 1s.", time_allotted=1),
-                "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_allotted=2),
-                "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_allotted=3)
-            }, 
-            fix_time_credit=False
-        ),
-        CodeBlock(
-            lambda experiment, participant:
-                participant.set_var("favourite_colour", participant.answer)
-        ),
-        ReactivePage(
-            lambda experiment, participant: 
-                InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
-            time_allotted=3
-        ),
+        # switch(
+        #     "colour",
+        #     lambda experiment, participant: participant.answer,
+        #     branches = {
+        #         "Red": InfoPage("Red is a nice colour, wait 1s.", time_allotted=1),
+        #         "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_allotted=2),
+        #         "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_allotted=3)
+        #     }, 
+        #     fix_time_credit=False
+        # ),
+        # CodeBlock(
+        #     lambda experiment, participant:
+        #         participant.set_var("favourite_colour", participant.answer)
+        # ),
+        # ReactivePage(
+        #     lambda experiment, participant: 
+        #         InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
+        #     time_allotted=3
+        # ),
         SuccessfulEndPage()
     )
 
