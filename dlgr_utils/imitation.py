@@ -11,7 +11,7 @@ from .timeline import (
     NAFCPage, 
     CodeBlock, 
     SuccessfulEndPage, 
-    RejectedResponse
+    FailedValidation
 )
 
 class Imitate(Module):

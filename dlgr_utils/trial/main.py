@@ -1,4 +1,5 @@
 import json
+from typing import Union
 
 import dallinger.models
 from dallinger.models import Info, Network
@@ -38,9 +39,12 @@ class Trial(Info):
     complete = claim_field(2, bool)
     answer = claim_field(3)
 
-    @property
-    def num_pages(self):
-        raise NotImplementedError
+    # Override this if you intend to return multiple pages
+    num_pages = 1
+
+    # @property
+    # def num_pages(self):
+    #     raise NotImplementedError
 
     # Refactor this bit with claim_field equivalent.
     @property
@@ -56,6 +60,10 @@ class Trial(Info):
     def __init__(self, experiment, node, participant):
         super().__init__(origin=node)
         self.participant_id = participant.id
+        self.definition = self.derive_definition(node, experiment, participant)
+
+    def derive_definition(self, node, experiment, participant):
+        raise NotImplementedError
 
     def show_trial(self, experiment, participant):
         """
@@ -90,11 +98,11 @@ class TrialGenerator(Module):
     def __init__(
         self,
         trial_class, 
-        phase, 
-        time_allotted_per_trial, 
-        expected_num_trials,
-        check_performance_at_end,
-        check_performance_every_trial
+        phase: str, 
+        time_allotted_per_trial: Union[int, float], 
+        expected_num_trials: Union[int, float],
+        check_performance_at_end: bool,
+        check_performance_every_trial: bool
         # latest performance check is saved in as a participant variable (value, success)
     ):
         self.trial_class = trial_class
@@ -144,7 +152,7 @@ class TrialGenerator(Module):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
         if x is None:
             return prefix
-        return f"{prefix}__{x}"
+        return f"__{prefix}__{x}"
 
     def check_fail_logic(self):
         """Should return a test element or a sequence of test elements. Can be overridden."""
@@ -188,7 +196,6 @@ class TrialGenerator(Module):
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
         if trial is not None:
-            experiment.session.add(trial)
             participant.var.current_trial = trial.id
         else:
             participant.var.current_trial = None
@@ -228,7 +235,8 @@ class TrialGenerator(Module):
                 ),
                 time_allotted=0
             ), 
-            fix_time_credit=False
+            fix_time_credit=False,
+            log_chosen_branch=False
         )
         
     def _trial_loop(self):
@@ -339,6 +347,8 @@ class NetworkTrialGenerator(TrialGenerator):
 
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(experiment=experiment, node=node, participant=participant)
+        experiment.session.add(trial)
+        experiment.save()
         return trial
 
     def count_networks(self):
@@ -384,3 +394,6 @@ class TrialNetwork(Network):
     def num_nodes(self):
         return dallinger.models.Node.query.filter_by(network_id=self.id).count()
 
+    @property
+    def num_successful_trials(self):
+        return Trial.query.filter_by(network_id=self.id, failed=False).count()

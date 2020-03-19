@@ -12,7 +12,7 @@ from dallinger.experiment_server.utils import (
 )
 
 from .participant import get_participant
-from .timeline import get_template, Timeline, InfoPage, SuccessfulEndPage, RejectedResponse, ExperimentSetupRoutine
+from .timeline import get_template, Timeline, InfoPage, SuccessfulEndPage, FailedValidation, ExperimentSetupRoutine
 from .utils import get_arg_from_dict
 
 import logging
@@ -149,20 +149,22 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
 
-            res = self.timeline.get_current_elt(
-                self, participant
-            ).process_response(
+            elt = self.timeline.get_current_elt(self, participant)
+            parsed_response = elt.process_response(
                 response=response, 
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
             )
-
-            if res is RejectedResponse:
-                return self.response_rejected(message=res.message)            
-            else:
-                self.timeline.advance_page(self, participant)
-                return self.response_approved()
+            validation = elt.validate(
+                parsed_response=parsed_response,
+                experiment=self,
+                participant=participant
+            )
+            if isinstance(validation, FailedValidation):
+                return self.response_rejected(message=validation.message)            
+            self.timeline.advance_page(self, participant)
+            return self.response_approved()
         else:
             logger.warn(
                 f"Participant {participant_id} tried to submit data with the wrong page_uuid" +
@@ -177,7 +179,7 @@ class Experiment(dallinger.experiment.Experiment):
         )
 
     def response_rejected(self, message):
-        logger.info(f"The response was rejected with the following message: '{message}'.")
+        logger.info("The response was rejected with the following message: '%s'.", message)
         return success_response(
             submission="rejected",
             message=message

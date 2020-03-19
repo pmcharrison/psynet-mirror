@@ -64,22 +64,22 @@
 
         next_page = function(data=null) {
             submit_generic_response(data).done(function(response) {
+                debugger
                 if (response.submission == "approved") {
                     console.log("Response received successfully.");
                     dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
                 } else if (response.submission == "rejected") {
-                    console.log("Response rejected.");
+                    console.log("Response rejected."); 
                     alert(response.message);
+                    $(".submit-response").attr('disabled',false);
                 } else {
                     throw Error("Received a malformed response.");
                 }            
             }).fail(function(resp) {
                 dallinger.error(resp);
-            }).error(function(resp) {
-                dallinger.error(resp);
             });
-        spinner.freeze([$('form :input')]);
-        xhr.done(when_done)
+        // spinner.freeze([$('form :input')]);
+        // xhr.done(when_done)
         }
 
         submit_generic_response = function(data) {

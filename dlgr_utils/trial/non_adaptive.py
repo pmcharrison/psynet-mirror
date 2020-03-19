@@ -44,14 +44,11 @@ class NonAdaptiveTrial(Trial):
     def block(self):
         return self.stimulus.block
 
-    def __init__(self, experiment, node, participant):
-        super().__init__(experiment, node, participant)
-        self.definition = {
+    def derive_definition(self, node, experiment, participant):
+        return {
             **self.stimulus.definition, 
             **self.stimulus_version.definition
-        }
-        
-
+        }     
 
 class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def __init__(

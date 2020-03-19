@@ -56,7 +56,7 @@ class TimeCreditStore:
     def get_internal_name(self, name):
         if name not in self.fields:
             raise ValueError(f"{name} is not a valid field for TimeCreditStore.")
-        return f"_time_credit__{name}"
+        return f"__time_credit__{name}"
 
     def __getattr__(self, name):
         if name is "participant":

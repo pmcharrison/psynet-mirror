@@ -280,6 +280,8 @@ def reactive_seq(
                 "participant": participant
             }
         )
+        if isinstance(elts, Elt):
+            elts = [elts]
         assert len(elts) == num_pages
         res = elts[pos]
         assert isinstance(res, Page)
@@ -454,11 +456,14 @@ class TextInputPage(Page):
             }
         )
 
+    def format_answer(self, answer, metadata, experiment, participant):
+        return answer
+
     def process_response(self, response, metadata, experiment, participant, **kwargs):
         resp = Response(
             participant=participant,
             question_label=self.label, 
-            answer=response["answer"],
+            answer=self.format_answer(response["answer"], metadata, experiment, participant),
             page_type=type(self).__name__,
             time_taken=metadata["time_taken"],
             details={
@@ -472,6 +477,18 @@ class TextInputPage(Page):
 
     def validate(self, parsed_response, experiment, participant, **kwargs):
         pass
+
+class NumberInputPage(TextInputPage):
+    def format_answer(self, answer, metadata, experiment, participant):
+        try:
+            return float(answer)
+        except ValueError:
+            return "INVALID_RESPONSE"
+
+    def validate(self, parsed_response, experiment, participant, **kwargs):
+        if parsed_response.answer == "INVALID_RESPONSE":
+            return FailedValidation("Please enter a number.")
+        return None
 
 class Timeline():
     def __init__(self, *args):
@@ -645,19 +662,21 @@ class Timeline():
             # logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
         # logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
 
-    def process_response(self, response, experiment, participant):
-        elt = self.get_current_elt(experiment, participant)
-        parsed_response = elt.process_response(
-            response=response,
-            experiment=experiment,
-            participant=participant
-        )
-        validation = elt.validate(
-            parsed_response=parsed_response,
-            experiment=experiment,
-            participant=participant
-        )
-        return validation
+    # def process_response(self, response, experiment, participant):
+    #     elt = self.get_current_elt(experiment, participant)
+    #     parsed_response = elt.process_response(
+    #         response=response,
+    #         experiment=experiment,
+    #         participant=participant
+    #     )
+    #     rpdb.set_trace()
+    #     validation = elt.validate(
+    #         parsed_response=parsed_response,
+    #         experiment=experiment,
+    #         participant=participant
+    #     )
+    #     parsed_response.successful_validation = validation is not RejectedResponse
+    #     return validation
 
     # def estimate_total_time_credit(self):
     #     return estimate_time_credit(self.elts)
@@ -669,7 +688,7 @@ def estimate_time_credit(elts):
         if elt.returns_time_credit
     ])
         
-class RejectedResponse:
+class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):
         self.message = message
 
@@ -679,6 +698,7 @@ class Response(Question):
     answer = claim_field(1)
     time_taken = claim_field(2, float)
     page_type = claim_field(3, str)
+    successful_validation = claim_field(4, bool)
 
     def __init__(self, participant, question_label, answer, page_type, time_taken, details):
         super().__init__(
