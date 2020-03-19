@@ -80,6 +80,10 @@ class TrialGenerator(ImitationChainTrialGenerator):
     def summarise_answers(self, trials, participant, experiment):
         return round(mean([trial.answer for trial in trials]))
 
+    trial_timeout_sec = 60
+    trial_timeout_check_interval = 5
+
+
 class Source(ChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
@@ -100,12 +104,12 @@ class Exp(dlgr_utils.experiment.Experiment):
             trial_class=Trial, 
             phase="experiment",
             time_allotted_per_trial=5,
-            chain_type="within",
-            num_trials_per_participant=9,
-            num_chains_per_participant=3,
-            num_chains_per_experiment=None,
-            trials_per_node=2,
-            active_balancing_across_chains=True,
+            chain_type="across",
+            num_trials_per_participant=4,
+            num_chains_per_participant=None,
+            num_chains_per_experiment=4,
+            trials_per_node=1,
+            active_balancing_across_chains=False,
             check_performance_at_end=False,
             check_performance_every_trial=False
         ),

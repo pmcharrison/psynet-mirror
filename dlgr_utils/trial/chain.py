@@ -80,6 +80,11 @@ class ChainNode(dallinger.models.Node):
     def num_successful_trials(self, trial_class):
         return self.query_successful_trials(trial_class).count()
 
+
+    @property
+    def num_viable_trials(self):
+        return Trial.query.filter_by(origin_id=self.id, failed=False).count()
+
 class ChainSource(ChainNode):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
@@ -233,7 +238,10 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         raise NotImplementedError
 
     def find_node(self, network, participant, experiment): 
-        return network.head
+        head = network.head
+        if head.num_viable_trials >= self.trials_per_node:
+            return None
+        return head
 
     def finalise_trial(self, answer, trial, experiment, participant):
         super().finalise_trial(answer, trial, experiment, participant)

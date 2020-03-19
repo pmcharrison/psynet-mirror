@@ -2,6 +2,8 @@
 
 import importlib_resources
 import flask
+import gevent
+import time
 
 from flask import Markup
 
@@ -965,3 +967,36 @@ class ExperimentSetupRoutine(NullElt):
     @staticmethod
     def _is_function(x):
         return callable(x)
+
+class BackgroundTask(NullElt):
+    def __init__(self, label, function, interval_sec, run_on_launch=False):
+        check_function_args(function, args=[])
+        self.label = label
+        self.function = function
+        self.interval_sec = interval_sec
+        self.run_on_launch = run_on_launch
+
+    def safe_function(self):
+        start_time = time.monotonic()
+        logger.info("Executing the background task '%s'...", self.label)
+        try:
+            self.function()
+            end_time = time.monotonic()
+            time_taken = end_time - start_time
+            logger.info("The background task '%s' completed in %s seconds.", self.label, f"{time_taken:.3f}")
+        except Exception:
+            logger.info("An exception was thrown in the background task '%s'.", self.label, exc_info=True)
+
+    def daemon(self):
+        if self.run_on_launch:
+            self.safe_function()
+        while True:
+            gevent.sleep(self.interval_sec)
+            self.safe_function()
+
+# class RegisterBackgroundTasks(NullElt):
+#     def __init__(self, tasks):
+#         assert isinstance(tasks, list)
+#         for task in tasks:
+#             assert isinstance(task, BackgroundTask)
+#         self.tasks = tasks

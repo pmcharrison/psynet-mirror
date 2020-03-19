@@ -12,7 +12,7 @@ from dallinger.experiment_server.utils import (
 )
 
 from .participant import get_participant
-from .timeline import get_template, Timeline, InfoPage, SuccessfulEndPage, FailedValidation, ExperimentSetupRoutine
+from .timeline import get_template, Timeline, InfoPage, SuccessfulEndPage, FailedValidation, ExperimentSetupRoutine, BackgroundTask
 from .utils import get_arg_from_dict
 
 import logging
@@ -40,9 +40,15 @@ class Experiment(dallinger.experiment.Experiment):
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
+        
+        self._background_tasks = []
 
         if session:
             self.setup()
+
+    @property
+    def background_tasks(self):
+        return self._background_tasks
 
     @classmethod
     def new(cls, session):
@@ -52,6 +58,8 @@ class Experiment(dallinger.experiment.Experiment):
         for elt in self.timeline.elts:
             if isinstance(elt, ExperimentSetupRoutine):
                 elt.function(experiment=self)
+            if isinstance(elt, BackgroundTask):
+                self._background_tasks.append(elt.daemon)
 
     def network_structure(self):
         from dallinger import models

@@ -1,6 +1,8 @@
 import json
 from typing import Union
+import datetime
 
+from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
 
@@ -12,6 +14,7 @@ from ..timeline import (
     InfoPage,
     UnsuccessfulEndPage,
     ExperimentSetupRoutine,
+    BackgroundTask,
     Module,
     conditional,
     while_loop,
@@ -59,6 +62,7 @@ class Trial(Info):
 
     def __init__(self, experiment, node, participant):
         super().__init__(origin=node)
+        self.complete = False
         self.participant_id = participant.id
         self.definition = self.derive_definition(node, experiment, participant)
 
@@ -115,6 +119,7 @@ class TrialGenerator(Module):
 
         elts = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
+            self.fail_old_trials_task,
             CodeBlock(self.init_participant),
             self._trial_loop(),
             CodeBlock(self.on_complete),
@@ -128,6 +133,34 @@ class TrialGenerator(Module):
 
     def experiment_setup_routine(self, experiment):
         raise NotImplementedError
+
+    trial_timeout_check_interval = 60
+    trial_timeout_sec = 60
+
+    @property
+    def fail_old_trials_task(self):
+        return BackgroundTask(
+            self.with_namespace("fail_old_trials"), 
+            self.fail_old_trials, 
+            interval_sec=self.trial_timeout_check_interval
+        )
+
+    def fail_old_trials(self):
+        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.trial_timeout_sec)
+        trials_to_fail = (
+            self.trial_class
+                .query
+                .filter_by(
+                    complete=False, 
+                    failed=False
+                )
+                .filter(self.trial_class.creation_time < time_threshold)
+                .all()
+        )
+        logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
+        for trial in trials_to_fail:
+            trial.fail()
+        db.session.commit()
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -396,4 +429,5 @@ class TrialNetwork(Network):
 
     @property
     def num_successful_trials(self):
-        return Trial.query.filter_by(network_id=self.id, failed=False).count()
+        return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
+
