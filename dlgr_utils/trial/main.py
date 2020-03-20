@@ -6,7 +6,7 @@ from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
 
-from ..field import claim_field
+from ..field import claim_field, VarStore
 
 from ..timeline import (
     ReactivePage,
@@ -49,6 +49,11 @@ class Trial(Info):
     # def num_pages(self):
     #     raise NotImplementedError
 
+    # VarStore occuppies the <details> slot.
+    @property
+    def var(self):
+        return VarStore(self)
+
     # Refactor this bit with claim_field equivalent.
     @property
     def definition(self):
@@ -58,15 +63,17 @@ class Trial(Info):
     def definition(self, definition):
         self.contents = json.dumps(definition)
 
+    
+
     #################
 
     def __init__(self, experiment, node, participant):
         super().__init__(origin=node)
         self.complete = False
         self.participant_id = participant.id
-        self.definition = self.derive_definition(node, experiment, participant)
+        self.definition = self.make_definition(node, experiment, participant)
 
-    def derive_definition(self, node, experiment, participant):
+    def make_definition(self, node, experiment, participant):
         raise NotImplementedError
 
     def show_trial(self, experiment, participant):
@@ -160,6 +167,7 @@ class TrialGenerator(Module):
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
             trial.fail()
+        # pylint: disable=no-member
         db.session.commit()
 
     def init_participant(self, experiment, participant):
@@ -402,8 +410,13 @@ class TrialNetwork(Network):
     def add_node(self, node):
         raise NotImplementedError
 
+
+    # VarStore occuppies the <details> slot.
+    @property
+    def var(self):
+        return VarStore(self)
+
     # Phase ####
-    
     @hybrid_property 
     def phase(self):
         return self.role
@@ -428,6 +441,6 @@ class TrialNetwork(Network):
         return dallinger.models.Node.query.filter_by(network_id=self.id).count()
 
     @property
-    def num_successful_trials(self):
+    def num_complete_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
 

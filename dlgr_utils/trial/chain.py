@@ -5,7 +5,7 @@ import dallinger.models
 import dallinger.nodes
 import dallinger.networks
 
-from ..field import claim_field
+from ..field import claim_field, claim_var, VarStore
 from .main import Trial, TrialNetwork, NetworkTrialGenerator
 
 # pylint: disable=unused-import
@@ -17,14 +17,37 @@ class ChainNetwork(TrialNetwork):
 
     head_node_id = claim_field(2, int)
     participant_id = claim_field(3, int)
+    id_within_participant = claim_field(4, int)
 
-    def __init__(self, trial_type, source_class, phase, experiment, participant=None):
+    chain_type = claim_var("_chain_type")
+    trials_per_node = claim_var("_trials_per_node")
+
+    # Note - the <details> slot is occupied by VarStore.
+
+    def __init__(
+        self, 
+        trial_type, 
+        source_class, 
+        phase, 
+        experiment, 
+        chain_type, 
+        trials_per_node, 
+        participant=None, 
+        id_within_participant=None
+    ):
         super().__init__(trial_type, phase, experiment)
-        if participant is not None:
-            self.participant_id = participant.id
         experiment.session.add(self)
         experiment.save()
+
+        if participant is not None:
+            self.id_within_participant = None
+            self.participant_id = participant.id
+
+        self.chain_type = chain_type
+        self.trials_per_node = trials_per_node
         self.add_source(source_class, experiment, participant)
+        
+        experiment.save()
 
     @property
     def head(self):
@@ -53,33 +76,54 @@ class ChainNetwork(TrialNetwork):
 class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
 
-    @property
-    def definition(self):
-        return self.details
+    def __init__(self, seed, network, experiment, participant=None):
+        super().__init__(network=network, participant=participant)
+        self.seed = seed
+        self.definition = self.create_definition_from_seed(seed, network, participant)
 
-    @definition.setter
-    def definition(self, definition):
-        self.details = definition
-    
+    def create_definition_from_seed(self, seed, network, participant):
+        raise NotImplementedError
+
+    def create_seed(self, experiment, participant):
+        trials = self.completed_trials
+        return self.summarise_trials(trials, experiment, participant)
+
+    def summarise_trials(self, trials, experiment, participant):
+        raise NotImplementedError
+
+    seed = claim_field(1)
+    definition = claim_field(2)
+
+    # VarStore occuppies the <details> slot.
+    @property
+    def var(self):
+        return VarStore(self)
+
     @property 
     def phase(self):
         return self.network.phase
 
-    def __init__(self, definition, network, participant=None):
-        super().__init__(network=network, participant=participant)
-        self.definition = definition
+    @property 
+    def target_num_trials(self):
+        return self.network.trials_per_node
 
-    def query_successful_trials(self, trial_class):
-        return trial_class.query.filter_by(
+    @property 
+    def ready_to_spawn(self):
+        return self.num_completed_trials >= self.target_num_trials
+
+    @property 
+    def query_completed_trials(self):
+        return Trial.query.filter_by(
             origin_id=self.id, failed=False, complete=True
         )
 
-    def get_successful_trials(self, trial_class):
-        return self.query_successful_trials(trial_class).all()
+    @property 
+    def completed_trials(self):
+        return self.query_completed_trials.all()
 
-    def num_successful_trials(self, trial_class):
-        return self.query_successful_trials(trial_class).count()
-
+    @property
+    def num_completed_trials(self):
+        return self.query_completed_trials.count()
 
     @property
     def num_viable_trials(self):
@@ -89,9 +133,18 @@ class ChainSource(ChainNode):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
 
+    ready_to_spawn = True
+
     def __init__(self, network, experiment, participant):
         definition = self.generate_definition(network, experiment, participant)
-        super().__init__(definition, network, participant=participant)
+        super().__init__(definition, network, experiment, participant=participant)
+
+    def create_definition_from_seed(self, seed, network, participant):
+        return seed
+
+    def create_seed(self, experiment, participant):
+        # pylint: disable=unused-argument
+        return self.definition
 
     def generate_definition(self, network, experiment, participant):
         raise NotImplementedError
@@ -178,20 +231,23 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant):
-        for _ in range(self.num_chains_per_participant):
-            self.create_network(experiment, participant)
+        for i in range(self.num_chains_per_participant):
+            self.create_network(experiment, participant, id_within_participant=i)
 
     def create_networks_across(self, experiment):
         for _ in range(self.num_chains_per_experiment):
             self.create_network(experiment)
 
-    def create_network(self, experiment, participant=None):
+    def create_network(self, experiment, participant=None, id_within_participant=None):
         network = self.network_class(
             trial_type=self.trial_type,
             source_class=self.source_class,
             phase=self.phase,
             experiment=experiment,
-            participant=participant
+            chain_type=self.chain_type,
+            trials_per_node=self.trials_per_node,
+            participant=participant,
+            id_within_participant=id_within_participant
         )
         experiment.session.add(network)
         experiment.save()
@@ -218,7 +274,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         networks = networks.all()
 
         if self.active_balancing_across_chains:    
-            networks.sort(key=lambda network: network.num_successful_trials)
+            networks.sort(key=lambda network: network.num_complete_trials)
         else:
             random.shuffle(networks)
 
@@ -235,13 +291,11 @@ class ChainTrialGenerator(NetworkTrialGenerator):
     
     def grow_network(self, network, participant, experiment):
         head = network.head
-        if head.num_successful_trials(self.trial_class) >= self.trials_per_node:
-            node = self.create_node(head.get_successful_trials(self.trial_class), network, participant, experiment)
+        if head.ready_to_spawn:
+            seed = head.create_seed(participant, experiment)
+            node = self.node_class(seed, network, experiment, participant)
             experiment.session.add(node)
             network.add_node(node)
-
-    def create_node(self, trials, network, participant, experiment):
-        raise NotImplementedError
 
     def find_node(self, network, participant, experiment): 
         head = network.head

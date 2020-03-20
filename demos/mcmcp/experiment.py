@@ -27,11 +27,12 @@ from dlgr_utils.timeline import (
     FailedValidation,
     TextInputPage
 )
-from dlgr_utils.trial.imitation_chain import (
-    ImitationChainTrial,
-    ImitationChainNode,
-    ImitationChainSource,
-    ImitationChainTrialGenerator
+from dlgr_utils.trial.mcmcp import (
+    MCMCPTrialGenerator, MCMCPTrial, MCMCPNode, MCMCPSource
+)
+from dlgr_utils.trial.chain import(
+    ChainTrial,
+    ChainSource
 )
 
 import logging
@@ -44,52 +45,72 @@ import rpdb
 #### Stimuli
 ##########################################################################################
 
-class FixedDigitInputPage(TextInputPage):
-    num_digits = 7
+MAX_AGE = 100
+OCCUPATIONS = ["doctor", "babysitter", "teacher"]
+SAMPLE_RANGE = 5
+NUM_CHOICES = 2
 
-    def format_answer(self, answer, metadata, experiment, participant):
-        try:
-            pattern = re.compile("^[0-9]*$")
-            assert len(answer) == self.num_digits
-            assert pattern.match(answer)
-            return int(answer)
-        except (ValueError, AssertionError):
-            return "INVALID_RESPONSE"
-
-    def validate(self, parsed_response, experiment, participant, **kwargs):
-        if parsed_response.answer == "INVALID_RESPONSE":
-            return FailedValidation("Please enter a 7-digit number.")
-        return None
-
-class CustomTrial(ImitationChainTrial):
+class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    num_pages = 2
+    @property
+    def get_prompt(self):
+        ages = [self.definition[item]["age"] for item in self.order]
+        occupations = [self.definition[item]["occupation"] for item in self.order]
+        assert len(set(occupations)) == 1
+        occupation = occupations[0]
+        
+        return(
+            f"Person A is {ages[0]} years old. "
+            f"Person B is {ages[1]} years old. "
+            f"Which one is the {occupation}?"
+        )
 
     def show_trial(self, experiment, participant):
-        page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
-        page_2 = FixedDigitInputPage("number", "What was the number?")
+        return NAFCPage(
+            "mcmcp_trial",
+            self.prompt,
+            choices=["0", "1"], 
+            time_allotted=5,
+            labels=["Person A", "Person B"],
+        )
 
-        return [
-            page_1, 
-            page_2
-        ]
-
-class CustomNode(ImitationChainNode):
+class CustomNode(MCMCPNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials, participant, experiment):
-        return round(mean([trial.answer for trial in trials]))
+    def get_proposal(self, state, network, experiment, partipant):
+        occupation = self.current_state["occupation"]
+        age = self.current_state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
+        age = age % (MAX_AGE + 1)
+        return {
+            "occupation": occupation,
+            "age": age
+        }
 
-class CustomSource(ImitationChainSource):
+class CustomSource(CustomNode, MCMCPSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-    def generate_definition(self, network, experiment, participant):
-        return random.randint(0, 9999999)
+    def generate_initial_state(self, network, experiment, participant):
+        return {
+            "occupation": self.occupation,
+            "age": self.sample_age()
+        }
 
-class CustomTrialGenerator(ImitationChainTrialGenerator):
-    trial_timeout_sec = 60
-    trial_timeout_check_interval = 30
+    @property
+    def occupation(self):
+        network = self.network
+        if network.chain_type == "across":
+            index = network.id
+        elif network.chain_type == "within":
+            index = network.id_within_participant
+        else:
+            raise ValueError(f"Unidentified chain type: {network.chain_type}")
+        return OCCUPATIONS[index % len(OCCUPATIONS)]
+    
+    @staticmethod
+    def sample_age():
+        return random.randint(0, MAX_AGE)
+
 
 ##########################################################################################
 #### Experiment
@@ -100,10 +121,9 @@ class CustomTrialGenerator(ImitationChainTrialGenerator):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        CustomTrialGenerator(
-            trial_class=CustomTrial,
-            node_class=CustomNode,
+        MCMCPTrialGenerator(
             source_class=CustomSource,
+            trial_class=Trial, 
             phase="experiment",
             time_allotted_per_trial=5,
             chain_type="within",

@@ -50,6 +50,17 @@ class Field():
 
         self.function = function
 
+def claim_var(name):
+    @property
+    def function(self):
+        return getattr(self.var, name)
+
+    @function.setter
+    def function(self, value):
+        setattr(self.var, name, value)
+
+    return function
+
 def check_type(x, allowed):
     match = False
     for t in allowed:
@@ -111,3 +122,29 @@ class ObjectField(Field):
             permitted_python_types=[object], 
             sql_type=String
         )
+
+class UndefinedVariableError(Exception):
+    pass
+
+class VarStore:
+    def __init__(self, owner):
+        self._owner = owner
+
+    def __getattr__(self, name):
+        owner = self.__dict__["_owner"]
+        if name == "_owner":
+            return owner
+        try:
+            return owner.details[name]
+        except KeyError:
+            raise UndefinedVariableError(f"Undefined variable: {name}.")
+
+    def __setattr__(self, name, value):
+        if name == "_owner":
+            self.__dict__["_owner"] = value
+        else:
+            # We need to copy the dictionary otherwise
+            # SQLAlchemy won't notice that we changed it.
+            all_vars = self.__dict__["_owner"].details.copy()
+            all_vars[name] = value
+            self.__dict__["_owner"].details = all_vars

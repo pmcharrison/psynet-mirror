@@ -44,7 +44,7 @@ class NonAdaptiveTrial(Trial):
     def block(self):
         return self.stimulus.block
 
-    def derive_definition(self, node, experiment, participant):
+    def make_definition(self, node, experiment, participant):
         return {
             **self.stimulus.definition, 
             **self.stimulus_version.definition

@@ -370,7 +370,30 @@ class Button():
         self.min_width = min_width
         self.start_disabled = start_disabled
 
-class NAFCPage(Page):
+class ResponsePage(Page):
+    def format_answer(self, answer, metadata, experiment, participant):
+        return answer
+
+    def compile_details(self, response, answer, metadata, experiment, participant):
+        """Should provide a dict of supplementary information about the page and (optionally) its response."""
+        raise NotImplementedError
+
+    def process_response(self, response, metadata, experiment, participant, **kwargs):
+        answer = self.format_answer(response["answer"], metadata, experiment, participant)
+        resp = Response(
+            participant=participant,
+            question_label=self.label, 
+            answer=answer,
+            page_type=type(self).__name__,
+            time_taken=metadata["time_taken"],
+            details=self.compile_details(response, answer, metadata, experiment, participant)
+        )
+        participant.answer = resp.answer
+        experiment.session.add(resp)
+        experiment.save()
+        return resp
+
+class NAFCPage(ResponsePage):
     def __init__(
         self,
         label: str,
@@ -405,28 +428,15 @@ class NAFCPage(Page):
             }
         )
 
-    def process_response(self, response, metadata, experiment, participant, **kwargs):
-        resp = Response(
-            participant=participant,
-            question_label=self.label, 
-            answer=response["answer"],
-            page_type=type(self).__name__,
-            time_taken=metadata["time_taken"],
-            details={
-                "prompt": self.prompt,
-                "choices": self.choices,
-                "labels": self.labels
-            }
-        )
-        participant.answer = resp.answer
-        experiment.session.add(resp)
-        experiment.save()
-        return resp
+    def compile_details(self, response, answer, metadata, experiment, participant):
+        # pylint: disable=unused-argument
+        return {
+            "prompt": self.prompt,
+            "choices": self.choices,
+            "labels": self.labels
+        }
 
-    def validate(self, parsed_response, experiment, participant, **kwargs):
-        pass
-
-class TextInputPage(Page):
+class TextInputPage(ResponsePage):
     def __init__(
         self,
         label: str,
@@ -458,27 +468,11 @@ class TextInputPage(Page):
             }
         )
 
-    def format_answer(self, answer, metadata, experiment, participant):
-        return answer
-
-    def process_response(self, response, metadata, experiment, participant, **kwargs):
-        resp = Response(
-            participant=participant,
-            question_label=self.label, 
-            answer=self.format_answer(response["answer"], metadata, experiment, participant),
-            page_type=type(self).__name__,
-            time_taken=metadata["time_taken"],
-            details={
-                "prompt": self.prompt
-            }
-        )
-        participant.answer = resp.answer
-        experiment.session.add(resp)
-        experiment.save()
-        return resp
-
-    def validate(self, parsed_response, experiment, participant, **kwargs):
-        pass
+    def compile_details(self, response, answer, metadata, experiment, participant):
+        # pylint: disable=unused-argument
+        return {
+            "prompt": self.prompt
+        }
 
 class NumberInputPage(TextInputPage):
     def format_answer(self, answer, metadata, experiment, participant):

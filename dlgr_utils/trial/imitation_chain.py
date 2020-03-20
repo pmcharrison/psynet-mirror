@@ -1,16 +1,14 @@
 # pylint: disable=unused-argument,abstract-method
 
-from .chain import ChainTrialGenerator, ChainTrial
+from .chain import ChainTrial, ChainNode, ChainSource, ChainTrialGenerator
 
-class ImitationChainTrialGenerator(ChainTrialGenerator):
-    def create_node(self, trials, network, participant, experiment):
-        return self.node_class(
-            definition=self.summarise_answers(trials, participant, experiment),
-            network=network,
-            participant=participant
-        )
+class ImitationChainNode(ChainNode):
+    def create_definition_from_seed(self, seed, network, participant):
+        """The next node in the chain is a faithful reproduction of the previous iteration."""
+        return seed
 
-    def summarise_answers(self, trials, participant, experiment):
+    def summarise_trials(self, trials, experiment, participant):
+        """This function should summarise the answers to the provided trials."""
         if len(trials) == 1:
             return trials[0].answer
         raise NotImplementedError
@@ -18,5 +16,12 @@ class ImitationChainTrialGenerator(ChainTrialGenerator):
 class ImitationChainTrial(ChainTrial):
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_trial"}
 
-    def derive_definition(self, node, experiment, participant):
+    def make_definition(self, node, experiment, participant):
+        """Each trial is a faithful reproduction of the latest node in the chain."""
         return node.definition
+
+class ImitationChainSource(ChainSource):
+    pass
+
+class ImitationChainTrialGenerator(ChainTrialGenerator):
+    pass
