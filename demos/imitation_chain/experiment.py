@@ -84,7 +84,7 @@ class CustomNode(ImitationChainNode):
 class CustomSource(ImitationChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-    def generate_definition(self, network, experiment, participant):
+    def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 
 class CustomTrialGenerator(ImitationChainTrialGenerator):

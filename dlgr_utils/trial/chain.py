@@ -40,7 +40,7 @@ class ChainNetwork(TrialNetwork):
         experiment.save()
 
         if participant is not None:
-            self.id_within_participant = None
+            self.id_within_participant = id_within_participant
             self.participant_id = participant.id
 
         self.chain_type = chain_type
@@ -77,11 +77,12 @@ class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
 
     def __init__(self, seed, network, experiment, participant=None):
+        # pylint: disable=unused-argument
         super().__init__(network=network, participant=participant)
         self.seed = seed
-        self.definition = self.create_definition_from_seed(seed, network, participant)
+        self.definition = self.create_definition_from_seed(seed, experiment, participant)
 
-    def create_definition_from_seed(self, seed, network, participant):
+    def create_definition_from_seed(self, seed, experiment, participant):
         raise NotImplementedError
 
     def create_seed(self, experiment, participant):
@@ -129,24 +130,26 @@ class ChainNode(dallinger.models.Node):
     def num_viable_trials(self):
         return Trial.query.filter_by(origin_id=self.id, failed=False).count()
 
-class ChainSource(ChainNode):
+class ChainSource(dallinger.nodes.Source):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
 
     ready_to_spawn = True
+    seed = claim_field(1)
+
+    @property
+    def var(self): # occupies the <details> attribute
+        return VarStore(self)
 
     def __init__(self, network, experiment, participant):
-        definition = self.generate_definition(network, experiment, participant)
-        super().__init__(definition, network, experiment, participant=participant)
-
-    def create_definition_from_seed(self, seed, network, participant):
-        return seed
+        super().__init__(network, participant)
+        self.seed = self.generate_seed(network, experiment, participant)
 
     def create_seed(self, experiment, participant):
         # pylint: disable=unused-argument
-        return self.definition
+        return self.seed
 
-    def generate_definition(self, network, experiment, participant):
+    def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
         
 

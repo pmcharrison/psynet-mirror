@@ -28,11 +28,7 @@ from dlgr_utils.timeline import (
     TextInputPage
 )
 from dlgr_utils.trial.mcmcp import (
-    MCMCPTrialGenerator, MCMCPTrial, MCMCPNode, MCMCPSource
-)
-from dlgr_utils.trial.chain import(
-    ChainTrial,
-    ChainSource
+    MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialGenerator
 )
 
 import logging
@@ -54,9 +50,9 @@ class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     @property
-    def get_prompt(self):
-        ages = [self.definition[item]["age"] for item in self.order]
-        occupations = [self.definition[item]["occupation"] for item in self.order]
+    def prompt(self):
+        ages = [self.definition[item]["age"] for item in self.definition["order"]]
+        occupations = [self.definition[item]["occupation"] for item in self.definition["order"]]
         assert len(set(occupations)) == 1
         occupation = occupations[0]
         
@@ -78,19 +74,19 @@ class CustomTrial(MCMCPTrial):
 class CustomNode(MCMCPNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def get_proposal(self, state, network, experiment, partipant):
-        occupation = self.current_state["occupation"]
-        age = self.current_state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
+    def get_proposal(self, state, experiment, participant):
+        occupation = state["occupation"]
+        age = state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
         age = age % (MAX_AGE + 1)
         return {
             "occupation": occupation,
             "age": age
         }
 
-class CustomSource(CustomNode, MCMCPSource):
+class CustomSource(MCMCPSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-    def generate_initial_state(self, network, experiment, participant):
+    def generate_seed(self, network, experiment, participant):
         return {
             "occupation": self.occupation,
             "age": self.sample_age()
@@ -122,13 +118,14 @@ class CustomSource(CustomNode, MCMCPSource):
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
         MCMCPTrialGenerator(
+            trial_class=CustomTrial,
+            node_class=CustomNode, 
             source_class=CustomSource,
-            trial_class=Trial, 
             phase="experiment",
             time_allotted_per_trial=5,
             chain_type="within",
             num_trials_per_participant=20,
-            num_chains_per_participant=4,
+            num_chains_per_participant=6,
             num_chains_per_experiment=None,
             trials_per_node=1,
             active_balancing_across_chains=True,
