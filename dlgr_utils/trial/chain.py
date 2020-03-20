@@ -65,8 +65,8 @@ class ChainNode(dallinger.models.Node):
     def phase(self):
         return self.network.phase
 
-    def __init__(self, definition, network):
-        super().__init__(network=network)
+    def __init__(self, definition, network, participant=None):
+        super().__init__(network=network, participant=participant)
         self.definition = definition
 
     def query_successful_trials(self, trial_class):
@@ -91,7 +91,7 @@ class ChainSource(ChainNode):
 
     def __init__(self, network, experiment, participant):
         definition = self.generate_definition(network, experiment, participant)
-        super().__init__(definition, network)
+        super().__init__(definition, network, participant=participant)
 
     def generate_definition(self, network, experiment, participant):
         raise NotImplementedError
@@ -117,13 +117,19 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         num_chains_per_participant,
         num_chains_per_experiment,
         trials_per_node,
-        active_balancing_across_chains,
+        active_balancing_across_chains, 
         check_performance_at_end,
         check_performance_every_trial,
         network_class=ChainNetwork,
         node_class=ChainNode
     ):
         assert chain_type in ["within", "across"]
+
+        if chain_type == "across" and num_trials_per_participant > num_chains_per_experiment:
+            raise ValueError(
+                "In across-chain experiments, <num_trials_per_participant> "
+                "cannot exceed <num_chains_per_experiment>."
+            )
 
         self.node_class = node_class
         self.source_class = source_class

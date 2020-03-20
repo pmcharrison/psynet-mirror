@@ -6,7 +6,8 @@ class ImitationChainTrialGenerator(ChainTrialGenerator):
     def create_node(self, trials, network, participant, experiment):
         return self.node_class(
             definition=self.summarise_answers(trials, participant, experiment),
-            network=network
+            network=network,
+            participant=participant
         )
 
     def summarise_answers(self, trials, participant, experiment):
