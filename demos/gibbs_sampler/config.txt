@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = MCMCP demo
+title = Gibbs sampler demo
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -15,7 +15,7 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
-description = This app demos an MCMCP experiment.
+description = This app demos a Gibbs Sampler experiment.
 keywords = non_adaptive
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics

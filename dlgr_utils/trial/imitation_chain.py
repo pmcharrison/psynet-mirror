@@ -10,6 +10,8 @@ class ImitationChainTrial(ChainTrial):
         return node.definition
         
 class ImitationChainNode(ChainNode):
+    __mapper_args__ = {"polymorphic_identity": "imitation_chain_node"}
+
     def create_definition_from_seed(self, seed, experiment, participant):
         """The next node in the chain is a faithful reproduction of the previous iteration."""
         return seed
@@ -21,6 +23,8 @@ class ImitationChainNode(ChainNode):
         raise NotImplementedError
 
 class ImitationChainSource(ChainSource):
+    __mapper_args__ = {"polymorphic_identity": "imitation_chain_source"}
+
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 

@@ -73,6 +73,10 @@ class ChainNetwork(TrialNetwork):
         self.add_node(source)
         experiment.save()
 
+    @property
+    def source(self):
+        return ChainSource.query.filter_by(network_id=self.id).one()
+
 class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
 
@@ -99,6 +103,10 @@ class ChainNode(dallinger.models.Node):
     @property
     def var(self):
         return VarStore(self)
+
+    @property
+    def source(self):
+        return self.network.source
 
     @property 
     def phase(self):
@@ -156,6 +164,10 @@ class ChainSource(dallinger.nodes.Source):
 class ChainTrial(Trial):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_trial"}
+
+    @property
+    def source(self):
+        return self.origin.source
 
     @property 
     def phase(self):

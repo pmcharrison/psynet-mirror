@@ -4,6 +4,8 @@ import random
 from .chain import ChainTrialGenerator, ChainTrial, ChainNode, ChainSource
 
 class MCMCPTrial(ChainTrial):
+    __mapper_args__ = {"polymorphic_identity": "mcmcp_trial"}
+
     def show_trial(self, experiment, participant):
         """
         Should return a Page object that returns an answer that can be stored in Trial.answer.
@@ -37,6 +39,8 @@ class MCMCPNode(ChainNode):
         }
 
 class MCMCPSource(ChainSource):
+    __mapper_args__ = {"polymorphic_identity": "mcmcp_source"}
+
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 
