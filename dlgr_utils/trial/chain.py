@@ -32,6 +32,7 @@ class ChainNetwork(TrialNetwork):
         experiment, 
         chain_type, 
         trials_per_node, 
+        max_num_nodes,
         participant=None, 
         id_within_participant=None
     ):
@@ -45,9 +46,19 @@ class ChainNetwork(TrialNetwork):
 
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
+        self.max_num_nodes = max_num_nodes
         self.add_source(source_class, experiment, participant)
         
         experiment.save()
+
+    @property
+    def max_num_nodes(self):
+        # Subtract 1 to account for the source
+        return self.max_size - 1
+
+    @max_num_nodes.setter
+    def max_num_nodes(self, max_num_nodes):
+        self.max_size = max_num_nodes + 1
 
     @property
     def head(self):
@@ -64,7 +75,7 @@ class ChainNetwork(TrialNetwork):
         if head is not None:
             head.connect(whom=node)
         self.head = node
-        if self.num_nodes >= self.max_size:
+        if self.num_nodes >= self.max_num_nodes:
             self.full = True
 
     def add_source(self, source_class, experiment, participant=None):
@@ -184,6 +195,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         num_trials_per_participant,
         num_chains_per_participant,
         num_chains_per_experiment,
+        num_nodes_per_chain,
         trials_per_node,
         active_balancing_across_chains, 
         check_performance_at_end,
@@ -208,6 +220,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.num_trials_per_participant = num_trials_per_participant
         self.num_chains_per_participant = num_chains_per_participant
         self.num_chains_per_experiment = num_chains_per_experiment
+        self.num_nodes_per_chain = num_nodes_per_chain
         self.trials_per_node = trials_per_node
         self.active_balancing_across_chains = active_balancing_across_chains
         self.check_performance_at_end = check_performance_at_end
@@ -261,6 +274,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             experiment=experiment,
             chain_type=self.chain_type,
             trials_per_node=self.trials_per_node,
+            max_num_nodes=self.num_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant
         )

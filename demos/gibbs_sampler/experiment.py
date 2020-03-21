@@ -108,7 +108,6 @@ class CustomSource(GibbsSource):
 
     def generate_seed(self, network, experiment, participant):
         return {
-            # "target": self.target,
             "active_index": random.randint(0, 2),
             "vector": [random.randint(0, 255) for _ in COLORS]
         }
