@@ -117,7 +117,7 @@ class ReactiveGoTo(GoTo):
         self.check_targets()
     
     def check_function(self):
-        check_function_args(self.function, ("self", "experiment", "participant"), exact=False)
+        check_function_args(self.function, ("self", "experiment", "participant"), need_all=False)
 
     def check_targets(self):
         try:
@@ -338,15 +338,19 @@ class InfoPage(Page):
         )
 
 class EndPage(Page):
-    def __init__(self, content="Experiment complete, please wait...", title=None, wait_sec=750):
+    def __init__(self, content="default", title=None):
+        if content=="default":
+            content = (
+                "That's the end of the experiment! "
+                "Thank you for taking part."
+            )
         super().__init__(
             time_allotted=0,
             template_str=get_template("final-page.html"),
             template_arg={
                 "content": "" if content is None else content,
                 "title": "" if title is None else title
-            },
-            js_vars={"wait_sec": wait_sec}
+            }
         )
 
     def consume(self, experiment, participant):
@@ -361,7 +365,22 @@ class SuccessfulEndPage(EndPage):
         participant.complete = True
 
 class UnsuccessfulEndPage(EndPage):
-    pass
+    def __init__(self, content="default", title=None, failure_tags: Optional[List] = None):
+        if content=="default":
+            content = (
+                "Unfortunately you did not meet the criteria to continue in the experiment. "
+                "You will still be paid for the time you spent already. "
+                "Thank you for taking part!"
+            )
+        super().__init__(content=content, title=title)
+        self.failure_tags = failure_tags
+
+    def finalise_participant(self, experiment, participant):
+        if self.failure_tags:
+            assert isinstance(self.failure_tags, list)
+            participant.append_failure_tags(*self.failure_tags)
+        experiment.fail_participant(participant)
+
 
 class Button():
     def __init__(self, button_id, label, min_width, start_disabled=False):
@@ -807,7 +826,7 @@ def check_branches(branches):
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
 def switch(label, function, branches, fix_time_credit=True, log_chosen_branch=True):
-    check_function_args(function, ("self", "experiment", "participant"), exact=False)
+    check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
    
     all_branch_starts = dict()
@@ -986,6 +1005,12 @@ class BackgroundTask(NullElt):
         while True:
             gevent.sleep(self.interval_sec)
             self.safe_function()
+
+class ParticipantFailRoutine(NullElt):
+    def __init__(self, label, function):
+        check_function_args(function, args=["participant", "experiment"], need_all=False)
+        self.label = label
+        self.function = function
 
 # class RegisterBackgroundTasks(NullElt):
 #     def __init__(self, tasks):

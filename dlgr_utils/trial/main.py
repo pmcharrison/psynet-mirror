@@ -6,7 +6,7 @@ from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
 
-from ..field import claim_field, VarStore
+from ..field import claim_field, claim_var, VarStore
 
 from ..timeline import (
     ReactivePage,
@@ -14,6 +14,7 @@ from ..timeline import (
     InfoPage,
     UnsuccessfulEndPage,
     ExperimentSetupRoutine,
+    ParticipantFailRoutine,
     BackgroundTask,
     Module,
     conditional,
@@ -42,6 +43,8 @@ class Trial(Info):
     complete = claim_field(2, bool)
     answer = claim_field(3)
 
+    propagate_failure = claim_var("propagate_failure")
+
     # Override this if you intend to return multiple pages
     num_pages = 1
 
@@ -49,7 +52,7 @@ class Trial(Info):
     # def num_pages(self):
     #     raise NotImplementedError
 
-    # VarStore occuppies the <details> slot.
+    # VarStore occupies the <details> slot.
     @property
     def var(self):
         return VarStore(self)
@@ -63,15 +66,21 @@ class Trial(Info):
     def definition(self, definition):
         self.contents = json.dumps(definition)
 
+    def fail(self):
+        """The original fail function throws an error if the object is already failed,
+        we disabled this behaviour."""
+        if not self.failed:
+            self.failed = True
+            self.time_of_death = datetime.datetime.now()
     
-
     #################
 
-    def __init__(self, experiment, node, participant):
+    def __init__(self, experiment, node, participant, propagate_failure):
         super().__init__(origin=node)
         self.complete = False
         self.participant_id = participant.id
         self.definition = self.make_definition(node, experiment, participant)
+        self.propagate_failure = propagate_failure
 
     def make_definition(self, node, experiment, participant):
         raise NotImplementedError
@@ -89,6 +98,10 @@ class Trial(Info):
 
     def gives_feedback(self, experiment, participant):
         return self.show_feedback(experiment=experiment, participant=participant) is not None
+
+    # def fail(self):
+    #     self.failed = True
+    #     self.time_of_death = timenow()
 
 class TrialGenerator(Module):
     # Generic trial generation module.
@@ -113,8 +126,10 @@ class TrialGenerator(Module):
         time_allotted_per_trial: Union[int, float], 
         expected_num_trials: Union[int, float],
         check_performance_at_end: bool,
-        check_performance_every_trial: bool
-        # latest performance check is saved in as a participant variable (value, success)
+        check_performance_every_trial: bool,
+        fail_trials_on_premature_exit: bool,
+        fail_trials_on_participant_performance_check: bool,
+        propagate_failure: bool
     ):
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
@@ -123,9 +138,13 @@ class TrialGenerator(Module):
         self.expected_num_trials = expected_num_trials
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
+        self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
+        self.fail_trials_on_participant_performance_check = fail_trials_on_participant_performance_check
+        self.propagate_failure = propagate_failure
 
         elts = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
+            ParticipantFailRoutine("trial_generator", self.participant_fail_routine),
             self.fail_old_trials_task,
             CodeBlock(self.init_participant),
             self._trial_loop(),
@@ -138,11 +157,23 @@ class TrialGenerator(Module):
         """Should return a Trial object."""
         raise NotImplementedError
 
+    # How does fail participant know whether it's a premature exit or a performance check?
+
     def experiment_setup_routine(self, experiment):
         raise NotImplementedError
 
     trial_timeout_check_interval = 60
     trial_timeout_sec = 60
+
+    def participant_fail_routine(self, participant, experiment):
+        if (
+            self.fail_trials_on_participant_performance_check and
+            "performance_check" in participant.failure_tags
+        ) or (
+            self.fail_trials_on_premature_exit and 
+            "premature_exit" in participant.failure_tags
+        ):
+            self.fail_participant_trials(participant)
 
     @property
     def fail_old_trials_task(self):
@@ -195,16 +226,15 @@ class TrialGenerator(Module):
             return prefix
         return f"__{prefix}__{x}"
 
+    def fail_participant_trials(self, participant):
+        trials_to_fail = Trial.query.filter_by(participant_id=participant.id, failed=False)
+        for trial in trials_to_fail:
+            trial.fail()
+
     def check_fail_logic(self):
         """Should return a test element or a sequence of test elements. Can be overridden."""
         return join(
-            InfoPage(
-                "Unfortunately you did not meet the performance criteria to continue in the experiment. "
-                "You will still be paid for the time you spent already. "
-                "Thank you for taking part!",
-                time_allotted=0
-            ),
-            UnsuccessfulEndPage()
+            UnsuccessfulEndPage(failure_tags=["performance_check"])
         )
 
     def _check_performance_logic(self):
@@ -336,9 +366,12 @@ class NetworkTrialGenerator(TrialGenerator):
         phase, 
         time_allotted_per_trial, 
         expected_num_trials,
-        check_performance_at_end=False,
-        check_performance_every_trial=False
+        check_performance_at_end,
+        check_performance_every_trial,
+        fail_trials_on_premature_exit,
+        fail_trials_on_participant_performance_check,
         # latest performance check is saved in as a participant variable (value, success)
+        propagate_failure
     ):
         super().__init__(
             trial_class=trial_class, 
@@ -346,7 +379,10 @@ class NetworkTrialGenerator(TrialGenerator):
             time_allotted_per_trial=time_allotted_per_trial, 
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
-            check_performance_every_trial=check_performance_every_trial
+            check_performance_every_trial=check_performance_every_trial,
+            fail_trials_on_premature_exit=fail_trials_on_premature_exit,
+            fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
+            propagate_failure=propagate_failure
         )
         self.network_class = network_class
 
@@ -387,7 +423,7 @@ class NetworkTrialGenerator(TrialGenerator):
         raise NotImplementedError
 
     def _create_trial(self, node, participant, experiment):
-        trial = self.trial_class(experiment=experiment, node=node, participant=participant)
+        trial = self.trial_class(experiment, node, participant, self.propagate_failure)
         experiment.session.add(trial)
         experiment.save()
         return trial

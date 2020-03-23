@@ -1,6 +1,9 @@
 import random
+import datetime
+from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
 
+from dallinger import db
 import dallinger.models
 import dallinger.nodes
 import dallinger.networks
@@ -15,9 +18,8 @@ class ChainNetwork(TrialNetwork):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
-    head_node_id = claim_field(2, int)
-    participant_id = claim_field(3, int)
-    id_within_participant = claim_field(4, int)
+    participant_id = claim_field(2, int)
+    id_within_participant = claim_field(3, int)
 
     chain_type = claim_var("_chain_type")
     trials_per_node = claim_var("_trials_per_node")
@@ -61,20 +63,43 @@ class ChainNetwork(TrialNetwork):
         self.max_size = max_num_nodes + 1
 
     @property
-    def head(self):
-        if self.head_node_id is None:
-            return None
-        return dallinger.models.Node.query.filter_by(id=self.head_node_id).one()
+    def num_nodes(self):
+        return ChainNode.query.filter_by(network_id=self.id, failed=False).count()
 
-    @head.setter
-    def head(self, head):
-        self.head_node_id = head.id
+    @property
+    def degree(self):
+        if self.num_nodes == 0:
+            return 0
+        return (
+            db.session
+                .query(func.max(ChainNode.degree))
+                .filter_by(network_id=self.id, failed=False)
+                .scalar()
+        )
+
+    @property
+    def source(self):
+        return ChainSource.query.filter_by(network_id=self.id).one()
+
+    @property
+    def head(self):
+        if self.num_nodes == 0:
+            return self.source
+        else: 
+            degree = self.degree
+            return self.get_node_with_degree(degree)
+
+    def get_node_with_degree(self, degree):
+        assert degree >= 0
+        if degree == 0:
+            return self.source
+        return ChainNode.query.filter_by(degree=degree, network_id=self.id, failed=False).one()
 
     def add_node(self, node):
-        head = self.head
-        if head is not None:
-            head.connect(whom=node)
-        self.head = node
+        if node.degree > 0:
+            previous_head = self.get_node_with_degree(node.degree - 1)
+            previous_head.connect(whom=node)
+            previous_head.child = node
         if self.num_nodes >= self.max_num_nodes:
             self.full = True
 
@@ -84,18 +109,16 @@ class ChainNetwork(TrialNetwork):
         self.add_node(source)
         experiment.save()
 
-    @property
-    def source(self):
-        return ChainSource.query.filter_by(network_id=self.id).one()
-
 class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
 
-    def __init__(self, seed, network, experiment, participant=None):
+    def __init__(self, seed, degree, network, experiment, propagate_failure, participant=None):
         # pylint: disable=unused-argument
         super().__init__(network=network, participant=participant)
         self.seed = seed
+        self.degree = degree
         self.definition = self.create_definition_from_seed(seed, experiment, participant)
+        self.propagate_failure = propagate_failure
 
     def create_definition_from_seed(self, seed, experiment, participant):
         raise NotImplementedError
@@ -107,8 +130,12 @@ class ChainNode(dallinger.models.Node):
     def summarise_trials(self, trials, experiment, participant):
         raise NotImplementedError
 
-    seed = claim_field(1)
-    definition = claim_field(2)
+    degree = claim_field(1, int)
+    child_id = claim_field(2, int)
+    seed = claim_field(3)
+    definition = claim_field(4)    
+
+    propagate_failure = claim_var("propagate_failure")
 
     # VarStore occuppies the <details> slot.
     @property
@@ -118,6 +145,16 @@ class ChainNode(dallinger.models.Node):
     @property
     def source(self):
         return self.network.source
+
+    @property
+    def child(self):
+        if self.child_id is None:
+            return None
+        return ChainNode.query.filter_by(id=self.child_id).one()
+
+    @child.setter
+    def child(self, child):
+        self.child_id = child.id
 
     @property 
     def phase(self):
@@ -149,12 +186,23 @@ class ChainNode(dallinger.models.Node):
     def num_viable_trials(self):
         return Trial.query.filter_by(origin_id=self.id, failed=False).count()
 
+    def fail(self):
+        if not self.failed:
+            self.failed = True
+            self.time_of_death = datetime.datetime.now()
+            self.network.calculate_full()
+            if self.propagate_failure:
+                for i in self.infos():
+                    i.fail()
+
 class ChainSource(dallinger.nodes.Source):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
 
     ready_to_spawn = True
     seed = claim_field(1)
+
+    degree = 0
 
     @property
     def var(self): # occupies the <details> attribute
@@ -177,12 +225,31 @@ class ChainTrial(Trial):
     __mapper_args__ = {"polymorphic_identity": "chain_trial"}
 
     @property
+    def node(self):
+        return self.origin
+
+    @property
     def source(self):
-        return self.origin.source
+        return self.node.source
 
     @property 
     def phase(self):
-        return self.origin.phase
+        return self.node.phase  
+
+    def fail(self):
+        if not self.failed:
+            self.failed = True
+            self.time_of_death = datetime.datetime.now()
+            if self.propagate_failure:
+                self.fail_descendants()
+
+    def fail_descendants(self):
+        """We fail the child node of the current node, since that will have been 
+        created with reference to the failed trial."""
+        node = self.node
+        child_node = node.child
+        if child_node is not None:
+            child_node.fail()
 
 class ChainTrialGenerator(NetworkTrialGenerator):
     def __init__(
@@ -200,6 +267,9 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         active_balancing_across_chains, 
         check_performance_at_end,
         check_performance_every_trial,
+        fail_trials_on_premature_exit=False,
+        fail_trials_on_participant_performance_check=False,
+        propagate_failure=True,
         network_class=ChainNetwork,
         node_class=ChainNode
     ):
@@ -225,6 +295,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.active_balancing_across_chains = active_balancing_across_chains
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
+        self.propagate_failure = propagate_failure
 
         super().__init__(
             trial_class, 
@@ -233,7 +304,10 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             time_allotted_per_trial=time_allotted_per_trial, 
             expected_num_trials=num_trials_per_participant,
             check_performance_at_end=check_performance_at_end,
-            check_performance_every_trial=check_performance_every_trial
+            check_performance_every_trial=check_performance_every_trial,
+            fail_trials_on_premature_exit=fail_trials_on_premature_exit,
+            fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
+            propagate_failure=propagate_failure
         )
     
     def init_participant(self, experiment, participant):
@@ -241,7 +315,20 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.init_participated_networks(participant)
         if self.chain_type == "within":
             self.create_networks_within(experiment, participant)
-    
+
+    # def fail_trial(self, trial):
+    #     if not trial.failed:
+    #         trial.fail()
+    #     if self.propagate_failure_to_descendants:
+    #         current_node = trial.origin
+    #         child_node = current_node.child
+    #         if child_node:
+    #             self.fail_node(child_node)
+
+    # def fail_node(self, node):
+    #     if not node.failed:
+    #         node.fail()
+           
     #### Participated networks
     def init_participated_networks(self, participant):
         participant.set_var(self.with_namespace("participated_networks"), [])
@@ -322,7 +409,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         head = network.head
         if head.ready_to_spawn:
             seed = head.create_seed(participant, experiment)
-            node = self.node_class(seed, network, experiment, participant)
+            node = self.node_class(seed, head.degree + 1, network, experiment, self.propagate_failure, participant)
             experiment.session.add(node)
             network.add_node(node)
 

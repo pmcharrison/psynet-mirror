@@ -12,8 +12,17 @@ from dallinger.experiment_server.utils import (
 )
 
 from .participant import get_participant
-from .timeline import get_template, Timeline, InfoPage, SuccessfulEndPage, FailedValidation, ExperimentSetupRoutine, BackgroundTask
-from .utils import get_arg_from_dict
+from .timeline import (
+    get_template, 
+    Timeline, 
+    InfoPage, 
+    SuccessfulEndPage, 
+    FailedValidation, 
+    ExperimentSetupRoutine, 
+    ParticipantFailRoutine,
+    BackgroundTask
+)
+from .utils import get_arg_from_dict, call_function
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -42,13 +51,20 @@ class Experiment(dallinger.experiment.Experiment):
         super(Experiment, self).__init__(session)
         
         self._background_tasks = []
+        self.participant_fail_routines = []
 
         if session:
             self.setup()
 
+    def register_participant_fail_routine(self, routine):
+        self.participant_fail_routines.append(routine)
+
     @property
     def background_tasks(self):
         return self._background_tasks
+
+    def register_background_task(self, task):
+        self._background_tasks.append(task)
 
     @classmethod
     def new(cls, session):
@@ -59,7 +75,35 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(elt, ExperimentSetupRoutine):
                 elt.function(experiment=self)
             if isinstance(elt, BackgroundTask):
-                self._background_tasks.append(elt.daemon)
+                self.register_background_task(elt.daemon)
+            if isinstance(elt, ParticipantFailRoutine):
+                self.register_participant_fail_routine(elt)
+
+    def fail_participant(self, participant):
+        logger.info(
+            "Failing participant %i (%i routine(s) found)...",
+            participant.id,
+            len(self.participant_fail_routines)
+        )
+        participant.failed = True
+        participant.time_of_death = datetime.now()
+        for i, routine in enumerate(self.participant_fail_routines):
+            logger.info(
+                "Executing fail routine %i/%i ('%s')...", 
+                i + 1, 
+                len(self.participant_fail_routines),
+                routine.label
+            )
+            call_function(routine.function, {"participant": participant, "experiment": self})
+
+    def assignment_abandoned(self, participant):
+        participant.append_failure_tags("assignment_abandoned", "premature_exit")
+
+    def assignment_returned(self, participant):
+        participant.append_failure_tags("assignment_returned", "premature_exit")
+
+    def assignment_reassigned(self, participant):
+        participant.append_failure_tags("assignment_reassigned", "premature_exit")
 
     def network_structure(self):
         from dallinger import models
@@ -207,6 +251,14 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/start", methods=["GET"])
         def route_start():
             return render_template("start.html")
+
+        @routes.route("/debugger/<password>", methods=["GET"])
+        def route_debugger(password):
+            if password == "my-secure-password-195762":
+                exp = self.new(db.session)
+                rpdb.set_trace()
+                return success_response()
+            return error_response()
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):

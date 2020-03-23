@@ -50,10 +50,15 @@ class Field():
 
         self.function = function
 
-def claim_var(name):
+def claim_var(name, use_default=False, default=lambda: None):
     @property
     def function(self):
-        return getattr(self.var, name)
+        try:
+            return getattr(self.var, name)
+        except UndefinedVariableError:
+            if use_default:
+                return default()
+            raise
 
     @function.setter
     def function(self, value):
@@ -145,6 +150,9 @@ class VarStore:
         else:
             # We need to copy the dictionary otherwise
             # SQLAlchemy won't notice that we changed it.
-            all_vars = self.__dict__["_owner"].details.copy()
+            all_vars = self.__dict__["_owner"].details
+            if all_vars is None:
+                all_vars = {}
+            all_vars = all_vars.copy()
             all_vars[name] = value
             self.__dict__["_owner"].details = all_vars

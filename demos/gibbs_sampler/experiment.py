@@ -141,12 +141,14 @@ class Exp(dlgr_utils.experiment.Experiment):
             time_allotted_per_trial=5,
             chain_type="within",
             num_trials_per_participant=20,
+            num_nodes_per_chain=5,
             num_chains_per_participant=6,
             num_chains_per_experiment=None,
             trials_per_node=1,
             active_balancing_across_chains=True,
             check_performance_at_end=False,
-            check_performance_every_trial=False
+            check_performance_every_trial=False,
+            propagate_failure=False
         ),
         InfoPage("You finished the experiment!", time_allotted=0),
         SuccessfulEndPage()

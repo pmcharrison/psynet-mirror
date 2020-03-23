@@ -2,7 +2,7 @@
 
 from dallinger.models import Participant
 from . import field
-from .field import VarStore, UndefinedVariableError
+from .field import VarStore, UndefinedVariableError, claim_var
 import json
 import os
 
@@ -164,6 +164,15 @@ def _append_branch_log(self, entry: str):
 # def estimated_time_credit(self):
 #     return self.time_credit.confirmed_credit + self.time_credit.pending_credit
 
+
+def append_failure_tags(self, *tags):
+    original = self.failure_tags
+    new = [*tags]
+    combined = list(set(original + new))
+    self.failure_tags = combined
+
+Participant.failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
+Participant.append_failure_tags = append_failure_tags
 Participant.time_credit = time_credit
 Participant.estimate_progress = _estimate_progress
 Participant.var = var
