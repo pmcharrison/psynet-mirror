@@ -38,14 +38,9 @@ class NonAdaptiveTrial(Trial):
     def stimulus_version(self):
         return self.origin
 
-    # @property
-    # def stimulus_id(self):
-    #     return self.origin.stimulus_id
-
     @property
     def stimulus(self):
         return self.origin.stimulus
-        # return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
     @property
     def phase(self):

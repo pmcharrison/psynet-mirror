@@ -18,8 +18,8 @@ class ChainNetwork(TrialNetwork):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
-    participant_id = claim_field(2, int)
-    id_within_participant = claim_field(3, int)
+    participant_id = claim_field(3, int)
+    id_within_participant = claim_field(4, int)
 
     chain_type = claim_var("_chain_type")
     trials_per_node = claim_var("_trials_per_node")
@@ -34,7 +34,7 @@ class ChainNetwork(TrialNetwork):
         experiment, 
         chain_type, 
         trials_per_node, 
-        max_num_nodes,
+        target_num_nodes,
         participant=None, 
         id_within_participant=None
     ):
@@ -48,19 +48,20 @@ class ChainNetwork(TrialNetwork):
 
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
-        self.max_num_nodes = max_num_nodes
+        self.target_num_nodes = target_num_nodes
         self.add_source(source_class, experiment, participant)
+        self.target_num_trials = target_num_nodes * trials_per_node
         
         experiment.save()
 
     @property
-    def max_num_nodes(self):
+    def target_num_nodes(self):
         # Subtract 1 to account for the source
         return self.max_size - 1
 
-    @max_num_nodes.setter
-    def max_num_nodes(self, max_num_nodes):
-        self.max_size = max_num_nodes + 1
+    @target_num_nodes.setter
+    def target_num_nodes(self, target_num_nodes):
+        self.max_size = target_num_nodes + 1
 
     @property
     def num_nodes(self):
@@ -100,7 +101,7 @@ class ChainNetwork(TrialNetwork):
             previous_head = self.get_node_with_degree(node.degree - 1)
             previous_head.connect(whom=node)
             previous_head.child = node
-        if self.num_nodes >= self.max_num_nodes:
+        if self.num_nodes >= self.target_num_nodes:
             self.full = True
 
     def add_source(self, source_class, experiment, participant=None):
@@ -108,6 +109,11 @@ class ChainNetwork(TrialNetwork):
         experiment.session.add(source)
         self.add_node(source)
         experiment.save()
+
+    @property
+    def num_trials_still_required(self):
+        assert self.target_num_trials is not None
+        return self.target_num_trials - self.num_completed_trials
 
 class ChainNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
@@ -267,6 +273,8 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         active_balancing_across_chains, 
         check_performance_at_end,
         check_performance_every_trial,
+        recruit_mode,
+        target_num_participants=None,
         fail_trials_on_premature_exit=False,
         fail_trials_on_participant_performance_check=False,
         propagate_failure=True,
@@ -307,7 +315,9 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            propagate_failure=propagate_failure
+            propagate_failure=propagate_failure,
+            recruit_mode=recruit_mode,
+            target_num_participants=target_num_participants
         )
     
     def init_participant(self, experiment, participant):
@@ -315,6 +325,11 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.init_participated_networks(participant)
         if self.chain_type == "within":
             self.create_networks_within(experiment, participant)
+
+    @property
+    def num_trials_still_required(self):
+        assert self.chain_type == "across"
+        return sum([network.num_trials_still_required for network in self.networks])
 
     # def fail_trial(self, trial):
     #     if not trial.failed:
@@ -361,7 +376,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             experiment=experiment,
             chain_type=self.chain_type,
             trials_per_node=self.trials_per_node,
-            max_num_nodes=self.num_nodes_per_chain,
+            target_num_nodes=self.num_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant
         )
@@ -390,7 +405,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         networks = networks.all()
 
         if self.active_balancing_across_chains:    
-            networks.sort(key=lambda network: network.num_complete_trials)
+            networks.sort(key=lambda network: network.num_completed_trials)
         else:
             random.shuffle(networks)
 

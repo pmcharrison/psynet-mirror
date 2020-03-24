@@ -11,7 +11,7 @@ from dallinger.experiment_server.utils import (
     error_response
 )
 
-from .participant import get_participant
+from .participant import get_participant, Participant
 from .timeline import (
     get_template, 
     Timeline, 
@@ -47,6 +47,7 @@ class Experiment(dallinger.experiment.Experiment):
     )
 
     wage_per_hour = 9.0
+    min_working_participants = 5
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -55,8 +56,24 @@ class Experiment(dallinger.experiment.Experiment):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
+        self.register_recruitment_criterion(self.default_recruitment_criterion)
+
         if session:
             self.setup()
+
+    @property
+    def default_recruitment_criterion(self):
+        def f():
+            logger.info(
+                "Number of working participants = %i, versus minimum of %i.",
+                self.num_working_participants,
+                self.min_working_participants
+            )
+            return self.num_working_participants < self.min_working_participants
+        return RecruitmentCriterion(
+            label="min_working_participants",
+            function=f
+        )
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
@@ -103,11 +120,15 @@ class Experiment(dallinger.experiment.Experiment):
             )
             call_function(routine.function, {"participant": participant, "experiment": self})
 
+    @property
+    def num_working_participants(self):
+        return Participant.query.filter_by(status="working", failed=False).count()
+
     def recruit(self):
         logger.info("Evaluating recruitment criteria (%i found)...", len(self.recruitment_criteria))
         complete = True
         for i, criterion in enumerate(self.recruitment_criteria):
-            logger.info("Evaluating recruitment criterion %i/%i...", i, len(self.recruitment_criteria))
+            logger.info("Evaluating recruitment criterion %i/%i...", i + 1, len(self.recruitment_criteria))
             res = call_function(criterion.function, {"experiment": self})
             assert isinstance(res, bool)
             logger.info(

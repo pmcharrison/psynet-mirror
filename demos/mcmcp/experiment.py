@@ -123,23 +123,26 @@ class Exp(dlgr_utils.experiment.Experiment):
             source_class=CustomSource,
             phase="experiment",
             time_allotted_per_trial=5,
-            chain_type="within",
-            num_trials_per_participant=20,
-            num_chains_per_participant=6,
-            num_chains_per_experiment=None,
-            num_nodes_per_chain=5,
+            chain_type="across",
+            num_trials_per_participant=6,
+            num_chains_per_participant=None,
+            num_chains_per_experiment=10,
+            num_nodes_per_chain=3,
             trials_per_node=1,
             active_balancing_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
-            fail_trials_on_participant_performance_check=True
+            fail_trials_on_participant_performance_check=True,
+            recruit_mode="num_trials",
+            target_num_participants=None
         ),
         InfoPage("You finished the experiment!", time_allotted=0),
+        # CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
         SuccessfulEndPage()
     )
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 1
+        self.initial_recruitment_size = 2
 
 extra_routes = Exp().extra_routes()

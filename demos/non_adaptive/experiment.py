@@ -113,8 +113,8 @@ class Exp(dlgr_utils.experiment.Experiment):
             target_num_trials_per_stimulus=3,
             recruit_mode="num_trials"
         ),
-        CodeBlock(lambda experiment: experiment.recruit()),
         InfoPage("You finished the animal questions!", time_allotted=0),
+        CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
         SuccessfulEndPage()
     )
 

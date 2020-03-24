@@ -142,6 +142,12 @@ class TrialGenerator(Module):
         recruit_mode: str,
         target_num_participants: Optional[int]
     ):
+        if recruit_mode == "num_participants" and target_num_participants is None:
+            raise ValueError("If <recruit_mode> == 'num_participants', then <target_num_participants> must be provided.")
+
+        if recruit_mode == "num_trials" and target_num_participants is not None:
+            raise ValueError("If <recruit_mode> == 'num_trials', then <target_num_participants> must be None.")
+
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
         self.phase = phase
@@ -550,6 +556,7 @@ class TrialNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
 
     trial_type = claim_field(1, str)
+    target_num_trials = claim_field(2, int)
 
     def add_node(self, node):
         raise NotImplementedError
@@ -585,6 +592,6 @@ class TrialNetwork(Network):
         return dallinger.models.Node.query.filter_by(network_id=self.id).count()
 
     @property
-    def num_complete_trials(self):
+    def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
 
