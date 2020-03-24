@@ -46,7 +46,20 @@ Run the demo with `dallinger debug --verbose`.
 This is simply achieved by adding the following line to your `requirements.txt` file:
 
 ```
--e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils#egg=dlgr_utils
+-e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils.git#egg=dlgr_utils
+```
+
+It is wise to point to a particular commit so that your experiment doesn't 
+get broken by future changes to the `dlgr_utils` package. You can do this as follows:
+
+```
+-e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils.git@<put your commit hash here>#egg=dlgr_utils
+```
+
+e.g. 
+
+```
+-e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils.git@6b8523d9c14198060cffa3a7f6d4c7fc5993a0a8#egg=dlgr_utils
 ```
 
 # Monitor
