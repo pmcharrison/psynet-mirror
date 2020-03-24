@@ -59,7 +59,7 @@ get broken by future changes to the `dlgr_utils` package. You can do this as fol
 e.g. 
 
 ```
--e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils.git@6b8523d9c14198060cffa3a7f6d4c7fc5993a0a8#egg=dlgr_utils
+-e git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils.git@91b979054b8eda4c2c1d9815f8a2fe0093038018#egg=dlgr_utils
 ```
 
 # Monitor
