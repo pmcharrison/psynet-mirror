@@ -1,11 +1,14 @@
+# pylint: disable=unused-argument
+
 import json
-from typing import Union
+from typing import Union, Optional
 import datetime
 
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
 
+from ..participant import Participant
 from ..field import claim_field, claim_var, VarStore
 
 from ..timeline import (
@@ -15,13 +18,17 @@ from ..timeline import (
     UnsuccessfulEndPage,
     ExperimentSetupRoutine,
     ParticipantFailRoutine,
+    RecruitmentCriterion,
     BackgroundTask,
     Module,
+    NullElt,
     conditional,
     while_loop,
     reactive_seq,
     join
 )
+
+from ..utils import call_function
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -30,6 +37,8 @@ from sqlalchemy.sql.expression import cast
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
+
+import rpdb
 
 # pylint: disable=unused-import
 import rpdb
@@ -129,7 +138,9 @@ class TrialGenerator(Module):
         check_performance_every_trial: bool,
         fail_trials_on_premature_exit: bool,
         fail_trials_on_participant_performance_check: bool,
-        propagate_failure: bool
+        propagate_failure: bool,
+        recruit_mode: str,
+        target_num_participants: Optional[int]
     ):
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
@@ -141,10 +152,13 @@ class TrialGenerator(Module):
         self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
         self.fail_trials_on_participant_performance_check = fail_trials_on_participant_performance_check
         self.propagate_failure = propagate_failure
+        self.recruit_mode = recruit_mode
+        self.target_num_participants = target_num_participants
 
         elts = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
-            ParticipantFailRoutine("trial_generator", self.participant_fail_routine),
+            ParticipantFailRoutine(self.with_namespace(), self.participant_fail_routine),
+            RecruitmentCriterion(self.with_namespace(), self.recruit_criterion),
             self.fail_old_trials_task,
             CodeBlock(self.init_participant),
             self._trial_loop(),
@@ -152,6 +166,24 @@ class TrialGenerator(Module):
             self._check_performance_logic() if check_performance_at_end else None
         )
         super().__init__(label=self.with_namespace(), elts=elts)
+
+    participant_progress_threshold = 0.1
+
+    @property
+    def num_complete_participants(self):
+        return Participant.query.filter_by(complete=True).count()
+
+    @property
+    def num_working_participants(self):
+        return Participant.query.filter_by(status="working", failed=False).count()
+
+    @property
+    def num_viable_participants(self):
+        return 
+
+    # def recruitment_criterion(self, experiment):
+    #     """Should return True if more participants are required."""
+    #     raise NotImplementedError
 
     def prepare_trial(self, experiment, participant):
         """Should return a Trial object."""
@@ -183,6 +215,69 @@ class TrialGenerator(Module):
             interval_sec=self.trial_timeout_check_interval
         )
 
+        # This could go up a few levels in the hierarchy
+    def recruit_criterion(self, experiment):
+        """Should return True if more participants are required."""
+        try:
+            function = {
+                None: self.null_criterion,
+                "num_participants": self.num_participants_criterion,
+                "num_trials": self.num_trials_criterion
+            }[self.recruit_mode]
+            return call_function(function, {"experiment": experiment})
+        except KeyError:
+            raise ValueError(f"Invalid recruitment mode: {self.recruit_mode}")
+
+    @staticmethod
+    def null_criterion(self, experiment):
+        logger.info("Recruitment is disabled for this module.")
+        return False
+
+    def num_participants_criterion(self, experiment):
+        logger.info(
+            "Target number of participants = %i, number of completed participants = %i, number of working participants = %i.",
+            self.target_num_participants,
+            self.num_complete_participants, 
+            self.num_working_participants
+        )
+        return (self.num_complete_participants + self.num_working_participants) < self.target_num_participants
+
+    def num_trials_criterion(self, experiment):
+        num_trials_still_required = self.num_trials_still_required
+        num_trials_pending = self.num_trials_pending
+        logger.info(
+            "Number of trials still required = %i, number of pending trials = %i.",
+            num_trials_still_required,
+            num_trials_pending
+        )
+        return num_trials_still_required > num_trials_pending
+
+    @property
+    def num_trials_pending(self):
+        return sum([self.estimate_num_pending_trials(p) for p in self.established_working_participants])
+
+    @property
+    def num_trials_still_required(self):
+        raise NotImplementedError
+
+    def estimate_num_pending_trials(self, participant):
+        return self.expected_num_trials - self.get_num_completed_trials_in_phase(participant)
+
+    @property
+    def working_participants(self):
+        return (
+            Participant
+                .query
+                .filter_by(status="working", failed=False)
+        )
+
+    @property
+    def established_working_participants(self):
+        return [
+            p for p in self.working_participants 
+            if p.estimate_progress() > self.participant_progress_threshold
+        ]
+        
     def fail_old_trials(self):
         time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.trial_timeout_sec)
         trials_to_fail = (
@@ -371,7 +466,9 @@ class NetworkTrialGenerator(TrialGenerator):
         fail_trials_on_premature_exit,
         fail_trials_on_participant_performance_check,
         # latest performance check is saved in as a participant variable (value, success)
-        propagate_failure
+        propagate_failure,
+        recruit_mode,
+        target_num_participants
     ):
         super().__init__(
             trial_class=trial_class, 
@@ -382,7 +479,9 @@ class NetworkTrialGenerator(TrialGenerator):
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            propagate_failure=propagate_failure
+            propagate_failure=propagate_failure,
+            recruit_mode=recruit_mode,
+            target_num_participants=target_num_participants
         )
         self.network_class = network_class
 
@@ -428,15 +527,24 @@ class NetworkTrialGenerator(TrialGenerator):
         experiment.save()
         return trial
 
-    def count_networks(self):
+    @property
+    def network_query(self):
         return (
-            self.network_class.query
-                              .filter_by(
-                                  trial_type=self.trial_type,
-                                  phase=self.phase
-                                )   
-                              .count()
+            self.network_class
+                .query
+                .filter_by(
+                    trial_type=self.trial_type,
+                    phase=self.phase
+                )  
         )
+
+    @property
+    def num_networks(self):
+        return self.network_query.count()
+
+    @property
+    def networks(self):
+        return self.network_query.all()
 
 class TrialNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "trial_network"}

@@ -1012,6 +1012,12 @@ class ParticipantFailRoutine(NullElt):
         self.label = label
         self.function = function
 
+class RecruitmentCriterion(NullElt):
+    def __init__(self, label, function):
+        check_function_args(function, args=["experiment"], need_all=False)
+        self.label = label
+        self.function = function
+
 # class RegisterBackgroundTasks(NullElt):
 #     def __init__(self, tasks):
 #         assert isinstance(tasks, list)

@@ -1,7 +1,10 @@
 import random
+import operator
 from statistics import mean
 from typing import Optional
 from collections import Counter
+from functools import reduce
+
 
 from sqlalchemy.sql.expression import not_
 
@@ -10,12 +13,23 @@ import dallinger.nodes
 
 from ..field import claim_field
 from .main import Trial, TrialNetwork, NetworkTrialGenerator
+from ..participant import Participant
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 # pylint: disable=unused-import
 import rpdb
 
 class NonAdaptiveTrial(Trial):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
+
+    stimulus_id = claim_field(4, int)
+
+    def __init__(self, experiment, node, participant, propagate_failure):
+        super().__init__(experiment, node, participant, propagate_failure)
+        self.stimulus_id = self.stimulus_version.stimulus_id
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
@@ -24,13 +38,14 @@ class NonAdaptiveTrial(Trial):
     def stimulus_version(self):
         return self.origin
 
-    @property
-    def stimulus_id(self):
-        return self.origin.stimulus_id
+    # @property
+    # def stimulus_id(self):
+    #     return self.origin.stimulus_id
 
     @property
     def stimulus(self):
-        return Stimulus.query.filter_by(id=self.stimulus_id).one()
+        return self.origin.stimulus
+        # return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
     @property
     def phase(self):
@@ -57,7 +72,10 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         phase,
         stimulus_set,
         time_allotted_per_trial,
+        target_num_participants: Optional[int],
+        target_num_trials_per_stimulus: Optional[int],
         new_participant_group: bool,
+        recruit_mode: Optional[str],
         max_trials_per_block: Optional[int]=None,
         allow_repeated_stimuli=False,
         max_unique_stimuli_per_block: Optional[int]=None,
@@ -66,9 +84,16 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         check_performance_at_end=False,
         check_performance_every_trial=False,
         fail_trials_on_premature_exit=True,
-        fail_trials_on_participant_performance_check=True
+        fail_trials_on_participant_performance_check=True,
     ):
+        if (target_num_participants is None) and (target_num_trials_per_stimulus is None):
+            raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be None.")
+        if (target_num_participants is not None) and (target_num_trials_per_stimulus is not None):
+            raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided.")
+
         self.stimulus_set = stimulus_set
+        self.target_num_participants = target_num_participants
+        self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
         self.new_participant_group = new_participant_group
         self.max_trials_per_block = max_trials_per_block
         self.allow_repeated_stimuli = allow_repeated_stimuli
@@ -87,7 +112,20 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            propagate_failure=False
+            propagate_failure=False,
+            recruit_mode=recruit_mode,
+            target_num_participants=target_num_participants
+        )
+
+    @property 
+    def num_trials_still_required(self):
+        return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
+
+    @property
+    def stimuli(self):
+        return reduce(
+            operator.add, 
+            [n.stimuli for n in self.networks]
         )
 
     def init_participant(self, experiment, participant):
@@ -120,7 +158,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def finalise_trial(self, answer, trial, experiment, participant):
         super().finalise_trial(answer, trial, experiment, participant)
         self.increment_completed_stimuli_in_phase_and_block(participant, trial.block, trial.stimulus_id)
-        trial.stimulus.num_completed_trials += 1
+        # trial.stimulus.num_completed_trials += 1
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
@@ -197,7 +235,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         pass
 
     def experiment_setup_routine(self, experiment):
-        if self.count_networks() == 0:
+        if self.num_networks == 0:
             self.create_networks(experiment)
 
     def choose_block_order(self, experiment, participant):
@@ -221,7 +259,11 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
 
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
-            network_spec.create_network(trial_type=self.trial_type, experiment=experiment)
+            network_spec.create_network(
+                trial_type=self.trial_type, 
+                experiment=experiment, 
+                target_num_trials_per_stimulus=self.target_num_trials_per_stimulus
+            )
         experiment.save()
         
     def find_networks(self, participant, experiment):
@@ -338,14 +380,14 @@ class NonAdaptiveNetwork(TrialNetwork):
     participant_group = claim_field(2, str)
     block = claim_field(3, str)
 
-    def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment):
+    def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group
         self.block = block
         super().__init__(trial_type, phase, experiment)
         if self.num_nodes == 0:
-            self.populate(stimulus_set, experiment)
+            self.populate(stimulus_set, experiment, target_num_trials_per_stimulus)
 
-    def populate(self, stimulus_set, experiment):
+    def populate(self, stimulus_set, experiment, target_num_trials_per_stimulus):
         source = dallinger.nodes.Source(network=self)
         experiment.session.add(source)
         stimulus_specs = [
@@ -355,14 +397,31 @@ class NonAdaptiveNetwork(TrialNetwork):
             and x.block == self.block
         ]
         for stimulus_spec in stimulus_specs:
-            stimulus_spec.add_stimulus_to_network(network=self, source=source, experiment=experiment)
+            stimulus_spec.add_stimulus_to_network(
+                network=self, 
+                source=source, 
+                experiment=experiment, 
+                target_num_trials=target_num_trials_per_stimulus
+            )
         experiment.save()
+
+    @property
+    def stimulus_query(self):
+        return Stimulus.query.filter_by(network_id=self.id)
+
+    @property
+    def stimuli(self):
+        return self.stimulus_query.all()
+
+    @property
+    def num_stimuli(self):
+        return self.stimulus_query.count()
 
 
 class Stimulus(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
-    num_completed_trials = claim_field(1, int)
+    target_num_trials = claim_field(1, int)
 
     @property
     def definition(self):
@@ -372,7 +431,6 @@ class Stimulus(dallinger.models.Node):
     def definition(self, definition):
         self.details = definition
 
-    
     @property 
     def phase(self):
         return self.network.phase
@@ -385,16 +443,33 @@ class Stimulus(dallinger.models.Node):
     def block(self):
         return self.network.block
 
+    @property 
+    def _query_completed_trials(self):
+        return (
+            NonAdaptiveTrial
+                .query
+                .filter_by(stimulus_id=self.id, failed=False, complete=True)
+        )
 
-    def __init__(self, stimulus_spec, network, source):
+    @property
+    def num_completed_trials(self):
+        return self._query_completed_trials.count()
+
+    @property 
+    def num_trials_still_required(self):
+        if self.target_num_trials is None:
+            raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
+        return self.target_num_trials - self.num_completed_trials
+
+    def __init__(self, stimulus_spec, network, source, target_num_trials):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
 
         super().__init__(network=network)
         self.definition = stimulus_spec.definition
-        self.num_completed_trials = 0
         source.connect(whom=self)
+        self.target_num_trials = target_num_trials
 
 class StimulusSpec():
     def __init__(
@@ -417,8 +492,8 @@ class StimulusSpec():
         self.participant_group = participant_group
         self.block = block
 
-    def add_stimulus_to_network(self, network, source, experiment):
-        stimulus = Stimulus(self, network=network, source=source)
+    def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
+        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
         experiment.session.add(stimulus)
         
         for version_spec in self.version_specs:
@@ -519,13 +594,14 @@ class NetworkSpec():
         self.block = block
         self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
 
-    def create_network(self, trial_type, experiment):
+    def create_network(self, trial_type, experiment, target_num_trials_per_stimulus):
         network = NonAdaptiveNetwork(
             trial_type=trial_type,
             phase=self.phase,
             participant_group=self.participant_group,
             block=self.block,
             stimulus_set=self.stimulus_set,
-            experiment=experiment
+            experiment=experiment,
+            target_num_trials_per_stimulus=target_num_trials_per_stimulus
         )
         experiment.session.add(network)

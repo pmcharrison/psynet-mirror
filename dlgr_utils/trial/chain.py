@@ -169,18 +169,18 @@ class ChainNode(dallinger.models.Node):
         return self.num_completed_trials >= self.target_num_trials
 
     @property 
-    def query_completed_trials(self):
+    def _query_completed_trials(self):
         return Trial.query.filter_by(
             origin_id=self.id, failed=False, complete=True
         )
 
     @property 
     def completed_trials(self):
-        return self.query_completed_trials.all()
+        return self._query_completed_trials.all()
 
     @property
     def num_completed_trials(self):
-        return self.query_completed_trials.count()
+        return self._query_completed_trials.count()
 
     @property
     def num_viable_trials(self):
@@ -342,7 +342,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         participant.set_var(self.with_namespace("participated_networks"), networks)
 
     def experiment_setup_routine(self, experiment):
-        if self.count_networks() == 0 and self.chain_type == "across":
+        if self.num_networks == 0 and self.chain_type == "across":
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant):

@@ -10,10 +10,34 @@ RegisterRecruitCriterion
 
 # TODO 
 
-- implement debug route
-- test propagate_failure_to_children # this is just for chain experiments 
 - Implement recruitment criterion
 - Implement trial-level quality checks
 
 
-- redefine full?
+# nonadaptive:
+
+for each block, compute num participants required for each stimulus
+
+{
+	"1": 1,
+	"2": 3,
+	"3", 2,
+	"5", 5
+}
+
+assume active balancing...
+for each participant, simulate the process of assigning 
+
+
+
+
+check what the existing participants can do
+- if max_unique_stimuli_per_block, then take max_unique_stimuli_per_block minus complete stimuli,
+or 
+
+
+how many more participants required by block?
+- target num_participants_per_stimulus * number of stimuli required in block
+
+how many trials can the participant do in each block?
+- max_trials_per_block OR 

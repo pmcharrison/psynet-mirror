@@ -20,6 +20,7 @@ from .timeline import (
     FailedValidation, 
     ExperimentSetupRoutine, 
     ParticipantFailRoutine,
+    RecruitmentCriterion,
     BackgroundTask
 )
 from .utils import get_arg_from_dict, call_function
@@ -52,12 +53,16 @@ class Experiment(dallinger.experiment.Experiment):
         
         self._background_tasks = []
         self.participant_fail_routines = []
+        self.recruitment_criteria = []
 
         if session:
             self.setup()
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
+
+    def register_recruitment_criterion(self, criterion):
+        self.recruitment_criteria.append(criterion)
 
     @property
     def background_tasks(self):
@@ -78,6 +83,8 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_background_task(elt.daemon)
             if isinstance(elt, ParticipantFailRoutine):
                 self.register_participant_fail_routine(elt)
+            if isinstance(elt, RecruitmentCriterion):
+                self.register_recruitment_criterion(elt)
 
     def fail_participant(self, participant):
         logger.info(
@@ -95,6 +102,32 @@ class Experiment(dallinger.experiment.Experiment):
                 routine.label
             )
             call_function(routine.function, {"participant": participant, "experiment": self})
+
+    def recruit(self):
+        logger.info("Evaluating recruitment criteria (%i found)...", len(self.recruitment_criteria))
+        complete = True
+        for i, criterion in enumerate(self.recruitment_criteria):
+            logger.info("Evaluating recruitment criterion %i/%i...", i, len(self.recruitment_criteria))
+            res = call_function(criterion.function, {"experiment": self})
+            assert isinstance(res, bool)
+            logger.info(
+                "Recruitment criterion %i/%i ('%s') %s.", 
+                i + 1, 
+                len(self.recruitment_criteria),
+                criterion.label,
+                (
+                    "returned True (more participants needed)." if res 
+                    else "returned False (no more participants needed)."
+                )
+            )
+            if res:
+                complete = False
+        if complete:
+            logger.info("Conclusion: no recruitment required.")
+            self.recruiter.close_recruitment()
+        else:
+            logger.info("Conclusion: recruiting another participant.")
+            self.recruiter.recruit(n=1)
 
     def assignment_abandoned(self, participant):
         participant.append_failure_tags("assignment_abandoned", "premature_exit")

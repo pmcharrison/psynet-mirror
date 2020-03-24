@@ -108,14 +108,18 @@ class Exp(dlgr_utils.experiment.Experiment):
             active_balancing_within_participants=True,
             active_balancing_across_participants=True,
             check_performance_at_end=True,
-            check_performance_every_trial=True
+            check_performance_every_trial=True,
+            target_num_participants=None,
+            target_num_trials_per_stimulus=3,
+            recruit_mode="num_trials"
         ),
+        CodeBlock(lambda experiment: experiment.recruit()),
         InfoPage("You finished the animal questions!", time_allotted=0),
         SuccessfulEndPage()
     )
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 1
+        self.initial_recruitment_size = 2
 
 extra_routes = Exp().extra_routes()
