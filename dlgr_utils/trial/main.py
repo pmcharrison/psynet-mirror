@@ -549,6 +549,16 @@ class NetworkTrialGenerator(TrialGenerator):
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         super().finalise_trial(answer, trial, experiment, participant)
+        if self.async_finalise_trial or self.async_update_network:
+            q = Queue("default", connection = redis_conn)
+        if self.async_finalise_trial:
+            trial.ready = False
+            db.session.commit()
+            q.enqueue(self.async_update_network, trial.id, self.async_update_network, trial.network.id)
+        else:
+            network.ready = False
+            q.enqueue(self.async_update_network, network.id)
+
         self._update_network(trial.network, participant, experiment)
 
     def _update_network(self, network, participant, experiment):
