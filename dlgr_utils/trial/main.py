@@ -3,10 +3,14 @@
 import json
 from typing import Union, Optional
 import datetime
+import time
 
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
+
+from rq import Queue
+from dallinger.db import redis_conn
 
 from ..participant import Participant
 from ..field import claim_field, claim_var, VarStore
@@ -474,7 +478,8 @@ class NetworkTrialGenerator(TrialGenerator):
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
         recruit_mode,
-        target_num_participants
+        target_num_participants,
+        async_update_network: Optional[str] = None # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
     ):
         super().__init__(
             trial_class=trial_class, 
@@ -490,6 +495,7 @@ class NetworkTrialGenerator(TrialGenerator):
             target_num_participants=target_num_participants
         )
         self.network_class = network_class
+        self.async_update_network = async_update_network
 
     #### The following methods are overwritten from TrialGenerator.
     #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
@@ -498,7 +504,6 @@ class NetworkTrialGenerator(TrialGenerator):
         networks = self.find_networks(participant=participant, experiment=experiment)
         logger.info("Found %i network(s) for participant %i.", len(networks), participant.id)
         for network in networks:
-            self.grow_network(network=network, participant=participant, experiment=experiment)
             node = self.find_node(network=network, participant=participant, experiment=experiment)
             if node is not None:
                 logger.info("Attached node %i to participant %i.", node.id, participant.id)
@@ -527,11 +532,33 @@ class NetworkTrialGenerator(TrialGenerator):
         """Should find the node to which the participant should be attached for the next trial."""
         raise NotImplementedError
 
+    @staticmethod
+    def async_update_network(network_id):
+        logger.info("Running async_update_network for network %i, nothing to do.", network_id)
+        network = Network.query.filter_by(id=network_id).one()
+        time.sleep(5)
+        network.ready = True
+        db.session.commit()
+
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(experiment, node, participant, self.propagate_failure)
         experiment.session.add(trial)
         experiment.save()
         return trial
+
+    def finalise_trial(self, answer, trial, experiment, participant):
+        # pylint: disable=unused-argument,no-self-use
+        super().finalise_trial(answer, trial, experiment, participant)
+        self._update_network(trial.network, participant, experiment)
+
+    def _update_network(self, network, participant, experiment):
+        self.grow_network(network, participant, experiment)
+        if self.async_update_network:
+            # See dlgr_utils.trial.async_example.async_update_network for an example
+            network.ready = False
+            db.session.commit()
+            q = Queue("default", connection = redis_conn)
+            q.enqueue(self.async_update_network, network.id)
 
     @property
     def network_query(self):
@@ -557,6 +584,7 @@ class TrialNetwork(Network):
 
     trial_type = claim_field(1, str)
     target_num_trials = claim_field(2, int)
+    ready = claim_field(3, bool)
 
     def add_node(self, node):
         raise NotImplementedError
@@ -586,6 +614,7 @@ class TrialNetwork(Network):
         # pylint: disable=unused-argument
         self.trial_type = trial_type
         self.phase = phase
+        self.ready = True
         
     @property
     def num_nodes(self):
@@ -595,3 +624,11 @@ class TrialNetwork(Network):
     def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
 
+
+# def my_fun(network_id):
+#     from .chain import ChainNetwork
+#     logger.info("Running async_update_network for network %i, nothing to do.", network_id)
+#     network = Network.query.filter_by(id=network_id).one()
+#     time.sleep(5)
+#     network.ready = True
+#     db.session.commit()

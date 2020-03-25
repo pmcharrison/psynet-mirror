@@ -109,7 +109,8 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=False,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants
+            target_num_participants=target_num_participants,
+            async_update_network=None
         )
 
     @property 
@@ -270,7 +271,8 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
                               .filter_by(
                                   trial_type=self.trial_type,
                                   participant_group=self.get_participant_group(participant),
-                                  phase=self.phase
+                                  phase=self.phase,
+                                  ready=True
                               )
                               .filter(NonAdaptiveNetwork.block.in_(block_order))
                               .all()
@@ -372,8 +374,8 @@ class NonAdaptiveNetwork(TrialNetwork):
     
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
     
-    participant_group = claim_field(2, str)
-    block = claim_field(3, str)
+    participant_group = claim_field(4, str)
+    block = claim_field(5, str)
 
     def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group

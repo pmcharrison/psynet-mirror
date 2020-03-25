@@ -113,7 +113,10 @@ class Exp(dlgr_utils.experiment.Experiment):
             trials_per_node=1,
             active_balancing_across_chains=True,
             check_performance_at_end=False,
-            check_performance_every_trial=False
+            check_performance_every_trial=False,
+            recruit_mode="num_participants",
+            target_num_participants=10,
+            async_update_network=True
         ),
         InfoPage("You finished the experiment!", time_allotted=0),
         SuccessfulEndPage()

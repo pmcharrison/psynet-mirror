@@ -13,6 +13,7 @@ class GibbsTrial(ChainTrial):
         raise NotImplementedError
 
     def make_definition(self, node, experiment, participant):
+        # TODO : randomise the starting point
         return node.definition
 
     @property 

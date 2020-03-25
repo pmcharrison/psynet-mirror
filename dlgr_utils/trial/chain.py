@@ -18,8 +18,8 @@ class ChainNetwork(TrialNetwork):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
-    participant_id = claim_field(3, int)
-    id_within_participant = claim_field(4, int)
+    participant_id = claim_field(4, int)
+    id_within_participant = claim_field(5, int)
 
     chain_type = claim_var("_chain_type")
     trials_per_node = claim_var("_trials_per_node")
@@ -274,6 +274,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         check_performance_at_end,
         check_performance_every_trial,
         recruit_mode,
+        async_update_network=None,
         target_num_participants=None,
         fail_trials_on_premature_exit=False,
         fail_trials_on_participant_performance_check=False,
@@ -317,7 +318,8 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants
+            target_num_participants=target_num_participants,
+            async_update_network=async_update_network
         )
     
     def init_participant(self, experiment, participant):
@@ -382,6 +384,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         )
         experiment.session.add(network)
         experiment.save()
+        self._update_network(network, participant, experiment)
         return network
     
     def on_complete(self, experiment, participant):
@@ -394,7 +397,8 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         networks = self.network_class.query.filter_by(
             trial_type=self.trial_type,
             phase=self.phase,
-            full=False
+            full=False,
+            ready=True
         )
 
         if self.chain_type == "within":

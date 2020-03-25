@@ -85,10 +85,16 @@ class FloatField(Field):
 class BoolField(Field):
     def __init__(self, db_index):
         def from_db(x):
-            return bool(int(x))
+            if x == "True":
+                return True
+            elif x == "False":
+                return False
+            else:
+                raise TypeError(f"Invalid value for BoolField: '{x}'.")
 
         def to_db(x):
-            return repr(int(x))
+            # return repr(int(x))
+            return repr(bool(x))
 
         super().__init__(db_index, from_db, to_db, [bool], Boolean)
 
