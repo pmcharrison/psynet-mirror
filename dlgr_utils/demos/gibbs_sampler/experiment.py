@@ -9,6 +9,9 @@ from statistics import mean
 import random
 import re
 from typing import Union, List
+import time
+
+from dallinger import db
 
 import dlgr_utils.experiment
 from dlgr_utils.field import claim_field
@@ -28,6 +31,7 @@ from dlgr_utils.timeline import (
     FailedValidation,
     ResponsePage
 )
+from dlgr_utils.trial.chain import ChainNetwork
 from dlgr_utils.trial.gibbs_sampler import (
     GibbsTrial, GibbsNode, GibbsSource, GibbsTrialGenerator
 )
@@ -123,6 +127,41 @@ class CustomSource(GibbsSource):
             raise ValueError(f"Unidentified chain type: {network.chain_type}")
         return TARGETS[index % len(TARGETS)]
 
+trial_generator = GibbsTrialGenerator(
+    trial_class=CustomTrial,
+    node_class=CustomNode, 
+    source_class=CustomSource,
+    phase="experiment",
+    time_allotted_per_trial=5,
+    chain_type="within",
+    num_trials_per_participant=20,
+    num_nodes_per_chain=5,
+    num_chains_per_participant=5,
+    num_chains_per_experiment=None,
+    trials_per_node=1,
+    active_balancing_across_chains=True,
+    check_performance_at_end=False,
+    check_performance_every_trial=False,
+    propagate_failure=False,
+    recruit_mode="num_participants",
+    target_num_participants=10,
+    async_post_trial="dlgr_utils.demos.gibbs_sampler.experiment.async_post_trial",
+    async_post_grow_network="dlgr_utils.demos.gibbs_sampler.experiment.async_post_grow_network"
+)
+
+def async_post_trial(trial_id):
+    logger.info("Running async_post_trial for trial %i...", trial_id)
+    trial = CustomTrial.query.filter_by(id=trial_id).one()
+    time.sleep(5)
+    trial.awaiting_process = False
+    db.session.commit()
+
+def async_post_grow_network(network_id):
+    logger.info("Running async_post_grow_network for network %i...", network_id)
+    network = ChainNetwork.query.filter_by(id=network_id).one()
+    time.sleep(0)
+    network.awaiting_process = False
+    db.session.commit()
 
 ##########################################################################################
 #### Experiment
@@ -133,26 +172,7 @@ class CustomSource(GibbsSource):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        GibbsTrialGenerator(
-            trial_class=CustomTrial,
-            node_class=CustomNode, 
-            source_class=CustomSource,
-            phase="experiment",
-            time_allotted_per_trial=5,
-            chain_type="within",
-            num_trials_per_participant=20,
-            num_nodes_per_chain=5,
-            num_chains_per_participant=5,
-            num_chains_per_experiment=None,
-            trials_per_node=1,
-            active_balancing_across_chains=True,
-            check_performance_at_end=False,
-            check_performance_every_trial=False,
-            propagate_failure=False,
-            recruit_mode="num_participants",
-            target_num_participants=10,
-            async_update_network=None
-        ),
+        trial_generator,
         InfoPage("You finished the experiment!", time_allotted=0),
         SuccessfulEndPage()
     )

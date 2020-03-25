@@ -25,7 +25,7 @@ import rpdb
 class NonAdaptiveTrial(Trial):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
 
-    stimulus_id = claim_field(4, int)
+    stimulus_id = claim_field(5, int)
 
     def __init__(self, experiment, node, participant, propagate_failure):
         super().__init__(experiment, node, participant, propagate_failure)
@@ -272,7 +272,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
                                   trial_type=self.trial_type,
                                   participant_group=self.get_participant_group(participant),
                                   phase=self.phase,
-                                  ready=True
+                                  awaiting_process=False
                               )
                               .filter(NonAdaptiveNetwork.block.in_(block_order))
                               .all()

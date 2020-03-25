@@ -55,6 +55,7 @@ class Trial(Info):
     participant_id = claim_field(1, int)
     complete = claim_field(2, bool)
     answer = claim_field(3)
+    awaiting_process = claim_field(4, bool)
 
     propagate_failure = claim_var("propagate_failure")
 
@@ -91,6 +92,7 @@ class Trial(Info):
     def __init__(self, experiment, node, participant, propagate_failure):
         super().__init__(origin=node)
         self.complete = False
+        self.awaiting_process = False
         self.participant_id = participant.id
         self.definition = self.make_definition(node, experiment, participant)
         self.propagate_failure = propagate_failure
@@ -479,7 +481,8 @@ class NetworkTrialGenerator(TrialGenerator):
         propagate_failure,
         recruit_mode,
         target_num_participants,
-        async_update_network: Optional[str] = None # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
+        async_post_trial: Optional[str] = None, # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
+        async_post_grow_network: Optional[str] = None
     ):
         super().__init__(
             trial_class=trial_class, 
@@ -495,7 +498,8 @@ class NetworkTrialGenerator(TrialGenerator):
             target_num_participants=target_num_participants
         )
         self.network_class = network_class
-        self.async_update_network = async_update_network
+        self.async_post_trial = async_post_trial
+        self.async_post_grow_network = async_post_grow_network
 
     #### The following methods are overwritten from TrialGenerator.
     #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
@@ -525,20 +529,13 @@ class NetworkTrialGenerator(TrialGenerator):
         raise NotImplementedError
 
     def grow_network(self, network, participant, experiment):
-        """Should extend the network if necessary by adding one or more nodes."""
+        """Should extend the network if necessary by adding one or more nodes.
+        Should return True if any nodes were added."""
         raise NotImplementedError
 
     def find_node(self, network, participant, experiment):
         """Should find the node to which the participant should be attached for the next trial."""
         raise NotImplementedError
-
-    @staticmethod
-    def async_update_network(network_id):
-        logger.info("Running async_update_network for network %i, nothing to do.", network_id)
-        network = Network.query.filter_by(id=network_id).one()
-        time.sleep(5)
-        network.ready = True
-        db.session.commit()
 
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(experiment, node, participant, self.propagate_failure)
@@ -549,26 +546,21 @@ class NetworkTrialGenerator(TrialGenerator):
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         super().finalise_trial(answer, trial, experiment, participant)
-        if self.async_finalise_trial or self.async_update_network:
+        if self.async_post_trial:
+            trial.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-        if self.async_finalise_trial:
-            trial.ready = False
+            q.enqueue(self.async_post_trial, trial.id)
             db.session.commit()
-            q.enqueue(self.async_update_network, trial.id, self.async_update_network, trial.network.id)
-        else:
-            network.ready = False
-            q.enqueue(self.async_update_network, network.id)
+        self._grow_network(trial.network, participant, experiment)
 
-        self._update_network(trial.network, participant, experiment)
-
-    def _update_network(self, network, participant, experiment):
-        self.grow_network(network, participant, experiment)
-        if self.async_update_network:
-            # See dlgr_utils.trial.async_example.async_update_network for an example
-            network.ready = False
-            db.session.commit()
+    def _grow_network(self, network, participant, experiment):
+        grown = self.grow_network(network, participant, experiment)
+        assert isinstance(grown, bool)
+        if self.async_post_grow_network:
+            network.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-            q.enqueue(self.async_update_network, network.id)
+            q.enqueue(self.async_post_grow_network, network.id)
+            db.session.commit()
 
     @property
     def network_query(self):
@@ -594,7 +586,7 @@ class TrialNetwork(Network):
 
     trial_type = claim_field(1, str)
     target_num_trials = claim_field(2, int)
-    ready = claim_field(3, bool)
+    awaiting_process = claim_field(3, bool)
 
     def add_node(self, node):
         raise NotImplementedError
@@ -623,8 +615,8 @@ class TrialNetwork(Network):
     def __init__(self, trial_type, phase, experiment):
         # pylint: disable=unused-argument
         self.trial_type = trial_type
+        self.awaiting_process = False
         self.phase = phase
-        self.ready = True
         
     @property
     def num_nodes(self):
@@ -633,12 +625,3 @@ class TrialNetwork(Network):
     @property
     def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
-
-
-# def my_fun(network_id):
-#     from .chain import ChainNetwork
-#     logger.info("Running async_update_network for network %i, nothing to do.", network_id)
-#     network = Network.query.filter_by(id=network_id).one()
-#     time.sleep(5)
-#     network.ready = True
-#     db.session.commit()

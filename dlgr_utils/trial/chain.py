@@ -3,6 +3,8 @@ import datetime
 from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
 
+from typing import Optional
+
 from dallinger import db
 import dallinger.models
 import dallinger.nodes
@@ -274,8 +276,9 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         check_performance_at_end,
         check_performance_every_trial,
         recruit_mode,
-        async_update_network=None,
         target_num_participants=None,
+        async_post_trial: Optional[str] = None, # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
+        async_post_grow_network: Optional[str] = None,
         fail_trials_on_premature_exit=False,
         fail_trials_on_participant_performance_check=False,
         propagate_failure=True,
@@ -319,7 +322,8 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            async_update_network=async_update_network
+            async_post_trial=async_post_trial,
+            async_post_grow_network=async_post_grow_network
         )
     
     def init_participant(self, experiment, participant):
@@ -384,7 +388,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         )
         experiment.session.add(network)
         experiment.save()
-        self._update_network(network, participant, experiment)
+        self._grow_network(network, participant, experiment)
         return network
     
     def on_complete(self, experiment, participant):
@@ -398,7 +402,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             trial_type=self.trial_type,
             phase=self.phase,
             full=False,
-            ready=True
+            awaiting_process=False
         )
 
         if self.chain_type == "within":
@@ -431,6 +435,8 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             node = self.node_class(seed, head.degree + 1, network, experiment, self.propagate_failure, participant)
             experiment.session.add(node)
             network.add_node(node)
+            return True
+        return False
 
     def find_node(self, network, participant, experiment): 
         head = network.head

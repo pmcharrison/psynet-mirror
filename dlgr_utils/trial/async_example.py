@@ -11,5 +11,5 @@ def async_update_network(network_id):
     logger.info("Running async_update_network for network %i, nothing to do.", network_id)
     network = ChainNetwork.query.filter_by(id=network_id).one()
     time.sleep(5)
-    network.ready = True
+    network.awaiting_process = False
     db.session.commit()
