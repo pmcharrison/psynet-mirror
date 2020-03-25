@@ -152,7 +152,7 @@ trial_generator = GibbsTrialGenerator(
 def async_post_trial(trial_id):
     logger.info("Running async_post_trial for trial %i...", trial_id)
     trial = CustomTrial.query.filter_by(id=trial_id).one()
-    time.sleep(5)
+    time.sleep(1000)
     trial.awaiting_process = False
     db.session.commit()
 

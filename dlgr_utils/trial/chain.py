@@ -132,7 +132,7 @@ class ChainNode(dallinger.models.Node):
         raise NotImplementedError
 
     def create_seed(self, experiment, participant):
-        trials = self.completed_trials
+        trials = self.completed_and_processed_trials.all()
         return self.summarise_trials(trials, experiment, participant)
 
     def summarise_trials(self, trials, experiment, participant):
@@ -174,7 +174,15 @@ class ChainNode(dallinger.models.Node):
 
     @property 
     def ready_to_spawn(self):
-        return self.num_completed_trials >= self.target_num_trials
+        return self.completed_and_processed_trials.count() >= self.target_num_trials
+
+    @property
+    def completed_and_processed_trials(self):
+        return Trial.query.filter_by(
+            origin_id=self.id, failed=False, complete=True, awaiting_process=False
+        )
+
+    # TODO: we don't need 3 attributes here, just keep _query_completed_trials
 
     @property 
     def _query_completed_trials(self):

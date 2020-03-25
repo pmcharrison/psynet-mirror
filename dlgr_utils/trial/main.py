@@ -508,6 +508,8 @@ class NetworkTrialGenerator(TrialGenerator):
         networks = self.find_networks(participant=participant, experiment=experiment)
         logger.info("Found %i network(s) for participant %i.", len(networks), participant.id)
         for network in networks:
+            self._grow_network(network, participant, experiment)
+        for network in networks:
             node = self.find_node(network=network, participant=participant, experiment=experiment)
             if node is not None:
                 logger.info("Attached node %i to participant %i.", node.id, participant.id)
