@@ -6,3 +6,4 @@ dlgr_monitor.egg-info
 server.log
 dlgr_utils.egg-info
 .DS_Store
+.pytest_cache
