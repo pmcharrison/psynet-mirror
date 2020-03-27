@@ -1,24 +1,11 @@
 # This is a minimal experiment implementation for prototyping the monitor route.
-
-from flask import Blueprint, Response, render_template, abort, request, Markup
-from dallinger.experiment import Experiment
-from dallinger.models import Network, Info, Transformation, Node, Question
+import dallinger.deployment 
+from dallinger.models import Info, Node
 from dallinger.networks import Chain
 from dallinger.nodes import Source
-from dallinger import db, recruiters
-# from dallinger.models import Participant
-
-from dallinger.experiment_server.utils import (
-    success_response
-)
-
-import rpdb
 
 import dlgr_utils.experiment
-from dlgr_utils.field import claim_field
-from dlgr_utils.participant import Participant, get_participant
 from dlgr_utils.timeline import (
-    Page, 
     InfoPage, 
     Timeline,
     SuccessfulEndPage, 
@@ -27,9 +14,7 @@ from dlgr_utils.timeline import (
     TextInputPage,
     CodeBlock, 
     while_loop, 
-    conditional, 
-    switch,
-    reactive_seq
+    conditional
 )
 
 import logging
@@ -37,6 +22,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 from datetime import datetime
+
+dallinger.deployment.MAX_ATTEMPTS = 1
 
 # Weird bug: if you instead import Experiment from dlgr_utils.experiment,
 # Dallinger won't allow you to override the bonus method
