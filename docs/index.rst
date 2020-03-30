@@ -8,7 +8,8 @@ Welcome to the documentation for `dlgr_utils`!
    readme
    installation
    demo
-   usage
+   basic_usage
+   intro_tutorial
    modules
    contributing
    contributors
