@@ -5,47 +5,47 @@ Installation
 ============
 
 
-Stable release
---------------
+User installation
+-----------------
 
-To install Dallinger utilities, run this command in your terminal:
-
-.. code-block:: console
-
-    $ pip install -i https://test.pypi.org/simple/ dlgr_utils
-
-This is the preferred method to install Dallinger utilities, as it will always install the most recent stable release.
-
-If you don't have `pip`_ installed, this `Python installation guide`_ can guide
-you through the process.
-
-.. _pip: https://pip.pypa.io
-.. _Python installation guide: http://docs.python-guide.org/en/latest/starting/installation/
-
-
-From sources
-------------
-
-The sources for Dallinger utilities can be downloaded from the `Github repo`_.
-
-You can either clone the public repository:
+If you just want to use `dlgr_utils` in an experiment and you don't 
+need to run the demo or edit the source, you can simply install it with `pip`:
 
 .. code-block:: console
 
-    $ git clone git://github.com/pmcharrison/dlgr_utils
+    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
 
-Or download the `tarball`_:
+Note that you must have set up your GitLab SSH keys already.
+
+Developer installation
+------------------------------------
+
+If you want to run the `dlgr_utils` demo or if you think you 
+might want to edit the source some day, 
+it's better to install it as an editable repository using `pip`, as follows:
+
+Choose a location to put your installation, e.g. `~/cap`.
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/pmcharrison/dlgr_utils/tarball/master
+    cd ~/cap
+    git clone 
 
-Once you have a copy of the source, you can install it with:
+This will create folder called `dlgr_utils`.
+Navigate to this folder:
 
 .. code-block:: console
 
-    $ python setup.py install
+    cd dlgr_utils
 
 
-.. _Github repo: https://github.com/pmcharrison/dlgr_utils
-.. _tarball: https://github.com/pmcharrison/dlgr_utils/tarball/master
+Install with pip3 (make sure you are in the appropriate virtual environment
+already, e.g. by running `workon dlgr_env`):
+
+.. code-block:: console
+
+    pip3 install -e .
+
+The `-e` flag makes it editable.
+
+Run the demo with `dallinger debug --verbose`.

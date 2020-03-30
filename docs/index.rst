@@ -1,5 +1,5 @@
-Welcome to Dallinger utilities's documentation!
-======================================
+Welcome to the documentation for `dlgr_utils`!
+==============================================
 
 .. toctree::
    :maxdepth: 2
