@@ -60,13 +60,20 @@ class Experiment(dallinger.experiment.Experiment):
             "failed": v.failed
         } for v in Vector.query.all()]
 
+        jtrans = [{
+            "origin_id": t.info_in_id,
+            "destination_id": t.info_out_id,
+            "id": t.id,
+            "failed": t.failed
+        } for t in Transformation.query.all()]
+
         return {
-            "networks": jnetworks, 
-            "nodes": jnodes,  
-            "vectors": jvectors, 
-            "infos": jinfos, 
+            "networks": jnetworks,
+            "nodes": jnodes,
+            "vectors": jvectors,
+            "infos": jinfos,
             "participants": jparticipants,
-            "trans": []
+            "trans": jtrans
         }
 
     def network_stats(self):
@@ -77,19 +84,19 @@ class Experiment(dallinger.experiment.Experiment):
         nodes = Node.query.all()
         infos = Info.query.all()
         participants = Participant.query.all()
-    
+
         experiment_networks = set([net.id for net in networks if (net.role!= "practice")])
-    
+
         failed_nodes = [node for node in nodes if node.failed]
         failed_infos = [info for info in infos if info.failed]
 
         pct_failed_nodes = round(100.0*len(failed_nodes)/(0.001+len(nodes)))
         pct_failed_infos = round(100.0*len(failed_infos)/(0.001+len(infos)))
-    
+
         msg_networks = f"# networks = {len(networks)} (experiment= {len(experiment_networks)})"
         msg_nodes = f"# nodes = {len(nodes)} [failed= {len(failed_nodes)} ({pct_failed_nodes} %)]"
         msg_infos = f"# infos = {len(infos)} [failed= {len(failed_infos)} ({pct_failed_infos} %)]"
-        
+
         active_participants = 0
         relevant_participants = [p for p in participants if (p.status=="working")]
         for participant in relevant_participants:
@@ -112,7 +119,7 @@ class Experiment(dallinger.experiment.Experiment):
             'msg_infos': msg_infos,
             'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n"
         }
-    
+
     def render_monitor_template(self):
         res = self.network_structure()
         stat = self.network_stats()
@@ -138,7 +145,7 @@ class Experiment(dallinger.experiment.Experiment):
         if page_uuid == participant.page_uuid:
             res = self.timeline.get_current_elt(participant).process_response(data, participant)
             if res is RejectedResponse:
-                return self.response_rejected(message=res.message)            
+                return self.response_rejected(message=res.message)
             else:
                 self.timeline.advance_page(self, participant)
                 return self.response_approved()

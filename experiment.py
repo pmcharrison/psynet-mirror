@@ -27,12 +27,13 @@ logger = logging.getLogger(__file__)
 class Exp(Experiment):
     # You can customise these parameters ####
     num_networks = 3
-    num_nodes_per_network = 5
+    num_nodes_per_network = 3
     num_infos_per_node = 2
     network_roles = ["practice", "experiment"]
-#    network_roles = ["male", "female","other"] 
-#    network_roles = ["role1", "role2","role3","role4","role5","role6"]    
-    use_sources = True
+#    network_roles = ["male", "female","other"]
+#    network_roles = ["role1", "role2","role3","role4","role5","role6"]
+    use_sources = False
+    create_transformation = False
 
     timeline = Timeline([
         InfoPage("Page 1"),
@@ -82,9 +83,15 @@ class Exp(Experiment):
             network.add_node(node)
 
     def populate_node(self, node):
-        for _ in range(self.num_infos_per_node):
-            info = Info(node)
-            self.session.add(info)
+        if self.create_transformation:
+            info1 = Info(node)
+            info2 = Info(node)
+            self.session.add(info1)
+            self.session.add(info2)
+            Transformation(info_in=info2, info_out=info1)
+        else:
+            for _ in range(self.num_infos_per_node):
+                info = Info(node)
+                self.session.add(info)
 
 extra_routes = Exp().extra_routes()
-   
