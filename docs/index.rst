@@ -7,6 +7,7 @@ Welcome to the documentation for `dlgr_utils`!
 
    readme
    installation
+   demo
    usage
    modules
    contributing

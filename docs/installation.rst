@@ -1,3 +1,4 @@
+.. _installation:
 .. highlight:: shell
 
 ============
@@ -47,5 +48,3 @@ already, e.g. by running `workon dlgr_env`):
     pip3 install -e .
 
 The `-e` flag makes it editable.
-
-Run the demo with `dallinger debug --verbose`.
