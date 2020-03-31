@@ -1,7 +1,7 @@
-.. _ReactivePage:
+.. _CodeBlock:
 
-============
-ReactivePage
-============ 
+=========
+CodeBlock
+=========
 
-.. autoclass:: dlgr_utils.timeline.ReactivePage
+.. autoclass:: dlgr_utils.timeline.CodeBlock

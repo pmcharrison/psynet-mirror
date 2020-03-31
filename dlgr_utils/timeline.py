@@ -7,7 +7,7 @@ import time
 
 from flask import Markup
 
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Dict, Union, Callable
 
 from .utils import dict_to_js_vars, call_function, check_function_args
 from . import templates
@@ -1003,7 +1003,42 @@ class EndWhile(NullElt):
         super().__init__()
         self.label = label
 
-def while_loop(label, condition, logic, expected_repetitions: int, fix_time_credit=True):   
+def while_loop(label: str, condition: Callable, logic, expected_repetitions: int, fix_time_credit=True):   
+    """
+    Loops a series of test elements while a given criterion is satisfied.
+    The criterion function is evaluated once at the beginning of each loop.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    condition:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline,
+        returning a Boolean.
+
+    logic:
+        A test element (or list of test elements) to display while ``condition`` returns ``True``.
+
+    expected_repetitions:
+        The number of times the loop is expected to be seen by a given participant.
+        This doesn't have to be completely accurate, but it is used for estimating the length
+        of the total experiment.
+
+    fix_time_credit:
+        Whether participants should receive the same time credit irrespective of whether 
+        ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
+        receive the same credit.
+
+    Returns
+    -------
+
+    list
+        A list of test elements that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+    """
+
     start_while = StartWhile(label)
     end_while = EndWhile(label)
 
@@ -1041,7 +1076,47 @@ def check_branches(branches):
     except AssertionError:
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
-def switch(label, function, branches, fix_time_credit=True, log_chosen_branch=True):
+def switch(
+        label: str, 
+        function: Callable, 
+        branches: dict, 
+        fix_time_credit: bool = True, 
+        log_chosen_branch: bool = True
+    ):
+    """
+    Selects a series of test elements to display to the participant according to a
+    certain condition.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+
+    function:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline,
+        returning a key value with which to index ``branches``.
+
+    branches:
+        A dictionary indexed by the outputs of ``function``; each value should correspond
+        to a test element (or list of test elements) that can be selected by ``function``.
+
+    fix_time_credit:
+        Whether participants should receive the same time credit irrespective of whether 
+        ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
+        receive the same credit.
+
+    log_chosen_branch:
+        Whether to keep a log of which participants took each branch; defaults to ``True``.
+
+    Returns
+    -------
+
+    list
+        A list of test elements that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+    """
+
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
    
@@ -1097,13 +1172,47 @@ class EndSwitchBranch(GoTo):
         self.name = name
 
 def conditional(
-    label,
-    condition, 
+    label: str,
+    condition: Callable, 
     logic_if_true, 
     logic_if_false=None, 
-    fix_time_credit=True,
-    log_chosen_branch=True
+    fix_time_credit: bool = True,
+    log_chosen_branch: bool = True
     ):
+    """
+    Executes a series of test elements if and only if a certain condition is satisfied.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label to assign to the construct.
+    
+    condition:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline,
+        returning a Boolean.
+
+    logic_if_true:
+        A test element (or list of test elements) to display if ``condition`` returns ``True``.
+
+    logic_if_false:
+        An optional test element (or list of test elements) to display if ``condition`` returns ``False``.
+
+    fix_time_credit:
+        Whether participants should receive the same time credit irrespective of whether 
+        ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
+        receive the same credit.
+
+    log_chosen_branch:
+        Whether to keep a log of which participants took each branch; defaults to ``True``.
+
+    Returns
+    -------
+
+    list
+        A list of test elements that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+    """
     return switch(
         label, 
         function=condition, 

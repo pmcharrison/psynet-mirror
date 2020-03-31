@@ -78,6 +78,20 @@ See the documentation of individual classes for more guidance, for example:
 * :ref:`TextInputPage`
 * :ref:`NumberInputPage`
 * :ref:`NAFCPage`
+* :ref:`SuccessfulEndPage`
+* :ref:`UnsuccessfulEndPage`.
+
+``SuccessfulEndPage`` and ``UnsuccessfulEndPage`` are special page types
+used to complete a timeline; upon reaching one of these pages, the experiment will
+terminate and the participant will receive their payment. The difference
+between ``SuccessfulEndPage`` and ``UnsuccessfulEndPage`` is twofold:
+in the former case, the participant will be marked in the database 
+with ``complete=True`` and ``failed=False``,
+whereas in the latter case the participant will be marked
+with ``complete=False`` and ``failed=True``.
+In both cases the paricipant will be paid the amount that they have accumulated so far;
+however, ``UnsuccessfulEndPage`` is typically used to terminate an experiment early,
+when the participant has yet to accumulate much payment.
 
 Often you may wish to create a custom page type. The best way is usually
 to start with the source code for a related page type from the ``dlgr_utils``
@@ -144,11 +158,35 @@ way to reactive pages, except they don't return an input. For example:
 
 See :ref:`CodeBlock` documentation for more details.
 
+Control logic
+-------------
+
+Most experiments require some kind of non-trivial control logic, 
+such as conditional branches and loops. ``dlgr_utils`` provides
+the following control constructs for this purpose:
+
+* :ref:`conditional`
+* :ref:`switch`
+* :ref:`while_loop`
+
+Note that these constructs are functions, not classes:
+when called, they resolve to a sequence of test elements
+that performs the desired logic.
+
 Allotted time
 -------------
 
-Control logic
--------------
+It is considered good practice to pay online participants a fee that corresponds
+approximately to a reasonable hourly wage, for example 9 USD/hour.
+The ``dlgr_utils`` package provides sophisticated functionality for applying such 
+payment schemes without rewarding participants to participate slowly.
+When designing an experiment, the researcher must specify along with each
+page a ``time_allotted`` argument, corresponding to the estimated time in seconds
+that a participant should take to complete that portion of the experiment.
+This ``time_allotted`` argument is used to construct a progress bar displaying
+the participant's progress through the experiment and to determine the participant's 
+final payment.
+
 
 Putting everything together
 ---------------------------
