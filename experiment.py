@@ -33,7 +33,7 @@ class Exp(Experiment):
 #    network_roles = ["male", "female","other"]
 #    network_roles = ["role1", "role2","role3","role4","role5","role6"]
     use_sources = False
-    create_transformation = False
+    create_transformation = True
 
     timeline = Timeline([
         InfoPage("Page 1"),
