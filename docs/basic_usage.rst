@@ -60,7 +60,7 @@ you must include the following line of code:
 
 ::
 
-    extra_routes = Exp().extra_routes()
+    extra_routes = CustomExp().extra_routes()
 
 We will eventually petition the Dallinger team to modify the source
 such that this line becomes unnecessary.
@@ -105,7 +105,7 @@ of the Experiment class, for example:
             SuccessfulEndPage()
         )
 
-    extra_routes = Exp().extra_routes()
+    extra_routes = CustomExp().extra_routes()
 
 The elements of the timeline are presented in sequence to form the logic of the experiment.
 
