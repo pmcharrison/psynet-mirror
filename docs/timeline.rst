@@ -71,13 +71,13 @@ or in a multiple-choice format:
         time_allotted=3
     )
 
-See the documentation for individual classes for more guidance, for example:
+See the documentation of individual classes for more guidance, for example:
 
-* Page
-* InfoPage
-* TextInputPage
-* NumberInputPage
-* NAFCPage
+* :ref:`Page`
+* :ref:`InfoPage`
+* :ref:`TextInputPage`
+* :ref:`NumberInputPage`
+* :ref:`NAFCPage`
 
 Often you may wish to create a custom page type. The best way is usually
 to start with the source code for a related page type from the ``dlgr_utils``
@@ -92,13 +92,57 @@ you might consider submitting it to the ``dlgr_utils`` code base via
 a Pull Request (or, in GitLab terminology, a Merge Request).
 
 This should be enough to start experimenting with different kinds of page types.
-For a full understanding of the customisation possibilities, see the full :ref:`page` documentation.
+For a full understanding of the customisation possibilities, see the full :ref:`Page` documentation.
 
 Reactive pages
 --------------
 
+Ordinary pages in the timeline have fixed content that is shared between all participants.
+Often, however, we want to present content that depends on the state of the current participant.
+This is the purpose of reactive pages.
+A reactive page is defined by a function that is called when the participant access the page.
+For example, a simple reactive page might look like the following:
+
+::
+
+    from dlgr_utils.timeline import ReactivePage
+
+    ReactivePage(
+        lambda participant, experiment: InfoPage(f"You answered {participant.answer}.),
+        time_allotted=5
+    )
+
+This example used a lambda function, which is a useful way of specifying inline functions
+without having to give them a name.
+This lambda function may accept up to two arguments, ``participant`` and ``experiment``,
+but it doesn't have to accept all of these arguments. For example, the following is also valid:
+
+::
+
+    from dlgr_utils.timeline import ReactivePage
+
+    ReactivePage(
+        lambda participant: InfoPage(f"You answered {participant.answer}.),
+        time_allotted=5
+    )
+
+See :ref:`ReactivePage` documentation for more details.
+
 Code blocks
 -----------
+
+Code blocks define code that is executed in between pages. They are defined in a similar
+way to reactive pages, except they don't return an input. For example:
+
+::
+
+    from dlgr_utils.timeline import CodeBlock
+
+    CodeBlock(
+        lambda participant: participant.set_var("score", 10)
+    )
+
+See :ref:`CodeBlock` documentation for more details.
 
 Allotted time
 -------------

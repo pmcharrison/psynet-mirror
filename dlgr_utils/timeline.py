@@ -307,6 +307,25 @@ class Page(Elt):
         return self
 
 class ReactivePage(Elt):
+    """
+    A reactive page is defined by a function that is executed when 
+    the participant requests the relevant page.
+
+    Parameters
+    ----------
+
+    function:
+        A function that may take up to two arguments, named ``experiment``
+        and ``participant``. These arguments correspond to instantiations
+        of the class objects :class:`dlgr_utils.experiment.Experiment`
+        and :class:`dlgr_utils.participant.Participant` respectively.
+        The function should return an instance of (or a subclass of)
+        :class:`dlgr_utils.timeline.Page`.
+
+    time_allotted:
+        Time allotted to complete the page.
+    """
+
     returns_time_credit = True
 
     def __init__(self, function, time_allotted: float):
@@ -415,7 +434,35 @@ def reactive_seq(
     )
 
 class InfoPage(Page):
-    def __init__(self, content, time_allotted=None, title=None, **kwargs):
+    """
+    This page displays some content to the user alongside a button
+    with which to advance to the next page.
+
+    Parameters
+    ----------
+
+    content:
+        The content to display to the user. Use :class:`flask.Markup`
+        to display raw HTML.
+
+    time_allotted:
+        Time allotted for the page.
+
+    title:
+        Optional title for the page. Use :class:`flask.Markup`
+        to display raw HTML.
+
+    **kwargs:
+        Further arguments to pass to :class:`dlgr_utils.timeline.Page`.
+    """
+
+    def __init__(
+        self, 
+        content: Union[str, Markup], 
+        time_allotted: Optional[float] = None, 
+        title: Optional[Union[str, Markup]] = None,
+        **kwargs
+    ):
         super().__init__(
             time_allotted=time_allotted,
             template_str=get_template("info-page.html"),
@@ -502,15 +549,48 @@ class ResponsePage(Page):
         return resp
 
 class NAFCPage(ResponsePage):
+    """
+    This page solicits a multiple-choice response from the participant.
+    By default this response is saved in the database as a
+    :class:`dlgr_utils.timeline.Response` object, 
+    which can be found in the ``Questions`` table. 
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the page (used to store results).
+
+    prompt:
+        Prompt to display to the user. Use :class:`flask.Markup`
+        to display raw HTML.
+
+    choices:
+        The different options the participant has to choose from.
+
+    time_allotted:
+        Time allotted for the page.
+
+    labels:
+        An optional list of textual labels to apply to the buttons, 
+        which the participant will see instead of ``choices``.
+
+    arrange_vertically:
+        Whether to arrange the buttons vertically.
+
+    min_width:
+        CSS ``min_width`` parameter for the buttons.            
+    """
+
     def __init__(
         self,
         label: str,
         prompt: Union[str, Markup],
         choices: List[str],        
-        time_allotted=None,
-        labels=None,
-        arrange_vertically=False,
-        min_width="100px"
+        time_allotted: Optional[float] = None,
+        labels: Optional[List[str]] = None,
+        arrange_vertically: bool = False,
+        min_width: str ="100px"
     ):
         self.prompt = prompt
         self.choices = choices 
@@ -545,15 +625,44 @@ class NAFCPage(ResponsePage):
         }
 
 class TextInputPage(ResponsePage):
+    """
+    This page solicits a text response from the user.
+    By default this response is saved in the database as a
+    :class:`dlgr_utils.timeline.Response` object, 
+    which can be found in the ``Questions`` table. 
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the page (used to store results).
+
+    prompt:
+        Prompt to display to the user. Use :class:`flask.Markup`
+        to display raw HTML.
+
+    time_allotted:
+        Time allotted for the page.
+
+    one_line:
+        Whether the text box should comprise solely one line.
+
+    width:
+        Optional CSS width property for the text box.
+
+    height:
+        Optional CSS height property for the text box.
+    """
     def __init__(
         self,
         label: str,
         prompt: Union[str, Markup],     
-        time_allotted=None,
-        one_line=True,
-        width=None, # e.g. "100px"
-        height=None
+        time_allotted: Optional[float] = None,
+        one_line: bool = True,
+        width: Optional[str] = None, # e.g. "100px"
+        height: Optional[str] = None
     ):
+        
         self.prompt = prompt
 
         if one_line and height is not None:
@@ -583,6 +692,24 @@ class TextInputPage(ResponsePage):
         }
 
 class NumberInputPage(TextInputPage):
+    """
+    This page is like :class:`dlgr_utils.timeline.TextInputPage`,
+    except it forces the user to input a number.
+    See :class:`dlgr_utils.timeline.TextInputPage` for argument documentation.
+    """
+
+    # Parameters
+    # ----------
+
+    # **kwargs:
+    #     Arguments to pass to :class:`dlgr_utils.timeline.TextInputPage`.
+
+
+
+    # def __init__(**kwargs):
+
+    #     super().__init__(**kwargs)
+
     def format_answer(self, answer, metadata, experiment, participant):
         try:
             return float(answer)
