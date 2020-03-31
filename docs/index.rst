@@ -1,25 +1,19 @@
-Welcome to the documentation for `dlgr_utils`!
+Documentation
 ==============================================
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Documentation sections
+   :maxdepth: 1
+   :caption: Vignettes and tutorials
 
    about
    installation
    demo
    basic_usage
    timeline
-   low_level/Page
-   low_level/InfoPage
-   low_level/TextInputPage
-   low_level/NumberInputPage
-   low_level/NAFCPage
-   low_level/ReactivePage
 
-Other links
------------
+.. toctree::
+   :maxdepth: 2
+   :caption: Low-level documentation
+   :glob:
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+   low_level/*

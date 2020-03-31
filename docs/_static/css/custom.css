@@ -1,4 +1,10 @@
-a:visited {color:#2980B9;}
+a:visited {
+    color:#2980B9;
+}
+
+.icon-home {
+    color: #fcfcfc !important;
+}
 
 h1 {
     font-size: 250%
