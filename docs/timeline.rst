@@ -17,7 +17,7 @@ when the participant's web page loads.
 `Code blocks`_ contain server logic that is executed in between pages, 
 for example to assign the participant to a group or to save the participant's data.
 
-All these test elements are defined as `dlgr_utils` classes inheriting from
+All these test elements are defined as ``dlgr_utils`` classes inheriting from
 `Elt`, the generic test element object.
 Pages correspond to the `Page` class;
 reactive pages correspond to the `ReactivePage` class;
@@ -35,7 +35,7 @@ Pages
 -----
 
 Pages are defined in a hierarchy of object-oriented classes. The base class 
-is `Page`, which provides the most general and verbose way to specify a `dlgr_utils` page.
+is `Page`, which provides the most general and verbose way to specify a ``dlgr_utils`` page.
 A simpler example is `InfoPage`, which takes a piece of text or HTML and displays it to the user:
 
 ::
@@ -80,20 +80,19 @@ See the documentation for individual classes for more guidance, for example:
 * NAFCPage
 
 Often you may wish to create a custom page type. The best way is usually
-to start with the source code for a related page type from the `dlgr_utils`
+to start with the source code for a related page type from the ``dlgr_utils``
 package, and modify it to make your new page type. These page types
-should usually inherit from the most specific relevant `dlgr_utils` page type;
+should usually inherit from the most specific relevant ``dlgr_utils`` page type;
 for example, `NumberInputPage` inherits from `TextInputPage`, 
 and adds a validation step to make sure that the user has entered a valid number.
 
-We hope to significantly extend the page types available in `dlgr_utils` in the future.
+We hope to significantly extend the page types available in ``dlgr_utils`` in the future.
 When you've found a custom page type useful for your own experiment,
-you might consider submitting it to the `dlgr_utils` code base via 
+you might consider submitting it to the ``dlgr_utils`` code base via 
 a Pull Request (or, in GitLab terminology, a Merge Request).
 
 This should be enough to start experimenting with different kinds of page types.
-For a full understanding of the customisation possibilities, see 
-the Page class documentation.
+For a full understanding of the customisation possibilities, see the full :ref:`page` documentation.
 
 Reactive pages
 --------------
@@ -106,3 +105,6 @@ Allotted time
 
 Control logic
 -------------
+
+Putting everything together
+---------------------------

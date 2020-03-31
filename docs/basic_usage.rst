@@ -2,7 +2,7 @@
 Basic usage
 ===========
 
-Once installed (see :doc:`installation`), you can import `dlgr_utils` like any other Python package:
+Once installed (see :doc:`installation`), you can import ``dlgr_utils`` like any other Python package:
 
 ::
 
@@ -13,7 +13,7 @@ in your main directory, as well as a `static` folder and a `templates` folder.
 We plan to release a cookiecutter template to create these files for you, 
 so you can begin by just editing the template.
 The instructions below describe some differences between a traditional experiment 
-and an experiment using `dlgr_utils`.
+and an experiment using ``dlgr_utils``.
 
 The experiment class
 --------------------
@@ -28,7 +28,7 @@ of the `Experiment` class, for example:
     class CustomExp(dallinger.experiment.Experiment):
         ...
 
-The same applies in `dlgr_utils`, except we provide a custom `Experiment` class.
+The same applies in ``dlgr_utils``, except we provide a custom `Experiment` class.
 You can use it as follows:
 
 ::
@@ -52,6 +52,17 @@ but for some reason this can elicit subtle bugs that will
 probably interfere with your experiment.
 Let us know if you work out what the problem is and how to fix it.
 
+The participant class
+---------------------
+
+``dlgr_utils`` also defines an extension of the Dallinger ``Participant`` class
+that has some additional useful features. When referring to the ``Participant``
+class in your experiment, make sure you've imported the class from ``dlgr_utils``.
+
+::
+
+    from dlgr_utils.participant import Participant
+
 Exposing the routes
 -------------------
 
@@ -68,8 +79,8 @@ such that this line becomes unnecessary.
 Building the timeline
 ---------------------
 
-The key difference between `dlgr_utils` and core Dallinger is that
-`dlgr_utils` introduces the *timeline*, a useful abstraction for 
+The key difference between ``dlgr_utils`` and core Dallinger is that
+``dlgr_utils`` introduces the *timeline*, a useful abstraction for 
 defining the control logic of experiments. 
 The timeline is defined by overriding the `timeline` attribute
 of the Experiment class, for example:
@@ -112,5 +123,5 @@ The elements of the timeline are presented in sequence to form the logic of the 
 Conclusion
 ----------
 
-Those are the key elements to get started with the `dlgr_utils` package!
+Those are the key elements to get started with the ``dlgr_utils`` package!
 For a more detailed tutorial, continue to :doc:`timeline`.

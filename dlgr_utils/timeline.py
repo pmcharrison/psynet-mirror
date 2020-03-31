@@ -145,6 +145,32 @@ class ReactiveGoTo(GoTo):
         )
 
 class Page(Elt):
+    """
+    The base class for pages, customised by passing values to the ``__init__`` 
+    function and by overriding the ``process_response`` and ``validate`` methods.
+
+    Parameters
+    ----------
+
+    time_allotted: 
+        Time allotted for the page.
+
+    template_path:
+        Path to the jinja2 template to use for the page.
+
+    template_str:
+        Alternative way of specifying the jinja2 template as a string.
+
+    template_arg:
+        Dictionary of arguments to pass to the jinja2 template.
+
+    label:
+        Internal label to give the page, used for example in results saving.
+
+    js_vars:
+        Dictionary of arguments to instantiate as global Javascript variables.
+    """
+
     returns_time_credit = True
 
     def __init__(
@@ -185,10 +211,73 @@ class Page(Elt):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
-    def process_response(self, response, metadata, experiment, participant, **kwargs):
+    def process_response(self, response, metadata, experiment, participant):
+        """
+        Takes the response submitted by the participant for the current page and performs
+        initial preprocessing. A good default for this method is provided in 
+        :class:`dlgr_utils.timeline.ResponsePage`,
+        but alternative customisation might be useful in computationally demanding scenarios
+        (e.g. large audio files).
+
+        Parameters
+        ----------
+
+        response:
+            The main response object as returned from 
+            the client's browser. The precise form of this object depends on the 
+            page's implementation, but it will typically contain the primary
+            content of the participant's response.
+
+        metadata:
+            Metadata about the response as returned from 
+            the client's browser. The precise form of this object depends on the 
+            page's implementation, but it will typically contain secondary
+            data about the response, such as the time spent on the page.
+
+        experiment:
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+
+        Returns
+        -------
+
+        An object of arbitrary form.
+            The response after the preprocessing has been performed.
+        """
         pass
 
-    def validate(self, parsed_response, experiment, participant, **kwargs):
+    def validate(self, parsed_response, experiment, participant):
+        """
+        Takes the parsed response from the participant and runs a validation check
+        to determine whether the participant may continue to the next page.
+
+        Parameters 
+        ----------
+
+        parsed_response:
+            The output of the ``process_response`` method 
+            (:meth:`dlgr_utils.timeline.Page.process_response`).
+        
+        experiment:
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+
+        Returns
+        -------
+
+        ``None`` or an object of class :class:`dlgr_utils.timeline.FailedValidation`
+            On the case of failed validation, an instantiation of 
+            :class:`dlgr_utils.timeline.FailedValidation`
+            containing a message to pass to the participant.
+        """
         pass
 
     def render(self, experiment, participant):
@@ -397,7 +486,7 @@ class ResponsePage(Page):
         """Should provide a dict of supplementary information about the page and (optionally) its response."""
         raise NotImplementedError
 
-    def process_response(self, response, metadata, experiment, participant, **kwargs):
+    def process_response(self, response, metadata, experiment, participant):
         answer = self.format_answer(response["answer"], metadata, experiment, participant)
         resp = Response(
             participant=participant,
@@ -500,7 +589,7 @@ class NumberInputPage(TextInputPage):
         except ValueError:
             return "INVALID_RESPONSE"
 
-    def validate(self, parsed_response, experiment, participant, **kwargs):
+    def validate(self, parsed_response, experiment, participant):
         if parsed_response.answer == "INVALID_RESPONSE":
             return FailedValidation("Please enter a number.")
         return None
