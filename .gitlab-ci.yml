@@ -3,8 +3,9 @@ image: python:3.7-alpine
 pages:
   stage: deploy
   script:
+  - pip install .
   - pip install -U sphinx
-  - sphinx-build -b html . public
+  - sphinx-build -b html docs public
   artifacts:
     paths:
     - public
