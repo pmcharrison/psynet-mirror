@@ -1,6 +1,4 @@
-
-
-
+Please refer to the [online documentation](https://computational-audition-lab.gitlab.io/dlgr-utils/).
 
 # Running tests
 
@@ -8,7 +6,7 @@
 python -m pytest
 ```
 
-# Building documentation
+# Building documentation locally
 
 ```
 make -C docs html
