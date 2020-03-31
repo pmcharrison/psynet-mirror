@@ -1,0 +1,49 @@
+{% extends "timeline-page.html" %}
+
+{% macro one_line_input(style) %}
+    <div style="{{ style }}">
+        <input id="text_input" type="text" class="form-control" value=""/>
+    </div>
+{% endmacro %}
+
+{% macro multi_line_input(style) %}
+    <div>
+        <textarea id="text_input" type="text" class="form-control" style="{{ style }}"></textarea>
+    </div>
+{% endmacro %}
+
+{% block main_body %}
+    {{super()}}
+    <div class="main_div">
+        {{prompt}}
+
+        <div style="padding-top:20px; padding-bottom:20px">
+            {% if (one_line) %}
+                {{one_line_input(style)}}
+            {% else %}
+                {{multi_line_input(style)}}
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+    
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">Submit</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    <script>
+        submit = function() {
+            $(".submit-response").attr('disabled',true);
+            next_page({
+                "answer": document.getElementById("text_input").value
+            });
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,14 @@
+image: python:3.7-alpine
+
+pages:
+  stage: deploy
+  script:
+  - pip install -U sphinx
+  - pip install sphinx_rtd_theme
+  - pip install sphinx-autodoc-typehints
+  - sphinx-build -b html docs public
+  artifacts:
+    paths:
+    - public
+  only:
+  - timeline

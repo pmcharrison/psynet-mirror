@@ -1,0 +1,43 @@
+Keep trials from failed participants?
+
+Register different fail_participant routines for different phases/modules.
+	In nonadaptive, there is an option whether or not to fail the participant’s trials, labelled “allow_partial_completes”. Note we override fail_participant so that it just fails their infos. Note also that there is a difference between failing people that fail a performance check and failing people who don't complete the experiment.
+	In chain-based experiment, it doesn’t work if we do this, so we disable failing altogether. Instead, what about implementing trial-level quality checks?
+
+RegisterRecruitCriterion
+- provides a criterion that must be satisfied for recruitment to stop
+- estimates how many more participants will be required to achieve that criterion, in addition to those already working
+
+# TODO 
+
+- Implement recruitment criterion
+- Implement trial-level quality checks
+
+
+# nonadaptive:
+
+for each block, compute num participants required for each stimulus
+
+{
+	"1": 1,
+	"2": 3,
+	"3", 2,
+	"5", 5
+}
+
+assume active balancing...
+for each participant, simulate the process of assigning 
+
+
+
+
+check what the existing participants can do
+- if max_unique_stimuli_per_block, then take max_unique_stimuli_per_block minus complete stimuli,
+or 
+
+
+how many more participants required by block?
+- target num_participants_per_stimulus * number of stimuli required in block
+
+how many trials can the participant do in each block?
+- max_trials_per_block OR 

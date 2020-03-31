@@ -1,2 +1,0 @@
-include dlgr_utils/templates/*.html
-include dlgr_utils/definitions/*.csv

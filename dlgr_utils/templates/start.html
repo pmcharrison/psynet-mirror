@@ -1,11 +1,10 @@
 {% extends "layout.html" %}
 
 {% block body %}
+    {{super()}}
     <div class="main_div">
-        <h1>Welcome</h1>
 
-        <p>Welcome to the experiment!</p>
-        <!-- {{next_button(next_page)}} -->
+        Starting experiment...
 
     </div>
 {% endblock %}
@@ -15,10 +14,12 @@
 {{super()}}
     <script>
         dallinger.identity.participantId = "undefined";
-        dallinger.createParticipant().fail(function(resp) {
+        dallinger.createParticipant().done(function(resp) {
+            setTimeout(function() {
+                dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+            }, 500);
+        }).fail(function(resp) {
             dallinger.error(resp);
-        }).done(function(resp) {
-            dallinger.post("/init-participant/" + dallinger.identity.participantId);
         }).error(function(resp) {
             dallinger.error(resp);
         });
