@@ -113,4 +113,4 @@ Conclusion
 ----------
 
 Those are the key elements to get started with the `dlgr_utils` package!
-For a more detailed tutorial, continue to :doc:`intro_tutorial`.
+For a more detailed tutorial, continue to :doc:`timeline`.

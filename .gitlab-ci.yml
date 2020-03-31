@@ -1,15 +1,12 @@
-image: tsgkadot/sphinx-plantuml
+image: python:3.7-alpine
+
 pages:
   stage: deploy
   script:
-  - mkdir -p .public/48181acd22b3edaebc8a447868a7df7ce629920a
-  - mv doc/password.html .public/index.html
-  - sphinx-build -b html ./doc doc/.build/html/
-  - cp -r doc/.build/html/* .public/48181acd22b3edaebc8a447868a7df7ce629920a
-  - mv .public public
+  - pip install -U sphinx
+  - sphinx-build -b html . public
   artifacts:
     paths:
     - public
   only:
-  - master
-
+  - timeline

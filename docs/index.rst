@@ -3,19 +3,17 @@ Welcome to the documentation for `dlgr_utils`!
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Documentation sections
 
-   readme
+   about
    installation
    demo
    basic_usage
-   intro_tutorial
-   modules
-   contributing
-   contributors
+   timeline
 
-Indices and tables
-==================
+Other links
+-----------
+
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
