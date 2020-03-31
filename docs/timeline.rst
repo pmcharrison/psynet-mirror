@@ -89,7 +89,7 @@ in the former case, the participant will be marked in the database
 with ``complete=True`` and ``failed=False``,
 whereas in the latter case the participant will be marked
 with ``complete=False`` and ``failed=True``.
-In both cases the paricipant will be paid the amount that they have accumulated so far;
+In both cases the participant will be paid the amount that they have accumulated so far;
 however, ``UnsuccessfulEndPage`` is typically used to terminate an experiment early,
 when the participant has yet to accumulate much payment.
 
@@ -190,3 +190,85 @@ final payment.
 
 Putting everything together
 ---------------------------
+
+The ``Experiment`` class expects us to provide an object of 
+class :class:`dlgr_utils.timeline.Timeline` in the ``timeline`` slot.
+This ``Timeline`` object expects either test elements or lists of test elements
+as its input; it will concatenate them together into one big list.
+Following this method, here's a complete definition of a simple experiment:
+
+::
+
+    import dlgr_utils.experiment
+
+    from dlgr_utils.timeline import (
+        InfoPage,
+        ReactivePage,
+        TextInputPage,
+        SuccessfulEndPage,
+        Timeline
+    )
+
+    class CustomExp(dlgr_utils.Experiment):
+        timeline = Timeline(
+            InfoPage(
+                "Welcome to the experiment!",
+                time_allotted=5
+            ),
+            ReactivePage(            
+                lambda experiment, participant: 
+                    InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
+                time_allotted=5
+            ),
+            TextInputPage(
+                "message",
+                "Write me a message!",
+                time_allotted=5,
+                one_line=False
+            ),
+            SuccessfulEndPage()
+        )
+
+    extra_routes = CustomExp().extra_routes()
+
+It is generally wise to build up the test logic in small pieces. For example:
+
+::
+    
+    from dlgr_utils.timeline import (
+        InfoPage,
+        ReactivePage,
+        TextInputPage,
+        SuccessfulEndPage,
+        Timeline,
+        join
+    )
+
+    intro = join(
+        InfoPage(
+            "Welcome to the experiment!",
+            time_allotted=5
+        ),
+        ReactivePage(            
+            lambda experiment, participant: 
+                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
+            time_allotted=5
+        )
+    )
+
+    test = TextInputPage(
+                "message",
+                "Write me a message!",
+                time_allotted=5,
+                one_line=False
+            )
+
+    timeline = Timeline(intro, test)
+
+Here we used the :func:`dlgr_utils.timeline.join` function to join
+two test elements into a list. When its arguments are all test elements,
+the ``join`` function behaves like a Python list constructor;
+when the arguments also include lists of test elements, the ``join`` function
+merges these lists. This makes it handy for combining timeline logic,
+where different bits of logic often correspond either to test elements or 
+lists of test elements.

@@ -494,13 +494,33 @@ class EndPage(Page):
         self.finalise_participant(experiment, participant)
 
     def finalise_participant(self, experiment, participant):
+        """
+        Executed when the participant completes the experiment.
+
+        Parameters
+        ----------
+
+        experiment:
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+        """
         pass
 
 class SuccessfulEndPage(EndPage):
+    """
+    Indicates a successful end to the experiment.
+    """
     def finalise_participant(self, experiment, participant):
         participant.complete = True
 
 class UnsuccessfulEndPage(EndPage):
+    """
+    Indicates an unsuccessful end to the experiment.
+    """
     def __init__(self, content="default", title=None, failure_tags: Optional[List] = None):
         if content=="default":
             content = (

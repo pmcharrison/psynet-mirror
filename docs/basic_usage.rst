@@ -8,6 +8,16 @@ Once installed (see :doc:`installation`), you can import ``dlgr_utils`` like any
 
     import dlgr_utils
 
+When you deploy the experiment to Heroku, you will also need to specify the package in ``requirements.txt``.
+This can be done by adding the following line:
+
+::
+
+    git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
+
+You can also modify this line to specify a particular version to install,
+and to provide authentication to the repository if required - see the online ``pip`` documentation.
+
 Like any other Dallinger experiment, an experiment implementation requires an `experiment.py` file
 in your main directory, as well as a `static` folder and a `templates` folder. 
 We plan to release a cookiecutter template to create these files for you, 
@@ -93,7 +103,8 @@ of the Experiment class, for example:
         InfoPage,
         ReactivePage,
         TextInputPage,
-        SuccessfulEndPage
+        SuccessfulEndPage,
+        Timeline
     )
 
     class CustomExp(dlgr_utils.Experiment):

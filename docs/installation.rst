@@ -14,7 +14,7 @@ need to run the demo or edit the source, you can simply install it with `pip`:
 
 .. code-block:: console
 
-    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
+    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils@dev
 
 Note that you must have set up your GitLab SSH keys already.
 

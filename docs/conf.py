@@ -167,7 +167,4 @@ texinfo_documents = [
 ]
 
 # Add napoleon to the extensions list
-extensions = [
-    'sphinx.ext.napoleon',
-    'sphinx_autodoc_typehints'
-]
+extensions = ['sphinx.ext.napoleon']
