@@ -6,6 +6,7 @@ before_script:
 pages:
   stage: deploy
   script:
+  - pip install psycopg2-binary
   - pip install .
   - pip install -U sphinx
   - pip install sphinx_rtd_theme
