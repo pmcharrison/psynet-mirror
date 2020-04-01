@@ -1,7 +1,7 @@
 image: nickgryg/alpine-pandas
 
 before_script:
-  - apk add gcc gfortran musl-dev # Needed for numpy
+  - apk add gcc gfortran musl-dev postgresql-dev
 
 pages:
   stage: deploy
