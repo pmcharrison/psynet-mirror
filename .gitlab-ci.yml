@@ -1,4 +1,5 @@
-image: python:3.7-alpine
+image: nickgryg/alpine-pandas
+
 before_script:
   - apk add gcc gfortran musl-dev # Needed for numpy
 
