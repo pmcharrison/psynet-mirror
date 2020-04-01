@@ -10,5 +10,6 @@ pages:
   artifacts:
     paths:
     - public
+    - public/low_level
   only:
   - dev
