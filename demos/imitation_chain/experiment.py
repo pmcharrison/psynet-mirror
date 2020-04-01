@@ -107,6 +107,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             phase="experiment",
             time_allotted_per_trial=5,
             chain_type="within",
+            num_nodes_per_chain=5,
             num_trials_per_participant=20,
             num_chains_per_participant=4,
             num_chains_per_experiment=None,
@@ -115,8 +116,8 @@ class Exp(dlgr_utils.experiment.Experiment):
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_participants",
-            target_num_participants=10,
-            async_update_network=True
+            target_num_participants=10
+            # async_update_network=None
         ),
         InfoPage("You finished the experiment!", time_allotted=0),
         SuccessfulEndPage()

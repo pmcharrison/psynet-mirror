@@ -718,18 +718,6 @@ class NumberInputPage(TextInputPage):
     See :class:`dlgr_utils.timeline.TextInputPage` for argument documentation.
     """
 
-    # Parameters
-    # ----------
-
-    # **kwargs:
-    #     Arguments to pass to :class:`dlgr_utils.timeline.TextInputPage`.
-
-
-
-    # def __init__(**kwargs):
-
-    #     super().__init__(**kwargs)
-
     def format_answer(self, answer, metadata, experiment, participant):
         try:
             return float(answer)
