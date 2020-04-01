@@ -3,7 +3,7 @@ image: python:3.7-alpine
 pages:
   stage: deploy
   script:
-  - pip install importlib_resources
+  - pip install .
   - pip install -U sphinx
   - pip install sphinx_rtd_theme
   - pip install sphinx-autodoc-typehints
