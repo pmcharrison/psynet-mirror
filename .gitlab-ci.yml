@@ -1,4 +1,6 @@
 image: python:3.7-alpine
+before_script:
+  - apk add gcc gfortran musl-dev # Needed for numpy
 
 pages:
   stage: deploy
