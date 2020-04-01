@@ -1,7 +1,7 @@
 image: nickgryg/alpine-pandas
 
 before_script:
-  - apk add gcc gfortran musl-dev postgresql-dev libc-dev
+  - apk add gcc gfortran musl-dev postgresql-dev libc-dev linux-headers
 
 pages:
   stage: deploy
