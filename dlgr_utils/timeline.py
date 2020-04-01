@@ -56,6 +56,17 @@ class NullElt(Elt):
         pass
 
 class CodeBlock(Elt):
+    """
+    A timeline component that executes some back-end logic without showing 
+    anything to the participant.
+
+    Parameters
+    ----------
+
+    function:
+        A function with up to two arguments named ``participant`` and ``experiment``,
+        that is executed once the participant reaches the corresponding part of the timeline.
+    """
     def __init__(self, function):
         self.function = function
 
