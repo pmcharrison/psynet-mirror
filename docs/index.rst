@@ -10,9 +10,6 @@ Documentation
    demo
    basic_usage
    timeline
-   CodeBlock
-   NAFCPage
-   InfoPage
 
 .. toctree::
    :maxdepth: 2
