@@ -722,6 +722,86 @@ class TextInputPage(ResponsePage):
             "prompt": self.prompt
         }
 
+class SliderInputPage(ResponsePage):
+    """
+    This page solicits a slider response from the user.
+    By default this response is saved in the database as a
+    :class:`dlgr_utils.timeline.Response` object,
+    which can be found in the ``Questions`` table.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the page (used to store results).
+
+    prompt:
+        Prompt to display to the user. Use :class:`flask.Markup`
+        to display raw HTML.
+
+    time_allotted:
+        Time allotted for the page.
+
+    min:
+        Minimal value of the slider.
+
+    max:
+        Maximum value of the slider.
+
+    step_size:
+        The size of each step in the slider.
+
+    width:
+        Optional CSS width property for the text box.
+
+    height:
+        Optional CSS height property for the text box.
+    """
+    def __init__(
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        time_allotted: Optional[float] = None,
+        min: Optional[int] = 0,
+        max: Optional[int] = 100,
+        step_size: Optional[int] = 1,
+        width: Optional[str] = None, # e.g. "100px"
+        height: Optional[str] = None
+    ):
+
+        if max <= min:
+            raise ValueError("<max> must be larger than <min>")
+
+        if (max - min) <= step_size*2:
+            raise ValueError("For the given <min> and <max> values the <step_size> needs to be appropriate, i.e. allow at least 2 steps on the slider.")
+
+        self.prompt = prompt
+
+        style = (
+            "" if width is None else f"width:{width}"
+            " "
+            "" if height is None else f"height:{height}"
+        )
+
+        super().__init__(
+            time_allotted=time_allotted,
+            template_str=get_template("slider-input-page.html"),
+            label=label,
+            template_arg={
+                "prompt": prompt,
+                "step_size": step_size,
+                "min": min,
+                "max": max,
+                "style": style
+            }
+        )
+    # TODO don't know what this is; does it present the question?
+    def compile_details(self, response, answer, metadata, experiment, participant):
+        # pylint: disable=unused-argument
+        return {
+            "prompt": self.prompt
+        }
+
 class NumberInputPage(TextInputPage):
     """
     This page is like :class:`dlgr_utils.timeline.TextInputPage`,

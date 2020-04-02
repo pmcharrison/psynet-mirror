@@ -1,0 +1,37 @@
+{% extends "timeline-page.html" %}
+
+{% macro slider(min, max, step_size) %}
+    <input type="range" id="formControlRange" class="form-control-range" min="{{min}}" max="{{max}}" step="{{step_size}}">
+{% endmacro %}
+
+{% block main_body %}
+    {{super()}}
+    <div class="main_div">
+        {{prompt}}
+
+        <div class="form-group" style="padding-top:20px; padding-bottom:20px">
+            {{slider(min, max, step_size)}}
+        </div>
+    </div>
+
+    <hr>
+    
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">Submit</button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{super()}}
+    <script>
+        submit = function() {
+            $(".submit-response").attr('disabled',true);
+            next_page({
+                "answer": document.getElementById("formControlRange").value
+            });
+        }
+    </script>
+{% endblock %}
