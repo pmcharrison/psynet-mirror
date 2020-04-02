@@ -45,11 +45,10 @@ class MCMCPSource(ChainSource):
         raise NotImplementedError
 
 class MCMCPTrialGenerator(ChainTrialGenerator):
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def postprocess_answer(self, answer, trial, participant):
         # pylint: disable=unused-argument,no-self-use
-        super().finalise_trial(answer, trial, experiment, participant)
         chosen_position = int(answer)
-        trial.answer = {
+        return {
             "chosen_position": chosen_position,
             "chosen_identity": trial.definition["order"][chosen_position]
         }
