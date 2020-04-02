@@ -1,6 +1,6 @@
 # pylint: disable=attribute-defined-outside-init
 
-from dallinger.models import Participant
+import dallinger.models
 from . import field
 from .field import VarStore, UndefinedVariableError, claim_var
 import json
@@ -12,6 +12,171 @@ logger = logging.getLogger(__file__)
 
 # pylint: disable=unused-import
 import rpdb
+
+class Participant(dallinger.models.Participant):
+    """
+    Represents an individual participant taking the experiment.
+    The object is linked to the database - when you make changes to the
+    object, it should be mirrored in the database.
+
+    Users should not have to instantiate these objects directly.
+    
+    The class extends the ``Participant`` class from base Dallinger
+    (:class:`dallinger.models.Participant`) to add some useful features,
+    in particular the ability to store arbitrary variables.
+
+    The following attributes are recommended for external use:
+
+    * :attr:`~dlgr_utils.participant.Participant.answer`
+    * :attr:`~dlgr_utils.participant.Participant.var`
+    * :attr:`~dlgr_utils.participant.Participant.failure_tags`
+
+    The following methods are recommended for external use:
+
+    * :meth:
+
+    See below for more details.
+
+    Attributes
+    ----------
+
+    elt_id : int
+        Represents the participant's position in the timeline. 
+        Should not be modified directly.
+        Stored in the database as ``property1``.
+
+    page_uuid : str
+        A long unique string that is randomly generated when the participant advances
+        to a new page, used as a passphrase to guarantee the security of 
+        data transmission from front-end to back-end.
+        Should not be modified directly.
+        Stored in the database as ``property2``.
+
+    complete : bool
+        Whether the participant has successfully completed the experiment.
+        A participant is considered to have successfully completed the experiment
+        once they hit a :class:`~dlgr_utils.timeline.SuccessfulEndPage`.
+        Should not be modified directly.
+        Stored in the database as ``property3``.
+
+    answer : object
+        The most recent answer submitted by the participant.
+        Can take any form that can be automatically serialized to JSON.
+        Should not be modified directly.
+        Stored in the database as ``property4``.
+
+    branch_log : list
+        Stores the conditional branches that the participant has taken
+        through the experiment.
+        Should not be modified directly.
+        Stored in the database as ``property5``.
+
+    failure_tags : list
+        Stores tags that identify the reason that the participant has failed
+        the experiment (if any). For example, if a participant fails 
+        a microphone pre-screening test, one might add "failed_mic_test"
+        to this tag list.
+        Should be modified using the method :meth:`~dlgr_utils.participant.Participant.append_failure_tags`.
+        Stored in the database as part of the ``details`` field.
+
+    var : :class:`~dlgr_utils.field.VarStore`
+        A repository for arbitrary variables, which will be serialized to JSON for storage into the 
+        database. Variables can be set with the following syntax:
+        ``participant.var.my_var_name = "value_to_set"``.
+        The variable can then be accessed with ``participant.var.my_var_name``.
+        See also
+        :meth:`~dlgr_utils.participant.Participant.set_var`, 
+        :meth:`~dlgr_utils.participant.Participant.get_var`, 
+        :meth:`~dlgr_utils.participant.Participant.has_var`, 
+        :meth:`~dlgr_utils.participant.Participant.new_var`.
+        **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``), 
+        as such modifications will (probably) not get propagated to the database.
+        Support could be added in the future if Dallinger takes advantage of 
+        `mutable structures in SQLAlchemy <https://docs.sqlalchemy.org/en/13/orm/extensions/mutable.html#module-sqlalchemy.ext.mutable>`_.
+        **WARNING 2:** avoid storing large objects here on account of the performance cost
+        of converting to and from JSON. 
+        
+
+    """
+
+    elt_id = field.claim_field(1, int)
+    page_uuid = field.claim_field(2, str)
+    complete = field.claim_field(3, bool)
+    answer = field.claim_field(4, object)
+    branch_log = field.claim_field(5, list)
+
+    failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
+
+    def has_var(self, name):
+        try:
+            self.get_var(name)
+            return True
+        except UndefinedVariableError:
+            return False
+
+    def get_var(self, name):
+        return self.var.__getattr__(name)
+
+    def set_var(self, name, value):
+        self.var.__setattr__(name, value)
+        return self
+
+    def inc_var(self, name, value=1):
+        original = self.get_var(name)
+        new = original + value
+        self.set_var(name, new)
+        return self
+
+    def new_var(self, name, value):
+        if self.has_var(name):
+            raise ValueError(f"Participant already has a variable called {name}.")
+        self.set_var(name, value)
+
+    def set_answer(self, value):
+        self.answer = value
+        return self
+
+    def initialise(self, experiment):
+        self.elt_id = -1
+        self.complete = False
+        self.time_credit.initialise(experiment)
+
+    def estimate_progress(self):
+        return 1.0 if self.complete else self.time_credit.estimate_progress()
+
+    @property
+    def var(self):
+        return VarStore(self)
+
+    @property
+    def time_credit(self):
+        return TimeCreditStore(self)
+
+    @property 
+    def initialised(self):
+        return self.elt_id is not None
+
+    def append_branch_log(self, entry: str):
+        # We need to create a new list otherwise the change may not be recognised
+        # by SQLAlchemy(?)
+        if not isinstance(entry, list) or len(entry) != 2 or not isinstance(entry[0], str):
+            raise ValueError(f"Log entry must be a list of length 2 where the first element is a string (received {entry}).")
+        if json.loads(json.dumps(entry)) != entry:
+            raise ValueError(
+                f"The provided log entry cannot be accurately serialised to JSON (received {entry}). " +
+                "Please simplify the log entry (this is typically determined by the output type of the user-provided function " +
+                "in switch() or conditional())."
+            )
+        self.branch_log = self.branch_log + [entry]
+
+    def append_failure_tags(self, *tags):
+        original = self.failure_tags
+        new = [*tags]
+        combined = list(set(original + new))
+        self.failure_tags = combined
+
+def get_participant(participant_id):
+    return Participant.query.get(participant_id)
 
 class TimeCreditStore:
     fields = [
@@ -97,101 +262,3 @@ class TimeCreditStore:
 
     def estimate_progress(self):
         return self.estimate_time_credit() / self.experiment_max_time_credit
-
-@property
-def var(self):
-    return VarStore(self)
-
-@property
-def time_credit(self):
-    return TimeCreditStore(self)
-
-@property 
-def initialised(self):
-    return self.elt_id is not None
-
-def _has_var(self, name):
-    try:
-        self.get_var(name)
-        return True
-    except UndefinedVariableError:
-        return False
-
-def _get_var(self, name):
-    return self.var.__getattr__(name)
-
-def _set_var(self, name, value):
-    self.var.__setattr__(name, value)
-    return self
-
-def _inc_var(self, name, value=1):
-    original = self.get_var(name)
-    new = original + value
-    self.set_var(name, new)
-    return self
-
-def _new_var(self, name, value):
-    if self.has_var(name):
-        raise ValueError(f"Participant already has a variable called {name}.")
-    self.set_var(name, value)
-
-def _set_answer(self, value):
-    self.answer = value
-    return self
-
-def _initialise(self, experiment):
-    self.elt_id = -1
-    self.complete = False
-    self.time_credit.initialise(experiment)
-
-def _estimate_progress(self):
-    return 1.0 if self.complete else self.time_credit.estimate_progress()
-
-def _append_branch_log(self, entry: str):
-    # We need to create a new list otherwise the change may not be recognised
-    # by SQLAlchemy(?)
-    if not isinstance(entry, list) or len(entry) != 2 or not isinstance(entry[0], str):
-        raise ValueError(f"Log entry must be a list of length 2 where the first element is a string (received {entry}).")
-    if json.loads(json.dumps(entry)) != entry:
-        raise ValueError(
-            f"The provided log entry cannot be accurately serialised to JSON (received {entry}). " +
-            "Please simplify the log entry (this is typically determined by the output type of the user-provided function " +
-            "in switch() or conditional())."
-        )
-    self.branch_log = self.branch_log + [entry]
-
-# @property 
-# def estimated_time_credit(self):
-#     return self.time_credit.confirmed_credit + self.time_credit.pending_credit
-
-
-def append_failure_tags(self, *tags):
-    original = self.failure_tags
-    new = [*tags]
-    combined = list(set(original + new))
-    self.failure_tags = combined
-
-Participant.failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
-Participant.append_failure_tags = append_failure_tags
-Participant.time_credit = time_credit
-Participant.estimate_progress = _estimate_progress
-Participant.var = var
-Participant.get_var = _get_var
-Participant.has_var = _has_var
-Participant.set_var = _set_var
-Participant.inc_var = _inc_var
-Participant.new_var = _new_var
-Participant.set_answer = _set_answer
-
-Participant.elt_id = field.claim_field(1, int)
-Participant.page_uuid = field.claim_field(2, str)
-Participant.complete = field.claim_field(3, bool)
-Participant.answer = field.claim_field(4, object)
-Participant.branch_log = field.claim_field(5, list)
-
-Participant.append_branch_log = _append_branch_log
-Participant.initialised = initialised
-Participant.initialise = _initialise
-
-def get_participant(participant_id):
-    return Participant.query.get(participant_id)
