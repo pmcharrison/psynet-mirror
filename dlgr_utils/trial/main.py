@@ -287,7 +287,7 @@ class TrialGenerator(Module):
     def established_working_participants(self):
         return [
             p for p in self.working_participants 
-            if p.estimate_progress() > self.participant_progress_threshold
+            if p.progress > self.participant_progress_threshold
         ]
         
     def fail_old_trials(self):
@@ -354,7 +354,7 @@ class TrialGenerator(Module):
             )
             assert isinstance(score, (float, int))
             assert isinstance(passed, bool)
-            participant.set_var(self.with_namespace("performance_check"), {
+            participant.var.set(self.with_namespace("performance_check"), {
                 "score": score,
                 "passed": passed
             })
@@ -445,10 +445,10 @@ class TrialGenerator(Module):
         return self.with_namespace("num_completed_trials_in_phase")
 
     def set_num_completed_trials_in_phase(self, participant, value):
-        participant.set_var(self.num_completed_trials_in_phase_var_id, value)
+        participant.var.set(self.num_completed_trials_in_phase_var_id, value)
 
     def get_num_completed_trials_in_phase(self, participant):
-        return participant.get_var(self.num_completed_trials_in_phase_var_id)
+        return participant.var.get(self.num_completed_trials_in_phase_var_id)
 
     def init_num_completed_trials_in_phase(self, participant):
         self.set_num_completed_trials_in_phase(participant, 0)

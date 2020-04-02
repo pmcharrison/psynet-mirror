@@ -31,14 +31,17 @@ class Participant(dallinger.models.Participant):
     * :attr:`~dlgr_utils.participant.Participant.var`
     * :attr:`~dlgr_utils.participant.Participant.failure_tags`
 
-    The following methods are recommended for external use:
+    The following method is recommended for external use:
 
-    * :meth:
+    * :meth:`~dlgr_utils.participant.Participant.append_failure_tags`
 
     See below for more details.
 
     Attributes
     ----------
+
+    id : int
+        The participant's unique ID.
 
     elt_id : int
         Represents the participant's position in the timeline. 
@@ -80,24 +83,13 @@ class Participant(dallinger.models.Participant):
         Stored in the database as part of the ``details`` field.
 
     var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables, which will be serialized to JSON for storage into the 
-        database. Variables can be set with the following syntax:
-        ``participant.var.my_var_name = "value_to_set"``.
-        The variable can then be accessed with ``participant.var.my_var_name``.
-        See also
-        :meth:`~dlgr_utils.participant.Participant.set_var`, 
-        :meth:`~dlgr_utils.participant.Participant.get_var`, 
-        :meth:`~dlgr_utils.participant.Participant.has_var`, 
-        :meth:`~dlgr_utils.participant.Participant.new_var`.
-        **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``), 
-        as such modifications will (probably) not get propagated to the database.
-        Support could be added in the future if Dallinger takes advantage of 
-        `mutable structures in SQLAlchemy <https://docs.sqlalchemy.org/en/13/orm/extensions/mutable.html#module-sqlalchemy.ext.mutable>`_.
-        **WARNING 2:** avoid storing large objects here on account of the performance cost
-        of converting to and from JSON. 
-        
+        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
 
+    progress : float [0 <= x <= 1]
+        The participant's estimated progress through the experiment.
     """
+
+    __mapper_args__ = {"polymorphic_identity": "participant"}
 
     elt_id = field.claim_field(1, int)
     page_uuid = field.claim_field(2, str)
@@ -106,31 +98,6 @@ class Participant(dallinger.models.Participant):
     branch_log = field.claim_field(5, list)
 
     failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
-
-    def has_var(self, name):
-        try:
-            self.get_var(name)
-            return True
-        except UndefinedVariableError:
-            return False
-
-    def get_var(self, name):
-        return self.var.__getattr__(name)
-
-    def set_var(self, name, value):
-        self.var.__setattr__(name, value)
-        return self
-
-    def inc_var(self, name, value=1):
-        original = self.get_var(name)
-        new = original + value
-        self.set_var(name, new)
-        return self
-
-    def new_var(self, name, value):
-        if self.has_var(name):
-            raise ValueError(f"Participant already has a variable called {name}.")
-        self.set_var(name, value)
 
     def set_answer(self, value):
         self.answer = value
@@ -141,8 +108,9 @@ class Participant(dallinger.models.Participant):
         self.complete = False
         self.time_credit.initialise(experiment)
 
-    def estimate_progress(self):
-        return 1.0 if self.complete else self.time_credit.estimate_progress()
+    @property
+    def progress(self):
+        return 1.0 if self.complete else self.time_credit.progress
 
     @property
     def var(self):
@@ -170,13 +138,47 @@ class Participant(dallinger.models.Participant):
         self.branch_log = self.branch_log + [entry]
 
     def append_failure_tags(self, *tags):
+        """
+        Appends tags to the participant's list of failure tags.
+        Duplicate tags are ignored.
+        See :attr:`~dlgr_utils.participant.Participant.failure_tags` for details.
+
+        Parameters
+        ----------
+
+        *tags
+            Tags to append.
+
+        Returns 
+        -------
+
+        :class:`dlgr_utils.participant.Participant`
+            The updated ``Participant`` object.
+
+        """
         original = self.failure_tags
         new = [*tags]
         combined = list(set(original + new))
         self.failure_tags = combined
+        return self
 
-def get_participant(participant_id):
-    return Participant.query.get(participant_id)
+def get_participant(participant_id: int):
+    """
+    Returns the participant with a given ID.
+
+    Parameters
+    ----------
+
+    participant_id
+        ID of the participant to get.
+
+    Returns
+    -------
+
+    :class:`dlgr_utils.participant.Participant`
+        The requested participant.
+    """
+    return Participant.query.filter_by(id=participant_id).one()
 
 class TimeCreditStore:
     fields = [
@@ -201,13 +203,13 @@ class TimeCreditStore:
         if name is "participant":
             return self.__dict__["participant"]
         else:
-            return self.participant.get_var(self.get_internal_name(name))
+            return self.participant.var.get(self.get_internal_name(name))
 
     def __setattr__(self, name, value):
         if name is "participant":
             self.__dict__["participant"] = value
         else:
-            self.participant.set_var(self.get_internal_name(name), value)
+            self.participant.var.set(self.get_internal_name(name), value)
 
     def initialise(self, experiment):
         self.confirmed_credit = 0.0
@@ -260,5 +262,6 @@ class TimeCreditStore:
     def estimate_bonus(self):
         return self.wage_per_hour * self.estimate_time_credit() / (60 * 60)
 
-    def estimate_progress(self):
+    @property
+    def progress(self):
         return self.estimate_time_credit() / self.experiment_max_time_credit

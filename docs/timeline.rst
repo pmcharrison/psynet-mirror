@@ -153,7 +153,7 @@ way to reactive pages, except they don't return an input. For example:
     from dlgr_utils.timeline import CodeBlock
 
     CodeBlock(
-        lambda participant: participant.set_var("score", 10)
+        lambda participant: participant.var.set("score", 10)
     )
 
 See :ref:`CodeBlock` documentation for more details.

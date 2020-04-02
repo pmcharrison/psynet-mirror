@@ -108,7 +108,7 @@ class Exp(dlgr_utils.experiment.Experiment):
         # ),
         # CodeBlock(
         #     lambda experiment, participant:
-        #         participant.set_var("favourite_colour", participant.answer)
+        #         participant.var.set("favourite_colour", participant.answer)
         # ),
         # ReactivePage(
         #     lambda experiment, participant: 

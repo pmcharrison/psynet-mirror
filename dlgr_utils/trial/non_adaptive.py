@@ -176,10 +176,10 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         return self.with_namespace("block_order")
 
     def set_block_order(self, participant, block_order):
-        participant.new_var(self.block_order_var_id, block_order)
+        participant.var.new(self.block_order_var_id, block_order)
 
     def get_block_order(self, participant):
-        return participant.get_var(self.with_namespace("block_order"))
+        return participant.var.get(self.with_namespace("block_order"))
 
 
     @property
@@ -187,17 +187,17 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         return self.with_namespace("participant_group", shared_between_phases=True)
 
     def set_participant_group(self, participant, participant_group):
-        participant.new_var(self.participant_group_var_id, participant_group)
+        participant.var.new(self.participant_group_var_id, participant_group)
 
     def get_participant_group(self, participant):
-        return participant.get_var(self.participant_group_var_id)
+        return participant.var.get(self.participant_group_var_id)
 
     def has_participant_group(self, participant):
         return participant.has_var(self.participant_group_var_id)
 
 
     def init_completed_stimuli_in_phase(self, participant):
-        participant.set_var(
+        participant.var.set(
             self.with_namespace("completed_stimuli_in_phase"),
             {
                 block: Counter()
@@ -206,7 +206,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
         )
 
     def get_completed_stimuli_in_phase(self, participant):
-        all_counters = participant.get_var(self.with_namespace("completed_stimuli_in_phase"))
+        all_counters = participant.var.get(self.with_namespace("completed_stimuli_in_phase"))
         return {
             block: Counter(counter)
             for block, counter in all_counters.items()
@@ -219,7 +219,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def increment_completed_stimuli_in_phase_and_block(self, participant, block, stimulus_id):
         all_counters = self.get_completed_stimuli_in_phase(participant)
         all_counters[block][stimulus_id] += 1
-        participant.set_var(self.with_namespace("completed_stimuli_in_phase"), all_counters)
+        participant.var.set(self.with_namespace("completed_stimuli_in_phase"), all_counters)
 
     # def append_completed_stimuli_in_phase(self, participant, block, stimulus_id):
     #     assert isinstance(value, int)
@@ -265,7 +265,7 @@ class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
     def find_networks(self, participant, experiment):
         # pylint: disable=protected-access
         """Should find the appropriate network for the participant's next trial."""
-        block_order = participant.get_var(self.with_namespace("block_order"))
+        block_order = participant.var.get(self.with_namespace("block_order"))
         networks = (
             NonAdaptiveNetwork.query
                               .filter_by(

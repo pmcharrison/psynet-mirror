@@ -360,15 +360,15 @@ class ChainTrialGenerator(NetworkTrialGenerator):
            
     #### Participated networks
     def init_participated_networks(self, participant):
-        participant.set_var(self.with_namespace("participated_networks"), [])
+        participant.var.set(self.with_namespace("participated_networks"), [])
 
     def get_participated_networks(self, participant):
-        return participant.get_var(self.with_namespace("participated_networks"))
+        return participant.var.get(self.with_namespace("participated_networks"))
 
     def add_to_participated_networks(self, participant, network_id):
         networks = self.get_participated_networks(participant)
         networks.append(network_id)
-        participant.set_var(self.with_namespace("participated_networks"), networks)
+        participant.var.set(self.with_namespace("participated_networks"), networks)
 
     def experiment_setup_routine(self, experiment):
         if self.num_networks == 0 and self.chain_type == "across":

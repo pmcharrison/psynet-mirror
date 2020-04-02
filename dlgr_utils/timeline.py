@@ -304,7 +304,7 @@ class Page(Elt):
         return flask.render_template_string(self.template_str, **all_template_arg)
 
     def create_progress_bar(self, participant):
-        return ProgressBar(participant.estimate_progress())
+        return ProgressBar(participant.progress)
 
     def create_footer(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -392,7 +392,7 @@ def reactive_seq(
         return f"{prefix}__{x}"
 
     def new_function(self, experiment, participant):
-        pos = participant.get_var(with_namespace("pos"))
+        pos = participant.var.get(with_namespace("pos"))
         elts = call_function(
             function,
             {
@@ -409,20 +409,20 @@ def reactive_seq(
         return res
 
     prepare_logic = CodeBlock(lambda participant: (
-        participant
-            .set_var(with_namespace("complete"), False)
-            .set_var(with_namespace("pos"), 0)
-            .set_var(with_namespace("seq_length"), num_pages)
+        participant.var
+            .set(with_namespace("complete"), False)
+            .set(with_namespace("pos"), 0)
+            .set(with_namespace("seq_length"), num_pages)
     ))
 
     update_logic = CodeBlock(
         lambda participant: (
-            participant
-                .set_var(
+            participant.var
+                .set(
                     with_namespace("complete"), 
-                    participant.get_var(with_namespace("pos")) >= num_pages - 1
+                    participant.var.get(with_namespace("pos")) >= num_pages - 1
                 )
-                .inc_var(with_namespace("pos"))
+                .inc(with_namespace("pos"))
         )   
     )
 
@@ -431,7 +431,7 @@ def reactive_seq(
         time_allotted=time_allotted / num_pages
     )
 
-    condition = lambda participant: not participant.get_var(with_namespace("complete"))
+    condition = lambda participant: not participant.var.get(with_namespace("complete"))
 
     return join(
         prepare_logic,

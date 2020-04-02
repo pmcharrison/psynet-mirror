@@ -49,10 +49,10 @@ class Imitate(Module):
 
     def _get_train_logic():
         return join(
-            CodeBlock(lambda experiment, participant: participant.set_var("_train_item", 1)),
+            CodeBlock(lambda experiment, participant: participant.var.set("_train_item", 1)),
             while_loop(
                 "imitate_training",
-                condition=lambda experiment, participant: participant.get_var("_train_item") < self.num_items["training"],
+                condition=lambda experiment, participant: participant.var.get("_train_item") < self.num_items["training"],
                 logic=ReactivePage(
                     lambda experiment, participant: self.show_item(self.get_next_item("training", experiment, participant))
                 ),

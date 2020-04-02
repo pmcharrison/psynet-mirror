@@ -138,6 +138,50 @@ class UndefinedVariableError(Exception):
     pass
 
 class VarStore:
+    """
+    A repository for arbitrary variables which will be serialized to JSON for storage into the 
+    database, specifically in the ``details`` field. Variables can be set with the following syntax:
+    ``participant.var.my_var_name = "value_to_set"``.
+    The variable can then be accessed with ``participant.var.my_var_name``.
+    See the methods below for an alternative API.
+
+    **TIP 1:** the standard setter function is unavailable in lambda functions,
+    which are otherwise convenient to use when defining e.g. 
+    :class:`~dlgr_utils.timeline.CodeBlock` objects.
+    Use :meth:`dlgr_utils.field.VarStore.set` instead, for example:
+
+    ::
+
+        from dlgr_utils.timeline import CodeBlock
+
+        CodeBlock(lambda participant: participant.var.set("my_var", 3))
+
+    **TIP 2:** by convention, the ``VarStore`` object is placed in an object's ``var`` slot.
+    The :class:`dlgr_utils.participant.Participant` object comes with one by default
+    (unfortunately the :class:`dlgr_utils.experiment.Experiment` object doesn't, 
+    because it is not stored in the database).
+    You can add a ``VarStore`` object to a custom object (e.g. a Dallinger ``Node``) as follows:
+
+    ::
+
+        from dallinger.models import Node
+        from dlgr_utils.field import VarStore
+
+        class CustomNode(Node):
+            __mapper_args__ = {"polymorphic_identity": "custom_node"}
+
+            @property
+            def var(self):
+                return VarStore(self)
+
+    **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``), 
+    as such modifications will (probably) not get propagated to the database.
+    Support could be added in the future if Dallinger takes advantage of 
+    `mutable structures in SQLAlchemy <https://docs.sqlalchemy.org/en/13/orm/extensions/mutable.html#module-sqlalchemy.ext.mutable>`_.
+    
+    **WARNING 2:** avoid storing large objects here on account of the performance cost
+    of converting to and from JSON. 
+    """
     def __init__(self, owner):
         self._owner = owner
 
@@ -162,3 +206,133 @@ class VarStore:
             all_vars = all_vars.copy()
             all_vars[name] = value
             self.__dict__["_owner"].details = all_vars
+
+    def get(self, name: str):
+        """
+        Gets a variable with a specified name.
+
+        Parameters
+        ----------
+
+        name
+            Name of variable to retrieve. 
+
+        Returns 
+        -------
+
+        object
+            Retrieved variable.
+
+        Raises
+        ------
+
+        UndefinedVariableError
+            Thrown if the variable doesn't exist.
+        """
+        return self.__getattr__(name)
+
+    def set(self, name, value):
+        """
+        Sets a variable. Calls can be chained, e.g.
+        ``participant.var.set("a", 1).set("b", 2)``.
+
+        Parameters
+        ----------
+
+        name
+            Name of variable to set. 
+
+        value
+            Value to assign to the variable.
+
+        Returns 
+        -------
+
+        VarStore
+            The original ``VarStore`` object (useful for chaining).
+        """
+        self.__setattr__(name, value)
+        return self
+
+    def has(self, name):
+        """
+        Tests for the existence of a variable.
+
+        Parameters
+        ----------
+
+        name
+            Name of variable to look for. 
+
+        Returns 
+        -------
+
+        bool
+            ``True`` if the variable exists, ``False`` otherwise.
+        """
+        try:
+            self.get(name)
+            return True
+        except UndefinedVariableError:
+            return False
+
+    def inc(self, name, value=1):
+        """
+        Increments a variable. Calls can be chained, e.g.
+        ``participant.var.inc("a").inc("b")``.
+
+        Parameters
+        ----------
+
+        name
+            Name of variable to increment. 
+
+        value
+            Value by which to increment the varibable (default = 1).
+
+        Returns 
+        -------
+
+        VarStore
+            The original ``VarStore`` object (useful for chaining).
+
+        Raises
+        ------
+
+        UndefinedVariableError
+            Thrown if the variable doesn't exist.
+        """
+        original = self.get(name)
+        new = original + value
+        self.set(name, new)
+        return self
+
+    def new(self, name, value):
+        """
+        Like :meth:`~dlgr_utils.field.VarStore.set`, except throws 
+        an error if the variable exists already.
+
+        Parameters
+        ----------
+
+        name
+            Name of variable to set. 
+
+        value
+            Value to assign to the variable.
+
+        Returns 
+        -------
+
+        VarStore
+            The original ``VarStore`` object (useful for chaining).
+
+        Raises
+        ------
+
+        UndefinedVariableError
+            Thrown if the variable doesn't exist.
+        """
+        if self.has(name):
+            raise ValueError(f"There is already a variable called {name}.")
+        self.set(name, value)
