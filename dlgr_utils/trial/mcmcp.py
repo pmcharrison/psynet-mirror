@@ -12,7 +12,8 @@ class MCMCPTrial(ChainTrial):
         """
         raise NotImplementedError
 
-    def make_definition(self, node, experiment, participant):
+    def make_definition(self, experiment, participant, **kwargs):
+        node = kwargs["node"]
         order = ["current_state", "proposal"]
         random.shuffle(order)
         definition = node.definition.copy()

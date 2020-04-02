@@ -5,8 +5,9 @@ from .chain import ChainTrial, ChainNode, ChainSource, ChainTrialGenerator
 class ImitationChainTrial(ChainTrial):
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_trial"}
 
-    def make_definition(self, node, experiment, participant):
+    def make_definition(self, experiment, participant, **kwargs):
         """Each trial is a faithful reproduction of the latest node in the chain."""
+        node = kwargs["node"]
         return node.definition
         
 class ImitationChainNode(ChainNode):

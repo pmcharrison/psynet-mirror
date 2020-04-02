@@ -48,6 +48,78 @@ import rpdb
 import rpdb
 
 class Trial(Info):
+    """
+    Represents a trial in the experiment. 
+    The user is expected to override the following methods:
+
+    * :meth:`~dlgr_utils.trial.main.Trial.make_definition`
+    * :meth:`~dlgr_utils.trial.main.Trial.show_trial`
+    * :meth:`~dlgr_utils.trial.main.Trial.show_feedback`
+
+    :meth:`~dlgr_utils.trial.main.Trial.make_definition` is responsible
+    for deciding on the content of the trial.
+    :meth:`~dlgr_utils.trial.main.Trial.show_trial` determines how 
+    the trial is turned into a webpage for presentation to the participant.
+    :meth:`~dlgr_utils.trial.main.Trial.show_feedback` defines an 
+    optional feedback page to be displayed after the trial.
+
+    This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
+    hence can be found in the ``Info`` table in the database.
+    It inherits this class's methods, which the user is welcome to use
+    if they seem relevant.
+
+    The user should never have to instantiate this class directly.
+    Instances can be retrieved using *SQLAlchemy*; for example, the
+    following command retrieves the ``Trial`` object with an ID of 1:
+
+    ::
+
+        Trial.query.filter_by(id=1).one()
+
+    Attributes
+    ----------
+
+    participant_id : int
+        The ID of the associated participant.
+        The user should not typically change this directly.
+
+    complete : bool
+        Whether the trial has been completed (i.e. received a response
+        from the participant). The user should not typically change this directly.
+
+    answer : Object
+        The response returned by the participant. This is serialised
+        to JSON, so it shouldn't be too big.
+        The user should not typically change this directly.
+
+    awaiting_process : bool
+        Whether the trial is waiting for some asynchronous process
+        to complete (e.g. to synthesise audiovisual material).
+        The user should not typically change this directly.
+
+    propagate_failure : bool
+        Whether failure of a trial should be propagated to other 
+        parts of the experiment depending on that trial
+        (for example, subsequent parts of a transmission chain).
+        This is typically not set directly, but rather through an option
+        passed to :class:`~dlgr_utils.trial.main.TrialGenerator`
+
+    num_pages : int
+        The number of pages that this trial comprises.
+        Defaults to 1; override it for trials comprising multiple pages.
+
+    var : :class:`~dlgr_utils.field.VarStore`
+        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+
+    definition : Object
+        An arbitrary Python object that somehow defines the content of 
+        a trial. Often this will be a dictionary comprising a few 
+        named parameters.
+        The user should not typically change this directly,
+        as it is instead determined by 
+        :meth:`~dlgr_utils.trial.main.Trial.make_definition`.
+
+    """
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
 
@@ -81,8 +153,18 @@ class Trial(Info):
         self.contents = json.dumps(definition)
 
     def fail(self):
-        """The original fail function throws an error if the object is already failed,
-        we disabled this behaviour."""
+        """
+        Marks a trial as failed. Failing a trial means that it is somehow
+        excluded from certain parts of the experiment logic, for example
+        not counting towards data collection quotas, or not contributing
+        towards latter parts of a transmission chain.
+
+        The original fail function from the
+        :class:`~dallinger.models.Info` class
+        throws an error if the object is already failed, 
+        but this behaviour is disabled here.
+        """
+
         if not self.failed:
             self.failed = True
             self.time_of_death = datetime.datetime.now()
@@ -94,21 +176,71 @@ class Trial(Info):
         self.complete = False
         self.awaiting_process = False
         self.participant_id = participant.id
-        self.definition = self.make_definition(node, experiment, participant)
+        self.definition = self.make_definition(experiment, participant, node=node)
         self.propagate_failure = propagate_failure
 
-    def make_definition(self, node, experiment, participant):
+    def make_definition(self, experiment, participant, **kwargs):
+        """
+        Should create and return a definition for the trial, 
+        which will be later stored in the ``definition`` attribute.
+        This can be an arbitrary object as long as it 
+        is serialisable to JSON.
+
+        Parameters 
+        ----------
+
+        experiment:
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+
+        **kwargs:
+            Further keyword arguments.
+
+        """
         raise NotImplementedError
 
     def show_trial(self, experiment, participant):
         """
-        Should return a Page object that returns an answer that can be stored in Trial.answer.
-        Alternatively 
+        Should return a :class:`~dlgr_utils.timeline.Page` object,
+        or alternatively a list of such objects, 
+        that solicit an answer from the participant.
+        If this method returns a list, then this list must have
+        a length equal to the :attr:`~dlgr_utils.trial.main.Trial.num_pages`
+        attribute.
+
+        Parameters 
+        ----------
+
+        experiment:
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
         """
         raise NotImplementedError
 
     def show_feedback(self, experiment, participant):
-        """Should return a Page object displaying feedback (or None, which means no feedback)"""
+        """
+        Should return a Page object displaying feedback
+        (or None, which means no feedback).
+
+        Parameters 
+        ----------
+
+        experiment:
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+        """
         return None
 
     def gives_feedback(self, experiment, participant):
