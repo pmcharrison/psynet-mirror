@@ -30,7 +30,7 @@ Choose a location to put your installation, e.g. `~/cap`.
 .. code-block:: console
 
     cd ~/cap
-    git clone 
+    git clone -b dev https://gitlab.com/computational-audition-lab/dlgr-utils`
 
 This will create folder called `dlgr_utils`.
 Navigate to this folder:
