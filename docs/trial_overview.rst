@@ -29,20 +29,20 @@ Experiments using trials
 
 At this most generic level, the two relevant classes are 
 :class:`~dlgr_utils.trial.main.Trial` and
-:class:`~dlgr_utils.trial.main.TrialGenerator`.
+:class:`~dlgr_utils.trial.main.TrialMaker`.
 Each instance of the :class:`~dlgr_utils.trial.main.Trial`
 object represents an individual trial, that is, 
 some kind of stimulus presented to the participant
 combined with the participant's response to that stimulus.
 These objects are stored in the database.
-The :class:`~dlgr_utils.trial.main.TrialGenerator`, meanwhile,
+The :class:`~dlgr_utils.trial.main.TrialMaker`, meanwhile,
 is inserted into the timeline to prompt the selection and 
 administration of these trials to the participant.
 
 When designing an experiment at this level, 
 the user must create custom subclasses of
 :class:`~dlgr_utils.trial.main.Trial`
-and :class:`~dlgr_utils.trial.main.TrialGenerator`
+and :class:`~dlgr_utils.trial.main.TrialMaker`
 that implement the desired logic for their experiment.
 The subclass of :class:`~dlgr_utils.trial.main.Trial` should
 implement the following methods:
@@ -56,13 +56,13 @@ implement the following methods:
 
 See the :class:`~dlgr_utils.trial.main.Trial` documentation for details.
 
-The subclass of :class:`~dlgr_utils.trial.main.TrialGenerator`
+The subclass of :class:`~dlgr_utils.trial.main.TrialMaker`
 should implement one method in particular:
-:meth:`~dlgr_utils.trial.main.TrialGenerator.prepare_trial`.
+:meth:`~dlgr_utils.trial.main.TrialMaker.prepare_trial`.
 This method is responsible for constructing an appropriate
 :class:`~dlgr_utils.trial.main.Trial` object to 
 administer to that participant at that part of the experiment.
-See the :class:`~dlgr_utils.trial.main.TrialGenerator` documentation for details.
+See the :class:`~dlgr_utils.trial.main.TrialMaker` documentation for details.
 
 Currently we don't have any demos for this most generic level of experiment design;
 all our demos use more specific levels described below.
@@ -73,8 +73,8 @@ Experiments where trials are organised into networks
 For designing an experiment where trials are organised into networks,
 you can still use the original :class:`~dlgr_utils.trial.main.Trial` class,
 but we recommend you use (either directly or subclassing) the 
-:class:`~dlgr_utils.trial.main.NetworkTrialGenerator` class
-as the trial generator,
+:class:`~dlgr_utils.trial.main.NetworkTrialMaker` class
+as the trial maker,
 and the :class:`~dlgr_utils.trial.main.TrialNetwork` class
 for the networks.
 These classes automate certain
@@ -97,18 +97,18 @@ over time. This typically involves adding new nodes that somehow
 respond to the trials that have been submitted previously.
 
 The present class facilitates this behaviour by providing
-a built-in :meth:`~dlgr_utils.trial.main.TrialGenerator.prepare_trial`
+a built-in :meth:`~dlgr_utils.trial.main.TrialMaker.prepare_trial`
 implementation that comprises the following steps:
 
 1. Find the available networks from which to source the next trial,
    ordered by preference
-   (:meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.find_networks`).
+   (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`).
 2. Give these networks an opportunity to grow (i.e. update their structure
    based on the trials that they've received so far)
-   (:meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.grow_network`).
+   (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`).
 3. Iterate through these networks, and find the first network that has a 
    node available for the participant to attach to.
-   (:meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.find_node`).
+   (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_node`).
 4. Create a trial from this node
    (:meth:`dlgr_utils.trial.main.Trial.__init__`).
    
@@ -123,7 +123,7 @@ if that object is still waiting for an asynchronous process,
 and likewise a trial won't contribute to a growing network if 
 it is still pending the outcome of an asynchronous process.
 
-See :class:`~dlgr_utils.trial.main.NetworkTrialGenerator` 
+See :class:`~dlgr_utils.trial.main.NetworkTrialMaker` 
 and :class:`~dlgr_utils.trial.main.TrialNetwork` for more details.
 
 Experiments where the networks take the form of chains
@@ -143,8 +143,8 @@ paradigms into one code base.
 We provide the following classes to help this process,
 which we recommend you subclass for your particular paradigm:
 
-* :class:`~dlgr_utils.trial.chain.ChainNetworkGenerator;
-  a special type of :class:`~dlgr_utils.trial.main.NetworkTrialGenerator` 
+* :class:`~dlgr_utils.trial.chain.ChainNetworkMaker;
+  a special type of :class:`~dlgr_utils.trial.main.NetworkTrialMaker` 
 
 * :class:`~dlgr_utils.trial.chain.ChainNetwork;
   a special type of :class:`~dlgr_utils.trial.main.TrialNetwork` 

@@ -1,7 +1,7 @@
 # pylint: disable=unused-argument,abstract-method
 
 import random
-from .chain import ChainTrialGenerator, ChainTrial, ChainNode, ChainSource
+from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 class MCMCPTrial(ChainTrial):
     __mapper_args__ = {"polymorphic_identity": "mcmcp_trial"}
@@ -45,7 +45,7 @@ class MCMCPSource(ChainSource):
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 
-class MCMCPTrialGenerator(ChainTrialGenerator):
+class MCMCPTrialMaker(ChainTrialMaker):
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         super().finalise_trial(answer, trial, experiment, participant)

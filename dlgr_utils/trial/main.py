@@ -274,7 +274,7 @@ class Trial(Info):
     #     self.failed = True
     #     self.time_of_death = timenow()
 
-class TrialGenerator(Module):
+class TrialMaker(Module):
     """
     Generic trial generation module, to be inserted
     in an experiment timeline. It is responsible for organising
@@ -282,40 +282,40 @@ class TrialGenerator(Module):
 
     Users are invited to override the following abstract methods/attributes:
 
-    * :meth:`~dlgr_utils.trial.main.TrialGenerator.prepare_trial`, 
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.prepare_trial`, 
       which prepares the next trial to administer to the participant.
     
-    * :meth:`~dlgr_utils.trial.main.TrialGenerator.experiment_setup_routine`
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.experiment_setup_routine`
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
     
-    * :meth:`~dlgr_utils.trial.main.TrialGenerator.init_participant`
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.init_participant`
       (optional), a function that is run when the participant begins 
       this sequence of trials, intended to initialise the participant's state.
       Make sure you call ``super().init_participant`` when overriding this.
     
-    * :meth:`~dlgr_utils.trial.main.TrialGenerator.finalise_trial`
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.finalise_trial`
       (optional), which finalises the trial after the participant 
       has given their response.
     
-    * :meth:`~dlgr_utils.trial.main.TrialGenerator.on_complete`
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.on_complete`
       (optional), run once the the sequence of trials is complete.
     
-    * :meth:`~dlgr_utils.trial.main.TrialGenerator.performance_check`
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`
       (optional), which checks the performance of the participant 
       with a view to rejecting poor-performing participants.
     
-    * :attr:`~dlgr_utils.trial.main.TrialGenerator.num_trials_still_required`
+    * :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`
       (optional), which is used to estimate how many more participants are 
       still required in the case that ``recruit_mode="num_trials"``.
     
     Users are also invited to add new recruitment criteria for selection with
     the ``recruit_mode`` argument. This may be achieved using a custom subclass
-    of :class:`~dlgr_utils.trial.main.TrialGenerator` as follows:
+    of :class:`~dlgr_utils.trial.main.TrialMaker` as follows:
 
     ::
 
-        class CustomTrialGenerator(TrialGenerator):
+        class CustomTrialMaker(TrialMaker):
             def new_recruit(self, experiment):
                 if experiment.my_condition:
                     return True # True means recruit more 
@@ -323,20 +323,20 @@ class TrialGenerator(Module):
                     return False # False means don't recruit any more (for now)
             
             recruit_criteria = {
-                **TrialGenerator.recruit_criteria,
+                **TrialMaker.recruit_criteria,
                 "new_recruit": new_recruit
             }
 
     With the above code, you'd then be able to use ``recruit_mode="new_recruit"``.
-    If you're subclassing a subclass of :class:`~dlgr_utils.trial.main.TrialGenerator`,
-    then just replace that subclass wherever :class:`~dlgr_utils.trial.main.TrialGenerator`
+    If you're subclassing a subclass of :class:`~dlgr_utils.trial.main.TrialMaker`,
+    then just replace that subclass wherever :class:`~dlgr_utils.trial.main.TrialMaker`
     occurs in the above code.
 
     Parameters 
     ----------
 
     trial_class
-        The class object for trials administered by this generator.
+        The class object for trials administered by this maker.
 
     phase
         Arbitrary label for this phase of the experiment, e.g.
@@ -374,7 +374,7 @@ class TrialGenerator(Module):
         Selects a recruitment criterion for determining whether to recruit 
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``, though the latter requires overriding of 
-        :attr:`~dlgr_utils.trial.main.TrialGenerator.num_trials_still_required`.
+        :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`.
 
     target_num_participants
         Target number of participants to recruit for the experiment. All 
@@ -393,7 +393,7 @@ class TrialGenerator(Module):
         How long until a trial times out, in seconds (default = 60). 
         Tthis is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~dlgr_utils.trial.main.TrialGenerator.trial_timeout_sec`.
+        which in turn depends on :attr:`~dlgr_utils.trial.main.TrialMaker.trial_timeout_sec`.
         Users are invited to override this.
     """
 
@@ -859,9 +859,9 @@ class TrialGenerator(Module):
             self.get_num_completed_trials_in_phase(participant) + 1
         )
 
-class NetworkTrialGenerator(TrialGenerator):
+class NetworkTrialMaker(TrialMaker):
     """
-    Trial generator for network-based experiments.
+    Trial maker for network-based experiments.
     These experiments are organised around networks
     in an analogous way to the network-based experiments in Dallinger.
     A :class:`~dallinger.models.Network` comprises a collection of 
@@ -879,18 +879,18 @@ class NetworkTrialGenerator(TrialGenerator):
     respond to the trials that have been submitted previously.
 
     The present class facilitates this behaviour by providing
-    a built-in :meth:`~dlgr_utils.trial.main.TrialGenerator.prepare_trial`
+    a built-in :meth:`~dlgr_utils.trial.main.TrialMaker.prepare_trial`
     implementation that comprises the following steps:
 
     1. Find the available networks from which to source the next trial,
        ordered by preference
-       (:meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.find_networks`).
+       (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`).
     2. Give these networks an opportunity to grow (i.e. update their structure
        based on the trials that they've received so far)
-       (:meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.grow_network`).
+       (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`).
     3. Iterate through these networks, and find the first network that has a 
        node available for the participant to attach to.
-       (:meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.find_node`).
+       (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_node`).
     4. Create a trial from this node
        (:meth:`dlgr_utils.trial.main.Trial.__init__`).
     
@@ -907,19 +907,19 @@ class NetworkTrialGenerator(TrialGenerator):
     
     The user is expected to override the following abstract methods/attributes:
     
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.experiment_setup_routine`, 
+    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.experiment_setup_routine`, 
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
       
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.find_networks`,
+    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`,
       which finds the available networks from which to source the next trial,
       ordered by preference.
     
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.grow_network`,
+    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`,
       which give these networks an opportunity to grow (i.e. update their structure
       based on the trials that they've received so far).
     
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.find_node`,
+    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_node`,
       which takes a given network and finds a node which the participant can 
       be attached to, if one exists.
       
@@ -929,10 +929,10 @@ class NetworkTrialGenerator(TrialGenerator):
     ----------
 
     trial_class
-        The class object for trials administered by this generator.
+        The class object for trials administered by this maker.
         
     network_class
-        The class object for the networks used by this generator.
+        The class object for the networks used by this maker.
         This should subclass :class`~dlgr_utils.trial.main.TrialNetwork`.
 
     phase
@@ -971,7 +971,7 @@ class NetworkTrialGenerator(TrialGenerator):
         Selects a recruitment criterion for determining whether to recruit 
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``, though the latter requires overriding of 
-        :attr:`~dlgr_utils.trial.main.TrialGenerator.num_trials_still_required`.
+        :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`.
 
     target_num_participants
         Target number of participants to recruit for the experiment. All 
@@ -995,7 +995,7 @@ class NetworkTrialGenerator(TrialGenerator):
         
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
-        :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.grow_network` returns ``True``.
+        :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
         This should be specified as a fully qualified string, for example
         ``dlgr_utils.trial.async_example.async_update_network``.
         This function should take one argument, ``network_id``, corresponding to the
@@ -1018,18 +1018,18 @@ class NetworkTrialGenerator(TrialGenerator):
         How long until a trial times out, in seconds (default = 60). 
         Tthis is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~dlgr_utils.trial.main.TrialGenerator.trial_timeout_sec`.
+        which in turn depends on :attr:`~dlgr_utils.trial.main.TrialMaker.trial_timeout_sec`.
         Users are invited to override this.
         
     network_query
-        An SQLAlchemy query for retrieving all networks owned by the current trial generator.
+        An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
         
     num_networks : int
-        Returns the number of networks owned by the trial generator.
+        Returns the number of networks owned by the trial maker.
         
     networks : list
-        Returns the networks owned by the trial generator.    
+        Returns the networks owned by the trial maker.    
     """
 
     def __init__(
@@ -1067,8 +1067,8 @@ class NetworkTrialGenerator(TrialGenerator):
         self.async_post_trial = async_post_trial
         self.async_post_grow_network = async_post_grow_network
 
-    #### The following methods are overwritten from TrialGenerator.
-    #### Returns None if no trials could be found (this may not yet be supported by TrialGenerator)
+    #### The following methods are overwritten from TrialMaker.
+    #### Returns None if no trials could be found (this may not yet be supported by TrialMaker)
     def prepare_trial(self, experiment, participant):
         logger.info("Preparing trial for participant %i.", participant.id)
         networks = self.find_networks(participant=participant, experiment=experiment)
@@ -1193,7 +1193,7 @@ class NetworkTrialGenerator(TrialGenerator):
 
 class TrialNetwork(Network):
     """
-    A network class to be used by :class:`~dlgr_utils.trial.main.NetworkTrialGenerator`.
+    A network class to be used by :class:`~dlgr_utils.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~dlgr_utils.trial.main.TrialNetwork.add_node`.
     
     Parameters

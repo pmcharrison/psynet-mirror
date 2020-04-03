@@ -31,7 +31,7 @@ from dlgr_utils.trial.imitation_chain import (
     ImitationChainTrial,
     ImitationChainNode,
     ImitationChainSource,
-    ImitationChainTrialGenerator
+    ImitationChainTrialMaker
 )
 
 import logging
@@ -87,7 +87,7 @@ class CustomSource(ImitationChainSource):
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 
-class CustomTrialGenerator(ImitationChainTrialGenerator):
+class CustomTrialMaker(ImitationChainTrialMaker):
     trial_timeout_sec = 60
     trial_timeout_check_interval = 30
 
@@ -100,7 +100,7 @@ class CustomTrialGenerator(ImitationChainTrialGenerator):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        CustomTrialGenerator(
+        CustomTrialMaker(
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,

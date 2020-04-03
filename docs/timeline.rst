@@ -188,8 +188,8 @@ the participant's progress through the experiment and to determine the participa
 final payment.
 
 
-Putting everything together
----------------------------
+Combining events
+----------------
 
 The ``Experiment`` class expects us to provide an object of 
 class :class:`dlgr_utils.timeline.Timeline` in the ``timeline`` slot.

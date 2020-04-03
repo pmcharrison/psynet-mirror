@@ -12,7 +12,7 @@ import dallinger.models
 import dallinger.nodes
 
 from ..field import claim_field
-from .main import Trial, TrialNetwork, NetworkTrialGenerator
+from .main import Trial, TrialNetwork, NetworkTrialMaker
 from ..participant import Participant
 
 import logging
@@ -60,7 +60,7 @@ class NonAdaptiveTrial(Trial):
             **self.stimulus_version.definition
         }     
 
-class NonAdaptiveTrialGenerator(NetworkTrialGenerator):
+class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def __init__(
         self,  
         trial_class, 

@@ -33,7 +33,7 @@ from dlgr_utils.timeline import (
 )
 from dlgr_utils.trial.chain import ChainNetwork
 from dlgr_utils.trial.gibbs_sampler import (
-    GibbsTrial, GibbsNode, GibbsSource, GibbsTrialGenerator
+    GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
 
 import logging
@@ -127,7 +127,7 @@ class CustomSource(GibbsSource):
             raise ValueError(f"Unidentified chain type: {network.chain_type}")
         return TARGETS[index % len(TARGETS)]
 
-trial_generator = GibbsTrialGenerator(
+trial_maker = GibbsTrialMaker(
     trial_class=CustomTrial,
     node_class=CustomNode, 
     source_class=CustomSource,
@@ -172,7 +172,7 @@ def async_post_grow_network(network_id):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        trial_generator,
+        trial_maker,
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
     )

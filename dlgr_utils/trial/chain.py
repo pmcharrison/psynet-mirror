@@ -11,7 +11,7 @@ import dallinger.nodes
 import dallinger.networks
 
 from ..field import claim_field, claim_var, VarStore
-from .main import Trial, TrialNetwork, NetworkTrialGenerator
+from .main import Trial, TrialNetwork, NetworkTrialMaker
 
 # pylint: disable=unused-import
 import rpdb
@@ -19,7 +19,7 @@ import rpdb
 class ChainNetwork(TrialNetwork):
     """
     Implements a network in the form of a chain.
-    Intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialGenerator`.
+    Intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialMaker`.
     Typically the user won't have to override anything here.
     
     """
@@ -273,10 +273,10 @@ class ChainTrial(Trial):
         if child_node is not None:
             child_node.fail()
 
-class ChainTrialGenerator(NetworkTrialGenerator):
+class ChainTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a chain-based paradigm.
-    This trial generator is suitable for implementing paradigms such as 
+    This trial maker is suitable for implementing paradigms such as 
     Markov Chain Monte Carlo with People, iterated reproduction, and so on.
     It is intended for use with the following helper classes,
     which should be customised for the particular paradigm:
@@ -320,7 +320,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         (should subclass :class:`~dlgr_utils.trial.chain.ChainSource`).
         
     trial_class
-        The class object for trials administered by this generator
+        The class object for trials administered by this maker
         (should subclass :class:`~dlgr_utils.trial.chain.ChainTrial`).
 
     phase
@@ -373,7 +373,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         Selects a recruitment criterion for determining whether to recruit 
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``, though the latter requires overriding of 
-        :attr:`~dlgr_utils.trial.main.TrialGenerator.num_trials_still_required`.
+        :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`.
         
     target_num_participants
         Target number of participants to recruit for the experiment. All 
@@ -397,7 +397,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
-        :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.grow_network` returns ``True``.
+        :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
         This should be specified as a fully qualified string, for example
         ``dlgr_utils.trial.async_example.async_update_network``.
         This function should take one argument, ``network_id``, corresponding to the
@@ -427,14 +427,14 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         to the implementation).
         
     network_class
-        The class object for the networks used by this generator.
+        The class object for the networks used by this maker.
         This should subclass :class`~dlgr_utils.trial.chain.ChainNetwork`,
         or alternatively be left at the default of 
         :class`~dlgr_utils.trial.chain.ChainNetwork`
         
         
     node_class
-        The class object for the networks used by this generator.
+        The class object for the networks used by this maker.
         This should subclass :class`~dlgr_utils.trial.chain.ChainNode`,
         or alternatively be left at the default of 
         :class`~dlgr_utils.trial.chain.ChainNode`

@@ -1,7 +1,7 @@
 # pylint: disable=unused-argument,abstract-method
 
 from statistics import mean
-from .chain import ChainTrialGenerator, ChainTrial, ChainNode, ChainSource
+from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 import rpdb
 
@@ -70,12 +70,12 @@ class GibbsSource(ChainSource):
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 
-class GibbsTrialGenerator(ChainTrialGenerator):
+class GibbsTrialMaker(ChainTrialMaker):
     def test_recruit(self, experiment):
         assert False
         return True
     
     recruit_criteria = {
-        **ChainTrialGenerator.recruit_criteria,
+        **ChainTrialMaker.recruit_criteria,
         "test": test_recruit
     }

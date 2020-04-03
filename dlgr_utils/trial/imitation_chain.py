@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
-from .chain import ChainTrial, ChainNode, ChainSource, ChainTrialGenerator
+from .chain import ChainTrial, ChainNode, ChainSource, ChainTrialMaker
 
 class ImitationChainTrial(ChainTrial):
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_trial"}
@@ -29,5 +29,5 @@ class ImitationChainSource(ChainSource):
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 
-class ImitationChainTrialGenerator(ChainTrialGenerator):
+class ImitationChainTrialMaker(ChainTrialMaker):
     pass

@@ -1,6 +1,6 @@
-==============
-TrialGenerator
-==============
+==========
+TrialMaker
+==========
 
-.. autoclass:: dlgr_utils.trial.main.TrialGenerator
+.. autoclass:: dlgr_utils.trial.main.TrialMaker
     :members:

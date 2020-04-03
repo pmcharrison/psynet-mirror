@@ -22,7 +22,7 @@ from dlgr_utils.timeline import (
     switch
 )
 from dlgr_utils.trial.non_adaptive import (
-    NonAdaptiveTrialGenerator,
+    NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
     StimulusSet,
     StimulusSpec,
@@ -76,7 +76,7 @@ class AnimalTrial(NonAdaptiveTrial):
     # def show_feedback(self, experiment, participant):
     #     return InfoPage(f"You responded '{self.answer}'.")
 
-class AnimalTrialGenerator(NonAdaptiveTrialGenerator):
+class AnimalTrialMaker(NonAdaptiveTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
         score = 0
@@ -96,7 +96,7 @@ class AnimalTrialGenerator(NonAdaptiveTrialGenerator):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        AnimalTrialGenerator(
+        AnimalTrialMaker(
             AnimalTrial, 
             phase="experiment",
             stimulus_set=stimulus_set, 

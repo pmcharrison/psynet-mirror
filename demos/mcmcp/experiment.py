@@ -28,7 +28,7 @@ from dlgr_utils.timeline import (
     TextInputPage
 )
 from dlgr_utils.trial.mcmcp import (
-    MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialGenerator
+    MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
 )
 
 import logging
@@ -117,7 +117,7 @@ class CustomSource(MCMCPSource):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        MCMCPTrialGenerator(
+        MCMCPTrialMaker(
             trial_class=CustomTrial,
             node_class=CustomNode, 
             source_class=CustomSource,
