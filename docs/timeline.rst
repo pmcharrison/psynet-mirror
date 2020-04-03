@@ -3,8 +3,8 @@ The timeline
 ============
 
 The timeline determines the sequential logic of the experiment.
-A timeline comprises a series of *test elements* that are ordinarily
-presented sequentially. There are three main kinds of test elements:
+A timeline comprises a series of *events* that are ordinarily
+presented sequentially. There are three main kinds of events:
 
 * `Pages`_
 * `Page makers`_
@@ -17,12 +17,12 @@ when the participant's web page loads.
 `Code blocks`_ contain server logic that is executed in between pages, 
 for example to assign the participant to a group or to save the participant's data.
 
-All these test elements are defined as ``dlgr_utils`` classes inheriting from
-`Elt`, the generic test element object.
+All these events are defined as ``dlgr_utils`` classes inheriting from
+`Event`, the generic event object.
 Pages correspond to the `Page` class;
 page makers correspond to the `PageMaker` class;
 code blocks correspond to the `CodeBlock` class.
-These different test elements may be created using their constructor functions, e.g.:
+These different events may be created using their constructor functions, e.g.:
 
 ::
 
@@ -170,7 +170,7 @@ the following control constructs for this purpose:
 * :ref:`while_loop`
 
 Note that these constructs are functions, not classes:
-when called, they resolve to a sequence of test elements
+when called, they resolve to a sequence of events
 that performs the desired logic.
 
 Allotted time
@@ -193,7 +193,7 @@ Putting everything together
 
 The ``Experiment`` class expects us to provide an object of 
 class :class:`dlgr_utils.timeline.Timeline` in the ``timeline`` slot.
-This ``Timeline`` object expects either test elements or lists of test elements
+This ``Timeline`` object expects either events or lists of events
 as its input; it will concatenate them together into one big list.
 Following this method, here's a complete definition of a simple experiment:
 
@@ -266,9 +266,9 @@ It is generally wise to build up the test logic in small pieces. For example:
     timeline = Timeline(intro, test)
 
 Here we used the :func:`dlgr_utils.timeline.join` function to join
-two test elements into a list. When its arguments are all test elements,
+two events into a list. When its arguments are all events,
 the ``join`` function behaves like a Python list constructor;
-when the arguments also include lists of test elements, the ``join`` function
+when the arguments also include lists of events, the ``join`` function
 merges these lists. This makes it handy for combining timeline logic,
-where different bits of logic often correspond either to test elements or 
-lists of test elements.
+where different bits of logic often correspond either to events or 
+lists of events.

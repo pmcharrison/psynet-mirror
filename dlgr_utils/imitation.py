@@ -24,7 +24,7 @@ class Imitate(Module):
 
     def __init__(self, items: list):
         self.check()
-        super().__init__(elts=self._get_logic())
+        super().__init__(events=self._get_logic())
 
     def show_item(self, item):
         raise NotImplementedError

@@ -29,7 +29,7 @@ def get_template(name):
     assert isinstance(name, str)
     return importlib_resources.read_text(templates, name)
 
-class Elt:
+class Event:
     returns_time_credit = False
     time_allotted = None
     expected_repetitions = None
@@ -46,16 +46,16 @@ class Elt:
         return self
 
     # def get_position_in_timeline(self, timeline):
-    #     for i, elt in enumerate(timeline):
-    #         if self == elt:
+    #     for i, event in enumerate(timeline):
+    #         if self == event:
     #             return i
-    #     raise ValueError("Elt not found in timeline.")
+    #     raise ValueError("Event not found in timeline.")
 
-class NullElt(Elt):
+class NullEvent(Event):
     def consume(self, experiment, participant):
         pass
 
-class CodeBlock(Elt):
+class CodeBlock(Event):
     """
     A timeline component that executes some back-end logic without showing 
     anything to the participant.
@@ -77,7 +77,7 @@ class CodeBlock(Elt):
             "participant": participant
         })
 
-class FixTime(Elt):
+class FixTime(Event):
     def __init__(self, time_allotted: float):
         self.time_allotted = time_allotted
         self.expected_repetitions = 1
@@ -97,7 +97,7 @@ class EndFixTime(FixTime):
     def consume(self, experiment, participant):
         participant.time_credit.end_fix_time(self.time_allotted)
 
-class GoTo(Elt):
+class GoTo(Event):
     def __init__(self, target):
         self.target = target
 
@@ -106,11 +106,11 @@ class GoTo(Elt):
         return self.target
 
     def consume(self, experiment, participant):
-        # We subtract 1 because elt_id will be incremented again when
+        # We subtract 1 because event_id will be incremented again when
         # we return to the startning of the advance page loop.
-        target_elt = self.get_target(experiment, participant)
-        target_elt_id = target_elt.id
-        participant.elt_id = target_elt_id - 1
+        target_event = self.get_target(experiment, participant)
+        target_event_id = target_event.id
+        participant.event_id = target_event_id - 1
 
 class ReactiveGoTo(GoTo):
     def __init__(
@@ -134,9 +134,9 @@ class ReactiveGoTo(GoTo):
         try:
             assert isinstance(self.targets, dict)
             for target in self.targets.values():
-                assert isinstance(target, Elt)
+                assert isinstance(target, Event)
         except:
-            raise TypeError("<targets> must be a dictionary of Elt objects.")
+            raise TypeError("<targets> must be a dictionary of Event objects.")
 
     def get_target(self, experiment, participant):
         val = call_function(
@@ -155,7 +155,7 @@ class ReactiveGoTo(GoTo):
                 f"{list(self.targets)}."
         )
 
-class Page(Elt):
+class Page(Event):
     """
     The base class for pages, customised by passing values to the ``__init__`` 
     function and by overriding the ``process_response`` and ``validate`` methods.
@@ -317,7 +317,7 @@ class Page(Elt):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
 
-class PageMaker(Elt):
+class PageMaker(Event):
     """
     A page maker is defined by a function that is executed when 
     the participant requests the relevant page.
@@ -393,7 +393,7 @@ def reactive_seq(
 
     def new_function(self, experiment, participant):
         pos = participant.var.get(with_namespace("pos"))
-        elts = call_function(
+        events = call_function(
             function,
             {
                 "self": self,
@@ -401,10 +401,10 @@ def reactive_seq(
                 "participant": participant
             }
         )
-        if isinstance(elts, Elt):
-            elts = [elts]
-        assert len(elts) == num_pages
-        res = elts[pos]
+        if isinstance(events, Event):
+            events = [events]
+        assert len(events) == num_pages
+        res = events[pos]
         assert isinstance(res, Page)
         return res
 
@@ -426,7 +426,7 @@ def reactive_seq(
         )   
     )
 
-    show_elts = PageMaker(
+    show_events = PageMaker(
         new_function, 
         time_allotted=time_allotted / num_pages
     )
@@ -438,7 +438,7 @@ def reactive_seq(
         while_loop(
             label=with_namespace(label), 
             condition=condition, 
-            logic=[show_elts, update_logic], 
+            logic=[show_events, update_logic], 
             expected_repetitions=num_pages,
             fix_time_credit=False
         )
@@ -742,33 +742,33 @@ class NumberInputPage(TextInputPage):
 
 class Timeline():
     def __init__(self, *args):
-        elts = join(*args)
-        self.elts = elts
-        self.check_elts()        
-        self.add_elt_ids()
+        events = join(*args)
+        self.events = events
+        self.check_events()        
+        self.add_event_ids()
         self.estimated_time_credit = self.estimate_time_credit()
 
-    def check_elts(self):
-        assert isinstance(self.elts, list)
-        assert len(self.elts) > 0
-        if not isinstance(self.elts[-1], EndPage):
+    def check_events(self):
+        assert isinstance(self.events, list)
+        assert len(self.events) > 0
+        if not isinstance(self.events[-1], EndPage):
             raise ValueError("The final element in the timeline must be a EndPage.")
         self.check_for_time_allotted()
         self.check_start_fix_times()
 
     def check_for_time_allotted(self):
-        for i, elt in enumerate(self.elts):
-            if (isinstance(elt, Page) or isinstance(elt, PageMaker)) and elt.time_allotted is None:
+        for i, event in enumerate(self.events):
+            if (isinstance(event, Page) or isinstance(event, PageMaker)) and event.time_allotted is None:
                 raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
 
     def check_start_fix_times(self):
         try:
             _fix_time = False
-            for i, elt in enumerate(self.elts):
-                if isinstance(elt, StartFixTime):
+            for i, event in enumerate(self.events):
+                if isinstance(event, StartFixTime):
                     assert not _fix_time
                     _fix_time = True
-                elif isinstance(elt, EndFixTime):
+                elif isinstance(event, EndFixTime):
                     assert _fix_time
                     _fix_time = False
         except AssertionError:
@@ -779,14 +779,14 @@ class Timeline():
                 "at which to set fix_time_credit=True."
             )
 
-    def add_elt_ids(self):
-        for i, elt in enumerate(self.elts):
-            elt.id = i
-        for i, elt in enumerate(self.elts):
-            if elt.id != i:
+    def add_event_ids(self):
+        for i, event in enumerate(self.events):
+            event.id = i
+        for i, event in enumerate(self.events):
+            if event.id != i:
                 raise ValueError(
                     f"Failed to set unique IDs for each element in the timeline " +
-                    f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). " +
+                    f"(the element at 0-indexed position {i} ended up with the ID {event.id}). " +
                     "This usually means that the same Python object instantiation is reused multiple times " +
                     "in the same timeline. This kind of reusing is not permitted, instead you should " +
                     "create a fresh instantiation of each element."
@@ -829,8 +829,8 @@ class Timeline():
         def get_max(self, mode, wage_per_hour=None):
             return self.summarise(mode, wage_per_hour)
 
-    def estimate_time_credit(self, starting_elt_id=0, starting_credit=0.0, starting_counter=0):
-        elt_id = starting_elt_id
+    def estimate_time_credit(self, starting_event_id=0, starting_credit=0.0, starting_counter=0):
+        event_id = starting_event_id
         time_credit = starting_credit
         counter = starting_counter
 
@@ -839,50 +839,50 @@ class Timeline():
             if counter > 1e6:
                 raise Exception("Got stuck in the estimate_time_credit() while loop, this shouldn't happen.")
 
-            elt = self.elts[elt_id]
+            event = self.events[event_id]
 
-            # logger.info(f"elt_id = {elt_id}, elt = {elt}")
+            # logger.info(f"event_id = {event_id}, event = {event}")
 
-            if elt.returns_time_credit:
-                time_credit += elt.time_allotted * elt.expected_repetitions
+            if event.returns_time_credit:
+                time_credit += event.time_allotted * event.expected_repetitions
             
-            if isinstance(elt, StartFixTime):
-                elt_id = elt.end_fix_time.id
+            if isinstance(event, StartFixTime):
+                event_id = event.end_fix_time.id
 
-            elif isinstance(elt, EndFixTime):
-                time_credit += elt.time_allotted * elt.expected_repetitions
-                elt_id += 1
+            elif isinstance(event, EndFixTime):
+                time_credit += event.time_allotted * event.expected_repetitions
+                event_id += 1
 
-            elif isinstance(elt, StartSwitch) and elt.log_chosen_branch:
+            elif isinstance(event, StartSwitch) and event.log_chosen_branch:
                 return self.Branch(
-                    label=elt.label,
+                    label=event.label,
                     children={
                         key: self.estimate_time_credit(
-                            starting_elt_id=branch_start_elt.id, 
+                            starting_event_id=branch_start_event.id, 
                             starting_credit=time_credit,
                             starting_counter=counter
                         )
-                        for key, branch_start_elt in elt.branch_start_elts.items()
+                        for key, branch_start_event in event.branch_start_events.items()
                     }
                 )
 
-            elif isinstance(elt, EndSwitchBranch):
-                elt_id = elt.target.id
+            elif isinstance(event, EndSwitchBranch):
+                event_id = event.target.id
 
-            elif isinstance(elt, EndPage):
+            elif isinstance(event, EndPage):
                 return self.Leaf(time_credit)
 
             else: 
-                elt_id += 1
+                event_id += 1
 
     def __len__(self):
-        return len(self.elts)
+        return len(self.events)
 
     def __getitem__(self, key):
-        return self.elts[key]
+        return self.events[key]
 
-    def get_current_elt(self, experiment, participant, resolve=True):
-        n = participant.elt_id 
+    def get_current_event(self, experiment, participant, resolve=True):
+        n = participant.event_id 
         N = len(self)
         if n >= N:
             raise ValueError(f"Tried to get element {n + 1} of a timeline with only {N} element(s).")
@@ -896,30 +896,30 @@ class Timeline():
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            old_elt = self.get_current_elt(experiment, participant, resolve=False)
-            if old_elt.returns_time_credit:
-                participant.time_credit.increment(old_elt.time_allotted)
+            old_event = self.get_current_event(experiment, participant, resolve=False)
+            if old_event.returns_time_credit:
+                participant.time_credit.increment(old_event.time_allotted)
 
-            participant.elt_id += 1
+            participant.event_id += 1
 
-            new_elt = self.get_current_elt(experiment, participant, resolve=False)
-            new_elt.consume(experiment, participant)
+            new_event = self.get_current_event(experiment, participant, resolve=False)
+            new_event.consume(experiment, participant)
 
-            if isinstance(new_elt, Page) or isinstance(new_elt, PageMaker):
+            if isinstance(new_event, Page) or isinstance(new_event, PageMaker):
                 finished = True
 
-            # logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")
+            # logger.info(f"participant.event_id = {json.dumps(participant.event_id)}")
         # logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
 
     # def process_response(self, response, experiment, participant):
-    #     elt = self.get_current_elt(experiment, participant)
-    #     parsed_response = elt.process_response(
+    #     event = self.get_current_event(experiment, participant)
+    #     parsed_response = event.process_response(
     #         response=response,
     #         experiment=experiment,
     #         participant=participant
     #     )
     #     rpdb.set_trace()
-    #     validation = elt.validate(
+    #     validation = event.validate(
     #         parsed_response=parsed_response,
     #         experiment=experiment,
     #         participant=participant
@@ -928,13 +928,13 @@ class Timeline():
     #     return validation
 
     # def estimate_total_time_credit(self):
-    #     return estimate_time_credit(self.elts)
+    #     return estimate_time_credit(self.events)
 
-def estimate_time_credit(elts):
+def estimate_time_credit(events):
     return sum([
-        elt.time_allotted * elt.expected_repetitions
-        for elt in elts
-        if elt.returns_time_credit
+        event.time_allotted * event.expected_repetitions
+        for event in events
+        if event.returns_time_credit
     ])
         
 class FailedValidation:
@@ -961,20 +961,20 @@ class Response(Question):
         self.time_taken = time_taken
         self.page_type = page_type
 
-def is_list_of_elts(x: list):
+def is_list_of_events(x: list):
     for val in x:
-        if not isinstance(val, Elt):
+        if not isinstance(val, Event):
             return False
     return True
 
 def join(*args):
     for i, arg in enumerate(args):
-        if not ((arg is None) or (isinstance(arg, (Elt, Module)) or is_list_of_elts(arg))):
-            raise TypeError(f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module ({arg}).")        
+        if not ((arg is None) or (isinstance(arg, (Event, Module)) or is_list_of_events(arg))):
+            raise TypeError(f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg}).")        
 
     if len(args) == 0:
         return []
-    elif len(args) == 1 and isinstance(args[0], Elt):
+    elif len(args) == 1 and isinstance(args[0], Event):
         return [args[0]]
     else:
         def f(x, y):
@@ -986,11 +986,11 @@ def join(*args):
                 return y
             elif y is None:
                 return x
-            elif isinstance(x, Elt) and isinstance(y, Elt):
+            elif isinstance(x, Event) and isinstance(y, Event):
                 return [x, y]
-            elif isinstance(x, Elt) and isinstance(y, list):
+            elif isinstance(x, Event) and isinstance(y, list):
                 return [x] + y
-            elif isinstance(x, list) and isinstance(y, Elt):
+            elif isinstance(x, list) and isinstance(y, Event):
                 return x + [y]
             elif isinstance(x, list) and isinstance(y, list):
                 return x + y
@@ -1000,14 +1000,14 @@ def join(*args):
         return reduce(f, args)
 
 def check_condition_and_logic(condition, logic):
-    assert isinstance(logic, Elt) or is_list_of_elts(logic)
-    if isinstance(logic, Elt):
+    assert isinstance(logic, Event) or is_list_of_events(logic)
+    if isinstance(logic, Event):
         logic = [logic]
     if len(logic) == 0:
         raise ValueError("<logic> may not be empty.")
     return logic
 
-class StartWhile(NullElt):
+class StartWhile(NullEvent):
     def __init__(self, label):
         # targets = {
         #     True: self,
@@ -1017,14 +1017,14 @@ class StartWhile(NullElt):
         super().__init__()
         self.label = label
 
-class EndWhile(NullElt):
+class EndWhile(NullEvent):
     def __init__(self, label):
         super().__init__()
         self.label = label
 
 def while_loop(label: str, condition: Callable, logic, expected_repetitions: int, fix_time_credit=True):   
     """
-    Loops a series of test elements while a given criterion is satisfied.
+    Loops a series of events while a given criterion is satisfied.
     The criterion function is evaluated once at the beginning of each loop.
 
     Parameters
@@ -1039,7 +1039,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
         returning a Boolean.
 
     logic:
-        A test element (or list of test elements) to display while ``condition`` returns ``True``.
+        An event (or list of events) to display while ``condition`` returns ``True``.
 
     expected_repetitions:
         The number of times the loop is expected to be seen by a given participant.
@@ -1055,7 +1055,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     -------
 
     list
-        A list of test elements that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+        A list of events that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
     """
 
     start_while = StartWhile(label)
@@ -1066,7 +1066,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
 
     conditional_logic = join(logic, GoTo(start_while))
 
-    elts = join(
+    events = join(
         start_while,
         conditional(
             label, 
@@ -1080,20 +1080,20 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
 
     if fix_time_credit:
         time_allotted = estimate_time_credit(logic)
-        return fix_time(elts, time_allotted)
+        return fix_time(events, time_allotted)
     else:
-        return elts
+        return events
 
 def check_branches(branches):
     try:
         assert isinstance(branches, dict)
-        for branch_name, branch_elts in branches.items():
-            assert isinstance(branch_elts, Elt) or is_list_of_elts(branch_elts)
-            if isinstance(branch_elts, Elt):
-                branches[branch_name] = [branch_elts]
+        for branch_name, branch_events in branches.items():
+            assert isinstance(branch_events, Event) or is_list_of_events(branch_events)
+            if isinstance(branch_events, Event):
+                branches[branch_name] = [branch_events]
         return branches
     except AssertionError:
-        raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
+        raise TypeError("<branches> must be a dict of (lists of) Event objects.")
 
 def switch(
         label: str, 
@@ -1103,7 +1103,7 @@ def switch(
         log_chosen_branch: bool = True
     ):
     """
-    Selects a series of test elements to display to the participant according to a
+    Selects a series of events to display to the participant according to a
     certain condition.
 
     Parameters
@@ -1119,7 +1119,7 @@ def switch(
 
     branches:
         A dictionary indexed by the outputs of ``function``; each value should correspond
-        to a test element (or list of test elements) that can be selected by ``function``.
+        to an event (or list of events) that can be selected by ``function``.
 
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of whether 
@@ -1133,61 +1133,61 @@ def switch(
     -------
 
     list
-        A list of test elements that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+        A list of events that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
     """
 
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
    
     all_branch_starts = dict()
-    all_elts = []
-    final_elt = EndSwitch(label) 
+    all_events = []
+    final_event = EndSwitch(label) 
 
-    for branch_name, branch_elts in branches.items():
+    for branch_name, branch_events in branches.items():
         branch_start = StartSwitchBranch(branch_name)
-        branch_end = EndSwitchBranch(branch_name, final_elt)
+        branch_end = EndSwitchBranch(branch_name, final_event)
         all_branch_starts[branch_name] = branch_start
-        all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
+        all_events = all_events + [branch_start] + branch_events + [branch_end]
 
-    start_switch = StartSwitch(label, function, branch_start_elts=all_branch_starts, log_chosen_branch=log_chosen_branch)
-    combined_elts = [start_switch] + all_elts + [final_elt]
+    start_switch = StartSwitch(label, function, branch_start_events=all_branch_starts, log_chosen_branch=log_chosen_branch)
+    combined_events = [start_switch] + all_events + [final_event]
 
     if fix_time_credit:
         time_allotted = max([
-            estimate_time_credit(branch_elts)
-            for branch_elts in branches.values()
+            estimate_time_credit(branch_events)
+            for branch_events in branches.values()
         ])
-        return fix_time(combined_elts, time_allotted)
+        return fix_time(combined_events, time_allotted)
     else:
-        return combined_elts
+        return combined_events
 
 class StartSwitch(ReactiveGoTo):
-    def __init__(self, label, function, branch_start_elts, log_chosen_branch=True):
+    def __init__(self, label, function, branch_start_events, log_chosen_branch=True):
         if log_chosen_branch:
             def function_2(experiment, participant):
                 val = function(experiment, participant)
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
                 return val
-            super().__init__(function_2, targets=branch_start_elts)
+            super().__init__(function_2, targets=branch_start_events)
         else:
-            super().__init__(function, targets=branch_start_elts)
+            super().__init__(function, targets=branch_start_events)
         self.label = label
-        self.branch_start_elts = branch_start_elts
+        self.branch_start_events = branch_start_events
         self.log_chosen_branch = log_chosen_branch
 
-class EndSwitch(NullElt):
+class EndSwitch(NullEvent):
     def __init__(self, label):
         self.label = label
 
-class StartSwitchBranch(NullElt):
+class StartSwitchBranch(NullEvent):
     def __init__(self, name):
         super().__init__()
         self.name = name
 
 class EndSwitchBranch(GoTo):
-    def __init__(self, name, final_elt):
-        super().__init__(target=final_elt)
+    def __init__(self, name, final_event):
+        super().__init__(target=final_event)
         self.name = name
 
 def conditional(
@@ -1199,7 +1199,7 @@ def conditional(
     log_chosen_branch: bool = True
     ):
     """
-    Executes a series of test elements if and only if a certain condition is satisfied.
+    Executes a series of events if and only if a certain condition is satisfied.
 
     Parameters
     ----------
@@ -1213,10 +1213,10 @@ def conditional(
         returning a Boolean.
 
     logic_if_true:
-        A test element (or list of test elements) to display if ``condition`` returns ``True``.
+        An event (or list of events) to display if ``condition`` returns ``True``.
 
     logic_if_false:
-        An optional test element (or list of test elements) to display if ``condition`` returns ``False``.
+        An optional event (or list of events) to display if ``condition`` returns ``False``.
 
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of whether 
@@ -1230,41 +1230,41 @@ def conditional(
     -------
 
     list
-        A list of test elements that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+        A list of events that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
     """
     return switch(
         label, 
         function=condition, 
         branches={
             True: logic_if_true,
-            False: NullElt() if logic_if_false is None else logic_if_false
+            False: NullEvent() if logic_if_false is None else logic_if_false
         }, 
         fix_time_credit=fix_time_credit,
         log_chosen_branch=log_chosen_branch
     )
 
-class ConditionalElt(Elt):
+class ConditionalEvent(Event):
     def __init__(self, label: str):
         self.label = label
 
-class StartConditional(ConditionalElt):
+class StartConditional(ConditionalEvent):
     pass
     
-class EndConditional(ConditionalElt):
+class EndConditional(ConditionalEvent):
     pass
    
-def fix_time(elts, time_allotted):
+def fix_time(events, time_allotted):
     end_fix_time = EndFixTime(time_allotted)
     start_fix_time = StartFixTime(time_allotted, end_fix_time)
-    return join(start_fix_time, elts, end_fix_time)
+    return join(start_fix_time, events, end_fix_time)
 
 def multiply_expected_repetitions(logic, factor: float):
-    assert isinstance(logic, Elt) or is_list_of_elts(logic)
-    if isinstance(logic, Elt):
+    assert isinstance(logic, Event) or is_list_of_events(logic)
+    if isinstance(logic, Event):
         logic.multiply_expected_repetitions(factor)
     else:
-        for elt in logic:
-            elt.multiply_expected_repetitions(factor)
+        for event in logic:
+            event.multiply_expected_repetitions(factor)
     return logic
 
 class ProgressBar():
@@ -1283,35 +1283,35 @@ class Footer():
 
 class Module():
     default_label = None
-    default_elts = None
+    default_events = None
 
-    def __init__(self, label: str = None, elts: list = None):
+    def __init__(self, label: str = None, events: list = None):
         if self.default_label is None and label is None:
             raise ValueError("Either one of <default_label> or <label> must not be none.")
-        if self.default_elts is None and elts is None:
-            raise ValueError("Either one of <default_elts> or <elts> must not be none.")
+        if self.default_events is None and events is None:
+            raise ValueError("Either one of <default_events> or <events> must not be none.")
 
         self.label = label if label is not None else self.default_label
-        self.elts = elts if elts is not None else self.default_elts
+        self.events = events if events is not None else self.default_events
 
     def resolve(self):
         return join(
             StartModule(self.label),
-            self.elts,
+            self.events,
             EndModule(self.label)
         )
 
-class StartModule(NullElt):
+class StartModule(NullEvent):
     def __init__(self, label):
         super().__init__()
         self.label = label
 
-class EndModule(NullElt):
+class EndModule(NullEvent):
     def __init__(self, label):
         super().__init__()
         self.label = label
 
-class ExperimentSetupRoutine(NullElt):
+class ExperimentSetupRoutine(NullEvent):
     def __init__(self, function):
         self.check_function(function)
         self.function = function
@@ -1324,7 +1324,7 @@ class ExperimentSetupRoutine(NullElt):
     def _is_function(x):
         return callable(x)
 
-class BackgroundTask(NullElt):
+class BackgroundTask(NullEvent):
     def __init__(self, label, function, interval_sec, run_on_launch=False):
         check_function_args(function, args=[])
         self.label = label
@@ -1350,19 +1350,19 @@ class BackgroundTask(NullElt):
             gevent.sleep(self.interval_sec)
             self.safe_function()
 
-class ParticipantFailRoutine(NullElt):
+class ParticipantFailRoutine(NullEvent):
     def __init__(self, label, function):
         check_function_args(function, args=["participant", "experiment"], need_all=False)
         self.label = label
         self.function = function
 
-class RecruitmentCriterion(NullElt):
+class RecruitmentCriterion(NullEvent):
     def __init__(self, label, function):
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
 
-# class RegisterBackgroundTasks(NullElt):
+# class RegisterBackgroundTasks(NullEvent):
 #     def __init__(self, tasks):
 #         assert isinstance(tasks, list)
 #         for task in tasks:

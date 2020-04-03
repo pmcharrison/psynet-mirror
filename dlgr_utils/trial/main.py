@@ -25,7 +25,7 @@ from ..timeline import (
     RecruitmentCriterion,
     BackgroundTask,
     Module,
-    NullElt,
+    NullEvent,
     conditional,
     while_loop,
     reactive_seq,
@@ -430,7 +430,7 @@ class TrialGenerator(Module):
         self.recruit_mode = recruit_mode
         self.target_num_participants = target_num_participants
 
-        elts = join(
+        events = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
             ParticipantFailRoutine(self.with_namespace(), self.participant_fail_routine),
             RecruitmentCriterion(self.with_namespace(), self.selected_recruit_criterion),
@@ -440,7 +440,7 @@ class TrialGenerator(Module):
             CodeBlock(self.on_complete),
             self._check_performance_logic() if check_performance_at_end else None
         )
-        super().__init__(label=self.with_namespace(), elts=elts)
+        super().__init__(label=self.with_namespace(), events=events)
 
     participant_progress_threshold = 0.1
 
@@ -726,7 +726,7 @@ class TrialGenerator(Module):
         Returns
         -------
 
-        A test element (:class:`~dlgr_utils.timeline.Elt`) or a list of test elements.
+        An event (:class:`~dlgr_utils.timeline.Event`) or a list of events.
         """
         return join(
             UnsuccessfulEndPage(failure_tags=["performance_check"])
