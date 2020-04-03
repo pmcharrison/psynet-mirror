@@ -14,6 +14,7 @@ class GibbsTrial(ChainTrial):
 
     def make_definition(self, experiment, participant, **kwargs):
         # TODO : randomise the starting point
+        node = kwargs["node"]
         return node.definition
 
     @property 
@@ -70,4 +71,11 @@ class GibbsSource(ChainSource):
         raise NotImplementedError
 
 class GibbsTrialGenerator(ChainTrialGenerator):
-    pass
+    def test_recruit(self, experiment):
+        assert False
+        return True
+    
+    recruit_criteria = {
+        **ChainTrialGenerator.recruit_criteria,
+        "test": test_recruit
+    }

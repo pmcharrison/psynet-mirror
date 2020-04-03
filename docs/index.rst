@@ -10,6 +10,7 @@ Documentation
    demo
    basic_usage
    timeline
+   trial_overview
 
 .. toctree::
    :maxdepth: 2
