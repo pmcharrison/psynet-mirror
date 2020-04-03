@@ -129,5 +129,41 @@ and :class:`~dlgr_utils.trial.main.TrialNetwork` for more details.
 Experiments where the networks take the form of chains
 ------------------------------------------------------
 
+A common network structure is the *chain*. A chain comprises a series of nodes
+connecting in a serial order. Many complex experiment designs can be expressed
+as chains, for example:
+
+* Iterated reproduction
+* Markov Chain Monte Carlo with People
+* Gradient Descent over People
+* Computerised adaptive testing
+
+We can save a lot of time by centralising the common logic of these different 
+paradigms into one code base. 
+We provide the following classes to help this process,
+which we recommend you subclass for your particular paradigm:
+
+* :class:`~dlgr_utils.trial.chain.ChainNetworkGenerator;
+  a special type of :class:`~dlgr_utils.trial.main.NetworkTrialGenerator` 
+
+* :class:`~dlgr_utils.trial.chain.ChainNetwork;
+  a special type of :class:`~dlgr_utils.trial.main.TrialNetwork` 
+
+* :class:`~dlgr_utils.trial.chain.ChainNode;
+  a special type of :class:`~dallinger.models.Node` 
+
+* :class:`~dlgr_utils.trial.chain.ChainTrial;
+  a special type of :class:`~dlgr_utils.trial.main.NetworkTrial` 
+
+* :class:`~dlgr_utils.trial.chain.ChainSource;
+   a special type of :class:`~dallinger.nodes.Source`, corresponding
+   to the initial state of the network.
+   
+To implement a new paradigm using these helper classes,
+we recommend that you create five new classes that subclass each of the
+helper classes listed above. Follow their documentation to understand
+which methods you need to override and what customisable options
+there are.
+
 Specific paradigms
 ------------------

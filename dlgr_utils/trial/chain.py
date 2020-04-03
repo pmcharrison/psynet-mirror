@@ -3,7 +3,7 @@ import datetime
 from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
 
-from typing import Optional
+from typing import Optional, Union
 
 from dallinger import db
 import dallinger.models
@@ -17,6 +17,12 @@ from .main import Trial, TrialNetwork, NetworkTrialGenerator
 import rpdb
 
 class ChainNetwork(TrialNetwork):
+    """
+    Implements a network in the form of a chain.
+    Intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialGenerator`.
+    Typically the user won't have to override anything here.
+    
+    """
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
@@ -268,28 +274,193 @@ class ChainTrial(Trial):
             child_node.fail()
 
 class ChainTrialGenerator(NetworkTrialGenerator):
+    """
+    Administers a sequence of trials in a chain-based paradigm.
+    This trial generator is suitable for implementing paradigms such as 
+    Markov Chain Monte Carlo with People, iterated reproduction, and so on.
+    It is intended for use with the following helper classes,
+    which should be customised for the particular paradigm:
+    
+    * :class:`~dlgr_utils.trial.chain.ChainNetwork`;
+      a special type of :class:`~dlgr_utils.trial.main.TrialNetwork` 
+
+    * :class:`~dlgr_utils.trial.chain.ChainNode`;
+      a special type of :class:`~dallinger.models.Node` 
+
+    * :class:`~dlgr_utils.trial.chain.ChainTrial`;
+      a special type of :class:`~dlgr_utils.trial.main.NetworkTrial` 
+
+    * :class:`~dlgr_utils.trial.chain.ChainSource`;
+      a special type of :class:`~dallinger.nodes.Source`, corresponding
+      to the initial state of the network.
+      
+    A chain is initialised with a :class:`~dlgr_utils.trial.chain.ChainSource` object.
+    This :class:`~dlgr_utils.trial.chain.ChainSource` object provides
+    the initial seed to the chain. 
+    The :class:`~dlgr_utils.trial.chain.ChainSource object is followed 
+    by a series of :class:`~dlgr_utils.trial.chain.ChainNode` objects
+    which are generated through the course of the experiment.
+    The last :class:`~dlgr_utils.trial.chain.ChainNode` in the chain 
+    represents the current state of the chain, and it determines the
+    properties of the next trials to be drawn from that chain.
+    A new :class:`~dlgr_utils.trial.chain.ChainNode` object is generated once 
+    sufficient :class:`~dlgr_utils.trial.chain.ChainTrial` objects
+    have been created for that :class:`~dlgr_utils.trial.chain.ChainNode`.
+    There can be multiple chains in an experiment, with these chains
+    either being owned by individual participants ("within-participant" designs)
+    or shared across participants ("across-participant" designs).    
+    
+    The user will typically not have to override any methods or attributes in this class.
+    
+    Parameters 
+    ----------
+
+    source_class
+        The class object for sources
+        (should subclass :class:`~dlgr_utils.trial.chain.ChainSource`).
+        
+    trial_class
+        The class object for trials administered by this generator
+        (should subclass :class:`~dlgr_utils.trial.chain.ChainTrial`).
+
+    phase
+        Arbitrary label for this phase of the experiment, e.g.
+        "practice", "train", "test".
+    
+    time_allotted_per_trial
+        Time allotted for each trial (seconds).
+
+    chain_type
+        Either ``"within"`` for within-participant chains,
+        or ``"across"`` for across-participant chains.
+        
+    num_trials_per_participant
+        Maximum number of trials that each participant may complete;
+        once this number is reached, the participant will move on
+        to the next stage in the timeline.
+    
+    num_chains_per_participant
+        Number of chains to be created for each participant;
+        only relevant if ``chain_type="within"``.
+    
+    num_chains_per_experiment
+        Number of chains to be created for the entire experiment;
+        only relevant if ``chain_type="across"`
+    
+    num_nodes_per_chain
+        Maximum number of nodes in the chain before the chain is marked as
+        full and no more nodes will be added.
+    
+    trials_per_node
+        Number of satisfactory trials to be received by the last node
+        in the chain before another chain will be added.
+        Most paradigms have this equal to 1.    
+    
+    active_balancing_across_chains
+        Whether trial selection should be actively balanced across chains,
+        such that trials are preferentially sourced from chains with 
+        fewer valid trials.
+
+    check_performance_at_end
+        If ``True``, the participant's performance is 
+        is evaluated at the end of the series of trials.
+        
+    check_performance_every_trial
+        If ``True``, the participant's performance is 
+        is evaluated after each trial.
+        
+    recruit_mode
+        Selects a recruitment criterion for determining whether to recruit 
+        another participant. The built-in criteria are ``"num_participants"``
+        and ``"num_trials"``, though the latter requires overriding of 
+        :attr:`~dlgr_utils.trial.main.TrialGenerator.num_trials_still_required`.
+        
+    target_num_participants
+        Target number of participants to recruit for the experiment. All 
+        participants must successfully finish the experiment to count
+        towards this quota. This target is only relevant if 
+        ``recruit_mode="num_participants"``.
+        
+    async_post_trial
+        Optional function to be run after a trial is completed by the participant.
+        This should be specified as a fully qualified string, for example
+        ``"dlgr_utils.trial.async_example.async_update_trial"``.
+        This function should take one argument, ``trial_id``, corresponding to the
+        ID of the relevant trial to process.
+        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
+        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
+        once it is finished. It is also responsible for committing to the database
+        using ``db.session.commit()`` once processing is complete
+        (``db`` can be imported using ``from dallinger import db``).
+        See the source code for ``dlgr_utils.trial.async_example.async_update_trial``
+        for an example.
+        
+    async_post_grow_network
+        Optional function to be run after a network is grown, only runs if
+        :meth:`~dlgr_utils.trial.main.NetworkTrialGenerator.grow_network` returns ``True``.
+        This should be specified as a fully qualified string, for example
+        ``dlgr_utils.trial.async_example.async_update_network``.
+        This function should take one argument, ``network_id``, corresponding to the
+        ID of the relevant network to process.
+        ``network.awaiting_process`` is set to ``True`` when the asynchronous process is
+        initiated; the present method is responsible for setting ``network.awaiting_process = False``
+        once it is finished, and for committing to the database
+        using ``db.session.commit()`` (``db`` can be imported using ``from dallinger import db``).
+        See the source code for ``dlgr_utils.trial.async_example.async_update_trial``
+        for a relevant example (for processing trials, not networks).
+        
+    fail_trials_on_premature_exit
+        If ``True``, a participant's trials are marked as failed
+        if they leave the experiment prematurely.
+        Defaults to ``False`` because failing such trials can end up destroying
+        large parts of existing chains.
+
+    fail_trials_on_participant_performance_check
+        If ``True``, a participant's trials are marked as failed
+        if the participant fails a performance check.    
+        Defaults to ``False`` because failing such trials can end up destroying
+        large parts of existing chains.
+        
+    propagate_failure
+        If ``True``, the failure of a trial is propagated to other
+        parts of the experiment (the nature of this propagation is left up
+        to the implementation).
+        
+    network_class
+        The class object for the networks used by this generator.
+        This should subclass :class`~dlgr_utils.trial.chain.ChainNetwork`,
+        or alternatively be left at the default of 
+        :class`~dlgr_utils.trial.chain.ChainNetwork`
+        
+        
+    node_class
+        The class object for the networks used by this generator.
+        This should subclass :class`~dlgr_utils.trial.chain.ChainNode`,
+        or alternatively be left at the default of 
+        :class`~dlgr_utils.trial.chain.ChainNode`
+    """
     def __init__(
         self,  
         source_class,
         trial_class, 
-        phase,
-        time_allotted_per_trial,
-        chain_type,
-        num_trials_per_participant,
-        num_chains_per_participant,
-        num_chains_per_experiment,
-        num_nodes_per_chain,
-        trials_per_node,
-        active_balancing_across_chains, 
-        check_performance_at_end,
-        check_performance_every_trial,
-        recruit_mode,
-        target_num_participants=None,
+        phase: str,
+        time_allotted_per_trial: Union[int, float],
+        chain_type: str,
+        num_trials_per_participant: int,
+        num_chains_per_participant: Optional[int],
+        num_chains_per_experiment: Optional[int],
+        num_nodes_per_chain: int,
+        trials_per_node: int,
+        active_balancing_across_chains: bool, 
+        check_performance_at_end: bool,
+        check_performance_every_trial: bool,
+        recruit_mode: str,
+        target_num_participants=Optional[int],
         async_post_trial: Optional[str] = None, # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
         async_post_grow_network: Optional[str] = None,
-        fail_trials_on_premature_exit=False,
-        fail_trials_on_participant_performance_check=False,
-        propagate_failure=True,
+        fail_trials_on_premature_exit: bool = False,
+        fail_trials_on_participant_performance_check: bool = False,
+        propagate_failure: bool = True,
         network_class=ChainNetwork,
         node_class=ChainNode
     ):
@@ -398,9 +569,6 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         experiment.save()
         self._grow_network(network, participant, experiment)
         return network
-    
-    def on_complete(self, experiment, participant):
-        pass
 
     def find_networks(self, participant, experiment):
         if self.get_num_completed_trials_in_phase(participant) >= self.num_trials_per_participant:
