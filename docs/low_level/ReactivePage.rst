@@ -1,7 +1,7 @@
-.. _ReactivePage:
+.. _PageMaker:
 
 ============
-ReactivePage
+PageMaker
 ============ 
 
-.. autoclass:: dlgr_utils.timeline.ReactivePage
+.. autoclass:: dlgr_utils.timeline.PageMaker

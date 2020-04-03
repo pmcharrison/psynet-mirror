@@ -7,12 +7,12 @@ A timeline comprises a series of *test elements* that are ordinarily
 presented sequentially. There are three main kinds of test elements:
 
 * `Pages`_
-* `Reactive pages`_
+* `Page makers`_
 * `Code blocks`_
 
 `Pages`_ define the web page that is shown to the participant at a given 
 point in time, and have fixed content that is the same for all participants.
-`Reactive pages`_ are like pages, but include content that is computed
+`Page makers`_ are like pages, but include content that is computed
 when the participant's web page loads.
 `Code blocks`_ contain server logic that is executed in between pages, 
 for example to assign the participant to a group or to save the participant's data.
@@ -20,7 +20,7 @@ for example to assign the participant to a group or to save the participant's da
 All these test elements are defined as ``dlgr_utils`` classes inheriting from
 `Elt`, the generic test element object.
 Pages correspond to the `Page` class;
-reactive pages correspond to the `ReactivePage` class;
+page makers correspond to the `PageMaker` class;
 code blocks correspond to the `CodeBlock` class.
 These different test elements may be created using their constructor functions, e.g.:
 
@@ -108,20 +108,20 @@ a Pull Request (or, in GitLab terminology, a Merge Request).
 This should be enough to start experimenting with different kinds of page types.
 For a full understanding of the customisation possibilities, see the full :ref:`Page` documentation.
 
-Reactive pages
---------------
+Page makers
+-----------
 
 Ordinary pages in the timeline have fixed content that is shared between all participants.
 Often, however, we want to present content that depends on the state of the current participant.
-This is the purpose of reactive pages.
-A reactive page is defined by a function that is called when the participant access the page.
-For example, a simple reactive page might look like the following:
+This is the purpose of page makers.
+A page maker is defined by a function that is called when the participant access the page.
+For example, a simple page maker might look like the following:
 
 ::
 
-    from dlgr_utils.timeline import ReactivePage
+    from dlgr_utils.timeline import PageMaker
 
-    ReactivePage(
+    PageMaker(
         lambda participant, experiment: InfoPage(f"You answered {participant.answer}.),
         time_allotted=5
     )
@@ -133,20 +133,20 @@ but it doesn't have to accept all of these arguments. For example, the following
 
 ::
 
-    from dlgr_utils.timeline import ReactivePage
+    from dlgr_utils.timeline import PageMaker
 
-    ReactivePage(
+    PageMaker(
         lambda participant: InfoPage(f"You answered {participant.answer}.),
         time_allotted=5
     )
 
-See :ref:`ReactivePage` documentation for more details.
+See :ref:`PageMaker` documentation for more details.
 
 Code blocks
 -----------
 
 Code blocks define code that is executed in between pages. They are defined in a similar
-way to reactive pages, except they don't return an input. For example:
+way to page makers, except they don't return an input. For example:
 
 ::
 
@@ -203,7 +203,7 @@ Following this method, here's a complete definition of a simple experiment:
 
     from dlgr_utils.timeline import (
         InfoPage,
-        ReactivePage,
+        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
         Timeline
@@ -215,7 +215,7 @@ Following this method, here's a complete definition of a simple experiment:
                 "Welcome to the experiment!",
                 time_allotted=5
             ),
-            ReactivePage(            
+            PageMaker(            
                 lambda experiment, participant: 
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
                 time_allotted=5
@@ -237,7 +237,7 @@ It is generally wise to build up the test logic in small pieces. For example:
     
     from dlgr_utils.timeline import (
         InfoPage,
-        ReactivePage,
+        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
         Timeline,
@@ -249,7 +249,7 @@ It is generally wise to build up the test logic in small pieces. For example:
             "Welcome to the experiment!",
             time_allotted=5
         ),
-        ReactivePage(            
+        PageMaker(            
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
             time_allotted=5

@@ -16,7 +16,7 @@ from ..participant import Participant
 from ..field import claim_field, claim_var, VarStore
 
 from ..timeline import (
-    ReactivePage,
+    PageMaker,
     CodeBlock,
     InfoPage,
     UnsuccessfulEndPage,
@@ -806,7 +806,7 @@ class TrialGenerator(Module):
                 self._get_current_trial(participant)
                     .gives_feedback(experiment, participant)
             ),
-            logic_if_true=ReactivePage(
+            logic_if_true=PageMaker(
                 lambda experiment, participant: (
                     self._get_current_trial(participant)
                         .show_feedback(experiment=experiment, participant=participant)

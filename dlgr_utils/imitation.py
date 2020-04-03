@@ -6,7 +6,7 @@ from .timeline import (
     Module, 
     join, 
     Page, 
-    ReactivePage, 
+    PageMaker, 
     InfoPage, 
     NAFCPage, 
     CodeBlock, 
@@ -53,7 +53,7 @@ class Imitate(Module):
             while_loop(
                 "imitate_training",
                 condition=lambda experiment, participant: participant.var.get("_train_item") < self.num_items["training"],
-                logic=ReactivePage(
+                logic=PageMaker(
                     lambda experiment, participant: self.show_item(self.get_next_item("training", experiment, participant))
                 ),
                 expected_repetitions=self.num_items["training"]

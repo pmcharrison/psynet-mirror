@@ -9,7 +9,7 @@ from dlgr_utils.timeline import (
     InfoPage, 
     Timeline,
     SuccessfulEndPage, 
-    ReactivePage, 
+    PageMaker, 
     NAFCPage, 
     TextInputPage,
     CodeBlock, 
@@ -43,7 +43,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             "Welcome to the experiment!",
             time_allotted=5
         ),
-        ReactivePage(            
+        PageMaker(            
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
             time_allotted=5
@@ -54,7 +54,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             time_allotted=5,
             one_line=False
         ),
-        ReactivePage(
+        PageMaker(
             lambda participant: InfoPage(f"Your message: '{participant.answer}'"),
             time_allotted=5
         ),
@@ -110,7 +110,7 @@ class Exp(dlgr_utils.experiment.Experiment):
         #     lambda experiment, participant:
         #         participant.var.set("favourite_colour", participant.answer)
         # ),
-        # ReactivePage(
+        # PageMaker(
         #     lambda experiment, participant: 
         #         InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
         #     time_allotted=3

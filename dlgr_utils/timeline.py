@@ -317,9 +317,9 @@ class Page(Elt):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
 
-class ReactivePage(Elt):
+class PageMaker(Elt):
     """
-    A reactive page is defined by a function that is executed when 
+    A page maker is defined by a function that is executed when 
     the participant requests the relevant page.
 
     Parameters
@@ -360,12 +360,12 @@ class ReactivePage(Elt):
         # page = self.function(experiment=experiment, participant=participant)
         if self.time_allotted != page.time_allotted and page.time_allotted is not None:
             logger.warning(
-                f"Observed a mismatch between a reactive page's time_allotted slot ({self.time_allotted}) " +
+                f"Observed a mismatch between a page maker's time_allotted slot ({self.time_allotted}) " +
                 f"and the time_allotted slot of the generated page ({page.time_allotted}). " +
                 f"The former will take precedent."
             )
         if not isinstance(page, Page):
-            raise TypeError("The ReactivePage function must return an object of class Page.")
+            raise TypeError("The PageMaker function must return an object of class Page.")
         return page
 
     def multiply_expected_repetitions(self, factor: float):
@@ -426,7 +426,7 @@ def reactive_seq(
         )   
     )
 
-    show_elts = ReactivePage(
+    show_elts = PageMaker(
         new_function, 
         time_allotted=time_allotted / num_pages
     )
@@ -758,7 +758,7 @@ class Timeline():
 
     def check_for_time_allotted(self):
         for i, elt in enumerate(self.elts):
-            if (isinstance(elt, Page) or isinstance(elt, ReactivePage)) and elt.time_allotted is None:
+            if (isinstance(elt, Page) or isinstance(elt, PageMaker)) and elt.time_allotted is None:
                 raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
 
     def check_start_fix_times(self):
@@ -888,7 +888,7 @@ class Timeline():
             raise ValueError(f"Tried to get element {n + 1} of a timeline with only {N} element(s).")
         else:
             res = self[n]
-            if isinstance(res, ReactivePage) and resolve:
+            if isinstance(res, PageMaker) and resolve:
                 return res.resolve(experiment, participant)
             else:
                 return res
@@ -905,7 +905,7 @@ class Timeline():
             new_elt = self.get_current_elt(experiment, participant, resolve=False)
             new_elt.consume(experiment, participant)
 
-            if isinstance(new_elt, Page) or isinstance(new_elt, ReactivePage):
+            if isinstance(new_elt, Page) or isinstance(new_elt, PageMaker):
                 finished = True
 
             # logger.info(f"participant.elt_id = {json.dumps(participant.elt_id)}")

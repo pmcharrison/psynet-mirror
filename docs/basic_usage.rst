@@ -114,7 +114,7 @@ of the Experiment class, for example:
 
     from dlgr_utils.timeline import (
         InfoPage,
-        ReactivePage,
+        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
         Timeline
@@ -126,7 +126,7 @@ of the Experiment class, for example:
                 "Welcome to the experiment!",
                 time_allotted=5
             ),
-            ReactivePage(            
+            PageMaker(            
                 lambda experiment, participant: 
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
                 time_allotted=5
