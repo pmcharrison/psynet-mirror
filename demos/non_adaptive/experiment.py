@@ -100,7 +100,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             AnimalTrial, 
             phase="experiment",
             stimulus_set=stimulus_set, 
-            time_allotted_per_trial=3,
+            time_estimate_per_trial=3,
             new_participant_group=True,
             max_trials_per_block=2,
             allow_repeated_stimuli=True,
@@ -113,7 +113,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             target_num_trials_per_stimulus=3,
             recruit_mode="num_trials"
         ),
-        InfoPage("You finished the animal questions!", time_allotted=0),
+        InfoPage("You finished the animal questions!", time_estimate=0),
         CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
         SuccessfulEndPage()
     )

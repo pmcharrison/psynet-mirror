@@ -42,7 +42,7 @@ class Experiment(dallinger.experiment.Experiment):
     # pylint: disable=abstract-method
 
     timeline = Timeline(
-        InfoPage("Placeholder timeline", time_allotted=5),
+        InfoPage("Placeholder timeline", time_estimate=5),
         SuccessfulEndPage()
     )
 

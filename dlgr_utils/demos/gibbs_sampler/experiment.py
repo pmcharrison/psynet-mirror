@@ -52,7 +52,7 @@ class ColorSliderPage(ResponsePage):
         prompt: Union[str, Markup],
         selected: str,   
         starting_values: List[int],
-        time_allotted=None
+        time_estimate=None
     ):
         assert selected in ["red", "green", "blue"]
         self.prompt = prompt
@@ -60,7 +60,7 @@ class ColorSliderPage(ResponsePage):
         self.starting_values = starting_values
 
         super().__init__(
-            time_allotted=time_allotted,
+            time_estimate=time_estimate,
             template_path="templates/color-slider.html",
             label=label,
             template_arg={
@@ -101,7 +101,7 @@ class CustomTrial(GibbsTrial):
             self.prompt,
             selected=selected_color,
             starting_values=self.initial_vector,
-            time_allotted=5
+            time_estimate=5
         )
 
 class CustomNode(GibbsNode):
@@ -132,7 +132,7 @@ trial_generator = GibbsTrialGenerator(
     node_class=CustomNode, 
     source_class=CustomSource,
     phase="experiment",
-    time_allotted_per_trial=5,
+    time_estimate_per_trial=5,
     chain_type="within",
     num_trials_per_participant=20,
     num_nodes_per_chain=5,
@@ -173,7 +173,7 @@ def async_post_grow_network(network_id):
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
         trial_generator,
-        InfoPage("You finished the experiment!", time_allotted=0),
+        InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
     )
 

@@ -54,7 +54,7 @@ for example in the form of a text-input field:
     TextInputPage(
         "full_name",
         "Please enter your full name",
-        time_allotted=5,
+        time_estimate=5,
         one_line=True
     )
 
@@ -68,7 +68,7 @@ or in a multiple-choice format:
         label="chocolate",
         prompt="Do you like chocolate?",
         choices=["Yes", "No"],
-        time_allotted=3
+        time_estimate=3
     )
 
 See the documentation of individual classes for more guidance, for example:
@@ -123,7 +123,7 @@ For example, a simple page maker might look like the following:
 
     PageMaker(
         lambda participant, experiment: InfoPage(f"You answered {participant.answer}.),
-        time_allotted=5
+        time_estimate=5
     )
 
 This example used a lambda function, which is a useful way of specifying inline functions
@@ -137,7 +137,7 @@ but it doesn't have to accept all of these arguments. For example, the following
 
     PageMaker(
         lambda participant: InfoPage(f"You answered {participant.answer}.),
-        time_allotted=5
+        time_estimate=5
     )
 
 See :ref:`PageMaker` documentation for more details.
@@ -173,7 +173,7 @@ Note that these constructs are functions, not classes:
 when called, they resolve to a sequence of events
 that performs the desired logic.
 
-Allotted time
+Time estimate
 -------------
 
 It is considered good practice to pay online participants a fee that corresponds
@@ -181,9 +181,9 @@ approximately to a reasonable hourly wage, for example 9 USD/hour.
 The ``dlgr_utils`` package provides sophisticated functionality for applying such 
 payment schemes without rewarding participants to participate slowly.
 When designing an experiment, the researcher must specify along with each
-page a ``time_allotted`` argument, corresponding to the estimated time in seconds
+page a ``time_estimate`` argument, corresponding to the estimated time in seconds
 that a participant should take to complete that portion of the experiment.
-This ``time_allotted`` argument is used to construct a progress bar displaying
+This ``time_estimate`` argument is used to construct a progress bar displaying
 the participant's progress through the experiment and to determine the participant's 
 final payment.
 
@@ -213,17 +213,17 @@ Following this method, here's a complete definition of a simple experiment:
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",
-                time_allotted=5
+                time_estimate=5
             ),
             PageMaker(            
                 lambda experiment, participant: 
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-                time_allotted=5
+                time_estimate=5
             ),
             TextInputPage(
                 "message",
                 "Write me a message!",
-                time_allotted=5,
+                time_estimate=5,
                 one_line=False
             ),
             SuccessfulEndPage()
@@ -247,19 +247,19 @@ It is generally wise to build up the test logic in small pieces. For example:
     intro = join(
         InfoPage(
             "Welcome to the experiment!",
-            time_allotted=5
+            time_estimate=5
         ),
         PageMaker(            
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-            time_allotted=5
+            time_estimate=5
         )
     )
 
     test = TextInputPage(
                 "message",
                 "Write me a message!",
-                time_allotted=5,
+                time_estimate=5,
                 one_line=False
             )
 

@@ -327,8 +327,8 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
     
-    time_allotted_per_trial
-        Time allotted for each trial (seconds).
+    time_estimate_per_trial
+        Time estimated for each trial (seconds).
 
     chain_type
         Either ``"within"`` for within-participant chains,
@@ -444,7 +444,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         source_class,
         trial_class, 
         phase: str,
-        time_allotted_per_trial: Union[int, float],
+        time_estimate_per_trial: Union[int, float],
         chain_type: str,
         num_trials_per_participant: int,
         num_chains_per_participant: Optional[int],
@@ -476,7 +476,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
         self.source_class = source_class
         self.trial_class = trial_class
         self.phase = phase
-        self.time_allotted_per_trial = time_allotted_per_trial
+        self.time_estimate_per_trial = time_estimate_per_trial
         self.chain_type = chain_type
         self.num_trials_per_participant = num_trials_per_participant
         self.num_chains_per_participant = num_chains_per_participant
@@ -492,7 +492,7 @@ class ChainTrialGenerator(NetworkTrialGenerator):
             trial_class, 
             network_class=network_class,
             phase=phase,
-            time_allotted_per_trial=time_allotted_per_trial, 
+            time_estimate_per_trial=time_estimate_per_trial, 
             expected_num_trials=num_trials_per_participant,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,

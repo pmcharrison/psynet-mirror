@@ -342,8 +342,8 @@ class TrialGenerator(Module):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
     
-    time_allotted_per_trial
-        Time allotted for each trial (seconds).
+    time_estimate_per_trial
+        Time estimated for each trial (seconds).
 
     expected_num_trials
         Expected number of trials that the participant will take
@@ -401,7 +401,7 @@ class TrialGenerator(Module):
         self,
         trial_class, 
         phase: str, 
-        time_allotted_per_trial: Union[int, float], 
+        time_estimate_per_trial: Union[int, float], 
         expected_num_trials: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
@@ -420,7 +420,7 @@ class TrialGenerator(Module):
         self.trial_class = trial_class
         self.trial_type = trial_class.__name__
         self.phase = phase
-        self.time_allotted_per_trial = time_allotted_per_trial
+        self.time_estimate_per_trial = time_estimate_per_trial
         self.expected_num_trials = expected_num_trials
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
@@ -811,7 +811,7 @@ class TrialGenerator(Module):
                     self._get_current_trial(participant)
                         .show_feedback(experiment=experiment, participant=participant)
                 ),
-                time_allotted=0
+                time_estimate=0
             ), 
             fix_time_credit=False,
             log_chosen_branch=False
@@ -828,7 +828,7 @@ class TrialGenerator(Module):
                         "show_trial", 
                         self._show_trial, 
                         num_pages=self.trial_class.num_pages, 
-                        time_allotted=self.time_allotted_per_trial
+                        time_estimate=self.time_estimate_per_trial
                     ),
                     CodeBlock(self._finalise_trial),
                     self._construct_feedback_logic(),
@@ -939,8 +939,8 @@ class NetworkTrialGenerator(TrialGenerator):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
     
-    time_allotted_per_trial
-        Time allotted for each trial (seconds).
+    time_estimate_per_trial
+        Time estimated for each trial (seconds).
 
     expected_num_trials
         Expected number of trials that the participant will take
@@ -1037,7 +1037,7 @@ class NetworkTrialGenerator(TrialGenerator):
         trial_class, 
         network_class,
         phase, 
-        time_allotted_per_trial, 
+        time_estimate_per_trial, 
         expected_num_trials,
         check_performance_at_end,
         check_performance_every_trial,
@@ -1053,7 +1053,7 @@ class NetworkTrialGenerator(TrialGenerator):
         super().__init__(
             trial_class=trial_class, 
             phase=phase, 
-            time_allotted_per_trial=time_allotted_per_trial, 
+            time_estimate_per_trial=time_estimate_per_trial, 
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,

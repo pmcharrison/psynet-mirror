@@ -240,18 +240,18 @@ class TimeCreditStore:
         else:
             self.confirmed_credit += value
     
-    def start_fix_time(self, time_allotted: float):
+    def start_fix_time(self, time_estimate: float):
         assert not self.is_fixed
         self.is_fixed = True
         self.pending_credit = 0.0
-        self.max_pending_credit = time_allotted
+        self.max_pending_credit = time_estimate
 
-    def end_fix_time(self, time_allotted: float):
+    def end_fix_time(self, time_estimate: float):
         assert self.is_fixed
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
-        self.confirmed_credit += time_allotted
+        self.confirmed_credit += time_estimate
 
     def get_bonus(self):
         return self.wage_per_hour * self.confirmed_credit / (60 * 60)

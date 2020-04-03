@@ -67,7 +67,7 @@ class CustomTrial(MCMCPTrial):
             "mcmcp_trial",
             self.prompt,
             choices=["0", "1"], 
-            time_allotted=5,
+            time_estimate=5,
             labels=["Person A", "Person B"],
         )
 
@@ -122,7 +122,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             node_class=CustomNode, 
             source_class=CustomSource,
             phase="experiment",
-            time_allotted_per_trial=5,
+            time_estimate_per_trial=5,
             chain_type="across",
             num_trials_per_participant=6,
             num_chains_per_participant=None,
@@ -136,7 +136,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             recruit_mode="num_trials",
             target_num_participants=None
         ),
-        InfoPage("You finished the experiment!", time_allotted=0),
+        InfoPage("You finished the experiment!", time_estimate=0),
         # CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
         SuccessfulEndPage()
     )

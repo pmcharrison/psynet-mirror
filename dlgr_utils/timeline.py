@@ -31,7 +31,7 @@ def get_template(name):
 
 class Event:
     returns_time_credit = False
-    time_allotted = None
+    time_estimate = None
     expected_repetitions = None
     id = None
 
@@ -78,24 +78,24 @@ class CodeBlock(Event):
         })
 
 class FixTime(Event):
-    def __init__(self, time_allotted: float):
-        self.time_allotted = time_allotted
+    def __init__(self, time_estimate: float):
+        self.time_estimate = time_estimate
         self.expected_repetitions = 1
 
     def multiply_expected_repetitions(self, factor):
         self.expected_repetitions = self.expected_repetitions * factor
 
 class StartFixTime(FixTime):
-    def __init__(self, time_allotted, end_fix_time):
-        super().__init__(time_allotted)
+    def __init__(self, time_estimate, end_fix_time):
+        super().__init__(time_estimate)
         self.end_fix_time = end_fix_time
 
     def consume(self, experiment, participant):
-        participant.time_credit.start_fix_time(self.time_allotted)
+        participant.time_credit.start_fix_time(self.time_estimate)
 
 class EndFixTime(FixTime):
     def consume(self, experiment, participant):
-        participant.time_credit.end_fix_time(self.time_allotted)
+        participant.time_credit.end_fix_time(self.time_estimate)
 
 class GoTo(Event):
     def __init__(self, target):
@@ -163,8 +163,8 @@ class Page(Event):
     Parameters
     ----------
 
-    time_allotted: 
-        Time allotted for the page.
+    time_estimate: 
+        Time estimated for the page.
 
     template_path:
         Path to the jinja2 template to use for the page.
@@ -186,7 +186,7 @@ class Page(Event):
 
     def __init__(
         self,
-        time_allotted: Optional[float] = None,
+        time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
         template_str: Optional[str] = None, 
         template_arg: Optional[Dict] = None,
@@ -211,7 +211,7 @@ class Page(Event):
         assert isinstance(template_arg, dict)
         assert isinstance(label, str)
 
-        self.time_allotted = time_allotted
+        self.time_estimate = time_estimate
         self.template_str = template_str
         self.template_arg = template_arg
         self.label = label
@@ -333,15 +333,15 @@ class PageMaker(Event):
         The function should return an instance of (or a subclass of)
         :class:`dlgr_utils.timeline.Page`.
 
-    time_allotted:
-        Time allotted to complete the page.
+    time_estimate:
+        Time estimated to complete the page.
     """
 
     returns_time_credit = True
 
-    def __init__(self, function, time_allotted: float):
+    def __init__(self, function, time_estimate: float):
         self.function = function
-        self.time_allotted = time_allotted
+        self.time_estimate = time_estimate
         self.expected_repetitions = 1
         # self.pos_in_reactive_seq = None
 
@@ -358,10 +358,10 @@ class PageMaker(Event):
             }
         )
         # page = self.function(experiment=experiment, participant=participant)
-        if self.time_allotted != page.time_allotted and page.time_allotted is not None:
+        if self.time_estimate != page.time_estimate and page.time_estimate is not None:
             logger.warning(
-                f"Observed a mismatch between a page maker's time_allotted slot ({self.time_allotted}) " +
-                f"and the time_allotted slot of the generated page ({page.time_allotted}). " +
+                f"Observed a mismatch between a page maker's time_estimate slot ({self.time_estimate}) " +
+                f"and the time_estimate slot of the generated page ({page.time_estimate}). " +
                 f"The former will take precedent."
             )
         if not isinstance(page, Page):
@@ -382,7 +382,7 @@ def reactive_seq(
     label,
     function, 
     num_pages: int,
-    time_allotted: int
+    time_estimate: int
 ): 
     """Function must return a list of pages when evaluated."""
     def with_namespace(x=None):
@@ -428,7 +428,7 @@ def reactive_seq(
 
     show_events = PageMaker(
         new_function, 
-        time_allotted=time_allotted / num_pages
+        time_estimate=time_estimate / num_pages
     )
 
     condition = lambda participant: not participant.var.get(with_namespace("complete"))
@@ -456,8 +456,8 @@ class InfoPage(Page):
         The content to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    time_allotted:
-        Time allotted for the page.
+    time_estimate:
+        Time estimated for the page.
 
     title:
         Optional title for the page. Use :class:`flask.Markup`
@@ -470,12 +470,12 @@ class InfoPage(Page):
     def __init__(
         self, 
         content: Union[str, Markup], 
-        time_allotted: Optional[float] = None, 
+        time_estimate: Optional[float] = None, 
         title: Optional[Union[str, Markup]] = None,
         **kwargs
     ):
         super().__init__(
-            time_allotted=time_allotted,
+            time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
             template_arg={
                 "content": "" if content is None else content,
@@ -492,7 +492,7 @@ class EndPage(Page):
                 "Thank you for taking part."
             )
         super().__init__(
-            time_allotted=0,
+            time_estimate=0,
             template_str=get_template("final-page.html"),
             template_arg={
                 "content": "" if content is None else content,
@@ -599,8 +599,8 @@ class NAFCPage(ResponsePage):
     choices:
         The different options the participant has to choose from.
 
-    time_allotted:
-        Time allotted for the page.
+    time_estimate:
+        Time estimated for the page.
 
     labels:
         An optional list of textual labels to apply to the buttons, 
@@ -618,7 +618,7 @@ class NAFCPage(ResponsePage):
         label: str,
         prompt: Union[str, Markup],
         choices: List[str],        
-        time_allotted: Optional[float] = None,
+        time_estimate: Optional[float] = None,
         labels: Optional[List[str]] = None,
         arrange_vertically: bool = False,
         min_width: str ="100px"
@@ -638,7 +638,7 @@ class NAFCPage(ResponsePage):
             for choice, label in zip(self.choices, self.labels)
         ]
         super().__init__(
-            time_allotted=time_allotted,
+            time_estimate=time_estimate,
             template_str=get_template("nafc-page.html"),
             label=label,
             template_arg={
@@ -672,8 +672,8 @@ class TextInputPage(ResponsePage):
         Prompt to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    time_allotted:
-        Time allotted for the page.
+    time_estimate:
+        Time estimated for the page.
 
     one_line:
         Whether the text box should comprise solely one line.
@@ -688,7 +688,7 @@ class TextInputPage(ResponsePage):
         self,
         label: str,
         prompt: Union[str, Markup],     
-        time_allotted: Optional[float] = None,
+        time_estimate: Optional[float] = None,
         one_line: bool = True,
         width: Optional[str] = None, # e.g. "100px"
         height: Optional[str] = None
@@ -706,7 +706,7 @@ class TextInputPage(ResponsePage):
         )
 
         super().__init__(
-            time_allotted=time_allotted,
+            time_estimate=time_estimate,
             template_str=get_template("text-input-page.html"),
             label=label,
             template_arg={
@@ -753,13 +753,13 @@ class Timeline():
         assert len(self.events) > 0
         if not isinstance(self.events[-1], EndPage):
             raise ValueError("The final element in the timeline must be a EndPage.")
-        self.check_for_time_allotted()
+        self.check_for_time_estimate()
         self.check_start_fix_times()
 
-    def check_for_time_allotted(self):
+    def check_for_time_estimate(self):
         for i, event in enumerate(self.events):
-            if (isinstance(event, Page) or isinstance(event, PageMaker)) and event.time_allotted is None:
-                raise ValueError(f"Element {i} of the timeline was missing a time_allotted value.")
+            if (isinstance(event, Page) or isinstance(event, PageMaker)) and event.time_estimate is None:
+                raise ValueError(f"Element {i} of the timeline was missing a time_estimate value.")
 
     def check_start_fix_times(self):
         try:
@@ -844,13 +844,13 @@ class Timeline():
             # logger.info(f"event_id = {event_id}, event = {event}")
 
             if event.returns_time_credit:
-                time_credit += event.time_allotted * event.expected_repetitions
+                time_credit += event.time_estimate * event.expected_repetitions
             
             if isinstance(event, StartFixTime):
                 event_id = event.end_fix_time.id
 
             elif isinstance(event, EndFixTime):
-                time_credit += event.time_allotted * event.expected_repetitions
+                time_credit += event.time_estimate * event.expected_repetitions
                 event_id += 1
 
             elif isinstance(event, StartSwitch) and event.log_chosen_branch:
@@ -898,7 +898,7 @@ class Timeline():
         while not finished:
             old_event = self.get_current_event(experiment, participant, resolve=False)
             if old_event.returns_time_credit:
-                participant.time_credit.increment(old_event.time_allotted)
+                participant.time_credit.increment(old_event.time_estimate)
 
             participant.event_id += 1
 
@@ -932,7 +932,7 @@ class Timeline():
 
 def estimate_time_credit(events):
     return sum([
-        event.time_allotted * event.expected_repetitions
+        event.time_estimate * event.expected_repetitions
         for event in events
         if event.returns_time_credit
     ])
@@ -1079,8 +1079,8 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     )
 
     if fix_time_credit:
-        time_allotted = estimate_time_credit(logic)
-        return fix_time(events, time_allotted)
+        time_estimate = estimate_time_credit(logic)
+        return fix_time(events, time_estimate)
     else:
         return events
 
@@ -1153,11 +1153,11 @@ def switch(
     combined_events = [start_switch] + all_events + [final_event]
 
     if fix_time_credit:
-        time_allotted = max([
+        time_estimate = max([
             estimate_time_credit(branch_events)
             for branch_events in branches.values()
         ])
-        return fix_time(combined_events, time_allotted)
+        return fix_time(combined_events, time_estimate)
     else:
         return combined_events
 
@@ -1253,9 +1253,9 @@ class StartConditional(ConditionalEvent):
 class EndConditional(ConditionalEvent):
     pass
    
-def fix_time(events, time_allotted):
-    end_fix_time = EndFixTime(time_allotted)
-    start_fix_time = StartFixTime(time_allotted, end_fix_time)
+def fix_time(events, time_estimate):
+    end_fix_time = EndFixTime(time_estimate)
+    start_fix_time = StartFixTime(time_estimate, end_fix_time)
     return join(start_fix_time, events, end_fix_time)
 
 def multiply_expected_repetitions(logic, factor: float):

@@ -124,17 +124,17 @@ of the Experiment class, for example:
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",
-                time_allotted=5
+                time_estimate=5
             ),
             PageMaker(            
                 lambda experiment, participant: 
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-                time_allotted=5
+                time_estimate=5
             ),
             TextInputPage(
                 "message",
                 "Write me a message!",
-                time_allotted=5,
+                time_estimate=5,
                 one_line=False
             ),
             SuccessfulEndPage()
