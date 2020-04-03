@@ -202,8 +202,7 @@ class Trial(Info):
 
     def make_definition(self, experiment, participant, **kwargs):
         """
-        (Abstract method, to be overridden) 
-        Should create and return a definition for the trial, 
+        Creates and returns a definition for the trial, 
         which will be later stored in the ``definition`` attribute.
         This can be an arbitrary object as long as it 
         is serialisable to JSON.
@@ -227,8 +226,7 @@ class Trial(Info):
 
     def show_trial(self, experiment, participant):
         """
-        (Abstract method, to be overridden) 
-        Should return a :class:`~dlgr_utils.timeline.Page` object,
+        Returns a :class:`~dlgr_utils.timeline.Page` object,
         or alternatively a list of such objects, 
         that solicit an answer from the participant.
         If this method returns a list, then this list must have
@@ -250,8 +248,7 @@ class Trial(Info):
 
     def show_feedback(self, experiment, participant):
         """
-        (Abstract method, to be overridden) 
-        Should return a Page object displaying feedback
+        Returns a Page object displaying feedback
         (or None, which means no feedback).
 
         Parameters 
@@ -1087,8 +1084,7 @@ class NetworkTrialMaker(TrialMaker):
 
     def find_networks(self, participant, experiment):
         """
-        (Abstract method, to be overridden)
-        Should return a list of all available networks for the participant's next trial, ordered 
+        Returns a list of all available networks for the participant's next trial, ordered 
         in preference (most preferred to least preferred).
         
         Parameters
@@ -1106,9 +1102,8 @@ class NetworkTrialMaker(TrialMaker):
 
     def grow_network(self, network, participant, experiment):
         """
-        (Abstract method, to be overridden)
-        Should extend the network if necessary by adding one or more nodes.
-        Should return True if any nodes were added.
+        Extends the network if necessary by adding one or more nodes.
+        Returns ``True`` if any nodes were added.
         
         Parameters
         ----------
@@ -1128,8 +1123,7 @@ class NetworkTrialMaker(TrialMaker):
 
     def find_node(self, network, participant, experiment):
         """
-        (Abstract method, to be overridden)
-        Should find the node to which the participant should be attached for the next trial.
+        Finds the node to which the participant should be attached for the next trial.
         
         Parameters
         ----------
@@ -1251,7 +1245,6 @@ class TrialNetwork(Network):
 
     def add_node(self, node):
         """
-        (Abstract method, to be overridden)
         Adds a node to the network. This method is responsible for setting
         ``self.full = True`` if the network is full as a result.
         """

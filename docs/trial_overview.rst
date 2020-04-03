@@ -138,29 +138,27 @@ as chains, for example:
 * Gradient Descent over People
 * Computerised adaptive testing
 
-We can save a lot of time by centralising the common logic of these different 
-paradigms into one code base. 
-We provide the following classes to help this process,
-which we recommend you subclass for your particular paradigm:
+The following classes are provided to help this process,
+which can be subclassed to implement a particular paradigm:
 
-* :class:`~dlgr_utils.trial.chain.ChainNetworkMaker;
+* :class:`~dlgr_utils.trial.chain.ChainNetworkMaker`,
   a special type of :class:`~dlgr_utils.trial.main.NetworkTrialMaker` 
 
-* :class:`~dlgr_utils.trial.chain.ChainNetwork;
+* :class:`~dlgr_utils.trial.chain.ChainNetwork`,
   a special type of :class:`~dlgr_utils.trial.main.TrialNetwork` 
 
-* :class:`~dlgr_utils.trial.chain.ChainNode;
-  a special type of :class:`~dallinger.models.Node` 
+* :class:`~dlgr_utils.trial.chain.ChainNode`,
+  a special type of :class:`dallinger.models.Node` 
 
-* :class:`~dlgr_utils.trial.chain.ChainTrial;
+* :class:`~dlgr_utils.trial.chain.ChainTrial`,
   a special type of :class:`~dlgr_utils.trial.main.NetworkTrial` 
 
-* :class:`~dlgr_utils.trial.chain.ChainSource;
-   a special type of :class:`~dallinger.nodes.Source`, corresponding
-   to the initial state of the network.
+* :class:`~dlgr_utils.trial.chain.ChainSource`,
+  a special type of :class:`dallinger.nodes.Source`, 
+  providing the initial network state
    
 To implement a new paradigm using these helper classes,
-we recommend that you create five new classes that subclass each of the
+we recommend that you create new classes that subclass each of the
 helper classes listed above. Follow their documentation to understand
 which methods you need to override and what customisable options
 there are.

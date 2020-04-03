@@ -22,6 +22,10 @@ class ChainNetwork(TrialNetwork):
     Intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialMaker`.
     Typically the user won't have to override anything here.
     
+    Attributes
+    ----------
+    
+    TODO
     """
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
@@ -430,14 +434,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         The class object for the networks used by this maker.
         This should subclass :class`~dlgr_utils.trial.chain.ChainNetwork`,
         or alternatively be left at the default of 
-        :class`~dlgr_utils.trial.chain.ChainNetwork`
-        
+        :class`~dlgr_utils.trial.chain.ChainNetwork`.
         
     node_class
         The class object for the networks used by this maker.
         This should subclass :class`~dlgr_utils.trial.chain.ChainNode`,
         or alternatively be left at the default of 
-        :class`~dlgr_utils.trial.chain.ChainNode`
+        :class`~dlgr_utils.trial.chain.ChainNode`.
     """
     def __init__(
         self,  

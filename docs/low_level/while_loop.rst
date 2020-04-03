@@ -1,5 +1,3 @@
-.. _while_loop:
-
 ===========
 While loops
 ===========
