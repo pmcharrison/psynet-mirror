@@ -1,6 +1,12 @@
 # pylint: disable=unused-argument,abstract-method
 
-from .chain import ChainTrial, ChainNode, ChainSource, ChainTrialMaker
+from .chain import ChainNetwork, ChainTrial, ChainNode, ChainSource, ChainTrialMaker
+
+class ImitationChainNetwork(ChainNetwork):
+    __mapper_args__ = {"polymorphic_identity": "imitation_chain_network"}
+    
+    def make_definition(self):
+        return {}
 
 class ImitationChainTrial(ChainTrial):
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_trial"}

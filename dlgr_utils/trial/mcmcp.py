@@ -15,9 +15,23 @@ class MCMCPTrial(ChainTrial):
     def make_definition(self, experiment, participant):
         order = ["current_state", "proposal"]
         random.shuffle(order)
-        definition = self.node.definition.copy()
-        definition["order"] = order
+        definition = {
+            "current_state": self.node.definition["current_state"],
+            "proposal": self.node.definition["order"]
+        }
+        definition["ordered"] = [{
+            "role": role,
+            "value": definition[role]
+        } for role in order]
         return definition
+        
+    @property 
+    def first_stimulus(self):
+        return self.definition["ordered"][0]["value"]
+        
+    @property 
+    def second_stimulus(self):
+        return self.definition["ordered"][1]["value"]
 
 class MCMCPNode(ChainNode):
     __mapper_args__ = {"polymorphic_identity": "mcmcp_node"}

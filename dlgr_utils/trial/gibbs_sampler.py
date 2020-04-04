@@ -3,7 +3,7 @@
 from statistics import mean
 from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
-import rpdb
+import rpdb 
 
 class GibbsTrial(ChainTrial):
     def show_trial(self, experiment, participant):

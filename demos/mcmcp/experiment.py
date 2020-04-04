@@ -44,21 +44,16 @@ import rpdb
 MAX_AGE = 100
 OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
-NUM_CHOICES = 2
 
 class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     @property
     def prompt(self):
-        ages = [self.definition[item]["age"] for item in self.definition["order"]]
-        occupations = [self.definition[item]["occupation"] for item in self.definition["order"]]
-        assert len(set(occupations)) == 1
-        occupation = occupations[0]
-        
+        occupation = self.source.occupation
         return(
-            f"Person A is {ages[0]} years old. "
-            f"Person B is {ages[1]} years old. "
+            f"Person A is {self.first_stimulus} years old. "
+            f"Person B is {self.second_stimulus} years old. "
             f"Which one is the {occupation}?"
         )
 

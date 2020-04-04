@@ -128,6 +128,7 @@ class ChainNetwork(TrialNetwork):
 
     chain_type = claim_var("_chain_type")
     trials_per_node = claim_var("_trials_per_node")
+    definition = claim_var("_definition")
 
     # Note - the <details> slot is occupied by VarStore.
 
@@ -156,8 +157,97 @@ class ChainNetwork(TrialNetwork):
         self.target_num_nodes = target_num_nodes
         self.add_source(source_class, experiment, participant)
         self.target_num_trials = target_num_nodes * trials_per_node
+        self.definition = self.make_definition()
         
         experiment.save()
+
+    def make_definition(self):
+        """
+        Derives the definition for the network. 
+        This definition represents some collection of attributes
+        that is shared by all nodes/trials in a network,
+        but that may differ between networks.
+        
+        Suppose one wishes to have multiple networks in the experiment,
+        each characterised by a different value of an attribute
+        (e.g. a different colour).
+        One approach would be to sample randomly; however, this would not
+        guarantee an even distribution of attribute values. 
+        In this case, a better approach is to use the 
+        :meth:`dlgr_utils.trial.chain.ChainNetwork.balance_across_networks`
+        method, as follows:
+        
+        ::
+        
+            colours = ["red", "green", "blue"]
+            return {
+                "colour": self.balance_across_networks(colours)
+            }
+        
+        See :meth:`dlgr_utils.trial.chain.ChainNetwork.balance_across_networks`
+        for details on how this balancing works.
+    
+        Returns
+        -------
+        
+        object
+            By default this returns an empty dictionary,
+            but this can be customised by subclasses.
+            The object should be suitable for serialisation to JSON.
+        """
+        return {}
+
+    def balance_across_networks(self, values: list):
+        """
+        Chooses a value from a list, with choices being balanced across networks.
+        Relies on the fact that network IDs are guaranteed to be consecutive.
+        sequences of integers.
+        
+        Suppose we wish to assign our networks to colours,
+        and we want to balance colour assignment across networks.
+        We might write the following:
+        
+        ::
+        
+            colours = ["red", "green", "blue"]
+            chosen_colour = self.balance_across_networks(colours)
+        
+        In across-participant chain designs, 
+        :meth:`~dlgr_utils.trial.chain.ChainNetwork.balance_across_networks`
+        will ensure that the distribution of colours is maximally uniform across
+        the experiment by assigning 
+        the first network to red, the second network to green, the third to blue,
+        then the fourth to red, the fifth to green, the sixth to blue, 
+        and so on. This is achieved by referring to the network's 
+        :attr:`~dlgr_utils.trial.chain.ChainNetwork.id`
+        attribute.
+        In within-participant chain designs, 
+        the same method is used but within participants, 
+        so that each participant's first network is assigned to red,
+        their second network to green,
+        their third to blue,
+        then their fourth, fifth, and sixth to red, green, and blue respectively.
+        
+        Parameters
+        ----------
+        
+        values
+            The list of values from which to choose.
+            
+        Returns
+        -------
+        
+        Object
+            An object from the provided list.
+        """
+        if self.chain_type == "across":
+            id_to_use  = self.id
+        elif self.chain_type == "within":
+            id_to_use = self.participant_id        
+        else:
+            raise RuntimeError(f"Unexpected chain_type: {self.chain_type}")
+        
+        return values[id_to_use % len(values)]
 
     @property
     def target_num_nodes(self):
@@ -804,6 +894,14 @@ class ChainTrialMaker(NetworkTrialMaker):
     Parameters 
     ----------
 
+    network_class
+        The class object for the networks used by this maker.
+        This should subclass :class:`~dlgr_utils.trial.chain.ChainNetwork`.
+        
+    node_class
+        The class object for the networks used by this maker.
+        This should subclass :class:`~dlgr_utils.trial.chain.ChainNode`.
+        
     source_class
         The class object for sources
         (should subclass :class:`~dlgr_utils.trial.chain.ChainSource`).
@@ -915,20 +1013,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
         
-    network_class
-        The class object for the networks used by this maker.
-        This should subclass :class:`~dlgr_utils.trial.chain.ChainNetwork`,
-        or alternatively be left at the default of 
-        :class:`~dlgr_utils.trial.chain.ChainNetwork`.
-        
-    node_class
-        The class object for the networks used by this maker.
-        This should subclass :class:`~dlgr_utils.trial.chain.ChainNode`,
-        or alternatively be left at the default of 
-        :class:`~dlgr_utils.trial.chain.ChainNode`.
+    
     """
     def __init__(
         self,  
+        network_class,
+        node_class,
         source_class,
         trial_class, 
         phase: str,
@@ -948,9 +1038,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         async_post_grow_network: Optional[str] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
-        propagate_failure: bool = True,
-        network_class=ChainNetwork,
-        node_class=ChainNode
+        propagate_failure: bool = True
     ):
         assert chain_type in ["within", "across"]
 
