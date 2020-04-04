@@ -168,3 +168,15 @@ there are.
 
 Specific paradigms
 ------------------
+
+The ``dlgr_utils`` package contains several built-in implementations of specific paradigms.
+Follow the links below to see their documentation.
+We hope to extend this list over time through user contributions.
+
+* :ref:`Imitation chains <imitation_chains>`
+
+* :ref:`Markov Chain Monte Carlo with People <mcmcp>`
+
+* :ref:`Gibbs Sampling with People <gibbs>`
+
+* :ref:`Non-adaptive experiments <non_adaptive>`

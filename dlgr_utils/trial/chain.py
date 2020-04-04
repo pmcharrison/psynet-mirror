@@ -386,7 +386,7 @@ class ChainNode(dallinger.models.Node):
         """
         raise NotImplementedError
 
-    def summarise_trials(self, trials, experiment, participant):
+    def summarise_trials(self, trials: list, experiment, participant):
         """
         Summarises the trials at the node to produce a seed that can 
         be passed to the next node in the chain.
@@ -578,7 +578,7 @@ class ChainSource(dallinger.nodes.Source):
     def generate_seed(self, network, experiment, participant):
         """
         Generates a seed for the :class:`~dlgr_utils.trial.chain.ChainSource` and
-        correspondingly for the :class:`~dlgr_utils.trial.chain.ChainNetwork.`
+        correspondingly for the :class:`~dlgr_utils.trial.chain.ChainNetwork`.
         
         Parameters
         ----------
@@ -621,7 +621,7 @@ class ChainTrial(Trial):
     if they seem relevant.
 
     Instances can be retrieved using *SQLAlchemy*; for example, the
-    following command retrieves the ``Trial`` object with an ID of 1:
+    following command retrieves the ``ChainTrial`` object with an ID of 1:
 
     ::
 
