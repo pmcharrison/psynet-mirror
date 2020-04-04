@@ -37,18 +37,7 @@ See the low-level documentation (below)
 and the demo (``dlgr_utils/dlgr_utils/demos/imitation_chain``)
 for more details.
 
-.. autoclass:: dlgr_utils.trial.imitation_chain.ImitationChainSource
+.. automodule:: dlgr_utils.trial.imitation_chain
     :show-inheritance:
     :members:
     
-.. autoclass:: dlgr_utils.trial.imitation_chain.ImitationChainNode
-    :show-inheritance:
-    :members:
-    
-.. autoclass:: dlgr_utils.trial.imitation_chain.ImitationChainTrial
-    :show-inheritance:
-    :members:
-    
-.. autoclass:: dlgr_utils.trial.imitation_chain.ImitationChainTrialMaker
-    :show-inheritance:
-    :members:
