@@ -105,6 +105,10 @@ class Trial(Info):
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
+        
+    node
+        The class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
+        belongs.
 
     complete : bool
         Whether the trial has been completed (i.e. received a response
@@ -197,10 +201,10 @@ class Trial(Info):
         self.complete = False
         self.awaiting_process = False
         self.participant_id = participant.id
-        self.definition = self.make_definition(experiment, participant, node=node)
+        self.definition = self.make_definition(experiment, participant)
         self.propagate_failure = propagate_failure
 
-    def make_definition(self, experiment, participant, **kwargs):
+    def make_definition(self, experiment, participant):
         """
         Creates and returns a definition for the trial, 
         which will be later stored in the ``definition`` attribute.
@@ -217,10 +221,6 @@ class Trial(Info):
         participant:
             An instantiation of :class:`dlgr_utils.participant.Participant`,
             corresponding to the current participant.
-
-        **kwargs:
-            Further keyword arguments.
-
         """
         raise NotImplementedError
 
@@ -882,6 +882,8 @@ class NetworkTrialMaker(TrialMaker):
     1. Find the available networks from which to source the next trial,
        ordered by preference
        (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`).
+       These may be created on demand, or alternatively pre-created by
+       :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.experiment_setup_routine`.
     2. Give these networks an opportunity to grow (i.e. update their structure
        based on the trials that they've received so far)
        (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`).
@@ -891,7 +893,8 @@ class NetworkTrialMaker(TrialMaker):
     4. Create a trial from this node
        (:meth:`dlgr_utils.trial.main.Trial.__init__`).
     
-    Once the trial is finished, the network is also given another opportunity to grow.
+    The trial is then administered to the participant, and a response elicited.
+    Once the trial is finished, the network is given another opportunity to grow.
 
     The implementation also provides support for asynchronous processing,
     for example to prepare the stimuli available at a given node,
@@ -1194,7 +1197,13 @@ class TrialNetwork(Network):
     ----------
     
     trial_type
-        A string uniquely identifying the type of trial being used, e.g. ``"melody_judgement"``.
+        A string uniquely identifying the type of trial to be administered,
+        typically just the name of the relevant class, 
+        e.g. ``"MelodyTrial"``.
+        The same experiment should not contain multiple TrialMaker objects
+        with the same ``trial_type``, unless they correspond to different
+        phases of the experiment and are marked as such with the 
+        ``phase`` parameter.
     
     phase
         Arbitrary label for this phase of the experiment, e.g.
@@ -1208,8 +1217,13 @@ class TrialNetwork(Network):
     ----------
     
     trial_type : str
-        A string uniquely identifying the type of trial being used, e.g. ``"melody_judgement"``.
-        Set by default in the ``__init__`` function.
+        A string uniquely identifying the type of trial to be administered,
+        typically just the name of the relevant class, 
+        e.g. ``"MelodyTrial"``.
+        The same experiment should not contain multiple TrialMaker objects
+        with the same ``trial_type``, unless they correspond to different
+        phases of the experiment and are marked as such with the 
+        ``phase`` parameter.
         
     target_num_trials : int or None
         Indicates the target number of trials for that network.

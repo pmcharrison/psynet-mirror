@@ -12,10 +12,9 @@ class GibbsTrial(ChainTrial):
         """
         raise NotImplementedError
 
-    def make_definition(self, experiment, participant, **kwargs):
+    def make_definition(self, experiment, participant):
         # TODO : randomise the starting point
-        node = kwargs["node"]
-        return node.definition
+        return self.node.definition
 
     @property 
     def initial_vector(self):

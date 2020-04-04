@@ -2,7 +2,7 @@
 Trial-based experiments
 =======================
 
-The core part of many experiments is a sequence of *trials*
+The core part of many experiments is a sequence of trials
 that are administered one after the other to the participant.
 ``dlgr_utils`` provides some helper classes for designing
 such experiments. In particular, we consider the following scenarios
@@ -103,6 +103,8 @@ implementation that comprises the following steps:
 1. Find the available networks from which to source the next trial,
    ordered by preference
    (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`).
+   These may be created on demand, or alternatively pre-created by
+   :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.experiment_setup_routine`.
 2. Give these networks an opportunity to grow (i.e. update their structure
    based on the trials that they've received so far)
    (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`).
@@ -112,7 +114,8 @@ implementation that comprises the following steps:
 4. Create a trial from this node
    (:meth:`dlgr_utils.trial.main.Trial.__init__`).
    
-Once the trial is finished, the network is also given another opportunity to grow.
+The trial is then administered to the participant, and a response elicited.
+Once the trial is finished, the network is given another opportunity to grow.
 
 The implementation also provides support for asynchronous processing,
 for example to prepare the stimuli available at a given node,
@@ -133,29 +136,29 @@ A common network structure is the *chain*. A chain comprises a series of nodes
 connecting in a serial order. Many complex experiment designs can be expressed
 as chains, for example:
 
-* Iterated reproduction
-* Markov Chain Monte Carlo with People
-* Gradient Descent over People
-* Computerised adaptive testing
+* Iterated reproduction;
+* Markov Chain Monte Carlo with People;
+* Gradient Descent over People;
+* Computerised adaptive testing.
 
 The following classes are provided to help this process,
 which can be subclassed to implement a particular paradigm:
 
-* :class:`~dlgr_utils.trial.chain.ChainNetworkMaker`,
-  a special type of :class:`~dlgr_utils.trial.main.NetworkTrialMaker` 
+* :class:`~dlgr_utils.trial.chain.ChainTrialMaker`,
+  a special type of :class:`~dlgr_utils.trial.main.ChainTrialMaker`;
 
 * :class:`~dlgr_utils.trial.chain.ChainNetwork`,
-  a special type of :class:`~dlgr_utils.trial.main.TrialNetwork` 
+  a special type of :class:`~dlgr_utils.trial.main.TrialNetwork`;
 
 * :class:`~dlgr_utils.trial.chain.ChainNode`,
-  a special type of :class:`dallinger.models.Node` 
+  a special type of :class:`dallinger.models.Node`;
 
 * :class:`~dlgr_utils.trial.chain.ChainTrial`,
-  a special type of :class:`~dlgr_utils.trial.main.NetworkTrial` 
+  a special type of :class:`~dlgr_utils.trial.main.NetworkTrial`;
 
 * :class:`~dlgr_utils.trial.chain.ChainSource`,
   a special type of :class:`dallinger.nodes.Source`, 
-  providing the initial network state
+  providing the initial network state.
    
 To implement a new paradigm using these helper classes,
 we recommend that you create new classes that subclass each of the
