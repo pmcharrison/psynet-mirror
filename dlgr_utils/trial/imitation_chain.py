@@ -3,12 +3,19 @@
 from .chain import ChainNetwork, ChainTrial, ChainNode, ChainSource, ChainTrialMaker
 
 class ImitationChainNetwork(ChainNetwork):
+    """
+    A Network class for imitation chains. 
+    """
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_network"}
     
     def make_definition(self):
         return {}
 
 class ImitationChainTrial(ChainTrial):
+    """
+    A Trial class for imitation chains. 
+    """
+    
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_trial"}
 
     def make_definition(self, experiment, participant):
@@ -36,6 +43,9 @@ class ImitationChainTrial(ChainTrial):
         return self.node.definition
         
 class ImitationChainNode(ChainNode):
+    """
+    A Node class for imitation chains. 
+    """
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_node"}
 
     def create_definition_from_seed(self, seed, experiment, participant):
@@ -71,10 +81,11 @@ class ImitationChainNode(ChainNode):
         """
         (Abstract method, to be overridden)
         This method should summarise the answers to the provided trials.
-        If there is just one trial, it should normally extract the trial's 
-        answer, available in ``trial.answer``.
-        If there are multiple trials, it should somehow take the average
-        of these answers.
+        A default method is implemented for cases when there is
+        just one trial per node; in this case, the method
+        extracts and returns the trial's answer, available in ``trial.answer``.
+        The method must be extended if it is to cope with multiple trials per node,
+        however.
         
         Parameters
         ----------
@@ -104,6 +115,9 @@ class ImitationChainNode(ChainNode):
         raise NotImplementedError
 
 class ImitationChainSource(ChainSource):
+    """
+    A Source class for imitation chains. 
+    """
     __mapper_args__ = {"polymorphic_identity": "imitation_chain_source"}
 
     def generate_seed(self, network, experiment, participant):
@@ -111,7 +125,8 @@ class ImitationChainSource(ChainSource):
 
 class ImitationChainTrialMaker(ChainTrialMaker):
     """
-    See the documentation for 
+    A TrialMaker class for imitation chains;
+    see the documentation for 
     :class:`~dlgr_utils.trial.chain.ChainTrialMaker`
     for usage instructions.
     """

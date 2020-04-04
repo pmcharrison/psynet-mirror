@@ -50,8 +50,14 @@ You can define a custom imitation-chain experiment through the following steps:
    of ``0`` (or equivalently ``"0"``) if the participant selected the first stimulus in the pair,
    and ``1`` (or equivalently ``"1"``) if they selected the second stimulus in the pair.
    
-4. (Optional) Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`
-   with a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.summarise_trials` method.
+4. Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`
+   with a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.get_proposal` method.
+   This method should take set of free parameter values (provided in the ``state`` argument)
+   and generate a proposed new set of free parameter values
+   in the neighbourhood of these original values.
+
+5. (Optional) Add a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.summarise_trials` method
+   to the :class:`~dlgr_utils.trial.mcmcp.MCMCPNode` class defined in the previous step.
    This new method should take a list of completed 
    :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial` objects as input 
    and summarise the elicited answers,
@@ -66,7 +72,7 @@ You can define a custom imitation-chain experiment through the following steps:
    then one will have to implement a custom 
    :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.summarise_trials` method.
    
-5. Create an instance of :class:`~dlgr_utils.trial.mcmcp.MCMCPMaker`,
+6. Create an instance of :class:`~dlgr_utils.trial.mcmcp.MCMCPMaker`,
    filling in its constructor parameter list
    with reference to the classes you created above,
    and insert it into your experiment's timeline.

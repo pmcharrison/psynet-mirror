@@ -28,7 +28,7 @@ from dlgr_utils.timeline import (
     TextInputPage
 )
 from dlgr_utils.trial.mcmcp import (
-    MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
+    MCMCPNetwork, MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
 )
 
 import logging
@@ -45,22 +45,35 @@ MAX_AGE = 100
 OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
 
+class CustomNetwork(MCMCPNetwork):
+    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+    
+    def make_definition(self):
+        return {
+            "occupation": self.balance_across_networks(OCCUPATIONS)
+        }
+
+class CustomSource(MCMCPSource):
+    __mapper_args__ = {"polymorphic_identity": "custom_source"}
+
+    def generate_seed(self, network, experiment, participant):
+        return {
+            "age": random.randint(0, MAX_AGE)
+        }
+        
 class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    @property
-    def prompt(self):
-        occupation = self.source.occupation
-        return(
+    def show_trial(self, experiment, participant):
+        occupation = self.network.definition["occupation"]
+        prompt = (
             f"Person A is {self.first_stimulus} years old. "
             f"Person B is {self.second_stimulus} years old. "
             f"Which one is the {occupation}?"
         )
-
-    def show_trial(self, experiment, participant):
         return NAFCPage(
             "mcmcp_trial",
-            self.prompt,
+            prompt,
             choices=["0", "1"], 
             time_estimate=5,
             labels=["Person A", "Person B"],
@@ -70,38 +83,11 @@ class CustomNode(MCMCPNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
     def get_proposal(self, state, experiment, participant):
-        occupation = state["occupation"]
         age = state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
         age = age % (MAX_AGE + 1)
         return {
-            "occupation": occupation,
             "age": age
         }
-
-class CustomSource(MCMCPSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
-    def generate_seed(self, network, experiment, participant):
-        return {
-            "occupation": self.occupation,
-            "age": self.sample_age()
-        }
-
-    @property
-    def occupation(self):
-        network = self.network
-        if network.chain_type == "across":
-            index = network.id
-        elif network.chain_type == "within":
-            index = network.id_within_participant
-        else:
-            raise ValueError(f"Unidentified chain type: {network.chain_type}")
-        return OCCUPATIONS[index % len(OCCUPATIONS)]
-    
-    @staticmethod
-    def sample_age():
-        return random.randint(0, MAX_AGE)
-
 
 ##########################################################################################
 #### Experiment
