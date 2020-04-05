@@ -6,6 +6,7 @@ Documentation
    :caption: Vignettes and tutorials
 
    about
+   how_to_use
    installation
    demo
    basic_usage

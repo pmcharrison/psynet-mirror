@@ -16,7 +16,9 @@ This can be done by adding the following line:
     git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
 
 You can also modify this line to specify a particular version to install,
-and to provide authentication to the repository if required - see the online ``pip`` documentation.
+and to provide authentication to the repository if required;
+see `this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
+for details.
 In particular, to add your GitLab password, you can do something like this:
 
 ::
@@ -30,6 +32,17 @@ with read-only permissions and include it as follows:
 
     git+https://<pat>@gitlab.com/computational-audition-lab/dlgr-utils#egg=dlgr_utils
 
+When deploying an experiment, we recommend specifying a particular Git commit in 
+this line, for example:
+
+::
+
+    git+https://<pat>@gitlab.com/computational-audition-lab/dlgr-utils@<commit_hash>#egg=dlgr_utils
+
+where ``<commit_hash>`` looks something like ``000b14389171a9f0d7d713466b32bc649b0bed8e``
+(you can find this in GitLab or similar).
+This makes sure your experiment always deploys with the same version of ``dlgr_utils``,
+even if the package subsequently changes.
 
 Like any other Dallinger experiment, an experiment implementation requires an `experiment.py` file
 in your main directory, as well as a `static` folder and a `templates` folder. 
