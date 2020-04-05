@@ -780,6 +780,14 @@ class TrialMaker(Module):
         trial = self._get_current_trial(participant)
         return trial.show_trial(experiment=experiment, participant=participant)
 
+    def postprocess_answer(self, answer, trial, participant):
+        return answer
+
+    def _postprocess_answer(self, experiment, participant):
+        answer = participant.answer
+        trial = self._get_current_trial(participant)
+        participant.answer = self.postprocess_answer(answer, trial, participant)
+
     def _finalise_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
         answer = participant.answer
@@ -827,6 +835,7 @@ class TrialMaker(Module):
                         num_pages=self.trial_class.num_pages, 
                         time_estimate=self.time_estimate_per_trial
                     ),
+                    CodeBlock(self._postprocess_answer),
                     CodeBlock(self._finalise_trial),
                     self._construct_feedback_logic(),
                     self._check_performance_logic() if self.check_performance_every_trial else None,

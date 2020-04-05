@@ -124,6 +124,6 @@ class Exp(dlgr_utils.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 2
+        self.initial_recruitment_size = 1
 
 extra_routes = Exp().extra_routes()
