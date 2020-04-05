@@ -68,9 +68,11 @@ class GibbsTrial(ChainTrial):
         """
         In the Gibbs sampler, a trial's definition is created by taking the 
         definition from the source
-        :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`
+        :class:`~dlgr_utils.trial.gibbs.GibbsNode`
         and modifying it such that the free parameter has a randomised
-        starting value.
+        starting value. Note that different trials at the same
+        :class:`~dlgr_utils.trial.gibbs.GibbsNode` will have the same 
+        free parameters but different starting values for those free parameters.
         
         Parameters
         ----------
@@ -132,8 +134,9 @@ class GibbsNode(ChainNode):
 
     def summarise_trials(self, trials, experiment, participant):
         """
-        This method should summarise the answers to the provided trials.
-        The default method averages over all the provided parameter vectors.
+        This method summarises the answers to the provided trials.
+        The default method averages over all the provided parameter vectors,
+        and will typically not need to be overridden.
         
         Parameters
         ----------
@@ -153,8 +156,19 @@ class GibbsNode(ChainNode):
         Returns
         -------
         
-        object
-            The resulting vector, ready to be serialised to JSON.
+        dict
+            A dictionary of the following form: 
+            
+            ::
+            
+                {
+                    "vector": summary_vector,
+                    "active_index": active_index
+                }
+                
+            where ``summary_vector`` is the summary of all the vectors,
+            and ``active_index`` is an integer identifying which was the
+            free parameter.
         """
         updated_vectors = [trial.updated_vector for trial in trials]
         mean_updated_vector = self.parallel_mean(*updated_vectors)
@@ -165,6 +179,32 @@ class GibbsNode(ChainNode):
         }
 
     def create_definition_from_seed(self, seed, experiment, participant):
+        """
+        Creates a :class:`~dlgr_utils.trial.gibbs.GibbsNode` definition
+        from the seed passed by the previous :class:`~dlgr_utils.trial.gibbs.GibbsNode`
+        or :class:`~dlgr_utils.trial.gibbs.GibbsSource` in the chain. 
+        The vector of parameters is preserved from the seed,
+        but the 'active index' is increased by 1 modulo the length of the vector, 
+        meaning that the next parameter in the vector is chosen as the current free parameter.
+        This method will typically not need to be overridden.
+        
+            
+        Returns
+        -------
+        
+        dict
+            A dictionary of the following form: 
+            
+            ::
+            
+                {
+                    "vector": vector,
+                    "active_index": new_index
+                }
+                
+            where ``vector`` is the vector passed by the seed,
+            and ``new_index`` identifies the position of the new free parameter.
+        """
         vector = seed["vector"]
         dimension = len(vector)
         original_index = seed["active_index"]
@@ -181,11 +221,53 @@ class GibbsSource(ChainSource):
     __mapper_args__ = {"polymorphic_identity": "gibbs_source"}
 
     def generate_seed(self, network, experiment, participant):
+        """
+        Generates the seed for the :class:`~dlgr_utils.trial.gibbs.GibbsSource`.
+        By default the method samples the vector of parameters by repeatedly
+        applying :meth:`~dlgr_utils.trial.gibbs.GibbsNetwork.random_sample`,
+        and randomly chooses one of these parameters to be the free parameter (``"active_index"``).
+        Note that the source itself doesn't receive trials, 
+        and the first proper node in the chain will actually have 
+        the free parameter after this one (i.e. if there are 5 elements in the vector,
+        and the :class:`~dlgr_utils.trial.gibbs.GibbsSource` has an ``"active_index"`` of 
+        2, then the first trials in the chain will have an ``"active_index"`` of 3.
+        This method will not normally need to be overridden.
+        
+        Parameters
+        ----------
+        
+        network
+            The network with which the :class:`~dlgr_utils.trial.gibbs.GibbsSource` is associated.
+    
+        experiment
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+        
+        participant:
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+            
+        Returns
+        -------
+        
+        dict
+            A dictionary of the following form: 
+            
+            ::
+            
+                {
+                    "vector": vector,
+                    "active_index": active_index
+                }
+                
+            where ``vector`` is the initial vector
+            and ``active_index`` identifies the position of the free parameter.        
+        """
         if network.vector_length is None:
             raise ValueError("network.vector_length must not be None. Did you forget to set it?")
         return {
+            "vector": [network.random_sample(i) for i in range(network.vector_length)],
             "active_index": random.randint(0, network.vector_length),
-            "vector": [network.random_sample(i) for i in range(network.vector_length)]
         }
  
 

@@ -1017,6 +1017,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     """
     def __init__(
         self,  
+        *,
         network_class,
         node_class,
         source_class,

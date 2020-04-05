@@ -32,7 +32,7 @@ from dlgr_utils.timeline import (
     ResponsePage
 )
 from dlgr_utils.trial.chain import ChainNetwork
-from dlgr_utils.trial.gibbs_sampler import (
+from dlgr_utils.trial.gibbs import (
     GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
 
@@ -117,6 +117,7 @@ class CustomSource(GibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
 trial_maker = GibbsTrialMaker(
+    network_class=GibbsNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode, 
     source_class=CustomSource,

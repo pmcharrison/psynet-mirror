@@ -13,7 +13,7 @@ experiment depends on the five following classes:
 * :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial`;
 * :class:`~dlgr_utils.trial.mcmcp.MCMCPTrialMaker`.
 
-You can define a custom imitation-chain experiment through the following steps:
+You can define a custom MCMCP experiment through the following steps:
 
 1. Decide on a set of fixed parameters that will stay constant within 
    a chain but may change between chains. For example, one might 
@@ -28,7 +28,7 @@ You can define a custom imitation-chain experiment through the following steps:
    for your chains. For example, one might use a tuple of three integers
    identifying an RGB colour (e.g. ``(255, 25, 0)``).
    Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPSource`
-   with a custom :meth:`~dlgr_utils.trial.imitation_chain.MCMCPSource.generate_seed` method
+   with a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPSource.generate_seed` method
    for generating the starting free parameter values for an MCMCP chain.
    
 3. Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial`

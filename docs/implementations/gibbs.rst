@@ -7,81 +7,67 @@ Gibbs Sampling with People
 A Gibbs Sampling with People
 experiment depends on the five following classes:
 
-* :class:`~dlgr_utils.trial.mcmcp.MCMCPNetwork`
-* :class:`~dlgr_utils.trial.mcmcp.MCMCPSource`;
-* :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`;
-* :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial`;
-* :class:`~dlgr_utils.trial.mcmcp.MCMCPTrialMaker`.
+* :class:`~dlgr_utils.trial.gibbs.GibbsNetwork`
+* :class:`~dlgr_utils.trial.gibbs.GibbsSource`;
+* :class:`~dlgr_utils.trial.gibbs.GibbsNode`;
+* :class:`~dlgr_utils.trial.gibbs.GibbsTrial`;
+* :class:`~dlgr_utils.trial.gibbs.GibbsTrialMaker`.
 
-You can define a custom imitation-chain experiment through the following steps:
+You can define a custom Gibbs sampling experiment through the following steps:
 
 1. Decide on a set of fixed parameters that will stay constant within 
    a chain but may change between chains. For example, one might 
-   use a list with two presentation conditions, ``["fast", "slow"]``.
-   Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPNetwork`
-   with a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPNetwork.make_definition` method
+   use a list with three targets, ``["forest", "rock", "carrot"]``.
+   Implement a subclass of :class:`~dlgr_utils.trial.gibbs.GibbsNetwork`
+   with a custom :meth:`~dlgr_utils.trial.gibbs.GibbsNetwork.make_definition` method
    for choosing these fixed parameter values for a given chain. 
    The :meth:`~dlgr_utils.trial.chain.ChainNetwork.balance_across_networks` method 
    is typically useful here.
    
-2. Decide on a set of free parameters that will define the parameter space
-   for your chains. For example, one might use a tuple of three integers
-   identifying an RGB colour (e.g. ``(255, 25, 0)``).
-   Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPSource`
-   with a custom :meth:`~dlgr_utils.trial.imitation_chain.MCMCPSource.generate_seed` method
-   for generating the starting free parameter values for an MCMCP chain.
+2. Decide on a vector of free parameters that will define the parameter space
+   for your chains. This vector will be represented as a list;
+   for example, one might use a list of three integers
+   identifying an RGB colour (e.g. ``[255, 25, 0]``).
+   Take the length of this vector and save it in the ``vector_length`` class attribute
+   for your custom :class:`~dlgr_utils.trial.gibbs.GibbsNetwork` class.
    
-3. Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial`
+3. In the same custom :class:`~dlgr_utils.trial.gibbs.GibbsNetwork` class,
+   implement a custom :meth:`~dlgr_utils.trial.gibbs.GibbsNetwork.random_sample` method
+   for randomly sampling parameter values for each position ``i`` in your vector.
+   This will be used to initialise the free parameters for different chains,
+   and for sampling the starting positions of the user response options.
+   
+4. Implement a subclass of :class:`~dlgr_utils.trial.gibbs.GibbsTrial`
    with a custom
-   :meth:`~dlgr_utils.trial.mcmcp.MCMCPTrial.show_trial` method.
-   This :meth:`~dlgr_utils.trial.mcmcp.MCMCPTrial.show_trial` method
+   :meth:`~dlgr_utils.trial.gibbs.GibbsTrial.show_trial` method.
+   This :meth:`~dlgr_utils.trial.gibbs.GibbsTrial.show_trial` method
    should produce an object of 
    class :class:`~dlgr_utils.timeline.ResponsePage` [1]_
-   that presents two stimuli in order, defined respectively by the free parameters
-   stored in :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.first_stimulus`
-   and :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.second_stimulus`,
-   as well as the value of the network's fixed parameters
-   stored in :attr:`~dlgr_utils.trial.mcmcp.MCMCPNetwork.definition`.
-   Note that the order of the current state and the proposal is
-   automatically randomised in advance,
-   such that :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.first_stimulus`
-   may correspond either to the current state or to the proposal.
-   The :class:`~dlgr_utils.timeline.ResponsePage` object should return an answer
-   of ``0`` (or equivalently ``"0"``) if the participant selected the first stimulus in the pair,
-   and ``1`` (or equivalently ``"1"``) if they selected the second stimulus in the pair.
+   that presents the participant with some dynamic stimulus (e.g. a colour
+   or a looping audio sample) that jointly
    
-4. Implement a subclass of :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`
-   with a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.get_proposal` method.
-   This method should take set of free parameter values (provided in the ``state`` argument)
-   and generate a proposed new set of free parameter values
-   in the neighbourhood of these original values.
+   a) Embodies the fixed network parameter, e.g. ``"forest"``, found in ``trial.network.definition``;
+   b) Embodies the free network parameters, e.g. ``[255, 25, 0]``, found in ``trial.initial_vector``;
+   c) Listens to some kind of response interface, e.g. an on-screen slider, which manipulates
+      the value of the ith free network parameter, where i is defined from ``trial.active_index``.
+   d) Returns the chosen value of the free network parameter as an ``answer``.
 
-5. (Optional) Add a custom :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.summarise_trials` method
-   to the :class:`~dlgr_utils.trial.mcmcp.MCMCPNode` class defined in the previous step.
-   This new method should take a list of completed 
-   :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial` objects as input 
-   and summarise the elicited answers,
-   which can be found in the :attr:`~dlgr_utils.trial.answer` attribute
-   of each :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial` object.
-   In conventional MCMCP, there is just one :class:`~dlgr_utils.trial.mcmcp.MCMCPTrial`
-   per :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`,
-   and :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.summarise_trials` just returns
-   the stimulus that was selected by the participant.
-   This behaviour is implemented in the default implementation.
-   However, if one wishes to increase the number of trials per node,
-   then one will have to implement a custom 
-   :meth:`~dlgr_utils.trial.mcmcp.MCMCPNode.summarise_trials` method.
+5. Import the :class:`~dlgr_utils.trial.gibbs.GibbsNode` class; typicaly this will not 
+   need to be customised.
    
-6. Create an instance of :class:`~dlgr_utils.trial.mcmcp.MCMCPMaker`,
+6. Import the :class:`~dlgr_utils.trial.gibbs.GibbsSource` class; typicaly this will not 
+   need to be customised.
+
+7. Create an instance of :class:`~dlgr_utils.trial.gibbs.GibbsMaker`,
    filling in its constructor parameter list
    with reference to the classes you created above,
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``dlgr_utils/dlgr_utils/demos/mcmcp``)
+and the demo (``dlgr_utils/dlgr_utils/demos/gibbs``)
 for more details.
 
-.. [1] The :meth:`~dlgr_utils.trial.mcmcp.MCMCPTrial.show_trial` method
+.. [1] The :meth:`~dlgr_utils.trial.gibbs.GibbsTrial.show_trial` method
    may alternatively return a list of :class:`~dlgr_utils.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the 
    :attr:`dlgr_utils.participant.Participant.answer` attribute
@@ -89,9 +75,9 @@ for more details.
    One way of achieving this is by including a 
    :class:`~dlgr_utils.timeline.ResponsePage` object in the event sequence.
    The user must also set the prespecify the number of pages in the 
-   :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.num_pages` attribute.
+   :attr:`~dlgr_utils.trial.gibbs.GibbsTrial.num_pages` attribute.
 
-.. automodule:: dlgr_utils.trial.mcmcp
+.. automodule:: dlgr_utils.trial.gibbs
     :show-inheritance:
     :members:
     
