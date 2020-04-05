@@ -23,6 +23,39 @@ logger = logging.getLogger(__file__)
 import rpdb
 
 class NonAdaptiveTrial(Trial):
+    """
+    A Trial class for non-adaptive experiments.
+    
+    Attributes
+    ----------
+    
+    definition
+        A dictionary of parameters defining the trial.
+        This dictionary combines the dictionaries of the 
+        respective
+        :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`
+        and
+        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
+        objects.
+    
+    stimulus_version
+        The corresponding :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion`
+        object.
+    
+    stimulus
+        The corresponding :class:`~dlgr_utils.trial.non_adaptive.Stimulus`
+        object.
+    
+    phase
+        The phase of the experiment, e.g. ``"training"`` or ``"main"``.
+    
+    participant_group
+        The associated participant group.
+    
+    block
+        The block in which the trial is situated.
+     
+    """
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
 
     stimulus_id = claim_field(5, int)
@@ -55,6 +88,12 @@ class NonAdaptiveTrial(Trial):
         return self.stimulus.block
 
     def make_definition(self, experiment, participant):
+        """
+        Combines the definitions of the associated 
+        :class:`~dlgr_utils.trial.non_adaptive.Stimulus`
+        and :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion`
+        objects.
+        """
         return {
             **self.stimulus.definition, 
             **self.stimulus_version.definition
@@ -471,13 +510,17 @@ class Stimulus(dallinger.models.Node):
 class StimulusSpec():
     def __init__(
         self, 
-        definition,
-        version_specs,
-        phase,
+        definition: dict,
+        phase: str,
+        version_specs=None,
         participant_group="default",
         block="default"
     ):
         assert isinstance(definition, dict)
+        
+        if version_specs is None:
+            version_specs = [StimulusVersionSpec(definition={})]
+            
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:

@@ -18,8 +18,6 @@ from ..field import claim_field, claim_var, VarStore
 from ..timeline import (
     PageMaker,
     CodeBlock,
-    InfoPage,
-    UnsuccessfulEndPage,
     ExperimentSetupRoutine,
     ParticipantFailRoutine,
     RecruitmentCriterion,
@@ -30,6 +28,11 @@ from ..timeline import (
     while_loop,
     reactive_seq,
     join
+)
+
+from ..page import (
+    InfoPage,
+    UnsuccessfulEndPage
 )
 
 from ..utils import call_function
@@ -228,7 +231,7 @@ class Trial(Info):
         """
         Returns a :class:`~dlgr_utils.timeline.Page` object,
         or alternatively a list of such objects, 
-        that solicit an answer from the participant.
+        that solicits an answer from the participant.
         If this method returns a list, then this list must have
         a length equal to the :attr:`~dlgr_utils.trial.main.Trial.num_pages`
         attribute.

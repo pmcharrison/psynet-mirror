@@ -479,13 +479,6 @@ class EndPage(Page):
         """
         pass
 
-class Button():
-    def __init__(self, button_id, label, min_width, start_disabled=False):
-        self.id = button_id
-        self.label = label
-        self.min_width = min_width
-        self.start_disabled = start_disabled
-
 class Timeline():
     def __init__(self, *args):
         events = join(*args)

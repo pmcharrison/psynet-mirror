@@ -15,13 +15,15 @@ from .participant import get_participant, Participant
 from .timeline import (
     get_template, 
     Timeline, 
-    InfoPage, 
-    SuccessfulEndPage, 
     FailedValidation, 
     ExperimentSetupRoutine, 
     ParticipantFailRoutine,
     RecruitmentCriterion,
     BackgroundTask
+)
+from .page import (
+    InfoPage, 
+    SuccessfulEndPage    
 )
 from .utils import get_arg_from_dict, call_function
 
