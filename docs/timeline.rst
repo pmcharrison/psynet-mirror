@@ -40,7 +40,7 @@ A simpler example is `InfoPage`, which takes a piece of text or HTML and display
 
 ::
 
-    from dlgr_utils.timeline import InfoPage
+    from dlgr_utils.page import InfoPage
 
     InfoPage("Welcome to the experiment!")
 
@@ -49,7 +49,7 @@ for example in the form of a text-input field:
 
 ::
 
-    from dlgr_utils.timeline import TextInputPage
+    from dlgr_utils.page import TextInputPage
 
     TextInputPage(
         "full_name",
@@ -62,7 +62,7 @@ or in a multiple-choice format:
 
 ::
 
-    from dlgr_utils.timeline import NAFCPage
+    from dlgr_utils.page import NAFCPage
 
     NAFCPage(
         label="chocolate",
@@ -73,31 +73,38 @@ or in a multiple-choice format:
 
 See the documentation of individual classes for more guidance, for example:
 
-* :ref:`Page`
-* :ref:`InfoPage`
-* :ref:`TextInputPage`
-* :ref:`NumberInputPage`
-* :ref:`NAFCPage`
-* :ref:`SuccessfulEndPage`
-* :ref:`UnsuccessfulEndPage`.
+* :class:`~dlgr_utils.timeline.Page`
+* :class:`~dlgr_utils.page.InfoPage`
+* :class:`~dlgr_utils.page.TextInputPage`
+* :class:`~dlgr_utils.page.NumberInputPage`
+* :class:`~dlgr_utils.page.NAFCPage`
+* :class:`~dlgr_utils.page.SuccessfulEndPage`
+* :class:`~dlgr_utils.page.UnsuccessfulEndPage`.
 
-``SuccessfulEndPage`` and ``UnsuccessfulEndPage`` are special page types
+:class:`~dlgr_utils.page.SuccessfulEndPage` and 
+:class:`~dlgr_utils.page.UnsuccessfulEndPage` 
+are special page types
 used to complete a timeline; upon reaching one of these pages, the experiment will
 terminate and the participant will receive their payment. The difference
-between ``SuccessfulEndPage`` and ``UnsuccessfulEndPage`` is twofold:
+between 
+:class:`~dlgr_utils.page.SuccessfulEndPage` and 
+:class:`~dlgr_utils.page.UnsuccessfulEndPage` is twofold:
 in the former case, the participant will be marked in the database 
 with ``complete=True`` and ``failed=False``,
 whereas in the latter case the participant will be marked
 with ``complete=False`` and ``failed=True``.
 In both cases the participant will be paid the amount that they have accumulated so far;
-however, ``UnsuccessfulEndPage`` is typically used to terminate an experiment early,
+however, :class:`~dlgr_utils.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
 when the participant has yet to accumulate much payment.
 
 Often you may wish to create a custom page type. The best way is usually
 to start with the source code for a related page type from the ``dlgr_utils``
 package, and modify it to make your new page type. These page types
 should usually inherit from the most specific relevant ``dlgr_utils`` page type;
-for example, `NumberInputPage` inherits from `TextInputPage`, 
+for example, 
+:class:`~dlgr_utils.page.NumberInputPage`
+inherits from 
+:class:`~dlgr_utils.page.TextInputPage`,
 and adds a validation step to make sure that the user has entered a valid number.
 
 We hope to significantly extend the page types available in ``dlgr_utils`` in the future.
@@ -140,7 +147,7 @@ but it doesn't have to accept all of these arguments. For example, the following
         time_estimate=5
     )
 
-See :ref:`PageMaker` documentation for more details.
+See :class:`~dlgr_utils.timeline.PageMaker` documentation for more details.
 
 Code blocks
 -----------
@@ -156,7 +163,7 @@ way to page makers, except they don't return an input. For example:
         lambda participant: participant.var.set("score", 10)
     )
 
-See :ref:`CodeBlock` documentation for more details.
+See :class:`~dlgr_utils.timeline.CodeBlock` documentation for more details.
 
 Control logic
 -------------
@@ -165,9 +172,9 @@ Most experiments require some kind of non-trivial control logic,
 such as conditional branches and loops. ``dlgr_utils`` provides
 the following control constructs for this purpose:
 
-* :ref:`conditional`
-* :ref:`switch`
-* :ref:`while_loop`
+* :func:`~dlgr_utils.timeline.conditional`
+* :func:`~dlgr_utils.timeline.switch`
+* :func:`~dlgr_utils.timeline.while_loop`
 
 Note that these constructs are functions, not classes:
 when called, they resolve to a sequence of events
@@ -202,11 +209,13 @@ Following this method, here's a complete definition of a simple experiment:
     import dlgr_utils.experiment
 
     from dlgr_utils.timeline import (
+        Timeline,       
+        PageMaker
+    )
+    from dlgr_utils.page import (
         InfoPage,
-        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
-        Timeline
     )
 
     class CustomExp(dlgr_utils.Experiment):
@@ -236,12 +245,14 @@ It is generally wise to build up the test logic in small pieces. For example:
 ::
     
     from dlgr_utils.timeline import (
-        InfoPage,
         PageMaker,
-        TextInputPage,
-        SuccessfulEndPage,
         Timeline,
         join
+    )
+    from dlgr_utils.page import (
+        InfoPage,
+        TextInputPage,
+        SuccessfulEndPage
     )
 
     intro = join(
