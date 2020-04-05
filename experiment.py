@@ -9,7 +9,7 @@ from dlgr_utils.timeline import (
     InfoPage, 
     Timeline,
     SuccessfulEndPage, 
-    ReactivePage, 
+    PageMaker, 
     NAFCPage, 
     TextInputPage,
     CodeBlock, 
@@ -41,39 +41,39 @@ class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
         InfoPage(
             "Welcome to the experiment!",
-            time_allotted=5
+            time_estimate=5
         ),
-        ReactivePage(            
+        PageMaker(            
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-            time_allotted=5
+            time_estimate=5
         ),
         TextInputPage(
             "message",
             "Write me a message!",
-            time_allotted=5,
+            time_estimate=5,
             one_line=False
         ),
-        ReactivePage(
+        PageMaker(
             lambda participant: InfoPage(f"Your message: '{participant.answer}'"),
-            time_allotted=5
+            time_estimate=5
         ),
         NAFCPage(
             label="chocolate",
             prompt="Do you like chocolate?",
             choices=["Yes", "No"],
-            time_allotted=3
+            time_estimate=3
         ),
         conditional(
             "like_chocolate",
             lambda experiment, participant: participant.answer == "Yes",
             InfoPage(
                 "It's nice to hear that you like chocolate!", 
-                time_allotted=5
+                time_estimate=5
             ), 
             InfoPage(
                 "I'm sorry to hear that you don't like chocolate...", 
-                time_allotted=3
+                time_estimate=3
             ), 
             fix_time_credit=False
         ),
@@ -85,7 +85,7 @@ class Exp(dlgr_utils.experiment.Experiment):
                 label="loop_nafc",
                 prompt="Would you like to stay in this loop?",
                 choices=["Yes", "No"],
-                time_allotted=3
+                time_estimate=3
             ), 
             expected_repetitions=3,
             fix_time_credit=True
@@ -94,26 +94,26 @@ class Exp(dlgr_utils.experiment.Experiment):
         #     label="test_nafc",            
         #     prompt="What's your favourite colour?",
         #     choices=["Red", "Green", "Blue"],
-        #     time_allotted=5
+        #     time_estimate=5
         # ),
         # switch(
         #     "colour",
         #     lambda experiment, participant: participant.answer,
         #     branches = {
-        #         "Red": InfoPage("Red is a nice colour, wait 1s.", time_allotted=1),
-        #         "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_allotted=2),
-        #         "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_allotted=3)
+        #         "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
+        #         "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_estimate=2),
+        #         "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_estimate=3)
         #     }, 
         #     fix_time_credit=False
         # ),
         # CodeBlock(
         #     lambda experiment, participant:
-        #         participant.set_var("favourite_colour", participant.answer)
+        #         participant.var.set("favourite_colour", participant.answer)
         # ),
-        # ReactivePage(
+        # PageMaker(
         #     lambda experiment, participant: 
         #         InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
-        #     time_allotted=3
+        #     time_estimate=3
         # ),
         SuccessfulEndPage()
     )

@@ -6,7 +6,7 @@ from .timeline import (
     Module, 
     join, 
     Page, 
-    ReactivePage, 
+    PageMaker, 
     InfoPage, 
     NAFCPage, 
     CodeBlock, 
@@ -24,7 +24,7 @@ class Imitate(Module):
 
     def __init__(self, items: list):
         self.check()
-        super().__init__(elts=self._get_logic())
+        super().__init__(events=self._get_logic())
 
     def show_item(self, item):
         raise NotImplementedError
@@ -49,11 +49,11 @@ class Imitate(Module):
 
     def _get_train_logic():
         return join(
-            CodeBlock(lambda experiment, participant: participant.set_var("_train_item", 1)),
+            CodeBlock(lambda experiment, participant: participant.var.set("_train_item", 1)),
             while_loop(
                 "imitate_training",
-                condition=lambda experiment, participant: participant.get_var("_train_item") < self.num_items["training"],
-                logic=ReactivePage(
+                condition=lambda experiment, participant: participant.var.get("_train_item") < self.num_items["training"],
+                logic=PageMaker(
                     lambda experiment, participant: self.show_item(self.get_next_item("training", experiment, participant))
                 ),
                 expected_repetitions=self.num_items["training"]

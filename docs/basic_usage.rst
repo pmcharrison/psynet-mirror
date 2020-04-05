@@ -16,7 +16,33 @@ This can be done by adding the following line:
     git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
 
 You can also modify this line to specify a particular version to install,
-and to provide authentication to the repository if required - see the online ``pip`` documentation.
+and to provide authentication to the repository if required;
+see `this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
+for details.
+In particular, to add your GitLab password, you can do something like this:
+
+::
+
+    git+https://<username>:<password>@gitlab.com/computational-audition-lab/dlgr-utils#egg=dlgr_utils
+
+Alternatively, you can create a personal access token (PAT) for your GitLab account 
+with read-only permissions and include it as follows:
+
+::
+
+    git+https://<pat>@gitlab.com/computational-audition-lab/dlgr-utils#egg=dlgr_utils
+
+When deploying an experiment, we recommend specifying a particular Git commit in 
+this line, for example:
+
+::
+
+    git+https://<pat>@gitlab.com/computational-audition-lab/dlgr-utils@<commit_hash>#egg=dlgr_utils
+
+where ``<commit_hash>`` looks something like ``000b14389171a9f0d7d713466b32bc649b0bed8e``
+(you can find this in GitLab or similar).
+This makes sure your experiment always deploys with the same version of ``dlgr_utils``,
+even if the package subsequently changes.
 
 Like any other Dallinger experiment, an experiment implementation requires an `experiment.py` file
 in your main directory, as well as a `static` folder and a `templates` folder. 
@@ -101,7 +127,7 @@ of the Experiment class, for example:
 
     from dlgr_utils.timeline import (
         InfoPage,
-        ReactivePage,
+        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
         Timeline
@@ -111,17 +137,17 @@ of the Experiment class, for example:
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",
-                time_allotted=5
+                time_estimate=5
             ),
-            ReactivePage(            
+            PageMaker(            
                 lambda experiment, participant: 
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-                time_allotted=5
+                time_estimate=5
             ),
             TextInputPage(
                 "message",
                 "Write me a message!",
-                time_allotted=5,
+                time_estimate=5,
                 one_line=False
             ),
             SuccessfulEndPage()

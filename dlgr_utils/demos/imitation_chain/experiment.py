@@ -17,7 +17,7 @@ from dlgr_utils.timeline import (
     InfoPage, 
     Timeline,
     SuccessfulEndPage, 
-    ReactivePage, 
+    PageMaker, 
     NAFCPage, 
     CodeBlock, 
     NumberInputPage,
@@ -31,7 +31,7 @@ from dlgr_utils.trial.imitation_chain import (
     ImitationChainTrial,
     ImitationChainNode,
     ImitationChainSource,
-    ImitationChainTrialGenerator
+    ImitationChainTrialMaker
 )
 
 import logging
@@ -87,7 +87,7 @@ class CustomSource(ImitationChainSource):
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 
-class CustomTrialGenerator(ImitationChainTrialGenerator):
+class CustomTrialMaker(ImitationChainTrialMaker):
     trial_timeout_sec = 60
     trial_timeout_check_interval = 30
 
@@ -100,12 +100,12 @@ class CustomTrialGenerator(ImitationChainTrialGenerator):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        CustomTrialGenerator(
+        CustomTrialMaker(
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_allotted_per_trial=5,
+            time_estimate_per_trial=5,
             chain_type="within",
             num_nodes_per_chain=5,
             num_trials_per_participant=20,
@@ -119,7 +119,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             target_num_participants=10
             # async_update_network=None
         ),
-        InfoPage("You finished the experiment!", time_allotted=0),
+        InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
     )
 

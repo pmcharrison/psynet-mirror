@@ -3,26 +3,26 @@ The timeline
 ============
 
 The timeline determines the sequential logic of the experiment.
-A timeline comprises a series of *test elements* that are ordinarily
-presented sequentially. There are three main kinds of test elements:
+A timeline comprises a series of *events* that are ordinarily
+presented sequentially. There are three main kinds of events:
 
 * `Pages`_
-* `Reactive pages`_
+* `Page makers`_
 * `Code blocks`_
 
 `Pages`_ define the web page that is shown to the participant at a given 
 point in time, and have fixed content that is the same for all participants.
-`Reactive pages`_ are like pages, but include content that is computed
+`Page makers`_ are like pages, but include content that is computed
 when the participant's web page loads.
 `Code blocks`_ contain server logic that is executed in between pages, 
 for example to assign the participant to a group or to save the participant's data.
 
-All these test elements are defined as ``dlgr_utils`` classes inheriting from
-`Elt`, the generic test element object.
+All these events are defined as ``dlgr_utils`` classes inheriting from
+`Event`, the generic event object.
 Pages correspond to the `Page` class;
-reactive pages correspond to the `ReactivePage` class;
+page makers correspond to the `PageMaker` class;
 code blocks correspond to the `CodeBlock` class.
-These different test elements may be created using their constructor functions, e.g.:
+These different events may be created using their constructor functions, e.g.:
 
 ::
 
@@ -54,7 +54,7 @@ for example in the form of a text-input field:
     TextInputPage(
         "full_name",
         "Please enter your full name",
-        time_allotted=5,
+        time_estimate=5,
         one_line=True
     )
 
@@ -68,7 +68,7 @@ or in a multiple-choice format:
         label="chocolate",
         prompt="Do you like chocolate?",
         choices=["Yes", "No"],
-        time_allotted=3
+        time_estimate=3
     )
 
 See the documentation of individual classes for more guidance, for example:
@@ -108,22 +108,22 @@ a Pull Request (or, in GitLab terminology, a Merge Request).
 This should be enough to start experimenting with different kinds of page types.
 For a full understanding of the customisation possibilities, see the full :ref:`Page` documentation.
 
-Reactive pages
---------------
+Page makers
+-----------
 
 Ordinary pages in the timeline have fixed content that is shared between all participants.
 Often, however, we want to present content that depends on the state of the current participant.
-This is the purpose of reactive pages.
-A reactive page is defined by a function that is called when the participant access the page.
-For example, a simple reactive page might look like the following:
+This is the purpose of page makers.
+A page maker is defined by a function that is called when the participant access the page.
+For example, a simple page maker might look like the following:
 
 ::
 
-    from dlgr_utils.timeline import ReactivePage
+    from dlgr_utils.timeline import PageMaker
 
-    ReactivePage(
+    PageMaker(
         lambda participant, experiment: InfoPage(f"You answered {participant.answer}.),
-        time_allotted=5
+        time_estimate=5
     )
 
 This example used a lambda function, which is a useful way of specifying inline functions
@@ -133,27 +133,27 @@ but it doesn't have to accept all of these arguments. For example, the following
 
 ::
 
-    from dlgr_utils.timeline import ReactivePage
+    from dlgr_utils.timeline import PageMaker
 
-    ReactivePage(
+    PageMaker(
         lambda participant: InfoPage(f"You answered {participant.answer}.),
-        time_allotted=5
+        time_estimate=5
     )
 
-See :ref:`ReactivePage` documentation for more details.
+See :ref:`PageMaker` documentation for more details.
 
 Code blocks
 -----------
 
 Code blocks define code that is executed in between pages. They are defined in a similar
-way to reactive pages, except they don't return an input. For example:
+way to page makers, except they don't return an input. For example:
 
 ::
 
     from dlgr_utils.timeline import CodeBlock
 
     CodeBlock(
-        lambda participant: participant.set_var("score", 10)
+        lambda participant: participant.var.set("score", 10)
     )
 
 See :ref:`CodeBlock` documentation for more details.
@@ -170,10 +170,10 @@ the following control constructs for this purpose:
 * :ref:`while_loop`
 
 Note that these constructs are functions, not classes:
-when called, they resolve to a sequence of test elements
+when called, they resolve to a sequence of events
 that performs the desired logic.
 
-Allotted time
+Time estimate
 -------------
 
 It is considered good practice to pay online participants a fee that corresponds
@@ -181,19 +181,19 @@ approximately to a reasonable hourly wage, for example 9 USD/hour.
 The ``dlgr_utils`` package provides sophisticated functionality for applying such 
 payment schemes without rewarding participants to participate slowly.
 When designing an experiment, the researcher must specify along with each
-page a ``time_allotted`` argument, corresponding to the estimated time in seconds
+page a ``time_estimate`` argument, corresponding to the estimated time in seconds
 that a participant should take to complete that portion of the experiment.
-This ``time_allotted`` argument is used to construct a progress bar displaying
+This ``time_estimate`` argument is used to construct a progress bar displaying
 the participant's progress through the experiment and to determine the participant's 
 final payment.
 
 
-Putting everything together
----------------------------
+Combining events
+----------------
 
 The ``Experiment`` class expects us to provide an object of 
 class :class:`dlgr_utils.timeline.Timeline` in the ``timeline`` slot.
-This ``Timeline`` object expects either test elements or lists of test elements
+This ``Timeline`` object expects either events or lists of events
 as its input; it will concatenate them together into one big list.
 Following this method, here's a complete definition of a simple experiment:
 
@@ -203,7 +203,7 @@ Following this method, here's a complete definition of a simple experiment:
 
     from dlgr_utils.timeline import (
         InfoPage,
-        ReactivePage,
+        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
         Timeline
@@ -213,17 +213,17 @@ Following this method, here's a complete definition of a simple experiment:
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",
-                time_allotted=5
+                time_estimate=5
             ),
-            ReactivePage(            
+            PageMaker(            
                 lambda experiment, participant: 
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-                time_allotted=5
+                time_estimate=5
             ),
             TextInputPage(
                 "message",
                 "Write me a message!",
-                time_allotted=5,
+                time_estimate=5,
                 one_line=False
             ),
             SuccessfulEndPage()
@@ -237,7 +237,7 @@ It is generally wise to build up the test logic in small pieces. For example:
     
     from dlgr_utils.timeline import (
         InfoPage,
-        ReactivePage,
+        PageMaker,
         TextInputPage,
         SuccessfulEndPage,
         Timeline,
@@ -247,28 +247,28 @@ It is generally wise to build up the test logic in small pieces. For example:
     intro = join(
         InfoPage(
             "Welcome to the experiment!",
-            time_allotted=5
+            time_estimate=5
         ),
-        ReactivePage(            
+        PageMaker(            
             lambda experiment, participant: 
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-            time_allotted=5
+            time_estimate=5
         )
     )
 
     test = TextInputPage(
                 "message",
                 "Write me a message!",
-                time_allotted=5,
+                time_estimate=5,
                 one_line=False
             )
 
     timeline = Timeline(intro, test)
 
 Here we used the :func:`dlgr_utils.timeline.join` function to join
-two test elements into a list. When its arguments are all test elements,
+two events into a list. When its arguments are all events,
 the ``join`` function behaves like a Python list constructor;
-when the arguments also include lists of test elements, the ``join`` function
+when the arguments also include lists of events, the ``join`` function
 merges these lists. This makes it handy for combining timeline logic,
-where different bits of logic often correspond either to test elements or 
-lists of test elements.
+where different bits of logic often correspond either to events or 
+lists of events.

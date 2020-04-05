@@ -17,7 +17,7 @@ from dlgr_utils.timeline import (
     InfoPage, 
     Timeline,
     SuccessfulEndPage, 
-    ReactivePage, 
+    PageMaker, 
     NAFCPage, 
     CodeBlock, 
     NumberInputPage,
@@ -28,7 +28,7 @@ from dlgr_utils.timeline import (
     TextInputPage
 )
 from dlgr_utils.trial.mcmcp import (
-    MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialGenerator
+    MCMCPNetwork, MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
 )
 
 import logging
@@ -44,43 +44,13 @@ import rpdb
 MAX_AGE = 100
 OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
-NUM_CHOICES = 2
 
-class CustomTrial(MCMCPTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
-    @property
-    def prompt(self):
-        ages = [self.definition[item]["age"] for item in self.definition["order"]]
-        occupations = [self.definition[item]["occupation"] for item in self.definition["order"]]
-        assert len(set(occupations)) == 1
-        occupation = occupations[0]
-        
-        return(
-            f"Person A is {ages[0]} years old. "
-            f"Person B is {ages[1]} years old. "
-            f"Which one is the {occupation}?"
-        )
-
-    def show_trial(self, experiment, participant):
-        return NAFCPage(
-            "mcmcp_trial",
-            self.prompt,
-            choices=["0", "1"], 
-            time_allotted=5,
-            labels=["Person A", "Person B"],
-        )
-
-class CustomNode(MCMCPNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
-    def get_proposal(self, state, experiment, participant):
-        occupation = state["occupation"]
-        age = state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
-        age = age % (MAX_AGE + 1)
+class CustomNetwork(MCMCPNetwork):
+    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+    
+    def make_definition(self):
         return {
-            "occupation": occupation,
-            "age": age
+            "occupation": self.balance_across_networks(OCCUPATIONS)
         }
 
 class CustomSource(MCMCPSource):
@@ -88,25 +58,36 @@ class CustomSource(MCMCPSource):
 
     def generate_seed(self, network, experiment, participant):
         return {
-            "occupation": self.occupation,
-            "age": self.sample_age()
+            "age": random.randint(0, MAX_AGE)
         }
+        
+class CustomTrial(MCMCPTrial):
+    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    @property
-    def occupation(self):
-        network = self.network
-        if network.chain_type == "across":
-            index = network.id
-        elif network.chain_type == "within":
-            index = network.id_within_participant
-        else:
-            raise ValueError(f"Unidentified chain type: {network.chain_type}")
-        return OCCUPATIONS[index % len(OCCUPATIONS)]
-    
-    @staticmethod
-    def sample_age():
-        return random.randint(0, MAX_AGE)
+    def show_trial(self, experiment, participant):
+        occupation = self.network.definition["occupation"]
+        prompt = (
+            f"Person A is {self.first_stimulus} years old. "
+            f"Person B is {self.second_stimulus} years old. "
+            f"Which one is the {occupation}?"
+        )
+        return NAFCPage(
+            "mcmcp_trial",
+            prompt,
+            choices=["0", "1"], 
+            time_estimate=5,
+            labels=["Person A", "Person B"],
+        )
 
+class CustomNode(MCMCPNode):
+    __mapper_args__ = {"polymorphic_identity": "custom_node"}
+
+    def get_proposal(self, state, experiment, participant):
+        age = state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
+        age = age % (MAX_AGE + 1)
+        return {
+            "age": age
+        }
 
 ##########################################################################################
 #### Experiment
@@ -117,12 +98,12 @@ class CustomSource(MCMCPSource):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        MCMCPTrialGenerator(
+        MCMCPTrialMaker(
             trial_class=CustomTrial,
             node_class=CustomNode, 
             source_class=CustomSource,
             phase="experiment",
-            time_allotted_per_trial=5,
+            time_estimate_per_trial=5,
             chain_type="across",
             num_trials_per_participant=6,
             num_chains_per_participant=None,
@@ -136,7 +117,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             recruit_mode="num_trials",
             target_num_participants=None
         ),
-        InfoPage("You finished the experiment!", time_allotted=0),
+        InfoPage("You finished the experiment!", time_estimate=0),
         # CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
         SuccessfulEndPage()
     )

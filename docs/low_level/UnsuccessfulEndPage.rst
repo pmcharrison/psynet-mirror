@@ -1,5 +1,3 @@
-.. _UnsuccessfulEndPage:
-
 ===================
 UnsuccessfulEndPage
 ===================

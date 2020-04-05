@@ -21,7 +21,7 @@ from dlgr_utils.timeline import (
     InfoPage, 
     Timeline,
     SuccessfulEndPage, 
-    ReactivePage, 
+    PageMaker, 
     NAFCPage, 
     CodeBlock, 
     NumberInputPage,
@@ -32,8 +32,8 @@ from dlgr_utils.timeline import (
     ResponsePage
 )
 from dlgr_utils.trial.chain import ChainNetwork
-from dlgr_utils.trial.gibbs_sampler import (
-    GibbsTrial, GibbsNode, GibbsSource, GibbsTrialGenerator
+from dlgr_utils.trial.gibbs import (
+    GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
 
 import logging
@@ -45,14 +45,14 @@ import rpdb
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
 
-class ColorSliderPage(ResponsePage):
+class ColorSliderPage(ResponsePage): 
     def __init__(
         self,
         label: str,
         prompt: Union[str, Markup],
         selected: str,   
         starting_values: List[int],
-        time_allotted=None
+        time_estimate=None
     ):
         assert selected in ["red", "green", "blue"]
         self.prompt = prompt
@@ -60,7 +60,7 @@ class ColorSliderPage(ResponsePage):
         self.starting_values = starting_values
 
         super().__init__(
-            time_allotted=time_allotted,
+            time_estimate=time_estimate,
             template_path="templates/color-slider.html",
             label=label,
             template_arg={
@@ -79,29 +79,35 @@ class ColorSliderPage(ResponsePage):
             "initial_values": self.starting_values
         }
 
+class CustomNetwork(GibbsNetwork):
+    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+    
+    vector_length = 3
+    
+    def random_sample(self, i):
+        return random.randint(0, 255)
+    
+    def make_definition(self):
+        return {
+            "target": self.balance_across_networks(TARGETS)
+        }
+
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    @property 
-    def target(self):
-        return self.source.target
-
-    @property
-    def prompt(self):
-        return(Markup(
-            "Adjust the slider to match the following word as well as possible: "
-            f"<strong>{self.target}</strong>"
-        ))
-
     def show_trial(self, experiment, participant):
         selected_color = COLORS[self.active_index]
-
+        target = self.network.definition["target"]
+        prompt = Markup(
+            "Adjust the slider to match the following word as well as possible: "
+            f"<strong>{target}</strong>"
+        )
         return ColorSliderPage(
             "color_trial",
-            self.prompt,
+            prompt,
             selected=selected_color,
             starting_values=self.initial_vector,
-            time_allotted=5
+            time_estimate=5
         )
 
 class CustomNode(GibbsNode):
@@ -110,29 +116,13 @@ class CustomNode(GibbsNode):
 class CustomSource(GibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-    def generate_seed(self, network, experiment, participant):
-        return {
-            "active_index": random.randint(0, 2),
-            "vector": [random.randint(0, 255) for _ in COLORS]
-        }
-
-    @property
-    def target(self):
-        network = self.network
-        if network.chain_type == "across":
-            index = network.id
-        elif network.chain_type == "within":
-            index = network.id_within_participant
-        else:
-            raise ValueError(f"Unidentified chain type: {network.chain_type}")
-        return TARGETS[index % len(TARGETS)]
-
-trial_generator = GibbsTrialGenerator(
+trial_maker = GibbsTrialMaker(
+    network_class=GibbsNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode, 
     source_class=CustomSource,
     phase="experiment",
-    time_allotted_per_trial=5,
+    time_estimate_per_trial=5,
     chain_type="within",
     num_trials_per_participant=20,
     num_nodes_per_chain=5,
@@ -143,7 +133,7 @@ trial_generator = GibbsTrialGenerator(
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_participants",
+    recruit_mode="test",
     target_num_participants=10,
     async_post_trial="dlgr_utils.demos.gibbs_sampler.experiment.async_post_trial",
     async_post_grow_network="dlgr_utils.demos.gibbs_sampler.experiment.async_post_grow_network"
@@ -172,8 +162,8 @@ def async_post_grow_network(network_id):
 # (or at least you can override it but it won't work).
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
-        trial_generator,
-        InfoPage("You finished the experiment!", time_allotted=0),
+        trial_maker,
+        InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
     )
 

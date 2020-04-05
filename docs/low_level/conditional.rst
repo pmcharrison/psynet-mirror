@@ -1,5 +1,3 @@
-.. _conditional:
-
 ======================
 Conditional statements
 ======================

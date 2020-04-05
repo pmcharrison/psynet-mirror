@@ -42,7 +42,7 @@ class Experiment(dallinger.experiment.Experiment):
     # pylint: disable=abstract-method
 
     timeline = Timeline(
-        InfoPage("Placeholder timeline", time_allotted=5),
+        InfoPage("Placeholder timeline", time_estimate=5),
         SuccessfulEndPage()
     )
 
@@ -93,15 +93,15 @@ class Experiment(dallinger.experiment.Experiment):
         return cls(session)
 
     def setup(self):
-        for elt in self.timeline.elts:
-            if isinstance(elt, ExperimentSetupRoutine):
-                elt.function(experiment=self)
-            if isinstance(elt, BackgroundTask):
-                self.register_background_task(elt.daemon)
-            if isinstance(elt, ParticipantFailRoutine):
-                self.register_participant_fail_routine(elt)
-            if isinstance(elt, RecruitmentCriterion):
-                self.register_recruitment_criterion(elt)
+        for event in self.timeline.events:
+            if isinstance(event, ExperimentSetupRoutine):
+                event.function(experiment=self)
+            if isinstance(event, BackgroundTask):
+                self.register_background_task(event.daemon)
+            if isinstance(event, ParticipantFailRoutine):
+                self.register_participant_fail_routine(event)
+            if isinstance(event, RecruitmentCriterion):
+                self.register_recruitment_criterion(event)
 
     def fail_participant(self, participant):
         logger.info(
@@ -255,14 +255,14 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
 
-            elt = self.timeline.get_current_elt(self, participant)
-            parsed_response = elt.process_response(
+            event = self.timeline.get_current_event(self, participant)
+            parsed_response = event.process_response(
                 response=response, 
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
             )
-            validation = elt.validate(
+            validation = event.validate(
                 parsed_response=parsed_response,
                 experiment=self,
                 participant=participant
@@ -340,7 +340,7 @@ class Experiment(dallinger.experiment.Experiment):
                 if not participant.initialised:
                     exp.init_participant(participant_id)
                 exp.save()
-                return exp.timeline.get_current_elt(self, participant).render(exp, participant)
+                return exp.timeline.get_current_event(self, participant).render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
         def route_response():

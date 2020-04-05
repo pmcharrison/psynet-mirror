@@ -17,6 +17,12 @@ need to run the demo or edit the source, you can simply install it with `pip`:
     pip3 install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils@dev
 
 Note that you must have set up your GitLab SSH keys already.
+Note also that we have seleted the ``dev`` branch here. 
+If you left out ``@dev``, it would instead install the ``master`` branch.
+For now, we recommend the ``dev`` branch. 
+It is also possible to install specific commits, see
+`this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
+for details.
 
 Developer installation
 ------------------------------------
@@ -30,15 +36,19 @@ Choose a location to put your installation, e.g. `~/cap`.
 .. code-block:: console
 
     cd ~/cap
-    git clone 
+    git clone -b dev https://gitlab.com/computational-audition-lab/dlgr-utils`
 
-This will create folder called `dlgr_utils`.
+Note that we've installed the ``dev`` branch here. You can switch between
+different branches, and even different commits, using Git.
+To update your repository to the latest version, 
+run ``git pull``.
+
+The Git command will have created a folder called `dlgr_utils`.
 Navigate to this folder:
 
 .. code-block:: console
 
     cd dlgr_utils
-
 
 Install with pip3 (make sure you are in the appropriate virtual environment
 already, e.g. by running `workon dlgr_env`):

@@ -23,7 +23,9 @@ by Peter Harrison, with help and feedback from other members of Nori Jacoby's
 The software is still in the early stages of development
 and should be considered an 'alpha' project, with the API potentially subject to breaking changes.
 
-Architecture
-------------
+Repository
+----------
 
-To be completed.
+The source code is hosted at https://gitlab.com/computational-audition-lab/dlgr-utils.
+Contact one of the members of the Computational Auditory Perception research group
+if you don't have access to this repository.

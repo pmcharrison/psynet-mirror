@@ -1,5 +1,3 @@
-.. _InfoPage:
-
 ========
 InfoPage
 ========
