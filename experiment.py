@@ -57,7 +57,7 @@ class Exp(dlgr_utils.experiment.Experiment):
             one_line=False
         ),
         PageMaker(
-            lambda participant: InfoPage(f"Your message: '{participant.answer}'"),
+            lambda participant: InfoPage(f"Your message: {participant.answer}"),
             time_estimate=5
         ),
         NAFCPage(
