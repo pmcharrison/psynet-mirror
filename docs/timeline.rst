@@ -121,7 +121,7 @@ Page makers
 Ordinary pages in the timeline have fixed content that is shared between all participants.
 Often, however, we want to present content that depends on the state of the current participant.
 This is the purpose of page makers.
-A page maker is defined by a function that is called when the participant access the page.
+A page maker is defined by a function that is called when the participant accesses the page.
 For example, a simple page maker might look like the following:
 
 ::
@@ -153,7 +153,7 @@ Code blocks
 -----------
 
 Code blocks define code that is executed in between pages. They are defined in a similar
-way to page makers, except they don't return an input. For example:
+way to page makers, except they don't return an output. For example:
 
 ::
 

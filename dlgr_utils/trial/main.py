@@ -54,7 +54,7 @@ class Trial(Info):
       responsible for deciding on the content of the trial.
     * :meth:`~dlgr_utils.trial.main.Trial.show_trial`,
       determines how the trial is turned into a webpage for presentation to the participant.
-    * :meth:`~dlgr_utils.trial.main.Trial.show_feedback`.
+    * :meth:`~dlgr_utils.trial.main.Trial.show_feedback`,
       defines an optional feedback page to be displayed after the trial.
 
     This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
@@ -106,7 +106,7 @@ class Trial(Info):
         Stored in ``property1`` in the database.
         
     node
-        The class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
+        The :class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
 
     complete : bool
