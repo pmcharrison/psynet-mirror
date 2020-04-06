@@ -99,7 +99,7 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
         AnimalTrialMaker(
-            AnimalTrial, 
+            trial_class=AnimalTrial, 
             phase="experiment",
             stimulus_set=stimulus_set, 
             time_estimate_per_trial=3,
@@ -116,12 +116,11 @@ class Exp(dlgr_utils.experiment.Experiment):
             recruit_mode="num_trials"
         ),
         InfoPage("You finished the animal questions!", time_estimate=0),
-        CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
         SuccessfulEndPage()
     )
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 2
+        self.initial_recruitment_size = 1
 
 extra_routes = Exp().extra_routes()
