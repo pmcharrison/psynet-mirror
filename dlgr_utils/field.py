@@ -1,8 +1,14 @@
+import copy
+
 from sqlalchemy import Boolean, String, Integer, Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
 import json
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 def claim_field(db_index, field_type=object):
     if field_type is int:
@@ -175,7 +181,7 @@ class VarStore:
                 return VarStore(self)
 
     **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``), 
-    as such modifications will (probably) not get propagated to the database.
+    as such modifications will (probably) not get propagated to the database.    
     Support could be added in the future if Dallinger takes advantage of 
     `mutable structures in SQLAlchemy <https://docs.sqlalchemy.org/en/13/orm/extensions/mutable.html#module-sqlalchemy.ext.mutable>`_.
     
@@ -190,7 +196,7 @@ class VarStore:
         if name == "_owner":
             return owner
         try:
-            return owner.details[name]
+            return copy.deepcopy(owner.details[name])
         except KeyError:
             raise UndefinedVariableError(f"Undefined variable: {name}.")
 

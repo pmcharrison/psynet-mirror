@@ -103,6 +103,7 @@ class Trial(Info):
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
+        Stored in ``property1`` in the database.
         
     node
         The class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
@@ -111,16 +112,19 @@ class Trial(Info):
     complete : bool
         Whether the trial has been completed (i.e. received a response
         from the participant). The user should not typically change this directly.
+        Stored in ``property2`` in the database.
 
     answer : Object
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
+        Stored in ``property3`` in the database.
 
     awaiting_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
+        Stored in ``property4`` in the database.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other 

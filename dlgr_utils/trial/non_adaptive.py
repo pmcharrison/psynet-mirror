@@ -350,6 +350,28 @@ class NonAdaptiveTrial(Trial):
     Attributes
     ----------
     
+    participant_id : int
+        The ID of the associated participant.
+        The user should not typically change this directly.
+        Stored in ``property1`` in the database.
+
+    complete : bool
+        Whether the trial has been completed (i.e. received a response
+        from the participant). The user should not typically change this directly.
+        Stored in ``property2`` in the database.
+
+    answer : Object
+        The response returned by the participant. This is serialised
+        to JSON, so it shouldn't be too big.
+        The user should not typically change this directly.
+        Stored in ``property3`` in the database.
+
+    awaiting_process : bool
+        Whether the trial is waiting for some asynchronous process
+        to complete (e.g. to synthesise audiovisual material).
+        The user should not typically change this directly.
+        Stored in ``property4`` in the database.
+        
     definition
         A dictionary of parameters defining the trial.
         This dictionary combines the dictionaries of the 

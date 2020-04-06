@@ -16,6 +16,10 @@ from .main import Trial, TrialNetwork, NetworkTrialMaker
 # pylint: disable=unused-import
 import rpdb
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
 class ChainNetwork(TrialNetwork):
     """
     Implements a network in the form of a chain.
@@ -748,15 +752,33 @@ class ChainTrial(Trial):
     
     Attributes
     ----------
-
-    participant_id : int
-        The ID of the associated participant.
-        The user should not typically change this directly.
-
+    
     node
         The class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
         
+    participant_id : int
+        The ID of the associated participant.
+        The user should not typically change this directly.
+        Stored in ``property1`` in the database.
+       
+    complete : bool
+        Whether the trial has been completed (i.e. received a response
+        from the participant). The user should not typically change this directly.
+        Stored in ``property2`` in the database.
+
+    answer : Object
+        The response returned by the participant. This is serialised
+        to JSON, so it shouldn't be too big.
+        The user should not typically change this directly.
+        Stored in ``property3`` in the database.
+
+    awaiting_process : bool
+        Whether the trial is waiting for some asynchronous process
+        to complete (e.g. to synthesise audiovisual material).
+        The user should not typically change this directly.
+        Stored in ``property4`` in the database.
+          
     source
         The :class:`~dlgr_utils.trial.chain.ChainSource of the 
         :class:`~dlgr_utils.trial.chain.ChainNetwork`
@@ -766,20 +788,6 @@ class ChainTrial(Trial):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Pulled from the :attr:`~dlgr_utils.trial.chain.ChainTrial.node` attribute.
-        
-    complete : bool
-        Whether the trial has been completed (i.e. received a response
-        from the participant). The user should not typically change this directly.
-
-    answer : Object
-        The response returned by the participant. This is serialised
-        to JSON, so it shouldn't be too big.
-        The user should not typically change this directly.
-
-    awaiting_process : bool
-        Whether the trial is waiting for some asynchronous process
-        to complete (e.g. to synthesise audiovisual material).
-        The user should not typically change this directly.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other 
@@ -1183,6 +1191,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
     
     def grow_network(self, network, participant, experiment):
+        assert network.chain_type in ["across", "within"]
+        if network.chain_type == "across":
+            participant = None
         head = network.head
         if head.ready_to_spawn:
             seed = head.create_seed(participant, experiment)
