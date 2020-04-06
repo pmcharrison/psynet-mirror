@@ -1236,19 +1236,23 @@ class TrialNetwork(Network):
         with the same ``trial_type``, unless they correspond to different
         phases of the experiment and are marked as such with the 
         ``phase`` parameter.
+        Stored as the field ``property1`` in the database.
         
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
+        Stored as the field ``property2`` in the database.
+        
+    awaiting_process : bool
+        Whether the network is currently closed and waiting for an asynchronous process to complete.
+        Set by default to ``False`` in the ``__init__`` function.
+        Stored as the field ``property3`` in the database.
         
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
-        
-    awaiting_process : bool
-        Whether the network is currently waiting for an asynchronous process to complete.
-        Set by default to ``False`` in the ``__init__`` function.
+        Stored as the field ``role`` in the database.
         
     num_nodes : int
         Returns the number of non-failed nodes in the network.       

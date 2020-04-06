@@ -22,6 +22,328 @@ logger = logging.getLogger(__file__)
 # pylint: disable=unused-import
 import rpdb
 
+class Stimulus(dallinger.models.Node):
+    """
+    A stimulus class for non-adaptive experiments.
+    Subclasses the Dallinger :class:`dallinger.models.Node` class.
+    Should not be directly instantiated by the user,
+    but instead specified indirectly through an instance
+    of :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`.
+    
+    Attributes
+    ----------
+    
+    definition : dict
+        A dictionary containing the parameter values for the stimulus.
+        This excludes any parameters defined by the 
+        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` class.
+    
+    phase : str
+        The phase of the experiment, e.g ``"practice"``, ``"main"``.
+    
+    participant_group : str
+        The associated participant group.
+    
+    block : str
+        The associated block.
+    
+    num_completed_trials : int
+        The number of completed trials that this stimulus has received,
+        exluding failed trials.
+    
+    num_trials_still_required : int
+        The number of trials still required for this stimulus before the experiment
+        can complete, if such a quota exists.
+    """
+    
+    __mapper_args__ = {"polymorphic_identity": "stimulus"}
+
+    target_num_trials = claim_field(1, int)
+
+    @property
+    def definition(self):
+        return self.details
+
+    @definition.setter
+    def definition(self, definition):
+        self.details = definition
+
+    @property 
+    def phase(self):
+        return self.network.phase
+
+    @property 
+    def participant_group(self):
+        return self.network.participant_group
+
+    @property 
+    def block(self):
+        return self.network.block
+
+    @property 
+    def _query_completed_trials(self):
+        return (
+            NonAdaptiveTrial
+                .query
+                .filter_by(stimulus_id=self.id, failed=False, complete=True)
+        )
+
+    @property
+    def num_completed_trials(self):
+        return self._query_completed_trials.count()
+
+    @property 
+    def num_trials_still_required(self):
+        if self.target_num_trials is None:
+            raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
+        return self.target_num_trials - self.num_completed_trials
+
+    def __init__(self, stimulus_spec, network, source, target_num_trials):
+        assert network.phase == stimulus_spec.phase
+        assert network.participant_group == stimulus_spec.participant_group
+        assert network.block == stimulus_spec.block
+
+        super().__init__(network=network)
+        self.definition = stimulus_spec.definition
+        source.connect(whom=self)
+        self.target_num_trials = target_num_trials
+
+class StimulusSpec():
+    """
+    Defines a stimulus for a non-adaptive experiment.
+    Will be translated to a database-backed
+    :class:`~dlgr_utils.trial.non_adaptive.Stimulus` instance.
+    
+    Parameters
+    ----------
+    
+    definition
+        A dictionary of parameters defining the stimulus.
+    
+    phase
+        The associated phase of the experiment, 
+        e.g. ``"practice"`` or ``"main"``.
+    
+    version_specs
+        An optional list of 
+        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
+        objects, defining different forms that the stimulus can take.
+    
+    participant_group
+        The associated participant group.
+        Defaults to a common participant group for all participants.
+    
+    block
+        The associated block.
+        Defaults to a single block for all trials.
+    """
+    def __init__(
+        self, 
+        definition: dict,
+        phase: str,
+        version_specs=None,
+        participant_group="default",
+        block="default"
+    ):
+        assert isinstance(definition, dict)
+        
+        if version_specs is None:
+            version_specs = [StimulusVersionSpec(definition={})]
+            
+        assert isinstance(version_specs, list)
+        assert len(version_specs) > 0
+        for version_spec in version_specs:
+            assert isinstance(version_spec, StimulusVersionSpec)
+
+        self.definition = definition
+        self.version_specs = version_specs
+        self.phase = phase
+        self.participant_group = participant_group
+        self.block = block
+
+    def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
+        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
+        experiment.session.add(stimulus)
+        
+        for version_spec in self.version_specs:
+            version = StimulusVersion(version_spec, stimulus, network)
+            experiment.session.add(version)
+
+class StimulusVersion(dallinger.models.Node):
+    """
+    A stimulus version class for non-adaptive experiments.
+    Subclasses the Dallinger :class:`dallinger.models.Node` class;
+    intended to be nested within the 
+    :class:`~dlgr_utils.trial.non_adaptive.Stimulus` class.
+    Should not be directly instantiated by the user,
+    but instead specified indirectly through an instance
+    of :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`.
+    
+    Attributes
+    ----------
+    
+    definition : dict
+        A dictionary containing the parameter values for the stimulus version.
+        This excludes any parameters defined by the parent
+        :class:`~dlgr_utils.trial.non_adaptive.Stimulus` class.
+        
+    stimulus : Stimulus
+        The parent :class:`~dlgr_utils.trial.non_adaptive.Stimulus` object.
+        
+    stimulus_id : int
+        The ID of the parent stimulus object. Stored as ``property1`` in the database.
+    
+    phase : str
+        The phase of the experiment, e.g ``"practice"``, ``"main"``.
+    
+    participant_group : str
+        The associated participant group.
+    
+    block : str
+        The associated block.
+    """
+    
+    __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
+
+    stimulus_id = claim_field(1, int)
+
+    @property
+    def definition(self):
+        return self.details
+
+    @definition.setter
+    def definition(self, definition):
+        self.details = definition
+
+    
+    @property 
+    def stimulus(self):
+        return Stimulus.query.filter_by(id=self.stimulus_id).one()
+
+    @property
+    def phase(self):
+        return self.stimulus.phase
+
+    @property
+    def participant_group(self):
+        return self.stimulus.participant_group
+
+    @property
+    def block(self):
+        return self.stimulus.block
+
+    def __init__(self, stimulus_version_spec, stimulus, network):
+        super().__init__(network=network)
+        self.stimulus_id = stimulus.id
+        self.definition = stimulus_version_spec.definition
+        self.connect_to_parent(stimulus)
+
+    def connect_to_parent(self, parent):
+        self.connect(parent, direction="from")
+
+class StimulusVersionSpec():
+    """
+    Defines a stimulus version for a non-adaptive experiment.
+    Will be translated to a database-backed
+    :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` instance,
+    which will be nested within a 
+    :class:`~dlgr_utils.trial.non_adaptive.Stimulus` instance.
+    
+    Parameters
+    ----------
+    
+    definition
+        A dictionary of parameters defining the stimulus version.
+        Should not include any parameters already defined in 
+        the parent :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` instance.
+    """
+    def __init__(self, definition):
+        assert isinstance(definition, dict)
+        self.definition = definition
+
+class StimulusSet():
+    """
+    Defines a stimulus set for a non-adaptive experiment.
+    This stimulus set is defined as a collection of 
+    :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`
+    and :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
+    objects, which are translated to database-backed
+    :class:`~dlgr_utils.trial.non_adaptive.Stimulus`
+    and :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion`
+    objects respectively.
+    
+    Parameters
+    ----------
+    
+    stimulus_specs: list
+        A list of :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` objects,
+        with these objects potentially containing
+        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec` objects.
+        This list may contain stimuli for several experiment phases,
+        as long as these phases are specified in the ``phase`` parameters
+        for the :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` objects.
+    """
+    def __init__(self, stimulus_specs):
+        assert isinstance(stimulus_specs, list)
+
+        self.stimulus_specs = stimulus_specs
+
+        network_specs = set()
+        blocks = set()
+        participant_groups = set()
+        self.num_stimuli = dict()
+        
+        for s in stimulus_specs:
+            assert isinstance(s, StimulusSpec)
+            network_specs.add((
+                s.phase,
+                s.participant_group, 
+                s.block
+            ))
+
+            blocks.add(s.block)
+            participant_groups.add(s.participant_group)
+            
+            # This logic could be refactored by defining a special dictionary class
+            if s.participant_group not in self.num_stimuli:
+                self.num_stimuli[s.participant_group] = dict()
+            if s.block not in self.num_stimuli[s.participant_group]:
+                self.num_stimuli[s.participant_group][s.block] = 0
+
+            self.num_stimuli[s.participant_group][s.block] += 1
+
+        self.network_specs = [
+            NetworkSpec(
+                phase=x[0],
+                participant_group=x[1], 
+                block=x[2],
+                stimulus_set=self
+            )
+            for x in network_specs
+        ]
+
+        self.blocks = sorted(list(blocks))
+        self.participant_groups = sorted(list(participant_groups))
+
+class NetworkSpec():
+    def __init__(self, phase, participant_group, block, stimulus_set):
+        self.phase = phase
+        self.participant_group = participant_group
+        self.block = block
+        self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
+
+    def create_network(self, trial_type, experiment, target_num_trials_per_stimulus):
+        network = NonAdaptiveNetwork(
+            trial_type=trial_type,
+            phase=self.phase,
+            participant_group=self.participant_group,
+            block=self.block,
+            stimulus_set=self.stimulus_set,
+            experiment=experiment,
+            target_num_trials_per_stimulus=target_num_trials_per_stimulus
+        )
+        experiment.session.add(network)
+        
 class NonAdaptiveTrial(Trial):
     """
     A Trial class for non-adaptive experiments.
@@ -54,7 +376,6 @@ class NonAdaptiveTrial(Trial):
     
     block
         The block in which the trial is situated.
-     
     """
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
 
@@ -97,28 +418,184 @@ class NonAdaptiveTrial(Trial):
         return {
             **self.stimulus.definition, 
             **self.stimulus_version.definition
-        }     
+        }   
+        
+
 
 class NonAdaptiveTrialMaker(NetworkTrialMaker):
+    """
+    Administers a sequence of trials in a non-adaptive experiment.
+    The class is intended for use with the 
+    :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial` helper class.
+    which should be customised to show the relevant stimulus 
+    for the experimental paradigm.
+    The user must also define their stimulus set 
+    using the following built-in classes:
+    
+    * :class:`~dlgr_utils.trial.non_adaptive.StimulusSet`;
+    
+    * :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`;
+    
+    * :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`;
+    
+    In particular, a :class:`~dlgr_utils.trial.non_adaptive.StimulusSet`
+    contains a list of :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` objects, 
+    which in turn contains a list of 
+    :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec` objects.
+    
+    The user may also override the following methods, if desired:
+    
+    * :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrialMaker.choose_block_order`;
+      chooses the order of blocks in the experiment. By default the blocks
+      are ordered randomly.
+      
+    * :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`;
+      assigns the participant to a group. By default the participant is assigned
+      to a random group. 
+      
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.on_complete`,
+    run once the the sequence of trials is complete.
+    
+    * :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`,
+      which checks the performance of the participant 
+      with a view to rejecting poor-performing participants.
+    
+    Further customisable options are available in the constructor's parameter list,
+    documented below.
+    
+    Parameters
+    ----------
+    
+    trial_class
+        The class object for trials administered by this maker
+        (should subclass :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial`).
+        
+    phase
+        Arbitrary label for this phase of the experiment, e.g.
+        "practice", "train", "test".
+        
+    stimulus_set
+        The stimulus set to be administered.
+        
+    time_estimate_per_trial
+        Time estimated for each trial (seconds).
+        
+    recruit_mode
+        Selects a recruitment criterion for determining whether to recruit 
+        another participant. The built-in criteria are ``"num_participants"``
+        and ``"num_trials"``.
+    
+    target_num_participants
+        Target number of participants to recruit for the experiment. All 
+        participants must successfully finish the experiment to count
+        towards this quota. This target is only relevant if 
+        ``recruit_mode="num_participants"``.
+    
+    target_num_trials_per_stimulus
+        Target number of trials to recruit for each stimulus in the experiment
+        (as opposed to for each stimulus version). This target is only relevant if 
+        ``recruit_mode="num_trials"``.
+    
+    new_participant_group
+        If ``True``, :meth:`~dlgr_utils.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`
+        is run to assign the participant to a new participant group. 
+        Unless overridden, a given participant's participant group will persist
+        for all phases of the experiment,
+        except if switching to a :class:`~dlgr_utils.non_adaptive.NonAdaptiveTrialMaker`
+        where the trial class (:class:`~dlgr_utils.non_adaptive.NonAdaptiveTrial`)
+        has a different name.
+    
+    max_trials_per_block
+        Determines the maximum number of trials that a participant will be allowed to experience in each block.
+    
+    allow_repeated_stimuli
+        Determines whether the participant can be administered the same stimulus more than once.
+    
+    max_unique_stimuli_per_block
+        Determines the maximum number of unique stimuli that a participant will be allowed to experience
+        in each block. Once this quota is reached, the participant will be forced to repeat
+        previously experienced stimuli.
+    
+    active_balancing_within_participants
+        If ``True`` (default), active balancing within participants is enabled, meaning that 
+        stimulus selection always favours the stimuli that have been presented fewest times
+        to that participant so far.
+    
+    active_balancing_across_participants
+        If ``True`` (default), active balancing across participants is enabled, meaning that 
+        stimulus selection favours stimuli that have been presented fewest times to any participant
+        in the experiment, excluding failed trials.
+        This criterion defers to ``active_balancing_within_participants``;
+        if both ``active_balancing_within_participants=True``
+        and ``active_balancing_across_participants=True``,
+        then the latter criterion is only used for tie breaking.
+
+    check_performance_at_end
+        If ``True``, the participant's performance is 
+        is evaluated at the end of the series of trials.
+        Defaults to ``False``.
+        See :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`
+        for implementing performance checks.
+        
+    check_performance_every_trial
+        If ``True``, the participant's performance is 
+        is evaluated after each trial.
+        Defaults to ``False``.
+        See :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`
+        for implementing performance checks.
+    
+    fail_trials_on_premature_exit
+        If ``True``, a participant's trials are marked as failed
+        if they leave the experiment prematurely.
+        Defaults to ``True``.
+
+    fail_trials_on_participant_performance_check
+        If ``True``, a participant's trials are marked as failed
+        if the participant fails a performance check.    
+        Defaults to ``True``.
+        
+    async_post_trial
+        Optional function to be run after a trial is completed by the participant.
+        This should be specified as a fully qualified string, for example
+        ``"dlgr_utils.trial.async_example.async_update_trial"``.
+        This function should take one argument, ``trial_id``, corresponding to the
+        ID of the relevant trial to process.
+        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
+        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
+        once it is finished. It is also responsible for committing to the database
+        using ``db.session.commit()`` once processing is complete
+        (``db`` can be imported using ``from dallinger import db``).
+        See the source code for ``~dlgr_utils.trial.async_example.async_update_trial``
+        for an example.
+
+    Returns
+    -------
+    
+    list
+        A sequence of events suitable for inclusion in a
+        :class:`~dlgr_utils.timeline.Timeline`
+    """
     def __init__(
         self,  
+        *,
         trial_class, 
-        phase,
-        stimulus_set,
-        time_estimate_per_trial,
+        phase: str,
+        stimulus_set: StimulusSet,
+        recruit_mode: Optional[str],
+        time_estimate_per_trial: int,
         target_num_participants: Optional[int],
         target_num_trials_per_stimulus: Optional[int],
         new_participant_group: bool,
-        recruit_mode: Optional[str],
-        max_trials_per_block: Optional[int]=None,
-        allow_repeated_stimuli=False,
+        max_trials_per_block: Optional[int] = None,
+        allow_repeated_stimuli: bool = False,
         max_unique_stimuli_per_block: Optional[int]=None,
-        active_balancing_within_participants=True,
-        active_balancing_across_participants=True,
-        check_performance_at_end=False,
-        check_performance_every_trial=False,
-        fail_trials_on_premature_exit=True,
-        fail_trials_on_participant_performance_check=True,
+        active_balancing_within_participants: bool = True,
+        active_balancing_across_participants: bool = True,
+        check_performance_at_end: bool = False,
+        check_performance_every_trial: bool = False,
+        fail_trials_on_premature_exit: bool = True,
+        fail_trials_on_participant_performance_check: bool = True,
+        async_post_trial: Optional[str] = None
     ):
         if (target_num_participants is None) and (target_num_trials_per_stimulus is None):
             raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be None.")
@@ -149,7 +626,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             propagate_failure=False,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            async_update_network=None
+            async_post_trial=async_post_trial
         )
 
     @property 
@@ -164,6 +641,25 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         )
 
     def init_participant(self, experiment, participant):
+        """
+        Initialises the participant at the beginning of the sequence of trials.
+        This includes choosing the block order, choosing the participant group
+        (if relevant), and initialising a record of the participant's completed
+        stimuli.
+        If you override this, make sure you call ``super().init_particiant(...)``
+        somewhere in your new method.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+        """
         super().init_participant(experiment, participant)
         self.init_block_order(experiment, participant)
         self.init_participant_group(experiment, participant)
@@ -179,8 +675,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
                 return min(num_stimuli_in_block, self.max_trials_per_block)
 
     def estimate_num_trials(self):
-        "Suitable for overriding."
-        # Ripe for refactoring
         return mean([
             sum([
                 self.estimate_num_trials_in_block(num_stimuli_in_block)
@@ -191,6 +685,10 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         ])
 
     def finalise_trial(self, answer, trial, experiment, participant):
+        """
+        This calls the base class's ``finalise_trial`` method,
+        then increments the number of completed stimuli in the phase and the block.
+        """
         super().finalise_trial(answer, trial, experiment, participant)
         self.increment_completed_stimuli_in_phase_and_block(participant, trial.block, trial.stimulus_id)
         # trial.stimulus.num_completed_trials += 1
@@ -205,7 +703,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         if self.new_participant_group:
             self.set_participant_group(
                 participant,
-                self.assign_participant_group(experiment=experiment, participant=participant)
+                self.choose_participant_group(experiment=experiment, participant=participant)
             )
         elif not self.has_participant_group(participant):
             raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
@@ -270,24 +768,64 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         pass
 
     def experiment_setup_routine(self, experiment):
+        """
+        All networks for the non-adaptive experiment are set up at the beginning of
+        data collection.
+        """
         if self.num_networks == 0:
             self.create_networks(experiment)
 
     def choose_block_order(self, experiment, participant):
         # pylint: disable=unused-argument
         """
+        Determines the order of blocks for the current participant.
         By default this function shuffles the blocks randomly for each participant. 
-        Override it for alternative behaviour.
+        The user is invited to override this function for alternative behaviour.
+        
+        Parameters
+        ----------
+        
+        experiment
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+        
+        participant
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+        
+        Returns
+        -------
+        
+        list   
+            A list of blocks in order of presentation,
+            where each block is identified by a string label.
         """
         blocks = self.stimulus_set.blocks
         random.shuffle(blocks)
         return blocks
 
-    def assign_participant_group(self, experiment, participant):
+    def choose_participant_group(self, experiment, participant):
         # pylint: disable=unused-argument
         """
+        Determines the participant group assigned to the current participant.
         By default this function randomly chooses from the available participant groups. 
-        Override it for alternative behaviour.
+        The user is invited to override this function for alternative behaviour.
+        
+        Parameters
+        ----------
+        
+        experiment
+            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            corresponding to the current experiment.
+        
+        participant
+            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            corresponding to the current participant.
+            
+        Returns
+        -------
+        
+        A string label identifying the selected participant group.
         """
         participant_groups = self.stimulus_set.participant_groups
         return random.choice(participant_groups)
@@ -303,7 +841,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         
     def find_networks(self, participant, experiment):
         # pylint: disable=protected-access
-        """Should find the appropriate network for the participant's next trial."""
         block_order = participant.var.get(self.with_namespace("block_order"))
         networks = (
             NonAdaptiveNetwork.query
@@ -320,10 +857,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         return networks
 
     def grow_network(self, network, participant, experiment):
-        """Networks never get expanded in a non-adaptive experiment."""
+        """
+        Does nothing, because networks never get expanded in a non-adaptive experiment.
+        """
 
     def find_node(self, network, participant, experiment):
-        """Should find the node (i.e. stimulus) to which the participant should be attached for the next trial."""
         stimulus = self.find_stimulus(network, participant, experiment)
         if stimulus is None:
             return None
@@ -407,7 +945,86 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
 class NonAdaptiveNetwork(TrialNetwork):
     """
-    Networks correspond to blocks. Different trial types and phases correspond to different blocks too.
+    A :class:`~dlgr_utils.trial.main.TrialNetwork` class for non-adaptive experiments.
+    The user should not have to engage with this class directly,
+    except through the network visualisation tool and through 
+    analysing the resulting data.
+    The networks are organised as follows:
+    
+    1. At the top level of the hierarchy, different networks correspond to different 
+       combinations of participant group and block.
+       If the same experiment contains many 
+       :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrialMaker` objects
+       with different associated :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial`
+       classes, 
+       then networks will also be differentiated by the names of these 
+       :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial` classes.
+       
+    2. Within a given network, the first level of the hierarchy is the 
+       :class:`~dlgr_utils.trial.non_adaptive.Stimulus` class.
+       These objects subclass the Dallinger :class:`~dallinger.models.Node` class,
+       and are generated directly from :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` instances.
+       
+    3. Nested within :class:`~dlgr_utils.trial.non_adaptive.Stimulus` objects
+       are :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` objects.
+       These also subclass the Dallinger :class:`~dallinger.models.Node` class,
+       and are generated directly from :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec` instances.
+       
+    4. Nested within :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` objects
+       are :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial` objects.
+       These objects subclass the Dallinger :class:`~dallinger.models.Info` class.
+
+    Attributes
+    ----------
+    
+    trial_type : str
+        A string uniquely identifying the type of trial to be administered,
+        typically just the name of the relevant class, 
+        e.g. ``"MelodyTrial"``.
+        The same experiment should not contain multiple TrialMaker objects
+        with the same ``trial_type``, unless they correspond to different
+        phases of the experiment and are marked as such with the 
+        ``phase`` parameter.
+        Stored as the field ``property1`` in the database.
+        
+    target_num_trials : int or None
+        Indicates the target number of trials for that network.
+        Stored as the field ``property2`` in the database.
+        
+    awaiting_process : bool
+        Whether the network is currently closed and waiting for an asynchronous process to complete.
+        This should always be ``False`` for non-adaptive experiments.
+        Stored as the field ``property3`` in the database.
+        
+    participant_group : bool
+        The network's associated participant group.
+        Stored as the field ``property4`` in the database.
+        
+    awaiting_process : bool
+        The network's associated participant group.
+        Stored as the field ``property5`` in the database.
+        
+    phase : str
+        Arbitrary label for this phase of the experiment, e.g.
+        "practice", "train", "test".
+        Set by default in the ``__init__`` function.
+        Stored as the field ``role`` in the database.
+        
+    num_nodes : int
+        Returns the number of non-failed nodes in the network.       
+    
+    num_completed_trials : int
+        Returns the number of completed and non-failed trials in the network
+        (irrespective of asynchronous processes).
+        
+    stimuli : list
+        Returns the stimuli associated with the network.
+        
+    num_stimuli : int
+        Returns the number of stimuli associated with the network.
+        
+    var : :class:`~dlgr_utils.field.VarStore`
+        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
     """
     #pylint: disable=abstract-method
     
@@ -453,195 +1070,3 @@ class NonAdaptiveNetwork(TrialNetwork):
     def num_stimuli(self):
         return self.stimulus_query.count()
 
-
-class Stimulus(dallinger.models.Node):
-    __mapper_args__ = {"polymorphic_identity": "stimulus"}
-
-    target_num_trials = claim_field(1, int)
-
-    @property
-    def definition(self):
-        return self.details
-
-    @definition.setter
-    def definition(self, definition):
-        self.details = definition
-
-    @property 
-    def phase(self):
-        return self.network.phase
-
-    @property 
-    def participant_group(self):
-        return self.network.participant_group
-
-    @property 
-    def block(self):
-        return self.network.block
-
-    @property 
-    def _query_completed_trials(self):
-        return (
-            NonAdaptiveTrial
-                .query
-                .filter_by(stimulus_id=self.id, failed=False, complete=True)
-        )
-
-    @property
-    def num_completed_trials(self):
-        return self._query_completed_trials.count()
-
-    @property 
-    def num_trials_still_required(self):
-        if self.target_num_trials is None:
-            raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
-        return self.target_num_trials - self.num_completed_trials
-
-    def __init__(self, stimulus_spec, network, source, target_num_trials):
-        assert network.phase == stimulus_spec.phase
-        assert network.participant_group == stimulus_spec.participant_group
-        assert network.block == stimulus_spec.block
-
-        super().__init__(network=network)
-        self.definition = stimulus_spec.definition
-        source.connect(whom=self)
-        self.target_num_trials = target_num_trials
-
-class StimulusSpec():
-    def __init__(
-        self, 
-        definition: dict,
-        phase: str,
-        version_specs=None,
-        participant_group="default",
-        block="default"
-    ):
-        assert isinstance(definition, dict)
-        
-        if version_specs is None:
-            version_specs = [StimulusVersionSpec(definition={})]
-            
-        assert isinstance(version_specs, list)
-        assert len(version_specs) > 0
-        for version_spec in version_specs:
-            assert isinstance(version_spec, StimulusVersionSpec)
-
-        self.definition = definition
-        self.version_specs = version_specs
-        self.phase = phase
-        self.participant_group = participant_group
-        self.block = block
-
-    def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
-        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
-        experiment.session.add(stimulus)
-        
-        for version_spec in self.version_specs:
-            version = StimulusVersion(version_spec, stimulus, network)
-            experiment.session.add(version)
-
-class StimulusVersion(dallinger.models.Node):
-    __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
-
-    stimulus_id = claim_field(1, int)
-
-    @property
-    def definition(self):
-        return self.details
-
-    @definition.setter
-    def definition(self, definition):
-        self.details = definition
-
-    
-    @property 
-    def stimulus(self):
-        return Stimulus.query.filter_by(id=self.stimulus_id).one()
-
-    @property
-    def phase(self):
-        return self.stimulus.phase
-
-    @property
-    def participant_group(self):
-        return self.stimulus.participant_group
-
-    @property
-    def block(self):
-        return self.stimulus.block
-
-    def __init__(self, stimulus_version_spec, stimulus, network):
-        super().__init__(network=network)
-        self.stimulus_id = stimulus.id
-        self.definition = stimulus_version_spec.definition
-        self.connect_to_parent(stimulus)
-
-    def connect_to_parent(self, parent):
-        self.connect(parent, direction="from")
-
-class StimulusVersionSpec():
-    def __init__(self, definition):
-        assert isinstance(definition, dict)
-        self.definition = definition
-
-class StimulusSet():
-    def __init__(self, stimulus_specs):
-        assert isinstance(stimulus_specs, list)
-
-        self.stimulus_specs = stimulus_specs
-
-        network_specs = set()
-        blocks = set()
-        participant_groups = set()
-        self.num_stimuli = dict()
-        
-        for s in stimulus_specs:
-            assert isinstance(s, StimulusSpec)
-            network_specs.add((
-                s.phase,
-                s.participant_group, 
-                s.block
-            ))
-
-            blocks.add(s.block)
-            participant_groups.add(s.participant_group)
-            
-            # This logic could be refactored by defining a special dictionary class
-            if s.participant_group not in self.num_stimuli:
-                self.num_stimuli[s.participant_group] = dict()
-            if s.block not in self.num_stimuli[s.participant_group]:
-                self.num_stimuli[s.participant_group][s.block] = 0
-
-            self.num_stimuli[s.participant_group][s.block] += 1
-
-        self.network_specs = [
-            NetworkSpec(
-                phase=x[0],
-                participant_group=x[1], 
-                block=x[2],
-                stimulus_set=self
-            )
-            for x in network_specs
-        ]
-
-        self.blocks = sorted(list(blocks))
-        self.participant_groups = sorted(list(participant_groups))
-
-class NetworkSpec():
-    def __init__(self, phase, participant_group, block, stimulus_set):
-        self.phase = phase
-        self.participant_group = participant_group
-        self.block = block
-        self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
-
-    def create_network(self, trial_type, experiment, target_num_trials_per_stimulus):
-        network = NonAdaptiveNetwork(
-            trial_type=trial_type,
-            phase=self.phase,
-            participant_group=self.participant_group,
-            block=self.block,
-            stimulus_set=self.stimulus_set,
-            experiment=experiment,
-            target_num_trials_per_stimulus=target_num_trials_per_stimulus
-        )
-        experiment.session.add(network)

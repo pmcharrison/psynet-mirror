@@ -1035,7 +1035,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         check_performance_every_trial: bool,
         recruit_mode: str,
         target_num_participants=Optional[int],
-        async_post_trial: Optional[str] = None, # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
+        async_post_trial: Optional[str] = None,
         async_post_grow_network: Optional[str] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,

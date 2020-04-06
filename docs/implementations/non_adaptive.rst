@@ -10,7 +10,7 @@ for which we wish to elicit some kind of aggregated behavioural response.
 This paradigm should be flexible enough to capture a range of standard 
 perceptual experiment designs, but will need some customisation for more bespoke designs.
 
-Implementing the experiment comprises the following steps:
+Implementing a non-adaptive experiment in this framework comprises the following steps:
 
 1. Write some Python code that represents each to-be-administered stimulus as a
    :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` object.
