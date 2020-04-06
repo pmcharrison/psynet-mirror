@@ -267,6 +267,7 @@ class ChainNetwork(TrialNetwork):
         if self.num_nodes == 0:
             return 0
         return (
+            # pylint: disable=no-member
             db.session
                 .query(func.max(ChainNode.degree))
                 .filter_by(network_id=self.id, failed=False)

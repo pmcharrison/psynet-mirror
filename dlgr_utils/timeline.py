@@ -5,7 +5,7 @@ import flask
 import gevent
 import time
 
-from typing import List, Optional, Dict, Union, Callable
+from typing import List, Optional, Dict, Callable
 
 from .utils import dict_to_js_vars, call_function, check_function_args
 from . import templates
@@ -257,7 +257,6 @@ class Page(Event):
         An object of arbitrary form.
             The response after the preprocessing has been performed.
         """
-        pass
 
     def validate(self, parsed_response, experiment, participant):
         """
@@ -287,7 +286,6 @@ class Page(Event):
             :class:`dlgr_utils.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
-        pass
 
     def render(self, experiment, participant):
         internal_js_vars = {
@@ -477,7 +475,6 @@ class EndPage(Page):
             An instantiation of :class:`dlgr_utils.participant.Participant`,
             corresponding to the current participant.
         """
-        pass
 
 class Timeline():
     def __init__(self, *args):
@@ -678,9 +675,11 @@ def estimate_time_credit(events):
     
 class ResponsePage(Page):
     def format_answer(self, answer, metadata, experiment, participant):
+        # pylint: disable=unused-argument
         return answer
 
     def compile_details(self, response, answer, metadata, experiment, participant):
+        # pylint: disable=unused-argument
         """Should provide a dict of supplementary information about the page and (optionally) its response."""
         raise NotImplementedError
 
@@ -761,7 +760,7 @@ def join(*args):
 
         return reduce(f, args)
 
-def check_condition_and_logic(condition, logic):
+def check_logic(logic):
     assert isinstance(logic, Event) or is_list_of_events(logic)
     if isinstance(logic, Event):
         logic = [logic]
@@ -823,7 +822,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     start_while = StartWhile(label)
     end_while = EndWhile(label)
 
-    logic = check_condition_and_logic(condition, logic)
+    logic = check_logic(logic)
     logic = multiply_expected_repetitions(logic, expected_repetitions)
 
     conditional_logic = join(logic, GoTo(start_while))

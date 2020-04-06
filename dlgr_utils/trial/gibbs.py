@@ -4,6 +4,8 @@ from statistics import mean
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 import random
+
+# pylint: disable=unused-import
 import rpdb 
 
 class GibbsNetwork(ChainNetwork):

@@ -13,7 +13,6 @@ import dallinger.nodes
 
 from ..field import claim_field
 from .main import Trial, TrialNetwork, NetworkTrialMaker
-from ..participant import Participant
 
 import logging
 logging.basicConfig(level=logging.INFO)

@@ -3,8 +3,6 @@
 import json
 from typing import Union, Optional
 import datetime
-import time
-
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
@@ -23,7 +21,6 @@ from ..timeline import (
     RecruitmentCriterion,
     BackgroundTask,
     Module,
-    NullEvent,
     conditional,
     while_loop,
     reactive_seq,
@@ -31,7 +28,6 @@ from ..timeline import (
 )
 
 from ..page import (
-    InfoPage,
     UnsuccessfulEndPage
 )
 
@@ -45,10 +41,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-import rpdb
-
 # pylint: disable=unused-import
 import rpdb
+
 
 class Trial(Info):
     """
@@ -640,7 +635,6 @@ class TrialMaker(Module):
             An instantiation of :class:`dlgr_utils.participant.Participant`,
             corresponding to the current participant.
         """
-        pass
 
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
@@ -1169,6 +1163,7 @@ class NetworkTrialMaker(TrialMaker):
             trial.awaiting_process = True
             q = Queue("default", connection = redis_conn)
             q.enqueue(self.async_post_trial, trial.id)
+            # pylint: disable=no-member
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
@@ -1179,6 +1174,7 @@ class NetworkTrialMaker(TrialMaker):
             network.awaiting_process = True
             q = Queue("default", connection = redis_conn)
             q.enqueue(self.async_post_grow_network, network.id)
+            # pylint: disable=no-member
             db.session.commit()
 
     @property

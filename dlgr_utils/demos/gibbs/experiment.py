@@ -1,4 +1,4 @@
-# pylint: disable=unused-import,abstract-method,unused-argument
+# pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
 #### Imports
