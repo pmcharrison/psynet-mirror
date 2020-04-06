@@ -475,7 +475,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
       to a random group. 
       
     * :meth:`~dlgr_utils.trial.main.TrialMaker.on_complete`,
-    run once the the sequence of trials is complete.
+      run once the the sequence of trials is complete.
     
     * :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`,
       which checks the performance of the participant 

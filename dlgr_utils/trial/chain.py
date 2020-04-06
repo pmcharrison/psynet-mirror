@@ -1057,6 +1057,12 @@ class ChainTrialMaker(NetworkTrialMaker):
                 "In across-chain experiments, <num_trials_per_participant> "
                 "cannot exceed <num_chains_per_experiment>."
             )
+        
+        if chain_type == "within" and recruit_mode == "num_trials":
+            raise ValueError(
+                "In within-chain experiments the 'num_trials' recruit method is not available."
+        )
+
 
         self.node_class = node_class
         self.source_class = source_class
