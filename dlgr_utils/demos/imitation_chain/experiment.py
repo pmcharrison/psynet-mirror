@@ -33,7 +33,8 @@ from dlgr_utils.trial.imitation_chain import (
     ImitationChainTrial,
     ImitationChainNode,
     ImitationChainSource,
-    ImitationChainTrialMaker
+    ImitationChainTrialMaker,
+    ImitationChainNetwork
 )
 
 import logging
@@ -76,6 +77,9 @@ class CustomTrial(ImitationChainTrial):
             page_1, 
             page_2
         ]
+        
+class CustomNetwork(ImitationChainNetwork):
+    __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -103,6 +107,7 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 class Exp(dlgr_utils.experiment.Experiment):
     timeline = Timeline(
         CustomTrialMaker(
+            network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
@@ -110,8 +115,8 @@ class Exp(dlgr_utils.experiment.Experiment):
             time_estimate_per_trial=5,
             chain_type="within",
             num_nodes_per_chain=5,
-            num_trials_per_participant=20,
-            num_chains_per_participant=4,
+            num_trials_per_participant=5,
+            num_chains_per_participant=1,
             num_chains_per_experiment=None,
             trials_per_node=1,
             active_balancing_across_chains=True,
@@ -119,7 +124,6 @@ class Exp(dlgr_utils.experiment.Experiment):
             check_performance_every_trial=False,
             recruit_mode="num_participants",
             target_num_participants=10
-            # async_update_network=None
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
