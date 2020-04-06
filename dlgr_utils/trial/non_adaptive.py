@@ -1022,8 +1022,8 @@ class NonAdaptiveNetwork(TrialNetwork):
         The network's associated participant group.
         Stored as the field ``property4`` in the database.
         
-    awaiting_process : bool
-        The network's associated participant group.
+    block : str
+        The network's associated block.
         Stored as the field ``property5`` in the database.
         
     phase : str
