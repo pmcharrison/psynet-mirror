@@ -200,13 +200,13 @@ class TimeCreditStore:
         return f"__time_credit__{name}"
 
     def __getattr__(self, name):
-        if name is "participant":
+        if name == "participant":
             return self.__dict__["participant"]
         else:
             return self.participant.var.get(self.get_internal_name(name))
 
     def __setattr__(self, name, value):
-        if name is "participant":
+        if name == "participant":
             self.__dict__["participant"] = value
         else:
             self.participant.var.set(self.get_internal_name(name), value)
