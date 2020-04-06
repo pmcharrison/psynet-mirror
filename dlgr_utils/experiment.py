@@ -49,7 +49,7 @@ class Experiment(dallinger.experiment.Experiment):
     )
 
     wage_per_hour = 9.0
-    min_working_participants = 5
+    # min_working_participants = 5
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -58,24 +58,24 @@ class Experiment(dallinger.experiment.Experiment):
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
-        self.register_recruitment_criterion(self.default_recruitment_criterion)
+        # self.register_recruitment_criterion(self.default_recruitment_criterion)
 
         if session:
             self.setup()
 
-    @property
-    def default_recruitment_criterion(self):
-        def f():
-            logger.info(
-                "Number of working participants = %i, versus minimum of %i.",
-                self.num_working_participants,
-                self.min_working_participants
-            )
-            return self.num_working_participants < self.min_working_participants
-        return RecruitmentCriterion(
-            label="min_working_participants",
-            function=f
-        )
+    # @property
+    # def default_recruitment_criterion(self):
+    #     def f():
+    #         logger.info(
+    #             "Number of working participants = %i, versus minimum of %i.",
+    #             self.num_working_participants,
+    #             self.min_working_participants
+    #         )
+    #         return self.num_working_participants < self.min_working_participants
+    #     return RecruitmentCriterion(
+    #         label="min_working_participants",
+    #         function=f
+    #     )
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)

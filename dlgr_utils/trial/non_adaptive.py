@@ -881,6 +881,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         """
         Does nothing, because networks never get expanded in a non-adaptive experiment.
         """
+        return False
 
     def find_node(self, network, participant, experiment):
         stimulus = self.find_stimulus(network, participant, experiment)
