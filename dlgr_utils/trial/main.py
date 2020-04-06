@@ -3,8 +3,6 @@
 import json
 from typing import Union, Optional
 import datetime
-import time
-
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
@@ -18,18 +16,19 @@ from ..field import claim_field, claim_var, VarStore
 from ..timeline import (
     PageMaker,
     CodeBlock,
-    InfoPage,
-    UnsuccessfulEndPage,
     ExperimentSetupRoutine,
     ParticipantFailRoutine,
     RecruitmentCriterion,
     BackgroundTask,
     Module,
-    NullEvent,
     conditional,
     while_loop,
     reactive_seq,
     join
+)
+
+from ..page import (
+    UnsuccessfulEndPage
 )
 
 from ..utils import call_function
@@ -42,10 +41,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-import rpdb
-
 # pylint: disable=unused-import
 import rpdb
+
 
 class Trial(Info):
     """
@@ -105,6 +103,7 @@ class Trial(Info):
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
+        Stored in ``property1`` in the database.
         
     node
         The class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
@@ -113,16 +112,19 @@ class Trial(Info):
     complete : bool
         Whether the trial has been completed (i.e. received a response
         from the participant). The user should not typically change this directly.
+        Stored in ``property2`` in the database.
 
     answer : Object
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
+        Stored in ``property3`` in the database.
 
     awaiting_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
+        Stored in ``property4`` in the database.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other 
@@ -228,7 +230,7 @@ class Trial(Info):
         """
         Returns a :class:`~dlgr_utils.timeline.Page` object,
         or alternatively a list of such objects, 
-        that solicit an answer from the participant.
+        that solicits an answer from the participant.
         If this method returns a list, then this list must have
         a length equal to the :attr:`~dlgr_utils.trial.main.Trial.num_pages`
         attribute.
@@ -637,7 +639,6 @@ class TrialMaker(Module):
             An instantiation of :class:`dlgr_utils.participant.Participant`,
             corresponding to the current participant.
         """
-        pass
 
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
@@ -1166,6 +1167,7 @@ class NetworkTrialMaker(TrialMaker):
             trial.awaiting_process = True
             q = Queue("default", connection = redis_conn)
             q.enqueue(self.async_post_trial, trial.id)
+            # pylint: disable=no-member
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
@@ -1176,6 +1178,7 @@ class NetworkTrialMaker(TrialMaker):
             network.awaiting_process = True
             q = Queue("default", connection = redis_conn)
             q.enqueue(self.async_post_grow_network, network.id)
+            # pylint: disable=no-member
             db.session.commit()
 
     @property
@@ -1233,19 +1236,23 @@ class TrialNetwork(Network):
         with the same ``trial_type``, unless they correspond to different
         phases of the experiment and are marked as such with the 
         ``phase`` parameter.
+        Stored as the field ``property1`` in the database.
         
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
+        Stored as the field ``property2`` in the database.
+        
+    awaiting_process : bool
+        Whether the network is currently closed and waiting for an asynchronous process to complete.
+        Set by default to ``False`` in the ``__init__`` function.
+        Stored as the field ``property3`` in the database.
         
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
-        
-    awaiting_process : bool
-        Whether the network is currently waiting for an asynchronous process to complete.
-        Set by default to ``False`` in the ``__init__`` function.
+        Stored as the field ``role`` in the database.
         
     num_nodes : int
         Returns the number of non-failed nodes in the network.       

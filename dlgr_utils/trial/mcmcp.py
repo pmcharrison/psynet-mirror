@@ -1,8 +1,18 @@
 # pylint: disable=unused-argument,abstract-method
 
 import random
-from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource
+from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource, ChainNetwork
+import rpdb
 
+class MCMCPNetwork(ChainNetwork):
+    """
+    A Network class for MCMCP chains. 
+    """
+    __mapper_args__ = {"polymorphic_identity": "mcmcp_network"}
+    
+    def make_definition(self):
+        return {}
+        
 class MCMCPTrial(ChainTrial):
     """
     A Network class for MCMCP. 
@@ -51,7 +61,7 @@ class MCMCPTrial(ChainTrial):
         random.shuffle(order)
         definition = {
             "current_state": self.node.definition["current_state"],
-            "proposal": self.node.definition["order"]
+            "proposal": self.node.definition["proposal"]
         }
         definition["ordered"] = [{
             "role": role,
@@ -133,7 +143,7 @@ class MCMCPNode(ChainNode):
         object
             The derived seed. Should be suitable for serialisation to JSON.
         """
-        values = [trial.answer.value for trial in trials]
+        values = [trial.answer["value"] for trial in trials]
         if len(values) == 1:
             return values[0]
         raise NotImplementedError
@@ -164,17 +174,18 @@ class MCMCPTrialMaker(ChainTrialMaker):
     
     def finalise_trial(self, answer, trial, experiment, participant):
         """
-        Modifies ``trial.answer`` so as to store three values:
+        Modifies ``answer`` so as to store three values:
         
         * The position of the chosen stimulus;
         * The role of the chosen stimulus (``"current_state"`` or ``"proposal"``);
         * The value of the parameters underlying the chosen stimulus.
         """
         # pylint: disable=unused-argument,no-self-use
-        super().finalise_trial(answer, trial, experiment, participant)
         position = int(answer)
-        trial.answer = {
+        answer = {
             "position": position,
             "role": trial.definition["ordered"][position]["role"],
             "value": trial.definition["ordered"][position]["value"]
         }
+        super().finalise_trial(answer, trial, experiment, participant)
+        

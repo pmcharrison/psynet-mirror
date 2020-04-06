@@ -126,11 +126,13 @@ of the Experiment class, for example:
     import dlgr_utils.experiment
 
     from dlgr_utils.timeline import (
-        InfoPage,
         PageMaker,
         TextInputPage,
-        SuccessfulEndPage,
         Timeline
+    )
+    from dlgr_utils.page import (
+        InfoPage,
+        SuccessfulEndPage
     )
 
     class CustomExp(dlgr_utils.Experiment):

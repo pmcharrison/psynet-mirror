@@ -5,16 +5,18 @@ from dallinger.networks import Chain
 from dallinger.nodes import Source
 
 import dlgr_utils.experiment
-from dlgr_utils.timeline import (
-    InfoPage, 
+from dlgr_utils.timeline import ( 
     Timeline,
-    SuccessfulEndPage, 
     PageMaker, 
-    NAFCPage, 
-    TextInputPage,
     CodeBlock, 
     while_loop, 
     conditional
+)
+from dlgr_utils.page import (
+    InfoPage, 
+    SuccessfulEndPage, 
+    NAFCPage, 
+    TextInputPage
 )
 
 import logging

@@ -1,4 +1,4 @@
-# pylint: disable=unused-import,abstract-method,unused-argument
+# pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
 #### Imports
@@ -18,18 +18,20 @@ from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
 from dlgr_utils.timeline import (
     Page, 
-    InfoPage, 
     Timeline,
-    SuccessfulEndPage, 
     PageMaker, 
-    NAFCPage, 
     CodeBlock, 
-    NumberInputPage,
     while_loop, 
     conditional, 
     switch,
     FailedValidation,
     ResponsePage
+)
+from dlgr_utils.page import (
+    InfoPage, 
+    SuccessfulEndPage, 
+    NAFCPage, 
+    NumberInputPage
 )
 from dlgr_utils.trial.chain import ChainNetwork
 from dlgr_utils.trial.gibbs import (
@@ -94,6 +96,10 @@ class CustomNetwork(GibbsNetwork):
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
+    
+    # If True, then the starting value for the free parameter is resampled
+    # on each trial.
+    resample_free_parameter = True
 
     def show_trial(self, experiment, participant):
         selected_color = COLORS[self.active_index]
@@ -117,28 +123,32 @@ class CustomSource(GibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
 trial_maker = GibbsTrialMaker(
-    network_class=GibbsNetwork,
+    network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode, 
     source_class=CustomSource,
-    phase="experiment",
+    phase="experiment", # can be whatever you like
     time_estimate_per_trial=5,
-    chain_type="within",
-    num_trials_per_participant=20,
+    chain_type="within", # can be "within" or "across"
+    num_trials_per_participant=10,
     num_nodes_per_chain=5,
-    num_chains_per_participant=5,
-    num_chains_per_experiment=None,
-    trials_per_node=1,
+    num_chains_per_participant=1, # set to None if chain_type="across"
+    num_chains_per_experiment=None, # set to None if chain_type="within"
+    trials_per_node=2,
     active_balancing_across_chains=True,
     check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="test",
+    recruit_mode="num_participants",
     target_num_participants=10,
-    async_post_trial="dlgr_utils.demos.gibbs_sampler.experiment.async_post_trial",
-    async_post_grow_network="dlgr_utils.demos.gibbs_sampler.experiment.async_post_grow_network"
+    # Uncomment the following two lines if you want to experiment 
+    # with asynchronous processing.
+    # async_post_trial="dlgr_utils.demos.gibbs.experiment.async_post_trial",
+    # async_post_grow_network="dlgr_utils.demos.gibbs.experiment.async_post_grow_network"
 )
 
+# The following two functions are only necessary if you want to experiment 
+# with asynchronous processing.
 def async_post_trial(trial_id):
     logger.info("Running async_post_trial for trial %i...", trial_id)
     trial = CustomTrial.query.filter_by(id=trial_id).one()
@@ -169,6 +179,8 @@ class Exp(dlgr_utils.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
+        
+        # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
 
 extra_routes = Exp().extra_routes()

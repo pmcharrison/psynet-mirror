@@ -4,6 +4,8 @@ from statistics import mean
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 import random
+
+# pylint: disable=unused-import
 import rpdb 
 
 class GibbsNetwork(ChainNetwork):
@@ -52,6 +54,12 @@ class GibbsTrial(ChainTrial):
     Attributes
     ----------
     
+    resample_free_parameter : bool
+        If ``True`` (default), the starting value of the free parameter
+        is resampled on each trial. Disable this behaviour
+        by setting this parameter to ``False`` in the definition of 
+        the custom :class:`~dlgr_utils.trial.gibbs.GibbsTrial` class.
+    
     initial_vector : list
         The starting vector that is presented to the participant
         at the beginning of the trial.
@@ -63,6 +71,8 @@ class GibbsTrial(ChainTrial):
     updated_vector : list
         The updated vector after the participant has responded.
     """
+
+    resample_free_parameter = True
 
     def make_definition(self, experiment, participant):
         """
@@ -94,7 +104,9 @@ class GibbsTrial(ChainTrial):
         """
         vector = self.node.definition["vector"].copy()
         active_index = self.node.definition["active_index"]
-        vector[active_index] = self.network.random_sample(active_index)
+        
+        if self.resample_free_parameter:
+            vector[active_index] = self.network.random_sample(active_index)
         
         definition = {
             "vector": vector,

@@ -11,15 +11,17 @@ from dlgr_utils.field import claim_field
 from dlgr_utils.participant import Participant, get_participant
 from dlgr_utils.timeline import (
     Page, 
-    InfoPage, 
     Timeline,
-    SuccessfulEndPage, 
     PageMaker, 
-    NAFCPage, 
     CodeBlock, 
     while_loop, 
     conditional, 
     switch
+)
+from dlgr_utils.page import (
+    InfoPage, 
+    SuccessfulEndPage, 
+    NAFCPage
 )
 from dlgr_utils.trial.non_adaptive import (
     NonAdaptiveTrialMaker,

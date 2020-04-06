@@ -1,7 +1,7 @@
 {% extends "timeline-page.html" %}
 
-{% macro slider(min, max, step_size) %}
-    <input type="range" id="formControlRange" class="form-control-range" min="{{min}}" max="{{max}}" step="{{step_size}}">
+{% macro slider(min_value, max_value, step_size) %}
+    <input type="range" id="formControlRange" class="form-control-range" min="{{min_value}}" max="{{max_value}}" step="{{step_size}}">
 {% endmacro %}
 
 {% block main_body %}
@@ -10,7 +10,7 @@
         {{prompt}}
 
         <div class="form-group" style="padding-top:20px; padding-bottom:20px">
-            {{slider(min, max, step_size)}}
+            {{slider(min_value, max_value, step_size)}}
         </div>
     </div>
 
