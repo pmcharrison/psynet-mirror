@@ -14,12 +14,9 @@ need to run the demo or edit the source, you can simply install it with `pip`:
 
 .. code-block:: console
 
-    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/psynet@dev
+    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/psynet
 
 Note that you must have set up your GitLab SSH keys already.
-Note also that we have seleted the ``dev`` branch here. 
-If you left out ``@dev``, it would instead install the ``master`` branch.
-For now, we recommend the ``dev`` branch. 
 It is also possible to install specific commits, see
 `this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
 for details.
@@ -36,9 +33,9 @@ Choose a location to put your installation, e.g. `~/cap`.
 .. code-block:: console
 
     cd ~/cap
-    git clone -b dev https://gitlab.com/computational-audition-lab/psynet`
+    git clone https://gitlab.com/computational-audition-lab/psynet`
 
-Note that we've installed the ``dev`` branch here. You can switch between
+By default this command installs the ``master`` branch. You can switch between
 different branches, and even different commits, using Git.
 To update your repository to the latest version, 
 run ``git pull``.
