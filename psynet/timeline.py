@@ -763,9 +763,6 @@ class Response(Question):
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
         Stored in ``property2`` in the database.
-    
-    metadata: dict
-        Metadata about the page and the participant's response.
     """
     
     __mapper_args__ = {"polymorphic_identity": "response"}
@@ -800,6 +797,10 @@ class Response(Question):
 
     @property
     def metadata(self):
+        """
+        A dictionary of metadata associated with the Response object.
+        Stored in the ``details`` field in the database.
+        """
         return self.details
 
     @metadata.setter
