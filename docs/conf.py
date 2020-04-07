@@ -47,7 +47,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Dallinger utilities'
+project = u'PsyNet'
 copyright = u"2020, Peter Harrison"
 author = u"Peter Harrison"
 
@@ -136,7 +136,7 @@ latex_elements = {
 # [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'psynet.tex',
-     u'Dallinger utilities Documentation',
+     u'PsyNet Documentation',
      u'Peter Harrison', 'manual'),
 ]
 
@@ -147,7 +147,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     (master_doc, 'psynet',
-     u'Dallinger utilities Documentation',
+     u'PsyNet Documentation',
      [author], 1)
 ]
 
@@ -159,7 +159,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'psynet',
-     u'Dallinger utilities Documentation',
+     u'PsyNet Documentation',
      author,
      'psynet',
      'One line description of project.',
