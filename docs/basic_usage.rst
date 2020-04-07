@@ -13,7 +13,7 @@ This can be done by adding the following line:
 
 ::
 
-    git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils
+    git+ssh://git@gitlab.com/computational-audition-lab/psynet
 
 You can also modify this line to specify a particular version to install,
 and to provide authentication to the repository if required;
@@ -23,21 +23,21 @@ In particular, to add your GitLab password, you can do something like this:
 
 ::
 
-    git+https://<username>:<password>@gitlab.com/computational-audition-lab/dlgr-utils#egg=psynet
+    git+https://<username>:<password>@gitlab.com/computational-audition-lab/psynet#egg=psynet
 
 Alternatively, you can create a personal access token (PAT) for your GitLab account 
 with read-only permissions and include it as follows:
 
 ::
 
-    git+https://<pat>@gitlab.com/computational-audition-lab/dlgr-utils#egg=psynet
+    git+https://<pat>@gitlab.com/computational-audition-lab/psynet#egg=psynet
 
 When deploying an experiment, we recommend specifying a particular Git commit in 
 this line, for example:
 
 ::
 
-    git+https://<pat>@gitlab.com/computational-audition-lab/dlgr-utils@<commit_hash>#egg=psynet
+    git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<commit_hash>#egg=psynet
 
 where ``<commit_hash>`` looks something like ``000b14389171a9f0d7d713466b32bc649b0bed8e``
 (you can find this in GitLab or similar).

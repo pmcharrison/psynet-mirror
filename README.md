@@ -1,4 +1,4 @@
-Please refer to the [online documentation](https://computational-audition-lab.gitlab.io/dlgr-utils/).
+Please refer to the [online documentation](https://computational-audition-lab.gitlab.io/psynet/).
 
 # Running tests
 

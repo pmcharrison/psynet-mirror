@@ -14,7 +14,7 @@ need to run the demo or edit the source, you can simply install it with `pip`:
 
 .. code-block:: console
 
-    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/dlgr-utils@dev
+    pip3 install git+ssh://git@gitlab.com/computational-audition-lab/psynet@dev
 
 Note that you must have set up your GitLab SSH keys already.
 Note also that we have seleted the ``dev`` branch here. 
@@ -36,7 +36,7 @@ Choose a location to put your installation, e.g. `~/cap`.
 .. code-block:: console
 
     cd ~/cap
-    git clone -b dev https://gitlab.com/computational-audition-lab/dlgr-utils`
+    git clone -b dev https://gitlab.com/computational-audition-lab/psynet`
 
 Note that we've installed the ``dev`` branch here. You can switch between
 different branches, and even different commits, using Git.
