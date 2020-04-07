@@ -5,7 +5,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-from dlgr_utils.trial.main import Trial
+from psynet.trial.main import Trial
 
 def async_post_trial(trial_id):
     logger.info("Running async_post_trial for trial %i...", trial_id)

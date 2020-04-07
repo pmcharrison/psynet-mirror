@@ -58,7 +58,7 @@ class GibbsTrial(ChainTrial):
         If ``True`` (default), the starting value of the free parameter
         is resampled on each trial. Disable this behaviour
         by setting this parameter to ``False`` in the definition of 
-        the custom :class:`~dlgr_utils.trial.gibbs.GibbsTrial` class.
+        the custom :class:`~psynet.trial.gibbs.GibbsTrial` class.
     
     initial_vector : list
         The starting vector that is presented to the participant
@@ -78,17 +78,17 @@ class GibbsTrial(ChainTrial):
         """
         In the Gibbs sampler, a trial's definition is created by taking the 
         definition from the source
-        :class:`~dlgr_utils.trial.gibbs.GibbsNode`
+        :class:`~psynet.trial.gibbs.GibbsNode`
         and modifying it such that the free parameter has a randomised
         starting value. Note that different trials at the same
-        :class:`~dlgr_utils.trial.gibbs.GibbsNode` will have the same 
+        :class:`~psynet.trial.gibbs.GibbsNode` will have the same 
         free parameters but different starting values for those free parameters.
         
         Parameters
         ----------
         
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -159,7 +159,7 @@ class GibbsNode(ChainNode):
             are provided here.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -192,9 +192,9 @@ class GibbsNode(ChainNode):
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
-        Creates a :class:`~dlgr_utils.trial.gibbs.GibbsNode` definition
-        from the seed passed by the previous :class:`~dlgr_utils.trial.gibbs.GibbsNode`
-        or :class:`~dlgr_utils.trial.gibbs.GibbsSource` in the chain. 
+        Creates a :class:`~psynet.trial.gibbs.GibbsNode` definition
+        from the seed passed by the previous :class:`~psynet.trial.gibbs.GibbsNode`
+        or :class:`~psynet.trial.gibbs.GibbsSource` in the chain. 
         The vector of parameters is preserved from the seed,
         but the 'active index' is increased by 1 modulo the length of the vector, 
         meaning that the next parameter in the vector is chosen as the current free parameter.
@@ -234,14 +234,14 @@ class GibbsSource(ChainSource):
 
     def generate_seed(self, network, experiment, participant):
         """
-        Generates the seed for the :class:`~dlgr_utils.trial.gibbs.GibbsSource`.
+        Generates the seed for the :class:`~psynet.trial.gibbs.GibbsSource`.
         By default the method samples the vector of parameters by repeatedly
-        applying :meth:`~dlgr_utils.trial.gibbs.GibbsNetwork.random_sample`,
+        applying :meth:`~psynet.trial.gibbs.GibbsNetwork.random_sample`,
         and randomly chooses one of these parameters to be the free parameter (``"active_index"``).
         Note that the source itself doesn't receive trials, 
         and the first proper node in the chain will actually have 
         the free parameter after this one (i.e. if there are 5 elements in the vector,
-        and the :class:`~dlgr_utils.trial.gibbs.GibbsSource` has an ``"active_index"`` of 
+        and the :class:`~psynet.trial.gibbs.GibbsSource` has an ``"active_index"`` of 
         2, then the first trials in the chain will have an ``"active_index"`` of 3.
         This method will not normally need to be overridden.
         
@@ -249,14 +249,14 @@ class GibbsSource(ChainSource):
         ----------
         
         network
-            The network with which the :class:`~dlgr_utils.trial.gibbs.GibbsSource` is associated.
+            The network with which the :class:`~psynet.trial.gibbs.GibbsSource` is associated.
     
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         
         participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
             
         Returns
@@ -287,6 +287,6 @@ class GibbsTrialMaker(ChainTrialMaker):
     """
     A TrialMaker class for Gibbs sampler chains;
     see the documentation for 
-    :class:`~dlgr_utils.trial.chain.ChainTrialMaker`
+    :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """

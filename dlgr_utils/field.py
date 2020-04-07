@@ -153,25 +153,25 @@ class VarStore:
 
     **TIP 1:** the standard setter function is unavailable in lambda functions,
     which are otherwise convenient to use when defining e.g. 
-    :class:`~dlgr_utils.timeline.CodeBlock` objects.
-    Use :meth:`dlgr_utils.field.VarStore.set` instead, for example:
+    :class:`~psynet.timeline.CodeBlock` objects.
+    Use :meth:`psynet.field.VarStore.set` instead, for example:
 
     ::
 
-        from dlgr_utils.timeline import CodeBlock
+        from psynet.timeline import CodeBlock
 
         CodeBlock(lambda participant: participant.var.set("my_var", 3))
 
     **TIP 2:** by convention, the ``VarStore`` object is placed in an object's ``var`` slot.
-    The :class:`dlgr_utils.participant.Participant` object comes with one by default
-    (unfortunately the :class:`dlgr_utils.experiment.Experiment` object doesn't, 
+    The :class:`psynet.participant.Participant` object comes with one by default
+    (unfortunately the :class:`psynet.experiment.Experiment` object doesn't, 
     because it is not stored in the database).
     You can add a ``VarStore`` object to a custom object (e.g. a Dallinger ``Node``) as follows:
 
     ::
 
         from dallinger.models import Node
-        from dlgr_utils.field import VarStore
+        from psynet.field import VarStore
 
         class CustomNode(Node):
             __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -315,7 +315,7 @@ class VarStore:
 
     def new(self, name, value):
         """
-        Like :meth:`~dlgr_utils.field.VarStore.set`, except throws 
+        Like :meth:`~psynet.field.VarStore.set`, except throws 
         an error if the variable exists already.
 
         Parameters

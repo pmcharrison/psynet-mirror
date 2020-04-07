@@ -2,10 +2,10 @@
 About
 =====
 
-`dlgr_utils` is an extension of the `Dallinger platform <http://docs.dallinger.io/en/latest/>`_,
+`psynet` is an extension of the `Dallinger platform <http://docs.dallinger.io/en/latest/>`_,
 a powerful framework for automating online data collection through crowdsourcing 
 platforms such as `Amazon Mechanical Turk <https://www.mturk.com/>`_.
-The `dlgr_utils` framework provides an additional level of abstraction above Dallinger,
+The `psynet` framework provides an additional level of abstraction above Dallinger,
 helping users to focus on the control flow of the experiment rather than the details
 of its implementation. Many of its features were inspired by 
 `psychTestR <https://pmcharrison.github.io/psychTestR/>`_, an experiment design
@@ -15,7 +15,7 @@ shared between these two frameworks.
 Development
 -----------
 
-`dlgr_utils` was developed at the 
+`psynet` was developed at the 
 `Max Planck Institute for Empirical Aesthetics <https://www.aesthetics.mpg.de/en>`_
 by Peter Harrison, with help and feedback from other members of Nori Jacoby's 
 `Computational Auditory Perception research group 

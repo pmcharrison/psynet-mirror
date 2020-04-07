@@ -2,4 +2,4 @@
 Conditional statements
 ======================
 
-.. autofunction:: dlgr_utils.timeline.conditional
+.. autofunction:: psynet.timeline.conditional

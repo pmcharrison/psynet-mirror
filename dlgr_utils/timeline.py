@@ -161,9 +161,9 @@ class Page(Event):
     The base class for pages, customised by passing values to the ``__init__`` 
     function and by overriding the following methods:
     
-    * :meth:`~dlgr_utils.timeline.Page.format_answer`
-    * :meth:`~dlgr_utils.timeline.Page.validate`
-    * :meth:`~dlgr_utils.timeline.Page.metadata`
+    * :meth:`~psynet.timeline.Page.format_answer`
+    * :meth:`~psynet.timeline.Page.validate`
+    * :meth:`~psynet.timeline.Page.metadata`
 
     Parameters
     ----------
@@ -281,11 +281,11 @@ class Page(Event):
                The original metadata returned from the participant's browser.
             
             3. ``experiment``: 
-               An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+               An instantiation of :class:`psynet.experiment.Experiment`,
                corresponding to the current experiment.
 
             4. ``participant``:
-               An instantiation of :class:`dlgr_utils.participant.Participant`,
+               An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
                
         Returns
@@ -317,11 +317,11 @@ class Page(Event):
                The metadata returned from the participant's browser.
             
             3. ``experiment``: 
-               An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+               An instantiation of :class:`psynet.experiment.Experiment`,
                corresponding to the current experiment.
 
             4. ``participant``:
-               An instantiation of :class:`dlgr_utils.participant.Participant`,
+               An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
         
         Returns
@@ -337,7 +337,7 @@ class Page(Event):
     def validate(self, response, **kwargs):
         # pylint: disable=unused-argument
         """
-        Takes the :class:`dlgr_utils.timeline.Response` object
+        Takes the :class:`psynet.timeline.Response` object
         created by the page and runs a validation check
         to determine whether the participant may continue to the next page.
 
@@ -345,7 +345,7 @@ class Page(Event):
         ----------
 
         response:
-            An instance of :class:`dlgr_utils.timeline.Response`.
+            An instance of :class:`psynet.timeline.Response`.
             Typically the ``answer`` attribute of this object
             is most useful for validation.
         
@@ -353,19 +353,19 @@ class Page(Event):
             Keyword arguments, including:
             
             1. ``experiment``: 
-               An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+               An instantiation of :class:`psynet.experiment.Experiment`,
                corresponding to the current experiment.
 
             2. ``participant``:
-               An instantiation of :class:`dlgr_utils.participant.Participant`,
+               An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
 
         Returns
         -------
 
-        ``None`` or an object of class :class:`dlgr_utils.timeline.FailedValidation`
+        ``None`` or an object of class :class:`psynet.timeline.FailedValidation`
             On the case of failed validation, an instantiation of 
-            :class:`dlgr_utils.timeline.FailedValidation`
+            :class:`psynet.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
         return None
@@ -407,10 +407,10 @@ class PageMaker(Event):
     function:
         A function that may take up to two arguments, named ``experiment``
         and ``participant``. These arguments correspond to instantiations
-        of the class objects :class:`dlgr_utils.experiment.Experiment`
-        and :class:`dlgr_utils.participant.Participant` respectively.
+        of the class objects :class:`psynet.experiment.Experiment`
+        and :class:`psynet.participant.Participant` respectively.
         The function should return an instance of (or a subclass of)
-        :class:`dlgr_utils.timeline.Page`.
+        :class:`psynet.timeline.Page`.
 
     time_estimate:
         Time estimated to complete the page.
@@ -551,11 +551,11 @@ class EndPage(Page):
         ----------
 
         experiment:
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
 
@@ -741,7 +741,7 @@ class FailedValidation:
 class Response(Question):
     """
     A database-backed object that stores the participant's response to a 
-    :class:`~dlgr_utils.timeline.Page`.
+    :class:`~psynet.timeline.Page`.
     By default, one such object is created each time the participant
     tries to advance to a new page.
     
@@ -900,7 +900,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     -------
 
     list
-        A list of events that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+        A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
 
     start_while = StartWhile(label)
@@ -978,7 +978,7 @@ def switch(
     -------
 
     list
-        A list of events that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+        A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
 
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
@@ -1075,7 +1075,7 @@ def conditional(
     -------
 
     list
-        A list of events that can be embedded in a timeline using :func:`dlgr_utils.timeline.join`.
+        A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
     return switch(
         label, 

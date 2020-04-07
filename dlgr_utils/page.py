@@ -33,7 +33,7 @@ class InfoPage(Page):
         to display raw HTML.
 
     **kwargs:
-        Further arguments to pass to :class:`dlgr_utils.timeline.Page`.
+        Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
     def __init__(
@@ -92,7 +92,7 @@ class NAFCPage(Page):
     """
     This page solicits a multiple-choice response from the participant.
     By default this response is saved in the database as a
-    :class:`dlgr_utils.timeline.Response` object, 
+    :class:`psynet.timeline.Response` object, 
     which can be found in the ``Questions`` table. 
 
     Parameters
@@ -168,7 +168,7 @@ class TextInputPage(Page):
     """
     This page solicits a text response from the user.
     By default this response is saved in the database as a
-    :class:`dlgr_utils.timeline.Response` object, 
+    :class:`psynet.timeline.Response` object, 
     which can be found in the ``Questions`` table. 
 
     Parameters
@@ -235,7 +235,7 @@ class SliderInputPage(Page):
     """
     This page solicits a slider response from the user.
     By default this response is saved in the database as a
-    :class:`dlgr_utils.timeline.Response` object,
+    :class:`psynet.timeline.Response` object,
     which can be found in the ``Questions`` table.
 
     Parameters
@@ -313,9 +313,9 @@ class SliderInputPage(Page):
 
 class NumberInputPage(TextInputPage):
     """
-    This page is like :class:`dlgr_utils.timeline.TextInputPage`,
+    This page is like :class:`psynet.timeline.TextInputPage`,
     except it forces the user to input a number.
-    See :class:`dlgr_utils.timeline.TextInputPage` for argument documentation.
+    See :class:`psynet.timeline.TextInputPage` for argument documentation.
     """
 
     def format_answer(self, raw_answer, **kwargs):

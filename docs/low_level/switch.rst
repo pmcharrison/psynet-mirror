@@ -2,4 +2,4 @@
 Switch statements
 =================
 
-.. autofunction:: dlgr_utils.timeline.switch
+.. autofunction:: psynet.timeline.switch

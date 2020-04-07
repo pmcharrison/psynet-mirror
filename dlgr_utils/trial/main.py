@@ -50,11 +50,11 @@ class Trial(Info):
     Represents a trial in the experiment. 
     The user is expected to override the following methods:
 
-    * :meth:`~dlgr_utils.trial.main.Trial.make_definition`,
+    * :meth:`~psynet.trial.main.Trial.make_definition`,
       responsible for deciding on the content of the trial.
-    * :meth:`~dlgr_utils.trial.main.Trial.show_trial`,
+    * :meth:`~psynet.trial.main.Trial.show_trial`,
       determines how the trial is turned into a webpage for presentation to the participant.
-    * :meth:`~dlgr_utils.trial.main.Trial.show_feedback`,
+    * :meth:`~psynet.trial.main.Trial.show_feedback`,
       defines an optional feedback page to be displayed after the trial.
 
     This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
@@ -73,7 +73,7 @@ class Trial(Info):
     ----------
     
     experiment:
-        An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+        An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
         
     node:
@@ -89,7 +89,7 @@ class Trial(Info):
         because most people are using more complex designs.
 
     participant:
-        An instantiation of :class:`dlgr_utils.participant.Participant`,
+        An instantiation of :class:`psynet.participant.Participant`,
         corresponding to the current participant.
         
     propagate_failure : bool
@@ -135,8 +135,8 @@ class Trial(Info):
         The number of pages that this trial comprises.
         Defaults to 1; override it for trials comprising multiple pages.
 
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
     definition : Object
         An arbitrary Python object that somehow defines the content of 
@@ -144,7 +144,7 @@ class Trial(Info):
         named parameters.
         The user should not typically change this directly,
         as it is instead determined by 
-        :meth:`~dlgr_utils.trial.main.Trial.make_definition`.
+        :meth:`~psynet.trial.main.Trial.make_definition`.
 
     """
     # pylint: disable=unused-argument
@@ -218,33 +218,33 @@ class Trial(Info):
         ----------
 
         experiment:
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
         raise NotImplementedError
 
     def show_trial(self, experiment, participant):
         """
-        Returns a :class:`~dlgr_utils.timeline.Page` object,
+        Returns a :class:`~psynet.timeline.Page` object,
         or alternatively a list of such objects, 
         that solicits an answer from the participant.
         If this method returns a list, then this list must have
-        a length equal to the :attr:`~dlgr_utils.trial.main.Trial.num_pages`
+        a length equal to the :attr:`~psynet.trial.main.Trial.num_pages`
         attribute.
 
         Parameters 
         ----------
 
         experiment:
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
         raise NotImplementedError
@@ -258,11 +258,11 @@ class Trial(Info):
         ----------
 
         experiment:
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
         return None
@@ -282,36 +282,36 @@ class TrialMaker(Module):
 
     Users are invited to override the following abstract methods/attributes:
 
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.prepare_trial`, 
+    * :meth:`~psynet.trial.main.TrialMaker.prepare_trial`, 
       which prepares the next trial to administer to the participant.
     
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.experiment_setup_routine`
+    * :meth:`~psynet.trial.main.TrialMaker.experiment_setup_routine`
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
     
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.init_participant`
+    * :meth:`~psynet.trial.main.TrialMaker.init_participant`
       (optional), a function that is run when the participant begins 
       this sequence of trials, intended to initialise the participant's state.
       Make sure you call ``super().init_participant`` when overriding this.
     
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.finalise_trial`
+    * :meth:`~psynet.trial.main.TrialMaker.finalise_trial`
       (optional), which finalises the trial after the participant 
       has given their response.
     
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.on_complete`
+    * :meth:`~psynet.trial.main.TrialMaker.on_complete`
       (optional), run once the the sequence of trials is complete.
     
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`
+    * :meth:`~psynet.trial.main.TrialMaker.performance_check`
       (optional), which checks the performance of the participant 
       with a view to rejecting poor-performing participants.
     
-    * :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`
+    * :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`
       (optional), which is used to estimate how many more participants are 
       still required in the case that ``recruit_mode="num_trials"``.
     
     Users are also invited to add new recruitment criteria for selection with
     the ``recruit_mode`` argument. This may be achieved using a custom subclass
-    of :class:`~dlgr_utils.trial.main.TrialMaker` as follows:
+    of :class:`~psynet.trial.main.TrialMaker` as follows:
 
     ::
 
@@ -328,8 +328,8 @@ class TrialMaker(Module):
             }
 
     With the above code, you'd then be able to use ``recruit_mode="new_recruit"``.
-    If you're subclassing a subclass of :class:`~dlgr_utils.trial.main.TrialMaker`,
-    then just replace that subclass wherever :class:`~dlgr_utils.trial.main.TrialMaker`
+    If you're subclassing a subclass of :class:`~psynet.trial.main.TrialMaker`,
+    then just replace that subclass wherever :class:`~psynet.trial.main.TrialMaker`
     occurs in the above code.
 
     Parameters 
@@ -374,7 +374,7 @@ class TrialMaker(Module):
         Selects a recruitment criterion for determining whether to recruit 
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``, though the latter requires overriding of 
-        :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`.
+        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
     target_num_participants
         Target number of participants to recruit for the experiment. All 
@@ -393,7 +393,7 @@ class TrialMaker(Module):
         How long until a trial times out, in seconds (default = 60). 
         Tthis is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~dlgr_utils.trial.main.TrialMaker.trial_timeout_sec`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.trial_timeout_sec`.
         Users are invited to override this.
     """
 
@@ -468,19 +468,19 @@ class TrialMaker(Module):
         ----------
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
 
 
         Returns
         _______
 
-        :class:`~dlgr_utils.trial.main.Trial`
-            A :class:`~dlgr_utils.trial.main.Trial` object representing the trial
+        :class:`~psynet.trial.main.Trial`
+            A :class:`~psynet.trial.main.Trial` object representing the trial
             to be taken by the participant.
         """
         raise NotImplementedError
@@ -497,7 +497,7 @@ class TrialMaker(Module):
         ----------
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         """
@@ -615,11 +615,11 @@ class TrialMaker(Module):
         ----------
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
         self.init_num_completed_trials_in_phase(participant)
@@ -633,11 +633,11 @@ class TrialMaker(Module):
         ----------
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
 
@@ -657,14 +657,14 @@ class TrialMaker(Module):
             The ``answer`` object provided by the trial.
 
         trial
-            The :class:`~dlgr_utils.trial.main.Trial` object representing the trial.
+            The :class:`~psynet.trial.main.Trial` object representing the trial.
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
         trial.answer = answer
@@ -682,11 +682,11 @@ class TrialMaker(Module):
         ----------
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
 
         participant_trials
@@ -721,12 +721,12 @@ class TrialMaker(Module):
         """
         Determines the timeline logic for when a participant fails
         the performance check.
-        By default, the participant is shown an :class:`~dlgr_utils.timeline.UnsuccessfulEndPage`.
+        By default, the participant is shown an :class:`~psynet.timeline.UnsuccessfulEndPage`.
 
         Returns
         -------
 
-        An event (:class:`~dlgr_utils.timeline.Event`) or a list of events.
+        An event (:class:`~psynet.timeline.Event`) or a list of events.
         """
         return join(
             UnsuccessfulEndPage(failure_tags=["performance_check"])
@@ -765,7 +765,7 @@ class TrialMaker(Module):
         ----------
 
         participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
 
         """
@@ -888,22 +888,22 @@ class NetworkTrialMaker(TrialMaker):
     respond to the trials that have been submitted previously.
 
     The present class facilitates this behaviour by providing
-    a built-in :meth:`~dlgr_utils.trial.main.TrialMaker.prepare_trial`
+    a built-in :meth:`~psynet.trial.main.TrialMaker.prepare_trial`
     implementation that comprises the following steps:
 
     1. Find the available networks from which to source the next trial,
        ordered by preference
-       (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`).
+       (:meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`).
        These may be created on demand, or alternatively pre-created by
-       :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.experiment_setup_routine`.
+       :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`.
     2. Give these networks an opportunity to grow (i.e. update their structure
        based on the trials that they've received so far)
-       (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`).
+       (:meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`).
     3. Iterate through these networks, and find the first network that has a 
        node available for the participant to attach to.
-       (:meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_node`).
+       (:meth:`~psynet.trial.main.NetworkTrialMaker.find_node`).
     4. Create a trial from this node
-       (:meth:`dlgr_utils.trial.main.Trial.__init__`).
+       (:meth:`psynet.trial.main.Trial.__init__`).
     
     The trial is then administered to the participant, and a response elicited.
     Once the trial is finished, the network is given another opportunity to grow.
@@ -919,19 +919,19 @@ class NetworkTrialMaker(TrialMaker):
     
     The user is expected to override the following abstract methods/attributes:
     
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.experiment_setup_routine`, 
+    * :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`, 
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
       
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_networks`,
+    * :meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`,
       which finds the available networks from which to source the next trial,
       ordered by preference.
     
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network`,
+    * :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`,
       which give these networks an opportunity to grow (i.e. update their structure
       based on the trials that they've received so far).
     
-    * :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.find_node`,
+    * :meth:`~psynet.trial.main.NetworkTrialMaker.find_node`,
       which takes a given network and finds a node which the participant can 
       be attached to, if one exists.
       
@@ -945,7 +945,7 @@ class NetworkTrialMaker(TrialMaker):
         
     network_class
         The class object for the networks used by this maker.
-        This should subclass :class`~dlgr_utils.trial.main.TrialNetwork`.
+        This should subclass :class`~psynet.trial.main.TrialNetwork`.
 
     phase
         Arbitrary label for this phase of the experiment, e.g.
@@ -983,7 +983,7 @@ class NetworkTrialMaker(TrialMaker):
         Selects a recruitment criterion for determining whether to recruit 
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``, though the latter requires overriding of 
-        :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`.
+        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
     target_num_participants
         Target number of participants to recruit for the experiment. All 
@@ -994,7 +994,7 @@ class NetworkTrialMaker(TrialMaker):
     async_post_trial
         Optional function to be run after a trial is completed by the participant.
         This should be specified as a fully qualified string, for example
-        ``"dlgr_utils.trial.async_example.async_update_trial"``.
+        ``"psynet.trial.async_example.async_update_trial"``.
         This function should take one argument, ``trial_id``, corresponding to the
         ID of the relevant trial to process.
         ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
@@ -1002,21 +1002,21 @@ class NetworkTrialMaker(TrialMaker):
         once it is finished. It is also responsible for committing to the database
         using ``db.session.commit()`` once processing is complete
         (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``dlgr_utils.trial.async_example.async_update_trial``
+        See the source code for ``psynet.trial.async_example.async_update_trial``
         for an example.
         
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
-        :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
+        :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
         This should be specified as a fully qualified string, for example
-        ``dlgr_utils.trial.async_example.async_update_network``.
+        ``psynet.trial.async_example.async_update_network``.
         This function should take one argument, ``network_id``, corresponding to the
         ID of the relevant network to process.
         ``network.awaiting_process`` is set to ``True`` when the asynchronous process is
         initiated; the present method is responsible for setting ``network.awaiting_process = False``
         once it is finished, and for committing to the database
         using ``db.session.commit()`` (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``dlgr_utils.trial.async_example.async_update_trial``
+        See the source code for ``psynet.trial.async_example.async_update_trial``
         for a relevant example (for processing trials, not networks).
 
     Attributes
@@ -1030,7 +1030,7 @@ class NetworkTrialMaker(TrialMaker):
         How long until a trial times out, in seconds (default = 60). 
         Tthis is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~dlgr_utils.trial.main.TrialMaker.trial_timeout_sec`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.trial_timeout_sec`.
         Users are invited to override this.
         
     network_query
@@ -1059,7 +1059,7 @@ class NetworkTrialMaker(TrialMaker):
         propagate_failure,
         recruit_mode,
         target_num_participants,
-        async_post_trial: Optional[str] = None, # this should be a string, for example "dlgr_utils.trial.async_example.async_update_network"
+        async_post_trial: Optional[str] = None, # this should be a string, for example "psynet.trial.async_example.async_update_network"
         async_post_grow_network: Optional[str] = None
     ):
         super().__init__(
@@ -1106,11 +1106,11 @@ class NetworkTrialMaker(TrialMaker):
         ----------
         
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         """
         raise NotImplementedError
@@ -1127,11 +1127,11 @@ class NetworkTrialMaker(TrialMaker):
             The network to be potentially extended.
         
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         """
         raise NotImplementedError
@@ -1147,11 +1147,11 @@ class NetworkTrialMaker(TrialMaker):
             The network to be potentially extended.
         
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         """
         raise NotImplementedError
@@ -1204,8 +1204,8 @@ class NetworkTrialMaker(TrialMaker):
 
 class TrialNetwork(Network):
     """
-    A network class to be used by :class:`~dlgr_utils.trial.main.NetworkTrialMaker`.
-    The user must override the abstract method :meth:`~dlgr_utils.trial.main.TrialNetwork.add_node`.
+    A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
+    The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
     
     Parameters
     ----------
@@ -1224,7 +1224,7 @@ class TrialNetwork(Network):
         "practice", "train", "test".
     
     experiment
-        An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+        An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
         
     Attributes
@@ -1263,8 +1263,8 @@ class TrialNetwork(Network):
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes).
         
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
         
         
     """

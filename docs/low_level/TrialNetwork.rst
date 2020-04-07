@@ -2,5 +2,5 @@
 TrialNetwork
 ============
 
-.. autoclass:: dlgr_utils.trial.main.TrialNetwork
+.. autoclass:: psynet.trial.main.TrialNetwork
     :members:

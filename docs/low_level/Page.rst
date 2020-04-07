@@ -2,10 +2,10 @@
 Page
 ====
 
-.. autoclass:: dlgr_utils.timeline.Page
+.. autoclass:: psynet.timeline.Page
     :members:
 
-.. automodule:: dlgr_utils.page
+.. automodule:: psynet.page
     :members:
     :show-inheritance:
     

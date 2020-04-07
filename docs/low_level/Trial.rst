@@ -2,5 +2,5 @@
 Trial
 =====
 
-.. autoclass:: dlgr_utils.trial.main.Trial
+.. autoclass:: psynet.trial.main.Trial
     :members:

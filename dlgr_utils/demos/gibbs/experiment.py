@@ -13,10 +13,10 @@ import time
 
 from dallinger import db
 
-import dlgr_utils.experiment
-from dlgr_utils.field import claim_field
-from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.timeline import (
+import psynet.experiment
+from psynet.field import claim_field
+from psynet.participant import Participant, get_participant
+from psynet.timeline import (
     Page, 
     Timeline,
     PageMaker, 
@@ -26,14 +26,14 @@ from dlgr_utils.timeline import (
     switch,
     FailedValidation
 )
-from dlgr_utils.page import (
+from psynet.page import (
     InfoPage, 
     SuccessfulEndPage, 
     NAFCPage, 
     NumberInputPage
 )
-from dlgr_utils.trial.chain import ChainNetwork
-from dlgr_utils.trial.gibbs import (
+from psynet.trial.chain import ChainNetwork
+from psynet.trial.gibbs import (
     GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
 
@@ -142,8 +142,8 @@ trial_maker = GibbsTrialMaker(
     target_num_participants=10,
     # Uncomment the following two lines if you want to experiment 
     # with asynchronous processing.
-    # async_post_trial="dlgr_utils.demos.gibbs.experiment.async_post_trial",
-    # async_post_grow_network="dlgr_utils.demos.gibbs.experiment.async_post_grow_network"
+    # async_post_trial="psynet.demos.gibbs.experiment.async_post_trial",
+    # async_post_grow_network="psynet.demos.gibbs.experiment.async_post_grow_network"
 )
 
 # The following two functions are only necessary if you want to experiment 
@@ -166,10 +166,10 @@ def async_post_grow_network(network_id):
 #### Experiment
 ##########################################################################################
 
-# Weird bug: if you instead import Experiment from dlgr_utils.experiment,
+# Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
-class Exp(dlgr_utils.experiment.Experiment):
+class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         trial_maker,
         InfoPage("You finished the experiment!", time_estimate=0),
