@@ -36,7 +36,7 @@ You can define a custom MCMCP experiment through the following steps:
    :meth:`~dlgr_utils.trial.mcmcp.MCMCPTrial.show_trial` method.
    This :meth:`~dlgr_utils.trial.mcmcp.MCMCPTrial.show_trial` method
    should produce an object of 
-   class :class:`~dlgr_utils.timeline.ResponsePage` [1]_
+   class :class:`~dlgr_utils.timeline.Page` [1]_
    that presents two stimuli in order, defined respectively by the free parameters
    stored in :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.first_stimulus`
    and :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.second_stimulus`,
@@ -46,7 +46,7 @@ You can define a custom MCMCP experiment through the following steps:
    automatically randomised in advance,
    such that :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.first_stimulus`
    may correspond either to the current state or to the proposal.
-   The :class:`~dlgr_utils.timeline.ResponsePage` object should return an answer
+   The :class:`~dlgr_utils.timeline.Page` object should return an answer
    of ``0`` (or equivalently ``"0"``) if the participant selected the first stimulus in the pair,
    and ``1`` (or equivalently ``"1"``) if they selected the second stimulus in the pair.
    
@@ -87,7 +87,7 @@ for more details.
    :attr:`dlgr_utils.participant.Participant.answer` attribute
    is set with the appropriate answer during this sequence.
    One way of achieving this is by including a 
-   :class:`~dlgr_utils.timeline.ResponsePage` object in the event sequence.
+   :class:`~dlgr_utils.timeline.Page` object in the event sequence.
    The user must also set the prespecify the number of pages in the 
    :attr:`~dlgr_utils.trial.mcmcp.MCMCPTrial.num_pages` attribute.
 

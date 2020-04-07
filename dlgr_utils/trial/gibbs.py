@@ -144,7 +144,7 @@ class GibbsNode(ChainNode):
         assert len(set(x)) == 1
         return x[0]
 
-    def summarise_trials(self, trials, experiment, participant):
+    def summarise_trials(self, trials: list, experiment, participant):
         """
         This method summarises the answers to the provided trials.
         The default method averages over all the provided parameter vectors,

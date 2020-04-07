@@ -43,6 +43,8 @@ class InfoPage(Page):
         title: Optional[Union[str, Markup]] = None,
         **kwargs
     ):
+        self.content = content
+        self.title = title
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
@@ -52,6 +54,12 @@ class InfoPage(Page):
             },
             **kwargs
         )
+        
+    def metadata(self, **kwargs):
+        return {
+            "title": self.title,
+            "content": self.content
+        }
         
 class SuccessfulEndPage(EndPage):
     """
@@ -148,7 +156,7 @@ class NAFCPage(Page):
             }
         )
 
-    def extra_metadata(self, **kwargs):
+    def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt,
@@ -217,7 +225,7 @@ class TextInputPage(Page):
             }
         )
 
-    def extra_metadata(self, **kwargs):
+    def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt
@@ -297,7 +305,7 @@ class SliderInputPage(Page):
             }
         )
     
-    def extra_metadata(self, **kwargs):
+    def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt

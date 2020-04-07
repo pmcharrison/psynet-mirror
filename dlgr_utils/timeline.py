@@ -163,7 +163,7 @@ class Page(Event):
     
     * :meth:`~dlgr_utils.timeline.Page.format_answer`
     * :meth:`~dlgr_utils.timeline.Page.validate`
-    * :meth:`~dlgr_utils.timeline.Page.extra_metadata`
+    * :meth:`~dlgr_utils.timeline.Page.metadata`
 
     Parameters
     ----------
@@ -235,7 +235,7 @@ class Page(Event):
             experiment=experiment, 
             participant=participant
         )
-        extra_metadata = self.extra_metadata(
+        extra_metadata = self.metadata(
             metadata=metadata, 
             raw_answer=raw_answer,
             answer=answer,
@@ -250,14 +250,18 @@ class Page(Event):
             page_type=type(self).__name__,
             metadata=combined_metadata
         )
-        participant.answer = resp.answer
         experiment.session.add(resp)
+        experiment.save()
+        
+        participant.answer = resp.answer
+        participant.last_response_id = resp.id
+        
         experiment.save()
         return resp
         
-    def extra_metadata(self, **kwargs):
+    def metadata(self, **kwargs):
         """
-        Compiles additional metadata about the page or its response from the participant.
+        Compiles metadata about the page or its response from the participant.
         This metadata will be merged with the default metadata object returned
         from the browser, with any duplicate terms overwritten.
         
