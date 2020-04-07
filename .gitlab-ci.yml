@@ -17,4 +17,4 @@ pages:
     - public
     - public/low_level
   only:
-  - dev
+  - master
