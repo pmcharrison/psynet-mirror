@@ -24,8 +24,7 @@ from dlgr_utils.timeline import (
     while_loop, 
     conditional, 
     switch,
-    FailedValidation,
-    ResponsePage
+    FailedValidation
 )
 from dlgr_utils.page import (
     InfoPage, 
@@ -47,7 +46,7 @@ import rpdb
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
 
-class ColorSliderPage(ResponsePage): 
+class ColorSliderPage(Page): 
     def __init__(
         self,
         label: str,
@@ -73,12 +72,12 @@ class ColorSliderPage(ResponsePage):
                 "blue": starting_values[2]
             }
         )
-    def compile_details(self, response, answer, metadata, experiment, participant):
-        # pylint: disable=unused-argument
+    
+    def metadata(self, **kwargs):
         return {
             "prompt": self.prompt,
             "selected": self.selected,
-            "initial_values": self.starting_values
+            "starting_values": self.starting_values
         }
 
 class CustomNetwork(GibbsNetwork):

@@ -10,7 +10,6 @@ from .timeline import(
     get_template,
     Page,
     EndPage,
-    ResponsePage,
     FailedValidation  
 )
 
@@ -44,6 +43,8 @@ class InfoPage(Page):
         title: Optional[Union[str, Markup]] = None,
         **kwargs
     ):
+        self.content = content
+        self.title = title
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
@@ -53,6 +54,12 @@ class InfoPage(Page):
             },
             **kwargs
         )
+        
+    def metadata(self, **kwargs):
+        return {
+            "title": self.title,
+            "content": self.content
+        }
         
 class SuccessfulEndPage(EndPage):
     """
@@ -81,7 +88,7 @@ class UnsuccessfulEndPage(EndPage):
             participant.append_failure_tags(*self.failure_tags)
         experiment.fail_participant(participant)
 
-class NAFCPage(ResponsePage):
+class NAFCPage(Page):
     """
     This page solicits a multiple-choice response from the participant.
     By default this response is saved in the database as a
@@ -149,7 +156,7 @@ class NAFCPage(ResponsePage):
             }
         )
 
-    def compile_details(self, response, answer, metadata, experiment, participant):
+    def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt,
@@ -157,7 +164,7 @@ class NAFCPage(ResponsePage):
             "labels": self.labels
         }
 
-class TextInputPage(ResponsePage):
+class TextInputPage(Page):
     """
     This page solicits a text response from the user.
     By default this response is saved in the database as a
@@ -218,13 +225,13 @@ class TextInputPage(ResponsePage):
             }
         )
 
-    def compile_details(self, response, answer, metadata, experiment, participant):
+    def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt
         }
 
-class SliderInputPage(ResponsePage):
+class SliderInputPage(Page):
     """
     This page solicits a slider response from the user.
     By default this response is saved in the database as a
@@ -298,7 +305,7 @@ class SliderInputPage(ResponsePage):
             }
         )
     
-    def compile_details(self, response, answer, metadata, experiment, participant):
+    def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt
@@ -311,14 +318,14 @@ class NumberInputPage(TextInputPage):
     See :class:`dlgr_utils.timeline.TextInputPage` for argument documentation.
     """
 
-    def format_answer(self, answer, metadata, experiment, participant):
+    def format_answer(self, raw_answer, **kwargs):
         try:
-            return float(answer)
+            return float(raw_answer)
         except ValueError:
             return "INVALID_RESPONSE"
 
-    def validate(self, parsed_response, experiment, participant):
-        if parsed_response.answer == "INVALID_RESPONSE":
+    def validate(self, response, **kwargs):
+        if response.answer == "INVALID_RESPONSE":
             return FailedValidation("Please enter a number.")
         return None
 

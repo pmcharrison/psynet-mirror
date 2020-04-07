@@ -29,9 +29,7 @@
     <script>
         submit = function() {
             $(".submit-response").attr('disabled',true);
-            next_page({
-                "answer": document.getElementById("formControlRange").value
-            });
+            next_page(document.getElementById("formControlRange").value);
         }
     </script>
 {% endblock %}

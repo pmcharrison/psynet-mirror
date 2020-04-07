@@ -78,7 +78,7 @@ Implementing a non-adaptive experiment in this framework comprises the following
    :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial.show_trial` method.
    This :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial.show_trial` method
    should produce an object of 
-   class :class:`~dlgr_utils.timeline.ResponsePage` [1]_
+   class :class:`~dlgr_utils.timeline.Page` [1]_
    that administers the stimulus to the participant. 
    Through ``trial.definition``, this method has access to the underlying definition
    of the selected stimulus: this definition takes the form of a 
@@ -86,7 +86,7 @@ Implementing a non-adaptive experiment in this framework comprises the following
    :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` definition
    and from the relevant :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
    definition.
-   This resulting :class:`~dlgr_utils.timeline.ResponsePage` object should
+   This resulting :class:`~dlgr_utils.timeline.Page` object should
    elicit an answer representing the participant's response to the stimulus.
    
 4. (Optional) Implement a 
@@ -108,11 +108,8 @@ for more details.
 
 .. [1] The :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial.show_trial` method
    may alternatively return a list of :class:`~dlgr_utils.timeline.Page` objects.
-   In this case, the user is responsible for ensuring that the 
-   :attr:`dlgr_utils.participant.Participant.answer` attribute
-   is set with the appropriate answer during this sequence.
-   One way of achieving this is by including a 
-   :class:`~dlgr_utils.timeline.ResponsePage` object in the event sequence.
+   In this case, the user is responsible for ensuring that the final
+   page returns the appropriate ``answer``.
    The user must also set the prespecify the number of pages in the 
    :attr:`~dlgr_utils.trial.NonAdaptiveTrial.num_pages` attribute.
 

@@ -2,7 +2,7 @@
 
 import dallinger.models
 from . import field
-from .field import VarStore, UndefinedVariableError, claim_var
+from .field import VarStore, claim_var
 import json
 import os
 
@@ -98,6 +98,7 @@ class Participant(dallinger.models.Participant):
     branch_log = field.claim_field(5, list)
 
     failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
+    last_response_id = claim_var("last_response_id")
 
     def set_answer(self, value):
         self.answer = value

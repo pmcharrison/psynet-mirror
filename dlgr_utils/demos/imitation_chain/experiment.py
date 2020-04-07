@@ -50,17 +50,17 @@ import rpdb
 class FixedDigitInputPage(TextInputPage):
     num_digits = 7
 
-    def format_answer(self, answer, metadata, experiment, participant):
+    def format_answer(self, raw_answer, **kwargs):
         try:
             pattern = re.compile("^[0-9]*$")
-            assert len(answer) == self.num_digits
-            assert pattern.match(answer)
-            return int(answer)
+            assert len(raw_answer) == self.num_digits
+            assert pattern.match(raw_answer)
+            return int(raw_answer)
         except (ValueError, AssertionError):
             return "INVALID_RESPONSE"
 
-    def validate(self, parsed_response, experiment, participant, **kwargs):
-        if parsed_response.answer == "INVALID_RESPONSE":
+    def validate(self, response, **kwargs):
+        if response.answer == "INVALID_RESPONSE":
             return FailedValidation("Please enter a 7-digit number.")
         return None
 
@@ -84,7 +84,7 @@ class CustomNetwork(ImitationChainNetwork):
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials, participant, experiment):
+    def summarise_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
 
 class CustomSource(ImitationChainSource):

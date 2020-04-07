@@ -157,6 +157,7 @@ class Trial(Info):
     awaiting_process = claim_field(4, bool)
 
     propagate_failure = claim_var("propagate_failure")
+    response_id = claim_var("response_id")
 
     # Override this if you intend to return multiple pages
     num_pages = 1
@@ -668,6 +669,7 @@ class TrialMaker(Module):
         """
         trial.answer = answer
         trial.complete = True
+        trial.response_id = participant.last_response_id
         self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):

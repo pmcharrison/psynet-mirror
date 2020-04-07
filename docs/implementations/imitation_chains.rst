@@ -39,10 +39,10 @@ You can define a custom imitation-chain experiment through the following steps:
    as well as the value of the network's fixed parameters
    (stored in :attr:`~dlgr_utils.trial.imitation_chain.ImitationChainNetwork.definition`)
    and produce an object of 
-   class :class:`~dlgr_utils.timeline.ResponsePage`. [1]_
-   This :class:`~dlgr_utils.timeline.ResponsePage` object should elicit an answer
+   class :class:`~dlgr_utils.timeline.Page`. [1]_
+   This :class:`~dlgr_utils.timeline.Page` object should elicit an answer
    representing the participant's imitation attempt
-   (see the :meth:`~dlgr_utils.timeline.ResponsePage.format_answer` method 
+   (see the :meth:`~dlgr_utils.timeline.Page.format_answer` method 
    if you need to postprocess this answer).
    
 4. (Optional) Implement a subclass of 
@@ -77,11 +77,8 @@ for more details.
 
 .. [1] The :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.show_trial` method
    may alternatively return a list of :class:`~dlgr_utils.timeline.Page` objects.
-   In this case, the user is responsible for ensuring that the 
-   :attr:`dlgr_utils.participant.Participant.answer` attribute
-   is set with the appropriate answer during this sequence.
-   One way of achieving this is by including a 
-   :class:`~dlgr_utils.timeline.ResponsePage` object in the event sequence.
+   In this case, the user is responsible for ensuring that the final
+   page returns the appropriate ``answer``.
    The user must also set the prespecify the number of pages in the 
    :attr:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.num_pages` attribute.
 

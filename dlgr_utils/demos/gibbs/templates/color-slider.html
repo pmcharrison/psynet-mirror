@@ -82,9 +82,7 @@
         }, false);
 
         submit = function() {
-            next_page({
-                "answer": parseInt(document.getElementById("{{ selected }}").value)
-            });
+            next_page(parseInt(document.getElementById("{{ selected }}").value));
         }
 
         window.onload = function() {
