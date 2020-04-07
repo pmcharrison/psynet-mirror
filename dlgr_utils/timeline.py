@@ -690,7 +690,7 @@ class ResponsePage(Page):
             question_label=self.label, 
             answer=answer,
             page_type=type(self).__name__,
-            time_taken=metadata["time_taken"],
+            metadata=metadata,
             details=self.compile_details(response, answer, metadata, experiment, participant)
         )
         participant.answer = resp.answer
@@ -706,11 +706,11 @@ class Response(Question):
     __mapper_args__ = {"polymorphic_identity": "response"}
 
     answer = claim_field(1)
-    time_taken = claim_field(2, float)
+    metadata = claim_field(2)
     page_type = claim_field(3, str)
     successful_validation = claim_field(4, bool)
 
-    def __init__(self, participant, question_label, answer, page_type, time_taken, details):
+    def __init__(self, participant, question_label, answer, page_type, metadata, details):
         super().__init__(
             participant=participant,
             question=question_label,
@@ -719,7 +719,7 @@ class Response(Question):
         )
         self.answer = answer
         self.details = details
-        self.time_taken = time_taken
+        self.metadata = metadata
         self.page_type = page_type
 
 def is_list_of_events(x: list):
