@@ -27,13 +27,13 @@ class Participant(dallinger.models.Participant):
 
     The following attributes are recommended for external use:
 
-    * :attr:`~dlgr_utils.participant.Participant.answer`
-    * :attr:`~dlgr_utils.participant.Participant.var`
-    * :attr:`~dlgr_utils.participant.Participant.failure_tags`
+    * :attr:`~psynet.participant.Participant.answer`
+    * :attr:`~psynet.participant.Participant.var`
+    * :attr:`~psynet.participant.Participant.failure_tags`
 
     The following method is recommended for external use:
 
-    * :meth:`~dlgr_utils.participant.Participant.append_failure_tags`
+    * :meth:`~psynet.participant.Participant.append_failure_tags`
 
     See below for more details.
 
@@ -58,7 +58,7 @@ class Participant(dallinger.models.Participant):
     complete : bool
         Whether the participant has successfully completed the experiment.
         A participant is considered to have successfully completed the experiment
-        once they hit a :class:`~dlgr_utils.timeline.SuccessfulEndPage`.
+        once they hit a :class:`~psynet.timeline.SuccessfulEndPage`.
         Should not be modified directly.
         Stored in the database as ``property3``.
 
@@ -79,11 +79,11 @@ class Participant(dallinger.models.Participant):
         the experiment (if any). For example, if a participant fails 
         a microphone pre-screening test, one might add "failed_mic_test"
         to this tag list.
-        Should be modified using the method :meth:`~dlgr_utils.participant.Participant.append_failure_tags`.
+        Should be modified using the method :meth:`~psynet.participant.Participant.append_failure_tags`.
         Stored in the database as part of the ``details`` field.
 
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
     progress : float [0 <= x <= 1]
         The participant's estimated progress through the experiment.
@@ -142,7 +142,7 @@ class Participant(dallinger.models.Participant):
         """
         Appends tags to the participant's list of failure tags.
         Duplicate tags are ignored.
-        See :attr:`~dlgr_utils.participant.Participant.failure_tags` for details.
+        See :attr:`~psynet.participant.Participant.failure_tags` for details.
 
         Parameters
         ----------
@@ -153,7 +153,7 @@ class Participant(dallinger.models.Participant):
         Returns 
         -------
 
-        :class:`dlgr_utils.participant.Participant`
+        :class:`psynet.participant.Participant`
             The updated ``Participant`` object.
 
         """
@@ -176,7 +176,7 @@ def get_participant(participant_id: int):
     Returns
     -------
 
-    :class:`dlgr_utils.participant.Participant`
+    :class:`psynet.participant.Participant`
         The requested participant.
     """
     return Participant.query.filter_by(id=participant_id).one()

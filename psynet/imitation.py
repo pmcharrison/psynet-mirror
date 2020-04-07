@@ -1,4 +1,4 @@
-import dlgr_utils.experiment
+import psynet.experiment
 
 from .participant import Participant, get_participant
 from .timeline import (
@@ -70,7 +70,7 @@ class Item():
 
 # )
 
-# class Experiment(dlgr_utils.experiment.Experiment):
+# class Experiment(psynet.experiment.Experiment):
 #     timeline = Timeline(
 
 #     )

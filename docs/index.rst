@@ -1,4 +1,4 @@
-Documentation
+PsyNet Documentation
 ==============================================
 
 .. toctree::

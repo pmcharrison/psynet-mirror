@@ -2,5 +2,5 @@
 ChainTrialMaker
 ===============
 
-.. autoclass:: dlgr_utils.trial.chain.ChainTrialMaker
+.. autoclass:: psynet.trial.chain.ChainTrialMaker
     :members:

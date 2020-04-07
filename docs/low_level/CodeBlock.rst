@@ -2,4 +2,4 @@
 CodeBlock
 =========
 
-.. autoclass:: dlgr_utils.timeline.CodeBlock
+.. autoclass:: psynet.timeline.CodeBlock

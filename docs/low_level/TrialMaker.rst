@@ -2,6 +2,6 @@
 TrialMaker
 ==========
 
-.. autoclass:: dlgr_utils.trial.main.TrialMaker
+.. autoclass:: psynet.trial.main.TrialMaker
     :members:
     :show-inheritance:

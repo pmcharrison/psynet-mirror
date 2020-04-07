@@ -17,7 +17,7 @@ when the participant's web page loads.
 `Code blocks`_ contain server logic that is executed in between pages, 
 for example to assign the participant to a group or to save the participant's data.
 
-All these events are defined as ``dlgr_utils`` classes inheriting from
+All these events are defined as ``psynet`` classes inheriting from
 `Event`, the generic event object.
 Pages correspond to the `Page` class;
 page makers correspond to the `PageMaker` class;
@@ -26,7 +26,7 @@ These different events may be created using their constructor functions, e.g.:
 
 ::
 
-    from dlgr_utils.timeline import CodeBlock
+    from psynet.timeline import CodeBlock
 
     CodeBlock(lambda participant, experiment: participant.var.score = 50)
 
@@ -35,12 +35,12 @@ Pages
 -----
 
 Pages are defined in a hierarchy of object-oriented classes. The base class 
-is `Page`, which provides the most general and verbose way to specify a ``dlgr_utils`` page.
+is `Page`, which provides the most general and verbose way to specify a ``psynet`` page.
 A simpler example is `InfoPage`, which takes a piece of text or HTML and displays it to the user:
 
 ::
 
-    from dlgr_utils.page import InfoPage
+    from psynet.page import InfoPage
 
     InfoPage("Welcome to the experiment!")
 
@@ -49,7 +49,7 @@ for example in the form of a text-input field:
 
 ::
 
-    from dlgr_utils.page import TextInputPage
+    from psynet.page import TextInputPage
 
     TextInputPage(
         "full_name",
@@ -62,7 +62,7 @@ or in a multiple-choice format:
 
 ::
 
-    from dlgr_utils.page import NAFCPage
+    from psynet.page import NAFCPage
 
     NAFCPage(
         label="chocolate",
@@ -73,43 +73,43 @@ or in a multiple-choice format:
 
 See the documentation of individual classes for more guidance, for example:
 
-* :class:`~dlgr_utils.timeline.Page`
-* :class:`~dlgr_utils.page.InfoPage`
-* :class:`~dlgr_utils.page.TextInputPage`
-* :class:`~dlgr_utils.page.NumberInputPage`
-* :class:`~dlgr_utils.page.NAFCPage`
-* :class:`~dlgr_utils.page.SuccessfulEndPage`
-* :class:`~dlgr_utils.page.UnsuccessfulEndPage`.
+* :class:`~psynet.timeline.Page`
+* :class:`~psynet.page.InfoPage`
+* :class:`~psynet.page.TextInputPage`
+* :class:`~psynet.page.NumberInputPage`
+* :class:`~psynet.page.NAFCPage`
+* :class:`~psynet.page.SuccessfulEndPage`
+* :class:`~psynet.page.UnsuccessfulEndPage`.
 
-:class:`~dlgr_utils.page.SuccessfulEndPage` and 
-:class:`~dlgr_utils.page.UnsuccessfulEndPage` 
+:class:`~psynet.page.SuccessfulEndPage` and 
+:class:`~psynet.page.UnsuccessfulEndPage` 
 are special page types
 used to complete a timeline; upon reaching one of these pages, the experiment will
 terminate and the participant will receive their payment. The difference
 between 
-:class:`~dlgr_utils.page.SuccessfulEndPage` and 
-:class:`~dlgr_utils.page.UnsuccessfulEndPage` is twofold:
+:class:`~psynet.page.SuccessfulEndPage` and 
+:class:`~psynet.page.UnsuccessfulEndPage` is twofold:
 in the former case, the participant will be marked in the database 
 with ``complete=True`` and ``failed=False``,
 whereas in the latter case the participant will be marked
 with ``complete=False`` and ``failed=True``.
 In both cases the participant will be paid the amount that they have accumulated so far;
-however, :class:`~dlgr_utils.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
+however, :class:`~psynet.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
 when the participant has yet to accumulate much payment.
 
 Often you may wish to create a custom page type. The best way is usually
-to start with the source code for a related page type from the ``dlgr_utils``
+to start with the source code for a related page type from the ``psynet``
 package, and modify it to make your new page type. These page types
-should usually inherit from the most specific relevant ``dlgr_utils`` page type;
+should usually inherit from the most specific relevant ``psynet`` page type;
 for example, 
-:class:`~dlgr_utils.page.NumberInputPage`
+:class:`~psynet.page.NumberInputPage`
 inherits from 
-:class:`~dlgr_utils.page.TextInputPage`,
+:class:`~psynet.page.TextInputPage`,
 and adds a validation step to make sure that the user has entered a valid number.
 
-We hope to significantly extend the page types available in ``dlgr_utils`` in the future.
+We hope to significantly extend the page types available in ``psynet`` in the future.
 When you've found a custom page type useful for your own experiment,
-you might consider submitting it to the ``dlgr_utils`` code base via 
+you might consider submitting it to the ``psynet`` code base via 
 a Pull Request (or, in GitLab terminology, a Merge Request).
 
 This should be enough to start experimenting with different kinds of page types.
@@ -126,7 +126,7 @@ For example, a simple page maker might look like the following:
 
 ::
 
-    from dlgr_utils.timeline import PageMaker
+    from psynet.timeline import PageMaker
 
     PageMaker(
         lambda participant, experiment: InfoPage(f"You answered {participant.answer}.),
@@ -140,14 +140,14 @@ but it doesn't have to accept all of these arguments. For example, the following
 
 ::
 
-    from dlgr_utils.timeline import PageMaker
+    from psynet.timeline import PageMaker
 
     PageMaker(
         lambda participant: InfoPage(f"You answered {participant.answer}.),
         time_estimate=5
     )
 
-See :class:`~dlgr_utils.timeline.PageMaker` documentation for more details.
+See :class:`~psynet.timeline.PageMaker` documentation for more details.
 
 Code blocks
 -----------
@@ -157,24 +157,24 @@ way to page makers, except they don't return an output. For example:
 
 ::
 
-    from dlgr_utils.timeline import CodeBlock
+    from psynet.timeline import CodeBlock
 
     CodeBlock(
         lambda participant: participant.var.set("score", 10)
     )
 
-See :class:`~dlgr_utils.timeline.CodeBlock` documentation for more details.
+See :class:`~psynet.timeline.CodeBlock` documentation for more details.
 
 Control logic
 -------------
 
 Most experiments require some kind of non-trivial control logic, 
-such as conditional branches and loops. ``dlgr_utils`` provides
+such as conditional branches and loops. ``psynet`` provides
 the following control constructs for this purpose:
 
-* :func:`~dlgr_utils.timeline.conditional`
-* :func:`~dlgr_utils.timeline.switch`
-* :func:`~dlgr_utils.timeline.while_loop`
+* :func:`~psynet.timeline.conditional`
+* :func:`~psynet.timeline.switch`
+* :func:`~psynet.timeline.while_loop`
 
 Note that these constructs are functions, not classes:
 when called, they resolve to a sequence of events
@@ -185,7 +185,7 @@ Time estimate
 
 It is considered good practice to pay online participants a fee that corresponds
 approximately to a reasonable hourly wage, for example 9 USD/hour.
-The ``dlgr_utils`` package provides sophisticated functionality for applying such 
+The ``psynet`` package provides sophisticated functionality for applying such 
 payment schemes without rewarding participants to participate slowly.
 When designing an experiment, the researcher must specify along with each
 page a ``time_estimate`` argument, corresponding to the estimated time in seconds
@@ -199,26 +199,26 @@ Combining events
 ----------------
 
 The ``Experiment`` class expects us to provide an object of 
-class :class:`dlgr_utils.timeline.Timeline` in the ``timeline`` slot.
+class :class:`psynet.timeline.Timeline` in the ``timeline`` slot.
 This ``Timeline`` object expects either events or lists of events
 as its input; it will concatenate them together into one big list.
 Following this method, here's a complete definition of a simple experiment:
 
 ::
 
-    import dlgr_utils.experiment
+    import psynet.experiment
 
-    from dlgr_utils.timeline import (
+    from psynet.timeline import (
         Timeline,       
         PageMaker
     )
-    from dlgr_utils.page import (
+    from psynet.page import (
         InfoPage,
         TextInputPage,
         SuccessfulEndPage,
     )
 
-    class CustomExp(dlgr_utils.Experiment):
+    class CustomExp(psynet.Experiment):
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",
@@ -244,12 +244,12 @@ It is generally wise to build up the test logic in small pieces. For example:
 
 ::
     
-    from dlgr_utils.timeline import (
+    from psynet.timeline import (
         PageMaker,
         Timeline,
         join
     )
-    from dlgr_utils.page import (
+    from psynet.page import (
         InfoPage,
         TextInputPage,
         SuccessfulEndPage
@@ -276,7 +276,7 @@ It is generally wise to build up the test logic in small pieces. For example:
 
     timeline = Timeline(intro, test)
 
-Here we used the :func:`dlgr_utils.timeline.join` function to join
+Here we used the :func:`psynet.timeline.join` function to join
 two events into a list. When its arguments are all events,
 the ``join`` function behaves like a Python list constructor;
 when the arguments also include lists of events, the ``join`` function

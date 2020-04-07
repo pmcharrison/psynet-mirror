@@ -2,4 +2,4 @@
 PageMaker
 =========
 
-.. autoclass:: dlgr_utils.timeline.PageMaker
+.. autoclass:: psynet.timeline.PageMaker

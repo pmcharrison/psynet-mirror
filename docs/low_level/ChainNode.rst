@@ -2,5 +2,5 @@
 ChainNode
 =========
 
-.. autoclass:: dlgr_utils.trial.chain.ChainNode
+.. autoclass:: psynet.trial.chain.ChainNode
     :members:

@@ -28,7 +28,7 @@ class ImitationChainTrial(ChainTrial):
         ----------
         
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -61,7 +61,7 @@ class ImitationChainNode(ChainNode):
             The seed being passed to the node.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -97,7 +97,7 @@ class ImitationChainNode(ChainNode):
             are provided here.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -127,6 +127,6 @@ class ImitationChainTrialMaker(ChainTrialMaker):
     """
     A TrialMaker class for imitation chains;
     see the documentation for 
-    :class:`~dlgr_utils.trial.chain.ChainTrialMaker`
+    :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """

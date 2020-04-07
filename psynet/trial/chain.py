@@ -23,7 +23,7 @@ logger = logging.getLogger(__file__)
 class ChainNetwork(TrialNetwork):
     """
     Implements a network in the form of a chain.
-    Intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialMaker`.
+    Intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
     Typically the user won't have to override anything here.
     
     Parameters
@@ -47,7 +47,7 @@ class ChainNetwork(TrialNetwork):
         "practice", "train", "test".
     
     experiment
-        An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+        An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
         
     chain_type
@@ -101,8 +101,8 @@ class ChainNetwork(TrialNetwork):
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes).
         
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
         
     participant_id : int
         The ID of the associated participant, or ``None`` if there is no such participant.
@@ -178,7 +178,7 @@ class ChainNetwork(TrialNetwork):
         One approach would be to sample randomly; however, this would not
         guarantee an even distribution of attribute values. 
         In this case, a better approach is to use the 
-        :meth:`dlgr_utils.trial.chain.ChainNetwork.balance_across_networks`
+        :meth:`psynet.trial.chain.ChainNetwork.balance_across_networks`
         method, as follows:
         
         ::
@@ -188,7 +188,7 @@ class ChainNetwork(TrialNetwork):
                 "colour": self.balance_across_networks(colours)
             }
         
-        See :meth:`dlgr_utils.trial.chain.ChainNetwork.balance_across_networks`
+        See :meth:`psynet.trial.chain.ChainNetwork.balance_across_networks`
         for details on how this balancing works.
     
         Returns
@@ -217,13 +217,13 @@ class ChainNetwork(TrialNetwork):
             chosen_colour = self.balance_across_networks(colours)
         
         In across-participant chain designs, 
-        :meth:`~dlgr_utils.trial.chain.ChainNetwork.balance_across_networks`
+        :meth:`~psynet.trial.chain.ChainNetwork.balance_across_networks`
         will ensure that the distribution of colours is maximally uniform across
         the experiment by assigning 
         the first network to red, the second network to green, the third to blue,
         then the fourth to red, the fifth to green, the sixth to blue, 
         and so on. This is achieved by referring to the network's 
-        :attr:`~dlgr_utils.trial.chain.ChainNetwork.id`
+        :attr:`~psynet.trial.chain.ChainNetwork.id`
         attribute.
         In within-participant chain designs, 
         the same method is used but within participants, 
@@ -322,10 +322,10 @@ class ChainNode(dallinger.models.Node):
     in particular, the last node in the chain represents a current state
     in the experiment. 
     
-    This class is intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialMaker`.
+    This class is intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
     It subclasses :class:`dallinger.models.Node`.
     
-    The most important attribute is :attr:`~dlgr_utils.trial.chain.ChainNode.definition`.
+    The most important attribute is :attr:`~psynet.trial.chain.ChainNode.definition`.
     This is the core information that represents the current state of the node.
     In a transmission chain of drawings, this might be an (encoded) drawing;
     in a Markov Chain Monte Carlo with People paradigm, this might be the current state
@@ -333,11 +333,11 @@ class ChainNode(dallinger.models.Node):
     
     The user is required to override the following abstract methods:
     
-    * :meth:`~dlgr_utils.trial.chain.ChainNode.create_definition_from_seed`,
+    * :meth:`~psynet.trial.chain.ChainNode.create_definition_from_seed`,
       which creates a node definition from the seed passed from the previous
       source or node in the chain;
     
-    * :meth:`~dlgr_utils.trial.chain.ChainNode.summarise_trials`,
+    * :meth:`~psynet.trial.chain.ChainNode.summarise_trials`,
       which summarises the trials at a given node to produce a seed that can 
       be passed to the next node in the chain.    
     
@@ -346,9 +346,9 @@ class ChainNode(dallinger.models.Node):
     
     seed
         The seed which is used to initialise the node, potentially stochastically.
-        This seed typically comes from either a :class:`~dlgr_utils.trial.chain.ChainSource`
-        or from another :class:`~dlgr_utils.trial.chain.ChainNode`
-        via the :meth:`~dlgr_utils.trial.chain.ChainNode.create_seed` method.
+        This seed typically comes from either a :class:`~psynet.trial.chain.ChainSource`
+        or from another :class:`~psynet.trial.chain.ChainNode`
+        via the :meth:`~psynet.trial.chain.ChainNode.create_seed` method.
         For example, in a transmission chain of drawings, the seed might be 
         a serialised version of the last drawn image.
     
@@ -362,7 +362,7 @@ class ChainNode(dallinger.models.Node):
         The network with which the node is to be associated.
     
     experiment
-        An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+        An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
     
     propagate_failure
@@ -390,17 +390,17 @@ class ChainNode(dallinger.models.Node):
         In a transmission chain of drawings, this might be an (encoded) drawing;
         in a Markov Chain Monte Carlo with People paradigm, this might be the current state
         from the proposal is sampled. 
-        It is set by the :meth:`~dlgr_utils.trial.chain.ChainNode:create_definition_from_seed` method.
+        It is set by the :meth:`~psynet.trial.chain.ChainNode:create_definition_from_seed` method.
     
     propagate_failure
         See the ``__init__`` function.
     
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
     
     source
         The source of the chain, if one exists.
-        Should be an object of class :class:`~dlgr_utils.trial.chain.ChainSource`.
+        Should be an object of class :class:`~psynet.trial.chain.ChainSource`.
     
     child
         The node's child (i.e. direct descendant) in the chain, or 
@@ -409,11 +409,11 @@ class ChainNode(dallinger.models.Node):
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-        Set from :attr:`dlgr_utils.trial.chain.ChainNetwork.trials_per_node`.
+        Set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
     
     target_num_trials
         The target number of trials for the node, 
-        set from :attr:`dlgr_utils.trial.chain.ChainNetwork.trials_per_node`.
+        set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
     
     ready_to_spawn 
         Returns ``True`` if the node is ready to spawn a child.
@@ -453,8 +453,8 @@ class ChainNode(dallinger.models.Node):
         """
         Creates a node definition from a seed.
         The seed comes from the previous state in the chain, which
-        will be either a :class:`~dlgr_utils.trial.chain.ChainSource`
-        or a :class:`~dlgr_utils.trial.chain.ChainNode`.
+        will be either a :class:`~psynet.trial.chain.ChainSource`
+        or a :class:`~psynet.trial.chain.ChainNode`.
         In many cases (e.g. iterated reproduction) the definition
         will be trivially equal to the seed,
         but in some cases we may introduce some kind of stochastic alteration
@@ -467,7 +467,7 @@ class ChainNode(dallinger.models.Node):
             The seed, passed from the previous state in the chain.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -496,7 +496,7 @@ class ChainNode(dallinger.models.Node):
             are provided here.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -598,19 +598,19 @@ class ChainSource(dallinger.nodes.Source):
     Represents a source in a chain network.
     The source provides the seed from which the rest of the chain is ultimately derived.
     
-    This class is intended for use with :class:`~dlgr_utils.trial.chain.ChainTrialMaker`.
+    This class is intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
     It subclasses :class:`dallinger.nodes.Source`.
     
-    The most important attribute is :attr:`~dlgr_utils.trial.chain.ChainSource.definition`.
+    The most important attribute is :attr:`~psynet.trial.chain.ChainSource.definition`.
     This is the core information that represents the current state of the node.
     In a transmission chain of drawings, this might be the initial drawing 
     that begins the transmission chain.
     
     The user is required to override the following abstract method:
     
-    * :meth:`~dlgr_utils.trial.chain.ChainSource.generate_seed`,
-      which generates a seed for the :class:`~dlgr_utils.trial.chain.ChainSource`
-      which will then be stored in the :attr:`~dlgr_utils.trial.chain.ChainSource.seed` attribute.
+    * :meth:`~psynet.trial.chain.ChainSource.generate_seed`,
+      which generates a seed for the :class:`~psynet.trial.chain.ChainSource`
+      which will then be stored in the :attr:`~psynet.trial.chain.ChainSource.seed` attribute.
     
     Parameters
     ----------
@@ -619,7 +619,7 @@ class ChainSource(dallinger.nodes.Source):
         The network with which the node is to be associated.
     
     experiment
-        An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+        An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
         
     participant
@@ -629,22 +629,22 @@ class ChainSource(dallinger.nodes.Source):
     ----------
     
     degree
-        The degree of a :class:`~dlgr_utils.trial.chain.ChainSource` object is always 0.
+        The degree of a :class:`~psynet.trial.chain.ChainSource` object is always 0.
     
     seed
         The seed that is passed to the next node in the chain. 
-        Created by :meth:`~dlgr_utils.trial.chain.ChainSource.generate_seed`.
+        Created by :meth:`~psynet.trial.chain.ChainSource.generate_seed`.
 
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-        Set from :attr:`dlgr_utils.trial.chain.ChainNetwork.phase`.
+        Set from :attr:`psynet.trial.chain.ChainNetwork.phase`.
     
     ready_to_spawn 
-        Always returns ``True`` for :class:`~dlgr_utils.trial.chain.ChainSource` objects.
+        Always returns ``True`` for :class:`~psynet.trial.chain.ChainSource` objects.
     """
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
@@ -672,17 +672,17 @@ class ChainSource(dallinger.nodes.Source):
 
     def generate_seed(self, network, experiment, participant):
         """
-        Generates a seed for the :class:`~dlgr_utils.trial.chain.ChainSource` and
-        correspondingly for the :class:`~dlgr_utils.trial.chain.ChainNetwork`.
+        Generates a seed for the :class:`~psynet.trial.chain.ChainSource` and
+        correspondingly for the :class:`~psynet.trial.chain.ChainNetwork`.
         
         Parameters
         ----------
         
         network
-            The network to which the :class:`~dlgr_utils.trial.chain.ChainSource` belongs.
+            The network to which the :class:`~psynet.trial.chain.ChainSource` belongs.
         
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         
         participant
@@ -699,17 +699,17 @@ class ChainSource(dallinger.nodes.Source):
 
 class ChainTrial(Trial):
     """
-    Represents a trial in a :class:`~dlgr_utils.trial.chain.ChainNetwork`. 
+    Represents a trial in a :class:`~psynet.trial.chain.ChainNetwork`. 
     The user is expected to override the following methods:
 
-    * :meth:`~dlgr_utils.trial.chain.ChainTrial.make_definition`,
+    * :meth:`~psynet.trial.chain.ChainTrial.make_definition`,
       responsible for deciding on the content of the trial.
-    * :meth:`~dlgr_utils.trial.chain.ChainTrial.show_trial`,
+    * :meth:`~psynet.trial.chain.ChainTrial.show_trial`,
       determines how the trial is turned into a webpage for presentation to the participant.
-    * :meth:`~dlgr_utils.trial.chain.ChainTrial.show_feedback`.
+    * :meth:`~psynet.trial.chain.ChainTrial.show_feedback`.
       defines an optional feedback page to be displayed after the trial.
 
-    This class subclasses the `~dlgr_utils.trial.main.Trial` class,
+    This class subclasses the `~psynet.trial.main.Trial` class,
     which in turn subclasses the :class:`~dallinger.models.Info` class from Dallinger,
     hence it can be found in the ``Info`` table in the database.
     It inherits these class's methods, which the user is welcome to use
@@ -726,7 +726,7 @@ class ChainTrial(Trial):
     ----------
     
     experiment:
-        An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+        An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
         
     node:
@@ -742,7 +742,7 @@ class ChainTrial(Trial):
         because most people are using more complex designs.
 
     participant:
-        An instantiation of :class:`dlgr_utils.participant.Participant`,
+        An instantiation of :class:`psynet.participant.Participant`,
         corresponding to the current participant.
         
     propagate_failure : bool
@@ -780,14 +780,14 @@ class ChainTrial(Trial):
         Stored in ``property4`` in the database.
           
     source
-        The :class:`~dlgr_utils.trial.chain.ChainSource of the 
-        :class:`~dlgr_utils.trial.chain.ChainNetwork`
-        to which the :class:`~dlgr_utils.trial.chain.ChainTrial` belongs.
+        The :class:`~psynet.trial.chain.ChainSource of the 
+        :class:`~psynet.trial.chain.ChainNetwork`
+        to which the :class:`~psynet.trial.chain.ChainTrial` belongs.
         
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-        Pulled from the :attr:`~dlgr_utils.trial.chain.ChainTrial.node` attribute.
+        Pulled from the :attr:`~psynet.trial.chain.ChainTrial.node` attribute.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other 
@@ -798,8 +798,8 @@ class ChainTrial(Trial):
         The number of pages that this trial comprises.
         Defaults to 1; override it for trials comprising multiple pages.
 
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
     definition : Object
         An arbitrary Python object that somehow defines the content of 
@@ -807,7 +807,7 @@ class ChainTrial(Trial):
         named parameters.
         The user should not typically change this directly,
         as it is instead determined by 
-        :meth:`~dlgr_utils.trial.main.Trial.make_definition`.
+        :meth:`~psynet.trial.main.Trial.make_definition`.
 
     """
     # pylint: disable=abstract-method
@@ -837,9 +837,9 @@ class ChainTrial(Trial):
         throws an error if the object is already failed, 
         but this behaviour is disabled here.
         
-        If :attr:`~dlgr_utils.trial.chain.ChainTrial.propagate_failure`
+        If :attr:`~psynet.trial.chain.ChainTrial.propagate_failure`
         is ``True``, then this method will also call 
-        :meth:`~dlgr_utils.trial.chain.ChainTrial.fail_descendants`.
+        :meth:`~psynet.trial.chain.ChainTrial.fail_descendants`.
         """
         if not self.failed:
             self.failed = True
@@ -867,31 +867,31 @@ class ChainTrialMaker(NetworkTrialMaker):
     It is intended for use with the following helper classes,
     which should be customised for the particular paradigm:
     
-    * :class:`~dlgr_utils.trial.chain.ChainNetwork`;
-      a special type of :class:`~dlgr_utils.trial.main.TrialNetwork` 
+    * :class:`~psynet.trial.chain.ChainNetwork`;
+      a special type of :class:`~psynet.trial.main.TrialNetwork` 
 
-    * :class:`~dlgr_utils.trial.chain.ChainNode`;
+    * :class:`~psynet.trial.chain.ChainNode`;
       a special type of :class:`~dallinger.models.Node` 
 
-    * :class:`~dlgr_utils.trial.chain.ChainTrial`;
-      a special type of :class:`~dlgr_utils.trial.main.NetworkTrial` 
+    * :class:`~psynet.trial.chain.ChainTrial`;
+      a special type of :class:`~psynet.trial.main.NetworkTrial` 
  
-    * :class:`~dlgr_utils.trial.chain.ChainSource`;
+    * :class:`~psynet.trial.chain.ChainSource`;
       a special type of :class:`~dallinger.nodes.Source`, corresponding
       to the initial state of the network.
       
-    A chain is initialised with a :class:`~dlgr_utils.trial.chain.ChainSource` object.
-    This :class:`~dlgr_utils.trial.chain.ChainSource` object provides
+    A chain is initialised with a :class:`~psynet.trial.chain.ChainSource` object.
+    This :class:`~psynet.trial.chain.ChainSource` object provides
     the initial seed to the chain. 
-    The :class:`~dlgr_utils.trial.chain.ChainSource` object is followed 
-    by a series of :class:`~dlgr_utils.trial.chain.ChainNode` objects
+    The :class:`~psynet.trial.chain.ChainSource` object is followed 
+    by a series of :class:`~psynet.trial.chain.ChainNode` objects
     which are generated through the course of the experiment.
-    The last :class:`~dlgr_utils.trial.chain.ChainNode` in the chain 
+    The last :class:`~psynet.trial.chain.ChainNode` in the chain 
     represents the current state of the chain, and it determines the
     properties of the next trials to be drawn from that chain.
-    A new :class:`~dlgr_utils.trial.chain.ChainNode` object is generated once 
-    sufficient :class:`~dlgr_utils.trial.chain.ChainTrial` objects
-    have been created for that :class:`~dlgr_utils.trial.chain.ChainNode`.
+    A new :class:`~psynet.trial.chain.ChainNode` object is generated once 
+    sufficient :class:`~psynet.trial.chain.ChainTrial` objects
+    have been created for that :class:`~psynet.trial.chain.ChainNode`.
     There can be multiple chains in an experiment, with these chains
     either being owned by individual participants ("within-participant" designs)
     or shared across participants ("across-participant" designs).    
@@ -905,19 +905,19 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     network_class
         The class object for the networks used by this maker.
-        This should subclass :class:`~dlgr_utils.trial.chain.ChainNetwork`.
+        This should subclass :class:`~psynet.trial.chain.ChainNetwork`.
         
     node_class
         The class object for the networks used by this maker.
-        This should subclass :class:`~dlgr_utils.trial.chain.ChainNode`.
+        This should subclass :class:`~psynet.trial.chain.ChainNode`.
         
     source_class
         The class object for sources
-        (should subclass :class:`~dlgr_utils.trial.chain.ChainSource`).
+        (should subclass :class:`~psynet.trial.chain.ChainSource`).
         
     trial_class
         The class object for trials administered by this maker
-        (should subclass :class:`~dlgr_utils.trial.chain.ChainTrial`).
+        (should subclass :class:`~psynet.trial.chain.ChainTrial`).
 
     phase
         Arbitrary label for this phase of the experiment, e.g.
@@ -969,7 +969,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         Selects a recruitment criterion for determining whether to recruit 
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``, though the latter requires overriding of 
-        :attr:`~dlgr_utils.trial.main.TrialMaker.num_trials_still_required`.
+        :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
         
     target_num_participants
         Target number of participants to recruit for the experiment. All 
@@ -980,7 +980,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     async_post_trial
         Optional function to be run after a trial is completed by the participant.
         This should be specified as a fully qualified string, for example
-        ``"dlgr_utils.trial.async_example.async_update_trial"``.
+        ``"psynet.trial.async_example.async_update_trial"``.
         This function should take one argument, ``trial_id``, corresponding to the
         ID of the relevant trial to process.
         ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
@@ -988,21 +988,21 @@ class ChainTrialMaker(NetworkTrialMaker):
         once it is finished. It is also responsible for committing to the database
         using ``db.session.commit()`` once processing is complete
         (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``dlgr_utils.trial.async_example.async_update_trial``
+        See the source code for ``psynet.trial.async_example.async_update_trial``
         for an example.
         
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
-        :meth:`~dlgr_utils.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
+        :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
         This should be specified as a fully qualified string, for example
-        ``dlgr_utils.trial.async_example.async_update_network``.
+        ``psynet.trial.async_example.async_update_network``.
         This function should take one argument, ``network_id``, corresponding to the
         ID of the relevant network to process.
         ``network.awaiting_process`` is set to ``True`` when the asynchronous process is
         initiated; the present method is responsible for setting ``network.awaiting_process = False``
         once it is finished, and for committing to the database
         using ``db.session.commit()`` (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``dlgr_utils.trial.async_example.async_update_trial``
+        See the source code for ``psynet.trial.async_example.async_update_trial``
         for a relevant example (for processing trials, not networks).
         
     fail_trials_on_premature_exit

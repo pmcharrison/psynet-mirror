@@ -1,4 +1,4 @@
-import dlgr_utils
+import psynet
 
 def test_example():
     assert True

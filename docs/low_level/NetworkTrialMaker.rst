@@ -2,6 +2,6 @@
 NetworkTrialMaker
 =================
 
-.. autoclass:: dlgr_utils.trial.main.NetworkTrialMaker
+.. autoclass:: psynet.trial.main.NetworkTrialMaker
     :members:
     :show-inheritance:

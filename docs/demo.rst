@@ -4,13 +4,13 @@
 Demo
 ====
 
-If you haven't installed the `dlgr_utils already`, follow the instructions in :doc:`installation`.
+If you haven't installed the `psynet already`, follow the instructions in :doc:`installation`.
 
 Then, navigate to the installation directory, for example:
 
 ::
 
-    cd ~/my-projects/dlgr_utils
+    cd ~/my-projects/psynet
 
 Make sure you're in the appropriate virtual environment, for example:
 

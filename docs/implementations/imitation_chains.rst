@@ -6,83 +6,83 @@ Imitation chains
 
 An imitation-chain experiment depends on the five following classes:
 
-* :class:`~dlgr_utils.trial.imitation_chain.ImitationChainNetwork`
-* :class:`~dlgr_utils.trial.imitation_chain.ImitationChainSource`;
-* :class:`~dlgr_utils.trial.imitation_chain.ImitationChainNode`;
-* :class:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial`;
-* :class:`~dlgr_utils.trial.imitation_chain.ImitationChainMaker`.
+* :class:`~psynet.trial.imitation_chain.ImitationChainNetwork`
+* :class:`~psynet.trial.imitation_chain.ImitationChainSource`;
+* :class:`~psynet.trial.imitation_chain.ImitationChainNode`;
+* :class:`~psynet.trial.imitation_chain.ImitationChainTrial`;
+* :class:`~psynet.trial.imitation_chain.ImitationChainMaker`.
 
 You can define a custom imitation-chain experiment through the following steps:
 
 1. Decide on a set of fixed parameters that will stay constant within 
    a chain but may change between chains. For example, one might 
    use a list with two presentation conditions, ``["fast", "slow"]``.
-   Implement a subclass of :class:`~dlgr_utils.trial.imitation_chain.ImitationChainNetwork`
-   with a custom :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainNetwork.make_definition` method
+   Implement a subclass of :class:`~psynet.trial.imitation_chain.ImitationChainNetwork`
+   with a custom :meth:`~psynet.trial.imitation_chain.ImitationChainNetwork.make_definition` method
    for choosing these fixed parameter values for a given chain. 
-   The :meth:`~dlgr_utils.trial.chain.ChainNetwork.balance_across_networks` method 
+   The :meth:`~psynet.trial.chain.ChainNetwork.balance_across_networks` method 
    is typically useful here.
    
 2. Decide on a set of free parameters that will define the parameter space
    for your chains. For example, one might use a tuple of three integers
    identifying an RGB colour (e.g. ``(255, 25, 0)``).
-   Implement a subclass of :class:`~dlgr_utils.trial.imitation_chain.ImitationChainSource`
-   with a custom :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainSource.generate_seed` method
+   Implement a subclass of :class:`~psynet.trial.imitation_chain.ImitationChainSource`
+   with a custom :meth:`~psynet.trial.imitation_chain.ImitationChainSource.generate_seed` method
    for generating the starting free parameter set for an imitation chain.
    
-3. Implement a subclass of :class:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial`
+3. Implement a subclass of :class:`~psynet.trial.imitation_chain.ImitationChainTrial`
    with a custom
-   :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.show_trial` method.
-   This :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.show_trial` method
+   :meth:`~psynet.trial.imitation_chain.ImitationChainTrial.show_trial` method.
+   This :meth:`~psynet.trial.imitation_chain.ImitationChainTrial.show_trial` method
    should take the current values of the free parameters
-   (stored in :attr:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.definition`)
+   (stored in :attr:`~psynet.trial.imitation_chain.ImitationChainTrial.definition`)
    as well as the value of the network's fixed parameters
-   (stored in :attr:`~dlgr_utils.trial.imitation_chain.ImitationChainNetwork.definition`)
+   (stored in :attr:`~psynet.trial.imitation_chain.ImitationChainNetwork.definition`)
    and produce an object of 
-   class :class:`~dlgr_utils.timeline.Page`. [1]_
-   This :class:`~dlgr_utils.timeline.Page` object should elicit an answer
+   class :class:`~psynet.timeline.Page`. [1]_
+   This :class:`~psynet.timeline.Page` object should elicit an answer
    representing the participant's imitation attempt
-   (see the :meth:`~dlgr_utils.timeline.Page.format_answer` method 
+   (see the :meth:`~psynet.timeline.Page.format_answer` method 
    if you need to postprocess this answer).
    
 4. (Optional) Implement a subclass of 
-   :class:`~dlgr_utils.trial.imitation_chain.ImitationChainNode`
+   :class:`~psynet.trial.imitation_chain.ImitationChainNode`
    with a custom 
-   :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainNode.summarise_trials` method.
+   :meth:`~psynet.trial.imitation_chain.ImitationChainNode.summarise_trials` method.
    This new method should take a list of completed 
-   :class:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial` objects as input 
+   :class:`~psynet.trial.imitation_chain.ImitationChainTrial` objects as input 
    and summarise the elicited answers,
-   which can be found in the :attr:`~dlgr_utils.trial.answer` attribute
-   of each :class:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial` object.
+   which can be found in the :attr:`~psynet.trial.answer` attribute
+   of each :class:`~psynet.trial.imitation_chain.ImitationChainTrial` object.
    This summary will be used as the new parameter set for the next node in the network,
    and for the trials it generates.
    In conventional imitation chains, there is just one 
-   :class:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial`
-   per :class:`~dlgr_utils.trial.imitation_chain.ImitationChainNode`,
-   and :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainNode.summarise_trials`
+   :class:`~psynet.trial.imitation_chain.ImitationChainTrial`
+   per :class:`~psynet.trial.imitation_chain.ImitationChainNode`,
+   and :meth:`~psynet.trial.imitation_chain.ImitationChainNode.summarise_trials`
    just returns the stimulus generated by the participant.
    This behaviour is implemented in the default implementation.
    However, if one wishes to increase the number of trials per node,
    then one will have to implement a custom 
-   :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainNode.summarise_trials` method.
+   :meth:`~psynet.trial.imitation_chain.ImitationChainNode.summarise_trials` method.
    
-5. Create an instance of :class:`~dlgr_utils.trial.imitation_chain.ImitationChainMaker`,
+5. Create an instance of :class:`~psynet.trial.imitation_chain.ImitationChainMaker`,
    filling in its constructor parameter list
    with reference to the classes you created above,
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``dlgr_utils/dlgr_utils/demos/imitation_chain``)
+and the demo (``psynet/psynet/demos/imitation_chain``)
 for more details.
 
-.. [1] The :meth:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.show_trial` method
-   may alternatively return a list of :class:`~dlgr_utils.timeline.Page` objects.
+.. [1] The :meth:`~psynet.trial.imitation_chain.ImitationChainTrial.show_trial` method
+   may alternatively return a list of :class:`~psynet.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the final
    page returns the appropriate ``answer``.
    The user must also set the prespecify the number of pages in the 
-   :attr:`~dlgr_utils.trial.imitation_chain.ImitationChainTrial.num_pages` attribute.
+   :attr:`~psynet.trial.imitation_chain.ImitationChainTrial.num_pages` attribute.
 
-.. automodule:: dlgr_utils.trial.imitation_chain
+.. automodule:: psynet.trial.imitation_chain
     :show-inheritance:
     :members:
     

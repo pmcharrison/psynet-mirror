@@ -2,6 +2,6 @@
 Response
 ========
 
-.. autoclass:: dlgr_utils.timeline.Response
+.. autoclass:: psynet.timeline.Response
     :members:
     :show-inheritance:

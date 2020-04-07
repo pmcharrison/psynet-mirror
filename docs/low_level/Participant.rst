@@ -2,7 +2,7 @@
 Participant
 ===========
 
-.. autofunction:: dlgr_utils.participant.get_participant
+.. autofunction:: psynet.participant.get_participant
 
-.. autoclass:: dlgr_utils.participant.Participant
+.. autoclass:: psynet.participant.Participant
     :members:

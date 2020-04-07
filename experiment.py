@@ -4,15 +4,15 @@ from dallinger.models import Info, Node
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 
-import dlgr_utils.experiment
-from dlgr_utils.timeline import ( 
+import psynet.experiment
+from psynet.timeline import ( 
     Timeline,
     PageMaker, 
     CodeBlock, 
     while_loop, 
     conditional
 )
-from dlgr_utils.page import (
+from psynet.page import (
     InfoPage, 
     SuccessfulEndPage, 
     NAFCPage, 
@@ -27,10 +27,10 @@ from datetime import datetime
 
 dallinger.deployment.MAX_ATTEMPTS = 1
 
-# Weird bug: if you instead import Experiment from dlgr_utils.experiment,
+# Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
-class Exp(dlgr_utils.experiment.Experiment):
+class Exp(psynet.experiment.Experiment):
     # You can customise these parameters ####
     num_networks = 3
     num_nodes_per_network = 5

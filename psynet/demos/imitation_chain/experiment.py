@@ -9,10 +9,10 @@ from statistics import mean
 import random
 import re
 
-import dlgr_utils.experiment
-from dlgr_utils.field import claim_field
-from dlgr_utils.participant import Participant, get_participant
-from dlgr_utils.timeline import (
+import psynet.experiment
+from psynet.field import claim_field
+from psynet.participant import Participant, get_participant
+from psynet.timeline import (
     Page, 
     Timeline,
     PageMaker, 
@@ -22,14 +22,14 @@ from dlgr_utils.timeline import (
     switch,
     FailedValidation
 )
-from dlgr_utils.page import (
+from psynet.page import (
     InfoPage, 
     SuccessfulEndPage, 
     NAFCPage, 
     NumberInputPage,
     TextInputPage
 )
-from dlgr_utils.trial.imitation_chain import (
+from psynet.trial.imitation_chain import (
     ImitationChainTrial,
     ImitationChainNode,
     ImitationChainSource,
@@ -101,10 +101,10 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 #### Experiment
 ##########################################################################################
 
-# Weird bug: if you instead import Experiment from dlgr_utils.experiment,
+# Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
-class Exp(dlgr_utils.experiment.Experiment):
+class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CustomTrialMaker(
             network_class=CustomNetwork,

@@ -36,14 +36,14 @@ class MCMCPTrial(ChainTrial):
         """
         In MCMCP, a trial's definition is created by taking the 
         current state and the proposal from the source
-        :class:`~dlgr_utils.trial.mcmcp.MCMCPNode`
+        :class:`~psynet.trial.mcmcp.MCMCPNode`
         and adding a random ordering.
         
         Parameters
         ----------
         
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -96,11 +96,11 @@ class MCMCPNode(ChainNode):
             state should be constructed.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
             
         Returns
@@ -131,7 +131,7 @@ class MCMCPNode(ChainNode):
             are provided here.
             
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
             
         participant
@@ -168,7 +168,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
     """
     A TrialMaker class for MCMCP chains;
     see the documentation for 
-    :class:`~dlgr_utils.trial.chain.ChainTrialMaker`
+    :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
     """
     

@@ -2,5 +2,5 @@
 VarStore
 ========
 
-.. autoclass:: dlgr_utils.field.VarStore
+.. autoclass:: psynet.field.VarStore
     :members: 

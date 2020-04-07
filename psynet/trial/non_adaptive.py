@@ -27,7 +27,7 @@ class Stimulus(dallinger.models.Node):
     Subclasses the Dallinger :class:`dallinger.models.Node` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
-    of :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`.
+    of :class:`~psynet.trial.non_adaptive.StimulusSpec`.
     
     Attributes
     ----------
@@ -35,7 +35,7 @@ class Stimulus(dallinger.models.Node):
     definition : dict
         A dictionary containing the parameter values for the stimulus.
         This excludes any parameters defined by the 
-        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` class.
+        :class:`~psynet.trial.non_adaptive.StimulusVersion` class.
     
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
@@ -111,7 +111,7 @@ class StimulusSpec():
     """
     Defines a stimulus for a non-adaptive experiment.
     Will be translated to a database-backed
-    :class:`~dlgr_utils.trial.non_adaptive.Stimulus` instance.
+    :class:`~psynet.trial.non_adaptive.Stimulus` instance.
     
     Parameters
     ----------
@@ -125,7 +125,7 @@ class StimulusSpec():
     
     version_specs
         An optional list of 
-        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
+        :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects, defining different forms that the stimulus can take.
     
     participant_group
@@ -173,10 +173,10 @@ class StimulusVersion(dallinger.models.Node):
     A stimulus version class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class;
     intended to be nested within the 
-    :class:`~dlgr_utils.trial.non_adaptive.Stimulus` class.
+    :class:`~psynet.trial.non_adaptive.Stimulus` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
-    of :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`.
+    of :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`.
     
     Attributes
     ----------
@@ -184,10 +184,10 @@ class StimulusVersion(dallinger.models.Node):
     definition : dict
         A dictionary containing the parameter values for the stimulus version.
         This excludes any parameters defined by the parent
-        :class:`~dlgr_utils.trial.non_adaptive.Stimulus` class.
+        :class:`~psynet.trial.non_adaptive.Stimulus` class.
         
     stimulus : Stimulus
-        The parent :class:`~dlgr_utils.trial.non_adaptive.Stimulus` object.
+        The parent :class:`~psynet.trial.non_adaptive.Stimulus` object.
         
     stimulus_id : int
         The ID of the parent stimulus object. Stored as ``property1`` in the database.
@@ -244,9 +244,9 @@ class StimulusVersionSpec():
     """
     Defines a stimulus version for a non-adaptive experiment.
     Will be translated to a database-backed
-    :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` instance,
+    :class:`~psynet.trial.non_adaptive.StimulusVersion` instance,
     which will be nested within a 
-    :class:`~dlgr_utils.trial.non_adaptive.Stimulus` instance.
+    :class:`~psynet.trial.non_adaptive.Stimulus` instance.
     
     Parameters
     ----------
@@ -254,7 +254,7 @@ class StimulusVersionSpec():
     definition
         A dictionary of parameters defining the stimulus version.
         Should not include any parameters already defined in 
-        the parent :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` instance.
+        the parent :class:`~psynet.trial.non_adaptive.StimulusSpec` instance.
     """
     def __init__(self, definition):
         assert isinstance(definition, dict)
@@ -264,23 +264,23 @@ class StimulusSet():
     """
     Defines a stimulus set for a non-adaptive experiment.
     This stimulus set is defined as a collection of 
-    :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`
-    and :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
+    :class:`~psynet.trial.non_adaptive.StimulusSpec`
+    and :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
     objects, which are translated to database-backed
-    :class:`~dlgr_utils.trial.non_adaptive.Stimulus`
-    and :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion`
+    :class:`~psynet.trial.non_adaptive.Stimulus`
+    and :class:`~psynet.trial.non_adaptive.StimulusVersion`
     objects respectively.
     
     Parameters
     ----------
     
     stimulus_specs: list
-        A list of :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` objects,
+        A list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
         with these objects potentially containing
-        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec` objects.
+        :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
         This list may contain stimuli for several experiment phases,
         as long as these phases are specified in the ``phase`` parameters
-        for the :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` objects.
+        for the :class:`~psynet.trial.non_adaptive.StimulusSpec` objects.
     """
     def __init__(self, stimulus_specs):
         assert isinstance(stimulus_specs, list)
@@ -376,17 +376,17 @@ class NonAdaptiveTrial(Trial):
         A dictionary of parameters defining the trial.
         This dictionary combines the dictionaries of the 
         respective
-        :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`
+        :class:`~psynet.trial.non_adaptive.StimulusSpec`
         and
-        :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`
+        :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects.
     
     stimulus_version
-        The corresponding :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion`
+        The corresponding :class:`~psynet.trial.non_adaptive.StimulusVersion`
         object.
     
     stimulus
-        The corresponding :class:`~dlgr_utils.trial.non_adaptive.Stimulus`
+        The corresponding :class:`~psynet.trial.non_adaptive.Stimulus`
         object.
     
     phase
@@ -432,8 +432,8 @@ class NonAdaptiveTrial(Trial):
     def make_definition(self, experiment, participant):
         """
         Combines the definitions of the associated 
-        :class:`~dlgr_utils.trial.non_adaptive.Stimulus`
-        and :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion`
+        :class:`~psynet.trial.non_adaptive.Stimulus`
+        and :class:`~psynet.trial.non_adaptive.StimulusVersion`
         objects.
         """
         return {
@@ -447,37 +447,37 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a non-adaptive experiment.
     The class is intended for use with the 
-    :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial` helper class.
+    :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` helper class.
     which should be customised to show the relevant stimulus 
     for the experimental paradigm.
     The user must also define their stimulus set 
     using the following built-in classes:
     
-    * :class:`~dlgr_utils.trial.non_adaptive.StimulusSet`;
+    * :class:`~psynet.trial.non_adaptive.StimulusSet`;
     
-    * :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec`;
+    * :class:`~psynet.trial.non_adaptive.StimulusSpec`;
     
-    * :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec`;
+    * :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`;
     
-    In particular, a :class:`~dlgr_utils.trial.non_adaptive.StimulusSet`
-    contains a list of :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` objects, 
+    In particular, a :class:`~psynet.trial.non_adaptive.StimulusSet`
+    contains a list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects, 
     which in turn contains a list of 
-    :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec` objects.
+    :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
     
     The user may also override the following methods, if desired:
     
-    * :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrialMaker.choose_block_order`;
+    * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_block_order`;
       chooses the order of blocks in the experiment. By default the blocks
       are ordered randomly.
       
-    * :meth:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`;
+    * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`;
       assigns the participant to a group. By default the participant is assigned
       to a random group. 
       
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.on_complete`,
+    * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the the sequence of trials is complete.
     
-    * :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`,
+    * :meth:`~psynet.trial.main.TrialMaker.performance_check`,
       which checks the performance of the participant 
       with a view to rejecting poor-performing participants.
     
@@ -489,7 +489,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     
     trial_class
         The class object for trials administered by this maker
-        (should subclass :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial`).
+        (should subclass :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`).
         
     phase
         Arbitrary label for this phase of the experiment, e.g.
@@ -518,12 +518,12 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         ``recruit_mode="num_trials"``.
     
     new_participant_group
-        If ``True``, :meth:`~dlgr_utils.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`
+        If ``True``, :meth:`~psynet.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`
         is run to assign the participant to a new participant group. 
         Unless overridden, a given participant's participant group will persist
         for all phases of the experiment,
-        except if switching to a :class:`~dlgr_utils.non_adaptive.NonAdaptiveTrialMaker`
-        where the trial class (:class:`~dlgr_utils.non_adaptive.NonAdaptiveTrial`)
+        except if switching to a :class:`~psynet.non_adaptive.NonAdaptiveTrialMaker`
+        where the trial class (:class:`~psynet.non_adaptive.NonAdaptiveTrial`)
         has a different name.
     
     max_trials_per_block
@@ -555,14 +555,14 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         If ``True``, the participant's performance is 
         is evaluated at the end of the series of trials.
         Defaults to ``False``.
-        See :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`
+        See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
         
     check_performance_every_trial
         If ``True``, the participant's performance is 
         is evaluated after each trial.
         Defaults to ``False``.
-        See :meth:`~dlgr_utils.trial.main.TrialMaker.performance_check`
+        See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
     
     fail_trials_on_premature_exit
@@ -578,7 +578,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     async_post_trial
         Optional function to be run after a trial is completed by the participant.
         This should be specified as a fully qualified string, for example
-        ``"dlgr_utils.trial.async_example.async_update_trial"``.
+        ``"psynet.trial.async_example.async_update_trial"``.
         This function should take one argument, ``trial_id``, corresponding to the
         ID of the relevant trial to process.
         ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
@@ -586,7 +586,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         once it is finished. It is also responsible for committing to the database
         using ``db.session.commit()`` once processing is complete
         (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``~dlgr_utils.trial.async_example.async_update_trial``
+        See the source code for ``~psynet.trial.async_example.async_update_trial``
         for an example.
 
     Returns
@@ -594,7 +594,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     
     list
         A sequence of events suitable for inclusion in a
-        :class:`~dlgr_utils.timeline.Timeline`
+        :class:`~psynet.timeline.Timeline`
     """
     def __init__(
         self,  
@@ -674,11 +674,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         ----------
 
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
 
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
         super().init_participant(experiment, participant)
@@ -807,11 +807,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         ----------
         
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         
         Returns
@@ -836,11 +836,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         ----------
         
         experiment
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+            An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
         
         participant
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
+            An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
             
         Returns
@@ -967,7 +967,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
 class NonAdaptiveNetwork(TrialNetwork):
     """
-    A :class:`~dlgr_utils.trial.main.TrialNetwork` class for non-adaptive experiments.
+    A :class:`~psynet.trial.main.TrialNetwork` class for non-adaptive experiments.
     The user should not have to engage with this class directly,
     except through the network visualisation tool and through 
     analysing the resulting data.
@@ -976,24 +976,24 @@ class NonAdaptiveNetwork(TrialNetwork):
     1. At the top level of the hierarchy, different networks correspond to different 
        combinations of participant group and block.
        If the same experiment contains many 
-       :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrialMaker` objects
-       with different associated :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial`
+       :class:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker` objects
+       with different associated :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`
        classes, 
        then networks will also be differentiated by the names of these 
-       :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial` classes.
+       :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` classes.
        
     2. Within a given network, the first level of the hierarchy is the 
-       :class:`~dlgr_utils.trial.non_adaptive.Stimulus` class.
+       :class:`~psynet.trial.non_adaptive.Stimulus` class.
        These objects subclass the Dallinger :class:`~dallinger.models.Node` class,
-       and are generated directly from :class:`~dlgr_utils.trial.non_adaptive.StimulusSpec` instances.
+       and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusSpec` instances.
        
-    3. Nested within :class:`~dlgr_utils.trial.non_adaptive.Stimulus` objects
-       are :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` objects.
+    3. Nested within :class:`~psynet.trial.non_adaptive.Stimulus` objects
+       are :class:`~psynet.trial.non_adaptive.StimulusVersion` objects.
        These also subclass the Dallinger :class:`~dallinger.models.Node` class,
-       and are generated directly from :class:`~dlgr_utils.trial.non_adaptive.StimulusVersionSpec` instances.
+       and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` instances.
        
-    4. Nested within :class:`~dlgr_utils.trial.non_adaptive.StimulusVersion` objects
-       are :class:`~dlgr_utils.trial.non_adaptive.NonAdaptiveTrial` objects.
+    4. Nested within :class:`~psynet.trial.non_adaptive.StimulusVersion` objects
+       are :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` objects.
        These objects subclass the Dallinger :class:`~dallinger.models.Info` class.
 
     Attributes
@@ -1045,8 +1045,8 @@ class NonAdaptiveNetwork(TrialNetwork):
     num_stimuli : int
         Returns the number of stimuli associated with the network.
         
-    var : :class:`~dlgr_utils.field.VarStore`
-        A repository for arbitrary variables; see :class:`~dlgr_utils.field.VarStore` for details.
+    var : :class:`~psynet.field.VarStore`
+        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
     """
     #pylint: disable=abstract-method
     
