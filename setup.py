@@ -1,7 +1,11 @@
 import setuptools
+import os
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
+    
+with open(os.path.join("psynet", 'VERSION')) as version_file:
+    version = version_file.read().strip()
 
 setuptools.setup(
     name="psynet", # Replace with your own username
