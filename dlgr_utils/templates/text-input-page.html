@@ -41,9 +41,7 @@
     <script>
         submit = function() {
             $(".submit-response").attr('disabled',true);
-            next_page({
-                "answer": document.getElementById("text_input").value
-            });
+            next_page(document.getElementById("text_input").value);
         }
     </script>
 {% endblock %}

@@ -46,9 +46,7 @@
     <script>
         clicked_button = function(id) {
             $(".submit-response").attr('disabled',true);
-            next_page({
-                "answer": id
-            });
+            next_page(id);
         }
     </script>
 {% endblock %}

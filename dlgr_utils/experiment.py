@@ -252,20 +252,20 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, response, metadata, page_uuid):
+    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
-
             event = self.timeline.get_current_event(self, participant)
-            parsed_response = event.process_response(
-                response=response, 
+            response = event.process_response(
+                raw_answer=raw_answer, 
+                blobs=blobs,
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
             )
             validation = event.validate(
-                parsed_response=parsed_response,
+                response,
                 experiment=self,
                 participant=participant
             )
@@ -347,12 +347,20 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/response", methods=["POST"])
         def route_response():
             exp = self.new(db.session)
-            message = json.loads(request.values["message"])
-            participant_id = get_arg_from_dict(message, "participant_id")
-            page_uuid = get_arg_from_dict(message, "page_uuid")
-            data = json.loads(get_arg_from_dict(message, "data", use_default=True, default=None))
-            metadata = json.loads(get_arg_from_dict(message, "metadata"))
-            res = exp.process_response(participant_id, data, metadata, page_uuid)
+            
+            json_data = json.loads(request.values["json"])
+            
+            # Everything that isn't named 'json' is a blob
+            blobs = {**request.values}
+            del blobs["json"]
+            
+            participant_id = get_arg_from_dict(json_data, "participant_id")
+            page_uuid = get_arg_from_dict(json_data, "page_uuid")
+            raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
+            metadata = get_arg_from_dict(json_data, "metadata")
+            
+            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid)
+            
             exp.save()
             return res
 

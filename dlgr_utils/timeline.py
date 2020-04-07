@@ -4,6 +4,9 @@ import importlib_resources
 import flask
 import gevent
 import time
+import json
+
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from typing import List, Optional, Dict, Callable
 
@@ -156,7 +159,11 @@ class ReactiveGoTo(GoTo):
 class Page(Event):
     """
     The base class for pages, customised by passing values to the ``__init__`` 
-    function and by overriding the ``process_response`` and ``validate`` methods.
+    function and by overriding the following methods:
+    
+    * :meth:`~dlgr_utils.timeline.Page.format_answer`
+    * :meth:`~dlgr_utils.timeline.Page.validate`
+    * :meth:`~dlgr_utils.timeline.Page.extra_metadata`
 
     Parameters
     ----------
@@ -219,64 +226,135 @@ class Page(Event):
 
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
-
-    def process_response(self, response, metadata, experiment, participant):
+    
+    def process_response(self, raw_answer, blobs, metadata, experiment, participant):
+        answer = self.format_answer(
+            raw_answer, 
+            blobs=blobs,
+            metadata=metadata, 
+            experiment=experiment, 
+            participant=participant
+        )
+        extra_metadata = self.extra_metadata(
+            metadata=metadata, 
+            raw_answer=raw_answer,
+            answer=answer,
+            experiment=experiment,
+            participant=participant
+        )
+        combined_metadata = {**metadata, **extra_metadata}
+        resp = Response(            
+            participant=participant,
+            label=self.label, 
+            answer=answer,
+            page_type=type(self).__name__,
+            metadata=combined_metadata
+        )
+        participant.answer = resp.answer
+        experiment.session.add(resp)
+        experiment.save()
+        return resp
+        
+    def extra_metadata(self, **kwargs):
         """
-        Takes the response submitted by the participant for the current page and performs
-        initial preprocessing. A good default for this method is provided in 
-        :class:`dlgr_utils.timeline.ResponsePage`,
-        but alternative customisation might be useful in computationally demanding scenarios
-        (e.g. large audio files).
-
+        Compiles additional metadata about the page or its response from the participant.
+        This metadata will be merged with the default metadata object returned
+        from the browser, with any duplicate terms overwritten.
+        
         Parameters
         ----------
+            
+        **kwargs
+            Keyword arguments, including:
+            
+            1. ``raw_answer``:
+               The raw answer returned from the participant's browser.
+               
+            2. ``answer``:
+               The formatted answer.
+               
+            3. ``metadata``:
+               The original metadata returned from the participant's browser.
+            
+            3. ``experiment``: 
+               An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+               corresponding to the current experiment.
 
-        response:
-            The main response object as returned from 
-            the client's browser. The precise form of this object depends on the 
-            page's implementation, but it will typically contain the primary
-            content of the participant's response.
-
-        metadata:
-            Metadata about the response as returned from 
-            the client's browser. The precise form of this object depends on the 
-            page's implementation, but it will typically contain secondary
-            data about the response, such as the time spent on the page.
-
-        experiment:
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
-            corresponding to the current experiment.
-
-        participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
-            corresponding to the current participant.
-
+            4. ``participant``:
+               An instantiation of :class:`dlgr_utils.participant.Participant`,
+               corresponding to the current participant.
+               
         Returns
         -------
-
-        An object of arbitrary form.
-            The response after the preprocessing has been performed.
+        
+        dict
+            A dictionary of metadata.
         """
-
-    def validate(self, parsed_response, experiment, participant):
+        return {}
+        
+    def format_answer(self, raw_answer, **kwargs):
         """
-        Takes the parsed response from the participant and runs a validation check
+        Formats the raw answer object returned from the participant's browser.
+        
+        Parameters
+        ----------
+        
+        raw_answer
+            The raw answer object returned from the participant's browser.
+
+        **kwargs
+            Keyword arguments, including:
+            
+            1. ``blobs``:
+               A dictionary of any blobs that were returned from the 
+               participant's browser.
+               
+            2. ``metadata``:
+               The metadata returned from the participant's browser.
+            
+            3. ``experiment``: 
+               An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+               corresponding to the current experiment.
+
+            4. ``participant``:
+               An instantiation of :class:`dlgr_utils.participant.Participant`,
+               corresponding to the current participant.
+        
+        Returns
+        -------
+        
+        Object
+            The formatted answer, suitable for serialisation to JSON
+            and storage in the database.
+        """
+        # pylint: disable=unused-argument
+        return raw_answer
+
+    def validate(self, response, **kwargs):
+        # pylint: disable=unused-argument
+        """
+        Takes the :class:`dlgr_utils.timeline.Response` object
+        created by the page and runs a validation check
         to determine whether the participant may continue to the next page.
 
         Parameters 
         ----------
 
-        parsed_response:
-            The output of the ``process_response`` method 
-            (:meth:`dlgr_utils.timeline.Page.process_response`).
+        response:
+            An instance of :class:`dlgr_utils.timeline.Response`.
+            Typically the ``answer`` attribute of this object
+            is most useful for validation.
         
-        experiment:
-            An instantiation of :class:`dlgr_utils.experiment.Experiment`,
-            corresponding to the current experiment.
+        **kwargs:
+            Keyword arguments, including:
+            
+            1. ``experiment``: 
+               An instantiation of :class:`dlgr_utils.experiment.Experiment`,
+               corresponding to the current experiment.
 
-        participant:
-            An instantiation of :class:`dlgr_utils.participant.Participant`,
-            corresponding to the current participant.
+            2. ``participant``:
+               An instantiation of :class:`dlgr_utils.participant.Participant`,
+               corresponding to the current participant.
 
         Returns
         -------
@@ -286,6 +364,7 @@ class Page(Event):
             :class:`dlgr_utils.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
+        return None
 
     def render(self, experiment, participant):
         internal_js_vars = {
@@ -644,83 +723,84 @@ class Timeline():
             if isinstance(new_event, Page) or isinstance(new_event, PageMaker):
                 finished = True
 
-            # logger.info(f"participant.event_id = {json.dumps(participant.event_id)}")
-        # logger.info(f"participant.branch_log = {json.dumps(participant.branch_log)}")
-
-    # def process_response(self, response, experiment, participant):
-    #     event = self.get_current_event(experiment, participant)
-    #     parsed_response = event.process_response(
-    #         response=response,
-    #         experiment=experiment,
-    #         participant=participant
-    #     )
-    #     rpdb.set_trace()
-    #     validation = event.validate(
-    #         parsed_response=parsed_response,
-    #         experiment=experiment,
-    #         participant=participant
-    #     )
-    #     parsed_response.successful_validation = validation is not RejectedResponse
-    #     return validation
-
-    # def estimate_total_time_credit(self):
-    #     return estimate_time_credit(self.events)
-
 def estimate_time_credit(events):
     return sum([
         event.time_estimate * event.expected_repetitions
         for event in events
         if event.returns_time_credit
     ])
-    
-class ResponsePage(Page):
-    def format_answer(self, answer, metadata, experiment, participant):
-        # pylint: disable=unused-argument
-        return answer
-
-    def compile_details(self, response, answer, metadata, experiment, participant):
-        # pylint: disable=unused-argument
-        """Should provide a dict of supplementary information about the page and (optionally) its response."""
-        raise NotImplementedError
-
-    def process_response(self, response, metadata, experiment, participant):
-        answer = self.format_answer(response["answer"], metadata, experiment, participant)
-        resp = Response(
-            participant=participant,
-            question_label=self.label, 
-            answer=answer,
-            page_type=type(self).__name__,
-            metadata=metadata,
-            details=self.compile_details(response, answer, metadata, experiment, participant)
-        )
-        participant.answer = resp.answer
-        experiment.session.add(resp)
-        experiment.save()
-        return resp
         
 class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):
         self.message = message
 
 class Response(Question):
+    """
+    A database-backed object that stores the participant's response to a 
+    :class:`~dlgr_utils.timeline.Page`.
+    By default, one such object is created each time the participant
+    tries to advance to a new page.
+    
+    This class subclasses the Dallinger :class:`~dallinger.models.Question` class,
+    and hence can be found in the ``question`` table of the database.
+    
+    Attributes
+    ----------
+    
+    answer
+        The participant's answer, after formatting.
+        Stored in ``response`` in the database.
+    
+    page_type: str
+        The type of page administered.
+        Stored in ``property1`` in the database.
+    
+    successful_validation: bool
+        Whether the response validation was successful,
+        allowing the participant to advance to the next page.
+        Stored in ``property2`` in the database.
+    
+    metadata: dict
+        Metadata about the page and the participant's response.
+    """
+    
     __mapper_args__ = {"polymorphic_identity": "response"}
 
-    answer = claim_field(1)
-    metadata = claim_field(2)
-    page_type = claim_field(3, str)
-    successful_validation = claim_field(4, bool)
+    page_type = claim_field(1, str)
+    successful_validation = claim_field(2, bool)
+    
+    @hybrid_property
+    def answer(self):
+        if self.response is None:
+            return None
+        else:
+            return json.loads(self.response)
+            
+    @answer.setter
+    def answer(self, answer):
+        # Ideally we'd want to save NULL if the answer is None,
+        # but the response field is non-nullable.
+        self.response = json.dumps(answer)
 
-    def __init__(self, participant, question_label, answer, page_type, metadata, details):
+    def __init__(self, participant, label, answer, page_type, metadata):
         super().__init__(
             participant=participant,
-            question=question_label,
+            question=label,
             response="",
             number=-1
         )
         self.answer = answer
-        self.details = details
         self.metadata = metadata
         self.page_type = page_type
+        self.metadata = metadata
+
+    @property
+    def metadata(self):
+        return self.details
+
+    @metadata.setter
+    def metadata(self, metadata):
+        self.details = metadata
 
 def is_list_of_events(x: list):
     for val in x:
