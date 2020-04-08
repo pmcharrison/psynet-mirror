@@ -1,0 +1,21 @@
+{% extends "base/consent.html" %}
+
+{% block consent_text %}
+
+<div class="text-left" style="font-size:18px">
+    
+    <p>
+        In a real experiment, you would put an official text here that
+        describes the experimental procedure to the participant.
+    </p>
+
+</div>
+{% endblock consent_text %}
+
+{% block consent_button %}
+    <button 
+        type="button" class="btn btn-primary btn-lg" id="consent" 
+        onClick="window.location='/start?hit_id={{ hit_id }}&assignment_id={{ assignment_id }}&worker_id={{ worker_id }}&mode={{ mode }}';" style="float: left;">
+        I agree
+    </button>
+{% endblock consent_button %}
