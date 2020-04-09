@@ -1,5 +1,39 @@
 {% extends "layout.html" %}
 
+{% block stylesheets %}
+    {{ super() }}
+    <style>
+    .modal {
+        display: none; 
+        position: fixed; 
+        z-index: 1; 
+        padding-top: 100px; 
+        left: 0;
+        top: 0;
+        width: 100%; 
+        height: 100%; 
+        overflow: auto; 
+        background-color: rgb(0,0,0); 
+        background-color: rgba(0,0,0,0.4); 
+      }
+      
+      .modal-content {
+        background-color: #4989C8;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+      
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      </style>
+{% endblock %}
+
 {% macro next_button() %}
 <hr>
 
@@ -39,6 +73,28 @@
                             {{text}}
                         </div>
                     {% endfor %}
+
+                    <button type="button" class="btn btn-primary" id="help_button" style = "min-width: 50px">Help!</button>
+                    <div id="help_modal" class="modal">
+                        <div class="modal-content">
+                            <span class="close">&times;</span>
+                            <h3>In case of a problem, try the following:</h3>
+                            <ul>
+                                <li>Reload the page.</li>
+                                <li>Check that your internet connection is working.</li>
+                                <li>If the above doesn't help, 
+                                    <a style="color:red" href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29" target="_top">send us an email</a>
+                                    with the following information:
+                                    <ol>
+                                        <li>A link to the current web page;</li>
+                                        <li>Your Worker ID;</li>
+                                        <li>The problem you're experiencing.</li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>    
+                    </div>
+
                 </div>
             </nav>
         {% endif %}
@@ -68,8 +124,31 @@
                 }
             }
             
+            init_modal = function() {
+                var modal = document.getElementById("help_modal");
+                var help_btn = document.getElementById("help_button");
+                var span = document.getElementsByClassName("close")[0];
+
+                if (modal !== null) {
+                    help_btn.onclick = function() {
+                        modal.style.display = "block";
+                    }
+
+                    span.onclick = function() {
+                        modal.style.display = "none";
+                    }
+
+                    window.onclick = function(event) {
+                        if (event.target == modal) {
+                        modal.style.display = "none";
+                        }
+                    }
+                }
+            }
+            
             psi.init_page = function() {
                 check_participant_id();
+                init_modal();
                 psi.page_load_time = new Date();
             }
             
