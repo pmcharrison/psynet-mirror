@@ -1,5 +1,39 @@
 {% extends "layout.html" %}
 
+{% block stylesheets %}
+    {{ super() }}
+    <style>
+    .modal {
+        display: none; 
+        position: fixed; 
+        z-index: 1; 
+        padding-top: 100px; 
+        left: 0;
+        top: 0;
+        width: 100%; 
+        height: 100%; 
+        overflow: auto; 
+        background-color: rgb(0,0,0); 
+        background-color: rgba(0,0,0,0.4); 
+      }
+      
+      .modal-content {
+        background-color: #4989C8;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+      
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      </style>
+{% endblock %}
+
 {% macro next_button() %}
 <hr>
 
@@ -39,6 +73,19 @@
                             {{text}}
                         </div>
                     {% endfor %}
+
+                    <button type="button" class="btn btn-primary submit-response" id="help_button" style = "min-width: 50px">help!</button>
+                    <div id="help_modal" class="modal">
+                        <div class="modal-content">
+                            <span class="close">&times;</span>
+                            <p>In case of a problem, try the following:
+                                <li>Reload the page.</li>
+                                <li>Check that your internet connection is working.</li>
+                                <li>If the above doesn't help, contact us at {{ contact_email_on_error }}</li>
+                            </p>
+                        </div>    
+                    </div>
+
                 </div>
             </nav>
         {% endif %}
@@ -170,6 +217,27 @@
     <script>
         psynet.init_page();
         {{ init_js_vars }}
+    </script>
+
+    <script>
+        // Modal help window logic
+        var modal = document.getElementById("help_modal");
+        var help_btn = document.getElementById("help_button");
+        var span = document.getElementsByClassName("close")[0];
+
+        help_btn.onclick = function() {
+            modal.style.display = "block";
+        }
+
+        span.onclick = function() {
+            modal.style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+            modal.style.display = "none";
+            }
+        }
     </script>
     
 {% endblock %}
