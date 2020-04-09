@@ -14,6 +14,7 @@ from .utils import dict_to_js_vars, call_function, check_function_args
 from . import templates
 
 from dallinger.models import Question
+from dallinger.config import get_config
 
 from functools import reduce
 
@@ -378,7 +379,11 @@ class Page(Event):
             **self.template_arg, 
             "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
             "progress_bar": self.create_progress_bar(participant),
-            "footer": self.create_footer(experiment, participant)
+            "footer": self.create_footer(experiment, participant),
+            "contact_email_on_error": get_config().get("contact_email_on_error"),
+            "app_id": experiment.app_id,
+            "participant_id": participant.id,
+            "worker_id": participant.worker_id
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 

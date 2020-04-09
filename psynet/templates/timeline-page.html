@@ -74,15 +74,24 @@
                         </div>
                     {% endfor %}
 
-                    <button type="button" class="btn btn-primary submit-response" id="help_button" style = "min-width: 50px">help!</button>
+                    <button type="button" class="btn btn-primary" id="help_button" style = "min-width: 50px">Help!</button>
                     <div id="help_modal" class="modal">
                         <div class="modal-content">
                             <span class="close">&times;</span>
-                            <p>In case of a problem, try the following:
+                            <h3>In case of a problem, try the following:</h3>
+                            <ul>
                                 <li>Reload the page.</li>
                                 <li>Check that your internet connection is working.</li>
-                                <li>If the above doesn't help, contact us at {{ contact_email_on_error }}</li>
-                            </p>
+                                <li>If the above doesn't help, 
+                                    <a style="color:red" href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29" target="_top">send us an email</a>
+                                    with the following information:
+                                    <ol>
+                                        <li>A link to the current web page;</li>
+                                        <li>Your Worker ID;</li>
+                                        <li>The problem you're experiencing.</li>
+                                    </ol>
+                                </li>
+                            </ul>
                         </div>    
                     </div>
 
@@ -115,8 +124,31 @@
                 }
             }
             
+            init_modal = function() {
+                var modal = document.getElementById("help_modal");
+                var help_btn = document.getElementById("help_button");
+                var span = document.getElementsByClassName("close")[0];
+
+                if (modal !== null) {
+                    help_btn.onclick = function() {
+                        modal.style.display = "block";
+                    }
+
+                    span.onclick = function() {
+                        modal.style.display = "none";
+                    }
+
+                    window.onclick = function(event) {
+                        if (event.target == modal) {
+                        modal.style.display = "none";
+                        }
+                    }
+                }
+            }
+            
             psi.init_page = function() {
                 check_participant_id();
+                init_modal();
                 psi.page_load_time = new Date();
             }
             
@@ -217,27 +249,6 @@
     <script>
         psynet.init_page();
         {{ init_js_vars }}
-    </script>
-
-    <script>
-        // Modal help window logic
-        var modal = document.getElementById("help_modal");
-        var help_btn = document.getElementById("help_button");
-        var span = document.getElementsByClassName("close")[0];
-
-        help_btn.onclick = function() {
-            modal.style.display = "block";
-        }
-
-        span.onclick = function() {
-            modal.style.display = "none";
-        }
-
-        window.onclick = function(event) {
-            if (event.target == modal) {
-            modal.style.display = "none";
-            }
-        }
     </script>
     
 {% endblock %}
