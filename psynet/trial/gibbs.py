@@ -67,6 +67,11 @@ class GibbsTrial(ChainTrial):
     active_index : int
         The index of the parameter that the participant manipulates
         on this trial.
+        
+    reverse_scale : bool
+        Whether the response scale should be reversed.
+        This reversal should be implemented on the front-end,
+        with the correct numbers still being reported to the back-end.
     
     updated_vector : list
         The updated vector after the participant has responded.
@@ -78,9 +83,11 @@ class GibbsTrial(ChainTrial):
         """
         In the Gibbs sampler, a trial's definition is created by taking the 
         definition from the source
-        :class:`~psynet.trial.gibbs.GibbsNode`
-        and modifying it such that the free parameter has a randomised
-        starting value. Note that different trials at the same
+        :class:`~psynet.trial.gibbs.GibbsNode`,
+        modifying it such that the free parameter has a randomised
+        starting value, and adding a randomised Boolean determining whether the 
+        corresponding slider (or similar) has its direction reversed.
+        Note that different trials at the same
         :class:`~psynet.trial.gibbs.GibbsNode` will have the same 
         free parameters but different starting values for those free parameters.
         
@@ -104,13 +111,15 @@ class GibbsTrial(ChainTrial):
         """
         vector = self.node.definition["vector"].copy()
         active_index = self.node.definition["active_index"]
+        reverse_scale = bool(random.randint(0, 1))
         
         if self.resample_free_parameter:
             vector[active_index] = self.network.random_sample(active_index)
         
         definition = {
             "vector": vector,
-            "active_index": active_index
+            "active_index": active_index,
+            "reverse_scale": reverse_scale
         }
         
         return definition
@@ -123,6 +132,10 @@ class GibbsTrial(ChainTrial):
     def active_index(self):
         return self.definition["active_index"]
 
+    @property
+    def reverse_scale(self):
+        return self.definition["reverse_scale"]
+        
     @property
     def updated_vector(self):
         new = self.initial_vector.copy()

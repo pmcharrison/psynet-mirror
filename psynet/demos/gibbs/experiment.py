@@ -53,6 +53,7 @@ class ColorSliderPage(Page):
         prompt: Union[str, Markup],
         selected: str,   
         starting_values: List[int],
+        reverse_scale: bool,
         time_estimate=None
     ):
         assert selected in ["red", "green", "blue"]
@@ -69,7 +70,8 @@ class ColorSliderPage(Page):
                 "selected": selected,
                 "red": starting_values[0],
                 "green": starting_values[1],
-                "blue": starting_values[2]
+                "blue": starting_values[2],
+                "reverse_scale": reverse_scale
             }
         )
     
@@ -112,6 +114,7 @@ class CustomTrial(GibbsTrial):
             prompt,
             selected=selected_color,
             starting_values=self.initial_vector,
+            reverse_scale=self.reverse_scale,
             time_estimate=5
         )
 
