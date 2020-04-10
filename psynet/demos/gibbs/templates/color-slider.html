@@ -11,15 +11,15 @@
 
         <div id="responses" style="padding-top:20px; padding-bottom:20px" selected="{{ selected }}">
                 <fieldset {% if selected != "red" %} hidden="hidden" {% endif %}>
-                    <input id="red" type="range" min="0" max="255" id="r" step="1" value="{{ red }}">
+                    <input id="red" type="range" min="0" max="255" id="r" step="1" value="{{ red }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
                 </fieldset>  
             
                 <fieldset {% if selected != "green" %} hidden="hidden" {% endif %}>
-                    <input id="green" type="range" min="0" max="255" id="g" step="1" value="{{ green }}">
+                    <input id="green" type="range" min="0" max="255" id="g" step="1" value="{{ green }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
                 </fieldset>
          
                 <fieldset {% if selected != "blue" %} hidden="hidden" {% endif %}>
-                    <input id="blue" type="range" min="0" max="255" id="b" step="1" value="{{ blue }}">
+                    <input id="blue" type="range" min="0" max="255" id="b" step="1" value="{{ blue }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
                 </fieldset>  
         </div>
     </div>
