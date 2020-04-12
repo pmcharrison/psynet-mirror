@@ -1,4 +1,4 @@
-![Logo](Logo.png)
+![Logo](logo.png)
 
 Please refer to the [online documentation](https://computational-audition-lab.gitlab.io/psynet/).
 
