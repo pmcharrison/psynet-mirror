@@ -1,6 +1,6 @@
 # This is a minimal experiment implementation for prototyping the monitor route.
 import dallinger.deployment 
-from dallinger.models import Info, Node
+from dallinger.models import Info, Node, Transformation
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 

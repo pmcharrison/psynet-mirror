@@ -61,7 +61,7 @@ class Stimulus(dallinger.models.Node):
 
     @property
     def definition(self):
-        return self.details
+        return self.details.copy()
 
     @definition.setter
     def definition(self, definition):
@@ -208,7 +208,7 @@ class StimulusVersion(dallinger.models.Node):
 
     @property
     def definition(self):
-        return self.details
+        return self.details.copy()
 
     @definition.setter
     def definition(self, definition):

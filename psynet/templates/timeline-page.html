@@ -1,12 +1,46 @@
 {% extends "layout.html" %}
 
+{% block stylesheets %}
+    {{ super() }}
+    <style>
+    .modal {
+        display: none; 
+        position: fixed; 
+        z-index: 1; 
+        padding-top: 100px; 
+        left: 0;
+        top: 0;
+        width: 100%; 
+        height: 100%; 
+        overflow: auto; 
+        background-color: rgb(0,0,0); 
+        background-color: rgba(0,0,0,0.4); 
+      }
+      
+      .modal-content {
+        background-color: #4989C8;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+      }
+      
+      .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      </style>
+{% endblock %}
+
 {% macro next_button() %}
 <hr>
 
 <div class="row">
     <div class="col-xs-10"></div>
     <div class="col-xs-2">
-        <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="next_page();">Next</button>
+        <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="psynet.next_page();">Next</button>
     </div>
 </div>
 {% endmacro %}
@@ -39,6 +73,28 @@
                             {{text}}
                         </div>
                     {% endfor %}
+
+                    <button type="button" class="btn btn-primary" id="help_button" style = "min-width: 50px">Help!</button>
+                    <div id="help_modal" class="modal">
+                        <div class="modal-content">
+                            <span class="close">&times;</span>
+                            <h3>In case of a problem, try the following:</h3>
+                            <ul>
+                                <li>Reload the page.</li>
+                                <li>Check that your internet connection is working.</li>
+                                <li>If the above doesn't help, 
+                                    <a style="color:red" href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29" target="_top">send us an email</a>
+                                    with the following information:
+                                    <ol>
+                                        <li>A link to the current web page;</li>
+                                        <li>Your Worker ID;</li>
+                                        <li>The problem you're experiencing.</li>
+                                    </ol>
+                                </li>
+                            </ul>
+                        </div>    
+                    </div>
+
                 </div>
             </nav>
         {% endif %}
@@ -47,109 +103,152 @@
 
 {% block scripts %}
     {{super()}}
+    
     <script>
-        if (dallinger.identity.participantId == undefined) {
-            alert(
-                "Your participant ID is undefined, perhaps because you " +
-                "switched browsers during the test. " +
-                "Unfortunately this behaviour is not currently supported."
-            );
-            throw console.error("Undefined participant ID.");
-        }
-    </script>
-
-    <script>
-        {{ init_js_vars }}
-        var page_load_time = new Date();
-
-        next_page = function(raw_answer=null, metadata, blobs) {
-            submit_generic_response(raw_answer, metadata, blobs, on_success_response, on_error_response);
-        }
-        
-        on_success_response = function(request) {
-            response = JSON.parse(request.response);
-            if (response.submission == "approved") {
-                console.log("Response received successfully.");
-                dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
-            } else if (response.submission == "rejected") {
-                console.log("Response rejected."); 
-                alert(response.message);
-                $(".submit-response").attr('disabled',false);
-            } else {
-                throw Error("Received a malformed response.");
-            } 
-        }
-        
-        on_error_response = function(request) {
-            dallinger.error({
-                "data": {
-                    "participant_id": dallinger.identity.participantId
-                }
-            });
-        }
-
-        add_blobs = function(form_data, blobs) {
-            for (let [key, value] of Object.entries(blobs)) {
-                if (key == "json") {
-                    throw Error("Blobs may not be named 'json'.");
-                }
-                form_data.append(key, value);
-            }
-        }
-        
-        prepare_json_submission = function(raw_answer, metadata) {
-            var current_time = new Date();
+        var psynet = (function () {
+            /**
+            * @namespace
+            * @alias psynet
+            */
             
-            var all_metadata = {
-                // We could add other things like browser information here
-                "time_taken": (current_time - page_load_time) / 1000
-            };
+            var psi = {};
             
-            if (metadata !== undefined) {
-                for (var x in metadata) {
-                    all_metadata[x] = metadata[x];
+            check_participant_id = function() {
+                if (dallinger.identity.participantId == undefined) {
+                    alert(
+                        "Your participant ID is undefined, perhaps because you " +
+                        "switched browsers during the test. " +
+                        "Unfortunately this behaviour is not currently supported."
+                    );
+                    throw console.error("Undefined participant ID.");
                 }
             }
-                        
-            var json = JSON.stringify({
-                "participant_id": dallinger.identity.participantId,
-                "page_uuid": page_uuid,
-                "raw_answer": raw_answer,
-                "metadata": all_metadata
-            });
             
-            return json
-        }
-        
-        submit_generic_response = function(raw_answer, metadata, blobs, on_success_response, on_error_response) {
-            // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
-            // blobs - optional Object, each attribute should be a blob to upload.
-            //       - Note that 'json' is not a permitted name for an attribute
-            json = prepare_json_submission(raw_answer, metadata);         
-            
-            var formData = new FormData();
-            formData.append("json", json)
-            
-            if (blobs !== undefined) {
-                add_blobs(formData, blobs);    
-            }
+            init_modal = function() {
+                var modal = document.getElementById("help_modal");
+                var help_btn = document.getElementById("help_button");
+                var span = document.getElementsByClassName("close")[0];
 
-            var request = new XMLHttpRequest();
+                if (modal !== null) {
+                    help_btn.onclick = function() {
+                        modal.style.display = "block";
+                    }
 
-            request.onreadystatechange = function () {
-                if (request.readyState == 4) {
-                    if (request.status == 200) {
-                        console.log('Response was successfully received.');
-                        on_success_response(request);
-                    } else {
-                        console.log('Something went wrong.');
-                        on_error_response(request);
+                    span.onclick = function() {
+                        modal.style.display = "none";
+                    }
+
+                    window.onclick = function(event) {
+                        if (event.target == modal) {
+                        modal.style.display = "none";
+                        }
                     }
                 }
             }
+            
+            psi.init_page = function() {
+                check_participant_id();
+                init_modal();
+                psi.page_load_time = new Date();
+            }
+            
+            psi.next_page = function(raw_answer=null, metadata, blobs) {
+                submit_generic_response(raw_answer, metadata, blobs, on_success_response, on_error_response);
+            }
 
-            request.open("POST", "/response");
-            request.send(formData);
-        }
+            on_success_response = function(request) {
+                response = JSON.parse(request.response);
+                if (response.submission == "approved") {
+                    console.log("Response received successfully.");
+                    dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                } else if (response.submission == "rejected") {
+                    console.log("Response rejected."); 
+                    alert(response.message);
+                    $(".submit-response").attr('disabled',false);
+                } else {
+                    throw Error("Received a malformed response.");
+                } 
+            }
+
+            on_error_response = function(request) {
+                dallinger.error({
+                    "data": {
+                        "participant_id": dallinger.identity.participantId
+                    }
+                });
+            }
+
+            add_blobs = function(form_data, blobs) {
+                for (let [key, value] of Object.entries(blobs)) {
+                    if (key == "json") {
+                        throw Error("Blobs may not be named 'json'.");
+                    }
+                    form_data.append(key, value);
+                }
+            }
+
+            prepare_json_submission = function(raw_answer, metadata) {
+                var current_time = new Date();
+                
+                var all_metadata = {
+                    // We could add other things like browser information here
+                    "time_taken": (current_time - psi.page_load_time) / 1000
+                };
+                
+                if (metadata !== undefined) {
+                    for (var x in metadata) {
+                        all_metadata[x] = metadata[x];
+                    }
+                }
+                            
+                var json = JSON.stringify({
+                    "participant_id": dallinger.identity.participantId,
+                    "page_uuid": page_uuid,
+                    "raw_answer": raw_answer,
+                    "metadata": all_metadata
+                });
+                
+                return json
+            }
+
+            submit_generic_response = function(raw_answer, metadata, blobs, on_success_response, on_error_response) {
+                // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
+                // blobs - optional Object, each attribute should be a blob to upload.
+                //       - Note that 'json' is not a permitted name for an attribute
+                json = prepare_json_submission(raw_answer, metadata);         
+                
+                var formData = new FormData();
+                formData.append("json", json)
+                
+                if (blobs !== undefined) {
+                    add_blobs(formData, blobs);    
+                }
+
+                var request = new XMLHttpRequest();
+
+                request.onreadystatechange = function () {
+                    if (request.readyState == 4) {
+                        if (request.status == 200) {
+                            console.log('Response was successfully received.');
+                            on_success_response(request);
+                        } else {
+                            console.log('Something went wrong.');
+                            on_error_response(request);
+                        }
+                    }
+                }
+
+                request.open("POST", "/response");
+                request.send(formData);
+            }
+            
+            return psi
+        }())
     </script>
+
+    <script>
+        psynet.init_page();
+        {{ init_js_vars }}
+    </script>
+    
 {% endblock %}
