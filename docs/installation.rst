@@ -33,7 +33,7 @@ Choose a location to put your installation, e.g. `~/cap`.
 .. code-block:: console
 
     cd ~/cap
-    git clone https://gitlab.com/computational-audition-lab/psynet`
+    git clone https://gitlab.com/computational-audition-lab/psynet
 
 By default this command installs the ``master`` branch. You can switch between
 different branches, and even different commits, using Git.

@@ -1,5 +1,7 @@
 # Links
 
+![Logo](logo.png)
+
 - [Online documentation](https://computational-audition-lab.gitlab.io/psynet/)
 - [Contribution guidelines](https://gitlab.com/computational-audition-lab/computational-audition-lab/-/wikis/Computer-Resources/Tricks-for-git)
 
