@@ -112,6 +112,39 @@
             */
             
             var psi = {};
+            utils = {};
+            
+            // check if it is a function
+            utils.is_function = function (functionToCheck) {
+                return functionToCheck !== null && 
+                    functionToCheck && 
+                    {}.toString.call(functionToCheck) === '[object Function]';
+            };
+
+            // check if it is a dictionary
+            utils.is_dict = function (dict_to_check) {
+                return (
+                    typeof dict_to_check === 'object' &&
+                    dict_to_check !== null &&
+                    !(dict_to_check instanceof Array) &&
+                    !(dict_to_check instanceof Date)
+                );
+            };
+
+            // check if a key exists in an array
+            utils.key_exists_in_array = function (key, arr) {
+                return (arr.indexOf(key) > -1);
+            };
+
+            // compute a mean; this is not build-in into Javascript XD
+            utils.mean = function (numbers) {
+                var total = 0, i;
+                for (i = 0; i < numbers.length; i += 1) {
+                    total += numbers[i];
+                }
+                return total / numbers.length;
+            };
+
             
             check_participant_id = function() {
                 if (dallinger.identity.participantId == undefined) {
@@ -241,6 +274,8 @@
                 request.open("POST", "/response");
                 request.send(formData);
             }
+            
+            psy.utils = utils;
             
             return psi
         }())
