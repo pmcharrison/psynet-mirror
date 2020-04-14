@@ -227,7 +227,12 @@ class Page(Event):
         
         self.media_requests = {
             "audio": {
-                'bier': '/static/bier.wav'
+                # 'bier': '/static/bier.wav',
+                'batch': {
+                    'url': '/static/file_concatenated.mp3',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
             }
         }
 

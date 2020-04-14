@@ -66,36 +66,37 @@
 
     {% block footer %}
         {% if footer.show %}    
-            <nav class="navbar navbar-fixed-bottom" style="background-color: #4989C8; color: white; margin: 0px; line-height: 33px;">
-                <div id="media_download_progress_bar" style="width: 0px; height: 10px; background-color: #5cb85c"></div>
-                <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                    {% for text in footer.text_to_show %}
-                        <div style="margin: 0px">
-                            {{text}}
-                        </div>
-                    {% endfor %}
-
-                    <button type="button" class="btn btn-primary" id="help_button" style = "min-width: 50px">Help!</button>
-                    <div id="help_modal" class="modal">
-                        <div class="modal-content">
-                            <span class="close">&times;</span>
-                            <h3>In case of a problem, try the following:</h3>
-                            <ul>
-                                <li>Reload the page.</li>
-                                <li>Check that your internet connection is working.</li>
-                                <li>If the above doesn't help, 
-                                    <a style="color:red" href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29" target="_top">send us an email</a>
-                                    with the following information:
-                                    <ol>
-                                        <li>A link to the current web page;</li>
-                                        <li>Your Worker ID;</li>
-                                        <li>The problem you're experiencing.</li>
-                                    </ol>
-                                </li>
-                            </ul>
+            <nav class="navbar navbar-fixed-bottom" style="background-color: #4989C8; color: white; margin: 0px; line-height: 33px; border-style: none">
+                <div id="media_download_progress_bar" style="width: 0px; height: 6px; background-color: #006191;"></div>
+                <div style="padding: 8px; padding-left: 20px; padding-right: 20px;">
+                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                        {% for text in footer.text_to_show %}
+                            <div style="margin: 0px">
+                                {{text}}
+                            </div>
+                        {% endfor %}
+    
+                        <button type="button" class="btn btn-primary" id="help_button" style = "min-width: 50px">Help!</button>
+                        <div id="help_modal" class="modal">
+                            <div class="modal-content">
+                                <span class="close">&times;</span>
+                                <h3>In case of a problem, try the following:</h3>
+                                <ul>
+                                    <li>Reload the page.</li>
+                                    <li>Check that your internet connection is working.</li>
+                                    <li>If the above doesn't help, 
+                                        <a style="color:red" href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29" target="_top">send us an email</a>
+                                        with the following information:
+                                        <ol>
+                                            <li>A link to the current web page;</li>
+                                            <li>Your Worker ID;</li>
+                                            <li>The problem you're experiencing.</li>
+                                        </ol>
+                                    </li>
+                                </ul>
+                            </div>    
                         </div>    
                     </div>
-
                 </div>
             </nav>
         {% endif %}
@@ -200,16 +201,21 @@
                 if (psynet.media.loaded) {
                     return true;
                 }
+                var loaded = true;
                 Object.values(psynet.media.data).forEach(function(stimuli) {
                     Object.values(stimuli).forEach(function(stimulus) {
                         if (!stimulus.loaded) {
-                            return false;
+                            loaded = false;
                         }
                     });
                 });
-                psynet.media.loaded = true;
-                psynet.media.on_loaded();
-                return true
+                if (loaded) {
+                    psynet.media.loaded = true;
+                    psynet.media.on_loaded();
+                    return true
+                } else {
+                    return false
+                }
             }
                         
             psynet.media.download_progress = {
@@ -397,10 +403,10 @@
                 psynet.info('Decoding sound ' + stimulus_id + '...');
                 
                 psynet.media.download_progress.set(media_type, file_id, 100);
-                
+
                 psynet.media.audio_context.decodeAudioData(data, function (res) {
                     psynet.info('Sound ' + stimulus_id + ' decoded.');
-                    
+
                     out = psynet.media.data[media_type][stimulus_id];
 
                     out.buffer = res;
@@ -461,6 +467,7 @@
             process_audio_batch = function(data, args) { //, ids,) {
                 var stimulus_ids = args["stimulus_ids"];
                 var media_type = args["media_type"];
+                var file_id = args['file_id'];
                 
                 function extract_buffer(src, start, length) {
                     // This function is used to find the start and end of each file
@@ -471,7 +478,7 @@
                 }
 
                 var num_files = current_file = 0;
-                psynet.info('Loaded. Process...');
+                psynet.info('Unpacking the audio batch "' + file_id + '".');
                 var bb = new DataView(data);
                 var offset = 0;
                 
@@ -492,7 +499,7 @@
                     }
                     
                     args = {
-                        id: stimulus_id,
+                        stimulus_id: stimulus_id,
                         media_type: media_type,
                         last_in_batch: num_files == stimulus_ids.length,
                         file_id: file_id
