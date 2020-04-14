@@ -165,6 +165,7 @@
                 console.log('INFO: ' + msg);
             };
             
+            
             psynet.media.types = ["audio"];
             
             psynet.media.get_by_id = function (media_type, idx) {
@@ -186,24 +187,65 @@
                 }
             };
             
-            psynet.media.progress = {}
+            psynet.media.progress = {
+                complete = false
+            }
             
-            // this variable shows the overall loading progress
             psynet.media.progress.by_process = {};
+            
+            psynet.media.types.forEach(function(media_type) {
+                psynet.media.progress.by_process[media_type] = {};
+            });
+            
+            psynet.media.progress.init = function(media_type, id) {
+                psynet.media.progress.by_process[media_type][id] = {
+                    download = 0,
+                    decode = 0
+                }
+            }
+            
+            psynet.media.progress.set = function(media_type, id, progress_type, value) {
+                if (!progress_type in ["download", "decode"]) {
+                    psynet.error("Invalid progress type: " + progress_type);
+                }
+                psynet.media.progress[media_type][id][progress_type] = value;
+                psynet.media.progress.update_display();
+                psynet.media.progress.check_complete();
+                
+            }
+            
+            psynet.media.progress.check_complete = function() {
+                if (!psynet.media.progress.complete && psynet.media.progress.get_total(true, true) == 100) {
+                    psynet.media.progress.complete = true;
+                    psynet.media.progress.on_complete();
+                }
+            }
 
-            // This extra helper function get's the average loading progress across all requests
-            psynet.media.progress.get_total = function () {
-                var single_processes = [];
-                Object.values(psynet.media.progress.by_process).forEach(single_processes.push);
-                // Object.keys(psynet.media.progress.by_process).forEach(function (process_ID) {
-                //     single_processes.push(psynet.media.progress.by_process[process_ID]);
-                // });
-                return psynet.utils.mean(single_processes);
+            psynet.media.progress.get_total = function (download = true, decode = false) {
+                var res = [];
+                Object
+                    .values(psynet.media.progress.by_process)
+                    .forEach(function(processes_for_media_type) {
+                        processes_for_media_type.forEach(process) {
+                            // Currently we just include download status in the total,
+                            // and ignore decode status (because it should be quick)
+                            if (download) {
+                                res.push(process.download);
+                            }
+                            if (decode) {
+                                res.push(process.decode);
+                            }
+                        }
+                    });
+                return psynet.utils.mean(res);
             };
             
-            // Update the progress bar 
-            function on_progress() {
-                progress.style.width = Math.round(psynet.media.progress.get_total()) + '%';
+            psynet.media.progress.bar = function() {
+                document.getElementById("media_progress_bar")
+            }
+            
+            psynet.media.progress.update_display = function() {
+                psynet.media.progress.bar().style.width = Math.round(psynet.media.progress.get_total()) + '%';
             }
             
             // The last thing we expect of the user is that the resources, that need to be loaded, are dumped as a json:
@@ -240,8 +282,56 @@
                 });
             }
             
+            is_batch = function(x) {
+                return psynet.utils.is_dict(x)
+            }
+            
             psynet.media.process_requests_for_media_type = function(media_type) {
                 check_media_type_for_duplicate_ids(media_type);
+                var requests = psynet.media.requests[media_type];
+                
+                psynet[media_type] = {};    // TODO
+                
+                Object.keys(media_type).forEach(function (id) {
+                    var value = requests[id];
+                    if (is_batch(value)) {
+                        preload_batch(id, value, media_type);
+                    } else {
+                        var url = value;
+                        preload_stimulus(id, url, media_type);
+                    }
+                });
+            }
+            
+            preload_batch = function(batch_id, batch, media_type) {
+                var url = batch.url;
+                var args = {
+                    batch_id: batch_id,
+                    stimulus_ids: batch.ids,
+                    media_type: media_type
+                };
+                create_request(url, process_batch_sound, args);
+            }
+            
+            preload_stimulus = function(stimulus_id, url, media_type) {
+                var args = {
+                    stimulus_id: stimulus_id,
+                    media_type: media_type
+                }
+                create_request(url, create_sound_with_buffer, args);
+            }
+            
+            function create_request(url, callback_function, args) {
+                var request = new XMLHttpRequest();
+                request.open('GET', url, true);
+                request.responseType = 'arraybuffer';
+                request.onload = function () {
+                    callback_function(request.response, args);
+                };
+                request.onprogress = function (e) {
+                    psynet.media.progress.set(args["media_type"], args["id"], e.loaded * 100 / e.total);
+                };
+                request.send();
             }
             
             check_for_duplicate_media_ids = function(media_type) {
@@ -281,142 +371,129 @@
                 Object.keys(psynet.media.requests[media_type]).forEach(log);
             }
             
+            create_sound_with_buffer = function(data, args) { // id, loading_process_id, current_file = 1, num_files = 1) {
+                var id = args['id'];
+                var media_type = args['media_type'];
+                var loading_process_id = args['loading_process_id'];
+                var last_in_batch = args['last_in_batch'];
+                
+                psynet.info('Decoding sound ' + id + '...');
+                
+                psynet.media.progress.set(media_type, loading_process_id, "download", 100);
+                
+                context.decodeAudioData(data, function (res) {
+                    psynet.info('Sound ' + id + ' decoded.');
+                    out = {};
+                    out.buffer = res;
+                    out.current_context = null;
+                    out.start_time = null;
 
-                        //////////////////////////////////////////
-                        // PART 2: POPULATE THE BUFFER
-                        /////////////////////////////////////////
+                    // Add play function to buffer
+                    out.play = function () {
+                        var source = context.createBufferSource();
+                        source.connect(context.destination);
+                        source.buffer = res;
+                        startTime = context.currentTime + 0.1;
+                        this.start_time = startTime;
+                        source.start(startTime);
+                        this.current_context = source;
+                        return (source);
+                    };
 
-                        // This function loads the sound buffer into the `psynet.audio` buffer and adds a play() method to it
-                        // By default we assume there is only one file, see `current_file=1` and `num_files=1`
-                        function create_sound_with_buffer(buffer, id, loading_process_id, current_file = 1, num_files = 1) {
-                            psynet.info('Decoding sound ' + id + '...');
-                            context.decodeAudioData(buffer, function (res) {
-                                psynet.info('Sound ' + id + ' decoded.');
-                                psynet[media_type][id] = {};
-                                psynet[media_type][id].buffer = res;
-                                psynet[media_type][id].current_context = null;
-                                psynet[media_type][id].start_time = null;
+                    // stop the sound
+                    out.stop = function(){
+                        if (this.current_context !== null)
+                            this.current_context.stop();
+                        this.current_context = null;
+                        this.start_time = null;
+                    };
 
-                                // Add play function to buffer
-                                psynet[media_type][id].play = function () {
-                                    var source = context.createBufferSource();
-                                    source.connect(context.destination);
-                                    source.buffer = res;
-                                    startTime = context.currentTime + 0.1;
-                                    psynet[media_type][id].start_time = startTime;
-                                    source.start(startTime);
-                                    psynet[media_type][id].current_context = source;
-                                    return (source);
-                                };
+                    out.pause = function(){
+                        // TODO
+                        //
+                    };
 
-                                // stop the sound
-                                psynet[media_type][id].stop = function(){
-                                    if (psynet[media_type][id].current_context !== null)
-                                        psynet[media_type][id].current_context.stop();
-                                    psynet[media_type][id].current_context = null;
-                                    psynet[media_type][id].start_time = null;
-                                };
+                    out.continue = function(){
+                        // TODO
+                    };
 
-                                psynet[media_type][id].pause = function(){
-                                    // TODO
-                                    //
-                                };
+                    // fade in
+                    out.fade_in = function () {
+                        var source = context.createBufferSource();
+                        source.connect(context.destination);
+                        source.buffer = res;
+                        // TODO modify buffer with face in, linearly spaced increasing array from 0 to 1
+                        startTime = context.currentTime + 0.1;
+                        this.start_time = startTime;
+                        source.start(startTime);
+                        this.current_context = source;
+                        return (source);
+                    };
 
-                                psynet[media_type][id].continue = function(){
-                                    // TODO
-                                };
+                    out.fade_out = function () {
+                        // TODO
+                    };
+                    
+                    psynet[media_type][id] = out;
 
-                                // fade in
-                                psynet[media_type][id].fade_in = function () {
-                                    var source = context.createBufferSource();
-                                    source.connect(context.destination);
-                                    source.buffer = res;
-                                    // TODO modify buffer with face in, linearly spaced increasing array from 0 to 1
-                                    startTime = context.currentTime + 0.1;
-                                    psynet[media_type][id].start_time = startTime;
-                                    source.start(startTime);
-                                    psynet[media_type][id].current_context = source;
-                                    return (source);
-                                };
-
-                                psynet[media_type][id].fade_out = function () {
-                                    // TODO
-                                };
-
-                                current_file++;
-                                if (current_file === num_files) {
-                                    psynet.loading_progress[loading_process_id] = 100;
-                                    if (psynet.utils.get_total_progress() === 100) {
-                                        // if all requests are finished
-                                        on_complete();
-                                    }
-                                }
-                            });
-                        }
-
-                        // This function sets up a request and executes a callback function on its response
-                        function create_request(url, ids, id, callback_function) {
-                            var request = new XMLHttpRequest();
-                            request.open('GET', url, true);
-                            request.responseType = 'arraybuffer';
-                            request.onload = function () {
-                                callback_function(request.response, ids, id);
-                            };
-                            request.onprogress = function (e) {
-                                psynet.loading_progress[id] = (e.loaded * 100 / e.total);
-                                on_progress();
-                            };
-                            request.send();
-                        }
-
-                        // This is the callback function in the case of a batch audio file
-                        function process_batch_sound(data, ids, loading_process_id) {
-                            // This function is used to find the start and end of each file
-                            function extract_buffer(src, start, length) {
-                                var dstU8 = new Uint8Array(length);
-                                var srcU8 = new Uint8Array(src, start, length);
-                                dstU8.set(srcU8);
-                                return dstU8;
-                            }
-
-                            var num_files = current_file = 0;
-                            psynet.info('Loaded. Process...');
-                            var bb = new DataView(data);
-                            var offset = 0;
-                            while (offset < bb.byteLength) {
-                                var length = bb.getUint32(offset, true);
-                                offset += 4;
-                                var sound = extract_buffer(data, offset, length);
-                                offset += length;
-                                num_files++;
-
-                                if (num_files > ids.length) {
-                                    psynet.error('Your batch file contains more files than you supplied IDs for!')
-                                }
-                                create_sound_with_buffer(sound.buffer, ids[num_files - 1], loading_process_id, current_file, num_files);
-                            }
-                            if (num_files < ids.length) {
-                                psynet.error('You supplied more ids then there are files in your batch file!')
-                            }
-                        }
-
-
-                        // Here we go populating all of the audio resources:
-                        // first we create an empty dictionary
-                        psynet[media_type] = {};
-
-                        // which is populated here:
-                        Object.keys(psynet.media.requests[media_type]).forEach(function (id) {
-                            var request_item = psynet.media.requests[media_type];
-                            if (psynet.utils.is_dict(request_item[id])) {
-                                create_request(request_item[id].url, request_item[id].ids, id, process_batch_sound);
-                            } else {
-                                create_request(request_item[id], id, id, create_sound_with_buffer)
-                            }
-                        });
+                    if (last_in_batch) {
+                        psynet.media.progress.set(media_type, loading_process_id, "decode", 100);
                     }
                 });
             }
+
+            process_batch_sound = function(data, args) { //, ids,) {
+                var stimulus_ids = args["stimulus_ids"];
+                var media_type = args["media_type"];
+                
+                function extract_buffer(src, start, length) {
+                    // This function is used to find the start and end of each file
+                    var dstU8 = new Uint8Array(length);
+                    var srcU8 = new Uint8Array(src, start, length);
+                    dstU8.set(srcU8);
+                    return dstU8;
+                }
+
+                var num_files = current_file = 0;
+                psynet.info('Loaded. Process...');
+                var bb = new DataView(data);
+                var offset = 0;
+                
+                while (offset < bb.byteLength) {
+                    var stimulus_id = stimulus_ids[num_files];
+                    var length = bb.getUint32(offset, true);
+                    offset += 4;
+                    var sound = extract_buffer(data, offset, length);
+                    offset += length;
+                    num_files ++;
+
+                    if (num_files > stimulus_ids.length) {
+                        psynet.error(
+                            'Too many stimuli found in batch file (' + 
+                            'expected ' + stimulus_ids.length + 
+                            ', got at least' + num_files + ').'
+                        );
+                    }
+                    
+                    args = {
+                        id: stimulus_id,
+                        media_type: media_type,
+                        last_in_batch: num_files == stimulus_ids.length
+                    };
+                    
+                    create_sound_with_buffer(sound.buffer, args);
+                }
+                if (num_files < stimulus_ids.length) {
+                    psynet.error(
+                            'Too few stimuli found in batch file (' + 
+                            'expected ' + stimulus_ids.length + 
+                            ', got ' + num_files + ').'
+                        );
+                }
+            }
+        }
+    });
+    }
 
             // After the window is loaded, process all requests
             window.addEventListener('load', process_requests, false);
