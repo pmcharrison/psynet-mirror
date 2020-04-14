@@ -145,7 +145,7 @@ The following classes are provided to help this process,
 which can be subclassed to implement a particular paradigm:
 
 * :class:`~psynet.trial.chain.ChainTrialMaker`,
-  a special type of :class:`~psynet.trial.main.ChainTrialMaker`;
+  a special type of :class:`~psynet.trial.main.TrialMaker`;
 
 * :class:`~psynet.trial.chain.ChainNetwork`,
   a special type of :class:`~psynet.trial.main.TrialNetwork`;
