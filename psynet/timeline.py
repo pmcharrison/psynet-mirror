@@ -224,6 +224,12 @@ class Page(Event):
         self.js_vars = js_vars
 
         self.expected_repetitions = 1 
+        
+        self.media_requests = {
+            "audio": {
+                'bier': '/static/bier.wav'
+            }
+        }
 
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
@@ -378,6 +384,7 @@ class Page(Event):
         all_template_arg = {
             **self.template_arg, 
             "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
+            "define_media_requests": flask.Markup(self.define_media_requests),
             "progress_bar": self.create_progress_bar(participant),
             "footer": self.create_footer(experiment, participant),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
@@ -386,6 +393,10 @@ class Page(Event):
             "worker_id": participant.worker_id
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
+
+    @property
+    def define_media_requests(self):
+        return f"psynet.media.requests = JSON.parse('{json.dumps(self.media_requests)}');"
 
     def create_progress_bar(self, participant):
         return ProgressBar(participant.progress)
