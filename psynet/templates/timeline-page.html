@@ -145,6 +145,23 @@
                 return total / numbers.length;
             };
 
+            // This error function should be able to redirect errors to the backend
+            psi.error = function (msg, action_callback = null) {
+                // TODO pass msg to error route
+                console.log('ERROR: ' + msg);
+                // call a callback action, if it is defined
+                utils.is_function(action_callback) ? action_callback() : '';
+            };
+
+            psi.warning = function (msg, action_callback = null) {
+                // TODO follow same structure as above
+                console.log('WARNING: ' + msg);
+            };
+
+            psi.info = function (msg, action_callback = null) {
+                // TODO follow same structure as above
+                console.log('INFO: ' + msg);
+            };
             
             check_participant_id = function() {
                 if (dallinger.identity.participantId == undefined) {
