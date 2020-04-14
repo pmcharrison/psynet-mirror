@@ -187,9 +187,7 @@
                 }
             };
             
-            psynet.media.progress = {
-                complete = false
-            }
+            psynet.media.download_progress = {};
             
             psynet.media.progress.by_process = {};
             
@@ -214,11 +212,22 @@
                 
             }
             
-            psynet.media.progress.check_complete = function() {
-                if (!psynet.media.progress.complete && psynet.media.progress.get_total(true, true) == 100) {
-                    psynet.media.progress.complete = true;
-                    psynet.media.progress.on_complete();
+            psynet.media.loaded = false;
+            
+            psynet.media.check_loaded = function() {
+                if (psynet.media.loaded) {
+                    return true;
                 }
+                psynet.media.data.forEach(function(stimuli) {
+                    stimuli.forEach(function(stimulus) {
+                        if (!stimulus.loaded) {
+                            return false;
+                        }
+                    });
+                });
+                psynet.media.loaded = true;
+                psynet.media.on_loaded();
+                return true
             }
 
             psynet.media.progress.get_total = function (download = true, decode = false) {
@@ -272,27 +281,35 @@
                 return context
             }
             
-            psynet.media.process_requests = function() {
+            psynet.media.init() = function() {
                 var context = new_audio_context();
-                Object.keys(psynet.media.requests).forEach(function (media_type) {
-                    if (!(psynet.utils.key_exists_in_array(media_type, psynet.media.types))) {
-                        psynet.error('This media type ' + media_type + ' is not supported!');
-                    }
-                    psynet.media.process_requests_for_media_type(media_type);
-                });
+                requests = psynet.media.requests;
+                media_types = Object.keys(requests);
+                
+                for (media_type in media_types) {
+                    process_requests(media_type, requests[media_type]);
+                }
+            }
+            
+            psynet.media.init_media_type = function(media_type) {
+                psynet.media.data[media_type] = {};
+            }
+            
+            psynet.media.init_stimulus = function(id, media_type) {
+                psynet.media.data[media_type][id] = {
+                    loaded: false
+                };
             }
             
             is_batch = function(x) {
                 return psynet.utils.is_dict(x)
             }
             
-            psynet.media.process_requests_for_media_type = function(media_type) {
-                check_media_type_for_duplicate_ids(media_type);
-                var requests = psynet.media.requests[media_type];
+            psynet.media.process_requests = function(media_type, requests) {
+                psynet.media.init_media_type(media_type);
+                check_requests(requests);
                 
-                psynet[media_type] = {};    // TODO
-                
-                Object.keys(media_type).forEach(function (id) {
+                Object.keys(requests).forEach(function (id) {
                     var value = requests[id];
                     if (is_batch(value)) {
                         preload_batch(id, value, media_type);
@@ -310,6 +327,10 @@
                     stimulus_ids: batch.ids,
                     media_type: media_type
                 };
+                args.stimulus_ids.forEach(function(id) {
+                    psynet.media.init_stimulus(id, media_type);
+                })
+                
                 create_request(url, process_batch_sound, args);
             }
             
@@ -318,6 +339,7 @@
                     stimulus_id: stimulus_id,
                     media_type: media_type
                 }
+                psynet.media.init_stimulus(stimulus_id, media_type);
                 create_request(url, create_sound_with_buffer, args);
             }
             
@@ -334,11 +356,13 @@
                 request.send();
             }
             
-            check_for_duplicate_media_ids = function(media_type) {
+            check_requests = function(requests) {
+                // - Checks for missing URLs in batches.
+                // - Checks for duplicated IDs
                 var ids = [];
 
-                log = function(id, value) {
-                    var value = psynet.media.requests[media_type][id];
+                log = function(id) {
+                    var value = requests[id];
                     if (psynet.utils.is_dict(value)) {
                         log_batch(value);
                     } else {
@@ -346,29 +370,25 @@
                     }
                 }
                 
-                log_stimulus = function (key) {
-                    if (psynet.utils.key_exists_in_array(key)) {
-                        psynet.error('The ID you specified `' + key + '` already exists! IDs must be unique!!');
-                    } else {
-                        ids.push(key);
+                log_stimulus = function (id) {
+                    if (psynet.utils.key_exists_in_array(id, ids)) {
+                        psynet.error('The ID you specified `' + id + '` already exists! IDs must be unique!');
                     }
+                    ids.push(id);
                 };
                 
                 log_batch = function(batch) {
-                    if ('ids' in batch) {
-                        var batch_ids = batch['ids'];
-                        batch_ids.forEach(function (batch_id) {
-                            log_stimulus(batch_id);
-                        })
-                    } else {
+                    if (!('url' in batch)) {
+                        psynet.error('Each batch object must contain a "url" attribute.');
+                    }
+                    if (!('ids' in batch)) {
                         psynet.error('Each batch object must contain an "ids" attribute specifying its constituent stimuli.');
                     }
-                    if (!('url' in psynet.media.requests[media_type][id])) {
-                        psynet.error('You must specify a url for all stimuli in a batch!');
-                    }
+                    var stimulus_ids = batch['ids'];
+                    stimulus_ids.forEach(log_stimulus);
                 }
 
-                Object.keys(psynet.media.requests[media_type]).forEach(log);
+                Object.keys(requests).forEach(log);
             }
             
             create_sound_with_buffer = function(data, args) { // id, loading_process_id, current_file = 1, num_files = 1) {
@@ -383,7 +403,9 @@
                 
                 context.decodeAudioData(data, function (res) {
                     psynet.info('Sound ' + id + ' decoded.');
-                    out = {};
+                    
+                    out = psynet.media.data[media_type][id];
+                    
                     out.buffer = res;
                     out.current_context = null;
                     out.start_time = null;
@@ -434,11 +456,8 @@
                         // TODO
                     };
                     
-                    psynet[media_type][id] = out;
-
-                    if (last_in_batch) {
-                        psynet.media.progress.set(media_type, loading_process_id, "decode", 100);
-                    }
+                    out.loaded = true;
+                    psynet.media.check_loaded();
                 });
             }
 
@@ -536,6 +555,7 @@
                 check_participant_id();
                 init_modal();
                 psynet.page_load_time = new Date();
+                psynet.media.init();
             }
             
             psynet.next_page = function(raw_answer=null, metadata, blobs) {
