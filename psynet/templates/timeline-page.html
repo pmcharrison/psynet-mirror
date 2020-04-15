@@ -272,7 +272,12 @@
             psynet.media.download_progress.update_display = function() {
                 bar = psynet.media.download_progress.bar();
                 if (bar !== null) {
-                    bar.style.width = Math.round(psynet.media.download_progress.get_total()) + '%';
+                    var progress = psynet.media.download_progress.get_total()
+                    bar.style.width = Math.round(progress) + '%';
+                    if (progress == 100) {
+                        // You could do something here once loading is complete, 
+                        // e.g. delete progress bar text
+                    }
                 }
             }
             
