@@ -42,21 +42,28 @@ class Exp(psynet.experiment.Experiment):
                     as the audio files are loaded into the client's browser.
                     Once these audio files are loaded, you can access them programmatically.
                 </p>
+                <p>
+                    If you're running this demo locally, the audio files will load too 
+                    fast for you to see the progress bar. However, you can simulate
+                    a slower internet connection by using the Developer Options 
+                    of your browser.
+                    Note how the buttons only become enabled once the audio has finished loading.
+                </p>
                 <ul>
-                    <li> <a onclick="psynet.audio.bier.play();">Play 'bier'.</a></li>
-                    <li> <a onclick="psynet.audio.bier.stop();">Stop 'bier'.</a></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.bier.play();">Play 'bier'.</button></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.bier.stop();">Stop 'bier'.</button></li>
                 </ul>
                 <ul>
-                    <li> <a onclick="psynet.audio.funk_game_loop.play();">Play 'funk_game_loop'.</a></li>
-                    <li> <a onclick="psynet.audio.funk_game_loop.stop();">Stop 'funk_game_loop'.</a></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.funk_game_loop.play();">Play 'funk_game_loop'.</button></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.funk_game_loop.stop();">Stop 'funk_game_loop'.</button></li>
                 </ul>
                 <ul>
-                    <li> <a onclick="psynet.audio.honey_bee.play();">Play 'honey_bee'.</a></li>
-                    <li> <a onclick="psynet.audio.honey_bee.stop();">Stop 'honey_bee'.</a></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.honey_bee.play();">Play 'honey_bee'.</button></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.honey_bee.stop();">Stop 'honey_bee'.</button></li>
                 </ul>
                 <ul>
-                    <li> <a onclick="psynet.audio.there_it_is.play();">Play 'there_it_is'.</a></li>
-                    <li> <a onclick="psynet.audio.there_it_is.stop();">Stop 'there_it_is'.</a></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.play();">Play 'there_it_is'.</button></li>
+                    <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.stop();">Stop 'there_it_is'.</button></li>
                 </ul>
                 """
             ),

@@ -192,12 +192,27 @@
                 }
             };
             
-            psynet.media.on_loaded = function() {
-                psynet.info("All media loaded.");
+            var on_loaded_routines = [];
+            
+            psynet.media.register_on_loaded_routine = function(f) {
+                if (!psynet.utils.is_function(f)) {
+                    psynet.error("f was not a function.");
+                }
+                on_loaded_routines.push(f);
             }
             
-            psynet.media.loaded = false;
+            psynet.media.register_on_loaded_routine(function() {
+                $('.wait-for-media-load').removeAttr('disabled');
+            })
             
+            psynet.media.on_loaded = function() {
+                psynet.info("All media loaded.");
+                on_loaded_routines.forEach(function(f) {
+                    f();
+                });
+            }
+            psynet.media.loaded = false;
+        
             psynet.media.check_loaded = function() {
                 if (psynet.media.loaded) {
                     return true;
@@ -565,6 +580,7 @@
             }
             
             psynet.init_page = function() {
+                $('.wait-for-media-load').attr('disabled', 'disabled');
                 check_participant_id();
                 init_modal();
                 psynet.page_load_time = new Date();
