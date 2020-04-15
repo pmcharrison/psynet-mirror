@@ -48,11 +48,11 @@
 {% block body %}
     {% block header %}
         <div class="header">
-            {% if progress_bar.show %}
+            {% if experiment_progress_bar.show %}
                 <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="{{progress_bar.percentage}}"
-                    aria-valuemin="0" aria-valuemax="100" style="width:{{progress_bar.percentage}}%">
-                        {{progress_bar.percentage}}%
+                    <div class="progress-bar" role="progressbar" aria-valuenow="{{experiment_progress_bar.percentage}}"
+                    aria-valuemin="0" aria-valuemax="100" style="width:{{experiment_progress_bar.percentage}}%">
+                        {{experiment_progress_bar.percentage}}%
                     </div>
                 </div>
             {% endif %}
@@ -67,7 +67,7 @@
     {% block footer %}
         {% if footer.show %}    
             <nav class="navbar navbar-fixed-bottom" style="background-color: #4989C8; color: white; margin: 0px; line-height: 33px; border-style: none">
-                <div id="media_download_progress_bar" style="width: 0px; height: 6px; background-color: #006191;"></div>
+                <div id="media_download_progress_bar" style="width: {{ initial_download_progress }}%; height: 6px; background-color: #006191;"></div>
                 <div style="padding: 8px; padding-left: 20px; padding-right: 20px;">
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
                         {% for text in footer.text_to_show %}
@@ -148,23 +148,24 @@
                 }
                 return total / numbers.length;
             };
-
+            
+            class PsyNetError extends Error {
+                constructor(message) {
+                    super(message);
+                    this.name = "PsyNetError"; // (2)
+                }
+            }
+            
             // This error function should be able to redirect errors to the backend
-            psynet.error = function (msg, action_callback = null) {
-                // TODO pass msg to error route
-                console.log('ERROR: ' + msg);
-                throw new Error("A PsyNet error occurred.");
-                // call a callback action, if it is defined
-                psynet.utils.is_function(action_callback) ? action_callback() : '';
+            psynet.error = function (msg) {
+                throw new PsyNetError(msg);
             };
 
-            psynet.warning = function (msg, action_callback = null) {
-                // TODO follow same structure as above
+            psynet.warning = function (msg) {
                 console.log('WARNING: ' + msg);
             };
 
-            psynet.info = function (msg, action_callback = null) {
-                // TODO follow same structure as above
+            psynet.info = function (msg) {
                 console.log('INFO: ' + msg);
             };
             
@@ -346,12 +347,26 @@
                 create_request(url, create_sound_from_buffer, args);
             }
             
+            function report_request_error(url, status) {
+                var msg;
+                if (status == 404) {
+                    msg = "Failed to load media asset at " + url + " (404, file not found).";
+                } else {
+                    msg = "Failed to load media asset at " + url + " (error code = " + status + ")."
+                }
+                psynet.error(msg);
+            }
+            
             function create_request(url, callback_function, args) {
                 var request = new XMLHttpRequest();
                 request.open('GET', url, true);
                 request.responseType = 'arraybuffer';
                 request.onload = function () {
-                    callback_function(request.response, args);
+                    if (request.status == 200) {
+                        callback_function(request.response, args);
+                    } else {
+                        report_request_error(url, request.status);
+                    }
                 };
                 request.onprogress = function (e) {
                     psynet.media.download_progress.set(args["media_type"], args["file_id"], e.loaded * 100 / e.total);

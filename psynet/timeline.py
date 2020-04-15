@@ -186,6 +186,30 @@ class Page(Event):
 
     js_vars:
         Dictionary of arguments to instantiate as global Javascript variables.
+        
+    media: 
+        Optional nested dictionary of media assets to preload. 
+        The first level of this dictionary identifies the media type, e.g. "audio".
+        The second level of this dictionary identifies individual media assets.
+        An individual media asset can either be a string, 
+        corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid media argument might look like the following:
+        
+        ::
+        
+            {
+                "audio": {
+                    'bier': '/static/bier.wav',
+                    'batch': {
+                        'url': '/static/file_concatenated.mp3',
+                        'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                        'type': 'batch'
+                    }
+                }
+            }
     """
 
     returns_time_credit = True
@@ -198,6 +222,7 @@ class Page(Event):
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
+        media: Optional[Dict] = None
     ):
         if template_arg is None:
             template_arg = {}
@@ -225,17 +250,55 @@ class Page(Event):
 
         self.expected_repetitions = 1 
         
-        self.media_requests = {
-            "audio": {
-                # 'bier': '/static/bier.wav',
-                'batch': {
-                    'url': '/static/file_concatenated.mp3',
-                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
-                    'type': 'batch'
-                }
-            }
-        }
+        self.media = {} if media is None else media
+        self.check_media()
+        # self.media = {
+        #     "audio": {
+        #         'bier': '/static/bier.wav',
+        #         'batch': {
+        #             'url': '/static/file_concatenated.mp3',
+        #             'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+        #             'type': 'batch'
+        #         }
+        #     }
+        # }
 
+    @property 
+    def initial_download_progress(self):
+        if self.num_media_files > 0:
+            return 0
+        else: 
+            return 100
+
+    @property
+    def num_media_files(self):
+        counter = 0
+        for modality in self.media.values():
+            counter += len(modality)
+        return counter
+
+    def check_media(self):
+        assert isinstance(self.media, dict)
+        for key, value in self.media.items():
+            assert key in ["audio"]
+            ids = set()
+            for file_id, file in value.items():
+                if file_id in ids:
+                    raise ValueError(f"{file_id} occurred more than once in page's {key} specification.")
+                ids.add(file_id)
+                if not isinstance(file, str):
+                    if not isinstance(file, dict):
+                        raise TypeError(f"Media entry must either be a string URL or a dict (got {file}).")
+                    if not ("url" in file and "ids" in file):
+                        raise ValueError("Batch specifications must contain both 'url' and 'ids' keys.")
+                    ids = file["ids"]
+                    if not isinstance(ids, list):
+                        raise TypeError(f"The ids component of the batch specification must be a list (got {ids}).")
+                    for _id in ids:
+                        if not isinstance(_id, str):
+                            raise TypeError(f"Each id in the batch specification must be a string (got {_id}).")
+                            
+            
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
     
@@ -390,7 +453,8 @@ class Page(Event):
             **self.template_arg, 
             "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
             "define_media_requests": flask.Markup(self.define_media_requests),
-            "progress_bar": self.create_progress_bar(participant),
+            "initial_download_progress": self.initial_download_progress,
+            "experiment_progress_bar": self.create_experiment_progress_bar(participant),
             "footer": self.create_footer(experiment, participant),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "app_id": experiment.app_id,
@@ -401,10 +465,10 @@ class Page(Event):
 
     @property
     def define_media_requests(self):
-        return f"psynet.media.requests = JSON.parse('{json.dumps(self.media_requests)}');"
+        return f"psynet.media.requests = JSON.parse('{json.dumps(self.media)}');"
 
-    def create_progress_bar(self, participant):
-        return ProgressBar(participant.progress)
+    def create_experiment_progress_bar(self, participant):
+        return ExperimentProgressBar(participant.progress)
 
     def create_footer(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -1134,7 +1198,7 @@ def multiply_expected_repetitions(logic, factor: float):
             event.multiply_expected_repetitions(factor)
     return logic
 
-class ProgressBar():
+class ExperimentProgressBar():
     def __init__(self, progress: float, show=True, min_pct=5, max_pct=99):
         self.show = show
         self.percentage = round(progress * 100)

@@ -119,7 +119,10 @@ class NAFCPage(Page):
         Whether to arrange the buttons vertically.
 
     min_width:
-        CSS ``min_width`` parameter for the buttons.            
+        CSS ``min_width`` parameter for the buttons.   
+        
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
     def __init__(
@@ -130,7 +133,8 @@ class NAFCPage(Page):
         time_estimate: Optional[float] = None,
         labels: Optional[List[str]] = None,
         arrange_vertically: bool = False,
-        min_width: str ="100px"
+        min_width: str ="100px",
+        **kwargs
     ):
         self.prompt = prompt
         self.choices = choices 
@@ -153,7 +157,8 @@ class NAFCPage(Page):
             template_arg={
                 "prompt": prompt,
                 "buttons": buttons
-            }
+            },
+            **kwargs
         )
 
     def metadata(self, **kwargs):
@@ -192,6 +197,9 @@ class TextInputPage(Page):
 
     height:
         Optional CSS height property for the text box.
+        
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
     """
     def __init__(
         self,
@@ -200,7 +208,8 @@ class TextInputPage(Page):
         time_estimate: Optional[float] = None,
         one_line: bool = True,
         width: Optional[str] = None, # e.g. "100px"
-        height: Optional[str] = None
+        height: Optional[str] = None,
+        **kwargs
     ):
         
         self.prompt = prompt
@@ -222,7 +231,8 @@ class TextInputPage(Page):
                 "prompt": prompt,
                 "one_line": one_line,
                 "style": style
-            }
+            },
+            **kwargs
         )
 
     def metadata(self, **kwargs):
@@ -265,6 +275,9 @@ class SliderInputPage(Page):
 
     height:
         Optional CSS height property for the text box.
+        
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
     """
     def __init__(
         self,
@@ -275,7 +288,8 @@ class SliderInputPage(Page):
         max_value: Optional[int] = 100,
         step_size: Optional[int] = 1,
         width: Optional[str] = None, # e.g. "100px"
-        height: Optional[str] = None
+        height: Optional[str] = None,
+        **kwargs
     ):
 
         if max_value <= min_value:
@@ -302,7 +316,8 @@ class SliderInputPage(Page):
                 "min_value": min_value,
                 "max_value": max_value,
                 "style": style
-            }
+            },
+            **kwargs
         )
     
     def metadata(self, **kwargs):
