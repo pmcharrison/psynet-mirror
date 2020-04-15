@@ -77,7 +77,44 @@ class Exp(psynet.experiment.Experiment):
                         'type': 'batch'
                     }
                 }
-            }
+            },
+            css=[
+                """
+                .btn {
+                    margin: 2px
+                }
+                """
+            ]
+        ),
+        InfoPage(
+             flask.Markup(
+                """
+                <p>
+                    This page demonstrates the use of the media on_loaded routine,
+                    whereby you can register a function to be called once
+                    the page's media has finished loading.
+                    Here, we make an 'alert' box appear.
+                </p>
+                """
+             ),
+            time_estimate=5,
+            media={
+                "audio": {
+                    'bier': '/static/audio/bier.wav',
+                    'batch': {
+                        'url': '/static/audio/file_concatenated.mp3',
+                        'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                        'type': 'batch'
+                    }
+                }
+            },
+            scripts=[
+                """
+                psynet.media.register_on_loaded_routine(function() {
+                    alert("Media has finished loading!");
+                });
+                """
+            ]
         ),
         SuccessfulEndPage()
     )

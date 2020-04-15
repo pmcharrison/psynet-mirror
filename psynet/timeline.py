@@ -210,6 +210,35 @@ class Page(Event):
                     }
                 }
             }
+            
+    scripts:
+        Optional list of scripts to include in the page. 
+        Each script should be represented as a string, which will be passed 
+        verbatim to the page's HTML.
+        
+    css:
+        Optional list of CSS specification to include in the page. 
+        Each specification should be represented as a string, which will be passed 
+        verbatim to the page's HTML.
+        A valid CSS specification might look like this:
+        
+        ::
+        
+            .modal-content {
+                background-color: #4989C8;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #888;
+                width: 80%;
+            }
+            
+            .close {
+                color: #aaaaaa;
+                float: right;
+                font-size: 28px;
+                font-weight: bold;
+            }
+            
     """
 
     returns_time_credit = True
@@ -222,7 +251,9 @@ class Page(Event):
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
-        media: Optional[Dict] = None
+        media: Optional[Dict] = None,
+        scripts: Optional[List] = None,
+        css: Optional[List] = None
     ):
         if template_arg is None:
             template_arg = {}
@@ -252,16 +283,12 @@ class Page(Event):
         
         self.media = {} if media is None else media
         self.check_media()
-        # self.media = {
-        #     "audio": {
-        #         'bier': '/static/bier.wav',
-        #         'batch': {
-        #             'url': '/static/file_concatenated.mp3',
-        #             'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
-        #             'type': 'batch'
-        #         }
-        #     }
-        # }
+        
+        self.scripts = [] if scripts is None else [flask.Markup(x) for x in scripts]
+        assert isinstance(self.scripts, list)
+        
+        self.css = [] if css is None else [flask.Markup(x) for x in css]
+        assert isinstance(self.css, list)
 
     @property 
     def initial_download_progress(self):
@@ -459,7 +486,9 @@ class Page(Event):
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "app_id": experiment.app_id,
             "participant_id": participant.id,
-            "worker_id": participant.worker_id
+            "worker_id": participant.worker_id,
+            "scripts": self.scripts,
+            "css": self.css
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
