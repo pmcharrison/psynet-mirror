@@ -162,32 +162,48 @@
                 }
             }
             
-            // This error function should be able to redirect errors to the backend
-            psynet.error = function (msg) {
-                throw new PsyNetError(msg);
-            };
-
-            psynet.warning = function (msg) {
-                console.log('WARNING: ' + msg);
-            };
-
-            psynet.info = function (msg) {
-                console.log('INFO: ' + msg);
-            };
+            psynet.log = {};
             
+            psynet.log.generic = function(msg, level) {
+                if (level != "error" && level != "warn" && level != "info") {
+                    throw new Error("Invalid log level: " + level);
+                }
+
+                console.log("LOG (" + level.toUpperCase() + "): " + msg);
+                
+                route = (
+                    '/log/' + level 
+                    + "/" + dallinger.identity.participantId 
+                    + "/" + dallinger.identity.assignmentId
+                );
+                
+                dallinger.post(route, {message: msg});
+            }
+            
+            psynet.log.error = function(msg) {
+                return psynet.log.generic(msg, "error")
+            }
+            
+            psynet.log.warning = function(msg) {
+                return psynet.log.generic(msg, "warn")
+            }
+            
+            psynet.log.info = function(msg) {
+                return psynet.log.generic(msg, "info")
+            }
         
             psynet.media.types = ["audio"];
             psynet.media.data = {};
             
             psynet.media.get_by_id = function (media_type, idx) {
                 if (!(media_type in psynet.media_types)) {
-                    psynet.warning('Tried to access psynet.' + media_type + ' but it does not exist!');
+                    psynet.log.warning('Tried to access psynet.' + media_type + ' but it does not exist!');
                 } else {
                     // Needs to be reversed because they were added in the other order
                     // TODO double check if this is bullet proof if you load many sounds
                     var keys = Object.keys(psynet[media_type]).reverse();
                     if (idx > (keys.length - 1)) {
-                        psynet.warning(
+                        psynet.log.warning(
                             'Tried to index position ' + idx + ', but psynet.' + media_type + 
                             ' only goes until index ' + (keys.length - 1)
                         );
@@ -202,7 +218,7 @@
             
             psynet.media.register_on_loaded_routine = function(f) {
                 if (!psynet.utils.is_function(f)) {
-                    psynet.error("f was not a function.");
+                    throw Error("f was not a function.");
                 }
                 psynet.media.on_loaded_routines.push(f);
             }
@@ -212,7 +228,7 @@
             })
             
             psynet.media.on_loaded = function() {
-                psynet.info("All media loaded.");
+                psynet.log.info("All media loaded.");
                 psynet.media.on_loaded_routines.forEach(function(f) {
                     f();
                 });
@@ -302,7 +318,7 @@
                 if ('webkitAudioContext' in window) context = new webkitAudioContext();
                 if ('AudioContext' in window) context = new AudioContext();
                 if (!context) {
-                    psynet.error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
+                    throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
                 }
                 psynet.media.audio_context = context
             }
@@ -380,7 +396,7 @@
                 } else {
                     msg = "Failed to load media asset at " + url + " (error code = " + status + ")."
                 }
-                psynet.error(msg);
+                throw Error(msg);
             }
             
             function create_request(url, callback_function, args) {
@@ -416,17 +432,17 @@
                 
                 log_stimulus = function (id) {
                     if (psynet.utils.key_exists_in_array(id, ids)) {
-                        psynet.error('The ID you specified `' + id + '` already exists! IDs must be unique!');
+                        throw Error('The ID you specified `' + id + '` already exists! IDs must be unique!');
                     }
                     ids.push(id);
                 };
                 
                 log_batch = function(batch) {
                     if (!('url' in batch)) {
-                        psynet.error('Each batch object must contain a "url" attribute.');
+                        throw Error('Each batch object must contain a "url" attribute.');
                     }
                     if (!('ids' in batch)) {
-                        psynet.error('Each batch object must contain an "ids" attribute specifying its constituent stimuli.');
+                        throw Error('Each batch object must contain an "ids" attribute specifying its constituent stimuli.');
                     }
                     var stimulus_ids = batch['ids'];
                     stimulus_ids.forEach(log_stimulus);
@@ -441,12 +457,12 @@
                 var file_id = args['file_id'];
                 var last_in_batch = args['last_in_batch'];
             
-                psynet.info('Decoding sound ' + stimulus_id + '...');
+                psynet.log.info('Decoding sound ' + stimulus_id + '...');
                 
                 psynet.media.download_progress.set(media_type, file_id, 100);
 
                 psynet.media.audio_context.decodeAudioData(data, function (res) {
-                    psynet.info('Sound ' + stimulus_id + ' decoded.');
+                    psynet.log.info('Sound ' + stimulus_id + ' decoded.');
 
                     out = psynet.media.data[media_type][stimulus_id];
 
@@ -472,7 +488,7 @@
                     out.stop = function(fade_out = 0){
                         if (this.current_context !== null) {
                             if (fade_out != 0) {
-                                psynet.error("Fade-outs other than 0 are not implemented yet.");
+                                throw Error("Fade-outs other than 0 are not implemented yet.");
                                 // See https://codepen.io/2kool2/pen/RgKeyp for ideas.
                             }
                             this.current_context.stop();
@@ -483,12 +499,12 @@
 
                     out.pause = function(){
                         // TODO
-                        psynet.error("Not implemented yet");
+                        throw Error("Not implemented yet");
                     };
 
                     out.continue = function(){
                         // TODO
-                        psynet.error("Not implemented yet");
+                        throw Error("Not implemented yet");
                     };
                     
                     out.loaded = true;
@@ -510,7 +526,7 @@
                 }
 
                 var num_files = current_file = 0;
-                psynet.info('Unpacking the audio batch "' + file_id + '".');
+                psynet.log.info('Unpacking the audio batch "' + file_id + '".');
                 var bb = new DataView(data);
                 var offset = 0;
                 
@@ -523,7 +539,7 @@
                     num_files ++;
 
                     if (num_files > stimulus_ids.length) {
-                        psynet.error(
+                        throw Error(
                             'Too many stimuli found in batch file (' + 
                             'expected ' + stimulus_ids.length + 
                             ', got at least' + num_files + ').'
@@ -540,7 +556,7 @@
                     create_sound_from_buffer(sound.buffer, args);
                 }
                 if (num_files < stimulus_ids.length) {
-                    psynet.error(
+                    throw Error(
                             'Too few stimuli found in batch file (' + 
                             'expected ' + stimulus_ids.length + 
                             ', got ' + num_files + ').'
@@ -582,11 +598,19 @@
             }
             
             psynet.init_page = function() {
+                psynet.register_error_handler();
+                asdfsadf
                 $('.wait-for-media-load').attr('disabled', 'disabled');
                 check_participant_id();
                 init_modal();
                 psynet.page_load_time = new Date();
                 psynet.media.init();
+            }
+            
+            psynet.register_error_handler = function() {
+                window.onerror = function(msg, url, line, col, error) {
+                    psynet.log.error(error.stack);
+                }
             }
             
             psynet.next_page = function(raw_answer=null, metadata, blobs) {
