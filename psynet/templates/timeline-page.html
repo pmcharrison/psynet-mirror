@@ -455,44 +455,35 @@
                         source.connect(psynet.media.audio_context.destination);
                         source.buffer = res;
                         startTime = psynet.media.audio_context.currentTime + 0.1;
-                        this.start_time = startTime;
                         source.start(startTime);
+                        
+                        this.start_time = startTime;
                         this.current_context = source;
+                        
                         return (source);
                     };
 
                     // stop the sound
-                    out.stop = function(){
-                        if (this.current_context !== null)
+                    out.stop = function(fade_out = 0){
+                        if (this.current_context !== null) {
+                            if (fade_out != 0) {
+                                psynet.error("Fade-outs other than 0 are not implemented yet.");
+                                // See https://codepen.io/2kool2/pen/RgKeyp for ideas.
+                            }
                             this.current_context.stop();
-                        this.current_context = null;
-                        this.start_time = null;
+                            this.current_context = null;
+                            this.start_time = null;
+                        }
                     };
 
                     out.pause = function(){
                         // TODO
-                        //
+                        psynet.error("Not implemented yet");
                     };
 
                     out.continue = function(){
                         // TODO
-                    };
-
-                    // fade in
-                    out.fade_in = function () {
-                        var source = psynet.media.audio_context.createBufferSource();
-                        source.connect(psynet.media.audio_context.destination);
-                        source.buffer = res;
-                        // TODO modify buffer with fade in, linearly spaced increasing array from 0 to 1
-                        startTime = psynet.media.audio_context.currentTime + 0.1;
-                        this.start_time = startTime;
-                        source.start(startTime);
-                        this.current_context = source;
-                        return (source);
-                    };
-
-                    out.fade_out = function () {
-                        // TODO
+                        psynet.error("Not implemented yet");
                     };
                     
                     out.loaded = true;
