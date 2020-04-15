@@ -28,10 +28,6 @@ class InfoPage(Page):
     time_estimate:
         Time estimated for the page.
 
-    title:
-        Optional title for the page. Use :class:`flask.Markup`
-        to display raw HTML.
-
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
@@ -39,25 +35,21 @@ class InfoPage(Page):
     def __init__(
         self, 
         content: Union[str, Markup], 
-        time_estimate: Optional[float] = None, 
-        title: Optional[Union[str, Markup]] = None,
+        time_estimate: Optional[float] = None,
         **kwargs
     ):
         self.content = content
-        self.title = title
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
             template_arg={
-                "content": "" if content is None else content,
-                "title": "" if title is None else title
+                "content": "" if content is None else content
             },
             **kwargs
         )
         
     def metadata(self, **kwargs):
         return {
-            "title": self.title,
             "content": self.content
         }
         
@@ -72,14 +64,14 @@ class UnsuccessfulEndPage(EndPage):
     """
     Indicates an unsuccessful end to the experiment.
     """
-    def __init__(self, content="default", title=None, failure_tags: Optional[List] = None):
+    def __init__(self, content="default", failure_tags: Optional[List] = None):
         if content=="default":
             content = (
                 "Unfortunately you did not meet the criteria to continue in the experiment. "
                 "You will still be paid for the time you spent already. "
                 "Thank you for taking part!"
             )
-        super().__init__(content=content, title=title)
+        super().__init__(content=content)
         self.failure_tags = failure_tags
 
     def finalise_participant(self, experiment, participant):

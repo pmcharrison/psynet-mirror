@@ -638,7 +638,7 @@ def reactive_seq(
     )
 
 class EndPage(Page):
-    def __init__(self, content="default", title=None):
+    def __init__(self, content="default"):
         if content=="default":
             content = (
                 "That's the end of the experiment! "
@@ -648,8 +648,7 @@ class EndPage(Page):
             time_estimate=0,
             template_str=get_template("final-page.html"),
             template_arg={
-                "content": "" if content is None else content,
-                "title": "" if title is None else title
+                "content": "" if content is None else content
             }
         )
 
