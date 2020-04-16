@@ -24,7 +24,8 @@ class ChainNetwork(TrialNetwork):
     """
     Implements a network in the form of a chain.
     Intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
-    Typically the user won't have to override anything here.
+    Typically the user won't have to override anything here,
+    but they can optionally override :meth:`~psynet.trial.chain.ChainNetwork.validate`.
     
     Parameters
     ----------
@@ -163,7 +164,17 @@ class ChainNetwork(TrialNetwork):
         self.target_num_trials = target_num_nodes * trials_per_node
         self.definition = self.make_definition()
         
+        self.validate()
+        
         experiment.save()
+        
+    def validate(self):
+        """
+        Runs at the end of the constructor function to check that the 
+        network object has a legal structure. This can be useful for 
+        checking that the user hasn't passed illegal argument values.
+        """
+        pass
 
     def make_definition(self):
         """
