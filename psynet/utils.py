@@ -1,5 +1,7 @@
 import json
 import inspect
+import importlib
+
 from functools import reduce
 from sqlalchemy.sql import func
 
@@ -59,4 +61,9 @@ def check_function_args(f, args, need_all=True):
                 raise ValueError(f"Invalid argument: {a}")
     return True
 
+def get_function(function_string: str):
+    mod_name, func_name = function_string.rsplit('.', 1)
+    mod = importlib.import_module(mod_name)
+    res = getattr(mod, func_name)
+    return res
     
