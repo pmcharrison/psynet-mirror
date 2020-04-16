@@ -61,9 +61,20 @@ def check_function_args(f, args, need_all=True):
                 raise ValueError(f"Invalid argument: {a}")
     return True
 
-def get_function(function_string: str):
-    mod_name, func_name = function_string.rsplit('.', 1)
-    mod = importlib.import_module(mod_name)
-    res = getattr(mod, func_name)
-    return res
+def get_object_from_module(module_name: str, object_name: str):
+    """
+    Finds and returns an object from a module.
+    
+    Parameters
+    ----------
+    
+    module_name
+        The name of the module.
+        
+    object_name
+        The name of the object.
+    """
+    mod = importlib.import_module(module_name)
+    obj = getattr(mod, object_name)
+    return obj
     
