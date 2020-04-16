@@ -1,9 +1,14 @@
 import json
 import inspect
 import importlib
+import time
 
 from functools import reduce
 from sqlalchemy.sql import func
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 def get_arg_from_dict(x, desired: str, use_default = False, default = None):
     if desired not in x:
@@ -64,17 +69,26 @@ def check_function_args(f, args, need_all=True):
 def get_object_from_module(module_name: str, object_name: str):
     """
     Finds and returns an object from a module.
-    
+
     Parameters
     ----------
-    
+
     module_name
         The name of the module.
-        
+
     object_name
         The name of the object.
     """
     mod = importlib.import_module(module_name)
     obj = getattr(mod, object_name)
     return obj
-    
+
+def log_time_taken(fun):
+    def wrapper(*args, **kwargs):
+        start_time = time.monotonic()
+        res = fun(*args, **kwargs)
+        end_time = time.monotonic()
+        time_taken = end_time - start_time
+        logger.info("Time taken: %.3f seconds.", time_taken)
+        return res
+    return wrapper
