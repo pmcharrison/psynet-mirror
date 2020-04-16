@@ -1,19 +1,20 @@
 from flask import Markup
 
 from typing import (
-    Union, 
+    Union,
     Optional,
     List
 )
 
-from .timeline import(
+from .timeline import (
     get_template,
     Page,
     EndPage,
-    FailedValidation  
+    FailedValidation
 )
 
-class InfoPage(Page): 
+
+class InfoPage(Page):
     """
     This page displays some content to the user alongside a button
     with which to advance to the next page.
@@ -33,10 +34,10 @@ class InfoPage(Page):
     """
 
     def __init__(
-        self, 
-        content: Union[str, Markup], 
-        time_estimate: Optional[float] = None,
-        **kwargs
+            self,
+            content: Union[str, Markup],
+            time_estimate: Optional[float] = None,
+            **kwargs
     ):
         self.content = content
         super().__init__(
@@ -47,25 +48,29 @@ class InfoPage(Page):
             },
             **kwargs
         )
-        
+
     def metadata(self, **kwargs):
         return {
             "content": self.content
         }
-        
+
+
 class SuccessfulEndPage(EndPage):
     """
     Indicates a successful end to the experiment.
     """
+
     def finalise_participant(self, experiment, participant):
         participant.complete = True
+
 
 class UnsuccessfulEndPage(EndPage):
     """
     Indicates an unsuccessful end to the experiment.
     """
+
     def __init__(self, content="default", failure_tags: Optional[List] = None):
-        if content=="default":
+        if content == "default":
             content = (
                 "Unfortunately you did not meet the criteria to continue in the experiment. "
                 "You will still be paid for the time you spent already. "
@@ -79,6 +84,7 @@ class UnsuccessfulEndPage(EndPage):
             assert isinstance(self.failure_tags, list)
             participant.append_failure_tags(*self.failure_tags)
         experiment.fail_participant(participant)
+
 
 class NAFCPage(Page):
     """
@@ -118,20 +124,20 @@ class NAFCPage(Page):
     """
 
     def __init__(
-        self,
-        label: str,
-        prompt: Union[str, Markup],
-        choices: List[str],        
-        time_estimate: Optional[float] = None,
-        labels: Optional[List[str]] = None,
-        arrange_vertically: bool = False,
-        min_width: str ="100px",
-        **kwargs
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            choices: List[str],
+            time_estimate: Optional[float] = None,
+            labels: Optional[List[str]] = None,
+            arrange_vertically: bool = False,
+            min_width: str = "100px",
+            **kwargs
     ):
         self.prompt = prompt
-        self.choices = choices 
+        self.choices = choices
         self.labels = choices if labels is None else labels
-        
+
         assert isinstance(self.labels, List)
         assert len(self.choices) == len(self.labels)
 
@@ -160,6 +166,7 @@ class NAFCPage(Page):
             "choices": self.choices,
             "labels": self.labels
         }
+
 
 class TextInputPage(Page):
     """
@@ -193,17 +200,17 @@ class TextInputPage(Page):
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
+
     def __init__(
-        self,
-        label: str,
-        prompt: Union[str, Markup],     
-        time_estimate: Optional[float] = None,
-        one_line: bool = True,
-        width: Optional[str] = None, # e.g. "100px"
-        height: Optional[str] = None,
-        **kwargs
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            time_estimate: Optional[float] = None,
+            one_line: bool = True,
+            width: Optional[str] = None,  # e.g. "100px"
+            height: Optional[str] = None,
+            **kwargs
     ):
-        
         self.prompt = prompt
 
         if one_line and height is not None:
@@ -211,8 +218,8 @@ class TextInputPage(Page):
 
         style = (
             "" if width is None else f"width:{width}"
-            " "
-            "" if height is None else f"height:{height}"
+                                     " "
+                                     "" if height is None else f"height:{height}"
         )
 
         super().__init__(
@@ -233,9 +240,19 @@ class TextInputPage(Page):
             "prompt": self.prompt
         }
 
-class SliderInputPage(Page):
+
+NUM_TICKS = 1000
+
+
+class SliderPage(Page):
     """
+    See issue #17
     This page solicits a slider response from the user.
+
+    The page logs all interactions from the participants including:
+    - initial location of the slider
+    - subsequent release points along with time stamps
+
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
     which can be found in the ``Questions`` table.
@@ -250,73 +267,153 @@ class SliderInputPage(Page):
         Prompt to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    time_allotted:
-        Time allotted for the page.
+    start_value: <float>
+            Position of slider at start
 
-    min_value:
+    min_value: <float>
         Minimal value of the slider.
 
-    max_value:
+    max_value: <float>
         Maximum value of the slider.
 
-    step_size:
-        The size of each step in the slider.
+    allowed_values: default: NUM_TICKS
+        <int>: indicating number of possible equidistant steps between `min_value` and `max_value`,
+        by default we use NUM_TICKS
+        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`
+
+    input_type: default: "HTML5_range_slider"
+        By default we use the HTML5 slider, however future implementations might also use different slider
+        formats, like 2D sliders or circular sliders
+
+    snap_slider: <Boolean>, default: True
+
+    minimal_interactions: <int>, default: 0
+        Minimal interactions with the slider before the user can go to next trial
+
+    reverse_scale: <Boolean>, default: False
+        flip the scale
 
     width:
         Optional CSS width property for the text box.
 
     height:
         Optional CSS height property for the text box.
-        
+
+    time_estimate:
+        Time estimated for the page.
+
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
+
     def __init__(
-        self,
-        label: str,
-        prompt: Union[str, Markup],
-        time_allotted: Optional[float] = None,
-        min_value: Optional[int] = 0,
-        max_value: Optional[int] = 100,
-        step_size: Optional[int] = 1,
-        width: Optional[str] = None, # e.g. "100px"
-        height: Optional[str] = None,
-        **kwargs
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            allowed_values: Optional[Union[int, list]] = NUM_TICKS,
+            input_type: Optional[str] = "HTML5_range_slider",
+            snap_slider: Optional[bool] = True,
+            minimal_interactions: Optional[int] = 0,
+            reverse_scale: Optional[bool] = False,
+            slider_ID: Optional[str] = 'sliderpage_slider',
+            width: Optional[str] = None,  # e.g. "100px"
+            height: Optional[str] = None,
+            time_estimate: Optional[float] = None,
+            template_arg: Optional[dict] = {},
+            template_str: Optional[str] = get_template("slider-page.html"),
+            **kwargs
     ):
+        if isinstance(allowed_values, int):
+            num_ticks = allowed_values
+        else:
+            num_ticks = NUM_TICKS
+
+        if input_type != "HTML5_range_slider":
+            raise NotImplementedError('Currently "HTML5_range_slider" is the only supported `input_type`')
 
         if max_value <= min_value:
-            raise ValueError("<max_value> must be larger than <min_value>")
+            raise ValueError("`max_value` must be larger than `min_value`")
 
-        if (max_value - min_value) <= step_size*2:
-            raise ValueError("For the given <min_value> and <max_value> values the <step_size> needs to be appropriate, i.e. allow at least 2 steps on the slider.")
+        if start_value > max_value or start_value < min_value:
+            raise ValueError("`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)" % (
+            start_value, min_value, max_value))
+
+        def check_allowed_values_list(allowed_values):
+            # Must be a list
+            if not isinstance(allowed_values, list):
+                return False
+            for i in allowed_values:
+                # Check if it's numeric
+                if not isinstance(i, (float, int)):
+                    return False
+                # Check if it doesn't exceed min and max
+                if i > max_value or i < min_value:
+                    return False
+            return True
+
+        if minimal_interactions < 0:
+            raise ValueError('`minimal_interactions` cannot be negative!')
+        diff = max_value - min_value
+        step_size = diff / (num_ticks - 1)
+
+        if isinstance(allowed_values, int):
+            # In both cases the left of the slider is the minimum and the right the maximum
+            ticks = [step_size * i for i in range(num_ticks)]
+        elif check_allowed_values_list(allowed_values):
+            ticks = allowed_values
+        else:
+            raise ValueError('`allowed_values` must either be a list of values or an integer')
 
         self.prompt = prompt
 
         style = (
             "" if width is None else f"width:{width}"
-            " "
-            "" if height is None else f"height:{height}"
+                                     " "
+                                     "" if height is None else f"height:{height}"
         )
 
-        super().__init__(
-            time_allotted=time_allotted,
-            template_str=get_template("slider-input-page.html"),
-            label=label,
-            template_arg={
+        if not snap_slider:
+            step_size = diff / (NUM_TICKS - 1)
+
+        new_template_args = {
                 "prompt": prompt,
-                "step_size": step_size,
+                "start_value": start_value,
                 "min_value": min_value,
                 "max_value": max_value,
-                "style": style
+                "step_size": step_size,
+                "snap_slider": snap_slider,
+                "reverse_scale": reverse_scale,
+                "style": style,
+                "slider_ID": slider_ID
+            }
+
+        for key, value in new_template_args.items():
+            template_arg[key] = value
+
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=template_str,
+            label=label,
+            template_arg=template_arg,
+            js_vars={
+                "ticks": ticks,
+                "start_value": start_value,
+                'minimal_interactions':minimal_interactions,
+                "reverse_scale": reverse_scale,
+                "snap_slider": snap_slider
             },
             **kwargs
         )
-    
+
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             "prompt": self.prompt
         }
+
 
 class NumberInputPage(TextInputPage):
     """
@@ -336,10 +433,10 @@ class NumberInputPage(TextInputPage):
             return FailedValidation("Please enter a number.")
         return None
 
+
 class Button():
     def __init__(self, button_id, label, min_width, start_disabled=False):
         self.id = button_id
         self.label = label
         self.min_width = min_width
         self.start_disabled = start_disabled
-        

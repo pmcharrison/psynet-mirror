@@ -1,35 +1,101 @@
 {% extends "timeline-page.html" %}
 
 {% macro slider(min_value, max_value, step_size) %}
-    <input type="range" id="formControlRange" class="form-control-range" min="{{min_value}}" max="{{max_value}}" step="{{step_size}}">
+    <input class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
+           id="{{ slider_ID }}" class="form-control-range"
+           min="{{ min_value }}" max="{{ max_value }}" step="{{ step_size }}" value="{{ start_value }}">
 {% endmacro %}
 
 {% block main_body %}
-    {{super()}}
+    {{ super() }}
     <div class="main_div">
-        {{prompt}}
+        {{ prompt }}
 
         <div class="form-group" style="padding-top:20px; padding-bottom:20px">
-            {{slider(min_value, max_value, step_size)}}
+            {{ slider(min_value, max_value, step_size) }}
         </div>
     </div>
 
     <hr>
-    
+
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">Submit</button>
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">
+                Submit
+            </button>
         </div>
     </div>
 {% endblock %}
 
 {% block scripts %}
-    {{super()}}
+    {{ super() }}
+
     <script>
-        submit = function() {
-            $(".submit-response").attr('disabled',true);
-            psynet.next_page(document.getElementById("formControlRange").value);
+        // This is called each time
+        on_slider_event = function (event_type) {
+        };
+        if (minimal_interactions > 0) {
+            $(".submit-response").attr('disabled', true);
         }
+        psynet.utils.closest = function (needle, haystack) {
+            return haystack.reduce((a, b) => {
+                let a_diff = Math.abs(a - needle);
+                let b_diff = Math.abs(b - needle);
+
+                if (a_diff === b_diff) {
+                    return a > b ? a : b;
+                } else {
+                    return b_diff < a_diff ? b : a;
+                }
+            });
+        };
+        // Meta data collection
+        var metadata = [],
+            interaction_count = 0,
+            slider = document.getElementById('{{ slider_ID }}');
+
+        get_slider_value = function (return_both_raw_and_snapped = true) {
+            let slider_value = slider.value;
+            let snapped_value = psynet.utils.closest(slider_value, ticks);
+
+            if (snap_slider) {
+                slider.value = snapped_value;
+            }
+            if (return_both_raw_and_snapped) {
+                return {'snapped_slider_value': snapped_value, 'raw_slider_value': slider_value};
+            } else {
+                return snapped_value;
+            }
+        };
+
+        // Save initial position
+        initialize = function () {
+            console.log('Slider page is loaded');
+            metadata.push({
+                'time': new Date(),
+                'message': 'Page loaded. Initial slider position: ' + start_value
+            });
+            on_slider_event('initialize');
+        };
+        window.addEventListener('load', initialize, false);
+
+        // Each change is documented
+        slider.addEventListener('change', function () {
+            metadata.push({
+                'time': new Date(),
+                'message': get_slider_value()
+            });
+            interaction_count += 1;
+            if (interaction_count >= minimal_interactions) {
+                $(".submit-response").attr('disabled', false);
+            }
+            on_slider_event('slider_changed');
+        }, false);
+
+        submit = function () {
+            $(".submit-response").attr('disabled', true);
+            psynet.next_page(get_slider_value(false), metadata);
+        };
     </script>
 {% endblock %}
