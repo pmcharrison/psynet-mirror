@@ -18,15 +18,28 @@ def make_batch_file(in_files, output_path):
             with open(in_file, 'r') as i:
                 output.write(i.read())
 
-def new_s3_client():
+def get_aws_credentials():
     config = get_config()
+    return {
+        "aws_access_key_id": config.get("aws_access_key_id"),
+        "aws_secret_access_key": config.get("aws_secret_access_key"),
+        "region_name": config.get("aws_region")
+    }
 
-    return boto3.client(
-        's3',
-        aws_access_key_id = config.get("aws_access_key_id"),
-        aws_secret_access_key = config.get("aws_secret_access_key"),
-        region_name = config.get("aws_region")
-    )
+def new_s3_client():
+    return boto3.client("s3", **get_aws_credentials())
+
+def new_s3_resource():
+    return boto3.resource("s3", **get_aws_credentials())
+
+def get_s3_bucket(bucket_name: str):
+    # pylint: disable=no-member
+    resource = new_s3_resource()
+    return resource.Bucket(bucket_name)
+
+def empty_s3_bucket(bucket_name: str):
+    bucket = get_s3_bucket(bucket_name)
+    bucket.objects.delete()
 
 @log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str):
