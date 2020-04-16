@@ -4,7 +4,8 @@ from dallinger import db
 from .gibbs import GibbsNetwork, GibbsTrialMaker, GibbsTrial, GibbsNode, GibbsSource
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
-from ..utils import get_object_from_module, log_time_taken
+from ..page import AudioSliderPage
+from ..utils import get_object_from_module
 
 import random
 import os
@@ -83,8 +84,28 @@ class AudioGibbsTrial(GibbsTrial):
             self.get_prompt(experiment, participant),
             starting_values=self.initial_vector,
             reverse_scale=self.reverse_scale,
-            time_estimate=5
+            time_estimate=5,
+            media=self.get_media_spec(),
+            stimuli=self.enumerate_stimuli()
         )
+
+    def get_media_spec(self):
+        slider_stimuli = self.slider_stimuli
+        return {
+            "audio": {
+                "slider_stimuli": {
+                    "url": slider_stimuli["url"],
+                    "ids": [x["id"] for x in slider_stimuli["all"]],
+                    "type": "batch"
+                }
+            }
+        }
+
+    def enumerate_stimuli(self):
+        res = {}
+        for stimulus in self.slider_stimuli["all"]:
+            res[stimulus["id"]] = {"value": stimulus["value"]}
+        return res
 
     def get_prompt(self, experiment, participant):
         raise NotImplementedError
@@ -156,13 +177,12 @@ def make_audio(network_id):
         else:
             stimuli = make_audio_regular_intervals(granularity=granularity, **args)
 
-        batch_stimulus_ids = make_audio_batch_file(stimuli, batch_path)
+        make_audio_batch_file(stimuli, batch_path)
         batch_url = upload_to_s3(batch_path, network.s3_bucket, batch_file)
 
         node.slider_stimuli = {
             "url": batch_url,
-            "ids": batch_stimulus_ids,
-            "type": "batch"
+            "all": stimuli
         }
 
         network.awaiting_process = False
@@ -171,14 +191,8 @@ def make_audio(network_id):
         db.session.commit()
 
 def make_audio_batch_file(stimuli, output_path):
-    stimulus_ids = []
-    paths = []
-    for _stimulus_id, _contents in stimuli.items():
-        _path = _contents["path"]
-        stimulus_ids.append(_stimulus_id)
-        paths.append(_path)
+    paths = [x["path"] for x in stimuli]
     make_batch_file(paths, output_path)
-    return stimulus_ids
 
 def make_audio_regular_intervals(
     granularity,
@@ -189,16 +203,16 @@ def make_audio_regular_intervals(
     output_dir,
     synth_function
 ):
-    stimuli = {}
+    stimuli = []
     for _i, _value in enumerate(range(range_to_sample[0], range_to_sample[1], granularity)):
         _vector = vector.copy()
         _vector[active_index] = _value
-        _id = f"stimulus_{_i}"
+        _id = f"slider_stimulus_{_i}"
         _file = f"{_id}.wav"
         _path = os.path.join(output_dir, _file)
         synth_function(vector=_vector, output_path=_path, network_definition=network_definition)
 
-        stimuli[_id] = {"value": _value, "path": _path}
+        stimuli.append({"id": _id, "value": _value, "path": _path})
     return stimuli
 
 def make_audio_custom_intervals(vector, active_index, range_to_sample, network_definition, output_dir, synth_function):
