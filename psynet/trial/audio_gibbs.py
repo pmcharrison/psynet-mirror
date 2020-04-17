@@ -23,9 +23,39 @@ import rpdb
 class AudioGibbsNetwork(GibbsNetwork):
     """
     A Network class for Audio Gibbs Sampler chains.
+    The user should customise this by overriding the attributes
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.synth_function`,
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`,
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_ranges`,
+    and optionally
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`.
+    The user is also invited to override the
+    :meth:`psynet.trial.chain.ChainNetwork.make_definition` method
+    in situations where different chains are to have different properties
+    (e.g. different prompts).
 
     Attributes
     ----------
+
+    synth_function: dict
+        A dictionary specifying the function to use for synthesising
+        stimuli. The dictionary should contain two arguments:
+        one named ``"module"``, which identifies by name the module
+        in which the function is contained,
+        and one named ``"name"``, corresponding to the name
+        of the function within that module.
+        The synthesis function should take three arguments:
+
+            - ``vector``, the parameter vector for the stimulus to be generated.
+
+            - ``output_path``, the output path for the audio file to be generated.
+
+            - ``chain_definition``, the ``definition`` dictionary for the current chain.
+
+    s3_bucket : str
+        Name of the S3 bucket in which the stimuli should be stored.
+        The same bucket can be reused between experiments,
+        the UUID system used to generate file names should keep them unique.
 
     vector_length : int
         Must be overridden with the length of the free parameter vector
@@ -48,21 +78,38 @@ class AudioGibbsNetwork(GibbsNetwork):
     """
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_network"}
 
+    synth_function = {"module": "", "name": ""}
+    s3_bucket = ""
     vector_length = 0
     vector_ranges = []
-    vector_granularity = 100
+    granularity = 100
 
     def validate(self):
+        if not (
+            isinstance(self.synth_function, dict) and
+            "module" in self.synth_function and
+            "name" in self.synth_function and
+            len(self.synth_function["module"]) > 0 and
+            len(self.synth_function["name"]) > 0
+            ):
+            raise ValueError(f"Invalid <synth_function> ({self.synth_function}).")
+
+        if not (isinstance(self.s3_bucket, chr) and len(self.s3_bucket) > 0):
+            raise ValueError(f"Invalid <s3_bucket> ({self.s3_bucket}).")
+
         if not (isinstance(self.vector_length, int) and self.vector_length > 0):
             raise TypeError("<vector_length> must be a positive integer.")
+
         if not (isinstance(self.vector_ranges, list) and len(self.vector_ranges) == self.vector_length):
             raise TypeError("<vector_ranges> must be a list with length equal to <vector_length>.")
+
         for r in self.vector_ranges:
             if not (len(r) == 2 and r[0] < r[1]):
                 raise ValueError(
                     "Each element of <vector_ranges> must be a list of two numbers in increasing order "
                     "identifying the legal range of the corresponding parameter in the vector."
                 )
+
         if not (
             (isinstance(self.granularity, int) and self.granularity > 0)
             or (isinstance(self.granularity, str) and self.granularity == "custom")
@@ -76,6 +123,13 @@ class AudioGibbsNetwork(GibbsNetwork):
         )
 
 class AudioGibbsTrial(GibbsTrial):
+    """
+    A Trial class for Audio Gibbs Sampler chains.
+    The user should customise this by overriding the
+    :meth:`~psynet.trial.audio_gibbs.AudioGibbsTrial.get_prompt`
+    method.
+    """
+
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
 
     def show_trial(self, experiment, participant):
@@ -108,6 +162,12 @@ class AudioGibbsTrial(GibbsTrial):
         return res
 
     def get_prompt(self, experiment, participant):
+        """
+        Constructs and returns the prompt to display to the participant.
+        This can either be a string of text to display, or raw HTML.
+        In the latter case, the HTML should be wrapped in a call to
+        ``flask.Markup``.
+        """
         raise NotImplementedError
 
     @property
@@ -118,6 +178,7 @@ class AudioGibbsTrial(GibbsTrial):
 class AudioGibbsNode(GibbsNode):
     """
     A Node class for Audio Gibbs sampler chains.
+    The user should not have to modify this.
     """
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_node"}
 
@@ -126,9 +187,9 @@ class AudioGibbsNode(GibbsNode):
 class AudioGibbsSource(GibbsSource):
     """
     A Source class for Audio Gibbs sampler chains.
+    The user should not have to modify this.
     """
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_source"}
-
 
 class AudioGibbsTrialMaker(GibbsTrialMaker):
     """
@@ -139,6 +200,8 @@ class AudioGibbsTrialMaker(GibbsTrialMaker):
     The primary differences is that
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrialMaker.async_post_grow_network`
     is overwritten with a routine for synthesising audio.
+    The user should only have to customise this through the
+    constructor function parameters.
     """
 
     def __init__(self, **kwargs):
@@ -167,7 +230,7 @@ def make_audio(network_id):
             "vector": vector,
             "active_index": active_index,
             "range_to_sample": network.vector_ranges[active_index],
-            "network_definition": network.definition,
+            "chain_definition": network.definition,
             "output_dir": individual_stimuli_dir,
             "synth_function": get_object_from_module(**network.synth_function)
         }
@@ -199,7 +262,7 @@ def make_audio_regular_intervals(
     vector,
     active_index,
     range_to_sample,
-    network_definition,
+    chain_definition,
     output_dir,
     synth_function
 ):
@@ -210,10 +273,10 @@ def make_audio_regular_intervals(
         _id = f"slider_stimulus_{_i}"
         _file = f"{_id}.wav"
         _path = os.path.join(output_dir, _file)
-        synth_function(vector=_vector, output_path=_path, network_definition=network_definition)
+        synth_function(vector=_vector, output_path=_path, chain_definition=chain_definition)
 
         stimuli.append({"id": _id, "value": _value, "path": _path})
     return stimuli
 
-def make_audio_custom_intervals(vector, active_index, range_to_sample, network_definition, output_dir, synth_function):
+def make_audio_custom_intervals(vector, active_index, range_to_sample, chain_definition, output_dir, synth_function):
     raise NotImplementedError

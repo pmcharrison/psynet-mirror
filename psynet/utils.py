@@ -89,6 +89,6 @@ def log_time_taken(fun):
         res = fun(*args, **kwargs)
         end_time = time.monotonic()
         time_taken = end_time - start_time
-        logger.info("Time taken: %.3f seconds.", time_taken)
+        logger.info("Time taken by %s: %.3f seconds.", fun.__name__, time_taken)
         return res
     return wrapper

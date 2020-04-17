@@ -37,9 +37,28 @@ def get_s3_bucket(bucket_name: str):
     resource = new_s3_resource()
     return resource.Bucket(bucket_name)
 
+def count_objects_in_s3_bucket(bucket_name: str):
+    bucket = get_s3_bucket(bucket_name)
+    return sum(1 for _ in bucket.objects.all())
+
+@log_time_taken
 def empty_s3_bucket(bucket_name: str):
+    old_num_objects = count_objects_in_s3_bucket(bucket_name)
+
     bucket = get_s3_bucket(bucket_name)
     bucket.objects.delete()
+
+    new_num_objects = count_objects_in_s3_bucket(bucket_name)
+    if new_num_objects != 0:
+        raise RuntimeError(
+            f"Failed to empty S3 bucket {bucket_name} "
+            f"({new_num_objects} object(s) still remaining)."
+    )
+
+    logger.info(
+        "Successfully emptied S3 bucket %s (%i objects).",
+        bucket_name, old_num_objects
+    )
 
 @log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str):
