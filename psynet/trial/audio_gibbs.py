@@ -86,7 +86,7 @@ class AudioGibbsTrial(GibbsTrial):
             reverse_scale=self.reverse_scale,
             time_estimate=5,
             media=self.get_media_spec(),
-            stimuli=self.enumerate_stimuli()
+            sound_locations=self.get_sound_locations()
         )
 
     def get_media_spec(self):
@@ -101,10 +101,10 @@ class AudioGibbsTrial(GibbsTrial):
             }
         }
 
-    def enumerate_stimuli(self):
+    def get_sound_locations(self):
         res = {}
         for stimulus in self.slider_stimuli["all"]:
-            res[stimulus["id"]] = {"value": stimulus["value"]}
+            res[stimulus["id"]] = stimulus["value"]
         return res
 
     def get_prompt(self, experiment, participant):
