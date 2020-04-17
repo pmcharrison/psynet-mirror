@@ -44,6 +44,19 @@ You can define a custom Audio Gibbs sampling experiment through the following st
    :attr:``~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`` attribute
    for your custom :class:`~psynet.trial.audio_gibbs.AudioGibbsNetwork` class.
 
+5. Implement a synthesis function that generates an audio file according to
+   a numeric vector of parameters. This function should exist in a module
+   that can be imported by the experiment.
+   Save a reference to this function in the
+   :attr:``~psynet.trial.audio_gibbs.AudioGibbsNetwork.synth_function`` attribute
+   for your custom :class:`~psynet.trial.audio_gibbs.AudioGibbsNetwork` class
+   (see the documentation for more details).
+
+6. Decide on an S3 bucket in which to store your stimuli.
+   Save the name of this bucket in the
+   :attr:``~psynet.trial.audio_gibbs.AudioGibbsNetwork.s3_bucket`` attribute
+   for your custom :class:`~psynet.trial.audio_gibbs.AudioGibbsNetwork` class.
+
 5. Implement a subclass of :class:`~psynet.trial.audio_gibbs.AudioGibbsTrial`
    with a custom
    :meth:`~psynet.trial.audio_gibbs.AudioGibbsTrial.get_prompt` method.

@@ -37,6 +37,7 @@ class CustomNetwork(AudioGibbsNetwork):
         "name": "synth_stimulus"
     }
 
+    s3_bucket = "audio_gibbs_demo"
     vector_length = 5
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
