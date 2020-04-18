@@ -199,11 +199,11 @@
                 return psynet.log.generic(msg, "info")
             }
 
-            psynet.media.types = ["audio"];
+            psynet.media_types = ["audio"];
             psynet.media.data = {};
 
             psynet.media.get_by_id = function (media_type, idx) {
-                if (!(media_type in psynet.media_types)) {
+                if(!psynet.utils.key_exists_in_array(media_type, psynet.media_types)){
                     psynet.log.warning('Tried to access psynet.' + media_type + ' but it does not exist!');
                 } else {
                     // Needs to be reversed because they were added in the other order
@@ -267,7 +267,7 @@
                 by_file: {}
             }
 
-            psynet.media.types.forEach(function (media_type) {
+            psynet.media_types.forEach(function (media_type) {
                 psynet.media.download_progress.by_file[media_type] = {};
             });
 
