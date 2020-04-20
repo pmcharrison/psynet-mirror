@@ -303,10 +303,10 @@ class SliderPage(Page):
         to display raw HTML.
 
     start_value: <float>
-            Position of slider at start
+        Position of slider at start.
 
     min_value: <float>
-        Minimal value of the slider.
+        Minimum value of the slider.
 
     max_value: <float>
         Maximum value of the slider.
