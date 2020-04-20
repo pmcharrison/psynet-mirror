@@ -1,0 +1,95 @@
+{% extends "timeline-page.html" %}
+
+{% macro slider(min_value, max_value, step_size) %}
+    <input class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
+           id="{{ slider_id }}" class="form-control-range"
+           min="{{ min_value }}" max="{{ max_value }}" step="{{ step_size }}" value="{{ start_value }}">
+{% endmacro %}
+
+{% block main_body %}
+    {{ super() }}
+    <div class="main_div">
+        {{ prompt }}
+
+        <div class="form-group" style="padding-top:20px; padding-bottom:20px">
+            {{ slider(min_value, max_value, step_size) }}
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">
+                Submit
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        // This is called each time
+        on_slider_event = function (event_type) {
+        };
+        if (minimal_interactions > 0) {
+            $(".submit-response").attr('disabled', true);
+        }
+
+        // Meta data collection
+        var slider = document.getElementById('{{ slider_id }}');
+
+        slider.log = [];
+        create_log_message = function (message) {
+            return ({
+                'time': new Date(),
+                'message': message
+            })
+        };
+
+        slider.interaction_count = 0;
+
+        get_slider_value = function (return_both_raw_and_snapped = true) {
+            let slider_value = slider.value;
+            let snapped_value = psynet.utils.closest(slider_value, ticks);
+
+            if (snap_slider) {
+                slider.value = snapped_value;
+            }
+            if (return_both_raw_and_snapped) {
+                return {'snapped_slider_value': snapped_value, 'raw_slider_value': slider_value};
+            } else {
+                return snapped_value;
+            }
+        };
+
+        // Save initial position
+        slider.initialise = function () {
+            console.log('Slider page is loaded');
+            slider.log.push(create_log_message('Page loaded. Initial slider position: ' + start_value));
+            on_slider_event('initialise');
+        };
+
+        psynet.media.register_on_loaded_routine(slider.initialise);
+
+        // Each change is documented
+        slider.addEventListener('change', function () {
+            slider.log.push(create_log_message(get_slider_value()));
+            slider.interaction_count += 1;
+            if (slider.interaction_count >= minimal_interactions) {
+                $(".submit-response").attr('disabled', false);
+            }
+            on_slider_event('slider_changed');
+        }, false);
+
+        submit = function () {
+            $(".submit-response").attr('disabled', true);
+            var metadata = {};
+            metadata.log = slider.log;
+            psynet.next_page(get_slider_value(false), metadata);
+        };
+    </script>
+{% endblock %}

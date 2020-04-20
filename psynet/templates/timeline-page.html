@@ -3,56 +3,64 @@
 {% block stylesheets %}
     {{ super() }}
     <style>
-    .modal {
-        display: none; 
-        position: fixed; 
-        z-index: 1; 
-        padding-top: 100px; 
-        left: 0;
-        top: 0;
-        width: 100%; 
-        height: 100%; 
-        overflow: auto; 
-        background-color: rgb(0,0,0); 
-        background-color: rgba(0,0,0,0.4); 
-      }
-      
-      .modal-content {
-        background-color: #4989C8;
-        margin: auto;
-        padding: 20px;
-        border: 1px solid #888;
-        width: 80%;
-      }
-      
-      .close {
-        color: #aaaaaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-      }
-      </style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            padding-top: 100px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0, 0, 0);
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #4989C8;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+    </style>
+
+    {% for x in css %}
+        <style>
+            {{ x }}
+        </style>
+    {% endfor %}
 {% endblock %}
 
 {% macro next_button() %}
-<hr>
+    <hr>
 
-<div class="row">
-    <div class="col-xs-10"></div>
-    <div class="col-xs-2">
-        <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="psynet.next_page();">Next</button>
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="psynet.next_page();">Next
+            </button>
+        </div>
     </div>
-</div>
 {% endmacro %}
 
 {% block body %}
     {% block header %}
         <div class="header">
-            {% if progress_bar.show %}
+            {% if experiment_progress_bar.show %}
                 <div class="progress">
-                    <div class="progress-bar" role="progressbar" aria-valuenow="{{progress_bar.percentage}}"
-                    aria-valuemin="0" aria-valuemax="100" style="width:{{progress_bar.percentage}}%">
-                        {{progress_bar.percentage}}%
+                    <div class="progress-bar" role="progressbar"
+                         aria-valuenow="{{ experiment_progress_bar.percentage }}"
+                         aria-valuemin="0" aria-valuemax="100" style="width:{{ experiment_progress_bar.percentage }}%">
+                        {{ experiment_progress_bar.percentage }}%
                     </div>
                 </div>
             {% endif %}
@@ -65,36 +73,43 @@
     </div>
 
     {% block footer %}
-        {% if footer.show %}    
-            <nav class="navbar navbar-fixed-bottom" style="padding: 8px; padding-left: 20px; padding-right: 20px; background-color: #4989C8; color: white; margin: 0px; line-height: 33px;">
-                <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                    {% for text in footer.text_to_show %}
-                        <div style="margin: 0px">
-                            {{text}}
+        {% if footer.show %}
+            <nav class="navbar navbar-fixed-bottom"
+                 style="background-color: #4989C8; color: white; margin: 0px; line-height: 33px; border-style: none">
+                <div id="media_download_progress_bar"
+                     style="width: {{ initial_download_progress }}%; height: 6px; background-color: #006191;"></div>
+                <div style="padding: 8px; padding-left: 20px; padding-right: 20px;">
+                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                        {% for text in footer.text_to_show %}
+                            <div style="margin: 0px">
+                                {{ text }}
+                            </div>
+                        {% endfor %}
+
+                        <button type="button" class="btn btn-primary" id="help_button" style="min-width: 50px">Help!
+                        </button>
+                        <div id="help_modal" class="modal">
+                            <div class="modal-content">
+                                <span class="close">&times;</span>
+                                <h3>In case of a problem, try the following:</h3>
+                                <ul>
+                                    <li>Reload the page.</li>
+                                    <li>Check that your internet connection is working.</li>
+                                    <li>If the above doesn't help,
+                                        <a style="color:red"
+                                           href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
+                                           target="_top">send us an email</a>
+                                        with the following information:
+                                        <ol>
+                                            <li>A link to the current web page;</li>
+                                            <li>Your Worker ID;</li>
+                                            <li>The problem you're experiencing.</li>
+                                        </ol>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
-                    {% endfor %}
-
-                    <button type="button" class="btn btn-primary" id="help_button" style = "min-width: 50px">Help!</button>
-                    <div id="help_modal" class="modal">
-                        <div class="modal-content">
-                            <span class="close">&times;</span>
-                            <h3>In case of a problem, try the following:</h3>
-                            <ul>
-                                <li>Reload the page.</li>
-                                <li>Check that your internet connection is working.</li>
-                                <li>If the above doesn't help, 
-                                    <a style="color:red" href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29" target="_top">send us an email</a>
-                                    with the following information:
-                                    <ol>
-                                        <li>A link to the current web page;</li>
-                                        <li>Your Worker ID;</li>
-                                        <li>The problem you're experiencing.</li>
-                                    </ol>
-                                </li>
-                            </ul>
-                        </div>    
                     </div>
-
                 </div>
             </nav>
         {% endif %}
@@ -102,153 +117,636 @@
 {% endblock %}
 
 {% block scripts %}
-    {{super()}}
-    
+    {{ super() }}
+
     <script>
         var psynet = (function () {
-            /**
-            * @namespace
-            * @alias psynet
-            */
-            
-            var psi = {};
-            
-            check_participant_id = function() {
-                if (dallinger.identity.participantId == undefined) {
-                    alert(
-                        "Your participant ID is undefined, perhaps because you " +
-                        "switched browsers during the test. " +
-                        "Unfortunately this behaviour is not currently supported."
-                    );
-                    throw console.error("Undefined participant ID.");
-                }
-            }
-            
-            init_modal = function() {
-                var modal = document.getElementById("help_modal");
-                var help_btn = document.getElementById("help_button");
-                var span = document.getElementsByClassName("close")[0];
+                /**
+                 * @namespace
+                 * @alias psynet
+                 */
 
-                if (modal !== null) {
-                    help_btn.onclick = function() {
-                        modal.style.display = "block";
-                    }
-
-                    span.onclick = function() {
-                        modal.style.display = "none";
-                    }
-
-                    window.onclick = function(event) {
-                        if (event.target == modal) {
-                        modal.style.display = "none";
-                        }
-                    }
-                }
-            }
-            
-            psi.init_page = function() {
-                check_participant_id();
-                init_modal();
-                psi.page_load_time = new Date();
-            }
-            
-            psi.next_page = function(raw_answer=null, metadata, blobs) {
-                submit_generic_response(raw_answer, metadata, blobs, on_success_response, on_error_response);
-            }
-
-            on_success_response = function(request) {
-                response = JSON.parse(request.response);
-                if (response.submission == "approved") {
-                    console.log("Response received successfully.");
-                    dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
-                } else if (response.submission == "rejected") {
-                    console.log("Response rejected."); 
-                    alert(response.message);
-                    $(".submit-response").attr('disabled',false);
-                } else {
-                    throw Error("Received a malformed response.");
-                } 
-            }
-
-            on_error_response = function(request) {
-                dallinger.error({
-                    "data": {
-                        "participant_id": dallinger.identity.participantId
-                    }
-                });
-            }
-
-            add_blobs = function(form_data, blobs) {
-                for (let [key, value] of Object.entries(blobs)) {
-                    if (key == "json") {
-                        throw Error("Blobs may not be named 'json'.");
-                    }
-                    form_data.append(key, value);
-                }
-            }
-
-            prepare_json_submission = function(raw_answer, metadata) {
-                var current_time = new Date();
-                
-                var all_metadata = {
-                    // We could add other things like browser information here
-                    "time_taken": (current_time - psi.page_load_time) / 1000
+                var psynet = {
+                    media: {},
+                    utils: {}
                 };
-                
-                if (metadata !== undefined) {
-                    for (var x in metadata) {
-                        all_metadata[x] = metadata[x];
+
+                // check if it is a function
+                psynet.utils.is_function = function (functionToCheck) {
+                    return functionToCheck !== null &&
+                        functionToCheck &&
+                        {}.toString.call(functionToCheck) === '[object Function]';
+                };
+
+                // Checks which value in the haystack is closest to the needle
+                psynet.utils.closest = function (needle, haystack) {
+                    return haystack.reduce((a, b) => {
+                        let a_diff = Math.abs(a - needle);
+                        let b_diff = Math.abs(b - needle);
+
+                        if (a_diff === b_diff) {
+                            return a > b ? a : b;
+                        } else {
+                            return b_diff < a_diff ? b : a;
+                        }
+                    });
+                };
+
+                // check if it is a dictionary
+                psynet.utils.is_dict = function (dict_to_check) {
+                    return (
+                        typeof dict_to_check === 'object' &&
+                        dict_to_check !== null &&
+                        !(dict_to_check instanceof Array) &&
+                        !(dict_to_check instanceof Date)
+                    );
+                };
+
+                // check if a key exists in an array
+                psynet.utils.key_exists_in_array = function (key, arr) {
+                    return (arr.indexOf(key) > -1);
+                };
+
+                // compute a mean; this is not build-in into Javascript XD
+                psynet.utils.mean = function (numbers) {
+                    var total = 0, i;
+                    for (i = 0; i < numbers.length; i += 1) {
+                        total += numbers[i];
+                    }
+                    return total / numbers.length;
+                };
+
+                class PsyNetError extends Error {
+                    constructor(message) {
+                        super(message);
+                        this.name = "PsyNetError"; // (2)
                     }
                 }
-                            
-                var json = JSON.stringify({
-                    "participant_id": dallinger.identity.participantId,
-                    "page_uuid": page_uuid,
-                    "raw_answer": raw_answer,
-                    "metadata": all_metadata
-                });
-                
-                return json
-            }
 
-            submit_generic_response = function(raw_answer, metadata, blobs, on_success_response, on_error_response) {
-                // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
-                // blobs - optional Object, each attribute should be a blob to upload.
-                //       - Note that 'json' is not a permitted name for an attribute
-                json = prepare_json_submission(raw_answer, metadata);         
-                
-                var formData = new FormData();
-                formData.append("json", json)
-                
-                if (blobs !== undefined) {
-                    add_blobs(formData, blobs);    
+                psynet.log = {};
+
+                psynet.log.generic = function (msg, level) {
+                    if (level !== "error" && level !== "warn" && level !== "info" && level !== "debug") {
+                        throw new Error("Invalid log level: " + level);
+                    }
+
+                    console.log("LOG (" + level.toUpperCase() + "): " + msg);
+
+                    if (level != "debug") {
+                        route = (
+                            '/log/' + level
+                            + "/" + dallinger.identity.participantId
+                            + "/" + dallinger.identity.assignmentId
+                        );
+
+                        dallinger.post(route, {message: msg});
+                    }
+                };
+
+                psynet.log.error = function (msg) {
+                    psynet.log.generic(msg, "error")
+                };
+
+                psynet.log.warning = function (msg) {
+                    psynet.log.generic(msg, "warn")
+                };
+
+                psynet.log.info = function (msg) {
+                    psynet.log.generic(msg, "info")
+                };
+
+                psynet.log.debug = function (msg) {
+                    psynet.log.generic(msg, "debug")
                 }
 
-                var request = new XMLHttpRequest();
+                psynet.media.types = ["audio"];
+                psynet.media.data = {};
 
-                request.onreadystatechange = function () {
-                    if (request.readyState == 4) {
-                        if (request.status == 200) {
-                            console.log('Response was successfully received.');
-                            on_success_response(request);
-                        } else {
-                            console.log('Something went wrong.');
-                            on_error_response(request);
+                // Can be very dangerous if indexes are not sorted properly!
+                // psynet.media.get_by_idx = function (media_type, idx) {
+                //     if (!psynet.utils.key_exists_in_array(media_type, psynet.media.types)) {
+                //         psynet.log.warning('Tried to access psynet.' + media_type + ' but it does not exist!');
+                //     } else {
+                //         // Needs to be reversed because they were added in the other order
+                //         var keys = Object.keys(psynet[media_type]).reverse();
+                //         if (idx > (keys.length - 1)) {
+                //             psynet.log.warning(
+                //                 'Tried to index position ' + idx + ', but psynet.' + media_type +
+                //                 ' only goes until index ' + (keys.length - 1)
+                //             );
+                //         } else {
+                //             var key = keys[idx];
+                //             return psynet[media_type][key];
+                //         }
+                //     }
+                // };
+
+
+                psynet.media.on_loaded_routines = [];
+
+                psynet.media.register_on_loaded_routine = function (f) {
+                    if (!psynet.utils.is_function(f)) {
+                        throw Error("f was not a function.");
+                    }
+                    psynet.media.on_loaded_routines.push(f);
+                };
+
+                psynet.media.register_on_loaded_routine(function () {
+                    $('.wait-for-media-load').removeAttr('disabled');
+                });
+
+                psynet.media.on_loaded = function () {
+                    psynet.log.info("All media loaded.");
+                    psynet.media.on_loaded_routines.forEach(function (f) {
+                        f();
+                    });
+                };
+                psynet.media.loaded = false;
+
+                psynet.media.check_loaded = function () {
+                    if (psynet.media.loaded) {
+                        return true;
+                    }
+                    var loaded = true;
+                    Object.values(psynet.media.data).forEach(function (stimuli) {
+                        Object.values(stimuli).forEach(function (stimulus) {
+                            if (!stimulus.loaded) {
+                                loaded = false;
+                            }
+                        });
+                    });
+                    if (loaded) {
+                        psynet.media.loaded = true;
+                        psynet.media.on_loaded();
+                        return true
+                    } else {
+                        return false
+                    }
+                };
+
+                psynet.media.download_progress = {
+                    by_file: {}
+                };
+
+                psynet.media.types.forEach(function (media_type) {
+                    psynet.media.download_progress.by_file[media_type] = {};
+                });
+
+                psynet.media.download_progress.set = function (media_type, file_id, value) {
+                    psynet.media.download_progress.by_file[media_type][file_id] = value;
+                    psynet.media.download_progress.update_display();
+                };
+
+                psynet.media.download_progress.get_total = function () {
+                    var res = [];
+                    Object
+                        .values(psynet.media.download_progress.by_file)
+                        .forEach(function (processes) {
+                            Object.values(processes).forEach(function (i) {
+                                res.push(i)
+                            });
+                        });
+                    return psynet.utils.mean(res);
+                };
+
+                psynet.media.download_progress.bar = function () {
+                    return document.getElementById("media_download_progress_bar")
+                };
+
+                psynet.media.download_progress.update_display = function () {
+                    bar = psynet.media.download_progress.bar();
+                    if (bar !== null) {
+                        var progress = psynet.media.download_progress.get_total();
+                        bar.style.width = Math.round(progress) + '%';
+                        if (progress === 100) {
+                            // You could do something here once loading is complete,
+                            // e.g. delete progress bar text
                         }
                     }
+                };
+
+                // The last thing we expect of the user is that the resources, that need to be loaded, are dumped as a json:
+                // For example here, we request a batch file that contains three files and we request a single file
+                // As we can see each file has a ID and a url where the file is stored
+                {{ define_media_requests }}
+
+                // psynet.media.requests = {
+                //     'audio': {
+                //         'batch': {
+                //             'url': 'file_concatenated.mp3',
+                //             'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                //             'type': 'batch'
+                //         },
+                //         'bier': 'bier.wav'
+                //     }
+                // };
+
+                psynet.media.init_audio_context = function () {
+                    var context = null;
+                    if ('webkitAudioContext' in window) context = new webkitAudioContext();
+                    if ('AudioContext' in window) context = new AudioContext();
+                    if (!context) {
+                        throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
+                    }
+                    psynet.media.audio_context = context
+                };
+
+                psynet.media.init = function () {
+                    psynet.media.init_audio_context();
+                    requests = psynet.media.requests;
+
+                    media_types = Object.keys(requests);
+                    media_types.forEach(function (x) {
+                        process_requests(x, requests[x]);
+                    });
+                    psynet.media.check_loaded();
+                };
+
+                init_media_type = function (media_type) {
+                    x = {};
+                    psynet.media.data[media_type] = x;
+                    psynet[media_type] = x;
+                };
+
+                init_stimulus = function (id, media_type) {
+                    psynet.media.data[media_type][id] = {
+                        loaded: false
+                    };
+                };
+
+                process_requests = function (media_type, requests) {
+                    init_media_type(media_type);
+                    check_requests(requests);
+
+                    Object.keys(requests).forEach(function (id) {
+                        var value = requests[id];
+                        if (is_batch(value)) {
+                            preload_batch(id, value, media_type);
+                        } else {
+                            var url = value;
+                            preload_stimulus(id, url, media_type);
+                        }
+                    });
+                };
+
+                is_batch = function (x) {
+                    return psynet.utils.is_dict(x)
+                };
+
+                preload_batch = function (batch_id, batch, media_type) {
+                    var url = batch.url;
+                    var args = {
+                        batch_id: batch_id,
+                        stimulus_ids: batch.ids,
+                        media_type: media_type,
+                        file_id: batch_id
+                    };
+                    args.stimulus_ids.forEach(function (id) {
+                        init_stimulus(id, media_type);
+                    });
+
+                    create_request(url, process_audio_batch, args);
+                };
+
+                preload_stimulus = function (stimulus_id, url, media_type) {
+                    var args = {
+                        stimulus_id: stimulus_id,
+                        media_type: media_type,
+                        file_id: stimulus_id
+                    };
+                    init_stimulus(stimulus_id, media_type);
+                    create_request(url, create_sound_from_buffer, args);
+                };
+
+                function report_request_error(url, status) {
+                    var msg;
+                    if (status === 404) {
+                        msg = "Failed to load media asset at " + url + " (404, file not found).";
+                    } else {
+                        msg = "Failed to load media asset at " + url + " (error code = " + status + ")."
+                    }
+                    throw Error(msg);
                 }
 
-                request.open("POST", "/response");
-                request.send(formData);
+                function create_request(url, callback_function, args) {
+                    var request = new XMLHttpRequest();
+                    request.open('GET', url, true);
+                    request.responseType = 'arraybuffer';
+                    request.onload = function () {
+                        if (request.status === 200) {
+                            callback_function(request.response, args);
+                        } else {
+                            report_request_error(url, request.status);
+                        }
+                    };
+                    request.onprogress = function (e) {
+                        psynet.media.download_progress.set(args["media_type"], args["file_id"], e.loaded * 100 / e.total);
+                    };
+                    request.send();
+                }
+
+                check_requests = function (requests) {
+                    // - Checks for missing URLs in batches.
+                    // - Checks for duplicated IDs
+                    var ids = [];
+
+                    log = function (id) {
+                        var value = requests[id];
+                        if (psynet.utils.is_dict(value)) {
+                            log_batch(value);
+                        } else {
+                            log_stimulus(id);
+                        }
+                    };
+
+                    log_stimulus = function (id) {
+                        if (psynet.utils.key_exists_in_array(id, ids)) {
+                            throw Error('The ID you specified `' + id + '` already exists! IDs must be unique!');
+                        }
+                        ids.push(id);
+                    };
+
+                    log_batch = function (batch) {
+                        if (!('url' in batch)) {
+                            throw Error('Each batch object must contain a "url" attribute.');
+                        }
+                        if (!('ids' in batch)) {
+                            throw Error('Each batch object must contain an "ids" attribute specifying its constituent stimuli.');
+                        }
+                        var stimulus_ids = batch['ids'];
+                        stimulus_ids.forEach(log_stimulus);
+                    };
+
+                    Object.keys(requests).forEach(log);
+                };
+
+                create_sound_from_buffer = function (data, args) {
+                    var stimulus_id = args['stimulus_id'];
+                    var media_type = args['media_type'];
+                    var file_id = args['file_id'];
+                    var last_in_batch = args['last_in_batch'];
+
+                    psynet.log.debug('Decoding sound ' + stimulus_id + '...');
+
+                    psynet.media.download_progress.set(media_type, file_id, 100);
+
+                    psynet.media.audio_context.decodeAudioData(data, function (res) {
+                        psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
+
+                        out = psynet.media.data[media_type][stimulus_id];
+
+                        out.buffer = res;
+                        out.current_context = null;
+                        out.start_time = null;
+
+                        // Add play function to buffer
+                        out.play = function () {
+                            var source = psynet.media.audio_context.createBufferSource();
+                            source.connect(psynet.media.audio_context.destination);
+                            source.buffer = res;
+                            startTime = psynet.media.audio_context.currentTime + 0.1;
+                            source.start(startTime);
+
+                            this.start_time = startTime;
+                            this.current_context = source;
+
+                            return (source);
+                        };
+
+                        // stop the sound
+                        out.stop = function (fade_out = 0) {
+                            if (this.current_context !== null) {
+                                if (fade_out !== 0) {
+                                    throw Error("Fade-outs other than 0 are not implemented yet.");
+                                    // See https://codepen.io/2kool2/pen/RgKeyp for ideas.
+                                }
+                                this.current_context.stop();
+                                this.current_context = null;
+                                this.start_time = null;
+                            }
+                        };
+
+                        out.pause = function () {
+                            // TODO
+                            throw Error("Not implemented yet");
+                        };
+
+                        out.continue = function () {
+                            // TODO
+                            throw Error("Not implemented yet");
+                        };
+
+                        out.loaded = true;
+                        psynet.media.check_loaded();
+                    });
+                };
+
+                process_audio_batch = function (data, args) { //, ids,) {
+                    var stimulus_ids = args["stimulus_ids"];
+                    var media_type = args["media_type"];
+                    var file_id = args['file_id'];
+
+                    function extract_buffer(src, start, length) {
+                        // This function is used to find the start and end of each file
+                        var dstU8 = new Uint8Array(length);
+                        var srcU8 = new Uint8Array(src, start, length);
+                        dstU8.set(srcU8);
+                        return dstU8;
+                    }
+
+                    var num_files = current_file = 0;
+                    psynet.log.info('Unpacking the audio batch "' + file_id + '".');
+                    var bb = new DataView(data);
+                    var offset = 0;
+
+                    while (offset < bb.byteLength) {
+                        var stimulus_id = stimulus_ids[num_files];
+                        var length = bb.getUint32(offset, true);
+                        offset += 4;
+                        var sound = extract_buffer(data, offset, length);
+                        offset += length;
+                        num_files++;
+
+                        if (num_files > stimulus_ids.length) {
+                            throw Error(
+                                'Too many stimuli found in batch file (' +
+                                'expected ' + stimulus_ids.length +
+                                ', got at least' + num_files + ').'
+                            );
+                        }
+
+                        args = {
+                            stimulus_id: stimulus_id,
+                            media_type: media_type,
+                            last_in_batch: num_files === stimulus_ids.length,
+                            file_id: file_id
+                        };
+
+                        create_sound_from_buffer(sound.buffer, args);
+                    }
+                    if (num_files < stimulus_ids.length) {
+                        throw Error(
+                            'Too few stimuli found in batch file (' +
+                            'expected ' + stimulus_ids.length +
+                            ', got ' + num_files + ').'
+                        );
+                    }
+                };
+
+                check_participant_id = function () {
+                    if (dallinger.identity.participantId === undefined) {
+                        alert(
+                            "Your participant ID is undefined, perhaps because you " +
+                            "switched browsers during the test. " +
+                            "Unfortunately this behaviour is not currently supported."
+                        );
+                        throw console.error("Undefined participant ID.");
+                    }
+                };
+
+                init_modal = function () {
+                    var modal = document.getElementById("help_modal");
+                    var help_btn = document.getElementById("help_button");
+                    var span = document.getElementsByClassName("close")[0];
+
+                    if (modal !== null) {
+                        help_btn.onclick = function () {
+                            modal.style.display = "block";
+                        };
+
+                        span.onclick = function () {
+                            modal.style.display = "none";
+                        };
+
+                        window.onclick = function (event) {
+                            if (event.target === modal) {
+                                modal.style.display = "none";
+                            }
+                        }
+                    }
+                };
+
+                psynet.init_page = function () {
+                    psynet.register_error_handler();
+                    $('.wait-for-media-load').attr('disabled', 'disabled');
+                    check_participant_id();
+                    init_modal();
+                    psynet.page_load_time = new Date();
+                    psynet.media.init();
+                };
+
+                psynet.register_error_handler = function () {
+                    window.onerror = function (msg, url, line, col, error) {
+                        psynet.log.error(error.stack);
+                    }
+                };
+
+                psynet.next_page = function (raw_answer = null, metadata, blobs) {
+                    submit_generic_response(raw_answer, metadata, blobs, on_success_response, on_error_response);
+                };
+
+                on_success_response = function (request) {
+                    response = JSON.parse(request.response);
+                    if (response.submission === "approved") {
+                        console.log("Response received successfully.");
+                        dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                    } else if (response.submission === "rejected") {
+                        console.log("Response rejected.");
+                        alert(response.message);
+                        $(".submit-response").attr('disabled', false);
+                    } else {
+                        throw Error("Received a malformed response.");
+                    }
+                };
+
+                on_error_response = function (request) {
+                    dallinger.error({
+                        "data": {
+                            "participant_id": dallinger.identity.participantId
+                        }
+                    });
+                };
+
+                add_blobs = function (form_data, blobs) {
+                    for (let [key, value] of Object.entries(blobs)) {
+                        if (key === "json") {
+                            throw Error("Blobs may not be named 'json'.");
+                        }
+                        form_data.append(key, value);
+                    }
+                };
+
+                prepare_json_submission = function (raw_answer, metadata) {
+                    var current_time = new Date();
+
+                    var all_metadata = {
+                        // We could add other things like browser information here
+                        "time_taken": (current_time - psynet.page_load_time) / 1000
+                    };
+
+                    if (metadata !== undefined) {
+                        for (var x in metadata) {
+                            all_metadata[x] = metadata[x];
+                        }
+                    }
+
+                    return JSON.stringify({
+                        "participant_id": dallinger.identity.participantId,
+                        "page_uuid": page_uuid,
+                        "raw_answer": raw_answer,
+                        "metadata": all_metadata
+                    });
+                };
+
+                submit_generic_response = function (raw_answer, metadata, blobs, on_success_response, on_error_response) {
+                    // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
+                    // blobs - optional Object, each attribute should be a blob to upload.
+                    //       - Note that 'json' is not a permitted name for an attribute
+                    json = prepare_json_submission(raw_answer, metadata);
+
+                    var formData = new FormData();
+                    formData.append("json", json);
+
+                    if (blobs !== undefined) {
+                        add_blobs(formData, blobs);
+                    }
+
+                    var request = new XMLHttpRequest();
+
+                    request.onreadystatechange = function () {
+                        if (request.readyState === 4) {
+                            if (request.status === 200) {
+                                console.log('Response was successfully received.');
+                                on_success_response(request);
+                            } else {
+                                console.log('Something went wrong.');
+                                on_error_response(request);
+                            }
+                        }
+                    };
+
+                    request.open("POST", "/response");
+                    request.send(formData);
+                };
+
+                // Aliases for easy typing
+                psynet.audio = psynet.media.data.audio;
+
+                return psynet
             }
-            
-            return psi
-        }())
+            ()
+        )
     </script>
 
     <script>
         psynet.init_page();
         {{ init_js_vars }}
     </script>
-    
+
+    {% for x in scripts %}
+        <script>
+            {{ x }}
+        </script>
+    {% endfor %}
+
 {% endblock %}
