@@ -90,8 +90,8 @@ class NAFCPage(Page):
     """
     This page solicits a multiple-choice response from the participant.
     By default this response is saved in the database as a
-    :class:`psynet.timeline.Response` object, 
-    which can be found in the ``Questions`` table. 
+    :class:`psynet.timeline.Response` object,
+    which can be found in the ``Questions`` table.
 
     Parameters
     ----------
@@ -110,15 +110,15 @@ class NAFCPage(Page):
         Time estimated for the page.
 
     labels:
-        An optional list of textual labels to apply to the buttons, 
+        An optional list of textual labels to apply to the buttons,
         which the participant will see instead of ``choices``.
 
     arrange_vertically:
         Whether to arrange the buttons vertically.
 
     min_width:
-        CSS ``min_width`` parameter for the buttons.   
-        
+        CSS ``min_width`` parameter for the buttons.
+
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
@@ -172,8 +172,8 @@ class TextInputPage(Page):
     """
     This page solicits a text response from the user.
     By default this response is saved in the database as a
-    :class:`psynet.timeline.Response` object, 
-    which can be found in the ``Questions`` table. 
+    :class:`psynet.timeline.Response` object,
+    which can be found in the ``Questions`` table.
 
     Parameters
     ----------
@@ -196,7 +196,7 @@ class TextInputPage(Page):
 
     height:
         Optional CSS height property for the text box.
-        
+
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
@@ -275,7 +275,6 @@ def get_ticks_step_size_and_diff(allowed_values, max_value, min_value):
 
 class SliderPage(Page):
     """
-    See issue #17
     This page solicits a slider response from the user.
 
     The page logs all interactions from the participants including:
@@ -285,6 +284,10 @@ class SliderPage(Page):
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
     which can be found in the ``Questions`` table.
+
+    Currently the slider does not display any numbers describing the
+    slider's current position. We anticipate adding this feature in
+    a future release, if there is interest.
 
     Parameters
     ----------

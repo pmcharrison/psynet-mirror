@@ -32,7 +32,8 @@ class CustomExp(psynet.experiment.Experiment):
             allowed_values=numbers,
             autoplay=True,
             media=media,
-            time_estimate=10
+            time_estimate=10,
+            minimal_interactions=3
         ),
 
         SuccessfulEndPage()
