@@ -172,32 +172,38 @@
             psynet.log = {};
 
             psynet.log.generic = function (msg, level) {
-                if (level !== "error" && level !== "warn" && level !== "info") {
+                if (level !== "error" && level !== "warn" && level !== "info" && level !== "debug") {
                     throw new Error("Invalid log level: " + level);
                 }
 
                 console.log("LOG (" + level.toUpperCase() + "): " + msg);
 
-                route = (
-                    '/log/' + level
-                    + "/" + dallinger.identity.participantId
-                    + "/" + dallinger.identity.assignmentId
-                );
+                if (level != "debug") {
+                    route = (
+                        '/log/' + level
+                        + "/" + dallinger.identity.participantId
+                        + "/" + dallinger.identity.assignmentId
+                    );
 
-                dallinger.post(route, {message: msg});
+                    dallinger.post(route, {message: msg});
+                }
             };
 
             psynet.log.error = function (msg) {
-                return psynet.log.generic(msg, "error")
+                psynet.log.generic(msg, "error")
             };
 
             psynet.log.warning = function (msg) {
-                return psynet.log.generic(msg, "warn")
+                psynet.log.generic(msg, "warn")
             };
 
             psynet.log.info = function (msg) {
-                return psynet.log.generic(msg, "info")
+                psynet.log.generic(msg, "info")
             };
+
+            psynet.log.debug = function (msg) {
+                psynet.log.generic(msg, "debug")
+            }
 
             psynet.media.types = ["audio"];
             psynet.media.data = {};
@@ -298,7 +304,7 @@
                     var progress = psynet.media.download_progress.get_total();
                     bar.style.width = Math.round(progress) + '%';
                     if (progress === 100) {
-                        // You could do something here once loading is complete, 
+                        // You could do something here once loading is complete,
                         // e.g. delete progress bar text
                     }
                 }
@@ -465,12 +471,12 @@
                 var file_id = args['file_id'];
                 var last_in_batch = args['last_in_batch'];
 
-                psynet.log.info('Decoding sound ' + stimulus_id + '...');
+                psynet.log.debug('Decoding sound ' + stimulus_id + '...');
 
                 psynet.media.download_progress.set(media_type, file_id, 100);
 
                 psynet.media.audio_context.decodeAudioData(data, function (res) {
-                    psynet.log.info('Sound ' + stimulus_id + ' decoded.');
+                    psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
 
                     out = psynet.media.data[media_type][stimulus_id];
 
