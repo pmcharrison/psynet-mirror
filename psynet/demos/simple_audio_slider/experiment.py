@@ -4,7 +4,7 @@ from psynet.timeline import (
 )
 from psynet.timeline import PageMaker
 from psynet.page import (
-    SliderAudioPage,
+    AudioSliderPage,
     InfoPage,
     DebugResponsePage,
     SuccessfulEndPage
@@ -15,7 +15,7 @@ import rpdb
 
 class CustomExp(psynet.experiment.Experiment):
     numbers = [i + 1 for i in range(472)]
-    IDs = [str(i) for i in numbers]
+    IDs = ['MY_SUPER_CUSTOM_ID' + str(i) for i in numbers]
     media = {
         "audio": {
             'batch': {
@@ -27,7 +27,7 @@ class CustomExp(psynet.experiment.Experiment):
     }
 
     timeline = Timeline(
-        SliderAudioPage(
+        AudioSliderPage(
             label="example_slider_page",
             prompt="Which beer do you like most? Note: you will have to try 3 slider positions before continuing.",
             sound_locations=dict(zip(IDs, numbers)),
@@ -41,7 +41,7 @@ class CustomExp(psynet.experiment.Experiment):
             minimal_interactions=3
         ),
         DebugResponsePage(),
-        SliderAudioPage(
+        AudioSliderPage(
             label="example_slider_page_reverse",
             prompt="Which beer do you like most? Note: the direction of this scale is reversed from the previous question.",
             sound_locations=dict(zip(IDs, numbers)),
