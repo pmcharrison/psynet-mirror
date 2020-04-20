@@ -1,92 +1,30 @@
-{% extends "timeline-page.html" %}
+{% extends "slider-page.html" %}
 
 
 {% block main_body %}
-    {{super()}}
-    <div class="main_div" onload="setColor();">
-        <div style="padding:15px; background-color:white">
-            {{prompt}}
-        </div>
-        
+    {{ super() }}
+    {% for color, value in hidden_inputs.items() %}
+        <input type="hidden" value="{{ value }}" id="{{ color }}">
+    {% endfor %}
 
-        <div id="responses" style="padding-top:20px; padding-bottom:20px" selected="{{ selected }}">
-                <fieldset {% if selected != "red" %} hidden="hidden" {% endif %}>
-                    <input id="red" type="range" min="0" max="255" id="r" step="1" value="{{ red }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
-                </fieldset>  
-            
-                <fieldset {% if selected != "green" %} hidden="hidden" {% endif %}>
-                    <input id="green" type="range" min="0" max="255" id="g" step="1" value="{{ green }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
-                </fieldset>
-         
-                <fieldset {% if selected != "blue" %} hidden="hidden" {% endif %}>
-                    <input id="blue" type="range" min="0" max="255" id="b" step="1" value="{{ blue }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
-                </fieldset>  
-        </div>
-    </div>
-
-    <hr>
-    
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">Submit</button>
-        </div>
-    </div>
 {% endblock %}
 
 {% block scripts %}
-    {{super()}}
-
+    {{ super() }}
     <script>
-        var selected = document.getElementById("responses").getAttribute("selected");
+        console.log('Color page is loaded');
 
-        var body = document.body, 
-            r = document.getElementById('red'),
-            g = document.getElementById('green'),
-            b = document.getElementById('blue')
+        function pad(n) {
+            return (n.length < 2) ? "0" + n : n;
+        }
 
-        function setColor(){
-            var r_hex = parseInt(r.value, 10).toString(16),
-                g_hex = parseInt(g.value, 10).toString(16),
-                b_hex = parseInt(b.value, 10).toString(16),
+        // Set the color
+        on_slider_event = function (event_type) {
+            var r_hex = parseInt(document.getElementById('red').value, 10).toString(16),
+                g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
+                b_hex = parseInt(document.getElementById('blue').value, 10).toString(16),
                 hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
-            body.style.backgroundColor = hex; 
-        }
-
-        function pad(n){
-            return (n.length<2) ? "0"+n : n;
-        }
-
-        r.addEventListener('change', function() {
-            setColor();
-        }, false);
-
-        r.addEventListener('input', function() {
-            setColor();
-        }, false);
-
-        g.addEventListener('change', function() {
-            setColor();
-        }, false);
-
-        g.addEventListener('input', function() {
-            setColor();
-        }, false);
-
-        b.addEventListener('change', function() {
-            setColor();
-        }, false);
-
-        b.addEventListener('input', function() {
-            setColor();
-        }, false);
-
-        submit = function() {
-            psynet.next_page(parseInt(document.getElementById("{{ selected }}").value));
-        }
-
-        window.onload = function() {
-            setColor();
+            document.body.style.backgroundColor = hex;
         };
     </script>
 {% endblock %}

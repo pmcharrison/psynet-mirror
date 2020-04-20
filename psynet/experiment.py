@@ -364,4 +364,33 @@ class Experiment(dallinger.experiment.Experiment):
             exp.save()
             return res
 
+        @routes.route("/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"])
+        def log(level, participant_id, assignment_id):
+            participant = get_participant(participant_id)
+            message = request.values["message"]
+            
+            if participant.assignment_id != assignment_id:
+                logger.warning(
+                    "Received wrong assignment_id for participant %i "
+                    "(expected %s, got %s).",
+                    participant_id, 
+                    participant.assignment_id,
+                    assignment_id
+                )
+            
+            assert level in ["warn", "info", "error"]
+            
+            string = f"[CLIENT {participant_id}]: {message}"
+            
+            if level == "info":
+                logger.info(string)
+            elif level == "warning":
+                logger.warning(string)
+            elif level == "error":
+                logger.error(string)
+            else:
+                raise RuntimeError("This shouldn't happen.")
+            
+            return success_response()
+            
         return routes
