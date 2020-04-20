@@ -1,4 +1,4 @@
-from flask import Markup
+from flask import Markup, escape
 
 from typing import (
     Union,
@@ -9,10 +9,13 @@ from typing import (
 from .timeline import (
     get_template,
     Page,
+    PageMaker,
     EndPage,
     FailedValidation
 )
 import itertools
+
+import json
 
 class InfoPage(Page):
     """
@@ -564,3 +567,31 @@ class Button():
         self.label = label
         self.min_width = min_width
         self.start_disabled = start_disabled
+
+class DebugResponsePage(PageMaker):
+    """
+    Implements a debugging page for responses.
+    Displays a page to the user with information about the
+    last response received from the participant.
+    """
+    def __init__(self):
+        super().__init__(self.summarise_last_response, time_estimate=0)
+
+    @staticmethod
+    def summarise_last_response(participant):
+        response = participant.response
+        if response is None:
+            return InfoPage("No response found to display.")
+        page_type = escape(response.page_type)
+        answer = escape(response.answer)
+        metadata = escape(json.dumps(response.metadata, indent=4))
+        return InfoPage(Markup(
+            f"""
+            <h3>Page type</h3>
+            {page_type}
+            <h3>Answer</h3>
+            {answer}
+            <h3>Metadata</h3>
+            <pre>{metadata}</pre>
+            """
+        ))
