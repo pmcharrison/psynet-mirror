@@ -1,0 +1,22 @@
+{% extends "slider-page.html" %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        play_sound = function () {
+            var id = get_slider_value(false) - 1;
+            psynet.media.get_by_id('audio', id).play();
+        };
+
+        on_slider_event = function (event_type) {
+            play_sound();
+        };
+        psynet.media.register_on_loaded_routine(function () {
+            if (autoplay) {
+                play_sound();
+            }
+        });
+
+    </script>
+{% endblock %}
