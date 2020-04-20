@@ -1,7 +1,7 @@
 from flask import Markup
 
 from typing import (
-    Union, 
+    Union,
     Optional,
     List
 )
@@ -10,10 +10,10 @@ from .timeline import(
     get_template,
     Page,
     EndPage,
-    FailedValidation  
+    FailedValidation
 )
 
-class InfoPage(Page): 
+class InfoPage(Page):
     """
     This page displays some content to the user alongside a button
     with which to advance to the next page.
@@ -37,9 +37,9 @@ class InfoPage(Page):
     """
 
     def __init__(
-        self, 
-        content: Union[str, Markup], 
-        time_estimate: Optional[float] = None, 
+        self,
+        content: Union[str, Markup],
+        time_estimate: Optional[float] = None,
         title: Optional[Union[str, Markup]] = None,
         **kwargs
     ):
@@ -54,13 +54,13 @@ class InfoPage(Page):
             },
             **kwargs
         )
-        
+
     def metadata(self, **kwargs):
         return {
             "title": self.title,
             "content": self.content
         }
-        
+
 class SuccessfulEndPage(EndPage):
     """
     Indicates a successful end to the experiment.
@@ -92,8 +92,8 @@ class NAFCPage(Page):
     """
     This page solicits a multiple-choice response from the participant.
     By default this response is saved in the database as a
-    :class:`psynet.timeline.Response` object, 
-    which can be found in the ``Questions`` table. 
+    :class:`psynet.timeline.Response` object,
+    which can be found in the ``Questions`` table.
 
     Parameters
     ----------
@@ -112,38 +112,35 @@ class NAFCPage(Page):
         Time estimated for the page.
 
     labels:
-        An optional list of textual labels to apply to the buttons, 
+        An optional list of textual labels to apply to the buttons,
         which the participant will see instead of ``choices``.
 
     arrange_vertically:
         Whether to arrange the buttons vertically.
 
     min_width:
-        CSS ``min_width`` parameter for the buttons.            
+        CSS ``min_width`` parameter for the buttons.
     """
 
     def __init__(
         self,
         label: str,
         prompt: Union[str, Markup],
-        choices: List[str],        
+        choices: List[str],
         time_estimate: Optional[float] = None,
         labels: Optional[List[str]] = None,
         arrange_vertically: bool = False,
         min_width: str ="100px"
     ):
         self.prompt = prompt
-        self.choices = choices 
+        self.choices = choices
         self.labels = choices if labels is None else labels
-        
+
         assert isinstance(self.labels, List)
         assert len(self.choices) == len(self.labels)
 
-        if arrange_vertically:
-            raise NotImplementedError
-
         buttons = [
-            Button(button_id=choice, label=label, min_width=min_width)
+            Button(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
             for choice, label in zip(self.choices, self.labels)
         ]
         super().__init__(
@@ -168,8 +165,8 @@ class TextInputPage(Page):
     """
     This page solicits a text response from the user.
     By default this response is saved in the database as a
-    :class:`psynet.timeline.Response` object, 
-    which can be found in the ``Questions`` table. 
+    :class:`psynet.timeline.Response` object,
+    which can be found in the ``Questions`` table.
 
     Parameters
     ----------
@@ -196,13 +193,13 @@ class TextInputPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: Union[str, Markup],     
+        prompt: Union[str, Markup],
         time_estimate: Optional[float] = None,
         one_line: bool = True,
         width: Optional[str] = None, # e.g. "100px"
         height: Optional[str] = None
     ):
-        
+
         self.prompt = prompt
 
         if one_line and height is not None:
@@ -304,7 +301,7 @@ class SliderInputPage(Page):
                 "style": style
             }
         )
-    
+
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
@@ -330,9 +327,9 @@ class NumberInputPage(TextInputPage):
         return None
 
 class Button():
-    def __init__(self, button_id, label, min_width, start_disabled=False):
+    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
         self.id = button_id
         self.label = label
         self.min_width = min_width
+        self.own_line = own_line
         self.start_disabled = start_disabled
-        
