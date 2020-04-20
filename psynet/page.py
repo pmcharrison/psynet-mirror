@@ -17,6 +17,7 @@ import itertools
 
 import json
 
+
 class InfoPage(Page):
     """
     This page displays some content to the user alongside a button
@@ -244,37 +245,8 @@ class TextInputPage(Page):
         }
 
 
-NUM_TICKS = 1000
+SLIDER_DEFAULT_NUM_TICKS = 1000
 
-def get_ticks_step_size_and_diff(allowed_values, max_value, min_value):
-    def check_allowed_values_list(allowed_values, max_value, min_value):
-        # Must be a list
-        if not isinstance(allowed_values, list):
-            return False
-        for i in allowed_values:
-            # Check if it's numeric
-            if not isinstance(i, (float, int)):
-                return False
-            # Check if it doesn't exceed min and max
-            if i > max_value or i < min_value:
-                return False
-        return True
-
-    if isinstance(allowed_values, int):
-        num_ticks = allowed_values
-    else:
-        num_ticks = NUM_TICKS
-    diff = max_value - min_value
-    step_size = diff / (num_ticks - 1)
-    if isinstance(allowed_values, int):
-        # In both cases the left of the slider is the minimum and the right the maximum
-        ticks = [step_size * i for i in range(num_ticks)]
-    elif check_allowed_values_list(allowed_values, max_value, min_value):
-        ticks = allowed_values
-    else:
-        raise ValueError('`allowed_values` must either be a list of values or an integer')
-
-    return (ticks, step_size, diff)
 
 class SliderPage(Page):
     """
@@ -302,31 +274,31 @@ class SliderPage(Page):
         Prompt to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    start_value: <float>
+    start_value:
         Position of slider at start.
 
-    min_value: <float>
+    min_value:
         Minimum value of the slider.
 
-    max_value: <float>
+    max_value:
         Maximum value of the slider.
 
-    allowed_values: default: NUM_TICKS
+    allowed_values: default: SLIDER_DEFAULT_NUM_TICKS
         <int>: indicating number of possible equidistant steps between `min_value` and `max_value`,
-        by default we use NUM_TICKS
-        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`
+        by default we use SLIDER_DEFAULT_NUM_TICKS
+        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
 
     input_type: default: "HTML5_range_slider"
         By default we use the HTML5 slider, however future implementations might also use different slider
-        formats, like 2D sliders or circular sliders
+        formats, like 2D sliders or circular sliders.
 
-    snap_slider: <Boolean>, default: True
+    snap_slider: default: True
 
-    minimal_interactions: <int>, default: 0
-        Minimal interactions with the slider before the user can go to next trial
+    minimal_interactions: default: 0
+        Minimal interactions with the slider before the user can go to next trial.
 
-    reverse_scale: <Boolean>, default: False
-        flip the scale
+    reverse_scale: default: False
+        Flip the scale.
 
     width:
         Optional CSS width property for the text box.
@@ -337,9 +309,8 @@ class SliderPage(Page):
     time_estimate:
         Time estimated for the page.
 
-    template_arg: optional template_arg
-
-    template_str: optional different template
+    template_str:
+        Optional different template.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
@@ -352,31 +323,25 @@ class SliderPage(Page):
             start_value: float,
             min_value: float,
             max_value: float,
-            allowed_values: Optional[Union[int, list]] = NUM_TICKS,
+            allowed_values: Optional[Union[int, list]] = SLIDER_DEFAULT_NUM_TICKS,
             input_type: Optional[str] = "HTML5_range_slider",
             snap_slider: Optional[bool] = True,
             minimal_interactions: Optional[int] = 0,
             reverse_scale: Optional[bool] = False,
-            slider_ID: Optional[str] = 'sliderpage_slider',
+            slider_id: Optional[str] = 'sliderpage_slider',
             width: Optional[str] = None,  # e.g. "100px"
             height: Optional[str] = None,
             time_estimate: Optional[float] = None,
             template_str: Optional[str] = get_template("slider-page.html"),
             **kwargs
     ):
+        self.max_value = max_value
+        self.min_value = min_value
+        self.start_value = start_value
+        self.input_type = input_type
+        self.minimal_interactions = minimal_interactions
 
-        if input_type != "HTML5_range_slider":
-            raise NotImplementedError('Currently "HTML5_range_slider" is the only supported `input_type`')
-
-        if max_value <= min_value:
-            raise ValueError("`max_value` must be larger than `min_value`")
-
-        if start_value > max_value or start_value < min_value:
-            raise ValueError("`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)" % (
-            start_value, min_value, max_value))
-
-        if minimal_interactions < 0:
-            raise ValueError('`minimal_interactions` cannot be negative!')
+        self._validate()
 
         if not 'js_vars' in kwargs:
             kwargs['js_vars'] = {}
@@ -386,10 +351,9 @@ class SliderPage(Page):
         else:
             template_arg = {}
 
-        ticks, step_size, diff = get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
+        ticks, step_size, diff = self._get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
 
-        self.prompt = prompt
-
+        self.ticks = ticks
         style = (
             "" if width is None else f"width:{width}"
                                      " "
@@ -397,22 +361,25 @@ class SliderPage(Page):
         )
 
         if not snap_slider:
-            step_size = diff / (NUM_TICKS - 1)
+            step_size = diff / (SLIDER_DEFAULT_NUM_TICKS - 1)
 
         new_template_args = {
-                "prompt": prompt,
-                "start_value": start_value,
-                "min_value": min_value,
-                "max_value": max_value,
-                "step_size": step_size,
-                "snap_slider": snap_slider,
-                "reverse_scale": reverse_scale,
-                "style": style,
-                "slider_ID": slider_ID
-            }
+            "prompt": prompt,
+            "start_value": start_value,
+            "min_value": min_value,
+            "max_value": max_value,
+            "step_size": step_size,
+            "snap_slider": snap_slider,
+            "reverse_scale": reverse_scale,
+            "style": style,
+            "slider_id": slider_id
+        }
+
+        if not 'template_arg' in kwargs:
+            kwargs['template_arg'] = {}
 
         for key, value in new_template_args.items():
-            template_arg[key] = value
+            kwargs['template_arg'][key] = value
 
         kwargs['js_vars']["ticks"] = ticks
         kwargs['js_vars']["start_value"] = start_value
@@ -424,18 +391,66 @@ class SliderPage(Page):
             time_estimate=time_estimate,
             template_str=template_str,
             label=label,
-            template_arg=template_arg,
             **kwargs
         )
 
+    def _validate(self):
+        if self.input_type != "HTML5_range_slider":
+            raise NotImplementedError('Currently "HTML5_range_slider" is the only supported `input_type`')
+
+        if self.max_value <= self.min_value:
+            raise ValueError("`max_value` must be larger than `min_value`")
+
+        if self.start_value > self.max_value or self.start_value < self.min_value:
+            raise ValueError("`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)" % (
+                self.start_value, self.min_value, self.max_value))
+
+        if self.minimal_interactions < 0:
+            raise ValueError('`minimal_interactions` cannot be negative!')
+
+    def _check_allowed_values_list(self, allowed_values, max_value, min_value):
+        # Must be a list
+        if not isinstance(allowed_values, list):
+            return False
+        for i in allowed_values:
+            # Check if it's numeric
+            if not isinstance(i, (float, int)):
+                return False
+            # Check if it doesn't exceed min and max
+            if i > max_value or i < min_value:
+                return False
+        return True
+
+    def _get_ticks_step_size_and_diff(self, allowed_values, max_value, min_value):
+        if isinstance(allowed_values, int):
+            num_ticks = allowed_values
+        else:
+            num_ticks = SLIDER_DEFAULT_NUM_TICKS
+        diff = max_value - min_value
+        step_size = diff / (num_ticks - 1)
+        if isinstance(allowed_values, int):
+            # In both cases the left of the slider is the minimum and the right the maximum
+            ticks = [step_size * i for i in range(num_ticks)]
+        elif self._check_allowed_values_list(allowed_values, max_value, min_value):
+            ticks = allowed_values
+        else:
+            raise ValueError('`allowed_values` must either be a list of values or an integer')
+
+        return (ticks, step_size, diff)
+
     def metadata(self, **kwargs):
-        # pylint: disable=unused-argument
         return {
-            "prompt": self.prompt
+            **super().metadata(),
+            'ticks': self.ticks,
+            'min_value': self.min_value,
+            'max_value': self.max_value,
+            'start_value': self.start_value,
+            'input_type': self.input_type,
+            'minimal_interactions': self.minimal_interactions
         }
 
 
-class SliderAudioPage(SliderPage):
+class AudioSliderPage(SliderPage):
     """
     See issue #11
     This page solicits a slider response from the user that results in playing some audio.
@@ -454,48 +469,49 @@ class SliderAudioPage(SliderPage):
         Prompt to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    sound_locations: dict,
+    sound_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
 
-    start_value: <float>
-            Position of slider at start
+    start_value:
+        Position of slider at start.
 
-    min_value: <float>
+    min_value:
         Minimal value of the slider.
 
-    max_value: <float>
+    max_value:
         Maximum value of the slider.
 
-    allowed_values: default: NUM_TICKS
+    allowed_values:
         <int>: indicating number of possible equidistant steps between `min_value` and `max_value`,
-        by default we use NUM_TICKS
-        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`
+        by default we use SLIDER_DEFAULT_NUM_TICKS
+        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
 
-    autoplay: <bool>, default: False
-        The sound closest to the current slider position is played once the page is loaded
+    autoplay:
+        Default: False. The sound closest to the current slider position is played once the page is loaded.
 
-    template_arg: <dict>, default empty dictionary
-        Optional template arguments
+    template_arg:
+        By default empty dictionary. Optional template arguments.
 
-    template_str: <str>, default: the page template slider-audio-page.html
-        Can be overwritten in classes inheriting from this class
+    template_str: default: the page template slider-audio-page.html
+        Can be overwritten in classes inheriting from this class.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.SliderPage`.
     """
 
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            sound_locations: dict,
-            start_value: float,
-            min_value: float,
-            max_value: float,
-            allowed_values: Optional[Union[int, list]] = NUM_TICKS,
-            autoplay: Optional[bool] = False,
-            time_estimate: Optional[float] = None,
-            template_str: Optional[str] = get_template("slider-audio-page.html"),
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        sound_locations: dict,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        allowed_values: Optional[Union[int, list]] = SLIDER_DEFAULT_NUM_TICKS,
+        autoplay: Optional[bool] = False,
+        time_estimate: Optional[float] = None,
+        template_str: Optional[str] = get_template("slider-audio-page.html"),
+        **kwargs
     ):
         if not 'media' in kwargs:
             raise ValueError('You must specify sounds in `media` you later want to play with the slider')
@@ -521,14 +537,16 @@ class SliderAudioPage(SliderPage):
             raise ValueError('All stimulus IDs you specify in `sound_locations` need to be defined in `media` too.')
 
         # Check if all audio files are also really playable
-        ticks, step_size, diff = get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
+        ticks, step_size, diff = self._get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
         if not all([location in ticks for _, location in sound_locations.items()]):
             raise ValueError('The slider does not contain all locations for the audio')
 
         if not 'js_vars' in kwargs:
             kwargs['js_vars'] = {}
         kwargs['js_vars']['autoplay'] = autoplay
+        kwargs['js_vars']['sound_locations'] = sound_locations
 
+        self.sound_locations = sound_locations
         # All range checking is done in the parent class
         super().__init__(
             prompt=prompt,
@@ -541,6 +559,14 @@ class SliderAudioPage(SliderPage):
             label=label,
             **kwargs
         )
+
+    def metadata(self, **kwargs):
+        # pylint: disable=unused-argument
+        return {
+            **super().metadata(),
+            'sound_locations': self.sound_locations
+        }
+
 
 class NumberInputPage(TextInputPage):
     """
@@ -568,12 +594,14 @@ class Button():
         self.min_width = min_width
         self.start_disabled = start_disabled
 
+
 class DebugResponsePage(PageMaker):
     """
     Implements a debugging page for responses.
     Displays a page to the user with information about the
     last response received from the participant.
     """
+
     def __init__(self):
         super().__init__(self.summarise_last_response, time_estimate=0)
 

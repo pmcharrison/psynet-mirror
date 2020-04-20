@@ -2,7 +2,7 @@
 
 {% macro slider(min_value, max_value, step_size) %}
     <input class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
-           id="{{ slider_ID }}" class="form-control-range"
+           id="{{ slider_id }}" class="form-control-range"
            min="{{ min_value }}" max="{{ max_value }}" step="{{ step_size }}" value="{{ start_value }}">
 {% endmacro %}
 
@@ -38,22 +38,19 @@
         if (minimal_interactions > 0) {
             $(".submit-response").attr('disabled', true);
         }
-        psynet.utils.closest = function (needle, haystack) {
-            return haystack.reduce((a, b) => {
-                let a_diff = Math.abs(a - needle);
-                let b_diff = Math.abs(b - needle);
 
-                if (a_diff === b_diff) {
-                    return a > b ? a : b;
-                } else {
-                    return b_diff < a_diff ? b : a;
-                }
-            });
-        };
         // Meta data collection
-        var metadata = [],
-            interaction_count = 0,
-            slider = document.getElementById('{{ slider_ID }}');
+        var slider = document.getElementById('{{ slider_id }}');
+
+        slider.log = [];
+        create_log_message = function (message) {
+            return ({
+                'time': new Date(),
+                'message': message
+            })
+        };
+
+        slider.interaction_count = 0;
 
         get_slider_value = function (return_both_raw_and_snapped = true) {
             let slider_value = slider.value;
@@ -70,24 +67,19 @@
         };
 
         // Save initial position
-        initialize = function () {
+        slider.initialise = function () {
             console.log('Slider page is loaded');
-            metadata.push({
-                'time': new Date(),
-                'message': 'Page loaded. Initial slider position: ' + start_value
-            });
-            on_slider_event('initialize');
+            slider.log.push(create_log_message('Page loaded. Initial slider position: ' + start_value));
+            on_slider_event('initialise');
         };
-        window.addEventListener('load', initialize, false);
+
+        psynet.media.register_on_loaded_routine(slider.initialise);
 
         // Each change is documented
         slider.addEventListener('change', function () {
-            metadata.push({
-                'time': new Date(),
-                'message': get_slider_value()
-            });
-            interaction_count += 1;
-            if (interaction_count >= minimal_interactions) {
+            slider.log.push(create_log_message(get_slider_value()));
+            slider.interaction_count += 1;
+            if (slider.interaction_count >= minimal_interactions) {
                 $(".submit-response").attr('disabled', false);
             }
             on_slider_event('slider_changed');
@@ -95,6 +87,8 @@
 
         submit = function () {
             $(".submit-response").attr('disabled', true);
+            var metadata = {};
+            metadata.log = slider.log;
             psynet.next_page(get_slider_value(false), metadata);
         };
     </script>
