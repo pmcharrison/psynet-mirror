@@ -69,7 +69,8 @@ class ColorSliderPage(SliderPage):
             selected_idx: int,
             starting_values: List[int],
             reverse_scale: bool,
-            time_estimate=None
+            time_estimate=None,
+            **kwargs
     ):
         assert selected_idx >= 0 and selected_idx < len(COLORS)
         self.prompt = prompt
@@ -81,7 +82,9 @@ class ColorSliderPage(SliderPage):
         not_selected_colors = [COLORS[i] for i in not_selected_idxs]
         not_selected_values = [starting_values[i] for i in not_selected_idxs]
         hidden_inputs = dict(zip(not_selected_colors, not_selected_values))
-
+        kwargs['template_arg'] = {
+            'hidden_inputs': hidden_inputs,
+        }
         super().__init__(
             time_estimate=time_estimate,
             # template_path="templates/color-slider.html",
@@ -91,7 +94,7 @@ class ColorSliderPage(SliderPage):
             start_value=starting_values[selected_idx],
             min_value=0,
             max_value=255,
-            slider_ID=COLORS[selected_idx],
+            slider_id=COLORS[selected_idx],
             reverse_scale=reverse_scale,
             template_arg={
                 'hidden_inputs': hidden_inputs,
