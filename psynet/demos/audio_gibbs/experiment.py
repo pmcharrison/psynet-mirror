@@ -24,10 +24,13 @@ logger = logging.getLogger(__file__)
 
 import rpdb
 
+# Custom parameters, change these as you like!
 TARGETS = ["critical", "suggestive", "angry"]
 DIMENSIONS = 5
 RANGE = [-800, 800]
 GRANULARITY = 25
+SNAP_SLIDER = True
+AUTOPLAY = False
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -38,7 +41,7 @@ class CustomNetwork(AudioGibbsNetwork):
     }
 
     s3_bucket = "audio-gibbs-demo"
-    vector_length = 5
+    vector_length = DIMENSIONS
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
 
@@ -50,7 +53,8 @@ class CustomNetwork(AudioGibbsNetwork):
 class CustomTrial(AudioGibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    snap_slider = True
+    snap_slider = SNAP_SLIDER
+    autoplay = AUTOPLAY
 
     def get_prompt(self, experiment, participant):
         return Markup(
