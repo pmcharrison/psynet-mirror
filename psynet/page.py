@@ -12,6 +12,7 @@ from .timeline import (
     get_template,
     Page,
     PageMaker,
+    MediaSpec,
     EndPage,
     FailedValidation,
     while_loop
@@ -612,7 +613,7 @@ class AudioSliderPage(SliderPage):
 
         # Check if all stimuli specified in `sound_locations` are
         # also preloaded before the participant can start the trial
-        audio = kwargs['media']['audio']
+        audio = kwargs['media'].audio
         IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
         IDs_media = []
         for key, value in audio.items():
@@ -720,8 +721,9 @@ class ResponsePage(Page):
         self,
         label: str,
         prompt,
-        # response,
+        input,
         time_estimate: Optional[float] = None,
+        media: Optional[dict] = None,
         **kwargs
     ):
 
@@ -734,49 +736,72 @@ class ResponsePage(Page):
         {{{{ {prompt.macro}(prompt) }}}}
 
         {{% endblock %}}
+
+        {{% block input %}}
+        {{{{ super() }}}}
+
+        {{{{ {input.macro}(input) }}}}
+
+        {{% endblock %}}
         """
 
+        if media is None:
+            media = MediaSpec()
+
         self.prompt = prompt
-        # self.response = self.response
+        self.input = input
+
+        if isinstance(prompt, AudioPrompt):
+            media.add("audio", {"prompt": prompt.url})
 
         super().__init__(
             time_estimate=time_estimate,
             template_str=template_str,
             template_arg={
-                "prompt": prompt
-                # "response": response
+                "prompt": prompt,
+                "input": input
             },
+            media=media,
             **kwargs
         )
 
     def metadata(self, **kwargs):
         return {
-            "prompt": self.prompt.metadata
-            # "response": self.response.metadata
+            "prompt": self.prompt.metadata,
+            "input": self.input.metadata
         }
 
 class Prompt():
-    pass
-    # def import_template(self, path):
-    #     return "{% import '" + path + "' as prompt %} "
+    @property
+    def macro(self):
+        raise NotImplementedError
 
-    # def body(self):
-    #     return (
-    #         self.import_template(self.template)
-    #         + self.body_call
-    #     )
+    @property
+    def metadata(self):
+        raise NotImplementedError
 
 class AudioPrompt():
+    def __init__(self, url: str, text: Union[str, Markup]):
+        self.text = text
+        self.url = url
+
     macro = "audio_prompt"
-    url = "my_audio.wav"
-    # template = "/Users/peter.harrison/Dropbox/Academic/projects/jacoby-nori/cap/psynet/psynet/templates/audio-prompt.html"
 
-    # metadata = None
-    # message = "Audio message"
+    @property
+    def metadata(self):
+        return {
+            "url": self.url
+        }
 
-    # @property
-    # def body_call(self):
-    #     return "prompt.body()"
+class Input():
+    @property
+    def macro(self):
+        raise NotImplementedError
 
+    @property
+    def metadata(self):
+        raise NotImplementedError
 
-    # "{% import
+class NullInput():
+    macro = "null_input"
+    metadata = {}

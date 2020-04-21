@@ -59,7 +59,7 @@ class NullEvent(Event):
 
 class CodeBlock(Event):
     """
-    A timeline component that executes some back-end logic without showing 
+    A timeline component that executes some back-end logic without showing
     anything to the participant.
 
     Parameters
@@ -116,19 +116,19 @@ class GoTo(Event):
 
 class ReactiveGoTo(GoTo):
     def __init__(
-        self, 
+        self,
         function, # function taking experiment, participant and returning a key
         targets # dict of possible target elements
-    ):  
+    ):
         # pylint: disable=super-init-not-called
         self.function = function
-        self.targets = targets        
+        self.targets = targets
         self.check_args()
 
     def check_args(self):
         self.check_function()
         self.check_targets()
-    
+
     def check_function(self):
         check_function_args(self.function, ("self", "experiment", "participant"), need_all=False)
 
@@ -157,11 +157,88 @@ class ReactiveGoTo(GoTo):
                 f"{list(self.targets)}."
         )
 
+class MediaSpec():
+    """
+    This object enumerates the media assets available for a given
+    :class:`~psynet.timeline.Page` object.
+
+    Parameters
+    ----------
+
+    audio: dict
+        A dictionary of audio assets.
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid audio argument might look like the following:
+
+        ::
+
+            {
+                'bier': '/static/bier.wav',
+                'my_batch': {
+                    'url': '/static/file_concatenated.mp3',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+    """
+    def __init__(self, audio: Optional[dict] = None):
+        if audio is None:
+            audio = {}
+
+        self.data = {
+            "audio": audio
+        }
+
+    @property
+    def audio(self):
+        return self.data["audio"]
+
+    @property
+    def num_files(self):
+        counter = 0
+        for modality in self.data.values():
+            counter += len(modality)
+        return counter
+
+    def add(self, modality: str, entries: dict):
+        if modality not in self.data:
+            self.data[modality] = {}
+        for key, value in entries.items():
+            self.data[modality][key] = value
+
+    def check(self):
+        assert isinstance(self.data, dict)
+        for key, value in self.data.items():
+            assert key in ["audio"]
+            ids = set()
+            for file_id, file in value.items():
+                if file_id in ids:
+                    raise ValueError(f"{file_id} occurred more than once in page's {key} specification.")
+                ids.add(file_id)
+                if not isinstance(file, str):
+                    if not isinstance(file, dict):
+                        raise TypeError(f"Media entry must either be a string URL or a dict (got {file}).")
+                    if not ("url" in file and "ids" in file):
+                        raise ValueError("Batch specifications must contain both 'url' and 'ids' keys.")
+                    ids = file["ids"]
+                    if not isinstance(ids, list):
+                        raise TypeError(f"The ids component of the batch specification must be a list (got {ids}).")
+                    for _id in ids:
+                        if not isinstance(_id, str):
+                            raise TypeError(f"Each id in the batch specification must be a string (got {_id}).")
+
+    def to_json(self):
+        return json.dumps(self.data)
+
 class Page(Event):
     """
-    The base class for pages, customised by passing values to the ``__init__`` 
+    The base class for pages, customised by passing values to the ``__init__``
     function and by overriding the following methods:
-    
+
     * :meth:`~psynet.timeline.Page.format_answer`
     * :meth:`~psynet.timeline.Page.validate`
     * :meth:`~psynet.timeline.Page.metadata`
@@ -169,7 +246,7 @@ class Page(Event):
     Parameters
     ----------
 
-    time_estimate: 
+    time_estimate:
         Time estimated for the page.
 
     template_path:
@@ -186,44 +263,24 @@ class Page(Event):
 
     js_vars:
         Dictionary of arguments to instantiate as global Javascript variables.
-        
-    media: 
-        Optional nested dictionary of media assets to preload. 
-        The first level of this dictionary identifies the media type, e.g. "audio".
-        The second level of this dictionary identifies individual media assets.
-        An individual media asset can either be a string, 
-        corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
-        or a dictionary, corresponding to metadata for a batch of media assets.
-        A batch dictionary must contain the field "url", providing the URL to the batch file,
-        and the field "ids", providing the list of IDs for the batch's constituent assets.
-        A valid media argument might look like the following:
-        
-        ::
-        
-            {
-                "audio": {
-                    'bier': '/static/bier.wav',
-                    'batch': {
-                        'url': '/static/file_concatenated.mp3',
-                        'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
-                        'type': 'batch'
-                    }
-                }
-            }
-            
+
+    media: :class:`psynet.timeline.MediaSpec`
+        Optional specification of media assets to preload
+        (see the documentation for :class:`psynet.timeline.MediaSpec`).
+
     scripts:
-        Optional list of scripts to include in the page. 
-        Each script should be represented as a string, which will be passed 
+        Optional list of scripts to include in the page.
+        Each script should be represented as a string, which will be passed
         verbatim to the page's HTML.
-        
+
     css:
-        Optional list of CSS specification to include in the page. 
-        Each specification should be represented as a string, which will be passed 
+        Optional list of CSS specification to include in the page.
+        Each specification should be represented as a string, which will be passed
         verbatim to the page's HTML.
         A valid CSS specification might look like this:
-        
+
         ::
-        
+
             .modal-content {
                 background-color: #4989C8;
                 margin: auto;
@@ -231,14 +288,14 @@ class Page(Event):
                 border: 1px solid #888;
                 width: 80%;
             }
-            
+
             .close {
                 color: #aaaaaa;
                 float: right;
                 font-size: 28px;
                 font-weight: bold;
             }
-            
+
     """
 
     returns_time_credit = True
@@ -247,11 +304,11 @@ class Page(Event):
         self,
         time_estimate: Optional[float] = None,
         template_path: Optional[str] = None,
-        template_str: Optional[str] = None, 
+        template_str: Optional[str] = None,
         template_arg: Optional[Dict] = None,
         label: str = "untitled",
         js_vars: Optional[Dict] = None,
-        media: Optional[Dict] = None,
+        media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
         css: Optional[List] = None
     ):
@@ -279,156 +336,127 @@ class Page(Event):
         self.label = label
         self.js_vars = js_vars
 
-        self.expected_repetitions = 1 
-        
-        self.media = {} if media is None else media
-        self.check_media()
-        
+        self.expected_repetitions = 1
+
+        self.media = MediaSpec() if media is None else media
+        self.media.check()
+
         self.scripts = [] if scripts is None else [flask.Markup(x) for x in scripts]
         assert isinstance(self.scripts, list)
-        
+
         self.css = [] if css is None else [flask.Markup(x) for x in css]
         assert isinstance(self.css, list)
 
-    @property 
+    @property
     def initial_download_progress(self):
-        if self.num_media_files > 0:
+        if self.media.num_files > 0:
             return 0
-        else: 
+        else:
             return 100
 
-    @property
-    def num_media_files(self):
-        counter = 0
-        for modality in self.media.values():
-            counter += len(modality)
-        return counter
-
-    def check_media(self):
-        assert isinstance(self.media, dict)
-        for key, value in self.media.items():
-            assert key in ["audio"]
-            ids = set()
-            for file_id, file in value.items():
-                if file_id in ids:
-                    raise ValueError(f"{file_id} occurred more than once in page's {key} specification.")
-                ids.add(file_id)
-                if not isinstance(file, str):
-                    if not isinstance(file, dict):
-                        raise TypeError(f"Media entry must either be a string URL or a dict (got {file}).")
-                    if not ("url" in file and "ids" in file):
-                        raise ValueError("Batch specifications must contain both 'url' and 'ids' keys.")
-                    ids = file["ids"]
-                    if not isinstance(ids, list):
-                        raise TypeError(f"The ids component of the batch specification must be a list (got {ids}).")
-                    for _id in ids:
-                        if not isinstance(_id, str):
-                            raise TypeError(f"Each id in the batch specification must be a string (got {_id}).")
-                            
-            
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
-    
+
     def process_response(self, raw_answer, blobs, metadata, experiment, participant):
         answer = self.format_answer(
-            raw_answer, 
+            raw_answer,
             blobs=blobs,
-            metadata=metadata, 
-            experiment=experiment, 
+            metadata=metadata,
+            experiment=experiment,
             participant=participant
         )
         extra_metadata = self.metadata(
-            metadata=metadata, 
+            metadata=metadata,
             raw_answer=raw_answer,
             answer=answer,
             experiment=experiment,
             participant=participant
         )
         combined_metadata = {**metadata, **extra_metadata}
-        resp = Response(            
+        resp = Response(
             participant=participant,
-            label=self.label, 
+            label=self.label,
             answer=answer,
             page_type=type(self).__name__,
             metadata=combined_metadata
         )
         experiment.session.add(resp)
         experiment.save()
-        
+
         participant.answer = resp.answer
         participant.last_response_id = resp.id
-        
+
         experiment.save()
         return resp
-        
+
     def metadata(self, **kwargs):
         """
         Compiles metadata about the page or its response from the participant.
         This metadata will be merged with the default metadata object returned
         from the browser, with any duplicate terms overwritten.
-        
+
         Parameters
         ----------
-            
+
         **kwargs
             Keyword arguments, including:
-            
+
             1. ``raw_answer``:
                The raw answer returned from the participant's browser.
-               
+
             2. ``answer``:
                The formatted answer.
-               
+
             3. ``metadata``:
                The original metadata returned from the participant's browser.
-            
-            3. ``experiment``: 
+
+            3. ``experiment``:
                An instantiation of :class:`psynet.experiment.Experiment`,
                corresponding to the current experiment.
 
             4. ``participant``:
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
-               
+
         Returns
         -------
-        
+
         dict
             A dictionary of metadata.
         """
         return {}
-        
+
     def format_answer(self, raw_answer, **kwargs):
         """
         Formats the raw answer object returned from the participant's browser.
-        
+
         Parameters
         ----------
-        
+
         raw_answer
             The raw answer object returned from the participant's browser.
 
         **kwargs
             Keyword arguments, including:
-            
+
             1. ``blobs``:
-               A dictionary of any blobs that were returned from the 
+               A dictionary of any blobs that were returned from the
                participant's browser.
-               
+
             2. ``metadata``:
                The metadata returned from the participant's browser.
-            
-            3. ``experiment``: 
+
+            3. ``experiment``:
                An instantiation of :class:`psynet.experiment.Experiment`,
                corresponding to the current experiment.
 
             4. ``participant``:
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
-        
+
         Returns
         -------
-        
+
         Object
             The formatted answer, suitable for serialisation to JSON
             and storage in the database.
@@ -443,18 +471,18 @@ class Page(Event):
         created by the page and runs a validation check
         to determine whether the participant may continue to the next page.
 
-        Parameters 
+        Parameters
         ----------
 
         response:
             An instance of :class:`psynet.timeline.Response`.
             Typically the ``answer`` attribute of this object
             is most useful for validation.
-        
+
         **kwargs:
             Keyword arguments, including:
-            
-            1. ``experiment``: 
+
+            1. ``experiment``:
                An instantiation of :class:`psynet.experiment.Experiment`,
                corresponding to the current experiment.
 
@@ -466,7 +494,7 @@ class Page(Event):
         -------
 
         ``None`` or an object of class :class:`psynet.timeline.FailedValidation`
-            On the case of failed validation, an instantiation of 
+            On the case of failed validation, an instantiation of
             :class:`psynet.timeline.FailedValidation`
             containing a message to pass to the participant.
         """
@@ -477,7 +505,7 @@ class Page(Event):
             "page_uuid": participant.page_uuid
         }
         all_template_arg = {
-            **self.template_arg, 
+            **self.template_arg,
             "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
@@ -494,7 +522,7 @@ class Page(Event):
 
     @property
     def define_media_requests(self):
-        return f"psynet.media.requests = JSON.parse('{json.dumps(self.media)}');"
+        return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
 
     def create_experiment_progress_bar(self, participant):
         return ExperimentProgressBar(participant.progress)
@@ -512,7 +540,7 @@ class Page(Event):
 
 class PageMaker(Event):
     """
-    A page maker is defined by a function that is executed when 
+    A page maker is defined by a function that is executed when
     the participant requests the relevant page.
 
     Parameters
@@ -573,10 +601,10 @@ class PageMaker(Event):
 
 def reactive_seq(
     label,
-    function, 
+    function,
     num_pages: int,
     time_estimate: int
-): 
+):
     """Function must return a list of pages when evaluated."""
     def with_namespace(x=None):
         prefix = f"__reactive_seq__{label}"
@@ -612,15 +640,15 @@ def reactive_seq(
         lambda participant: (
             participant.var
                 .set(
-                    with_namespace("complete"), 
+                    with_namespace("complete"),
                     participant.var.get(with_namespace("pos")) >= num_pages - 1
                 )
                 .inc(with_namespace("pos"))
-        )   
+        )
     )
 
     show_events = PageMaker(
-        new_function, 
+        new_function,
         time_estimate=time_estimate / num_pages
     )
 
@@ -629,9 +657,9 @@ def reactive_seq(
     return join(
         prepare_logic,
         while_loop(
-            label=with_namespace(label), 
-            condition=condition, 
-            logic=[show_events, update_logic], 
+            label=with_namespace(label),
+            condition=condition,
+            logic=[show_events, update_logic],
             expected_repetitions=num_pages,
             fix_time_credit=False
         )
@@ -676,7 +704,7 @@ class Timeline():
     def __init__(self, *args):
         events = join(*args)
         self.events = events
-        self.check_events()        
+        self.check_events()
         self.add_event_ids()
         self.estimated_time_credit = self.estimate_time_credit()
 
@@ -731,7 +759,7 @@ class Timeline():
 
         def summarise(self, mode, wage_per_hour=None):
             return [
-                self.label, 
+                self.label,
                 {key: child.summarise(mode, wage_per_hour) for key, child in self.children.items()}
             ]
 
@@ -777,7 +805,7 @@ class Timeline():
 
             if event.returns_time_credit:
                 time_credit += event.time_estimate * event.expected_repetitions
-            
+
             if isinstance(event, StartFixTime):
                 event_id = event.end_fix_time.id
 
@@ -790,7 +818,7 @@ class Timeline():
                     label=event.label,
                     children={
                         key: self.estimate_time_credit(
-                            starting_event_id=branch_start_event.id, 
+                            starting_event_id=branch_start_event.id,
                             starting_credit=time_credit,
                             starting_counter=counter
                         )
@@ -804,7 +832,7 @@ class Timeline():
             elif isinstance(event, EndPage):
                 return self.Leaf(time_credit)
 
-            else: 
+            else:
                 event_id += 1
 
     def __len__(self):
@@ -814,7 +842,7 @@ class Timeline():
         return self.events[key]
 
     def get_current_event(self, experiment, participant, resolve=True):
-        n = participant.event_id 
+        n = participant.event_id
         N = len(self)
         if n >= N:
             raise ValueError(f"Tried to get element {n + 1} of a timeline with only {N} element(s).")
@@ -846,50 +874,50 @@ def estimate_time_credit(events):
         for event in events
         if event.returns_time_credit
     ])
-        
+
 class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):
         self.message = message
 
 class Response(Question):
     """
-    A database-backed object that stores the participant's response to a 
+    A database-backed object that stores the participant's response to a
     :class:`~psynet.timeline.Page`.
     By default, one such object is created each time the participant
     tries to advance to a new page.
-    
+
     This class subclasses the Dallinger :class:`~dallinger.models.Question` class,
     and hence can be found in the ``question`` table of the database.
-    
+
     Attributes
     ----------
-    
+
     answer
         The participant's answer, after formatting.
         Stored in ``response`` in the database.
-    
+
     page_type: str
         The type of page administered.
         Stored in ``property1`` in the database.
-    
+
     successful_validation: bool
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
         Stored in ``property2`` in the database.
     """
-    
+
     __mapper_args__ = {"polymorphic_identity": "response"}
 
     page_type = claim_field(1, str)
     successful_validation = claim_field(2, bool)
-    
+
     @hybrid_property
     def answer(self):
         if self.response is None:
             return None
         else:
             return json.loads(self.response)
-            
+
     @answer.setter
     def answer(self, answer):
         # Ideally we'd want to save NULL if the answer is None,
@@ -929,7 +957,7 @@ def is_list_of_events(x: list):
 def join(*args):
     for i, arg in enumerate(args):
         if not ((arg is None) or (isinstance(arg, (Event, Module)) or is_list_of_events(arg))):
-            raise TypeError(f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg}).")        
+            raise TypeError(f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg}).")
 
     if len(args) == 0:
         return []
@@ -954,7 +982,7 @@ def join(*args):
             elif isinstance(x, list) and isinstance(y, list):
                 return x + y
             else:
-                return Exception("An unexpected error occurred.")    
+                return Exception("An unexpected error occurred.")
 
         return reduce(f, args)
 
@@ -981,7 +1009,7 @@ class EndWhile(NullEvent):
         super().__init__()
         self.label = label
 
-def while_loop(label: str, condition: Callable, logic, expected_repetitions: int, fix_time_credit=True):   
+def while_loop(label: str, condition: Callable, logic, expected_repetitions: int, fix_time_credit=True):
     """
     Loops a series of events while a given criterion is satisfied.
     The criterion function is evaluated once at the beginning of each loop.
@@ -1006,7 +1034,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
         of the total experiment.
 
     fix_time_credit:
-        Whether participants should receive the same time credit irrespective of whether 
+        Whether participants should receive the same time credit irrespective of whether
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
         receive the same credit.
 
@@ -1028,9 +1056,9 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     events = join(
         start_while,
         conditional(
-            label, 
-            condition, 
-            conditional_logic, 
+            label,
+            condition,
+            conditional_logic,
             fix_time_credit=False,
             log_chosen_branch=False
         ),
@@ -1055,10 +1083,10 @@ def check_branches(branches):
         raise TypeError("<branches> must be a dict of (lists of) Event objects.")
 
 def switch(
-        label: str, 
-        function: Callable, 
-        branches: dict, 
-        fix_time_credit: bool = True, 
+        label: str,
+        function: Callable,
+        branches: dict,
+        fix_time_credit: bool = True,
         log_chosen_branch: bool = True
     ):
     """
@@ -1081,7 +1109,7 @@ def switch(
         to an event (or list of events) that can be selected by ``function``.
 
     fix_time_credit:
-        Whether participants should receive the same time credit irrespective of whether 
+        Whether participants should receive the same time credit irrespective of whether
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
         receive the same credit.
 
@@ -1097,10 +1125,10 @@ def switch(
 
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
-   
+
     all_branch_starts = dict()
     all_events = []
-    final_event = EndSwitch(label) 
+    final_event = EndSwitch(label)
 
     for branch_name, branch_events in branches.items():
         branch_start = StartSwitchBranch(branch_name)
@@ -1151,9 +1179,9 @@ class EndSwitchBranch(GoTo):
 
 def conditional(
     label: str,
-    condition: Callable, 
-    logic_if_true, 
-    logic_if_false=None, 
+    condition: Callable,
+    logic_if_true,
+    logic_if_false=None,
     fix_time_credit: bool = True,
     log_chosen_branch: bool = True
     ):
@@ -1165,7 +1193,7 @@ def conditional(
 
     label:
         Internal label to assign to the construct.
-    
+
     condition:
         A function with up to two arguments named ``participant`` and ``experiment``,
         that is executed once the participant reaches the corresponding part of the timeline,
@@ -1178,7 +1206,7 @@ def conditional(
         An optional event (or list of events) to display if ``condition`` returns ``False``.
 
     fix_time_credit:
-        Whether participants should receive the same time credit irrespective of whether 
+        Whether participants should receive the same time credit irrespective of whether
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
         receive the same credit.
 
@@ -1192,12 +1220,12 @@ def conditional(
         A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
     return switch(
-        label, 
-        function=condition, 
+        label,
+        function=condition,
         branches={
             True: logic_if_true,
             False: NullEvent() if logic_if_false is None else logic_if_false
-        }, 
+        },
         fix_time_credit=fix_time_credit,
         log_chosen_branch=log_chosen_branch
     )
@@ -1208,10 +1236,10 @@ class ConditionalEvent(Event):
 
 class StartConditional(ConditionalEvent):
     pass
-    
+
 class EndConditional(ConditionalEvent):
     pass
-   
+
 def fix_time(events, time_estimate):
     end_fix_time = EndFixTime(time_estimate)
     start_fix_time = StartFixTime(time_estimate, end_fix_time)

@@ -74,7 +74,7 @@
 
             {% endblock %}
 
-            {% block response %}
+            {% block input %}
 
             {% endblock %}
 
@@ -125,7 +125,7 @@
     {% endblock %}
 {% endblock %}
 
-{% block scripts %}
+{% block head %}
     {{ super() }}
 
     <script>
@@ -747,6 +747,11 @@
         )
     </script>
 
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
     <script>
         psynet.init_page();
         {{ init_js_vars }}
@@ -760,8 +765,19 @@
 
 {% endblock %}
 
+
 {% macro audio_prompt(config) %}
 <p>
-    I hereby promise to play the audio at the URL {{ config.url }}.
+    {{ config.text }}
 </p>
+
+<script>
+    psynet.media.register_on_loaded_routine(function() {
+        psynet.audio.prompt.play();
+    })
+</script>
+{% endmacro %}
+
+{% macro null_input(input) %}
+    {{ next_button() }}
 {% endmacro %}

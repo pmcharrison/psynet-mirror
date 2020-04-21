@@ -35,7 +35,8 @@ from psynet.page import (
     NAFCPage,
     NumberInputPage,
     ResponsePage,
-    AudioPrompt
+    AudioPrompt,
+    NullInput
 )
 
 
@@ -50,8 +51,10 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         ResponsePage(
             "response",
-            AudioPrompt(),
-            # response=None,
+            prompt=AudioPrompt(
+                url="/static/audio/bier.wav",
+                text="Listen out for someone saying 'bier'."),
+            input=NullInput(),
             time_estimate=5
         ),
         SuccessfulEndPage()
