@@ -714,3 +714,54 @@ class DebugResponsePage(PageMaker):
             <pre>{metadata}</pre>
             """
         ))
+
+class ResponsePage(Page):
+    def __init__(
+        self,
+        label: str,
+        prompt,
+        response,
+        time_estimate: Optional[float] = None,
+        **kwargs
+    ):
+        self.prompt = prompt
+        # self.response = self.response
+
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=get_template("response-page.html"),
+            template_arg={
+                "prompt": prompt
+                # "response": response
+            },
+            **kwargs
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "prompt": self.prompt.metadata
+            # "response": self.response.metadata
+        }
+
+class Prompt():
+    def import_template(self, path):
+        return "{% import '" + path + "' as prompt %} "
+
+    def body(self):
+        return (
+            self.import_template(self.template)
+            + self.body_call
+        )
+
+class AudioPrompt():
+    template = "/Users/peter.harrison/Dropbox/Academic/projects/jacoby-nori/cap/psynet/psynet/templates/audio-prompt.html"
+
+    metadata = None
+    message = "Audio message"
+
+    @property
+    def body_call(self):
+        return "prompt.body()"
+
+
+    "{% import
