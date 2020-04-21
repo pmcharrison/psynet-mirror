@@ -1,5 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
+# Note: parselmouth must be installed with pip install praat-parselmouth
+
 ##########################################################################################
 #### Imports
 ##########################################################################################
