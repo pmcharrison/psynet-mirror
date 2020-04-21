@@ -51,7 +51,7 @@ class Exp(psynet.experiment.Experiment):
         ResponsePage(
             "response",
             AudioPrompt(),
-            response=None,
+            # response=None,
             time_estimate=5
         ),
         SuccessfulEndPage()

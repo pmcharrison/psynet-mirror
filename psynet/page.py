@@ -720,16 +720,28 @@ class ResponsePage(Page):
         self,
         label: str,
         prompt,
-        response,
+        # response,
         time_estimate: Optional[float] = None,
         **kwargs
     ):
+
+        template_str = f"""
+        {{% extends "timeline-page.html" %}}
+
+        {{% block prompt %}}
+        {{{{ super() }}}}
+
+        {{{{ {prompt.macro}(prompt) }}}}
+
+        {{% endblock %}}
+        """
+
         self.prompt = prompt
         # self.response = self.response
 
         super().__init__(
             time_estimate=time_estimate,
-            template_str=get_template("response-page.html"),
+            template_str=template_str,
             template_arg={
                 "prompt": prompt
                 # "response": response
@@ -744,24 +756,27 @@ class ResponsePage(Page):
         }
 
 class Prompt():
-    def import_template(self, path):
-        return "{% import '" + path + "' as prompt %} "
+    pass
+    # def import_template(self, path):
+    #     return "{% import '" + path + "' as prompt %} "
 
-    def body(self):
-        return (
-            self.import_template(self.template)
-            + self.body_call
-        )
+    # def body(self):
+    #     return (
+    #         self.import_template(self.template)
+    #         + self.body_call
+    #     )
 
 class AudioPrompt():
-    template = "/Users/peter.harrison/Dropbox/Academic/projects/jacoby-nori/cap/psynet/psynet/templates/audio-prompt.html"
+    macro = "audio_prompt"
+    url = "my_audio.wav"
+    # template = "/Users/peter.harrison/Dropbox/Academic/projects/jacoby-nori/cap/psynet/psynet/templates/audio-prompt.html"
 
-    metadata = None
-    message = "Audio message"
+    # metadata = None
+    # message = "Audio message"
 
-    @property
-    def body_call(self):
-        return "prompt.body()"
+    # @property
+    # def body_call(self):
+    #     return "prompt.body()"
 
 
-    "{% import
+    # "{% import

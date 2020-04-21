@@ -69,6 +69,15 @@
 
     <div class="main_div">
         {% block main_body %}
+
+            {% block prompt %}
+
+            {% endblock %}
+
+            {% block response %}
+
+            {% endblock %}
+
         {% endblock %}
     </div>
 
@@ -750,3 +759,9 @@
     {% endfor %}
 
 {% endblock %}
+
+{% macro audio_prompt(config) %}
+<p>
+    I hereby promise to play the audio at the URL {{ config.url }}.
+</p>
+{% endmacro %}
