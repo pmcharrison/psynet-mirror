@@ -6,12 +6,15 @@ from typing import (
     List
 )
 
+from math import ceil
+
 from .timeline import (
     get_template,
     Page,
     PageMaker,
     EndPage,
-    FailedValidation
+    FailedValidation,
+    while_loop
 )
 import itertools
 
@@ -58,6 +61,94 @@ class InfoPage(Page):
             "content": self.content
         }
 
+class WaitPage(Page):
+    """
+    This page makes the user wait for a specified amount of time
+    before automatically continuing to the next page.
+
+    Parameters
+    ----------
+
+    wait_time:
+        Time that the user should wait.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    content = "Please wait, the experiment should continue shortly..."
+
+    def __init__(
+            self,
+            wait_time: float,
+            **kwargs
+    ):
+        assert wait_time >= 0
+        self.wait_time = wait_time
+        super().__init__(
+            time_estimate=wait_time,
+            template_str=get_template("wait-page.html"),
+            template_arg={
+                "content": self.content,
+                "wait_time": self.wait_time
+            },
+            **kwargs
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "content": self.content,
+            "wait_time": self.wait_time
+        }
+
+def wait_while(
+        condition,
+        expected_wait: float,
+        check_interval: float = 1.0,
+        wait_page=WaitPage
+    ):
+    """
+    Displays the participant a waiting page while a given condition
+    remains satisfied.
+
+    Parameter
+    ---------
+
+    condition
+        The condition to be checked;
+        the participant will keep waiting while this condition returns True.
+        This argument should be a function receiving the following arguments:
+        ``participant`` (corresponding to the current participant)
+        and ``experiment`` (corresponding to the current experiments).
+        If one of this arguments is not needed, it can be omitted from the
+        argument list.
+
+    expected_wait
+        How long the participant is likely to wait, in seconds.
+
+    check_interval
+        How often should the browser check the condition, in seconds.
+
+    wait_page
+        The wait page that should be displayed to the participant;
+        defaults to :class:`~psynet.page.WaitPage`.
+
+    Returns
+    -------
+
+    list :
+        A list of test events suitable for inclusion in a PsyNet timeline.
+    """
+    assert expected_wait > 0
+    assert check_interval > 0
+    expected_repetitions = ceil(expected_wait / check_interval)
+
+    return while_loop(
+        "wait_while",
+        condition,
+        logic=wait_page(wait_time=check_interval),
+        expected_repetitions=expected_repetitions
+    )
 
 class SuccessfulEndPage(EndPage):
     """
@@ -537,9 +628,9 @@ class AudioSliderPage(SliderPage):
             raise ValueError('All stimulus IDs you specify in `sound_locations` need to be defined in `media` too.')
 
         # Check if all audio files are also really playable
-        ticks, step_size, diff = self._get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
-        if not all([location in ticks for _, location in sound_locations.items()]):
-            raise ValueError('The slider does not contain all locations for the audio')
+        # ticks, step_size, diff = self._get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
+        # if not all([location in ticks for _, location in sound_locations.items()]):
+        #     raise ValueError('The slider does not contain all locations for the audio')
 
         if not 'js_vars' in kwargs:
             kwargs['js_vars'] = {}

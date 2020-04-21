@@ -10,7 +10,9 @@ import dallinger.models
 import dallinger.nodes
 import dallinger.networks
 
+from ..page import wait_while
 from ..field import claim_field, claim_var, VarStore
+from ..utils import negate
 from .main import Trial, TrialNetwork, NetworkTrialMaker
 
 # pylint: disable=unused-import
@@ -26,103 +28,103 @@ class ChainNetwork(TrialNetwork):
     Intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
     Typically the user won't have to override anything here,
     but they can optionally override :meth:`~psynet.trial.chain.ChainNetwork.validate`.
-    
+
     Parameters
     ----------
-    
+
     trial_type
         A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class, 
+        typically just the name of the relevant class,
         e.g. ``"MelodyTrial"``.
         The same experiment should not contain multiple TrialMaker objects
         with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the 
+        phases of the experiment and are marked as such with the
         ``phase`` parameter.
-    
+
     source_class
         The class object for network sources. A source is the 'seed' for a network,
         providing some data which is somehow propagated to other nodes.
-    
+
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-    
+
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
-        
+
     chain_type
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
-        
+
     trials_per_node
         Number of satisfactory trials to be received by the last node
         in the chain before another chain will be added.
-        Most paradigms have this equal to 1. 
-        
-    target_num_nodes 
+        Most paradigms have this equal to 1.
+
+    target_num_nodes
         Indicates the target number of nodes for that network.
-  
+
     participant
         Optional participant with which to associate the network.
-         
+
     id_within_participant
         If ``participant is not None``, then this provides an optional ID for the network
         that is unique within a given participant.
-        
+
     Attributes
     ----------
-    
+
     trial_type : str
         A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class, 
+        typically just the name of the relevant class,
         e.g. ``"MelodyTrial"``.
         The same experiment should not contain multiple TrialMaker objects
         with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the 
+        phases of the experiment and are marked as such with the
         ``phase`` parameter.
-        
+
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
-        
+
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
-        
+
     awaiting_process : bool
         Whether the network is currently waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
-        
+
     num_nodes : int
-        Returns the number of non-failed nodes in the network.       
-    
+        Returns the number of non-failed nodes in the network.
+
     num_completed_trials : int
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes).
-        
+
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
-        
+
     participant_id : int
         The ID of the associated participant, or ``None`` if there is no such participant.
         Set by default in the ``__init__`` function.
-        
+
     id_within_participant
         If ``participant is not None``, then this provides an optional ID for the network
         that is unique within a given participant.
         Set by default in the ``__init__`` function.
-        
+
     chain_type
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
         Set by default in the ``__init__`` function.
-        
+
     trials_per_node
         Number of satisfactory trials to be received by the last node
         in the chain before another chain will be added.
-        Most paradigms have this equal to 1. 
+        Most paradigms have this equal to 1.
         Set by default in the ``__init__`` function.
     """
     # pylint: disable=abstract-method
@@ -138,15 +140,15 @@ class ChainNetwork(TrialNetwork):
     # Note - the <details> slot is occupied by VarStore.
 
     def __init__(
-        self, 
-        trial_type: str, 
-        source_class, 
-        phase: str, 
-        experiment, 
-        chain_type: str, 
-        trials_per_node: int, 
+        self,
+        trial_type: str,
+        source_class,
+        phase: str,
+        experiment,
+        chain_type: str,
+        trials_per_node: int,
         target_num_nodes: int,
-        participant=None, 
+        participant=None,
         id_within_participant: Optional[int]=None
     ):
         super().__init__(trial_type, phase, experiment)
@@ -163,48 +165,48 @@ class ChainNetwork(TrialNetwork):
         self.add_source(source_class, experiment, participant)
         self.target_num_trials = target_num_nodes * trials_per_node
         self.definition = self.make_definition()
-        
+
         self.validate()
-        
+
         experiment.save()
-        
+
     def validate(self):
         """
-        Runs at the end of the constructor function to check that the 
-        network object has a legal structure. This can be useful for 
+        Runs at the end of the constructor function to check that the
+        network object has a legal structure. This can be useful for
         checking that the user hasn't passed illegal argument values.
         """
         pass
 
     def make_definition(self):
         """
-        Derives the definition for the network. 
+        Derives the definition for the network.
         This definition represents some collection of attributes
         that is shared by all nodes/trials in a network,
         but that may differ between networks.
-        
+
         Suppose one wishes to have multiple networks in the experiment,
         each characterised by a different value of an attribute
         (e.g. a different colour).
         One approach would be to sample randomly; however, this would not
-        guarantee an even distribution of attribute values. 
-        In this case, a better approach is to use the 
+        guarantee an even distribution of attribute values.
+        In this case, a better approach is to use the
         :meth:`psynet.trial.chain.ChainNetwork.balance_across_networks`
         method, as follows:
-        
+
         ::
-        
+
             colours = ["red", "green", "blue"]
             return {
                 "colour": self.balance_across_networks(colours)
             }
-        
+
         See :meth:`psynet.trial.chain.ChainNetwork.balance_across_networks`
         for details on how this balancing works.
-    
+
         Returns
         -------
-        
+
         object
             By default this returns an empty dictionary,
             but this can be customised by subclasses.
@@ -217,51 +219,51 @@ class ChainNetwork(TrialNetwork):
         Chooses a value from a list, with choices being balanced across networks.
         Relies on the fact that network IDs are guaranteed to be consecutive.
         sequences of integers.
-        
+
         Suppose we wish to assign our networks to colours,
         and we want to balance colour assignment across networks.
         We might write the following:
-        
+
         ::
-        
+
             colours = ["red", "green", "blue"]
             chosen_colour = self.balance_across_networks(colours)
-        
-        In across-participant chain designs, 
+
+        In across-participant chain designs,
         :meth:`~psynet.trial.chain.ChainNetwork.balance_across_networks`
         will ensure that the distribution of colours is maximally uniform across
-        the experiment by assigning 
+        the experiment by assigning
         the first network to red, the second network to green, the third to blue,
-        then the fourth to red, the fifth to green, the sixth to blue, 
-        and so on. This is achieved by referring to the network's 
+        then the fourth to red, the fifth to green, the sixth to blue,
+        and so on. This is achieved by referring to the network's
         :attr:`~psynet.trial.chain.ChainNetwork.id`
         attribute.
-        In within-participant chain designs, 
-        the same method is used but within participants, 
+        In within-participant chain designs,
+        the same method is used but within participants,
         so that each participant's first network is assigned to red,
         their second network to green,
         their third to blue,
         then their fourth, fifth, and sixth to red, green, and blue respectively.
-        
+
         Parameters
         ----------
-        
+
         values
             The list of values from which to choose.
-            
+
         Returns
         -------
-        
+
         Object
             An object from the provided list.
         """
         if self.chain_type == "across":
             id_to_use  = self.id
         elif self.chain_type == "within":
-            id_to_use = self.participant_id        
+            id_to_use = self.id_within_participant
         else:
             raise RuntimeError(f"Unexpected chain_type: {self.chain_type}")
-        
+
         return values[id_to_use % len(values)]
 
     @property
@@ -297,7 +299,7 @@ class ChainNetwork(TrialNetwork):
     def head(self):
         if self.num_nodes == 0:
             return self.source
-        else: 
+        else:
             degree = self.degree
             return self.get_node_with_degree(degree)
 
@@ -331,125 +333,125 @@ class ChainNode(dallinger.models.Node):
     Represents a node in a chain network.
     In an experimental context, the node represents a state in the experiment;
     in particular, the last node in the chain represents a current state
-    in the experiment. 
-    
+    in the experiment.
+
     This class is intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
     It subclasses :class:`dallinger.models.Node`.
-    
+
     The most important attribute is :attr:`~psynet.trial.chain.ChainNode.definition`.
     This is the core information that represents the current state of the node.
     In a transmission chain of drawings, this might be an (encoded) drawing;
     in a Markov Chain Monte Carlo with People paradigm, this might be the current state
-    from the proposal is sampled. 
-    
+    from the proposal is sampled.
+
     The user is required to override the following abstract methods:
-    
+
     * :meth:`~psynet.trial.chain.ChainNode.create_definition_from_seed`,
       which creates a node definition from the seed passed from the previous
       source or node in the chain;
-    
+
     * :meth:`~psynet.trial.chain.ChainNode.summarise_trials`,
-      which summarises the trials at a given node to produce a seed that can 
-      be passed to the next node in the chain.    
-    
+      which summarises the trials at a given node to produce a seed that can
+      be passed to the next node in the chain.
+
     Parameters
     ----------
-    
+
     seed
         The seed which is used to initialise the node, potentially stochastically.
         This seed typically comes from either a :class:`~psynet.trial.chain.ChainSource`
         or from another :class:`~psynet.trial.chain.ChainNode`
         via the :meth:`~psynet.trial.chain.ChainNode.create_seed` method.
-        For example, in a transmission chain of drawings, the seed might be 
+        For example, in a transmission chain of drawings, the seed might be
         a serialised version of the last drawn image.
-    
+
     degree
         The position of the node in the chain,
         where 0 indicates the source,
         where 1 indicates the first node,
         2 the second node, and so on.
-    
+
     network
         The network with which the node is to be associated.
-    
+
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
-    
+
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
-        
+
     participant
         Optional participant with which to associate the node.
-    
+
     Attributes
     ----------
-    
+
     degree
         See the ``__init__`` function.
-    
+
     child_id
         See the ``__init__`` function.
-    
+
     seed
         See the ``__init__`` function.
-    
+
     definition
         This is the core information that represents the current state of the node.
         In a transmission chain of drawings, this might be an (encoded) drawing;
         in a Markov Chain Monte Carlo with People paradigm, this might be the current state
-        from the proposal is sampled. 
+        from the proposal is sampled.
         It is set by the :meth:`~psynet.trial.chain.ChainNode:create_definition_from_seed` method.
-    
+
     propagate_failure
         See the ``__init__`` function.
-    
+
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
-    
+
     source
         The source of the chain, if one exists.
         Should be an object of class :class:`~psynet.trial.chain.ChainSource`.
-    
+
     child
-        The node's child (i.e. direct descendant) in the chain, or 
+        The node's child (i.e. direct descendant) in the chain, or
         ``None`` if no child exists.
-    
+
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
-    
+
     target_num_trials
-        The target number of trials for the node, 
+        The target number of trials for the node,
         set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
-    
-    ready_to_spawn 
+
+    ready_to_spawn
         Returns ``True`` if the node is ready to spawn a child.
         Not intended for overriding.
-    
+
     complete_and_processed_trials
         Returns all completed trials associated with the node,
         excluding those that are awaiting some asynchronous processing.
         excludes failed nodes.
-    
+
     completed_trials
         Returns all completed trials associated with the node.
         Excludes failed nodes.
-    
+
     num_completed_trials
         Counts the number of completed trials associated with the node.
         Excludes failed nodes.
-    
+
     num_viable_trials
         Returns all viable trials associated with the node,
         i.e. all trials that have not failed.
     """
-    
-    
-    
+
+
+
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
 
     def __init__(self, seed, degree: int, network, experiment, propagate_failure: bool, participant=None):
@@ -470,23 +472,23 @@ class ChainNode(dallinger.models.Node):
         will be trivially equal to the seed,
         but in some cases we may introduce some kind of stochastic alteration
         to produce the definition.
-        
+
         Parameters
         ----------
-        
+
         seed : object
             The seed, passed from the previous state in the chain.
-            
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-            
+
         participant
             The participant who initiated the creation of the node.
-            
+
         Returns
         -------
-        
+
         object
             The derived definition. Should be suitable for serialisation to JSON.
         """
@@ -494,28 +496,28 @@ class ChainNode(dallinger.models.Node):
 
     def summarise_trials(self, trials: list, experiment, participant):
         """
-        Summarises the trials at the node to produce a seed that can 
+        Summarises the trials at the node to produce a seed that can
         be passed to the next node in the chain.
-        
+
         Parameters
         ----------
-        
+
         trials
             Trials to be summarised. By default only trials that are completed
-            (i.e. have received a response) and processed 
+            (i.e. have received a response) and processed
             (i.e. aren't waiting for an asynchronous process)
             are provided here.
-            
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-            
+
         participant
             The participant who initiated the creation of the node.
-            
+
         Returns
         -------
-        
+
         object
             The derived seed. Should be suitable for serialisation to JSON.
         """
@@ -528,7 +530,7 @@ class ChainNode(dallinger.models.Node):
     degree = claim_field(1, int)
     child_id = claim_field(2, int)
     seed = claim_field(3)
-    definition = claim_field(4)    
+    definition = claim_field(4)
 
     propagate_failure = claim_var("propagate_failure")
 
@@ -551,15 +553,15 @@ class ChainNode(dallinger.models.Node):
     def child(self, child):
         self.child_id = child.id
 
-    @property 
+    @property
     def phase(self):
         return self.network.phase
 
-    @property 
+    @property
     def target_num_trials(self):
         return self.network.trials_per_node
 
-    @property 
+    @property
     def ready_to_spawn(self):
         return self.completed_and_processed_trials.count() >= self.target_num_trials
 
@@ -569,13 +571,13 @@ class ChainNode(dallinger.models.Node):
             origin_id=self.id, failed=False, complete=True, awaiting_process=False
         )
 
-    @property 
+    @property
     def _query_completed_trials(self):
         return Trial.query.filter_by(
             origin_id=self.id, failed=False, complete=True
         )
 
-    @property 
+    @property
     def completed_trials(self):
         return self._query_completed_trials.all()
 
@@ -590,8 +592,8 @@ class ChainNode(dallinger.models.Node):
     def fail(self):
         """
         Marks the node as failed. Unlike the core Dallinger implementation,
-        this implementation of the fail method does not raise an exception 
-        if the node is failed already. 
+        this implementation of the fail method does not raise an exception
+        if the node is failed already.
         If ``self.propagate_failure``, then the node's failure is propagated to its children.
         """
         if not self.failed:
@@ -608,42 +610,42 @@ class ChainSource(dallinger.nodes.Source):
     """
     Represents a source in a chain network.
     The source provides the seed from which the rest of the chain is ultimately derived.
-    
+
     This class is intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
     It subclasses :class:`dallinger.nodes.Source`.
-    
+
     The most important attribute is :attr:`~psynet.trial.chain.ChainSource.definition`.
     This is the core information that represents the current state of the node.
-    In a transmission chain of drawings, this might be the initial drawing 
+    In a transmission chain of drawings, this might be the initial drawing
     that begins the transmission chain.
-    
+
     The user is required to override the following abstract method:
-    
+
     * :meth:`~psynet.trial.chain.ChainSource.generate_seed`,
       which generates a seed for the :class:`~psynet.trial.chain.ChainSource`
       which will then be stored in the :attr:`~psynet.trial.chain.ChainSource.seed` attribute.
-    
+
     Parameters
     ----------
 
     network
         The network with which the node is to be associated.
-    
+
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
-        
+
     participant
         Optional participant with which to associate the node.
-    
+
     Attributes
     ----------
-    
+
     degree
         The degree of a :class:`~psynet.trial.chain.ChainSource` object is always 0.
-    
+
     seed
-        The seed that is passed to the next node in the chain. 
+        The seed that is passed to the next node in the chain.
         Created by :meth:`~psynet.trial.chain.ChainSource.generate_seed`.
 
     var : :class:`~psynet.field.VarStore`
@@ -653,8 +655,8 @@ class ChainSource(dallinger.nodes.Source):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set from :attr:`psynet.trial.chain.ChainNetwork.phase`.
-    
-    ready_to_spawn 
+
+    ready_to_spawn
         Always returns ``True`` for :class:`~psynet.trial.chain.ChainSource` objects.
     """
     # pylint: disable=abstract-method
@@ -664,8 +666,8 @@ class ChainSource(dallinger.nodes.Source):
     seed = claim_field(1)
 
     degree = 0
-    
-    @property 
+
+    @property
     def phase(self):
         return self.network.phase
 
@@ -685,32 +687,32 @@ class ChainSource(dallinger.nodes.Source):
         """
         Generates a seed for the :class:`~psynet.trial.chain.ChainSource` and
         correspondingly for the :class:`~psynet.trial.chain.ChainNetwork`.
-        
+
         Parameters
         ----------
-        
+
         network
             The network to which the :class:`~psynet.trial.chain.ChainSource` belongs.
-        
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-        
+
         participant
             The associated participant, if relevant.
-        
+
         Returns
         -------
-        
+
         object
             The generated seed. It must be suitable for serialisation to JSON.
         """
         raise NotImplementedError
-        
+
 
 class ChainTrial(Trial):
     """
-    Represents a trial in a :class:`~psynet.trial.chain.ChainNetwork`. 
+    Represents a trial in a :class:`~psynet.trial.chain.ChainNetwork`.
     The user is expected to override the following methods:
 
     * :meth:`~psynet.trial.chain.ChainTrial.make_definition`,
@@ -733,15 +735,15 @@ class ChainTrial(Trial):
 
         ChainTrial.query.filter_by(id=1).one()
 
-    Parameters 
+    Parameters
     ----------
-    
+
     experiment:
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
-        
+
     node:
-        An object of class :class:`dallinger.models.Node` to which the 
+        An object of class :class:`dallinger.models.Node` to which the
         :class:`~dallinger.models.Trial` object should be attached.
         Complex experiments are often organised around networks of nodes,
         but in the simplest case one could just make one :class:`~dallinger.models.Network`
@@ -755,24 +757,24 @@ class ChainTrial(Trial):
     participant:
         An instantiation of :class:`psynet.participant.Participant`,
         corresponding to the current participant.
-        
+
     propagate_failure : bool
-        Whether failure of a trial should be propagated to other 
+        Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
-    
+
     Attributes
     ----------
-    
+
     node
         The class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
-        
+
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
         Stored in ``property1`` in the database.
-       
+
     complete : bool
         Whether the trial has been completed (i.e. received a response
         from the participant). The user should not typically change this directly.
@@ -789,19 +791,19 @@ class ChainTrial(Trial):
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
-          
+
     source
-        The :class:`~psynet.trial.chain.ChainSource of the 
+        The :class:`~psynet.trial.chain.ChainSource of the
         :class:`~psynet.trial.chain.ChainNetwork`
         to which the :class:`~psynet.trial.chain.ChainTrial` belongs.
-        
+
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Pulled from the :attr:`~psynet.trial.chain.ChainTrial.node` attribute.
 
     propagate_failure : bool
-        Whether failure of a trial should be propagated to other 
+        Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
 
@@ -813,11 +815,11 @@ class ChainTrial(Trial):
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
     definition : Object
-        An arbitrary Python object that somehow defines the content of 
-        a trial. Often this will be a dictionary comprising a few 
+        An arbitrary Python object that somehow defines the content of
+        a trial. Often this will be a dictionary comprising a few
         named parameters.
         The user should not typically change this directly,
-        as it is instead determined by 
+        as it is instead determined by
         :meth:`~psynet.trial.main.Trial.make_definition`.
 
     """
@@ -832,9 +834,9 @@ class ChainTrial(Trial):
     def source(self):
         return self.node.source
 
-    @property 
+    @property
     def phase(self):
-        return self.node.phase  
+        return self.node.phase
 
     def fail(self):
         """
@@ -845,11 +847,11 @@ class ChainTrial(Trial):
 
         The original fail function from the
         :class:`~dallinger.models.Info` class
-        throws an error if the object is already failed, 
+        throws an error if the object is already failed,
         but this behaviour is disabled here.
-        
+
         If :attr:`~psynet.trial.chain.ChainTrial.propagate_failure`
-        is ``True``, then this method will also call 
+        is ``True``, then this method will also call
         :meth:`~psynet.trial.chain.ChainTrial.fail_descendants`.
         """
         if not self.failed:
@@ -860,7 +862,7 @@ class ChainTrial(Trial):
 
     def fail_descendants(self):
         """
-        Fails the descendants of a trial. 
+        Fails the descendants of a trial.
         The current node doesn't need to be failed, because it was created
         before the present trial was created.
         Instead, we fail the child node of the current node, if one exists.
@@ -873,59 +875,59 @@ class ChainTrial(Trial):
 class ChainTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a chain-based paradigm.
-    This trial maker is suitable for implementing paradigms such as 
+    This trial maker is suitable for implementing paradigms such as
     Markov Chain Monte Carlo with People, iterated reproduction, and so on.
     It is intended for use with the following helper classes,
     which should be customised for the particular paradigm:
-    
+
     * :class:`~psynet.trial.chain.ChainNetwork`;
-      a special type of :class:`~psynet.trial.main.TrialNetwork` 
+      a special type of :class:`~psynet.trial.main.TrialNetwork`
 
     * :class:`~psynet.trial.chain.ChainNode`;
-      a special type of :class:`~dallinger.models.Node` 
+      a special type of :class:`~dallinger.models.Node`
 
     * :class:`~psynet.trial.chain.ChainTrial`;
-      a special type of :class:`~psynet.trial.main.NetworkTrial` 
- 
+      a special type of :class:`~psynet.trial.main.NetworkTrial`
+
     * :class:`~psynet.trial.chain.ChainSource`;
       a special type of :class:`~dallinger.nodes.Source`, corresponding
       to the initial state of the network.
-      
+
     A chain is initialised with a :class:`~psynet.trial.chain.ChainSource` object.
     This :class:`~psynet.trial.chain.ChainSource` object provides
-    the initial seed to the chain. 
-    The :class:`~psynet.trial.chain.ChainSource` object is followed 
+    the initial seed to the chain.
+    The :class:`~psynet.trial.chain.ChainSource` object is followed
     by a series of :class:`~psynet.trial.chain.ChainNode` objects
     which are generated through the course of the experiment.
-    The last :class:`~psynet.trial.chain.ChainNode` in the chain 
+    The last :class:`~psynet.trial.chain.ChainNode` in the chain
     represents the current state of the chain, and it determines the
     properties of the next trials to be drawn from that chain.
-    A new :class:`~psynet.trial.chain.ChainNode` object is generated once 
+    A new :class:`~psynet.trial.chain.ChainNode` object is generated once
     sufficient :class:`~psynet.trial.chain.ChainTrial` objects
     have been created for that :class:`~psynet.trial.chain.ChainNode`.
     There can be multiple chains in an experiment, with these chains
     either being owned by individual participants ("within-participant" designs)
-    or shared across participants ("across-participant" designs).    
-    
+    or shared across participants ("across-participant" designs).
+
     The user will typically not have to override any methods or attributes in this class,
-    but will instead customise it through parameters passed to the 
+    but will instead customise it through parameters passed to the
     ``__init__`` function.
-    
-    Parameters 
+
+    Parameters
     ----------
 
     network_class
         The class object for the networks used by this maker.
         This should subclass :class:`~psynet.trial.chain.ChainNetwork`.
-        
+
     node_class
         The class object for the networks used by this maker.
         This should subclass :class:`~psynet.trial.chain.ChainNode`.
-        
+
     source_class
         The class object for sources
         (should subclass :class:`~psynet.trial.chain.ChainSource`).
-        
+
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.chain.ChainTrial`).
@@ -933,61 +935,61 @@ class ChainTrialMaker(NetworkTrialMaker):
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-    
+
     time_estimate_per_trial
         Time estimated for each trial (seconds).
 
     chain_type
         Either ``"within"`` for within-participant chains,
         or ``"across"`` for across-participant chains.
-        
+
     num_trials_per_participant
         Maximum number of trials that each participant may complete;
         once this number is reached, the participant will move on
         to the next stage in the timeline.
-    
+
     num_chains_per_participant
         Number of chains to be created for each participant;
         only relevant if ``chain_type="within"``.
-    
+
     num_chains_per_experiment
         Number of chains to be created for the entire experiment;
         only relevant if ``chain_type="across"``.
-    
+
     num_nodes_per_chain
         Maximum number of nodes in the chain before the chain is marked as
         full and no more nodes will be added.
-    
+
     trials_per_node
         Number of satisfactory trials to be received by the last node
         in the chain before another chain will be added.
-        Most paradigms have this equal to 1.    
-    
+        Most paradigms have this equal to 1.
+
     active_balancing_across_chains
         Whether trial selection should be actively balanced across chains,
-        such that trials are preferentially sourced from chains with 
+        such that trials are preferentially sourced from chains with
         fewer valid trials.
 
     check_performance_at_end
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated at the end of the series of trials.
-        
+
     check_performance_every_trial
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated after each trial.
-        
+
     recruit_mode
-        Selects a recruitment criterion for determining whether to recruit 
+        Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of 
+        and ``"num_trials"``, though the latter requires overriding of
         :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
-        
+
     target_num_participants
-        Target number of participants to recruit for the experiment. All 
+        Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
-        towards this quota. This target is only relevant if 
+        towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
-        
+
     async_post_trial
         Optional function to be run after a trial is completed by the participant.
         This should be specified as a fully qualified string, for example
@@ -1001,7 +1003,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         (``db`` can be imported using ``from dallinger import db``).
         See the source code for ``psynet.trial.async_example.async_update_trial``
         for an example.
-        
+
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
         :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
@@ -1015,7 +1017,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         using ``db.session.commit()`` (``db`` can be imported using ``from dallinger import db``).
         See the source code for ``psynet.trial.async_example.async_update_trial``
         for a relevant example (for processing trials, not networks).
-        
+
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
         if they leave the experiment prematurely.
@@ -1024,24 +1026,24 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.    
+        if the participant fails a performance check.
         Defaults to ``False`` because failing such trials can end up destroying
         large parts of existing chains.
-        
+
     propagate_failure
         If ``True``, the failure of a trial is propagated to other
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
-        
-    
+
+
     """
     def __init__(
-        self,  
+        self,
         *,
         network_class,
         node_class,
         source_class,
-        trial_class, 
+        trial_class,
         phase: str,
         time_estimate_per_trial: Union[int, float],
         chain_type: str,
@@ -1050,7 +1052,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         num_chains_per_experiment: Optional[int],
         num_nodes_per_chain: int,
         trials_per_node: int,
-        active_balancing_across_chains: bool, 
+        active_balancing_across_chains: bool,
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         recruit_mode: str,
@@ -1068,7 +1070,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 "In across-chain experiments, <num_trials_per_participant> "
                 "cannot exceed <num_chains_per_experiment>."
             )
-        
+
         if chain_type == "within" and recruit_mode == "num_trials":
             raise ValueError(
                 "In within-chain experiments the 'num_trials' recruit method is not available."
@@ -1092,10 +1094,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.propagate_failure = propagate_failure
 
         super().__init__(
-            trial_class, 
+            trial_class,
             network_class=network_class,
             phase=phase,
-            time_estimate_per_trial=time_estimate_per_trial, 
+            time_estimate_per_trial=time_estimate_per_trial,
             expected_num_trials=num_trials_per_participant,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
@@ -1107,12 +1109,34 @@ class ChainTrialMaker(NetworkTrialMaker):
             async_post_trial=async_post_trial,
             async_post_grow_network=async_post_grow_network
         )
-    
+
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
         self.init_participated_networks(participant)
         if self.chain_type == "within":
             self.create_networks_within(experiment, participant)
+
+    @property
+    def introduction(self):
+        if self.chain_type == "within":
+            return wait_while(
+                negate(self.all_participant_networks_ready),
+                expected_wait=5.0
+            )
+        return None
+
+    def all_participant_networks_ready(self, participant):
+        networks = (
+            self.network_class
+                .query
+                .filter_by(
+                    participant_id=participant.id,
+                    phase=self.phase,
+                    trial_type=self.trial_type
+                )
+                .all()
+        )
+        return all([not x.awaiting_process for x in networks])
 
     @property
     def num_trials_still_required(self):
@@ -1131,7 +1155,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     # def fail_node(self, node):
     #     if not node.failed:
     #         node.fail()
-           
+
     #### Participated networks
     def init_participated_networks(self, participant):
         participant.var.set(self.with_namespace("participated_networks"), [])
@@ -1191,7 +1215,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         networks = networks.all()
 
-        if self.active_balancing_across_chains:    
+        if self.active_balancing_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
         else:
             random.shuffle(networks)
@@ -1206,7 +1230,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         return networks.filter(
             not_(self.network_class.id.in_(self.get_participated_networks(participant)))
         )
-    
+
     def grow_network(self, network, participant, experiment):
         assert network.chain_type in ["across", "within"]
         if network.chain_type == "across":
@@ -1220,7 +1244,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             return True
         return False
 
-    def find_node(self, network, participant, experiment): 
+    def find_node(self, network, participant, experiment):
         head = network.head
         if head.num_viable_trials >= self.trials_per_node:
             return None

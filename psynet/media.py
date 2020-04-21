@@ -1,6 +1,7 @@
 import os
 import struct
 import boto3
+import botocore.errorfactory
 
 from dallinger.config import get_config
 
@@ -11,15 +12,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 def make_batch_file(in_files, output_path):
-    with open(output_path, "w") as output:
+    with open(output_path, "wb") as output:
         for in_file in in_files:
             b = os.path.getsize(in_file)
             output.write(struct.pack('I', b))
-            with open(in_file, 'r') as i:
+            with open(in_file, 'rb') as i:
                 output.write(i.read())
 
 def get_aws_credentials():
     config = get_config()
+    if not config.ready:
+        config.load()
     return {
         "aws_access_key_id": config.get("aws_access_key_id"),
         "aws_secret_access_key": config.get("aws_secret_access_key"),
@@ -61,11 +64,26 @@ def empty_s3_bucket(bucket_name: str):
     )
 
 @log_time_taken
-def upload_to_s3(local_path: str, bucket_name: str, key: str):
+def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool):
     logger.info("Uploading %s to bucket %s with key %s...", local_path, bucket_name, key)
-    client = new_s3_client()
-    client.upload_file(local_path, bucket_name, key)
+
+    # client = new_s3_client()
+    # client.upload_file(local_path, bucket_name, key)
+
+    args = {}
+    if public_read:
+        args["ACL"] = "public-read"
+
+    bucket = get_s3_bucket(bucket_name)
+    bucket.upload_file(local_path, key, ExtraArgs=args)
+
     return {
         "key": key,
         "url": f"https://{bucket_name}.s3.amazonaws.com/{key}"
     }
+
+def create_bucket(bucket_name: str, client=None):
+    logger.info("Creating bucket '%s'.", bucket_name)
+    if client is None:
+        client = new_s3_client()
+    client.create_bucket(bucket_name)

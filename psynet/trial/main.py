@@ -47,7 +47,7 @@ import rpdb
 
 class Trial(Info):
     """
-    Represents a trial in the experiment. 
+    Represents a trial in the experiment.
     The user is expected to override the following methods:
 
     * :meth:`~psynet.trial.main.Trial.make_definition`,
@@ -69,15 +69,15 @@ class Trial(Info):
 
         Trial.query.filter_by(id=1).one()
 
-    Parameters 
+    Parameters
     ----------
-    
+
     experiment:
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
-        
+
     node:
-        An object of class :class:`dallinger.models.Node` to which the 
+        An object of class :class:`dallinger.models.Node` to which the
         :class:`~dallinger.models.Trial` object should be attached.
         Complex experiments are often organised around networks of nodes,
         but in the simplest case one could just make one :class:`~dallinger.models.Network`
@@ -91,12 +91,12 @@ class Trial(Info):
     participant:
         An instantiation of :class:`psynet.participant.Participant`,
         corresponding to the current participant.
-        
+
     propagate_failure : bool
-        Whether failure of a trial should be propagated to other 
+        Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
-    
+
     Attributes
     ----------
 
@@ -104,7 +104,7 @@ class Trial(Info):
         The ID of the associated participant.
         The user should not typically change this directly.
         Stored in ``property1`` in the database.
-        
+
     node
         The :class:`dallinger.models.Node` to which the :class:`~dallinger.models.Trial`
         belongs.
@@ -127,7 +127,7 @@ class Trial(Info):
         Stored in ``property4`` in the database.
 
     propagate_failure : bool
-        Whether failure of a trial should be propagated to other 
+        Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
 
@@ -139,11 +139,11 @@ class Trial(Info):
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
     definition : Object
-        An arbitrary Python object that somehow defines the content of 
-        a trial. Often this will be a dictionary comprising a few 
+        An arbitrary Python object that somehow defines the content of
+        a trial. Often this will be a dictionary comprising a few
         named parameters.
         The user should not typically change this directly,
-        as it is instead determined by 
+        as it is instead determined by
         :meth:`~psynet.trial.main.Trial.make_definition`.
 
     """
@@ -189,14 +189,14 @@ class Trial(Info):
 
         The original fail function from the
         :class:`~dallinger.models.Info` class
-        throws an error if the object is already failed, 
+        throws an error if the object is already failed,
         but this behaviour is disabled here.
         """
 
         if not self.failed:
             self.failed = True
             self.time_of_death = datetime.datetime.now()
-    
+
     #################
 
     def __init__(self, experiment, node, participant, propagate_failure):
@@ -209,12 +209,12 @@ class Trial(Info):
 
     def make_definition(self, experiment, participant):
         """
-        Creates and returns a definition for the trial, 
+        Creates and returns a definition for the trial,
         which will be later stored in the ``definition`` attribute.
-        This can be an arbitrary object as long as it 
+        This can be an arbitrary object as long as it
         is serialisable to JSON.
 
-        Parameters 
+        Parameters
         ----------
 
         experiment:
@@ -230,13 +230,13 @@ class Trial(Info):
     def show_trial(self, experiment, participant):
         """
         Returns a :class:`~psynet.timeline.Page` object,
-        or alternatively a list of such objects, 
+        or alternatively a list of such objects,
         that solicits an answer from the participant.
         If this method returns a list, then this list must have
         a length equal to the :attr:`~psynet.trial.main.Trial.num_pages`
         attribute.
 
-        Parameters 
+        Parameters
         ----------
 
         experiment:
@@ -254,7 +254,7 @@ class Trial(Info):
         Returns a Page object displaying feedback
         (or None, which means no feedback).
 
-        Parameters 
+        Parameters
         ----------
 
         experiment:
@@ -282,33 +282,33 @@ class TrialMaker(Module):
 
     Users are invited to override the following abstract methods/attributes:
 
-    * :meth:`~psynet.trial.main.TrialMaker.prepare_trial`, 
+    * :meth:`~psynet.trial.main.TrialMaker.prepare_trial`,
       which prepares the next trial to administer to the participant.
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.experiment_setup_routine`
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.init_participant`
-      (optional), a function that is run when the participant begins 
+      (optional), a function that is run when the participant begins
       this sequence of trials, intended to initialise the participant's state.
       Make sure you call ``super().init_participant`` when overriding this.
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.finalise_trial`
-      (optional), which finalises the trial after the participant 
+      (optional), which finalises the trial after the participant
       has given their response.
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`
       (optional), run once the the sequence of trials is complete.
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.performance_check`
-      (optional), which checks the performance of the participant 
+      (optional), which checks the performance of the participant
       with a view to rejecting poor-performing participants.
-    
+
     * :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`
-      (optional), which is used to estimate how many more participants are 
+      (optional), which is used to estimate how many more participants are
       still required in the case that ``recruit_mode="num_trials"``.
-    
+
     Users are also invited to add new recruitment criteria for selection with
     the ``recruit_mode`` argument. This may be achieved using a custom subclass
     of :class:`~psynet.trial.main.TrialMaker` as follows:
@@ -318,10 +318,10 @@ class TrialMaker(Module):
         class CustomTrialMaker(TrialMaker):
             def new_recruit(self, experiment):
                 if experiment.my_condition:
-                    return True # True means recruit more 
+                    return True # True means recruit more
                 else:
                     return False # False means don't recruit any more (for now)
-            
+
             recruit_criteria = {
                 **TrialMaker.recruit_criteria,
                 "new_recruit": new_recruit
@@ -332,7 +332,7 @@ class TrialMaker(Module):
     then just replace that subclass wherever :class:`~psynet.trial.main.TrialMaker`
     occurs in the above code.
 
-    Parameters 
+    Parameters
     ----------
 
     trial_class
@@ -341,7 +341,7 @@ class TrialMaker(Module):
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-    
+
     time_estimate_per_trial
         Time estimated for each trial (seconds).
 
@@ -350,13 +350,13 @@ class TrialMaker(Module):
         (used for progress estimation).
 
     check_performance_at_end
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated at the end of the series of trials.
-        
+
     check_performance_every_trial
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated after each trial.
-        
+
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
         if they leave the experiment prematurely.
@@ -371,15 +371,15 @@ class TrialMaker(Module):
         to the implementation).
 
     recruit_mode
-        Selects a recruitment criterion for determining whether to recruit 
+        Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of 
+        and ``"num_trials"``, though the latter requires overriding of
         :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
     target_num_participants
-        Target number of participants to recruit for the experiment. All 
+        Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
-        towards this quota. This target is only relevant if 
+        towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
     Attributes
@@ -390,18 +390,21 @@ class TrialMaker(Module):
         Users are invited to override this.
 
     trial_timeout_sec : float
-        How long until a trial times out, in seconds (default = 60). 
+        How long until a trial times out, in seconds (default = 60).
         Tthis is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
         which in turn depends on :attr:`~psynet.trial.main.TrialMaker.trial_timeout_sec`.
         Users are invited to override this.
+
+    introduction
+        An optional event or list of events to execute prior to beginning the trial loop.
     """
 
     def __init__(
         self,
-        trial_class, 
-        phase: str, 
-        time_estimate_per_trial: Union[int, float], 
+        trial_class,
+        phase: str,
+        time_estimate_per_trial: Union[int, float],
         expected_num_trials: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
@@ -436,6 +439,7 @@ class TrialMaker(Module):
             RecruitmentCriterion(self.with_namespace(), self.selected_recruit_criterion),
             self.fail_old_trials_task,
             CodeBlock(self.init_participant),
+            self.introduction,
             self._trial_loop(),
             CodeBlock(self.on_complete),
             self._check_performance_logic() if check_performance_at_end else None
@@ -443,6 +447,8 @@ class TrialMaker(Module):
         super().__init__(label=self.with_namespace(), events=events)
 
     participant_progress_threshold = 0.1
+
+    introduction = None
 
     @property
     def num_complete_participants(self):
@@ -454,7 +460,7 @@ class TrialMaker(Module):
 
     @property
     def num_viable_participants(self):
-        return 
+        return
 
     # def recruitment_criterion(self, experiment):
     #     """Should return True if more participants are required."""
@@ -488,10 +494,10 @@ class TrialMaker(Module):
     def experiment_setup_routine(self, experiment):
         """
         Defines a routine for setting up the experiment.
-        Note that this routine is (currently) called every time the Experiment 
-        class is initialised, so it should be idempotent (calling it 
+        Note that this routine is (currently) called every time the Experiment
+        class is initialised, so it should be idempotent (calling it
         multiple times should have no effect) and be efficient
-        (so that it doesn't incur a repeated costly overhead). 
+        (so that it doesn't incur a repeated costly overhead).
 
         Parameters
         ----------
@@ -511,7 +517,7 @@ class TrialMaker(Module):
             self.fail_trials_on_participant_performance_check and
             "performance_check" in participant.failure_tags
         ) or (
-            self.fail_trials_on_premature_exit and 
+            self.fail_trials_on_premature_exit and
             "premature_exit" in participant.failure_tags
         ):
             self.fail_participant_trials(participant)
@@ -519,8 +525,8 @@ class TrialMaker(Module):
     @property
     def fail_old_trials_task(self):
         return BackgroundTask(
-            self.with_namespace("fail_old_trials"), 
-            self.fail_old_trials, 
+            self.with_namespace("fail_old_trials"),
+            self.fail_old_trials,
             interval_sec=self.trial_timeout_check_interval
         )
 
@@ -539,7 +545,7 @@ class TrialMaker(Module):
         logger.info(
             "Target number of participants = %i, number of completed participants = %i, number of working participants = %i.",
             self.target_num_participants,
-            self.num_complete_participants, 
+            self.num_complete_participants,
             self.num_working_participants
         )
         return (self.num_complete_participants + self.num_working_participants) < self.target_num_participants
@@ -582,17 +588,17 @@ class TrialMaker(Module):
     @property
     def established_working_participants(self):
         return [
-            p for p in self.working_participants 
+            p for p in self.working_participants
             if p.progress > self.participant_progress_threshold
         ]
-        
+
     def fail_old_trials(self):
         time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.trial_timeout_sec)
         trials_to_fail = (
             self.trial_class
                 .query
                 .filter_by(
-                    complete=False, 
+                    complete=False,
                     failed=False
                 )
                 .filter(self.trial_class.creation_time < time_threshold)
@@ -675,7 +681,7 @@ class TrialMaker(Module):
     def performance_check(self, experiment, participant, participant_trials):
         # pylint: disable=unused-argument
         """
-        Defines an automated check for evaluating the participant's 
+        Defines an automated check for evaluating the participant's
         current performance.
 
         Parameters
@@ -692,13 +698,13 @@ class TrialMaker(Module):
         participant_trials
             A list of all trials completed so far by the participant.
 
-        
+
         Returns
         -------
 
         A tuple (float, bool)
             The first value in the tuple should some kind of score,
-            expressed as a ``float``. 
+            expressed as a ``float``.
             The second value should be equal to ``True``
             if the participant passed the check,
             and ``False`` otherwise.
@@ -736,8 +742,8 @@ class TrialMaker(Module):
         def eval_checks(experiment, participant):
             participant_trials = self.get_participant_trials(participant)
             (score, passed) = self.performance_check(
-                experiment=experiment, 
-                participant=participant, 
+                experiment=experiment,
+                participant=participant,
                 participant_trials=participant_trials
             )
             assert isinstance(score, (float, int))
@@ -820,22 +826,22 @@ class TrialMaker(Module):
                         .show_feedback(experiment=experiment, participant=participant)
                 ),
                 time_estimate=0
-            ), 
+            ),
             fix_time_credit=False,
             log_chosen_branch=False
         )
-        
+
     def _trial_loop(self):
         return join(
             CodeBlock(self._prepare_trial),
             while_loop(
-                self.with_namespace("trial_loop"), 
+                self.with_namespace("trial_loop"),
                 lambda experiment, participant: self._get_current_trial(participant) is not None,
                 logic=join(
                     reactive_seq(
-                        "show_trial", 
-                        self._show_trial, 
-                        num_pages=self.trial_class.num_pages, 
+                        "show_trial",
+                        self._show_trial,
+                        num_pages=self.trial_class.num_pages,
                         time_estimate=self.time_estimate_per_trial
                     ),
                     CodeBlock(self._postprocess_answer),
@@ -849,7 +855,7 @@ class TrialMaker(Module):
             ),
         )
 
-    @property 
+    @property
     def num_completed_trials_in_phase_var_id(self):
         return self.with_namespace("num_completed_trials_in_phase")
 
@@ -873,18 +879,18 @@ class NetworkTrialMaker(TrialMaker):
     Trial maker for network-based experiments.
     These experiments are organised around networks
     in an analogous way to the network-based experiments in Dallinger.
-    A :class:`~dallinger.models.Network` comprises a collection of 
+    A :class:`~dallinger.models.Network` comprises a collection of
     :class:`~dallinger.models.Node` objects organised in some kind of structure.
-    Here the role of :class:`~dallinger.models.Node` objects 
+    Here the role of :class:`~dallinger.models.Node` objects
     is to generate :class:`~dallinger.models.Trial` objects.
-    Typically the :class:`~dallinger.models.Node` object represents some 
+    Typically the :class:`~dallinger.models.Node` object represents some
     kind of current experiment state, such as the last datum in a transmission chain.
     In some cases, a :class:`~dallinger.models.Network` or a :class:`~dallinger.models.Node`
-    will be owned by a given participant; in other cases they will be shared 
+    will be owned by a given participant; in other cases they will be shared
     between participants.
 
-    An important feature of these networks is that their structure can change 
-    over time. This typically involves adding new nodes that somehow 
+    An important feature of these networks is that their structure can change
+    over time. This typically involves adding new nodes that somehow
     respond to the trials that have been submitted previously.
 
     The present class facilitates this behaviour by providing
@@ -899,50 +905,50 @@ class NetworkTrialMaker(TrialMaker):
     2. Give these networks an opportunity to grow (i.e. update their structure
        based on the trials that they've received so far)
        (:meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`).
-    3. Iterate through these networks, and find the first network that has a 
+    3. Iterate through these networks, and find the first network that has a
        node available for the participant to attach to.
        (:meth:`~psynet.trial.main.NetworkTrialMaker.find_node`).
     4. Create a trial from this node
        (:meth:`psynet.trial.main.Trial.__init__`).
-    
+
     The trial is then administered to the participant, and a response elicited.
     Once the trial is finished, the network is given another opportunity to grow.
 
     The implementation also provides support for asynchronous processing,
     for example to prepare the stimuli available at a given node,
     or to postprocess trials submitted to a given node.
-    There is some sophisticated logic to make sure that a 
-    participant is not assigned to a :class:`~dallinger.models.Node` object 
+    There is some sophisticated logic to make sure that a
+    participant is not assigned to a :class:`~dallinger.models.Node` object
     if that object is still waiting for an asynchronous process,
-    and likewise a trial won't contribute to a growing network if 
+    and likewise a trial won't contribute to a growing network if
     it is still pending the outcome of an asynchronous process.
-    
+
     The user is expected to override the following abstract methods/attributes:
-    
-    * :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`, 
+
+    * :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`,
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
-      
+
     * :meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`,
       which finds the available networks from which to source the next trial,
       ordered by preference.
-    
+
     * :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`,
       which give these networks an opportunity to grow (i.e. update their structure
       based on the trials that they've received so far).
-    
+
     * :meth:`~psynet.trial.main.NetworkTrialMaker.find_node`,
-      which takes a given network and finds a node which the participant can 
+      which takes a given network and finds a node which the participant can
       be attached to, if one exists.
-      
+
     Do not override prepare_trial.
-    
-    Parameters 
+
+    Parameters
     ----------
 
     trial_class
         The class object for trials administered by this maker.
-        
+
     network_class
         The class object for the networks used by this maker.
         This should subclass :class`~psynet.trial.main.TrialNetwork`.
@@ -950,7 +956,7 @@ class NetworkTrialMaker(TrialMaker):
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-    
+
     time_estimate_per_trial
         Time estimated for each trial (seconds).
 
@@ -959,13 +965,13 @@ class NetworkTrialMaker(TrialMaker):
         (used for progress estimation).
 
     check_performance_at_end
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated at the end of the series of trials.
-        
+
     check_performance_every_trial
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated after each trial.
-        
+
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
         if they leave the experiment prematurely.
@@ -980,17 +986,17 @@ class NetworkTrialMaker(TrialMaker):
         to the implementation).
 
     recruit_mode
-        Selects a recruitment criterion for determining whether to recruit 
+        Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
-        and ``"num_trials"``, though the latter requires overriding of 
+        and ``"num_trials"``, though the latter requires overriding of
         :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`.
 
     target_num_participants
-        Target number of participants to recruit for the experiment. All 
+        Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
-        towards this quota. This target is only relevant if 
+        towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
-        
+
     async_post_trial
         Optional function to be run after a trial is completed by the participant.
         This should be specified as a fully qualified string, for example
@@ -1004,7 +1010,7 @@ class NetworkTrialMaker(TrialMaker):
         (``db`` can be imported using ``from dallinger import db``).
         See the source code for ``psynet.trial.async_example.async_update_trial``
         for an example.
-        
+
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
         :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
@@ -1027,29 +1033,29 @@ class NetworkTrialMaker(TrialMaker):
         Users are invited to override this.
 
     trial_timeout_sec : float
-        How long until a trial times out, in seconds (default = 60). 
+        How long until a trial times out, in seconds (default = 60).
         Tthis is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
         which in turn depends on :attr:`~psynet.trial.main.TrialMaker.trial_timeout_sec`.
         Users are invited to override this.
-        
+
     network_query
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
-        
+
     num_networks : int
         Returns the number of networks owned by the trial maker.
-        
+
     networks : list
-        Returns the networks owned by the trial maker.    
+        Returns the networks owned by the trial maker.
     """
 
     def __init__(
         self,
-        trial_class, 
+        trial_class,
         network_class,
-        phase, 
-        time_estimate_per_trial, 
+        phase,
+        time_estimate_per_trial,
         expected_num_trials,
         check_performance_at_end,
         check_performance_every_trial,
@@ -1063,9 +1069,9 @@ class NetworkTrialMaker(TrialMaker):
         async_post_grow_network: Optional[str] = None
     ):
         super().__init__(
-            trial_class=trial_class, 
-            phase=phase, 
-            time_estimate_per_trial=time_estimate_per_trial, 
+            trial_class=trial_class,
+            phase=phase,
+            time_estimate_per_trial=time_estimate_per_trial,
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
@@ -1093,22 +1099,22 @@ class NetworkTrialMaker(TrialMaker):
                 logger.info("Attached node %i to participant %i.", node.id, participant.id)
                 return self._create_trial(node=node, participant=participant, experiment=experiment)
         logger.info("Found no available nodes for participant %i, exiting.", participant.id)
-        return None 
+        return None
 
     ####
 
     def find_networks(self, participant, experiment):
         """
-        Returns a list of all available networks for the participant's next trial, ordered 
+        Returns a list of all available networks for the participant's next trial, ordered
         in preference (most preferred to least preferred).
-        
+
         Parameters
         ----------
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-            
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
@@ -1119,17 +1125,17 @@ class NetworkTrialMaker(TrialMaker):
         """
         Extends the network if necessary by adding one or more nodes.
         Returns ``True`` if any nodes were added.
-        
+
         Parameters
         ----------
-        
+
         network
             The network to be potentially extended.
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-            
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
@@ -1139,17 +1145,17 @@ class NetworkTrialMaker(TrialMaker):
     def find_node(self, network, participant, experiment):
         """
         Finds the node to which the participant should be attached for the next trial.
-        
+
         Parameters
         ----------
-        
+
         network
             The network to be potentially extended.
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-            
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
@@ -1191,7 +1197,7 @@ class NetworkTrialMaker(TrialMaker):
                 .filter_by(
                     trial_type=self.trial_type,
                     phase=self.phase
-                )  
+                )
         )
 
     @property
@@ -1206,69 +1212,69 @@ class TrialNetwork(Network):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
-    
+
     Parameters
     ----------
-    
+
     trial_type
         A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class, 
+        typically just the name of the relevant class,
         e.g. ``"MelodyTrial"``.
         The same experiment should not contain multiple TrialMaker objects
         with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the 
+        phases of the experiment and are marked as such with the
         ``phase`` parameter.
-    
+
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-    
+
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
-        
+
     Attributes
     ----------
-    
+
     trial_type : str
         A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class, 
+        typically just the name of the relevant class,
         e.g. ``"MelodyTrial"``.
         The same experiment should not contain multiple TrialMaker objects
         with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the 
+        phases of the experiment and are marked as such with the
         ``phase`` parameter.
         Stored as the field ``property1`` in the database.
-        
+
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
         Stored as the field ``property2`` in the database.
-        
+
     awaiting_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
         Stored as the field ``property3`` in the database.
-        
+
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
         Stored as the field ``role`` in the database.
-        
+
     num_nodes : int
-        Returns the number of non-failed nodes in the network.       
-    
+        Returns the number of non-failed nodes in the network.
+
     num_completed_trials : int
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes).
-        
+
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
-        
-        
+
+
     """
-    
+
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
 
     trial_type = claim_field(1, str)
@@ -1288,7 +1294,7 @@ class TrialNetwork(Network):
         return VarStore(self)
 
     # Phase ####
-    @hybrid_property 
+    @hybrid_property
     def phase(self):
         return self.role
 
@@ -1299,7 +1305,7 @@ class TrialNetwork(Network):
     @phase.expression
     def phase(self):
         return cast(self.role, String)
-    
+
     ####
 
     def __init__(self, trial_type: str, phase: str, experiment):
@@ -1307,7 +1313,7 @@ class TrialNetwork(Network):
         self.trial_type = trial_type
         self.awaiting_process = False
         self.phase = phase
-        
+
     @property
     def num_nodes(self):
         return dallinger.models.Node.query.filter_by(network_id=self.id, failed=False).count()

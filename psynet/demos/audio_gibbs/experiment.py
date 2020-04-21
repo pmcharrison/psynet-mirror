@@ -32,12 +32,12 @@ GRANULARITY = 25
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
-    synth_function = {
-        "module": "custom_synth",
-        "name": "synth_stimulus"
+    synth_function_location = {
+        "module_name": "custom_synth",
+        "function_name": "synth_stimulus"
     }
 
-    s3_bucket = "audio_gibbs_demo"
+    s3_bucket = "audio-gibbs-demo"
     vector_length = 5
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
@@ -50,10 +50,12 @@ class CustomNetwork(AudioGibbsNetwork):
 class CustomTrial(AudioGibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    snap_slider = True
+
     def get_prompt(self, experiment, participant):
         return Markup(
             "Adjust the slider so that the word sounds as "
-            f"<strong>{self.network.definition}</strong> "
+            f"<strong>{self.network.definition['target']}</strong> "
             "as possible."
         )
 
@@ -75,7 +77,7 @@ trial_maker = AudioGibbsTrialMaker(
     num_nodes_per_chain=5,
     num_chains_per_participant=3, # set to None if chain_type="across"
     num_chains_per_experiment=None, # set to None if chain_type="within"
-    trials_per_node=2,
+    trials_per_node=1,
     active_balancing_across_chains=True,
     check_performance_at_end=False,
     check_performance_every_trial=False,

@@ -648,10 +648,10 @@
                 on_success_response = function (request) {
                     response = JSON.parse(request.response);
                     if (response.submission === "approved") {
-                        console.log("Response received successfully.");
+                        psynet.log.debug("Response received successfully.");
                         dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
                     } else if (response.submission === "rejected") {
-                        console.log("Response rejected.");
+                        psynet.log.debug("Response rejected.");
                         alert(response.message);
                         $(".submit-response").attr('disabled', false);
                     } else {
@@ -716,10 +716,10 @@
                     request.onreadystatechange = function () {
                         if (request.readyState === 4) {
                             if (request.status === 200) {
-                                console.log('Response was successfully received.');
+                                psynet.log.debug('Response was successfully received.');
                                 on_success_response(request);
                             } else {
-                                console.log('Something went wrong.');
+                                psynet.log.debug('Something went wrong.');
                                 on_error_response(request);
                             }
                         }

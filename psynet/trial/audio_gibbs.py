@@ -4,8 +4,8 @@ from dallinger import db
 from .gibbs import GibbsNetwork, GibbsTrialMaker, GibbsTrial, GibbsNode, GibbsSource
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
-from ..page import AudioSliderPage
-from ..utils import get_object_from_module
+from ..page import AudioSliderPage, SLIDER_DEFAULT_NUM_TICKS
+from ..utils import get_object_from_module, import_local_experiment
 
 import random
 import os
@@ -24,7 +24,7 @@ class AudioGibbsNetwork(GibbsNetwork):
     """
     A Network class for Audio Gibbs Sampler chains.
     The user should customise this by overriding the attributes
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.synth_function`,
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.synth_function_location`,
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`,
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_ranges`,
     and optionally
@@ -37,12 +37,12 @@ class AudioGibbsNetwork(GibbsNetwork):
     Attributes
     ----------
 
-    synth_function: dict
+    synth_function_location: dict
         A dictionary specifying the function to use for synthesising
         stimuli. The dictionary should contain two arguments:
-        one named ``"module"``, which identifies by name the module
+        one named ``"module_name"``, which identifies by name the module
         in which the function is contained,
-        and one named ``"name"``, corresponding to the name
+        and one named ``"function_name"``, corresponding to the name
         of the function within that module.
         The synthesis function should take three arguments:
 
@@ -78,23 +78,30 @@ class AudioGibbsNetwork(GibbsNetwork):
     """
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_network"}
 
-    synth_function = {"module": "", "name": ""}
+    synth_function_location = {"module_name": "", "function_name": ""}
     s3_bucket = ""
     vector_length = 0
     vector_ranges = []
     granularity = 100
 
+    @property
+    def synth_function(self):
+        return get_object_from_module(
+            module_name=self.synth_function_location["module_name"],
+            object_name=self.synth_function_location["function_name"]
+        )
+
     def validate(self):
         if not (
-            isinstance(self.synth_function, dict) and
-            "module" in self.synth_function and
-            "name" in self.synth_function and
-            len(self.synth_function["module"]) > 0 and
-            len(self.synth_function["name"]) > 0
+            isinstance(self.synth_function_location, dict) and
+            "module_name" in self.synth_function_location and
+            "function_name" in self.synth_function_location and
+            len(self.synth_function_location["module_name"]) > 0 and
+            len(self.synth_function_location["function_name"]) > 0
             ):
-            raise ValueError(f"Invalid <synth_function> ({self.synth_function}).")
+            raise ValueError(f"Invalid <synth_function_location> ({self.synth_function_location}).")
 
-        if not (isinstance(self.s3_bucket, chr) and len(self.s3_bucket) > 0):
+        if not (isinstance(self.s3_bucket, str) and len(self.s3_bucket) > 0):
             raise ValueError(f"Invalid <s3_bucket> ({self.s3_bucket}).")
 
         if not (isinstance(self.vector_length, int) and self.vector_length > 0):
@@ -128,22 +135,64 @@ class AudioGibbsTrial(GibbsTrial):
     The user should customise this by overriding the
     :meth:`~psynet.trial.audio_gibbs.AudioGibbsTrial.get_prompt`
     method.
+    The user is also invited to override the
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.snap_slider`,
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.autoplay`,
+    and
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.minimal_interactions`
+    attributes.
+
+    Attribute
+    ---------
+
+    snap_slider : bool
+        If ``True``, the slider snaps to the location corresponding to the
+        closest available audio stimulus.
+        If ``False`` (default), continuous values are permitted.
+
+    autoplay : bool
+        If ``True``, a sound corresponding to the initial location on the
+        slider will play as soon as the slider is ready for interactions.
+        If ``False`` (default), the sound only plays once the participant
+        first moves the slider.
+
+    minimal_interactions : int : default: 3
+        Minimal interactions with the slider before the user can go to next trial.
     """
 
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
 
+    snap_slider = False
+    autoplay = False
+    minimal_interactions = 3
+
     def show_trial(self, experiment, participant):
+        start_value = self.initial_vector[self.active_index]
+        vector_range = self.vector_ranges[self.active_index]
+
         return AudioSliderPage(
             "gibbs_audio_trial",
             self.get_prompt(experiment, participant),
-            starting_values=self.initial_vector,
+            sound_locations=self.sound_locations,
+            start_value=start_value,
+            min_value=vector_range[0],
+            max_value=vector_range[1],
+            allowed_values=self.slider_allowed_values,
+            autoplay=self.autoplay,
             reverse_scale=self.reverse_scale,
             time_estimate=5,
-            media=self.get_media_spec(),
-            sound_locations=self.get_sound_locations()
+            media=self.media,
+            minimal_interactions=self.minimal_interactions
         )
 
-    def get_media_spec(self):
+    @property
+    def slider_allowed_values(self):
+        if self.snap_slider:
+            return [value for key, value in self.sound_locations.items()]
+        return SLIDER_DEFAULT_NUM_TICKS
+
+    @property
+    def media(self):
         slider_stimuli = self.slider_stimuli
         return {
             "audio": {
@@ -155,7 +204,8 @@ class AudioGibbsTrial(GibbsTrial):
             }
         }
 
-    def get_sound_locations(self):
+    @property
+    def sound_locations(self):
         res = {}
         for stimulus in self.slider_stimuli["all"]:
             res[stimulus["id"]] = stimulus["value"]
@@ -174,6 +224,9 @@ class AudioGibbsTrial(GibbsTrial):
     def slider_stimuli(self):
         return self.origin.slider_stimuli
 
+    @property
+    def vector_ranges(self):
+        return self.network.vector_ranges
 
 class AudioGibbsNode(GibbsNode):
     """
@@ -212,6 +265,11 @@ class AudioGibbsTrialMaker(GibbsTrialMaker):
 
 def make_audio(network_id):
     logger.info("Synthesising audio for network %i...", network_id)
+
+    # This is necessary to make sure that the custom SQLAlchemy network classes
+    # are registered in the worker session.
+    import_local_experiment()
+
     network = AudioGibbsNetwork.query.filter_by(id=network_id).one()
     node = network.head
 
@@ -232,7 +290,7 @@ def make_audio(network_id):
             "range_to_sample": network.vector_ranges[active_index],
             "chain_definition": network.definition,
             "output_dir": individual_stimuli_dir,
-            "synth_function": get_object_from_module(**network.synth_function)
+            "synth_function": network.synth_function
         }
 
         if granularity == "custom":
@@ -241,7 +299,7 @@ def make_audio(network_id):
             stimuli = make_audio_regular_intervals(granularity=granularity, **args)
 
         make_audio_batch_file(stimuli, batch_path)
-        batch_url = upload_to_s3(batch_path, network.s3_bucket, batch_file)
+        batch_url = upload_to_s3(batch_path, network.s3_bucket, key=batch_file, public_read=True)["url"]
 
         node.slider_stimuli = {
             "url": batch_url,

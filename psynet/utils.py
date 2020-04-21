@@ -2,8 +2,10 @@ import json
 import inspect
 import importlib
 import time
+import sys
+import os
 
-from functools import reduce
+from functools import reduce, wraps
 from sqlalchemy.sql import func
 
 import logging
@@ -20,6 +22,10 @@ def get_arg_from_dict(x, desired: str, use_default = False, default = None):
 
 def sql_sample_one(x):
     return x.order_by(func.random()).first()
+
+def import_local_experiment():
+    sys.path.append(os.getcwd())
+    import experiment
 
 # def get_json_arg_from_request(request, desired: str, use_default = False, default = None):
 #     arguments = request.json
@@ -92,3 +98,18 @@ def log_time_taken(fun):
         logger.info("Time taken by %s: %.3f seconds.", fun.__name__, time_taken)
         return res
     return wrapper
+
+def negate(f):
+    """
+    Negates a function.
+
+    Parameters
+    ----------
+
+    f
+        Function to negate.
+    """
+    @wraps(f)
+    def g(*args,**kwargs):
+        return not f(*args,**kwargs)
+    return g

@@ -24,7 +24,7 @@
                 psynet.log.error('Sound location ' + snapped_value + ' does not exist as a value in array `sound_locations`')
             } else {
                 var idx = locations.indexOf(snapped_value);
-                console.log(snapped_value);
+                psynet.log.debug('Snapped value = ' + snapped_value);
                 return Object.keys(sound_locations)[idx];
             }
 
@@ -32,7 +32,7 @@
 
         play_sound = function () {
             var id = get_id_from_slider_value();
-            console.log(id);
+            psynet.log.debug('Playing sound with id = ' + id);
             psynet.audio[id].play();
         };
 

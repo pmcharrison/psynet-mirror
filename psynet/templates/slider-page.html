@@ -68,7 +68,7 @@
 
         // Save initial position
         slider.initialise = function () {
-            console.log('Slider page is loaded');
+            psynet.log.debug('Slider page is loaded.');
             slider.log.push(create_log_message('Page loaded. Initial slider position: ' + start_value));
             on_slider_event('initialise');
         };

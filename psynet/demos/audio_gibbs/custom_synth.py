@@ -6,10 +6,30 @@ import numpy as np
 import os
 
 def synth_stimulus(vector, output_path, chain_definition):
+    """
+    Synthesises a stimulus.
+
+    Parameters
+    ----------
+
+    vector : list
+        A vector of parameters as produced by the Gibbs sampler,
+        for example:
+
+        ::
+
+            [144.11735609, 159.17558762, 232.15967799, 298.43893329, 348.34553954]
+
+    output_path : str
+        The output path for the generated file.
+
+    chain_definition
+        The chain's definition object.
+    """
     assert isinstance(chain_definition, dict)
     assert len(vector) == 5
     times = np.array([0.0, 0.090453, 0.18091 , 0.27136 , 0.36181])
-    freqs = np.array([144.11735609, 159.17558762, 232.15967799, 298.43893329, 348.34553954])
+    freqs = np.array(vector)
     x = np.column_stack((times, freqs))
 
     effects = [{
@@ -124,6 +144,6 @@ def synth_batch(
                 sounds.append(app_sound)
             synth_main = call(sounds, "Concatenate")
 
-        filepath = os.getcwd() + '/' + filenames[BPF_idx]
+        filepath = filenames[BPF_idx]
         write_wav(filepath, int(synth_main.sampling_frequency), synth_main.values.T)
         call(synth_main, "Save as WAV file", filepath)
