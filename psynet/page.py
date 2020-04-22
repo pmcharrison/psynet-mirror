@@ -105,7 +105,7 @@ class WaitPage(Page):
 def wait_while(
         condition,
         expected_wait: float,
-        check_interval: float = 1.0,
+        check_interval: float = 2.0,
         wait_page=WaitPage
     ):
     """
