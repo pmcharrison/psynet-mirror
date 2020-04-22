@@ -13,18 +13,18 @@
 {% endmacro %}
 
 {% macro audio_prompt(config) %}
-<p>
-    {{ config.text }}
-</p>
+    <p>
+        {{ config.text }}
+    </p>
 
-<script>
-    psynet.media.register_on_loaded_routine(function() {
-        var sound = psynet.audio.prompt.play();
-        sound.onended = function() {
-            psynet.response.ready();
-        }
-    })
-</script>
+    <script>
+        psynet.media.register_on_loaded_routine(function() {
+            var sound = psynet.audio.prompt.play();
+            sound.onended = function() {
+                psynet.response.ready();
+            }
+        })
+    </script>
 {% endmacro %}
 
 {% macro null_control(input) %}
