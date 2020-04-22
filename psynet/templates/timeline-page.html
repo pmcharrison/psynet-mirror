@@ -368,18 +368,33 @@
                     if (!context) {
                         throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
                     }
+                    // if (context.state == "suspended") {
+                    //     alert("Resuming the experiment.");
+                    //     context.resume();
+                    // }
                     psynet.media.audio_context = context
+
                 };
 
                 psynet.media.init = function () {
                     psynet.media.init_audio_context();
-                    requests = psynet.media.requests;
 
-                    media_types = Object.keys(requests);
-                    media_types.forEach(function (x) {
-                        process_requests(x, requests[x]);
-                    });
-                    psynet.media.check_loaded();
+                    if (psynet.media.audio_context.state == "suspended") {
+                        var wait = 1;
+                        psynet.log.info(
+                            "Audio context is suspended, and can only be resumed " +
+                            "after a user interaction. Trying again in " + wait +
+                            " second(s)."
+                        );
+                        setTimeout(psynet.media.init, wait * 1000);
+                    } else {
+                        requests = psynet.media.requests;
+                            media_types = Object.keys(requests);
+                            media_types.forEach(function (x) {
+                                process_requests(x, requests[x]);
+                            });
+                            psynet.media.check_loaded();
+                        }
                 };
 
                 init_media_type = function (media_type) {
