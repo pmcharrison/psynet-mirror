@@ -1,23 +1,23 @@
-# This is a minimal experiment implementation for prototyping the monitor route.
 import flask
 
-import dallinger.deployment 
+import dallinger.deployment
 from dallinger.models import Info, Node, Transformation
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 
 import psynet.experiment
-from psynet.timeline import ( 
+from psynet.timeline import (
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
-    conditional
+    PageMaker,
+    CodeBlock,
+    while_loop,
+    conditional,
+    MediaSpec
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage, 
+    InfoPage,
+    SuccessfulEndPage,
+    NAFCPage,
     TextInputPage
 )
 
@@ -43,9 +43,9 @@ class Exp(psynet.experiment.Experiment):
                     Once these audio files are loaded, you can access them programmatically.
                 </p>
                 <p>
-                    If you're running this demo locally, the audio files will load too 
+                    If you're running this demo locally, the audio files will load too
                     fast for you to see the progress bar. However, you can simulate
-                    a slower internet connection by using the Developer Options 
+                    a slower internet connection by using the Developer Options
                     of your browser.
                     Note how the buttons only become enabled once the audio has finished loading.
                 </p>
@@ -68,8 +68,8 @@ class Exp(psynet.experiment.Experiment):
                 """
             ),
             time_estimate=5,
-            media={
-                "audio": {
+            media=MediaSpec(
+                audio={
                     'bier': '/static/audio/bier.wav',
                     'batch': {
                         'url': '/static/audio/file_concatenated.mp3',
@@ -77,7 +77,7 @@ class Exp(psynet.experiment.Experiment):
                         'type': 'batch'
                     }
                 }
-            },
+            ),
             css=[
                 """
                 .btn {
@@ -98,8 +98,8 @@ class Exp(psynet.experiment.Experiment):
                 """
              ),
             time_estimate=5,
-            media={
-                "audio": {
+            media=MediaSpec(
+                audio={
                     'bier': '/static/audio/bier.wav',
                     'batch': {
                         'url': '/static/audio/file_concatenated.mp3',
@@ -107,7 +107,7 @@ class Exp(psynet.experiment.Experiment):
                         'type': 'batch'
                     }
                 }
-            },
+            ),
             scripts=[
                 """
                 psynet.media.register_on_loaded_routine(function() {

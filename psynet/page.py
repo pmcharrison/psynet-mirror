@@ -608,9 +608,6 @@ class AudioSliderPage(SliderPage):
         if not 'media' in kwargs:
             raise ValueError('You must specify sounds in `media` you later want to play with the slider')
 
-        if not 'audio' in kwargs['media']:
-            raise ValueError('The `media` dictionary must contain the key `audio`')
-
         # Check if all stimuli specified in `sound_locations` are
         # also preloaded before the participant can start the trial
         audio = kwargs['media'].audio

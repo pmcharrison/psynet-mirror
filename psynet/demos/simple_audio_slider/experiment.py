@@ -2,7 +2,7 @@ import psynet.experiment
 from psynet.timeline import (
     Timeline
 )
-from psynet.timeline import PageMaker
+from psynet.timeline import PageMaker, MediaSpec
 from psynet.page import (
     AudioSliderPage,
     InfoPage,
@@ -14,17 +14,17 @@ import rpdb
 
 
 class CustomExp(psynet.experiment.Experiment):
-    numbers = [i + 1 for i in range(472)]
-    IDs = ['MY_SUPER_CUSTOM_ID' + str(i) for i in numbers]
-    media = {
-        "audio": {
+    numbers=[i + 1 for i in range(472)]
+    IDs=['MY_SUPER_CUSTOM_ID' + str(i) for i in numbers]
+    media=MediaSpec(
+        audio={
             'batch': {
                 'url': '/static/stimuli/bier.batch',
                 'ids': IDs,
                 'type': 'batch'
             }
         }
-    }
+    )
 
     timeline = Timeline(
         AudioSliderPage(

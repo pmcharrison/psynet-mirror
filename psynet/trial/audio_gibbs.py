@@ -4,6 +4,7 @@ from dallinger import db
 from .gibbs import GibbsNetwork, GibbsTrialMaker, GibbsTrial, GibbsNode, GibbsSource
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
+from ..timeline import MediaSpec
 from ..page import AudioSliderPage, SLIDER_DEFAULT_NUM_TICKS
 from ..utils import get_object_from_module, import_local_experiment
 
@@ -194,15 +195,15 @@ class AudioGibbsTrial(GibbsTrial):
     @property
     def media(self):
         slider_stimuli = self.slider_stimuli
-        return {
-            "audio": {
+        return MediaSpec(
+            audio={
                 "slider_stimuli": {
                     "url": slider_stimuli["url"],
                     "ids": [x["id"] for x in slider_stimuli["all"]],
                     "type": "batch"
                 }
             }
-        }
+        )
 
     @property
     def sound_locations(self):
