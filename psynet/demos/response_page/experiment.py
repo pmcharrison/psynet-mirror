@@ -49,7 +49,7 @@ from psynet.page import (
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        ResponsePage(
+        ModularPage(
             "response",
             prompt=AudioPrompt(
                 url="/static/audio/bier.wav",

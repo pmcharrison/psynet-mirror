@@ -716,7 +716,7 @@ class DebugResponsePage(PageMaker):
             """
         ))
 
-class ResponsePage(Page):
+class ModularPage(Page):
     def __init__(
         self,
         label: str,
