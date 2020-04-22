@@ -216,6 +216,30 @@
                     psynet.log.generic(msg, "debug")
                 }
 
+                psynet.response = {};
+                psynet.response.on_ready_routines = [];
+
+                psynet.response.register_on_ready_routine = function (f) {
+                    // Registers a function to be called when psynet.response.ready() is called.
+                    if (!psynet.utils.is_function(f)) {
+                        throw Error("f was not a function.");
+                    }
+                    psynet.response.on_ready_routines.push(f);
+                };
+
+                psynet.response.register_on_ready_routine(function () {
+                    // When psynet.response.ready() is called, we want to enable all controls
+                    // that were waiting for the response-ready event.
+                    $('.wait-for-response-ready').removeAttr('disabled');
+                });
+
+                psynet.response.ready = function () {
+                    psynet.log.info("Ready for response.");
+                    psynet.response.on_ready_routines.forEach(function (f) {
+                        f();
+                    });
+                };
+
                 psynet.media.types = ["audio"];
                 psynet.media.data = {};
 
@@ -237,7 +261,6 @@
                 //         }
                 //     }
                 // };
-
 
                 psynet.media.on_loaded_routines = [];
 
@@ -625,6 +648,7 @@
 
                 psynet.init_page = function () {
                     psynet.register_error_handler();
+                    $('.wait-for-response-ready').attr('disabled', 'disabled');
                     $('.wait-for-media-load').attr('disabled', 'disabled');
                     check_participant_id();
                     init_modal();
