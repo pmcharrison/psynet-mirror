@@ -6,7 +6,6 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
             padding-top: 100px;
             left: 0;
             top: 0;
@@ -17,8 +16,13 @@
             background-color: rgba(0, 0, 0, 0.4);
         }
 
+        #help_modal {
+            z-index: 1000;
+        }
+
         .modal-content {
             background-color: #4989C8;
+            color: white;
             margin: auto;
             padding: 20px;
             border: 1px solid #888;
@@ -69,6 +73,47 @@
         {% endblock %}
     </div>
 
+    {% block modals %}
+        {% block help_modal %}
+            <div id="help_modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>In case of a problem, try the following:</h3>
+                    <ul>
+                        <li>Reload the page.</li>
+                        <li>Check that your internet connection is working.</li>
+                        <li>If the above doesn't help,
+                            <a style="color:pink"
+                            href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
+                            target="_top">send us an email</a>
+                            with the following information:
+                            <ol>
+                                <li>A link to the current web page;</li>
+                                <li>Your Worker ID;</li>
+                                <li>The problem you're experiencing.</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block resume_modal %}
+            <div id="resume_modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Are you ready?</h3>
+                    <p>
+                        Click the button when you're ready to continue the experiment.
+                    </p>
+                    <button type="button" class="btn btn-primary" id="resume_button" onclick="psynet.resume();">
+                        Resume
+                    </button>
+                </div>
+            </div>
+        {% endblock %}
+    {% endblock %}
+
     {% block footer %}
         {% if footer.show %}
             <nav class="navbar navbar-fixed-bottom"
@@ -83,29 +128,7 @@
                             </div>
                         {% endfor %}
 
-                        <button type="button" class="btn btn-primary" id="help_button" style="min-width: 50px">Help!
-                        </button>
-                        <div id="help_modal" class="modal">
-                            <div class="modal-content">
-                                <span class="close">&times;</span>
-                                <h3>In case of a problem, try the following:</h3>
-                                <ul>
-                                    <li>Reload the page.</li>
-                                    <li>Check that your internet connection is working.</li>
-                                    <li>If the above doesn't help,
-                                        <a style="color:red"
-                                           href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
-                                           target="_top">send us an email</a>
-                                        with the following information:
-                                        <ol>
-                                            <li>A link to the current web page;</li>
-                                            <li>Your Worker ID;</li>
-                                            <li>The problem you're experiencing.</li>
-                                        </ol>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                        <button type="button" class="btn btn-primary" id="help_button" style="min-width: 50px">Help!</button>
                     </div>
                 </div>
             </nav>
@@ -376,17 +399,31 @@
 
                 };
 
+                psynet.show_resume_modal = function() {
+                    document.getElementById("resume_modal").style.display = "block";
+                };
+
+                psynet.hide_resume_modal = function() {
+                    document.getElementById("resume_modal").style.display = "none";
+                };
+
+                psynet.resume = function() {
+                    psynet.log.info("Resuming the experiment.");
+                    psynet.hide_resume_modal();
+                    psynet.media.init();
+                };
+
                 psynet.media.init = function () {
                     psynet.media.init_audio_context();
 
                     if (psynet.media.audio_context.state == "suspended") {
-                        var wait = 1;
+                        // var wait = 1;
                         psynet.log.info(
                             "Audio context is suspended, and can only be resumed " +
-                            "after a user interaction. Trying again in " + wait +
-                            " second(s)."
+                            "after a user interaction. Waiting for the participant to click 'Resume'."
                         );
-                        setTimeout(psynet.media.init, wait * 1000);
+                        psynet.show_resume_modal();
+                        // setTimeout(psynet.media.init, wait * 1000);
                     } else {
                         requests = psynet.media.requests;
                             media_types = Object.keys(requests);
