@@ -716,60 +716,13 @@ class DebugResponsePage(PageMaker):
             """
         ))
 
-class ModularPage(Page):
-    def __init__(
-        self,
-        label: str,
-        prompt,
-        input,
-        time_estimate: Optional[float] = None,
-        media: Optional[dict] = None,
-        **kwargs
-    ):
+from flask import Markup
+from typing import Union
 
-        template_str = f"""
-        {{% extends "timeline-page.html" %}}
-
-        {{% block prompt %}}
-        {{{{ super() }}}}
-
-        {{{{ {prompt.macro}(prompt) }}}}
-
-        {{% endblock %}}
-
-        {{% block input %}}
-        {{{{ super() }}}}
-
-        {{{{ {input.macro}(input) }}}}
-
-        {{% endblock %}}
-        """
-
-        if media is None:
-            media = MediaSpec()
-
-        self.prompt = prompt
-        self.input = input
-
-        if isinstance(prompt, AudioPrompt):
-            media.add("audio", {"prompt": prompt.url})
-
-        super().__init__(
-            time_estimate=time_estimate,
-            template_str=template_str,
-            template_arg={
-                "prompt": prompt,
-                "input": input
-            },
-            media=media,
-            **kwargs
-        )
-
-    def metadata(self, **kwargs):
-        return {
-            "prompt": self.prompt.metadata,
-            "input": self.input.metadata
-        }
+from .page import (
+    Page,
+    MediaSpec
+)
 
 class Prompt():
     @property
@@ -793,7 +746,7 @@ class AudioPrompt():
             "url": self.url
         }
 
-class Input():
+class Control():
     @property
     def macro(self):
         raise NotImplementedError
@@ -802,6 +755,61 @@ class Input():
     def metadata(self):
         raise NotImplementedError
 
-class NullInput():
+class NullControl():
     macro = "null_input"
     metadata = {}
+
+class ModularPage(Page):
+    def __init__(
+        self,
+        label: str,
+        prompt,
+        control=NullControl(),
+        time_estimate: Optional[float] = None,
+        media: Optional[dict] = None,
+        **kwargs
+    ):
+
+        template_str = f"""
+        {{% extends "timeline-page.html" %}}
+
+        {{% block prompt %}}
+        {{{{ super() }}}}
+
+        {{{{ {prompt.macro}(prompt) }}}}
+
+        {{% endblock %}}
+
+        {{% block input %}}
+        {{{{ super() }}}}
+
+        {{{{ {control.macro}(control) }}}}
+
+        {{% endblock %}}
+        """
+
+        if media is None:
+            media = MediaSpec()
+
+        self.prompt = prompt
+        self.control = control
+
+        if isinstance(prompt, AudioPrompt):
+            media.add("audio", {"prompt": prompt.url})
+
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=template_str,
+            template_arg={
+                "prompt": prompt,
+                "control": control
+            },
+            media=media,
+            **kwargs
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "prompt": self.prompt.metadata,
+            "input": self.control.metadata
+        }

@@ -19,24 +19,12 @@ from psynet.timeline import get_template
 from psynet.field import claim_field
 from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page,
-    Timeline,
-    PageMaker,
-    CodeBlock,
-    while_loop,
-    conditional,
-    switch,
-    FailedValidation
+    Timeline
 )
 from psynet.page import (
-    InfoPage,
-    SuccessfulEndPage,
-    SliderPage,
-    NAFCPage,
-    NumberInputPage,
-    ResponsePage,
+    ModularPage,
     AudioPrompt,
-    NullInput
+    SuccessfulEndPage
 )
 
 
@@ -54,7 +42,6 @@ class Exp(psynet.experiment.Experiment):
             prompt=AudioPrompt(
                 url="/static/audio/bier.wav",
                 text="Listen out for someone saying 'bier'."),
-            input=NullInput(),
             time_estimate=5
         ),
         SuccessfulEndPage()
