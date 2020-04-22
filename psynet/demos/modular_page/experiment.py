@@ -21,10 +21,10 @@ from psynet.participant import Participant, get_participant
 from psynet.timeline import (
     Timeline
 )
-from psynet.page import (
+from psynet.page import SuccessfulEndPage
+from psynet.modular_page import (
     ModularPage,
-    AudioPrompt,
-    SuccessfulEndPage
+    AudioPrompt
 )
 
 
