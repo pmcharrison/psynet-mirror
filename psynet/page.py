@@ -798,6 +798,7 @@ class ModularPage(Page):
             media.add("audio", {"prompt": prompt.url})
 
         super().__init__(
+            label=label,
             time_estimate=time_estimate,
             template_str=template_str,
             template_arg={
