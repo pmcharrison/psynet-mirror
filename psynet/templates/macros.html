@@ -1,0 +1,29 @@
+{% extends "layout.html" %}
+
+{% macro next_button() %}
+    <hr>
+
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="psynet.next_page();">Next
+            </button>
+        </div>
+    </div>
+{% endmacro %}
+
+{% macro audio_prompt(config) %}
+<p>
+    {{ config.text }}
+</p>
+
+<script>
+    psynet.media.register_on_loaded_routine(function() {
+        psynet.audio.prompt.play();
+    })
+</script>
+{% endmacro %}
+
+{% macro null_input(input) %}
+    {{ next_button() }}
+{% endmacro %}
