@@ -7,6 +7,24 @@ from .page import (
 )
 
 class Prompt():
+    """
+    The Prompt class displays some kind of media to the participant,
+    to which they will have to respond.
+
+    Currently the prompt must be written as a Jinja2 macro
+    in ``templates/macros.html``. In the future, we will update the API
+    to allow macros to be defined in external files.
+
+    Attributes
+    ----------
+
+    macro: str
+        The name of the Jinja2 macro.
+
+    metadata: Object
+        Metadata to save about the prompt; can take arbitrary form,
+        but must be serialisable to JSON.
+    """
     @property
     def macro(self):
         raise NotImplementedError
@@ -29,6 +47,24 @@ class AudioPrompt():
         }
 
 class Control():
+    """
+    The Control class provides some kind of controls for the participant,
+    with which they will provide their response.
+
+    Currently the prompt must be written as a Jinja2 macro
+    in ``templates/macros.html``. In the future, we will update the API
+    to allow macros to be defined in external files.
+
+    Attributes
+    ----------
+
+    macro: str
+        The name of the Jinja2 macro.
+
+    metadata: Object
+        Metadata to save about the prompt; can take arbitrary form,
+        but must be serialisable to JSON.
+    """
     @property
     def macro(self):
         raise NotImplementedError
@@ -112,17 +148,54 @@ class Control():
         return None
 
 class NullControl(Control):
+    """
+    Here the participant just has a single button that takes them to the next page.
+    """
     macro = "null_control"
     metadata = {}
 
 class ModularPage(Page):
+    """
+    The :class:`~psynet.modular_page.ModularPage`
+    class provides a way of defining pages in terms
+    of two primary components: the
+    :class:`~psynet.modular_page.Prompt`
+    and the
+    :class:`~psynet.modular_page.Control`.
+    The former determines what is presented to the participant;
+    the latter determines how they may respond.
+
+    Parameters
+    ----------
+
+    label
+        Internal label to give the page, used for example in results saving.
+
+    prompt
+        A :class:`~psynet.modular_page.Prompt` object that
+        determines the prompt to be displayed to the participant.
+
+    control
+        A :class:`~psynet.modular_page.Control` object that
+        determines the participant's response controls.
+
+    time_estimate
+        Time estimated for the page.
+
+    media
+        Optional specification of media assets to preload
+        (see the documentation for :class:`psynet.timeline.MediaSpec`).
+
+    **kwargs
+        Further arguments to be passed to :class:`psynet.timeline.Page`.
+    """
     def __init__(
         self,
         label: str,
-        prompt,
-        control=NullControl(),
+        prompt: Prompt,
+        control: Control = NullControl(),
         time_estimate: Optional[float] = None,
-        media: Optional[dict] = None,
+        media: Optional[MediaSpec] = None,
         **kwargs
     ):
 
@@ -180,7 +253,12 @@ class ModularPage(Page):
         self.control.validate(response=response, **kwargs)
 
     def metadata(self, **kwargs):
+        """
+        By default, the metadata attribute combines the metadata
+        of the :class:`~psynet.page.Prompt` member.
+        and the :class:`~psynet.page.Control` members.
+        """
         return {
             "prompt": self.prompt.metadata,
-            "input": self.control.metadata
+            "control": self.control.metadata
         }
