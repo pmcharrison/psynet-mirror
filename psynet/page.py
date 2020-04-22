@@ -830,7 +830,7 @@ class Control():
         return None
 
 class NullControl(Control):
-    macro = "null_input"
+    macro = "null_control"
     metadata = {}
 
 class ModularPage(Page):
