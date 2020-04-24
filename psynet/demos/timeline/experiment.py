@@ -1,21 +1,21 @@
 # This is a minimal experiment implementation for prototyping the monitor route.
-import dallinger.deployment 
+import dallinger.deployment
 from dallinger.models import Info, Node, Transformation
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 
 import psynet.experiment
-from psynet.timeline import ( 
+from psynet.timeline import (
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
+    PageMaker,
+    CodeBlock,
+    while_loop,
     conditional
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage, 
+    InfoPage,
+    SuccessfulEndPage,
+    NAFCPage,
     TextInputPage
 )
 
@@ -46,8 +46,8 @@ class Exp(psynet.experiment.Experiment):
             "Welcome to the experiment!",
             time_estimate=5
         ),
-        PageMaker(            
-            lambda experiment, participant: 
+        PageMaker(
+            lambda experiment, participant:
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
             time_estimate=5
         ),
@@ -65,19 +65,20 @@ class Exp(psynet.experiment.Experiment):
             label="chocolate",
             prompt="Do you like chocolate?",
             choices=["Yes", "No"],
-            time_estimate=3
+            time_estimate=3,
+            arrange_vertically=True
         ),
         conditional(
             "like_chocolate",
             lambda experiment, participant: participant.answer == "Yes",
             InfoPage(
-                "It's nice to hear that you like chocolate!", 
+                "It's nice to hear that you like chocolate!",
                 time_estimate=5
-            ), 
+            ),
             InfoPage(
-                "I'm sorry to hear that you don't like chocolate...", 
+                "I'm sorry to hear that you don't like chocolate...",
                 time_estimate=3
-            ), 
+            ),
             fix_time_credit=False
         ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
@@ -89,12 +90,12 @@ class Exp(psynet.experiment.Experiment):
                 prompt="Would you like to stay in this loop?",
                 choices=["Yes", "No"],
                 time_estimate=3
-            ), 
+            ),
             expected_repetitions=3,
             fix_time_credit=True
         ),
         # NAFCPage(
-        #     label="test_nafc",            
+        #     label="test_nafc",
         #     prompt="What's your favourite colour?",
         #     choices=["Red", "Green", "Blue"],
         #     time_estimate=5
@@ -106,7 +107,7 @@ class Exp(psynet.experiment.Experiment):
         #         "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
         #         "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_estimate=2),
         #         "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_estimate=3)
-        #     }, 
+        #     },
         #     fix_time_credit=False
         # ),
         # CodeBlock(
@@ -114,7 +115,7 @@ class Exp(psynet.experiment.Experiment):
         #         participant.var.set("favourite_colour", participant.answer)
         # ),
         # PageMaker(
-        #     lambda experiment, participant: 
+        #     lambda experiment, participant:
         #         InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
         #     time_estimate=3
         # ),
