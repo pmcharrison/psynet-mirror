@@ -10,8 +10,8 @@
 {% endmacro %}
 
 {% macro nafc_button(config) %}
-    <div class="radio">
-        <label {{ '' if config.own_line else 'class="radio-inline"' }}>
+    <div class="{{ 'radio' if config.own_line else 'radio-inline' }}">
+        <label>
             <input type="radio" id="{{ config.id }}" name="optradio"
                    onclick="clicked_button('{{ config.id }}');">
             {{ config.label }}
