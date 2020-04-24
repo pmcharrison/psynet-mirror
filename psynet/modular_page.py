@@ -308,6 +308,10 @@ class ModularPage(Page):
     media
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
+        Typically this field can be left blank, as media will be passed through the
+        :class:`~psynet.modular_page.Prompt` or
+        :class:`~psynet.modular_page.Control`
+        objects instead.
 
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
