@@ -525,6 +525,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         except if switching to a :class:`~psynet.non_adaptive.NonAdaptiveTrialMaker`
         where the trial class (:class:`~psynet.non_adaptive.NonAdaptiveTrial`)
         has a different name.
+        Only set this to ``False`` if the participant is taking a subsequent phase
+        of a non-adaptive experiment.
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block.
@@ -753,7 +755,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         return participant.var.get(self.participant_group_var_id)
 
     def has_participant_group(self, participant):
-        return participant.has_var(self.participant_group_var_id)
+        return participant.var.has(self.participant_group_var_id)
 
 
     def init_completed_stimuli_in_phase(self, participant):
@@ -906,7 +908,10 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
-        if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
+        if (
+            self.max_trials_per_block is not None and
+            self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block
+        ):
             return None
         completed_stimuli = self.get_completed_stimuli_in_phase_and_block(participant, block=network.block)
         allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
