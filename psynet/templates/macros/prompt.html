@@ -1,0 +1,14 @@
+{% macro audio(config) %}
+    <p>
+        {{ config.text }}
+    </p>
+
+    <script>
+        psynet.media.register_on_loaded_routine(function() {
+            var sound = psynet.audio.prompt.play();
+            sound.onended = function() {
+                psynet.response.ready();
+            }
+        })
+    </script>
+{% endmacro %}

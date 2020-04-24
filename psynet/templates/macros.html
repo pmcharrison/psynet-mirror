@@ -1,5 +1,8 @@
 {% extends "layout.html" %}
 
+{% import "macros/prompt.html" as prompt with context %}
+{% import "macros/control.html" as control with context %}
+
 {% macro next_button() %}
     <hr>
 
@@ -7,31 +10,6 @@
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
             <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="psynet.next_page();">Next
-            </button>
-        </div>
-    </div>
-{% endmacro %}
-
-{% macro audio_prompt(config) %}
-    <p>
-        {{ config.text }}
-    </p>
-
-    <script>
-        psynet.media.register_on_loaded_routine(function() {
-            var sound = psynet.audio.prompt.play();
-            sound.onended = function() {
-                psynet.response.ready();
-            }
-        })
-    </script>
-{% endmacro %}
-
-{% macro null_control(input) %}
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg wait-for-response-ready" onClick="psynet.next_page();">Next
             </button>
         </div>
     </div>
