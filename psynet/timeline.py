@@ -963,15 +963,15 @@ class Response(Question):
     def metadata(self, metadata):
         self.details = metadata
 
-def is_list_of_events(x: list):
+def is_list_of(x: list, what):
     for val in x:
-        if not isinstance(val, Event):
+        if not isinstance(val, what):
             return False
     return True
 
 def join(*args):
     for i, arg in enumerate(args):
-        if not ((arg is None) or (isinstance(arg, (Event, Module)) or is_list_of_events(arg))):
+        if not ((arg is None) or (isinstance(arg, (Event, Module)) or is_list_of(arg, (Event, Module)))):
             raise TypeError(f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg}).")
 
     if len(args) == 0:
@@ -1002,7 +1002,7 @@ def join(*args):
         return reduce(f, args)
 
 def check_logic(logic):
-    assert isinstance(logic, Event) or is_list_of_events(logic)
+    assert isinstance(logic, Event) or is_list_of(logic, Event)
     if isinstance(logic, Event):
         logic = [logic]
     if len(logic) == 0:
@@ -1090,7 +1090,7 @@ def check_branches(branches):
     try:
         assert isinstance(branches, dict)
         for branch_name, branch_events in branches.items():
-            assert isinstance(branch_events, Event) or is_list_of_events(branch_events)
+            assert isinstance(branch_events, Event) or is_list_of(branch_events, Event)
             if isinstance(branch_events, Event):
                 branches[branch_name] = [branch_events]
         return branches
@@ -1261,7 +1261,7 @@ def fix_time(events, time_estimate):
     return join(start_fix_time, events, end_fix_time)
 
 def multiply_expected_repetitions(logic, factor: float):
-    assert isinstance(logic, Event) or is_list_of_events(logic)
+    assert isinstance(logic, Event) or is_list_of(logic, Event)
     if isinstance(logic, Event):
         logic.multiply_expected_repetitions(factor)
     else:
