@@ -21,12 +21,13 @@ from psynet.participant import Participant, get_participant
 from psynet.timeline import (
     Timeline
 )
-from psynet.page import SuccessfulEndPage, InfoPage
+from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage
 from psynet.modular_page import (
     ModularPage,
     Prompt,
     AudioPrompt,
-    Control
+    Control,
+    NAFCControl
 )
 
 
@@ -80,22 +81,26 @@ class Exp(psynet.experiment.Experiment):
         ),
         ModularPage(
             "example_text_input",
-            prompt=Prompt("""
-            This is an example of a custom control interface, defined in the class
-            'ColourText' and the template 'custom-controls.html'.
-            Note how you can customise the background colour by changing the input
-            to 'ColourText'.
+            prompt=Prompt("""\
+                This is an example of a custom control interface, defined in the class
+                'ColourText' and the template 'custom-controls.html'.
+                Note how you can customise the background colour by changing the input
+                to 'ColourText'.\
             """),
             control=ColourText("aquamarine"),
             time_estimate=5
         ),
+        DebugResponsePage(),
         ModularPage(
             "response",
             prompt=AudioPrompt(
                 url="/static/audio/bier.wav",
-                text="Listen out for someone saying 'bier'."),
+                text="Here is an example of an audio prompt combined with an NAFC control."
+            ),
+            control=NAFCControl(["Response A", "Response B"]),
             time_estimate=5
         ),
+        DebugResponsePage(),
         SuccessfulEndPage()
     )
 

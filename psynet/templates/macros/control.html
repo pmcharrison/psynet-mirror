@@ -2,8 +2,37 @@
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg wait-for-response-ready" onClick="psynet.next_page();">Next
+            <button type="button" id="next_button" class="btn btn-success btn-lg response" onclick="psynet.next_page();">Next
             </button>
         </div>
     </div>
+{% endmacro %}
+
+{% macro nafc_button(config) %}
+    {% if config.own_line %} <p style="padding:1em"> {% endif %}
+    <button
+        type="button"
+        class="btn btn-primary response"
+        id="{{ config.id }}"
+        onclick="clicked_button('{{ config.id }}');"
+        style="min-width:{{ config.min_width }}"
+    >
+    {{ config.label }}
+    </button>
+    {% if config.own_line %} </p> {% endif %}
+{% endmacro %}
+
+{% macro nafc(config) %}
+    <div>
+        {% for button in config.buttons %}
+            {{ nafc_button(button) }}
+        {% endfor %}
+    </div>
+
+    <script>
+        clicked_button = function(id) {
+            psynet.response.disable();
+            psynet.next_page(id);
+        }
+    </script>
 {% endmacro %}

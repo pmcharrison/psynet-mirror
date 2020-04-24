@@ -1,5 +1,5 @@
 from flask import Markup
-from typing import Union, Optional
+from typing import Union, Optional, List
 
 from .page import (
     Page,
@@ -217,6 +217,64 @@ class NullControl(Control):
     macro = "null"
     metadata = {}
 
+class NAFCButton():
+    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
+        self.id = button_id
+        self.label = label
+        self.min_width = min_width
+        self.own_line = own_line
+        self.start_disabled = start_disabled
+
+class NAFCControl(Control):
+    """
+    This control interfae solicits a multiple-choice response from the participant.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the buttons,
+        which the participant will see instead of ``choices``.
+
+    arrange_vertically:
+        Whether to arrange the buttons vertically.
+
+    min_width:
+        CSS ``min_width`` parameter for the buttons.
+
+    """
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            arrange_vertically: bool = False,
+            min_width: str = "100px",
+            **kwargs
+    ):
+        self.choices = choices
+        self.labels = choices if labels is None else labels
+
+        assert isinstance(self.labels, list)
+        assert len(self.choices) == len(self.labels)
+
+        self.buttons = [
+            NAFCButton(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
+            for choice, label in zip(self.choices, self.labels)
+        ]
+
+    macro = "nafc"
+
+    @property
+    def metadata(self):
+        return {
+            "choices": self.choices,
+            "labels": self.labels
+        }
+
 class ModularPage(Page):
     """
     The :class:`~psynet.modular_page.ModularPage`
@@ -350,14 +408,14 @@ class ModularPage(Page):
         By default, the ``format_answer`` method is extracted from the
         page's :class:`~psynet.page.Control` member.
         """
-        self.control.format_answer(raw_answer=raw_answer, **kwargs)
+        return self.control.format_answer(raw_answer=raw_answer, **kwargs)
 
     def validate(self, response, **kwargs):
         """
         By default, the ``validate`` method is extracted from the
         page's :class:`~psynet.page.Control` member.
         """
-        self.control.validate(response=response, **kwargs)
+        return self.control.validate(response=response, **kwargs)
 
     def metadata(self, **kwargs):
         """
