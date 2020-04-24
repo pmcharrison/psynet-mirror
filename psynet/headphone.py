@@ -1,6 +1,6 @@
 from flask import Markup
 
-from .timeline import Module
+from .timeline import Module, join
 
 from .trial.non_adaptive import (
     NonAdaptiveNetwork,
@@ -24,7 +24,7 @@ def get_stimulus_set(media_url: str):
             definition={
                 "label": label,
                 "correct_answer": answer,
-                "url": f"{media_url}/{answer}"
+                "url": f"{media_url}/antiphase_HC_{label}.wav"
             },
             phase="test"
         )
@@ -41,6 +41,8 @@ def get_stimulus_set(media_url: str):
 
 def headphone_trial(time_estimate: float):
     class HeadphoneTrial(NonAdaptiveTrial):
+        __mapper_args__ = {"polymorphic_identity": "headphone_trial"}
+
         def show_trial(self, experiment, participant):
             return ModularPage(
                 "headphone_trial",
@@ -75,7 +77,7 @@ def headphone_trial_maker(
         phase="test",
         stimulus_set=get_stimulus_set(media_url),
         time_estimate_per_trial=time_estimate_per_trial,
-        new_participant_group=False,
+        new_participant_group=True,
         check_performance_at_end=True
     )
 
@@ -92,14 +94,14 @@ def instruction_page():
     ), time_estimate=10)
 
 def headphone_check(
-        media_url: str = "https://s3.amazonaws.com/headphone-test",
+        media_url: str = "https://s3.amazonaws.com/headphone-check",
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4
     ):
     return Module(
         "headphone_check",
-        [
+        join(
             instruction_page(),
             headphone_trial_maker(media_url, time_estimate_per_trial, performance_threshold)
-        ]
+        )
     )

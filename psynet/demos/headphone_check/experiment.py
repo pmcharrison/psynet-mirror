@@ -33,6 +33,7 @@ from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         headphone_check(),
+        InfoPage("You passed the headphone screening task! Congratulations.", time_estimate=3),
         SuccessfulEndPage()
     )
 
