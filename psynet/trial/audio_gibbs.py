@@ -143,8 +143,8 @@ class AudioGibbsTrial(GibbsTrial):
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.minimal_interactions`
     attributes.
 
-    Attribute
-    ---------
+    Attributes
+    ----------
 
     snap_slider : bool
         If ``True``, the slider snaps to the location corresponding to the
