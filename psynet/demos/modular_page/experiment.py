@@ -60,7 +60,12 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         ModularPage(
             "text",
-            prompt=Prompt("This is an example of a simple text page."),
+            prompt="This is an example of a simple text page.",
+            time_estimate=5
+        ),
+        ModularPage(
+            "text",
+            prompt=Markup("This is an example of a text page with some <strong>simple formatting</strong>."),
             time_estimate=5
         ),
         ModularPage(

@@ -237,6 +237,8 @@ class ModularPage(Page):
     prompt
         A :class:`~psynet.modular_page.Prompt` object that
         determines the prompt to be displayed to the participant.
+        Alternatively, you can also provide text or a ``flask.Markup`` object,
+        which will then be automatically wrapped in a :class:`~psynet.modular_page.Prompt` object.
 
     control
         A :class:`~psynet.modular_page.Control` object that
@@ -263,6 +265,9 @@ class ModularPage(Page):
     ):
         if media is None:
             media = MediaSpec()
+
+        if not isinstance(prompt, Prompt):
+            prompt = Prompt(prompt)
 
         self.prompt = prompt
         self.control = control
