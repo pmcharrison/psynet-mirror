@@ -18,12 +18,16 @@ class Prompt():
     Attributes
     ----------
 
-    macro: str
+    macro : str
         The name of the Jinja2 macro.
 
-    metadata: Object
+    metadata : Object
         Metadata to save about the prompt; can take arbitrary form,
         but must be serialisable to JSON.
+
+    media : MediaSpec
+        Optional object of class :class:`~psynet.timeline.MediaSpec`
+        that provisions media resources for the prompt.
     """
     @property
     def macro(self):
@@ -33,10 +37,15 @@ class Prompt():
     def metadata(self):
         raise NotImplementedError
 
+    @property
+    def media(self):
+        return MediaSpec()
+
 class AudioPrompt():
     def __init__(self, url: str, text: Union[str, Markup]):
         self.text = text
         self.url = url
+        self.media = MediaSpec(audio={"prompt": url})
 
     macro = "prompt.audio"
 
@@ -58,12 +67,16 @@ class Control():
     Attributes
     ----------
 
-    macro: str
+    macro : str
         The name of the Jinja2 macro.
 
-    metadata: Object
+    metadata : Object
         Metadata to save about the prompt; can take arbitrary form,
         but must be serialisable to JSON.
+
+    media : MediaSpec
+        Optional object of class :class:`~psynet.timeline.MediaSpec`
+        that provisions media resources for the controls.
     """
     @property
     def macro(self):
@@ -72,6 +85,10 @@ class Control():
     @property
     def metadata(self):
         raise NotImplementedError
+
+    @property
+    def media(self):
+        return MediaSpec()
 
     def format_answer(self, raw_answer, **kwargs):
         """
@@ -223,8 +240,7 @@ class ModularPage(Page):
         self.prompt = prompt
         self.control = control
 
-        if isinstance(prompt, AudioPrompt):
-            media.add("audio", {"prompt": prompt.url})
+        all_media = MediaSpec.merge(media, prompt.media, control.media)
 
         super().__init__(
             label=label,
@@ -234,7 +250,7 @@ class ModularPage(Page):
                 "prompt_config": prompt,
                 "control_config": control
             },
-            media=media,
+            media=all_media,
             **kwargs
         )
 

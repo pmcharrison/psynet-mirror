@@ -113,3 +113,18 @@ def negate(f):
     def g(*args,**kwargs):
         return not f(*args,**kwargs)
     return g
+
+def merge_dicts(*args):
+    """
+    Merges a collection of dictionaries, with later dictionaries
+    taking precedence when the same key appears twice.
+
+    Parameters
+    ----------
+
+    *args
+        Dictionaries to merge.
+    """
+    if len(args) == 0:
+        return {}
+    return reduce(lambda x, y: {**x, **y}, args)

@@ -10,7 +10,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from typing import List, Optional, Dict, Callable
 
-from .utils import dict_to_js_vars, call_function, check_function_args
+from .utils import dict_to_js_vars, call_function, check_function_args, merge_dicts
 from . import templates
 
 from dallinger.models import Question
@@ -185,6 +185,8 @@ class MediaSpec():
                 }
             }
     """
+    modalities = ["audio"]
+
     def __init__(self, audio: Optional[dict] = None):
         if audio is None:
             audio = {}
@@ -192,6 +194,8 @@ class MediaSpec():
         self.data = {
             "audio": audio
         }
+
+        assert list(self.data) == self.modalities
 
     @property
     def audio(self):
@@ -209,6 +213,17 @@ class MediaSpec():
             self.data[modality] = {}
         for key, value in entries.items():
             self.data[modality][key] = value
+
+    @classmethod
+    def merge(self, *args):
+        if len(args) == 0:
+            return MediaSpec()
+
+        new_args = {}
+        for modality in self.modalities:
+            new_args[modality] = merge_dicts(*[x.data[modality] for x in args])
+
+        return MediaSpec(**new_args)
 
     def check(self):
         assert isinstance(self.data, dict)
