@@ -6,6 +6,8 @@ from .page import (
     MediaSpec
 )
 
+from .utils import merge_dicts
+
 class Prompt():
     """
     The Prompt class displays some kind of media to the participant,
@@ -15,11 +17,27 @@ class Prompt():
     in ``templates/macros.html``. In the future, we will update the API
     to allow macros to be defined in external files.
 
+    Parameters
+    ----------
+
+    text
+        Optional text to display to the participant.
+        This can either be a string, which will be HTML-escaped
+        and displayed as regular text, or an HTML string
+        as produced by ``flask.Markup``.
+
     Attributes
     ----------
 
     macro : str
-        The name of the Jinja2 macro.
+        The name of the Jinja2 macro as defined within the respective template file.
+
+    ready_for_response : bool
+        Whether or not the page starts ready for a user response.
+        Set this to False if you want the page to wait for a custom
+        event to happen before the response options are enabled.
+        This event can be triggered with ``psynet.response.ready();``
+        in Javascript.
 
     metadata : Object
         Metadata to save about the prompt; can take arbitrary form,
@@ -28,32 +46,51 @@ class Prompt():
     media : MediaSpec
         Optional object of class :class:`~psynet.timeline.MediaSpec`
         that provisions media resources for the prompt.
+
+    external_template : Optional[str]
+        Optionally specifies a custom Jinja2 template from which the
+        prompt macro should be sourced.
+        If not provided, the prompt macro will be assumed to be located
+        in PsyNet's built-in ``prompt.html`` file.
     """
-    @property
-    def macro(self):
-        raise NotImplementedError
+
+    def __init__(
+            self,
+            text: Union[None, str, Markup] = None
+        ):
+        self.text = text
+
+    macro = "simple"
+    ready_for_response = True
+    external_template = None
 
     @property
     def metadata(self):
-        raise NotImplementedError
+        return {
+            "text": self.text
+        }
 
     @property
     def media(self):
         return MediaSpec()
 
-class AudioPrompt():
+class AudioPrompt(Prompt):
     def __init__(self, url: str, text: Union[str, Markup]):
-        self.text = text
+        super().__init__(text=text)
         self.url = url
-        self.media = MediaSpec(audio={"prompt": url})
 
-    macro = "prompt.audio"
+    macro = "audio"
+    ready_for_response = False
 
     @property
     def metadata(self):
         return {
             "url": self.url
         }
+
+    @property
+    def media(self):
+        return MediaSpec(audio={"prompt": self.url})
 
 class Control():
     """
@@ -68,7 +105,7 @@ class Control():
     ----------
 
     macro : str
-        The name of the Jinja2 macro.
+        The name of the Jinja2 macro as defined within the respective template file.
 
     metadata : Object
         Metadata to save about the prompt; can take arbitrary form,
@@ -77,7 +114,16 @@ class Control():
     media : MediaSpec
         Optional object of class :class:`~psynet.timeline.MediaSpec`
         that provisions media resources for the controls.
+
+    external_template : Optional[str]
+        Optionally specifies a custom Jinja2 template from which the
+        control macro should be sourced.
+        If not provided, the control macro will be assumed to be located
+        in PsyNet's built-in ``control.html`` file.
     """
+
+    external_template = None
+
     @property
     def macro(self):
         raise NotImplementedError
@@ -168,7 +214,7 @@ class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
     """
-    macro = "control.null"
+    macro = "null"
     metadata = {}
 
 class ModularPage(Page):
@@ -215,31 +261,31 @@ class ModularPage(Page):
         media: Optional[MediaSpec] = None,
         **kwargs
     ):
-
-        template_str = f"""
-        {{% extends "timeline-page.html" %}}
-
-        {{% block prompt %}}
-        {{{{ super() }}}}
-
-        {{{{ {prompt.macro}(prompt_config) }}}}
-
-        {{% endblock %}}
-
-        {{% block input %}}
-        {{{{ super() }}}}
-
-        {{{{ {control.macro}(control_config) }}}}
-
-        {{% endblock %}}
-        """
-
         if media is None:
             media = MediaSpec()
 
         self.prompt = prompt
         self.control = control
 
+        template_str = f"""
+        {{% extends "timeline-page.html" %}}
+
+        {self.import_templates}
+
+        {{% block prompt %}}
+        {{{{ super() }}}}
+
+        {{{{ {self.prompt_macro}(prompt_config) }}}}
+
+        {{% endblock %}}
+
+        {{% block input %}}
+        {{{{ super() }}}}
+
+        {{{{ {self.control_macro}(control_config) }}}}
+
+        {{% endblock %}}
+        """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
 
         super().__init__(
@@ -253,6 +299,46 @@ class ModularPage(Page):
             media=all_media,
             **kwargs
         )
+
+    @property
+    def prompt_macro(self):
+        if self.prompt.external_template is None:
+            location = "prompt"
+        else:
+            location = "custom_prompt"
+        return f"{location}.{self.prompt.macro}"
+
+    @property
+    def control_macro(self):
+        if self.control.external_template is None:
+            location = "control"
+        else:
+            location = "custom_control"
+        return f"{location}.{self.control.macro}"
+
+    @property
+    def import_templates(self):
+        return self.import_internal_templates + self.import_external_templates
+
+    @property
+    def import_internal_templates(self):
+        # We explicitly import these internal templates here to ensure
+        # they're imported by the time we try to call them.
+        return """
+        {% import "macros/prompt.html" as prompt %}
+        {% import "macros/control.html" as control %}
+        """
+
+    @property
+    def import_external_templates(self):
+        return " ".join([
+            f'{{% import "{path}" as {name} with context %}}'
+            for path, name in zip(
+                [self.prompt.external_template, self.control.external_template],
+                ["custom_prompt", "custom_control"]
+            )
+            if path is not None
+        ])
 
     def format_answer(self, raw_answer, **kwargs):
         """

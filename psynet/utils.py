@@ -114,7 +114,7 @@ def negate(f):
         return not f(*args,**kwargs)
     return g
 
-def merge_dicts(*args):
+def merge_dicts(*args, overwrite: bool):
     """
     Merges a collection of dictionaries, with later dictionaries
     taking precedence when the same key appears twice.
@@ -124,7 +124,39 @@ def merge_dicts(*args):
 
     *args
         Dictionaries to merge.
+
+    overwrite
+        If ``True``, when the same key appears twice in multiple dictionaries,
+        the key from the latter dictionary takes precedence.
+        If ``False``, an error is thrown if such duplicates occur.
     """
+
     if len(args) == 0:
         return {}
     return reduce(lambda x, y: {**x, **y}, args)
+
+def merge_two_dicts(x: dict, y: dict, overwrite: bool):
+    """
+    Merges two dictionaries.
+
+    Parameters
+    ----------
+
+    x :
+        First dictionary.
+
+    y :
+        Second dictionary.
+
+    overwrite :
+        If ``True``, when the same key appears twice in the two dictionaries,
+        the key from the latter dictionary takes precedence.
+        If ``False``, an error is thrown if such duplicates occur.
+    """
+
+    if not overwrite:
+        for key in y.keys():
+            if key in x:
+                raise ValueError(f"Duplicate key {key} found in the dictionaries to be merged.")
+
+    return {**x, **y}

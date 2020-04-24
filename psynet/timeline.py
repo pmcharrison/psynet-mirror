@@ -215,13 +215,13 @@ class MediaSpec():
             self.data[modality][key] = value
 
     @classmethod
-    def merge(self, *args):
+    def merge(self, *args, overwrite: bool = False):
         if len(args) == 0:
             return MediaSpec()
 
         new_args = {}
         for modality in self.modalities:
-            new_args[modality] = merge_dicts(*[x.data[modality] for x in args])
+            new_args[modality] = merge_dicts(*[x.data[modality] for x in args], overwrite=overwrite)
 
         return MediaSpec(**new_args)
 
