@@ -38,7 +38,7 @@ class AudioPrompt():
         self.text = text
         self.url = url
 
-    macro = "audio"
+    macro = "prompt.audio"
 
     @property
     def metadata(self):
@@ -151,7 +151,7 @@ class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
     """
-    macro = "null"
+    macro = "control.null"
     metadata = {}
 
 class ModularPage(Page):
@@ -205,14 +205,14 @@ class ModularPage(Page):
         {{% block prompt %}}
         {{{{ super() }}}}
 
-        {{{{ prompt.{prompt.macro}(prompt_config) }}}}
+        {{{{ {prompt.macro}(prompt_config) }}}}
 
         {{% endblock %}}
 
         {{% block input %}}
         {{{{ super() }}}}
 
-        {{{{ control.{control.macro}(control_config) }}}}
+        {{{{ {control.macro}(control_config) }}}}
 
         {{% endblock %}}
         """
