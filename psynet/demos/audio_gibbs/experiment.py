@@ -31,8 +31,8 @@ TARGETS = ["critical", "suggestive", "angry"]
 DIMENSIONS = 5
 RANGE = [-800, 800]
 GRANULARITY = 25
-SNAP_SLIDER = True
-AUTOPLAY = False
+SNAP_SLIDER = False
+AUTOPLAY = True
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}

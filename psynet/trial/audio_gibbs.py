@@ -5,7 +5,7 @@ from .gibbs import GibbsNetwork, GibbsTrialMaker, GibbsTrial, GibbsNode, GibbsSo
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
 from ..page import AudioSliderPage, SLIDER_DEFAULT_NUM_TICKS
-from ..utils import get_object_from_module, import_local_experiment
+from ..utils import get_object_from_module, import_local_experiment, linspace
 
 import random
 import os
@@ -325,7 +325,7 @@ def make_audio_regular_intervals(
     synth_function
 ):
     stimuli = []
-    for _i, _value in enumerate(range(range_to_sample[0], range_to_sample[1], granularity)):
+    for _i, _value in enumerate(linspace(range_to_sample[0], range_to_sample[1], granularity)):
         _vector = vector.copy()
         _vector[active_index] = _value
         _id = f"slider_stimulus_{_i}"
