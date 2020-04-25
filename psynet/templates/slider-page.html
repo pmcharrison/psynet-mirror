@@ -52,18 +52,12 @@
 
         slider.interaction_count = 0;
 
-        get_slider_value = function (return_both_raw_and_snapped = true) {
-            let slider_value = slider.value;
-            let snapped_value = psynet.utils.closest(slider_value, ticks);
-
-            if (snap_slider) {
-                slider.value = snapped_value;
-            }
-            if (return_both_raw_and_snapped) {
-                return {'snapped_slider_value': snapped_value, 'raw_slider_value': slider_value};
-            } else {
-                return snapped_value;
-            }
+        get_slider_value = function () {
+            raw_value = parseFloat(slider.value);
+            new_value = psynet.utils.closest(slider.value, snap_values);
+            slider.value = new_value;
+            psynet.log.info("Snapped slider from " + raw_value + " to " + new_value);
+            return new_value;
         };
 
         // Save initial position

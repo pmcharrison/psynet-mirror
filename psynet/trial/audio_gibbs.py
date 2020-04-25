@@ -177,7 +177,7 @@ class AudioGibbsTrial(GibbsTrial):
             start_value=start_value,
             min_value=vector_range[0],
             max_value=vector_range[1],
-            allowed_values=self.slider_allowed_values,
+            snap_values=self.slider_snap_values,
             autoplay=self.autoplay,
             reverse_scale=self.reverse_scale,
             time_estimate=5,
@@ -186,7 +186,7 @@ class AudioGibbsTrial(GibbsTrial):
         )
 
     @property
-    def slider_allowed_values(self):
+    def slider_snap_values(self):
         if self.snap_slider:
             return [value for key, value in self.sound_locations.items()]
         return SLIDER_DEFAULT_NUM_TICKS
