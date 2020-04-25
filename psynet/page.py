@@ -369,7 +369,7 @@ class SliderPage(Page):
     max_value:
         Maximum value of the slider.
 
-    num_steps: default: 1000
+    num_steps: default: 10000
         Determines the number of steps that the slider can be dragged through.
 
     snap_values: default: None
@@ -416,7 +416,7 @@ class SliderPage(Page):
             start_value: float,
             min_value: float,
             max_value: float,
-            num_steps: int = 1000,
+            num_steps: int = 10000,
             snap_values: Optional[Union[int, list]] = None,
             input_type: Optional[str] = "HTML5_range_slider",
             minimal_interactions: Optional[int] = 0,
@@ -554,7 +554,7 @@ class AudioSliderPage(SliderPage):
         Maximum value of the slider.
 
     num_steps:
-        - <int> (default = 1000): number of equidistant steps between `min_value` and `max_value` that the slider
+        - <int> (default = 10000): number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
 
         - ``"num_sounds"``: sets the number of steps to the number of sounds. This only makes sense
@@ -591,7 +591,7 @@ class AudioSliderPage(SliderPage):
         start_value: float,
         min_value: float,
         max_value: float,
-        num_steps: Union[str, int] = 1000,
+        num_steps: Union[str, int] = 10000,
         snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
         time_estimate: Optional[float] = None,

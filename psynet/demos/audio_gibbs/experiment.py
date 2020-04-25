@@ -31,7 +31,7 @@ TARGETS = ["critical", "suggestive", "angry"]
 DIMENSIONS = 5
 RANGE = [-800, 800]
 GRANULARITY = 25
-SNAP_SLIDER = False
+SNAP_SLIDER = True
 AUTOPLAY = True
 
 class CustomNetwork(AudioGibbsNetwork):
