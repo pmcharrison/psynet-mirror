@@ -503,33 +503,44 @@
                         out = psynet.media.data[media_type][stimulus_id];
 
                         out.buffer = res;
-                        out.current_context = null;
+                        out.source = null;
                         out.start_time = null;
 
                         // Add play function to buffer
                         out.play = function () {
-                            var source = psynet.media.audio_context.createBufferSource();
-                            source.connect(psynet.media.audio_context.destination);
-                            source.buffer = res;
-                            startTime = psynet.media.audio_context.currentTime + 0.1;
-                            source.start(startTime);
+                            this.source = psynet.media.audio_context.createBufferSource();
+                            this.gain_node = psynet.media.audio_context.createGain();
+                            this.source.connect(this.gain_node);
+                            this.gain_node.connect(psynet.media.audio_context.destination);
 
-                            this.start_time = startTime;
-                            this.current_context = source;
+                            this.source.buffer = res;
+                            this.start_time = psynet.media.audio_context.currentTime + 0.05;
+                            this.source.start(this.start_time);
+                            this.fading_out = false;
 
-                            return (source);
+                            return (this.source);
                         };
 
                         // stop the sound
-                        out.stop = function (fade_out = 0) {
-                            if (this.current_context !== null) {
-                                if (fade_out !== 0) {
-                                    throw Error("Fade-outs other than 0 are not implemented yet.");
-                                    // See https://codepen.io/2kool2/pen/RgKeyp for ideas.
+                        out.stop = function (fade_out = 0.05) {
+                            if (!this.fading_out) {
+                                if (this.source !== null) {
+                                    // According to the documentation, we have to add an audio event
+                                    // to constitute the reference start point for the fade out.
+                                    // Here we just set the gain to itself.
+                                    var current_gain = this.gain_node.gain.value;
+                                    this.gain_node.gain.setValueAtTime(current_gain, psynet.media.audio_context.currentTime);
+
+                                    this.gain_node.gain.exponentialRampToValueAtTime(0.001, psynet.media.audio_context.currentTime + fade_out);
+                                    this.fading_out = true;
+
+                                    var audio = this;
+                                    setTimeout(function() {
+                                        audio.source.stop();
+                                        audio.source = null;
+                                        audio.start_time = null;
+                                    }, fade_out * 1000);
                                 }
-                                this.current_context.stop();
-                                this.current_context = null;
-                                this.start_time = null;
                             }
                         };
 
