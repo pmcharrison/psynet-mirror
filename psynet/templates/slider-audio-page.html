@@ -20,7 +20,7 @@
                 return sound_locations[key];
             });
 
-            if (!snapped_value in locations) {
+            if (!(snapped_value in locations)) {
                 psynet.log.error('Sound location ' + snapped_value + ' does not exist as a value in array `sound_locations`')
             } else {
                 var idx = locations.indexOf(snapped_value);
