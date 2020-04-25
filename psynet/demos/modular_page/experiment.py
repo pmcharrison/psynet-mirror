@@ -27,7 +27,7 @@ from psynet.modular_page import (
     Prompt,
     AudioPrompt,
     Control,
-    NAFCControl
+    #NAFCControl
 )
 
 
@@ -58,7 +58,30 @@ class ColourText(Control):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    from psynet.modular_page import (
+        DropdownControl
+    )
     timeline = Timeline(
+        ModularPage(
+            "response",
+            prompt=AudioPrompt(
+                url="/static/audio/bier.wav",
+                text="Here is an example of an audio prompt combined with an NAFC control."
+            ),
+            control=DropdownControl(["Response A", "Response B"]),
+            time_estimate=5
+        ),
+        DebugResponsePage(),
+        ModularPage(
+            "response",
+            prompt=AudioPrompt(
+                url="/static/audio/bier.wav",
+                text="Here is an example of an audio prompt combined with an NAFC control."
+            ),
+            control=DropdownControl(["Response A", "Response B"], initial_value='Response B'),
+            time_estimate=5
+        ),
+        DebugResponsePage(),
         ModularPage(
             "text",
             prompt="This is an example of a simple text page.",
@@ -88,16 +111,6 @@ class Exp(psynet.experiment.Experiment):
                 to 'ColourText'.\
             """),
             control=ColourText("aquamarine"),
-            time_estimate=5
-        ),
-        DebugResponsePage(),
-        ModularPage(
-            "response",
-            prompt=AudioPrompt(
-                url="/static/audio/bier.wav",
-                text="Here is an example of an audio prompt combined with an NAFC control."
-            ),
-            control=NAFCControl(["Response A", "Response B"]),
             time_estimate=5
         ),
         DebugResponsePage(),

@@ -217,17 +217,17 @@ class NullControl(Control):
     macro = "null"
     metadata = {}
 
-class NAFCButton():
-    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
+
+class OptionItem():
+    def __init__(self, button_id, *, label, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
         self.id = button_id
         self.label = label
-        self.min_width = min_width
-        self.own_line = own_line
-        self.start_disabled = start_disabled
 
-class NAFCControl(Control):
+class OptionControl(Control):
     """
-    This control interfae solicits a multiple-choice response from the participant.
+    This control interface solicits a options choice response from the participant.
 
     Parameters
     ----------
@@ -239,11 +239,8 @@ class NAFCControl(Control):
         An optional list of textual labels to apply to the buttons,
         which the participant will see instead of ``choices``.
 
-    arrange_vertically:
-        Whether to arrange the buttons vertically.
-
-    min_width:
-        CSS ``min_width`` parameter for the buttons.
+    style:
+        A dictionary with some style attributes, like `arrange_vertically` or `min_width`
 
     """
 
@@ -251,8 +248,7 @@ class NAFCControl(Control):
             self,
             choices: List[str],
             labels: Optional[List[str]] = None,
-            arrange_vertically: bool = False,
-            min_width: str = "100px",
+            style: Optional[dict] = {},
             **kwargs
     ):
         self.choices = choices
@@ -261,12 +257,10 @@ class NAFCControl(Control):
         assert isinstance(self.labels, list)
         assert len(self.choices) == len(self.labels)
 
-        self.buttons = [
-            NAFCButton(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
+        self.options = [
+            OptionControl(button_id=choice, label=label, style=style)
             for choice, label in zip(self.choices, self.labels)
         ]
-
-    macro = "nafc"
 
     @property
     def metadata(self):
@@ -274,6 +268,72 @@ class NAFCControl(Control):
             "choices": self.choices,
             "labels": self.labels
         }
+
+class DropdownControl(OptionControl):
+    """
+    This control interface solicits a options choice response from the participant.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the buttons,
+        which the participant will see instead of ``choices``.
+
+    style:
+        A dictionary with some style attributes, like `arrange_vertically` or `min_width`
+
+    initial_value:
+        Preselected option, needs to be in `choices`.
+
+    only_select_one:
+        If True you can only select one value, False select multiple values
+
+    """
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            style: Optional[dict] = {},
+            initial_value: Optional[str] = None,
+            only_select_one: Optional[bool] = True,
+            **kwargs
+    ):
+        # TODO remove duplicate code
+        self.choices = choices
+        self.labels = choices if labels is None else labels
+
+        assert isinstance(self.labels, list)
+        assert len(self.choices) == len(self.labels)
+
+        if initial_value is not None and initial_value not in choices:
+            raise ValueError('You need to supply a value that is in choices')
+        self.initial_value = initial_value
+
+        if only_select_one is False:
+            raise NotImplementedError('Multiple selections are not yet implemented!')
+
+        self.only_select_one = only_select_one
+
+        self.options = [
+            OptionItem(button_id=choice, label=label, style=style)
+            for choice, label in zip(self.choices, self.labels)
+        ]
+
+    macro = "dropdown"
+
+    @property
+    def metadata(self):
+        return {
+            "choices": self.choices,
+            "labels": self.labels
+        }
+
+
 
 class ModularPage(Page):
     """

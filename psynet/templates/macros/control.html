@@ -9,6 +9,81 @@
     </div>
 {% endmacro %}
 
+{% macro submit_button(config) %}
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">
+                Submit
+            </button>
+        </div>
+    </div>
+    <script>
+        submit = function () {
+            $(".submit-response").attr('disabled', true);
+            psynet.next_page(psynet.response.current, psynet.response.metadata);
+        }
+    </script>
+{% endmacro %}
+
+{% macro dropdown_item(config, main_config) %}
+    <option
+            {{ 'selected' if main_config.initial_value == config.label else '' }}
+            id="{{ config.id }}">{{ config.label }}</option>
+{% endmacro %}
+
+{% macro dropdown(config) %}
+    <div class="form-group">
+        <select class="form-control" id="dropdown">
+            {% if config.initial_value is none %}
+                {{ dropdown_item(null, null) }}
+            {% endif %}
+            {% for option in config.options %}
+                {{ dropdown_item(option, config) }}
+            {% endfor %}
+        </select>
+    </div>
+
+    {{ submit_button(config) }}
+
+    <script>
+        var dropdown = document.getElementById('dropdown');
+        psynet.response.metadata.log = [];
+
+        create_log_message = function (message) {
+            return ({
+                'time': new Date(),
+                'message': message
+            })
+        };
+
+        psynet.media.register_on_loaded_routine(function () {
+            psynet.response.metadata.log.push(create_log_message('Dropdown initialized with ' + dropdown.value));
+            // Make sure initial empty dropdown disables submit button
+            if (dropdown.value === ''){
+                $(".submit-response").attr('disabled', true);
+            }
+        });
+
+        dropdown.addEventListener('change', function () {
+            psynet.response.current = this.value;
+            psynet.log.info(this.value);
+            psynet.response.metadata.log.push(create_log_message('Value changed to ' + this.value));
+            // Make sure you cannot send empty responses
+            if (this.value !== ''){
+                $(".submit-response").attr('disabled', false);
+            } else{
+               $(".submit-response").attr('disabled', true);
+            }
+        });
+
+    </script>
+{% endmacro %}
+
+{# TODO repeat this for radio, checkbox, button #}
+
+
+{# TODO depricated: #}
 {% macro nafc_button(config) %}
     <div class="{{ 'radio' if config.own_line else 'radio-inline' }}">
         <label>
