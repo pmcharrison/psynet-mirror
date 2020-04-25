@@ -4,6 +4,8 @@
     {{ super() }}
 
     <script>
+        var current_sound;
+
         // Overwrites corresponding method in slider-page.html
         slider.update_log = function() {
             slider.log.push({
@@ -21,9 +23,12 @@
         };
 
         play_sound = function () {
+            if (current_sound != undefined) {
+                current_sound.stop();
+            }
             var id = slider.audio
             psynet.log.debug('Playing sound with ID = ' + id);
-            psynet.audio[id].play();
+            current_sound = psynet.audio[id].play();
         };
 
         on_slider_event = function (event_type) {
