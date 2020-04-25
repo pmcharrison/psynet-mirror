@@ -1,7 +1,16 @@
 import json
 import inspect
-from functools import reduce
+import importlib
+import time
+import sys
+import os
+
+from functools import reduce, wraps
 from sqlalchemy.sql import func
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 def get_arg_from_dict(x, desired: str, use_default = False, default = None):
     if desired not in x:
@@ -13,6 +22,10 @@ def get_arg_from_dict(x, desired: str, use_default = False, default = None):
 
 def sql_sample_one(x):
     return x.order_by(func.random()).first()
+
+def import_local_experiment():
+    sys.path.append(os.getcwd())
+    import experiment
 
 # def get_json_arg_from_request(request, desired: str, use_default = False, default = None):
 #     arguments = request.json
@@ -59,4 +72,62 @@ def check_function_args(f, args, need_all=True):
                 raise ValueError(f"Invalid argument: {a}")
     return True
 
-    
+def get_object_from_module(module_name: str, object_name: str):
+    """
+    Finds and returns an object from a module.
+
+    Parameters
+    ----------
+
+    module_name
+        The name of the module.
+
+    object_name
+        The name of the object.
+    """
+    mod = importlib.import_module(module_name)
+    obj = getattr(mod, object_name)
+    return obj
+
+def log_time_taken(fun):
+    def wrapper(*args, **kwargs):
+        start_time = time.monotonic()
+        res = fun(*args, **kwargs)
+        end_time = time.monotonic()
+        time_taken = end_time - start_time
+        logger.info("Time taken by %s: %.3f seconds.", fun.__name__, time_taken)
+        return res
+    return wrapper
+
+def negate(f):
+    """
+    Negates a function.
+
+    Parameters
+    ----------
+
+    f
+        Function to negate.
+    """
+    @wraps(f)
+    def g(*args,**kwargs):
+        return not f(*args,**kwargs)
+    return g
+
+def linspace(lower, upper, length: int):
+    """
+    Returns a list of equally spaced numbers between two closed bounds.
+
+    Parameters
+    ----------
+
+    lower : number
+        The lower bound.
+
+    upper : number
+        The upper bound.
+
+    length : int
+        The length of the resulting list.
+    """
+    return [lower + x * (upper - lower) / (length - 1) for x in range(length)]

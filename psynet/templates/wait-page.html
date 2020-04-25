@@ -1,0 +1,14 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+{{content}}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    setTimeout(function() {
+        psynet.next_page();
+    }, 1000 * {{ wait_time }});
+</script>
+{% endblock %}

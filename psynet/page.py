@@ -6,17 +6,19 @@ from typing import (
     List
 )
 
+from math import ceil
+import itertools
+import json
+
 from .timeline import (
     get_template,
     Page,
     PageMaker,
     EndPage,
-    FailedValidation
+    FailedValidation,
+    while_loop
 )
-import itertools
-
-import json
-
+from .utils import linspace
 
 class InfoPage(Page):
     """
@@ -57,6 +59,95 @@ class InfoPage(Page):
         return {
             "content": self.content
         }
+
+class WaitPage(Page):
+    """
+    This page makes the user wait for a specified amount of time
+    before automatically continuing to the next page.
+
+    Parameters
+    ----------
+
+    wait_time:
+        Time that the user should wait.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    content = "Please wait, the experiment should continue shortly..."
+
+    def __init__(
+            self,
+            wait_time: float,
+            **kwargs
+    ):
+        assert wait_time >= 0
+        self.wait_time = wait_time
+        super().__init__(
+            time_estimate=wait_time,
+            template_str=get_template("wait-page.html"),
+            template_arg={
+                "content": self.content,
+                "wait_time": self.wait_time
+            },
+            **kwargs
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "content": self.content,
+            "wait_time": self.wait_time
+        }
+
+def wait_while(
+        condition,
+        expected_wait: float,
+        check_interval: float = 1.0,
+        wait_page=WaitPage
+    ):
+    """
+    Displays the participant a waiting page while a given condition
+    remains satisfied.
+
+    Parameter
+    ---------
+
+    condition
+        The condition to be checked;
+        the participant will keep waiting while this condition returns True.
+        This argument should be a function receiving the following arguments:
+        ``participant`` (corresponding to the current participant)
+        and ``experiment`` (corresponding to the current experiments).
+        If one of this arguments is not needed, it can be omitted from the
+        argument list.
+
+    expected_wait
+        How long the participant is likely to wait, in seconds.
+
+    check_interval
+        How often should the browser check the condition, in seconds.
+
+    wait_page
+        The wait page that should be displayed to the participant;
+        defaults to :class:`~psynet.page.WaitPage`.
+
+    Returns
+    -------
+
+    list :
+        A list of test events suitable for inclusion in a PsyNet timeline.
+    """
+    assert expected_wait > 0
+    assert check_interval > 0
+    expected_repetitions = ceil(expected_wait / check_interval)
+
+    return while_loop(
+        "wait_while",
+        condition,
+        logic=wait_page(wait_time=check_interval),
+        expected_repetitions=expected_repetitions
+    )
 
 class SuccessfulEndPage(EndPage):
     """
@@ -240,10 +331,6 @@ class TextInputPage(Page):
             "prompt": self.prompt
         }
 
-
-SLIDER_DEFAULT_NUM_TICKS = 1000
-
-
 class SliderPage(Page):
     """
     This page solicits a slider response from the user.
@@ -279,16 +366,22 @@ class SliderPage(Page):
     max_value:
         Maximum value of the slider.
 
-    allowed_values: default: SLIDER_DEFAULT_NUM_TICKS
-        <int>: indicating number of possible equidistant steps between `min_value` and `max_value`,
-        by default we use SLIDER_DEFAULT_NUM_TICKS
-        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+    num_steps: default: 10000
+        Determines the number of steps that the slider can be dragged through.
+
+    snap_values: default: None
+        Determines the values to which the slider will 'snap' to once it is released.
+        Can take various forms:
+
+        - <None>: no snapping is performed.
+
+        - <int>: indicating number of equidistant steps between `min_value` and `max_value`.
+
+        - <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
 
     input_type: default: "HTML5_range_slider"
         By default we use the HTML5 slider, however future implementations might also use different slider
         formats, like 2D sliders or circular sliders.
-
-    snap_slider: default: True
 
     minimal_interactions: default: 0
         Minimal interactions with the slider before the user can go to next trial.
@@ -316,12 +409,13 @@ class SliderPage(Page):
             self,
             label: str,
             prompt: Union[str, Markup],
+            *,
             start_value: float,
             min_value: float,
             max_value: float,
-            allowed_values: Optional[Union[int, list]] = SLIDER_DEFAULT_NUM_TICKS,
+            num_steps: int = 10000,
+            snap_values: Optional[Union[int, list]] = None,
             input_type: Optional[str] = "HTML5_range_slider",
-            snap_slider: Optional[bool] = True,
             minimal_interactions: Optional[int] = 0,
             reverse_scale: Optional[bool] = False,
             slider_id: Optional[str] = 'sliderpage_slider',
@@ -336,28 +430,25 @@ class SliderPage(Page):
         self.start_value = start_value
         self.input_type = input_type
         self.minimal_interactions = minimal_interactions
+        self.num_steps = num_steps
 
         self._validate()
 
         if not 'js_vars' in kwargs:
             kwargs['js_vars'] = {}
 
-        if 'template_arg' in kwargs:
-            template_arg = kwargs['template_arg']
-        else:
-            template_arg = {}
+        diff = max_value - min_value
+        step_size = diff / (num_steps - 1)
 
-        ticks, step_size, diff = self._get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
+        snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
+        self.snap_values = snap_values
 
-        self.ticks = ticks
-        style = (
-            "" if width is None else f"width:{width}"
-                                     " "
-                                     "" if height is None else f"height:{height}"
-        )
-
-        if not snap_slider:
-            step_size = diff / (SLIDER_DEFAULT_NUM_TICKS - 1)
+        styles = []
+        if width is not None:
+            styles.append(f"width:{width}")
+        if height is not None:
+            styles.append(f"height:{height}")
+        style = " ".join(styles)
 
         new_template_args = {
             "prompt": prompt,
@@ -365,7 +456,6 @@ class SliderPage(Page):
             "min_value": min_value,
             "max_value": max_value,
             "step_size": step_size,
-            "snap_slider": snap_slider,
             "reverse_scale": reverse_scale,
             "style": style,
             "slider_id": slider_id
@@ -377,11 +467,11 @@ class SliderPage(Page):
         for key, value in new_template_args.items():
             kwargs['template_arg'][key] = value
 
-        kwargs['js_vars']["ticks"] = ticks
+        kwargs['js_vars']["snap_values"] = snap_values
+        kwargs['js_vars']["num_steps"] = num_steps
         kwargs['js_vars']["start_value"] = start_value
         kwargs['js_vars']['minimal_interactions'] = minimal_interactions
         kwargs['js_vars']["reverse_scale"] = reverse_scale
-        kwargs['js_vars']["snap_slider"] = snap_slider
 
         super().__init__(
             time_estimate=time_estimate,
@@ -404,40 +494,23 @@ class SliderPage(Page):
         if self.minimal_interactions < 0:
             raise ValueError('`minimal_interactions` cannot be negative!')
 
-    def _check_allowed_values_list(self, allowed_values, max_value, min_value):
-        # Must be a list
-        if not isinstance(allowed_values, list):
-            return False
-        for i in allowed_values:
-            # Check if it's numeric
-            if not isinstance(i, (float, int)):
-                return False
-            # Check if it doesn't exceed min and max
-            if i > max_value or i < min_value:
-                return False
-        return True
-
-    def _get_ticks_step_size_and_diff(self, allowed_values, max_value, min_value):
-        if isinstance(allowed_values, int):
-            num_ticks = allowed_values
+    def _format_snap_values(self, snap_values, min_value, max_value, num_steps):
+        if snap_values is None:
+            return linspace(min_value, max_value, num_steps)
+        elif isinstance(snap_values, int):
+            return linspace(min_value, max_value, snap_values)
         else:
-            num_ticks = SLIDER_DEFAULT_NUM_TICKS
-        diff = max_value - min_value
-        step_size = diff / (num_ticks - 1)
-        if isinstance(allowed_values, int):
-            # In both cases the left of the slider is the minimum and the right the maximum
-            ticks = [step_size * i for i in range(num_ticks)]
-        elif self._check_allowed_values_list(allowed_values, max_value, min_value):
-            ticks = allowed_values
-        else:
-            raise ValueError('`allowed_values` must either be a list of values or an integer')
-
-        return (ticks, step_size, diff)
+            for x in snap_values:
+                assert isinstance(x, (float, int))
+                assert x >= min_value
+                assert x <= max_value
+            return sorted(snap_values)
 
     def metadata(self, **kwargs):
         return {
             **super().metadata(),
-            'ticks': self.ticks,
+            'num_steps': self.num_steps,
+            'snap_values': self.snap_values,
             'min_value': self.min_value,
             'max_value': self.max_value,
             'start_value': self.start_value,
@@ -477,10 +550,21 @@ class AudioSliderPage(SliderPage):
     max_value:
         Maximum value of the slider.
 
-    allowed_values:
-        <int>: indicating number of possible equidistant steps between `min_value` and `max_value`,
-        by default we use SLIDER_DEFAULT_NUM_TICKS
-        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+    num_steps:
+        - <int> (default = 10000): number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"num_sounds"``: sets the number of steps to the number of sounds. This only makes sense
+          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+    snap_values:
+        - ``"sound_locations"`` (default): slider snaps to nearest sound location.
+
+        - <int>: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - <list>: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
 
     autoplay:
         Default: False. The sound closest to the current slider position is played once the page is loaded.
@@ -499,11 +583,13 @@ class AudioSliderPage(SliderPage):
         self,
         label: str,
         prompt: Union[str, Markup],
+        *,
         sound_locations: dict,
         start_value: float,
         min_value: float,
         max_value: float,
-        allowed_values: Optional[Union[int, list]] = SLIDER_DEFAULT_NUM_TICKS,
+        num_steps: Union[str, int] = 10000,
+        snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
         time_estimate: Optional[float] = None,
         template_str: Optional[str] = get_template("slider-audio-page.html"),
@@ -514,6 +600,18 @@ class AudioSliderPage(SliderPage):
 
         if not 'audio' in kwargs['media']:
             raise ValueError('The `media` dictionary must contain the key `audio`')
+
+        if isinstance(num_steps, str):
+            if num_steps == "num_sounds":
+                num_steps = len(sound_locations)
+            else:
+                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+
+        if isinstance(snap_values, str):
+            if snap_values == "sound_locations":
+                snap_values = list(sound_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
 
         # Check if all stimuli specified in `sound_locations` are
         # also preloaded before the participant can start the trial
@@ -533,9 +631,9 @@ class AudioSliderPage(SliderPage):
             raise ValueError('All stimulus IDs you specify in `sound_locations` need to be defined in `media` too.')
 
         # Check if all audio files are also really playable
-        ticks, step_size, diff = self._get_ticks_step_size_and_diff(allowed_values, max_value, min_value)
-        if not all([location in ticks for _, location in sound_locations.items()]):
-            raise ValueError('The slider does not contain all locations for the audio')
+        # ticks, step_size, diff = self._get_ticks_step_size_and_diff(snap_values, max_value, min_value)
+        # if not all([location in ticks for _, location in sound_locations.items()]):
+        #     raise ValueError('The slider does not contain all locations for the audio')
 
         if not 'js_vars' in kwargs:
             kwargs['js_vars'] = {}
@@ -549,7 +647,8 @@ class AudioSliderPage(SliderPage):
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
-            allowed_values=allowed_values,
+            num_steps=num_steps,
+            snap_values=snap_values,
             time_estimate=time_estimate,
             template_str=template_str,
             label=label,
@@ -617,6 +716,6 @@ class DebugResponsePage(PageMaker):
             <h3>Answer</h3>
             {answer}
             <h3>Metadata</h3>
-            <pre>{metadata}</pre>
+            <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
             """
         ))
