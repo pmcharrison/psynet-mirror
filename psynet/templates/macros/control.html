@@ -60,7 +60,7 @@
         psynet.media.register_on_loaded_routine(function () {
             psynet.response.metadata.log.push(create_log_message('Dropdown initialized with ' + dropdown.value));
             // Make sure initial empty dropdown disables submit button
-            if (dropdown.value === ''){
+            if (dropdown.value === '') {
                 $(".submit-response").attr('disabled', true);
             }
         });
@@ -70,10 +70,10 @@
             psynet.log.info(this.value);
             psynet.response.metadata.log.push(create_log_message('Value changed to ' + this.value));
             // Make sure you cannot send empty responses
-            if (this.value !== ''){
+            if (this.value !== '') {
                 $(".submit-response").attr('disabled', false);
-            } else{
-               $(".submit-response").attr('disabled', true);
+            } else {
+                $(".submit-response").attr('disabled', true);
             }
         });
 
@@ -81,30 +81,67 @@
 {% endmacro %}
 
 {# TODO repeat this for radio, checkbox, button #}
-
-
-{# TODO depricated: #}
-{% macro nafc_button(config) %}
-    <div class="{{ 'radio' if config.own_line else 'radio-inline' }}">
+{% macro radio_item(config, main_config) %}
+    <div class="{{ 'radio' if main_config.own_line else 'radio-inline' }}">
         <label>
-            <input type="radio" id="{{ config.id }}" name="optradio"
-                   onclick="clicked_button('{{ config.id }}');">
+            <input
+                    type="radio" id="{{ config.id }}"
+                    name="optradio"
+                    {{ 'checked' if main_config.initial_value == config.label else '' }}>
             {{ config.label }}
         </label>
     </div>
 {% endmacro %}
 
-{% macro nafc(config) %}
-    <div>
-        {% for button in config.buttons %}
-            {{ nafc_button(button) }}
+{% macro radio(config) %}
+    <div class="form-group" id="radio">
+        {% for option in config.options %}
+            {{ radio_item(option, config) }}
         {% endfor %}
     </div>
 
+    {{ submit_button(config) }}
+
     <script>
-        clicked_button = function (id) {
-            psynet.response.disable();
-            psynet.next_page(id);
-        }
+        psynet.response.metadata.log = [];
+
+        create_log_message = function (message) {
+            return ({
+                'time': new Date(),
+                'message': message
+            })
+        };
+
+        get_radio_value = function () {
+            var checked_radio_sel = $('input[type="radio"]:checked');
+            if (checked_radio_sel.length === 0) {
+                return ('');
+            } else {
+                return (checked_radio_sel.parent()[0].innerText)
+            }
+        };
+
+        psynet.media.register_on_loaded_routine(function () {
+            var radio_val = get_radio_value();
+            psynet.response.metadata.log.push(create_log_message('Dropdown initialized with ' + radio_val));
+            // Make sure initial empty dropdown disables submit button
+            if (radio_val === '') {
+                $(".submit-response").attr('disabled', true);
+            }
+        });
+
+        radio.addEventListener('change', function () {
+            var radio_val = get_radio_value();
+            psynet.response.current = radio_val;
+            psynet.log.info(radio_val);
+            psynet.response.metadata.log.push(create_log_message('Value changed to ' + radio_val));
+            // Make sure you cannot send empty responses
+            if (radio_val !== '') {
+                $(".submit-response").attr('disabled', false);
+            } else {
+                $(".submit-response").attr('disabled', true);
+            }
+        });
+
     </script>
 {% endmacro %}

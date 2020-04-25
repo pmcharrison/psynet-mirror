@@ -333,7 +333,66 @@ class DropdownControl(OptionControl):
             "labels": self.labels
         }
 
+class RadioControl(OptionControl):
+    """
+    This control interface solicits a options choice response from the participant.
 
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the buttons,
+        which the participant will see instead of ``choices``.
+
+    style:
+        A dictionary with some style attributes, like `arrange_vertically` or `min_width`
+
+    initial_value:
+        Preselected option, needs to be in `choices`.
+
+    own_line:
+        If True radio buttons occur below each other, if False they occur next to each other
+
+    """
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            style: Optional[dict] = {},
+            initial_value: Optional[str] = None,
+            own_line: Optional[bool] = True,
+            **kwargs
+    ):
+        # TODO remove duplicate code
+        self.choices = choices
+        self.labels = choices if labels is None else labels
+
+        assert isinstance(self.labels, list)
+        assert len(self.choices) == len(self.labels)
+
+        if initial_value is not None and initial_value not in choices:
+            raise ValueError('You need to supply a value that is in choices')
+        self.initial_value = initial_value
+
+        self.own_line = own_line
+
+        self.options = [
+            OptionItem(button_id=choice, label=label, style=style)
+            for choice, label in zip(self.choices, self.labels)
+        ]
+
+    macro = "radio"
+
+    @property
+    def metadata(self):
+        return {
+            "choices": self.choices,
+            "labels": self.labels
+        }
 
 class ModularPage(Page):
     """
