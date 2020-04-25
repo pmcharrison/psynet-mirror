@@ -17,10 +17,15 @@
 
     <script>
         psynet.media.register_on_loaded_routine(function() {
-            var sound = psynet.audio.prompt.play();
-            sound.onended = function() {
-                psynet.response.ready();
-            }
+            var sound = psynet.audio.prompt.play({
+                loop: {{ config.loop | lower }}
+            });
+
+            sound.onended = psynet.response.ready;
+
+            {% if config.enable_response_after is not none %}
+                setTimeout(psynet.response.ready, 1000 * {{ config.enable_response_after }});
+            {% endif %}
         })
     </script>
 {% endmacro %}

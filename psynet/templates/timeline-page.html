@@ -581,12 +581,20 @@
                         out.start_time = null;
 
                         // Add play function to buffer
-                        out.play = function () {
+                        out.play = function (options) {
+                            if (options == undefined) {
+                                options = {};
+                            }
+                            if (!("loop" in options)) {
+                                options.loop = false;
+                            }
+
                             var source = psynet.media.audio_context.createBufferSource();
                             source.connect(psynet.media.audio_context.destination);
                             source.buffer = res;
                             startTime = psynet.media.audio_context.currentTime + 0.1;
                             source.start(startTime);
+                            source.loop = options.loop;
 
                             this.start_time = startTime;
                             this.current_context = source;
@@ -595,9 +603,16 @@
                         };
 
                         // stop the sound
-                        out.stop = function (fade_out = 0) {
+                        out.stop = function (options) {
+                            if (options == undefined) {
+                                options = {};
+                            }
+                            if (!("fade_out" in options)) {
+                                options.fade_out = 0.0;
+                            }
+
                             if (this.current_context !== null) {
-                                if (fade_out !== 0) {
+                                if (options.fade_out != 0) {
                                     throw Error("Fade-outs other than 0 are not implemented yet.");
                                     // See https://codepen.io/2kool2/pen/RgKeyp for ideas.
                                 }

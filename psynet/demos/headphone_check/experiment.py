@@ -21,7 +21,7 @@ from psynet.timeline import (
     Timeline
 )
 from psynet.headphone import headphone_check
-from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage
+from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCalibration
 
 ##########################################################################################
 #### Experiment
@@ -32,6 +32,7 @@ from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        VolumeCalibration(),
         headphone_check(),
         InfoPage("You passed the headphone screening task! Congratulations.", time_estimate=3),
         SuccessfulEndPage()
