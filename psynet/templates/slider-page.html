@@ -58,12 +58,12 @@
         snap_slider = function () {
             raw_value = parseFloat(slider.value);
             if (snap_values == null) {
-                psynet.log.info("Slider value: " + raw_value + " (no snapping).");
+                psynet.log.debug("Slider value: " + raw_value + " (no snapping).");
                 return raw_value
             } else {
                 new_value = psynet.utils.closest(slider.value, snap_values).value;
                 slider.value = new_value;
-                psynet.log.info("Snapped slider from " + raw_value + " to " + new_value);
+                psynet.log.debug("Snapped slider from " + raw_value + " to " + new_value);
                 return new_value;
             }
         };
