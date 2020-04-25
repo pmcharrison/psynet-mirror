@@ -348,6 +348,12 @@
                 //     }
                 // };
 
+                psynet.media.stop_all_audio = function() {
+                    Object.values(psynet.audio).forEach(function(x) {
+                        x.stop();
+                    })
+                }
+
                 psynet.media.init_audio_context = function () {
                     var context = null;
                     if ('webkitAudioContext' in window) context = new webkitAudioContext();
@@ -506,6 +512,7 @@
                         out.source = null;
                         out.start_time = null;
                         out.stimulus_id = stimulus_id;
+                        out.playing = false;
 
                         // Add play function to buffer
                         out.play = function (options) {
@@ -526,6 +533,8 @@
                             this.gain_node = psynet.media.audio_context.createGain();
                             this.source.connect(this.gain_node);
                             this.gain_node.connect(psynet.media.audio_context.destination);
+
+                            this.playing = true;
                             this.fading_out = false;
 
                             this.source.buffer = res;
@@ -544,13 +553,17 @@
                                 );
                             }
 
+                            var this_audio = this;
+                            this.source.onended = function() {
+                                psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
+                                this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
+                            }
+
                             return this
                         };
 
                         // stop the sound
                         out.stop = function (options) {
-                            psynet.log.debug("Stopping audio " + this.stimulus_id + ".");
-
                             if (options == undefined) {
                                 options = {};
                             }
@@ -559,7 +572,9 @@
                             }
 
                             if (!this.fading_out) {
-                                if (this.source !== null) {
+                                if (this.playing && this.source !== null) {
+                                    psynet.log.debug("Stopping audio " + this.stimulus_id + ".");
+
                                     // According to the documentation, we have to add an audio event
                                     // to constitute the reference start point for the fade out.
                                     // Here we just set the gain to itself.
