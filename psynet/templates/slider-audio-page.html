@@ -4,33 +4,30 @@
     {{ super() }}
 
     <script>
-        // This overwrites `create_log_message(message)` from `slider-page.html` and adds the ID to the log
-        create_log_message = function (slider_value) {
-            var message = {
-                'value': slider_value,
-                'id': get_id_from_slider_value(slider_value)
-            };
-            return ({
+        // Overwrites corresponding method in slider-page.html
+        slider.update_log = function() {
+            slider.log.push({
                 'time': new Date(),
-                'message': message
+                'value': slider.value,
+                'audio': slider.audio
             })
-        };
+        }
 
-        get_id_from_slider_value = function (snapped_value) {
+        find_closest_audio = function (slider) {
             var locations = Object.values(sound_locations);
-            var nearest = psynet.utils.closest(snapped_value, locations);
+            var nearest = psynet.utils.closest(parseFloat(slider.value), locations);
             var selected_audio = Object.keys(sound_locations)[nearest.index];
             return selected_audio
         };
 
         play_sound = function () {
-            var slider_value = get_slider_value();
-            var id = get_id_from_slider_value(slider_value);
-            psynet.log.debug('Playing sound with id = ' + id);
+            var id = slider.audio
+            psynet.log.debug('Playing sound with ID = ' + id);
             psynet.audio[id].play();
         };
 
         on_slider_event = function (event_type) {
+            slider.audio = find_closest_audio(slider);
             if (event_type == "initialise") {
                 if (autoplay) {
                     play_sound();

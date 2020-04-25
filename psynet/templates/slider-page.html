@@ -3,7 +3,7 @@
 {% macro slider(min_value, max_value, step_size) %}
     <input class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
            id="{{ slider_id }}" class="form-control-range"
-           min="{{ min_value }}" max="{{ max_value }}" step="{{ step_size }}" value="{{ start_value }}">
+           min="{{ min_value }}" max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}">
 {% endmacro %}
 
 {% block main_body %}
@@ -34,57 +34,67 @@
     <script>
         // This is called each time
         on_slider_event = function (event_type) {
+
         };
+
         if (minimal_interactions > 0) {
             $(".submit-response").attr('disabled', true);
         }
 
-        // Meta data collection
+        // Metadata collection
         var slider = document.getElementById('{{ slider_id }}');
 
         slider.log = [];
-        create_log_message = function (message) {
-            return ({
+
+        slider.update_log = function() {
+            slider.log.push({
                 'time': new Date(),
-                'message': message
+                'value': slider.value
             })
-        };
+        }
 
         slider.interaction_count = 0;
 
-        get_slider_value = function () {
+        snap_slider = function () {
             raw_value = parseFloat(slider.value);
-            new_value = psynet.utils.closest(slider.value, snap_values).value;
-            slider.value = new_value;
-            psynet.log.info("Snapped slider from " + raw_value + " to " + new_value);
-            return new_value;
+            if (snap_values == null) {
+                psynet.log.info("Slider value: " + raw_value + " (no snapping).");
+                return raw_value
+            } else {
+                new_value = psynet.utils.closest(slider.value, snap_values).value;
+                slider.value = new_value;
+                psynet.log.info("Snapped slider from " + raw_value + " to " + new_value);
+                return new_value;
+            }
         };
 
         // Save initial position
         slider.initialise = function () {
             psynet.log.debug('Slider page is loaded.');
-            var slider_value = get_slider_value();
-            slider.log.push(slider_value);
+            snap_slider();
             on_slider_event('initialise');
+            slider.update_log();
         };
 
         psynet.media.register_on_loaded_routine(slider.initialise);
 
         // Each change is documented
         slider.addEventListener('change', function () {
-            slider.log.push(create_log_message(get_slider_value()));
+            snap_slider();
             slider.interaction_count += 1;
             if (slider.interaction_count >= minimal_interactions) {
                 $(".submit-response").attr('disabled', false);
             }
             on_slider_event('slider_changed');
+            slider.update_log();
         }, false);
 
         submit = function () {
             $(".submit-response").attr('disabled', true);
-            var metadata = {};
-            metadata.log = slider.log;
-            psynet.next_page(get_slider_value(false), metadata);
+            var metadata = {
+                log: slider.log
+            };
+            psynet.next_page(slider.value, metadata);
         };
     </script>
 {% endblock %}

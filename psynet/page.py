@@ -334,10 +334,6 @@ class TextInputPage(Page):
             "prompt": self.prompt
         }
 
-
-SLIDER_DEFAULT_NUM_TICKS = 1000
-
-
 class SliderPage(Page):
     """
     This page solicits a slider response from the user.
@@ -416,6 +412,7 @@ class SliderPage(Page):
             self,
             label: str,
             prompt: Union[str, Markup],
+            *,
             start_value: float,
             min_value: float,
             max_value: float,
@@ -556,10 +553,21 @@ class AudioSliderPage(SliderPage):
     max_value:
         Maximum value of the slider.
 
+    num_steps:
+        - <int> (default = 1000): number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"num_sounds"``: sets the number of steps to the number of sounds. This only makes sense
+          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
     snap_values:
-        <int>: indicating number of possible equidistant steps between `min_value` and `max_value`,
-        by default we use SLIDER_DEFAULT_NUM_TICKS
-        <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+        - ``"sound_locations"`` (default): slider snaps to nearest sound location.
+
+        - <int>: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - <list>: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
 
     autoplay:
         Default: False. The sound closest to the current slider position is played once the page is loaded.
@@ -578,11 +586,13 @@ class AudioSliderPage(SliderPage):
         self,
         label: str,
         prompt: Union[str, Markup],
+        *,
         sound_locations: dict,
         start_value: float,
         min_value: float,
         max_value: float,
-        snap_values: Optional[Union[int, list]] = SLIDER_DEFAULT_NUM_TICKS,
+        num_steps: Union[str, int] = 1000,
+        snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
         time_estimate: Optional[float] = None,
         template_str: Optional[str] = get_template("slider-audio-page.html"),
@@ -593,6 +603,18 @@ class AudioSliderPage(SliderPage):
 
         if not 'audio' in kwargs['media']:
             raise ValueError('The `media` dictionary must contain the key `audio`')
+
+        if isinstance(num_steps, str):
+            if num_steps == "num_sounds":
+                num_steps = len(sound_locations)
+            else:
+                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+
+        if isinstance(snap_values, str):
+            if snap_values == "sound_locations":
+                snap_values = list(sound_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
 
         # Check if all stimuli specified in `sound_locations` are
         # also preloaded before the participant can start the trial
@@ -628,6 +650,7 @@ class AudioSliderPage(SliderPage):
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
+            num_steps=num_steps,
             snap_values=snap_values,
             time_estimate=time_estimate,
             template_str=template_str,
@@ -695,6 +718,6 @@ class DebugResponsePage(PageMaker):
             <h3>Answer</h3>
             {answer}
             <h3>Metadata</h3>
-            <pre>{metadata}</pre>
+            <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
             """
         ))
