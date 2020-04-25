@@ -113,3 +113,21 @@ def negate(f):
     def g(*args,**kwargs):
         return not f(*args,**kwargs)
     return g
+
+def linspace(lower, upper, length: int):
+    """
+    Returns a list of equally spaced numbers between two closed bounds.
+
+    Parameters
+    ----------
+
+    lower : number
+        The lower bound.
+
+    upper : number
+        The upper bound.
+
+    length : int
+        The length of the resulting list.
+    """
+    return [lower + x * (upper - lower) / (length - 1) for x in range(length)]
