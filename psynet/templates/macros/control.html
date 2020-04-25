@@ -1,4 +1,4 @@
-{% macro null(input) %}
+{% macro null(config) %}
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
@@ -35,4 +35,12 @@
             psynet.next_page(id);
         }
     </script>
+{% endmacro %}
+
+{% macro audio_meter(config) %}
+    <div id="audio_meter">
+        Audio meter goes here.
+    </div>
+
+    {{ null(config) }}
 {% endmacro %}
