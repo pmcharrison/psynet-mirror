@@ -235,11 +235,8 @@ class NAFCPage(Page):
         assert isinstance(self.labels, List)
         assert len(self.choices) == len(self.labels)
 
-        if arrange_vertically:
-            raise NotImplementedError
-
         buttons = [
-            Button(button_id=choice, label=label, min_width=min_width)
+            Button(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
             for choice, label in zip(self.choices, self.labels)
         ]
         super().__init__(
@@ -686,10 +683,11 @@ class NumberInputPage(TextInputPage):
 
 
 class Button():
-    def __init__(self, button_id, label, min_width, start_disabled=False):
+    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
         self.id = button_id
         self.label = label
         self.min_width = min_width
+        self.own_line = own_line
         self.start_disabled = start_disabled
 
 

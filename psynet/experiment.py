@@ -4,6 +4,8 @@ import json
 from json import dumps
 
 from dallinger import db
+from dallinger.config import get_config
+
 import dallinger.experiment
 
 from dallinger.experiment_server.utils import (
@@ -13,17 +15,17 @@ from dallinger.experiment_server.utils import (
 
 from .participant import get_participant, Participant
 from .timeline import (
-    get_template, 
-    Timeline, 
-    FailedValidation, 
-    ExperimentSetupRoutine, 
+    get_template,
+    Timeline,
+    FailedValidation,
+    ExperimentSetupRoutine,
     ParticipantFailRoutine,
     RecruitmentCriterion,
     BackgroundTask
 )
 from .page import (
-    InfoPage, 
-    SuccessfulEndPage    
+    InfoPage,
+    SuccessfulEndPage
 )
 from .utils import get_arg_from_dict, call_function
 
@@ -53,7 +55,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
-        
+
         self._background_tasks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
@@ -115,8 +117,8 @@ class Experiment(dallinger.experiment.Experiment):
         participant.time_of_death = datetime.now()
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
-                "Executing fail routine %i/%i ('%s')...", 
-                i + 1, 
+                "Executing fail routine %i/%i ('%s')...",
+                i + 1,
                 len(self.participant_fail_routines),
                 routine.label
             )
@@ -134,12 +136,12 @@ class Experiment(dallinger.experiment.Experiment):
             res = call_function(criterion.function, {"experiment": self})
             assert isinstance(res, bool)
             logger.info(
-                "Recruitment criterion %i/%i ('%s') %s.", 
-                i + 1, 
+                "Recruitment criterion %i/%i ('%s') %s.",
+                i + 1,
                 len(self.recruitment_criteria),
                 criterion.label,
                 (
-                    "returned True (more participants needed)." if res 
+                    "returned True (more participants needed)." if res
                     else "returned False (no more participants needed)."
                 )
             )
@@ -178,10 +180,10 @@ class Experiment(dallinger.experiment.Experiment):
         } for v in Vector.query.all()]
 
         return {
-            "networks": jnetworks, 
-            "nodes": jnodes,  
-            "vectors": jvectors, 
-            "infos": jinfos, 
+            "networks": jnetworks,
+            "nodes": jnodes,
+            "vectors": jvectors,
+            "infos": jinfos,
             "participants": jparticipants,
             "trans": []
         }
@@ -194,19 +196,19 @@ class Experiment(dallinger.experiment.Experiment):
         nodes = Node.query.all()
         infos = Info.query.all()
         participants = Participant.query.all()
-    
+
         experiment_networks = set([net.id for net in networks if (net.role!= "practice")])
-    
+
         failed_nodes = [node for node in nodes if node.failed]
         failed_infos = [info for info in infos if info.failed]
 
         pct_failed_nodes = round(100.0*len(failed_nodes)/(0.001+len(nodes)))
         pct_failed_infos = round(100.0*len(failed_infos)/(0.001+len(infos)))
-    
+
         msg_networks = f"# networks = {len(networks)} (experiment= {len(experiment_networks)})"
         msg_nodes = f"# nodes = {len(nodes)} [failed= {len(failed_nodes)} ({pct_failed_nodes} %)]"
         msg_infos = f"# infos = {len(infos)} [failed= {len(failed_infos)} ({pct_failed_infos} %)]"
-        
+
         active_participants = 0
         relevant_participants = [p for p in participants if (p.status=="working")]
         for participant in relevant_participants:
@@ -229,7 +231,7 @@ class Experiment(dallinger.experiment.Experiment):
             'msg_infos': msg_infos,
             'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n"
         }
-    
+
     def bonus(self, participant):
         return round(participant.time_credit.get_bonus(), ndigits=2)
 
@@ -246,9 +248,9 @@ class Experiment(dallinger.experiment.Experiment):
 
         participant = get_participant(participant_id)
         participant.initialise(self)
-        
+
         self.timeline.advance_page(self, participant)
-        
+
         self.save()
         return success_response()
 
@@ -258,7 +260,7 @@ class Experiment(dallinger.experiment.Experiment):
         if page_uuid == participant.page_uuid:
             event = self.timeline.get_current_event(self, participant)
             response = event.process_response(
-                raw_answer=raw_answer, 
+                raw_answer=raw_answer,
                 blobs=blobs,
                 metadata=metadata,
                 experiment=self,
@@ -270,7 +272,7 @@ class Experiment(dallinger.experiment.Experiment):
                 participant=participant
             )
             if isinstance(validation, FailedValidation):
-                return self.response_rejected(message=validation.message)            
+                return self.response_rejected(message=validation.message)
             self.timeline.advance_page(self, participant)
             return self.response_approved()
         else:
@@ -316,6 +318,18 @@ class Experiment(dallinger.experiment.Experiment):
                 return success_response()
             return error_response()
 
+        @routes.route("/consent")
+        def consent():
+            config = get_config()
+            return render_template(
+                "consent.html",
+                hit_id=request.args["hit_id"],
+                assignment_id=request.args["assignment_id"],
+                worker_id=request.args["worker_id"],
+                mode=config.get("mode"),
+                contact_email_on_error=config.get("contact_email_on_error")
+            )
+
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
             from dallinger.experiment_server.utils import error_page
@@ -347,20 +361,20 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/response", methods=["POST"])
         def route_response():
             exp = self.new(db.session)
-            
+
             json_data = json.loads(request.values["json"])
-            
+
             # Everything that isn't named 'json' is a blob
             blobs = {**request.values}
             del blobs["json"]
-            
+
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
-            
+
             res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid)
-            
+
             exp.save()
             return res
 
@@ -368,20 +382,20 @@ class Experiment(dallinger.experiment.Experiment):
         def log(level, participant_id, assignment_id):
             participant = get_participant(participant_id)
             message = request.values["message"]
-            
+
             if participant.assignment_id != assignment_id:
                 logger.warning(
                     "Received wrong assignment_id for participant %i "
                     "(expected %s, got %s).",
-                    participant_id, 
+                    participant_id,
                     participant.assignment_id,
                     assignment_id
                 )
-            
+
             assert level in ["warn", "info", "error"]
-            
+
             string = f"[CLIENT {participant_id}]: {message}"
-            
+
             if level == "info":
                 logger.info(string)
             elif level == "warning":
@@ -390,7 +404,7 @@ class Experiment(dallinger.experiment.Experiment):
                 logger.error(string)
             else:
                 raise RuntimeError("This shouldn't happen.")
-            
+
             return success_response()
-            
+
         return routes
