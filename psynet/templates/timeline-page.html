@@ -140,16 +140,23 @@
 
                 // Checks which value in the haystack is closest to the needle
                 psynet.utils.closest = function (needle, haystack) {
-                    return haystack.reduce((a, b) => {
-                        let a_diff = Math.abs(a - needle);
-                        let b_diff = Math.abs(b - needle);
-
-                        if (a_diff === b_diff) {
-                            return a > b ? a : b;
-                        } else {
-                            return b_diff < a_diff ? b : a;
+                    var best_value;
+                    var best_dist;
+                    var best_i;
+                    for (var i = 0; i < haystack.length; i++) {
+                        var proposal = haystack[i];
+                        var dist = Math.abs(proposal - needle);
+                        if (best_dist == undefined || dist < best_dist) {
+                            best_value = proposal;
+                            best_dist = dist;
+                            best_i = i;
                         }
-                    });
+                    }
+                    return {
+                        value: best_value,
+                        dist: best_dist,
+                        index: best_i
+                    }
                 };
 
                 // check if it is a dictionary

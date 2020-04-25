@@ -54,7 +54,7 @@
 
         get_slider_value = function () {
             raw_value = parseFloat(slider.value);
-            new_value = psynet.utils.closest(slider.value, snap_values);
+            new_value = psynet.utils.closest(slider.value, snap_values).value;
             slider.value = new_value;
             psynet.log.info("Snapped slider from " + raw_value + " to " + new_value);
             return new_value;
@@ -63,7 +63,8 @@
         // Save initial position
         slider.initialise = function () {
             psynet.log.debug('Slider page is loaded.');
-            slider.log.push(create_log_message('Page loaded. Initial slider position: ' + start_value));
+            var slider_value = get_slider_value();
+            slider.log.push(slider_value);
             on_slider_event('initialise');
         };
 

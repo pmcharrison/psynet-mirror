@@ -5,33 +5,27 @@
 
     <script>
         // This overwrites `create_log_message(message)` from `slider-page.html` and adds the ID to the log
-        create_log_message = function (slider_vals) {
-            slider_vals['ID'] = get_id_from_slider_value(slider_vals['snapped_slider_value']);
+        create_log_message = function (slider_value) {
+            var message = {
+                'value': slider_value,
+                'id': get_id_from_slider_value(slider_value)
+            };
             return ({
                 'time': new Date(),
-                'message': slider_vals
+                'message': message
             })
         };
 
-
-        get_id_from_slider_value = function (snapped_value = get_slider_value(false)) {
-            // Get all the locations associated with sounds
-            var locations = Object.keys(sound_locations).map(function (key) {
-                return sound_locations[key];
-            });
-
-            if (!(snapped_value in locations)) {
-                psynet.log.error('Sound location ' + snapped_value + ' does not exist as a value in array `sound_locations`')
-            } else {
-                var idx = locations.indexOf(snapped_value);
-                psynet.log.debug('Snapped value = ' + snapped_value);
-                return Object.keys(sound_locations)[idx];
-            }
-
+        get_id_from_slider_value = function (snapped_value) {
+            var locations = Object.values(sound_locations);
+            var nearest = psynet.utils.closest(snapped_value, locations);
+            var selected_audio = Object.keys(sound_locations)[nearest.index];
+            return selected_audio
         };
 
         play_sound = function () {
-            var id = get_id_from_slider_value();
+            var slider_value = get_slider_value();
+            var id = get_id_from_slider_value(slider_value);
             psynet.log.debug('Playing sound with id = ' + id);
             psynet.audio[id].play();
         };
