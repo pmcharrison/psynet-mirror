@@ -62,14 +62,6 @@
     <div class="main_div">
         {% block main_body %}
 
-            {% block prompt %}
-
-            {% endblock %}
-
-            {% block input %}
-
-            {% endblock %}
-
         {% endblock %}
     </div>
 
@@ -160,16 +152,23 @@
 
                 // Checks which value in the haystack is closest to the needle
                 psynet.utils.closest = function (needle, haystack) {
-                    return haystack.reduce((a, b) => {
-                        let a_diff = Math.abs(a - needle);
-                        let b_diff = Math.abs(b - needle);
-
-                        if (a_diff === b_diff) {
-                            return a > b ? a : b;
-                        } else {
-                            return b_diff < a_diff ? b : a;
+                    var best_value;
+                    var best_dist;
+                    var best_i;
+                    for (var i = 0; i < haystack.length; i++) {
+                        var proposal = haystack[i];
+                        var dist = Math.abs(proposal - needle);
+                        if (best_dist == undefined || dist < best_dist) {
+                            best_value = proposal;
+                            best_dist = dist;
+                            best_i = i;
                         }
-                    });
+                    }
+                    return {
+                        value: best_value,
+                        dist: best_dist,
+                        index: best_i
+                    }
                 };
 
                 // check if it is a dictionary
@@ -393,6 +392,12 @@
                 //     }
                 // };
 
+                psynet.media.stop_all_audio = function() {
+                    Object.values(psynet.audio).forEach(function(x) {
+                        x.stop();
+                    })
+                }
+
                 psynet.media.init_audio_context = function () {
                     var context = null;
                     if ('webkitAudioContext' in window) context = new webkitAudioContext();
@@ -577,29 +582,61 @@
                         out = psynet.media.data[media_type][stimulus_id];
 
                         out.buffer = res;
-                        out.current_context = null;
+                        out.source = null;
                         out.start_time = null;
+                        out.stimulus_id = stimulus_id;
+                        out.playing = false;
 
                         // Add play function to buffer
                         out.play = function (options) {
                             if (options == undefined) {
                                 options = {};
                             }
+                            if (!("fade_in" in options)) {
+                                options.fade_in = 0.0;
+                            }
+                            if (!("start_delay" in options)) {
+                                options.start_delay = 0.01;
+                            }
+                            if (!("gain" in options)) {
+                                options.gain = 1;
+                            }
                             if (!("loop" in options)) {
                                 options.loop = false;
                             }
 
-                            var source = psynet.media.audio_context.createBufferSource();
-                            source.connect(psynet.media.audio_context.destination);
-                            source.buffer = res;
-                            startTime = psynet.media.audio_context.currentTime + 0.1;
-                            source.start(startTime);
-                            source.loop = options.loop;
+                            this.source = psynet.media.audio_context.createBufferSource();
+                            this.source.loop = options.loop;
+                            this.gain_node = psynet.media.audio_context.createGain();
+                            this.source.connect(this.gain_node);
+                            this.gain_node.connect(psynet.media.audio_context.destination);
 
-                            this.start_time = startTime;
-                            this.current_context = source;
+                            this.playing = true;
+                            this.fading_out = false;
 
-                            return (source);
+                            this.source.buffer = res;
+                            this.start_time = psynet.media.audio_context.currentTime + options.start_delay;
+                            this.source.start(this.start_time);
+
+                            this.gain_node.gain.setValueAtTime(
+                                0.001,
+                                psynet.media.audio_context.currentTime + options.start_delay
+                            );
+
+                            if (options.gain > 1e-10) {
+                                this.gain_node.gain.exponentialRampToValueAtTime(
+                                    options.gain,
+                                    psynet.media.audio_context.currentTime + options.start_delay + options.fade_in
+                                );
+                            }
+
+                            var this_audio = this;
+                            this.source.addEventListener("ended", function() {
+                                psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
+                                this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
+                            });
+
+                            return this
                         };
 
                         // stop the sound
@@ -608,17 +645,31 @@
                                 options = {};
                             }
                             if (!("fade_out" in options)) {
-                                options.fade_out = 0.0;
+                                options.fade_out = 0.05;
                             }
 
-                            if (this.current_context !== null) {
-                                if (options.fade_out != 0) {
-                                    throw Error("Fade-outs other than 0 are not implemented yet.");
-                                    // See https://codepen.io/2kool2/pen/RgKeyp for ideas.
+                            if (!this.fading_out) {
+                                if (this.playing && this.source !== null) {
+                                    psynet.log.debug("Stopping audio " + this.stimulus_id + ".");
+
+                                    // According to the documentation, we have to add an audio event
+                                    // to constitute the reference start point for the fade out.
+                                    // Here we just set the gain to itself.
+                                    var current_gain = this.gain_node.gain.value;
+                                    this.fading_out = true;
+
+                                    if (this.gain_node.gain.value > 0.001) {
+                                        this.gain_node.gain.setValueAtTime(current_gain, psynet.media.audio_context.currentTime);
+                                        this.gain_node.gain.exponentialRampToValueAtTime(0.001, psynet.media.audio_context.currentTime + options.fade_out);
+                                    }
+
+                                    var audio = this;
+                                    setTimeout(function() {
+                                        audio.source.stop();
+                                        audio.source = null;
+                                        audio.start_time = null;
+                                    }, options.fade_out * 1000);
                                 }
-                                this.current_context.stop();
-                                this.current_context = null;
-                                this.start_time = null;
                             }
                         };
 

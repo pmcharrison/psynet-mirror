@@ -10,6 +10,9 @@ the 'prompt', constituting the information or stimulus that is presented
 to the listener, and the 'controls', constituting the participant's
 way of responding to the information or stimulus.
 
+Note: the modular page functionality is still experimental,
+and its API is liable to change.
+
 .. automodule:: psynet.modular_page
     :show-inheritance:
     :members:

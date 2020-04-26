@@ -21,7 +21,7 @@
                 loop: {{ config.loop | lower }}
             });
 
-            sound.onended = psynet.response.ready;
+            sound.source.addEventListener("ended", psynet.response.ready);
 
             {% if config.enable_response_after is not none %}
                 setTimeout(psynet.response.ready, 1000 * {{ config.enable_response_after }});

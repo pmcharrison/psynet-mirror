@@ -15,8 +15,9 @@
 {% endmacro %}
 
 {% macro make_button(x) %}
+    {% if x.own_line %} <p> {% endif %}
     <button type="button"
-            class="btn btn-primary submit-response" 
+            class="btn btn-primary submit-response"
             id="{{ x.id }}"
             {% if x.start_disabled %}
                 disabled="false"
@@ -25,15 +26,16 @@
             style="min-width: {{ x.min_width }}">
     {{ x.label }}
     </button>
+    {% if x.own_line %} </p> {% endif %}
 {% endmacro %}
 
 {% block main_body %}
     {{super()}}
     <div class="main_div">
-        {{prompt}}
+        {{ prompt }}
 
         <hr>
-        
+
         <div class="row">
             {{make_buttons(buttons, arrange_vertically)}}
         </div>
