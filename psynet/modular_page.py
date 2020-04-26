@@ -367,15 +367,10 @@ class ModularPage(Page):
 
         {self.import_templates}
 
-        {{% block prompt %}}
+        {{% block main_body %}}
         {{{{ super() }}}}
 
         {{{{ {self.prompt_macro}(prompt_config) }}}}
-
-        {{% endblock %}}
-
-        {{% block input %}}
-        {{{{ super() }}}}
 
         {{{{ {self.control_macro}(control_config) }}}}
 
@@ -398,7 +393,7 @@ class ModularPage(Page):
     @property
     def prompt_macro(self):
         if self.prompt.external_template is None:
-            location = "prompt"
+            location = "psynet_prompts"
         else:
             location = "custom_prompt"
         return f"{location}.{self.prompt.macro}"
@@ -406,7 +401,7 @@ class ModularPage(Page):
     @property
     def control_macro(self):
         if self.control.external_template is None:
-            location = "control"
+            location = "psynet_controls"
         else:
             location = "custom_control"
         return f"{location}.{self.control.macro}"
@@ -420,8 +415,8 @@ class ModularPage(Page):
         # We explicitly import these internal templates here to ensure
         # they're imported by the time we try to call them.
         return """
-        {% import "macros/prompt.html" as prompt %}
-        {% import "macros/control.html" as control %}
+        {% import "macros/prompt.html" as psynet_prompts %}
+        {% import "macros/control.html" as psynet_controls %}
         """
 
     @property
