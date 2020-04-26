@@ -264,11 +264,26 @@
                     psynet.response.enable();
                 });
 
-                psynet.response.ready = function () {
-                    psynet.log.info("Ready for response.");
-                    psynet.response.on_ready_routines.forEach(function (f) {
-                        f();
-                    });
+                psynet.response.waiting_for = [];
+
+                psynet.response.wait_for = function(event) {
+                    psynet.log.debug("Waiting for response-ready event: " + event);
+                    psynet.response.waiting_for.push(event);
+                }
+
+                psynet.response.ready = function (event) {
+                    psynet.log.info("A ready-event occurred: " + event);
+                    if (event != undefined) {
+                        psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
+                            return elt != event
+                        })
+                    }
+                    if (psynet.response.waiting_for.length == 0) {
+                        psynet.log.info("Ready for response.");
+                        psynet.response.on_ready_routines.forEach(function (f) {
+                            f();
+                        });
+                    }
                 };
 
                 psynet.media.types = ["audio"];
@@ -302,15 +317,13 @@
                     psynet.media.on_loaded_routines.push(f);
                 };
 
-                psynet.media.register_on_loaded_routine(function () {
-                    $('.wait-for-media-load').removeAttr('disabled');
-                });
-
                 psynet.media.on_loaded = function () {
                     psynet.log.info("All media loaded.");
-                    psynet.media.on_loaded_routines.forEach(function (f) {
-                        f();
-                    });
+
+                    $('.wait-for-media-load').removeAttr('disabled');
+                    psynet.response.ready("media_load");
+
+                    psynet.media.on_loaded_routines.forEach(function (f) { f(); });
                 };
                 psynet.media.loaded = false;
 
@@ -428,6 +441,7 @@
                 };
 
                 psynet.media.init = function () {
+                    psynet.response.wait_for("media_load");
                     psynet.media.init_audio_context();
 
                     if (psynet.media.audio_context.state == "suspended") {
@@ -702,7 +716,7 @@
                     }
 
                     var num_files = current_file = 0;
-                    psynet.log.info('Unpacking the audio batch "' + file_id + '".');
+                    psynet.log.debug('Unpacking the audio batch "' + file_id + '".');
                     var bb = new DataView(data);
                     var offset = 0;
 

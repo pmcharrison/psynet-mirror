@@ -43,4 +43,13 @@
     </div>
 
     {{ null(config) }}
+
+    <script>
+        psynet.response.wait_for("audio_meter");
+        setTimeout(
+            ()=> psynet.response.ready("audio_meter"),
+            1000 * {{ config.min_time }}
+        );
+    </script>
+
 {% endmacro %}

@@ -20,6 +20,11 @@ from psynet.page import (
     NAFCPage,
     TextInputPage
 )
+from psynet.modular_page import(
+    ModularPage,
+    AudioMeterControl,
+    AudioPrompt
+)
 
 import logging
 logging.basicConfig(level=logging.INFO)
@@ -113,11 +118,29 @@ example_on_loaded = InfoPage(
     ]
 )
 
+example_audio_meter = ModularPage(
+    "audio_meter",
+    "This page illustrates an audio meter.",
+    AudioMeterControl(),
+    time_estimate=5
+)
+
+example_audio_page = ModularPage(
+    "audio_page",
+    AudioPrompt(
+        "/static/audio/bier.wav",
+        "This page illustrates a simple audio page with one stimulus."
+    ),
+    time_estimate=5
+)
+
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        example_audio_meter,
+        example_audio_page,
         example_preloading,
         example_on_loaded,
         SuccessfulEndPage()

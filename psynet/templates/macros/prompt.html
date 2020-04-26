@@ -4,27 +4,28 @@
             {{ config.text }}
         </div>
     {% endif %}
-
-    {% if config.ready_for_response %}
-        <script>
-            psynet.media.register_on_loaded_routine(psynet.response.ready);
-        </script>
-    {% endif %}
 {% endmacro %}
 
 {% macro audio(config) %}
     {{ simple(config) }}
 
     <script>
+        psynet.response.wait_for("audio_prompt")
+
         psynet.media.register_on_loaded_routine(function() {
             var sound = psynet.audio.prompt.play({
                 loop: {{ config.loop | lower }}
             });
 
-            sound.source.addEventListener("ended", psynet.response.ready);
+            sound.source.addEventListener("ended", function() {
+                psynet.response.ready("audio_prompt");
+            });
 
             {% if config.enable_response_after is not none %}
-                setTimeout(psynet.response.ready, 1000 * {{ config.enable_response_after }});
+                setTimeout(
+                    ()=> psynet.response.ready("audio_prompt"),
+                    1000 * {{ config.enable_response_after }}
+                );
             {% endif %}
         })
     </script>

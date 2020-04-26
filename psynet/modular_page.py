@@ -32,13 +32,6 @@ class Prompt():
     macro : str
         The name of the Jinja2 macro as defined within the respective template file.
 
-    ready_for_response : bool
-        Whether or not the page starts ready for a user response.
-        Set this to False if you want the page to wait for a custom
-        event to happen before the response options are enabled.
-        This event can be triggered with ``psynet.response.ready();``
-        in Javascript.
-
     metadata : Object
         Metadata to save about the prompt; can take arbitrary form,
         but must be serialisable to JSON.
@@ -61,7 +54,6 @@ class Prompt():
         self.text = text
 
     macro = "simple"
-    ready_for_response = True
     external_template = None
 
     @property
@@ -108,7 +100,6 @@ class AudioPrompt(Prompt):
         self.loop = loop
 
     macro = "audio"
-    ready_for_response = False
 
     @property
     def metadata(self):
@@ -453,4 +444,21 @@ class ModularPage(Page):
         return {
             "prompt": self.prompt.metadata,
             "control": self.control.metadata
+        }
+
+class AudioMeterControl(Control):
+    def __init__(
+            self,
+            min_time: float = 2.5,
+            **kwargs
+    ):
+        assert min_time >= 0
+        self.min_time = min_time
+
+    macro = "audio_meter"
+
+    @property
+    def metadata(self):
+        return {
+            "min_time": self.min_time
         }
