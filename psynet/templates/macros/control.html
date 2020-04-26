@@ -107,7 +107,7 @@
             var rafID = null;
 
             var moderate_volume_threshold = 0.2;
-            var time_last_at_moderate_volume = 0; // ms
+            var time_last_at_moderate_volume = -1e6; // ms
             var time_until_too_quiet = 1500; // ms
 
             window.addEventListener("load", function() {
