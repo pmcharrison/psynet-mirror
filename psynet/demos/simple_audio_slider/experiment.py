@@ -2,7 +2,7 @@ import psynet.experiment
 from psynet.timeline import (
     Timeline
 )
-from psynet.timeline import PageMaker, join
+from psynet.timeline import PageMaker, join, MediaSpec
 from psynet.page import (
     AudioSliderPage,
     InfoPage,
@@ -17,17 +17,26 @@ from flask import Markup, escape
 def print_dict(x):
     return "<pre style='overflow: scroll; max-height: 200px'>" + json.dumps(x, indent=4) + "</pre>"
 
-def new_example(description, **kwargs):
-    assert len(kwargs["sound_locations"]) == 472
-    media = {
-        "audio": {
+    MediaSpec(
+        audio={
             'batch': {
                 'url': '/static/stimuli/bier.batch',
                 'ids': [_id for _id, _ in kwargs["sound_locations"].items()],
                 'type': 'batch'
             }
         }
-    }
+
+def new_example(description, **kwargs):
+    assert len(kwargs["sound_locations"]) == 472
+    media = MediaSpec(
+        audio={
+            'batch': {
+                'url': '/static/stimuli/bier.batch',
+                'ids': [_id for _id, _ in kwargs["sound_locations"].items()],
+                'type': 'batch'
+            }
+        }
+    )
     prompt = Markup(f"""
         {escape(description)}
         {print_dict(kwargs)}

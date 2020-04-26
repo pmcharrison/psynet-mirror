@@ -131,3 +131,53 @@ def linspace(lower, upper, length: int):
         The length of the resulting list.
     """
     return [lower + x * (upper - lower) / (length - 1) for x in range(length)]
+
+def merge_dicts(*args, overwrite: bool):
+    """
+    Merges a collection of dictionaries, with later dictionaries
+    taking precedence when the same key appears twice.
+
+    Parameters
+    ----------
+
+    *args
+        Dictionaries to merge.
+
+    overwrite
+        If ``True``, when the same key appears twice in multiple dictionaries,
+        the key from the latter dictionary takes precedence.
+        If ``False``, an error is thrown if such duplicates occur.
+    """
+
+    if len(args) == 0:
+        return {}
+    return reduce(lambda x, y: merge_two_dicts(x, y, overwrite), args)
+
+def merge_two_dicts(x: dict, y: dict, overwrite: bool):
+    """
+    Merges two dictionaries.
+
+    Parameters
+    ----------
+
+    x :
+        First dictionary.
+
+    y :
+        Second dictionary.
+
+    overwrite :
+        If ``True``, when the same key appears twice in the two dictionaries,
+        the key from the latter dictionary takes precedence.
+        If ``False``, an error is thrown if such duplicates occur.
+    """
+
+    if not overwrite:
+        for key in y.keys():
+            if key in x:
+                raise DuplicateKeyError(f"Duplicate key {key} found in the dictionaries to be merged.")
+
+    return {**x, **y}
+
+class DuplicateKeyError(ValueError):
+    pass

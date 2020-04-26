@@ -14,6 +14,7 @@ from .timeline import (
     get_template,
     Page,
     PageMaker,
+    MediaSpec,
     EndPage,
     FailedValidation,
     while_loop
@@ -103,7 +104,7 @@ class WaitPage(Page):
 def wait_while(
         condition,
         expected_wait: float,
-        check_interval: float = 1.0,
+        check_interval: float = 2.0,
         wait_page=WaitPage
     ):
     """
@@ -615,7 +616,7 @@ class AudioSliderPage(SliderPage):
 
         # Check if all stimuli specified in `sound_locations` are
         # also preloaded before the participant can start the trial
-        audio = kwargs['media']['audio']
+        audio = kwargs['media'].audio
         IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
         IDs_media = []
         for key, value in audio.items():

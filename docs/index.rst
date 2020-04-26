@@ -12,12 +12,13 @@ PsyNet Documentation
    basic_usage
    timeline
    trial_overview
-   
+   modular_page
+
 .. toctree::
    :maxdepth: 2
    :caption: Specific implementations
    :glob:
-   
+
    implementations/*
 
 .. toctree::

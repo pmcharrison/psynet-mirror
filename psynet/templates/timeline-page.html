@@ -1,4 +1,4 @@
-{% extends "layout.html" %}
+{% extends "macros.html" %}
 
 {% block stylesheets %}
     {{ super() }}
@@ -6,7 +6,6 @@
         .modal {
             display: none;
             position: fixed;
-            z-index: 1;
             padding-top: 100px;
             left: 0;
             top: 0;
@@ -17,8 +16,13 @@
             background-color: rgba(0, 0, 0, 0.4);
         }
 
+        #help_modal {
+            z-index: 1000;
+        }
+
         .modal-content {
             background-color: #4989C8;
+            color: white;
             margin: auto;
             padding: 20px;
             border: 1px solid #888;
@@ -40,18 +44,6 @@
     {% endfor %}
 {% endblock %}
 
-{% macro next_button() %}
-    <hr>
-
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="psynet.next_page();">Next
-            </button>
-        </div>
-    </div>
-{% endmacro %}
-
 {% block body %}
     {% block header %}
         <div class="header">
@@ -69,8 +61,58 @@
 
     <div class="main_div">
         {% block main_body %}
+
+            {% block prompt %}
+
+            {% endblock %}
+
+            {% block input %}
+
+            {% endblock %}
+
         {% endblock %}
     </div>
+
+    {% block modals %}
+        {% block help_modal %}
+            <div id="help_modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>In case of a problem, try the following:</h3>
+                    <ul>
+                        <li>Reload the page.</li>
+                        <li>Check that your internet connection is working.</li>
+                        <li>If the above doesn't help,
+                            <a style="color:pink"
+                            href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
+                            target="_top">send us an email</a>
+                            with the following information:
+                            <ol>
+                                <li>A link to the current web page;</li>
+                                <li>Your Worker ID;</li>
+                                <li>The problem you're experiencing.</li>
+                            </ol>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        {% endblock %}
+
+        {% block resume_modal %}
+            <div id="resume_modal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Are you ready?</h3>
+                    <p>
+                        Click the button when you're ready to continue the experiment.
+                    </p>
+                    <button type="button" class="btn btn-primary" id="resume_button" onclick="psynet.resume();">
+                        Resume
+                    </button>
+                </div>
+            </div>
+        {% endblock %}
+    {% endblock %}
 
     {% block footer %}
         {% if footer.show %}
@@ -86,29 +128,7 @@
                             </div>
                         {% endfor %}
 
-                        <button type="button" class="btn btn-primary" id="help_button" style="min-width: 50px">Help!
-                        </button>
-                        <div id="help_modal" class="modal">
-                            <div class="modal-content">
-                                <span class="close">&times;</span>
-                                <h3>In case of a problem, try the following:</h3>
-                                <ul>
-                                    <li>Reload the page.</li>
-                                    <li>Check that your internet connection is working.</li>
-                                    <li>If the above doesn't help,
-                                        <a style="color:red"
-                                           href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
-                                           target="_top">send us an email</a>
-                                        with the following information:
-                                        <ol>
-                                            <li>A link to the current web page;</li>
-                                            <li>Your Worker ID;</li>
-                                            <li>The problem you're experiencing.</li>
-                                        </ol>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
+                        <button type="button" class="btn btn-primary" id="help_button" style="min-width: 50px">Help!</button>
                     </div>
                 </div>
             </nav>
@@ -116,7 +136,7 @@
     {% endblock %}
 {% endblock %}
 
-{% block scripts %}
+{% block head %}
     {{ super() }}
 
     <script>
@@ -226,6 +246,39 @@
                     psynet.log.generic(msg, "debug")
                 }
 
+                psynet.response = {};
+
+                psynet.response.enable = function() {
+                    $('.response').removeAttr('disabled');
+                }
+
+                psynet.response.disable = function() {
+                    $('.response').attr('disabled', 'disabled');
+                }
+
+                psynet.response.on_ready_routines = [];
+
+                psynet.response.register_on_ready_routine = function (f) {
+                    // Registers a function to be called when psynet.response.ready() is called.
+                    if (!psynet.utils.is_function(f)) {
+                        throw Error("f was not a function.");
+                    }
+                    psynet.response.on_ready_routines.push(f);
+                };
+
+                psynet.response.register_on_ready_routine(function () {
+                    // When psynet.response.ready() is called, we want to enable all controls
+                    // that were waiting for the response-ready event.
+                    psynet.response.enable();
+                });
+
+                psynet.response.ready = function () {
+                    psynet.log.info("Ready for response.");
+                    psynet.response.on_ready_routines.forEach(function (f) {
+                        f();
+                    });
+                };
+
                 psynet.media.types = ["audio"];
                 psynet.media.data = {};
 
@@ -247,7 +300,6 @@
                 //         }
                 //     }
                 // };
-
 
                 psynet.media.on_loaded_routines = [];
 
@@ -361,18 +413,47 @@
                     if (!context) {
                         throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
                     }
+                    // if (context.state == "suspended") {
+                    //     alert("Resuming the experiment.");
+                    //     context.resume();
+                    // }
                     psynet.media.audio_context = context
+
+                };
+
+                psynet.show_resume_modal = function() {
+                    document.getElementById("resume_modal").style.display = "block";
+                };
+
+                psynet.hide_resume_modal = function() {
+                    document.getElementById("resume_modal").style.display = "none";
+                };
+
+                psynet.resume = function() {
+                    psynet.log.info("Resuming the experiment.");
+                    psynet.hide_resume_modal();
+                    psynet.media.init();
                 };
 
                 psynet.media.init = function () {
                     psynet.media.init_audio_context();
-                    requests = psynet.media.requests;
 
-                    media_types = Object.keys(requests);
-                    media_types.forEach(function (x) {
-                        process_requests(x, requests[x]);
-                    });
-                    psynet.media.check_loaded();
+                    if (psynet.media.audio_context.state == "suspended") {
+                        // var wait = 1;
+                        psynet.log.info(
+                            "Audio context is suspended, and can only be resumed " +
+                            "after a user interaction. Waiting for the participant to click 'Resume'."
+                        );
+                        psynet.show_resume_modal();
+                        // setTimeout(psynet.media.init, wait * 1000);
+                    } else {
+                        requests = psynet.media.requests;
+                            media_types = Object.keys(requests);
+                            media_types.forEach(function (x) {
+                                process_requests(x, requests[x]);
+                            });
+                            psynet.media.check_loaded();
+                        }
                 };
 
                 init_media_type = function (media_type) {
@@ -698,6 +779,7 @@
 
                 psynet.init_page = function () {
                     psynet.register_error_handler();
+                    psynet.response.disable();
                     $('.wait-for-media-load').attr('disabled', 'disabled');
                     check_participant_id();
                     init_modal();
@@ -807,6 +889,11 @@
             ()
         )
     </script>
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
 
     <script>
         psynet.init_page();

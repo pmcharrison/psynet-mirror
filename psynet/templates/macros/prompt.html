@@ -1,0 +1,26 @@
+{% macro simple(config) %}
+    {% if config.text is not none %}
+        <div style="margin-top:15px; margin-bottom: 15px;">
+            {{ config.text }}
+        </div>
+    {% endif %}
+
+    {% if config.ready_for_response %}
+        <script>
+            psynet.media.register_on_loaded_routine(psynet.response.ready);
+        </script>
+    {% endif %}
+{% endmacro %}
+
+{% macro audio(config) %}
+    {{ simple(config) }}
+
+    <script>
+        psynet.media.register_on_loaded_routine(function() {
+            var sound = psynet.audio.prompt.play();
+            sound.onended = function() {
+                psynet.response.ready();
+            }
+        })
+    </script>
+{% endmacro %}

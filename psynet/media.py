@@ -82,6 +82,11 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool)
         "url": f"https://{bucket_name}.s3.amazonaws.com/{key}"
     }
 
+@log_time_taken
+def download_from_s3(local_path: str, bucket_name: str, key: str):
+    bucket = get_s3_bucket(bucket_name)
+    bucket.download_file(key, local_path)
+
 def create_bucket(bucket_name: str, client=None):
     logger.info("Creating bucket '%s'.", bucket_name)
     if client is None:
