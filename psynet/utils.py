@@ -114,6 +114,24 @@ def negate(f):
         return not f(*args,**kwargs)
     return g
 
+def linspace(lower, upper, length: int):
+    """
+    Returns a list of equally spaced numbers between two closed bounds.
+
+    Parameters
+    ----------
+
+    lower : number
+        The lower bound.
+
+    upper : number
+        The upper bound.
+
+    length : int
+        The length of the resulting list.
+    """
+    return [lower + x * (upper - lower) / (length - 1) for x in range(length)]
+
 def merge_dicts(*args, overwrite: bool):
     """
     Merges a collection of dictionaries, with later dictionaries
@@ -133,7 +151,7 @@ def merge_dicts(*args, overwrite: bool):
 
     if len(args) == 0:
         return {}
-    return reduce(lambda x, y: {**x, **y}, args)
+    return reduce(lambda x, y: merge_two_dicts(x, y, overwrite), args)
 
 def merge_two_dicts(x: dict, y: dict, overwrite: bool):
     """
@@ -157,6 +175,9 @@ def merge_two_dicts(x: dict, y: dict, overwrite: bool):
     if not overwrite:
         for key in y.keys():
             if key in x:
-                raise ValueError(f"Duplicate key {key} found in the dictionaries to be merged.")
+                raise DuplicateKeyError(f"Duplicate key {key} found in the dictionaries to be merged.")
 
     return {**x, **y}
+
+class DuplicateKeyError(ValueError):
+    pass

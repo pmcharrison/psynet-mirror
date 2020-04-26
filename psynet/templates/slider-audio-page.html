@@ -4,46 +4,42 @@
     {{ super() }}
 
     <script>
-        // This overwrites `create_log_message(message)` from `slider-page.html` and adds the ID to the log
-        create_log_message = function (slider_vals) {
-            slider_vals['ID'] = get_id_from_slider_value(slider_vals['snapped_slider_value']);
-            return ({
+        // Overwrites corresponding method in slider-page.html
+        slider.update_log = function() {
+            slider.log.push({
                 'time': new Date(),
-                'message': slider_vals
+                'value': slider.value,
+                'audio': slider.audio
             })
-        };
+        }
 
-
-        get_id_from_slider_value = function (snapped_value = get_slider_value(false)) {
-            // Get all the locations associated with sounds
-            var locations = Object.keys(sound_locations).map(function (key) {
-                return sound_locations[key];
-            });
-
-            if (!snapped_value in locations) {
-                psynet.log.error('Sound location ' + snapped_value + ' does not exist as a value in array `sound_locations`')
-            } else {
-                var idx = locations.indexOf(snapped_value);
-                psynet.log.debug('Snapped value = ' + snapped_value);
-                return Object.keys(sound_locations)[idx];
-            }
-
+        find_closest_audio = function (slider) {
+            var locations = Object.values(sound_locations);
+            var nearest = psynet.utils.closest(parseFloat(slider.value), locations);
+            var selected_audio = Object.keys(sound_locations)[nearest.index];
+            return selected_audio
         };
 
         play_sound = function () {
-            var id = get_id_from_slider_value();
-            psynet.log.debug('Playing sound with id = ' + id);
-            psynet.audio[id].play();
+            var id = slider.audio;
+            var sound = psynet.audio[id];
+
+            if (!sound.playing) {
+                psynet.media.stop_all_audio();
+                psynet.log.debug('Playing sound with ID = ' + id);
+                sound.play();
+            }
         };
 
         on_slider_event = function (event_type) {
-            play_sound();
-        };
-        psynet.media.register_on_loaded_routine(function () {
-            if (autoplay) {
+            slider.audio = find_closest_audio(slider);
+            if (event_type == "initialise") {
+                if (autoplay) {
+                    play_sound();
+                }
+            } else if (event_type == "slider_changed") {
                 play_sound();
             }
-        });
-
+        };
     </script>
 {% endblock %}

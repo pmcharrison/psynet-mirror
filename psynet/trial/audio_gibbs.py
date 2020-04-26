@@ -5,8 +5,8 @@ from .gibbs import GibbsNetwork, GibbsTrialMaker, GibbsTrial, GibbsNode, GibbsSo
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
 from ..timeline import MediaSpec
-from ..page import AudioSliderPage, SLIDER_DEFAULT_NUM_TICKS
-from ..utils import get_object_from_module, import_local_experiment
+from ..page import AudioSliderPage
+from ..utils import get_object_from_module, import_local_experiment, linspace
 
 import random
 import os
@@ -151,6 +151,11 @@ class AudioGibbsTrial(GibbsTrial):
         closest available audio stimulus.
         If ``False`` (default), continuous values are permitted.
 
+    snap_slider_before_release: bool
+        If ``True``, the slider snaps to the closest audio stimulus before release
+        rather than after release. This option is only available
+        if the stimuli are equally spaced.
+
     autoplay : bool
         If ``True``, a sound corresponding to the initial location on the
         slider will play as soon as the slider is ready for interactions.
@@ -164,10 +169,13 @@ class AudioGibbsTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
 
     snap_slider = False
+    snap_slider_before_release = False
     autoplay = False
     minimal_interactions = 3
 
     def show_trial(self, experiment, participant):
+        self._validate()
+
         start_value = self.initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
 
@@ -178,7 +186,8 @@ class AudioGibbsTrial(GibbsTrial):
             start_value=start_value,
             min_value=vector_range[0],
             max_value=vector_range[1],
-            allowed_values=self.slider_allowed_values,
+            num_steps="num_sounds" if self.snap_slider_before_release else 10000,
+            snap_values="sound_locations" if self.snap_slider else None,
             autoplay=self.autoplay,
             reverse_scale=self.reverse_scale,
             time_estimate=5,
@@ -186,11 +195,12 @@ class AudioGibbsTrial(GibbsTrial):
             minimal_interactions=self.minimal_interactions
         )
 
-    @property
-    def slider_allowed_values(self):
-        if self.snap_slider:
-            return [value for key, value in self.sound_locations.items()]
-        return SLIDER_DEFAULT_NUM_TICKS
+    def _validate(self):
+        if (
+            self.snap_slider_before_release
+            and not isinstance(self.network.granularity, int)
+        ):
+            raise ValueError("<snap_slider_before_release> can only equal <True> if <granularity> is an integer.")
 
     @property
     def media(self):
@@ -326,7 +336,7 @@ def make_audio_regular_intervals(
     synth_function
 ):
     stimuli = []
-    for _i, _value in enumerate(range(range_to_sample[0], range_to_sample[1], granularity)):
+    for _i, _value in enumerate(linspace(range_to_sample[0], range_to_sample[1], granularity)):
         _vector = vector.copy()
         _vector[active_index] = _value
         _id = f"slider_stimulus_{_i}"

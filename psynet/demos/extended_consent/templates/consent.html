@@ -1,0 +1,233 @@
+{% extends "base/consent.html" %}
+
+{% block consent_text %}
+
+<div id="page_1" class="text-left" style="font-size:18px">
+    {% block page_1 %}
+        <h2>Overview</h2>
+
+        <p>
+            This research is being conducted by researchers at the
+            Max-Planck-Institute for Empirical Aesthetics. In case of questions you
+            can contact the researchers at {{ contact_email_on_error }}.
+        </p>
+
+        <p>
+            The purpose of this online form is to give you information to help you
+            decide whether you want to take part in a research study. This online
+            consent form includes the following information:
+        </p>
+
+        <ol>
+            <li> Purpose of the study</li>
+            <li> Why the study is being done.</li>
+            <li> The things that you will be asked to do if you are in the study.</li>
+            <li> Any known risks involved.</li>
+            <li> Any potential benefits.</li>
+        </ol>
+
+        <h2>Purpose</h2>
+
+        The purpose of this project is to characterize internal representations in
+        audition and vision. Specifically, we would like to understand how
+        predictive mechanisms in perception rely on experience, learning and memory.
+        We hope to use the judgments and interactions made by the experiment
+        participants to infer the mechanisms of the auditory and visual systems. The
+        long-term goals of this project are to understand how humans derive
+        information from sound and vision, and potentially to help engineer machines
+        that can replicate our abilities (e.g. in sound recognition and computer
+        vision) and to help improve perceptual abilities in people whose hearing or
+        sight is impaired.
+
+        <h2>Procedure</h2>
+
+        If you volunteer to participate in this study, you will be asked to perform
+        simple tasks using your keyboard while listening to sounds, or while
+        observing images or videos. For example, you may be asked to judge how
+        pleasant a particular sound or an image is, or to categorize sounds or
+        images (e.g., if a sound or an image is that of a car or a cow), or to judge
+        other basic features of sounds or images (e.g., how frequently do you
+        encounter this type of sound or image? how aesthetically pleasing you
+        consider a particular sound or image?). The specific sounds, images, and
+        videos used will vary, but may include: recordings of ambient sounds,
+        noise-bursts, speech, music, simple tones, naturalistic images, animated
+        images, comics, faces, objects, geometric shapes, fractal images, or videos
+        of natural environments. The duration of the experiment is specified in the
+        ad.
+
+        <h2>Audiovisual procedure</h2>
+
+        In this experiment, you may be asked to make a voice or video recording.
+        For example, you may be asked to record your finger-tapping in response
+        to a sound or video, or to record yourself speaking or singing.
+
+        <h2>Voluntary participation</h2>
+
+        Your participation in this research is voluntary. You are free to refuse to
+        take part, and you may stop taking part at any time. You are free to
+        discontinue participation in this study at any time without penalty. The
+        investigator may withdraw you from this research if circumstances arise
+        which warrant doing so.
+
+        <h2>Confidentiality</h2>
+
+        No personal identifiers (e.g. your name or contact data) will be collected
+        or used at any stage of the experiment. Thus, the experimental data is
+        anonymous. We will also collect some demographic data (e.g. age, gender,
+        country of residence) as well as information about your learning and
+        exposure history (e.g. musical experience playing an instrument, years of
+        formal education, languages spoken).
+
+        All of the information we obtain during the research will be kept
+        confidential. We will only save your anonymized Amazon’s Mechanical Turk IDs
+        in our system, in order to distinguish participants who have already taken
+        part on this or other experiments. MTurk worker IDs will not be used to
+        derive your real identity, will not be shared with anyone outside of the
+        research team and will be deleted after use.
+
+        We will only share with collaborators demographic, aggregated or extracted
+        data without personal identifiers (not indexed by Amazon’s Mechanical Turk
+        IDs).
+
+        <h2>
+            Security
+        </h2>
+
+        <p>
+            Data will be stored on desktops and laptops that have their hard disks
+            encrypted using industry-standard encryption software. No data will be
+            stored permanently on external servers. Theft of an individual
+            laptop/desktop or stolen hard drive will yield no usable personal
+            identifiers. All backup hard drives (Apple Time Machine, etc) will have
+            encryption (FileVault2) enabled. All USB keys used for transporting
+            protected data will be encrypted USB devices.
+        </p>
+
+        <h2>Risks / discomforts </h2>
+
+        There are no risks for participating in this study beyond those associated
+        with normal computer use.
+
+        <h2>Benefits</h2>
+
+        Although it may not directly benefit you, this study may benefit society by
+        helping us understanding how humans derive information from sound and
+        vision, and potentially to help engineer machines that can replicate our
+        abilities (e.g. in sound recognition and computer vision) and to help
+        improve perceptual abilities in people whose hearing or sight is impaired.
+
+        <h2>Compensation</h2>
+
+        If you satisfactorily complete the study, you will receive approximately
+        &#36;{{wage_per_hour}} per hour to compensate you for your participation.
+
+        <h2>Disclaimer</h2>
+
+        Although researchers will not use your MTurk ID to derive your real
+        identity, your MTurk ID could be linked to your Amazon public profile page
+        if a data breach takes place. Thus, you may wish to restrict what
+        information you choose to share publicly.
+
+        <h2>Your rights</h2>
+
+        You have the right to information regarding the data relating to you that is
+        stored at the Max-Planck-Institute, the right to correct inaccurate data,
+        and the right to demand the deletion of data in cases of inadmissible data
+        storage and the right to data portability. You also have the right to submit
+        an objection to the supervisory authority. For the Max-Planck-Society, this
+        is the Bayerische Landesamt für Datenschutzaufsicht, Postfach 606, 91511
+        Ansbach, Germany.
+
+        <h2> Contact information </h2>
+
+        If you have any questions about this research, do not hesitate to contact
+        the Computational Auditory Perception group at {{contact_email_on_error}}.
+        If you have any questions about your rights or treatment as a participant in
+        this research project, please contact Nori Jacoby (nori.jacoby@ae.mpg.de).
+
+        <h2> Consent </h2>
+
+        By consenting to participate, you acknowledge that you are 18 years or
+        older, have read this consent form, agree to its contents, and agree to take
+        part in this research. If you do not wish to consent, please close this page
+        and return the HIT on Mechanical Turk.
+
+    {% endblock %}
+</div>
+
+<div id="page_2" class="text-left" style="font-size:18px; display:none">
+    {% block page_2 %}
+        <p>
+            In this particular experiment we need additional consent from you,
+            regarding the use of audiovisual recordings.
+        </p>
+
+        <h2>Confidentiality</h2>
+        <p>
+            All the recordings we obtain during this research will be kept confidential,
+            and nobody outside the group of researchers will be able to hear/see them.
+            Your recordings will not be associated with your name or other identifiers in any way.
+            Your recordings will not be used to derive your real identity, and they will not be made public.
+            Raw audio/video will not be shared with collaborators (we will only share extracted data from
+            recordings without personal identifiers).
+        </p>
+
+        <h2>Security</h2>
+        <p>
+            During data collection, audio-visual material will be recorded on a separate server and encrypted
+            using strong encryption protocol (such as Advanced Encryption Standard).
+            MTurk ID information will not be used to index this data.
+        </p>
+
+        <h2>Disclaimer</h2>
+        <p>
+            Although researchers will not use your recordings to derive your real identity,
+            personal information could be leaked if you are not in an isolated environment.
+            You may wish to make sure that no sounds/visual material in your environment
+            could be linked to your personal information.
+        </p>
+
+        <h2> Consent </h2>
+        <p>
+            By consenting to participate, you acknowledge that you are 18 years or older,
+            have read this consent form, agree to its contents, and agree to take part
+            in this research. If you do not wish to consent, please close this page and
+            return the HIT on Mechanical Turk.
+        </p>
+    {% endblock %}
+</div>
+
+{% endblock consent_text %}
+
+{% block consent_button %}
+    {% block next_consent_page_button %}
+        <button
+            type="button" class="btn btn-primary btn-lg" id="next_consent_page_button"
+            onClick="next_consent_page();">
+            I agree
+        </button>
+    {% endblock %}
+
+    <button
+        type="button" class="btn btn-primary btn-lg" id="consent_button" style="display:none"
+        onClick="window.location='/start?hit_id={{ hit_id }}&assignment_id={{ assignment_id }}&worker_id={{ worker_id }}&mode={{ mode }}';" style="float: left;">
+        I agree
+    </button>
+{% endblock consent_button %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        next_consent_page = function() {
+            document.getElementById("page_1").style.display = "none";
+            document.getElementById("next_consent_page_button").style.display = "none";
+
+            document.getElementById("page_2").style.display = "block";
+            document.getElementById("consent_button").style.display = "inline";
+
+            window.scrollTo(0, 0);
+        }
+    </script>
+
+{% endblock %}
