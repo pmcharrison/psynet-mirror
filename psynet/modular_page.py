@@ -1,7 +1,7 @@
 from flask import Markup
 from typing import Union, Optional, List
 
-from .page import (
+from .timeline import (
     Page,
     MediaSpec
 )
@@ -75,9 +75,37 @@ class Prompt():
         return MediaSpec()
 
 class AudioPrompt(Prompt):
-    def __init__(self, url: str, text: Union[str, Markup]):
+    """
+    Plays an audio file to the participant.
+
+    Parameters
+    ----------
+
+    url
+        URL of the audio file to play.
+
+    text
+        Text to display to the participant. This can either be a string
+        for plain text, or an HTML specification from ``flask.Markup``.
+
+    loop
+        Whether the audio should loop back to the beginning after finishing.
+
+    enable_response_after
+        If not ``None``, sets a time interval in seconds after which the response
+        options will be enabled.
+    """
+    def __init__(
+            self,
+            url: str,
+            text: Union[str, Markup],
+            loop: bool = False,
+            enable_response_after: Optional[float] = None
+        ):
         super().__init__(text=text)
         self.url = url
+        self.enable_response_after = enable_response_after
+        self.loop = loop
 
     macro = "audio"
     ready_for_response = False
@@ -308,6 +336,10 @@ class ModularPage(Page):
     media
         Optional specification of media assets to preload
         (see the documentation for :class:`psynet.timeline.MediaSpec`).
+        Typically this field can be left blank, as media will be passed through the
+        :class:`~psynet.modular_page.Prompt` or
+        :class:`~psynet.modular_page.Control`
+        objects instead.
 
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.

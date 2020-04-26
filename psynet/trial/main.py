@@ -536,8 +536,7 @@ class TrialMaker(Module):
         function = self.recruit_criteria[self.recruit_mode]
         return call_function(function, {"self": self, "experiment": experiment})
 
-    @staticmethod
-    def null_criterion(experiment):
+    def null_criterion(self, experiment):
         logger.info("Recruitment is disabled for this module.")
         return False
 

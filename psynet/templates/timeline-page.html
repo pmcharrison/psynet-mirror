@@ -609,8 +609,12 @@
                             if (!("gain" in options)) {
                                 options.gain = 1;
                             }
+                            if (!("loop" in options)) {
+                                options.loop = false;
+                            }
 
                             this.source = psynet.media.audio_context.createBufferSource();
+                            this.source.loop = options.loop;
                             this.gain_node = psynet.media.audio_context.createGain();
                             this.source.connect(this.gain_node);
                             this.gain_node.connect(psynet.media.audio_context.destination);
@@ -635,10 +639,10 @@
                             }
 
                             var this_audio = this;
-                            this.source.onended = function() {
+                            this.source.addEventListener("ended", function() {
                                 psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
                                 this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
-                            }
+                            });
 
                             return this
                         };

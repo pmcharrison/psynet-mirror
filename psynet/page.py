@@ -20,6 +20,10 @@ from .timeline import (
     while_loop
 )
 from .utils import linspace
+from .modular_page import (
+    ModularPage,
+    AudioPrompt
+)
 
 class InfoPage(Page):
     """
@@ -720,3 +724,43 @@ class DebugResponsePage(PageMaker):
             <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
             """
         ))
+
+class VolumeCalibration(ModularPage):
+    def __init__(
+            self,
+            url="https://headphone-check.s3.amazonaws.com/noise_calib_stim.wav",
+            min_time=2.5,
+            time_estimate=5.0,
+        ):
+        self._min_time = min_time
+        self._url = url
+        super().__init__(
+            "volume_calibration",
+            prompt=self._prompt,
+            time_estimate=time_estimate
+        )
+
+    @property
+    def _text (self):
+        return Markup(
+            """
+            <p>
+                Please listen to the following sound and adjust your
+                computer's output volume until it is at a comfortable level.
+            </p>
+            <p>
+                If you can't hear anything, there may be a problem with your
+                playback configuration or your internet connection.
+                You can refresh the page to try loading the audio again.
+            </p>
+            """
+        )
+
+    @property
+    def _prompt(self):
+        return AudioPrompt(
+            self._url,
+            self._text,
+            loop=True,
+            enable_response_after=self._min_time
+        )

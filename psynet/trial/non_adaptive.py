@@ -28,33 +28,33 @@ class Stimulus(dallinger.models.Node):
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
     of :class:`~psynet.trial.non_adaptive.StimulusSpec`.
-    
+
     Attributes
     ----------
-    
+
     definition : dict
         A dictionary containing the parameter values for the stimulus.
-        This excludes any parameters defined by the 
+        This excludes any parameters defined by the
         :class:`~psynet.trial.non_adaptive.StimulusVersion` class.
-    
+
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
-    
+
     participant_group : str
         The associated participant group.
-    
+
     block : str
         The associated block.
-    
+
     num_completed_trials : int
         The number of completed trials that this stimulus has received,
         exluding failed trials.
-    
+
     num_trials_still_required : int
         The number of trials still required for this stimulus before the experiment
         can complete, if such a quota exists.
     """
-    
+
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
     target_num_trials = claim_field(1, int)
@@ -67,19 +67,19 @@ class Stimulus(dallinger.models.Node):
     def definition(self, definition):
         self.details = definition
 
-    @property 
+    @property
     def phase(self):
         return self.network.phase
 
-    @property 
+    @property
     def participant_group(self):
         return self.network.participant_group
 
-    @property 
+    @property
     def block(self):
         return self.network.block
 
-    @property 
+    @property
     def _query_completed_trials(self):
         return (
             NonAdaptiveTrial
@@ -91,7 +91,7 @@ class Stimulus(dallinger.models.Node):
     def num_completed_trials(self):
         return self._query_completed_trials.count()
 
-    @property 
+    @property
     def num_trials_still_required(self):
         if self.target_num_trials is None:
             raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
@@ -112,32 +112,32 @@ class StimulusSpec():
     Defines a stimulus for a non-adaptive experiment.
     Will be translated to a database-backed
     :class:`~psynet.trial.non_adaptive.Stimulus` instance.
-    
+
     Parameters
     ----------
-    
+
     definition
         A dictionary of parameters defining the stimulus.
-    
+
     phase
-        The associated phase of the experiment, 
+        The associated phase of the experiment,
         e.g. ``"practice"`` or ``"main"``.
-    
+
     version_specs
-        An optional list of 
+        An optional list of
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects, defining different forms that the stimulus can take.
-    
+
     participant_group
         The associated participant group.
         Defaults to a common participant group for all participants.
-    
+
     block
         The associated block.
         Defaults to a single block for all trials.
     """
     def __init__(
-        self, 
+        self,
         definition: dict,
         phase: str,
         version_specs=None,
@@ -145,10 +145,10 @@ class StimulusSpec():
         block="default"
     ):
         assert isinstance(definition, dict)
-        
+
         if version_specs is None:
             version_specs = [StimulusVersionSpec(definition={})]
-            
+
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:
@@ -163,7 +163,7 @@ class StimulusSpec():
     def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
         stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
         experiment.session.add(stimulus)
-        
+
         for version_spec in self.version_specs:
             version = StimulusVersion(version_spec, stimulus, network)
             experiment.session.add(version)
@@ -172,36 +172,36 @@ class StimulusVersion(dallinger.models.Node):
     """
     A stimulus version class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class;
-    intended to be nested within the 
+    intended to be nested within the
     :class:`~psynet.trial.non_adaptive.Stimulus` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
     of :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`.
-    
+
     Attributes
     ----------
-    
+
     definition : dict
         A dictionary containing the parameter values for the stimulus version.
         This excludes any parameters defined by the parent
         :class:`~psynet.trial.non_adaptive.Stimulus` class.
-        
+
     stimulus : Stimulus
         The parent :class:`~psynet.trial.non_adaptive.Stimulus` object.
-        
+
     stimulus_id : int
         The ID of the parent stimulus object. Stored as ``property1`` in the database.
-    
+
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
-    
+
     participant_group : str
         The associated participant group.
-    
+
     block : str
         The associated block.
     """
-    
+
     __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
 
     stimulus_id = claim_field(1, int)
@@ -214,8 +214,8 @@ class StimulusVersion(dallinger.models.Node):
     def definition(self, definition):
         self.details = definition
 
-    
-    @property 
+
+    @property
     def stimulus(self):
         return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
@@ -245,15 +245,15 @@ class StimulusVersionSpec():
     Defines a stimulus version for a non-adaptive experiment.
     Will be translated to a database-backed
     :class:`~psynet.trial.non_adaptive.StimulusVersion` instance,
-    which will be nested within a 
+    which will be nested within a
     :class:`~psynet.trial.non_adaptive.Stimulus` instance.
-    
+
     Parameters
     ----------
-    
+
     definition
         A dictionary of parameters defining the stimulus version.
-        Should not include any parameters already defined in 
+        Should not include any parameters already defined in
         the parent :class:`~psynet.trial.non_adaptive.StimulusSpec` instance.
     """
     def __init__(self, definition):
@@ -263,17 +263,17 @@ class StimulusVersionSpec():
 class StimulusSet():
     """
     Defines a stimulus set for a non-adaptive experiment.
-    This stimulus set is defined as a collection of 
+    This stimulus set is defined as a collection of
     :class:`~psynet.trial.non_adaptive.StimulusSpec`
     and :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
     objects, which are translated to database-backed
     :class:`~psynet.trial.non_adaptive.Stimulus`
     and :class:`~psynet.trial.non_adaptive.StimulusVersion`
     objects respectively.
-    
+
     Parameters
     ----------
-    
+
     stimulus_specs: list
         A list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
         with these objects potentially containing
@@ -291,18 +291,18 @@ class StimulusSet():
         blocks = set()
         participant_groups = set()
         self.num_stimuli = dict()
-        
+
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
             network_specs.add((
                 s.phase,
-                s.participant_group, 
+                s.participant_group,
                 s.block
             ))
 
             blocks.add(s.block)
             participant_groups.add(s.participant_group)
-            
+
             # This logic could be refactored by defining a special dictionary class
             if s.participant_group not in self.num_stimuli:
                 self.num_stimuli[s.participant_group] = dict()
@@ -314,7 +314,7 @@ class StimulusSet():
         self.network_specs = [
             NetworkSpec(
                 phase=x[0],
-                participant_group=x[1], 
+                participant_group=x[1],
                 block=x[2],
                 stimulus_set=self
             )
@@ -342,14 +342,14 @@ class NetworkSpec():
             target_num_trials_per_stimulus=target_num_trials_per_stimulus
         )
         experiment.session.add(network)
-        
+
 class NonAdaptiveTrial(Trial):
     """
     A Trial class for non-adaptive experiments.
-    
+
     Attributes
     ----------
-    
+
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
@@ -371,30 +371,30 @@ class NonAdaptiveTrial(Trial):
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
-        
+
     definition
         A dictionary of parameters defining the trial.
-        This dictionary combines the dictionaries of the 
+        This dictionary combines the dictionaries of the
         respective
         :class:`~psynet.trial.non_adaptive.StimulusSpec`
         and
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects.
-    
+
     stimulus_version
         The corresponding :class:`~psynet.trial.non_adaptive.StimulusVersion`
         object.
-    
+
     stimulus
         The corresponding :class:`~psynet.trial.non_adaptive.Stimulus`
         object.
-    
+
     phase
         The phase of the experiment, e.g. ``"training"`` or ``"main"``.
-    
+
     participant_group
         The associated participant group.
-    
+
     block
         The block in which the trial is situated.
     """
@@ -431,119 +431,121 @@ class NonAdaptiveTrial(Trial):
 
     def make_definition(self, experiment, participant):
         """
-        Combines the definitions of the associated 
+        Combines the definitions of the associated
         :class:`~psynet.trial.non_adaptive.Stimulus`
         and :class:`~psynet.trial.non_adaptive.StimulusVersion`
         objects.
         """
         return {
-            **self.stimulus.definition, 
+            **self.stimulus.definition,
             **self.stimulus_version.definition
-        }   
-        
+        }
+
 
 
 class NonAdaptiveTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a non-adaptive experiment.
-    The class is intended for use with the 
+    The class is intended for use with the
     :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` helper class.
-    which should be customised to show the relevant stimulus 
+    which should be customised to show the relevant stimulus
     for the experimental paradigm.
-    The user must also define their stimulus set 
+    The user must also define their stimulus set
     using the following built-in classes:
-    
+
     * :class:`~psynet.trial.non_adaptive.StimulusSet`;
-    
+
     * :class:`~psynet.trial.non_adaptive.StimulusSpec`;
-    
+
     * :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`;
-    
+
     In particular, a :class:`~psynet.trial.non_adaptive.StimulusSet`
-    contains a list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects, 
-    which in turn contains a list of 
+    contains a list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
+    which in turn contains a list of
     :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
-    
+
     The user may also override the following methods, if desired:
-    
+
     * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_block_order`;
       chooses the order of blocks in the experiment. By default the blocks
       are ordered randomly.
-      
+
     * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`;
       assigns the participant to a group. By default the participant is assigned
-      to a random group. 
-      
+      to a random group.
+
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the the sequence of trials is complete.
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.performance_check`,
-      which checks the performance of the participant 
+      which checks the performance of the participant
       with a view to rejecting poor-performing participants.
-    
+
     Further customisable options are available in the constructor's parameter list,
     documented below.
-    
+
     Parameters
     ----------
-    
+
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`).
-        
+
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-        
+
     stimulus_set
         The stimulus set to be administered.
-        
+
     time_estimate_per_trial
         Time estimated for each trial (seconds).
-        
+
     recruit_mode
-        Selects a recruitment criterion for determining whether to recruit 
+        Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``.
-    
+
     target_num_participants
-        Target number of participants to recruit for the experiment. All 
+        Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
-        towards this quota. This target is only relevant if 
+        towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
-    
+
     target_num_trials_per_stimulus
         Target number of trials to recruit for each stimulus in the experiment
-        (as opposed to for each stimulus version). This target is only relevant if 
+        (as opposed to for each stimulus version). This target is only relevant if
         ``recruit_mode="num_trials"``.
-    
+
     new_participant_group
         If ``True``, :meth:`~psynet.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`
-        is run to assign the participant to a new participant group. 
+        is run to assign the participant to a new participant group.
         Unless overridden, a given participant's participant group will persist
         for all phases of the experiment,
         except if switching to a :class:`~psynet.non_adaptive.NonAdaptiveTrialMaker`
         where the trial class (:class:`~psynet.non_adaptive.NonAdaptiveTrial`)
         has a different name.
-    
+        Only set this to ``False`` if the participant is taking a subsequent phase
+        of a non-adaptive experiment.
+
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block.
-    
+
     allow_repeated_stimuli
         Determines whether the participant can be administered the same stimulus more than once.
-    
+
     max_unique_stimuli_per_block
         Determines the maximum number of unique stimuli that a participant will be allowed to experience
         in each block. Once this quota is reached, the participant will be forced to repeat
         previously experienced stimuli.
-    
+
     active_balancing_within_participants
-        If ``True`` (default), active balancing within participants is enabled, meaning that 
+        If ``True`` (default), active balancing within participants is enabled, meaning that
         stimulus selection always favours the stimuli that have been presented fewest times
         to that participant so far.
-    
+
     active_balancing_across_participants
-        If ``True`` (default), active balancing across participants is enabled, meaning that 
+        If ``True`` (default), active balancing across participants is enabled, meaning that
         stimulus selection favours stimuli that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
@@ -552,19 +554,19 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         then the latter criterion is only used for tie breaking.
 
     check_performance_at_end
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated at the end of the series of trials.
         Defaults to ``False``.
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
-        
+
     check_performance_every_trial
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated after each trial.
         Defaults to ``False``.
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
-    
+
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
         if they leave the experiment prematurely.
@@ -572,9 +574,9 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.    
+        if the participant fails a performance check.
         Defaults to ``True``.
-        
+
     async_post_trial
         Optional function to be run after a trial is completed by the participant.
         This should be specified as a fully qualified string, for example
@@ -591,22 +593,22 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     Returns
     -------
-    
+
     list
         A sequence of events suitable for inclusion in a
         :class:`~psynet.timeline.Timeline`
     """
     def __init__(
-        self,  
+        self,
         *,
-        trial_class, 
+        trial_class,
         phase: str,
         stimulus_set: StimulusSet,
-        recruit_mode: Optional[str],
         time_estimate_per_trial: int,
-        target_num_participants: Optional[int],
-        target_num_trials_per_stimulus: Optional[int],
         new_participant_group: bool,
+        recruit_mode: Optional[str] = None,
+        target_num_participants: Optional[int] = None,
+        target_num_trials_per_stimulus: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         allow_repeated_stimuli: bool = False,
         max_unique_stimuli_per_block: Optional[int]=None,
@@ -618,8 +620,10 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         fail_trials_on_participant_performance_check: bool = True,
         async_post_trial: Optional[str] = None
     ):
-        if (target_num_participants is None) and (target_num_trials_per_stimulus is None):
-            raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be None.")
+        if (recruit_mode == "num_participants" and target_num_participants is None):
+            raise ValueError("<target_num_participants> cannot be None if recruit_mode == 'num_participants'.")
+        if (recruit_mode == "num_trials" and target_num_trials_per_stimulus is None):
+            raise ValueError("<target_num_trials_per_stimulus> cannot be None if recruit_mode == 'num_trials'.")
         if (target_num_participants is not None) and (target_num_trials_per_stimulus is not None):
             raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided.")
 
@@ -635,10 +639,10 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
         expected_num_trials = self.estimate_num_trials()
         super().__init__(
-            trial_class, 
+            trial_class,
             network_class=NonAdaptiveNetwork,
             phase=phase,
-            time_estimate_per_trial=time_estimate_per_trial, 
+            time_estimate_per_trial=time_estimate_per_trial,
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
@@ -650,14 +654,14 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             async_post_trial=async_post_trial
         )
 
-    @property 
+    @property
     def num_trials_still_required(self):
         return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
 
     @property
     def stimuli(self):
         return reduce(
-            operator.add, 
+            operator.add,
             [n.stimuli for n in self.networks]
         )
 
@@ -701,7 +705,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
                 self.estimate_num_trials_in_block(num_stimuli_in_block)
                 for num_stimuli_in_block in num_stimuli_by_block.values()
             ])
-            for participant_group, num_stimuli_by_block 
+            for participant_group, num_stimuli_by_block
             in self.stimulus_set.num_stimuli.items()
         ])
 
@@ -716,7 +720,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
-            participant, 
+            participant,
             self.choose_block_order(experiment=experiment, participant=participant)
         )
 
@@ -751,7 +755,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         return participant.var.get(self.participant_group_var_id)
 
     def has_participant_group(self, participant):
-        return participant.has_var(self.participant_group_var_id)
+        return participant.var.has(self.participant_group_var_id)
 
 
     def init_completed_stimuli_in_phase(self, participant):
@@ -800,24 +804,24 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         # pylint: disable=unused-argument
         """
         Determines the order of blocks for the current participant.
-        By default this function shuffles the blocks randomly for each participant. 
+        By default this function shuffles the blocks randomly for each participant.
         The user is invited to override this function for alternative behaviour.
-        
+
         Parameters
         ----------
-        
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-        
+
         Returns
         -------
-        
-        list   
+
+        list
             A list of blocks in order of presentation,
             where each block is identified by a string label.
         """
@@ -829,23 +833,23 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         # pylint: disable=unused-argument
         """
         Determines the participant group assigned to the current participant.
-        By default this function randomly chooses from the available participant groups. 
+        By default this function randomly chooses from the available participant groups.
         The user is invited to override this function for alternative behaviour.
-        
+
         Parameters
         ----------
-        
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-            
+
         Returns
         -------
-        
+
         A string label identifying the selected participant group.
         """
         participant_groups = self.stimulus_set.participant_groups
@@ -854,12 +858,12 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
             network_spec.create_network(
-                trial_type=self.trial_type, 
-                experiment=experiment, 
+                trial_type=self.trial_type,
+                experiment=experiment,
                 target_num_trials_per_stimulus=self.target_num_trials_per_stimulus
             )
         experiment.save()
-        
+
     def find_networks(self, participant, experiment):
         # pylint: disable=protected-access
         block_order = participant.var.get(self.with_namespace("block_order"))
@@ -894,17 +898,20 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             self.trial_class
                 .query
                 .filter_by(
-                    network_id=network.id, 
+                    network_id=network.id,
                     participant_id=participant.id,
                     failed=False,
                     complete=True
                 )
                 .count()
         )
-        
+
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
-        if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
+        if (
+            self.max_trials_per_block is not None and
+            self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block
+        ):
             return None
         completed_stimuli = self.get_completed_stimuli_in_phase_and_block(participant, block=network.block)
         allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
@@ -941,7 +948,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         candidate_counts_within = [completed_stimuli[candidate.id] for candidate in candidates]
         min_count_within = 0 if len(candidate_counts_within) == 0 else min(candidate_counts_within)
         return [
-            candidate for candidate, candidate_count_within in zip(candidates, candidate_counts_within) 
+            candidate for candidate, candidate_count_within in zip(candidates, candidate_counts_within)
             if candidate_count_within == min_count_within
         ]
 
@@ -950,7 +957,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
         min_count_across = 0 if len(candidate_counts_across) == 0 else min(candidate_counts_across)
         return [
-            candidate for candidate, candidate_count_across in zip(candidates, candidate_counts_across) 
+            candidate for candidate, candidate_count_across in zip(candidates, candidate_counts_across)
             if candidate_count_across == min_count_across
         ]
 
@@ -969,89 +976,89 @@ class NonAdaptiveNetwork(TrialNetwork):
     """
     A :class:`~psynet.trial.main.TrialNetwork` class for non-adaptive experiments.
     The user should not have to engage with this class directly,
-    except through the network visualisation tool and through 
+    except through the network visualisation tool and through
     analysing the resulting data.
     The networks are organised as follows:
-    
-    1. At the top level of the hierarchy, different networks correspond to different 
+
+    1. At the top level of the hierarchy, different networks correspond to different
        combinations of participant group and block.
-       If the same experiment contains many 
+       If the same experiment contains many
        :class:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker` objects
        with different associated :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`
-       classes, 
-       then networks will also be differentiated by the names of these 
+       classes,
+       then networks will also be differentiated by the names of these
        :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` classes.
-       
-    2. Within a given network, the first level of the hierarchy is the 
+
+    2. Within a given network, the first level of the hierarchy is the
        :class:`~psynet.trial.non_adaptive.Stimulus` class.
        These objects subclass the Dallinger :class:`~dallinger.models.Node` class,
        and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusSpec` instances.
-       
+
     3. Nested within :class:`~psynet.trial.non_adaptive.Stimulus` objects
        are :class:`~psynet.trial.non_adaptive.StimulusVersion` objects.
        These also subclass the Dallinger :class:`~dallinger.models.Node` class,
        and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` instances.
-       
+
     4. Nested within :class:`~psynet.trial.non_adaptive.StimulusVersion` objects
        are :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` objects.
        These objects subclass the Dallinger :class:`~dallinger.models.Info` class.
 
     Attributes
     ----------
-    
+
     trial_type : str
         A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class, 
+        typically just the name of the relevant class,
         e.g. ``"MelodyTrial"``.
         The same experiment should not contain multiple TrialMaker objects
         with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the 
+        phases of the experiment and are marked as such with the
         ``phase`` parameter.
         Stored as the field ``property1`` in the database.
-        
+
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Stored as the field ``property2`` in the database.
-        
+
     awaiting_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         This should always be ``False`` for non-adaptive experiments.
         Stored as the field ``property3`` in the database.
-        
+
     participant_group : bool
         The network's associated participant group.
         Stored as the field ``property4`` in the database.
-        
+
     block : str
         The network's associated block.
         Stored as the field ``property5`` in the database.
-        
+
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
         Stored as the field ``role`` in the database.
-        
+
     num_nodes : int
-        Returns the number of non-failed nodes in the network.       
-    
+        Returns the number of non-failed nodes in the network.
+
     num_completed_trials : int
         Returns the number of completed and non-failed trials in the network
         (irrespective of asynchronous processes).
-        
+
     stimuli : list
         Returns the stimuli associated with the network.
-        
+
     num_stimuli : int
         Returns the number of stimuli associated with the network.
-        
+
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
     """
     #pylint: disable=abstract-method
-    
+
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
-    
+
     participant_group = claim_field(4, str)
     block = claim_field(5, str)
 
@@ -1066,16 +1073,16 @@ class NonAdaptiveNetwork(TrialNetwork):
         source = dallinger.nodes.Source(network=self)
         experiment.session.add(source)
         stimulus_specs = [
-            x for x in stimulus_set.stimulus_specs 
+            x for x in stimulus_set.stimulus_specs
             if x.phase == self.phase
             and x.participant_group == self.participant_group
             and x.block == self.block
         ]
         for stimulus_spec in stimulus_specs:
             stimulus_spec.add_stimulus_to_network(
-                network=self, 
-                source=source, 
-                experiment=experiment, 
+                network=self,
+                source=source,
+                experiment=experiment,
                 target_num_trials=target_num_trials_per_stimulus
             )
         experiment.save()
