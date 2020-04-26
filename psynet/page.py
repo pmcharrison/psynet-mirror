@@ -603,9 +603,6 @@ class AudioSliderPage(SliderPage):
         if not 'media' in kwargs:
             raise ValueError('You must specify sounds in `media` you later want to play with the slider')
 
-        if not 'audio' in kwargs['media']:
-            raise ValueError('The `media` dictionary must contain the key `audio`')
-
         if isinstance(num_steps, str):
             if num_steps == "num_sounds":
                 num_steps = len(sound_locations)
