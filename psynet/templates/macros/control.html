@@ -97,7 +97,13 @@
         SOFTWARE.
         */
 
-        function init_audio_meter() {
+        audio_meter_control = {
+            enabled: true, // not implemented yet
+            override_message: undefined, // not implemented yet
+            override_message_colour: undefined // not implemented yet
+        };
+
+        audio_meter_control.init = function() {
             var audioContext = null;
             var audio_meter = null;
             var audio_meter_text = document.getElementById("audio_meter_text");
@@ -246,6 +252,6 @@
                 this.volume = Math.max(rms, this.volume*this.averaging);
             }
         }
-        init_audio_meter();
+        audio_meter_control.init();
     </script>
 {% endmacro %}
