@@ -128,7 +128,7 @@ example_audio_meter = ModularPage(
 example_audio_meter_with_audio = ModularPage(
     "audio_meter",
     AudioPrompt(
-        "/static/audio/bier.wav",
+        "/static/audio/train1.wav",
         "This page shows an audio meter alongside an audio stimulus.",
         loop=True,
         enable_response_after=2.5
