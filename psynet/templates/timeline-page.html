@@ -418,10 +418,9 @@
                     if (!context) {
                         throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
                     }
-                    // if (context.state == "suspended") {
-                    //     alert("Resuming the experiment.");
-                    //     context.resume();
-                    // }
+                    if (context.state == "suspended") {
+                        context.resume();
+                    }
                     psynet.media.audio_context = context
 
                 };

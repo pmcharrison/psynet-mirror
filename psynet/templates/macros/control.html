@@ -116,9 +116,9 @@
             var time_last_at_moderate_volume = -1e6; // ms
             var time_until_too_quiet = 1500; // ms
 
-            window.addEventListener("load", function() {
+            psynet.media.register_on_loaded_routine(function() {
                 canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
-                audioContext = new AudioContext();
+                audioContext = psynet.media.audio_context;
 
                 try {
                     navigator.mediaDevices.getUserMedia({ audio: true, video: false })
