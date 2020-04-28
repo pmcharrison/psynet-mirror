@@ -73,36 +73,13 @@
     </script>
 
     <script>
-        /*
-        The MIT License (MIT)
+        {% include "macros/control/audio_meter.js" %}
 
-        Copyright (c) 2014 Chris Wilson, modified 2020 by Peter Harrison
-
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        */
-
-        audio_meter_control = {
-            enabled: true, // not implemented yet
+        audio_meter_control.init({
             decay: {
-                display: 0.25,
-                high: 0.25,
-                low: 0.25
+            display: 0.25,
+            high: 0.25,
+            low: 0.25
             },
             threshold: {
                 high: 0.8,
@@ -111,178 +88,8 @@
             duration: {
                 high: 0.2,
                 low: 0.2
-            },
-            override_message: undefined, // not implemented yet
-            override_message_colour: undefined // not implemented yet
-        };
-
-        audio_meter_control.init = function() {
-            var audioContext = null;
-            var audio_meter = null;
-            var audio_meter_text = document.getElementById("audio_meter_text");
-            var canvasContext = null;
-            var audio_meter_max_width=300;
-            var audio_meter_max_height=50;
-            var rafID = null;
-
-            var moderate_volume_threshold = 0.2;
-
-            var time_last_too_low = -1e20;
-            var time_last_too_high = -1e20;
-
-            var time_until_too_quiet = 1500; // ms
-
-            psynet.media.register_on_loaded_routine(function() {
-                canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
-                audioContext = psynet.media.audio_context;
-
-                try {
-                    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                    .then(onMicrophoneGranted)
-                    // .catch(onMicrophoneDenied);
-
-                } catch (e) {
-                    alert('getUserMedia threw exception :' + e);
-                }
-            });
-
-            /**
-            * Callback triggered if the microphone permission is denied
-            */
-            function onMicrophoneDenied() {
-                alert('Microphone permission denied. You may refresh the page to try again.');
             }
+        });
 
-            var mediaStreamSource = null;
-
-            function onMicrophoneGranted(stream) {
-                // Create an AudioNode from the stream.
-                mediaStreamSource = audioContext.createMediaStreamSource(stream);
-
-                // Create a new volume meter and connect it.
-                audio_meter = createAudioMeter(audioContext);
-                mediaStreamSource.connect(audio_meter);
-
-                // kick off the visual updating
-                onLevelChange();
-            }
-
-            function onLevelChange( time ) {
-                // clear the background
-                canvasContext.clearRect(0,0,audio_meter_max_width,audio_meter_max_height);
-
-                // check if we're currently clipping
-                // if (audio_meter.checkClipping()) {
-                if (audio_meter.volume.high >= audio_meter_control.threshold.high) {
-                    time_last_too_high = time;
-                }
-                if (audio_meter.volume.low <= audio_meter_control.threshold.low) {
-                    time_last_too_low = time;
-                }
-                if ((time - time_last_too_high) / 1000.0 <= audio_meter_control.duration.high) {
-                    audio_meter_text.innerHTML = "Too loud!";
-                    audio_meter_text.style.color = "red";
-                    canvasContext.fillStyle = "red";
-                } else if ((time - time_last_too_low) / 1000.0 <= audio_meter_control.duration.low) {
-                    audio_meter_text.innerHTML = "Too quiet!";
-                    audio_meter_text.style.color = "red";
-                    canvasContext.fillStyle = "red";
-                } else {
-                    audio_meter_text.innerHTML = "Just right.";
-                    audio_meter_text.style.color = "green";
-                    canvasContext.fillStyle = "green";
-                }
-
-                // draw a bar based on the current volume
-                canvasContext.fillRect(0, 0, audio_meter.volume.display * audio_meter_max_width * 1.4, audio_meter_max_height);
-
-                // set up the next visual callback
-                rafID = window.requestAnimationFrame( onLevelChange );
-            }
-
-                /*
-            Usage:
-            audioNode = createAudioMeter(audioContext,clipLevel,averaging,clipLag);
-            audioContext: the AudioContext you're using.
-            clipLevel: the level (0 to 1) that you would consider "clipping".
-            Defaults to 0.98.
-            averaging: how "smoothed" you would like the meter to be over time.
-            Should be between 0 and less than 1.  Defaults to 0.95.
-            clipLag: how long you would like the "clipping" indicator to show
-            after clipping has occured, in milliseconds.  Defaults to 750ms.
-            Access the clipping through node.checkClipping(); use node.shutdown to get rid of it.
-            */
-
-            function createAudioMeter(audioContext,clipLevel,averaging,clipLag) {
-                var processor = audioContext.createScriptProcessor(512);
-                processor.onaudioprocess = volumeAudioProcess;
-                processor.clipping = false;
-                processor.lastClip = 0;
-                processor.volume = {
-                    display: 0.0,
-                    high: 0.0,
-                    low: 0.0
-                }
-                processor.clipLevel = clipLevel || 0.98;
-                processor.averaging = averaging || 0.95;
-                processor.clipLag = clipLag || 750;
-
-                // this will have no effect, since we don't copy the input to the output,
-                // but works around a current Chrome bug.
-                processor.connect(audioContext.destination);
-
-                processor.checkClipping =
-                    function(){
-                        if (!this.clipping)
-                            return false;
-                        if ((this.lastClip + this.clipLag) < window.performance.now())
-                            this.clipping = false;
-                        return this.clipping;
-                    };
-
-                processor.shutdown =
-                    function(){
-                        this.disconnect();
-                        this.onaudioprocess = null;
-                    };
-
-                return processor;
-            }
-
-            function volumeAudioProcess( event ) {
-                var buf = event.inputBuffer.getChannelData(0);
-                var bufLength = buf.length;
-                var sum = 0;
-                var x;
-
-                // Do a root-mean-square on the samples: sum up the squares...
-                for (var i=0; i<bufLength; i++) {
-                    x = buf[i];
-                    if (Math.abs(x)>=this.clipLevel) {
-                        this.clipping = true;
-                        this.lastClip = window.performance.now();
-                    }
-                    sum += x * x;
-                }
-
-                // ... then take the square root of the sum.
-                var rms =  Math.sqrt(sum / bufLength);
-
-                var buffer_duration = bufLength / event.inputBuffer.sampleRate;
-
-
-                // Now smooth this out with the averaging factor applied
-                // to the previous sample - take the max here because we
-                // want "fast attack, slow release."
-                ["display", "high", "low"].forEach(function(x) {
-                    // Exponential smmoothing, see https://en.wikipedia.org/wiki/Exponential_smoothing
-                    var alpha = 1 - Math.exp(- buffer_duration / audio_meter_control.decay[x]);
-                    audio_meter.volume[x] = (1 - alpha) * audio_meter.volume[x] + alpha * rms;
-                })
-
-                // this.volume = Math.max(rms, this.volume*this.averaging);
-            }
-        }
-        audio_meter_control.init();
     </script>
 {% endmacro %}
