@@ -99,6 +99,19 @@
 
         audio_meter_control = {
             enabled: true, // not implemented yet
+            decay: {
+                display: 0.25,
+                high: 0.25,
+                low: 0.25
+            },
+            threshold: {
+                high: 0.8,
+                low: 0.1
+            },
+            duration: {
+                high: 0.2,
+                low: 0.2
+            },
             override_message: undefined, // not implemented yet
             override_message_colour: undefined // not implemented yet
         };
@@ -113,7 +126,10 @@
             var rafID = null;
 
             var moderate_volume_threshold = 0.2;
-            var time_last_at_moderate_volume = -1e6; // ms
+
+            var time_last_too_low = -1e20;
+            var time_last_too_high = -1e20;
+
             var time_until_too_quiet = 1500; // ms
 
             psynet.media.register_on_loaded_routine(function() {
@@ -123,7 +139,7 @@
                 try {
                     navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                     .then(onMicrophoneGranted)
-                    .catch(onMicrophoneDenied);
+                    // .catch(onMicrophoneDenied);
 
                 } catch (e) {
                     alert('getUserMedia threw exception :' + e);
@@ -152,20 +168,22 @@
             }
 
             function onLevelChange( time ) {
-                if (audio_meter.volume >= moderate_volume_threshold) {
-                    time_last_at_moderate_volume = time;
-                }
-
                 // clear the background
                 canvasContext.clearRect(0,0,audio_meter_max_width,audio_meter_max_height);
 
                 // check if we're currently clipping
-                if (audio_meter.checkClipping()) {
+                // if (audio_meter.checkClipping()) {
+                if (audio_meter.volume.high >= audio_meter_control.threshold.high) {
+                    time_last_too_high = time;
+                }
+                if (audio_meter.volume.low <= audio_meter_control.threshold.low) {
+                    time_last_too_low = time;
+                }
+                if ((time - time_last_too_high) / 1000.0 <= audio_meter_control.duration.high) {
                     audio_meter_text.innerHTML = "Too loud!";
                     audio_meter_text.style.color = "red";
                     canvasContext.fillStyle = "red";
-                }
-                else if (time - time_last_at_moderate_volume > time_until_too_quiet){
+                } else if ((time - time_last_too_low) / 1000.0 <= audio_meter_control.duration.low) {
                     audio_meter_text.innerHTML = "Too quiet!";
                     audio_meter_text.style.color = "red";
                     canvasContext.fillStyle = "red";
@@ -176,7 +194,7 @@
                 }
 
                 // draw a bar based on the current volume
-                canvasContext.fillRect(0, 0, audio_meter.volume * audio_meter_max_width * 1.4, audio_meter_max_height);
+                canvasContext.fillRect(0, 0, audio_meter.volume.display * audio_meter_max_width * 1.4, audio_meter_max_height);
 
                 // set up the next visual callback
                 rafID = window.requestAnimationFrame( onLevelChange );
@@ -200,7 +218,11 @@
                 processor.onaudioprocess = volumeAudioProcess;
                 processor.clipping = false;
                 processor.lastClip = 0;
-                processor.volume = 0;
+                processor.volume = {
+                    display: 0.0,
+                    high: 0.0,
+                    low: 0.0
+                }
                 processor.clipLevel = clipLevel || 0.98;
                 processor.averaging = averaging || 0.95;
                 processor.clipLag = clipLag || 750;
@@ -246,10 +268,19 @@
                 // ... then take the square root of the sum.
                 var rms =  Math.sqrt(sum / bufLength);
 
+                var buffer_duration = bufLength / event.inputBuffer.sampleRate;
+
+
                 // Now smooth this out with the averaging factor applied
                 // to the previous sample - take the max here because we
                 // want "fast attack, slow release."
-                this.volume = Math.max(rms, this.volume*this.averaging);
+                ["display", "high", "low"].forEach(function(x) {
+                    // Exponential smmoothing, see https://en.wikipedia.org/wiki/Exponential_smoothing
+                    var alpha = 1 - Math.exp(- buffer_duration / audio_meter_control.decay[x]);
+                    audio_meter.volume[x] = (1 - alpha) * audio_meter.volume[x] + alpha * rms;
+                })
+
+                // this.volume = Math.max(rms, this.volume*this.averaging);
             }
         }
         audio_meter_control.init();
