@@ -204,6 +204,9 @@
 
                 psynet.log = {};
 
+                psynet.log.max = 100;
+                psynet.log.counter = 0;
+
                 psynet.log.generic = function (msg, level) {
                     if (level !== "error" && level !== "warn" && level !== "info" && level !== "debug") {
                         throw new Error("Invalid log level: " + level);
@@ -211,7 +214,9 @@
 
                     console.log("LOG (" + level.toUpperCase() + "): " + msg);
 
-                    if (level != "debug") {
+                    if (level != "debug" && psynet.log.counter < psynet.log.max) {
+                        psynet.log.counter += 1;
+
                         route = (
                             '/log/' + level
                             + "/" + dallinger.identity.participantId
