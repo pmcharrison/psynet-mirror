@@ -33,6 +33,7 @@ RANGE = [-800, 800]
 GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
+DEBUG = True
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -57,6 +58,7 @@ class CustomTrial(AudioGibbsTrial):
 
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
+    debug = DEBUG
 
     def get_prompt(self, experiment, participant):
         return Markup(
