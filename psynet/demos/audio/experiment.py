@@ -23,6 +23,7 @@ from psynet.page import (
 from psynet.modular_page import(
     ModularPage,
     AudioMeterControl,
+    TappingAudioMeterControl,
     AudioPrompt
 )
 
@@ -35,7 +36,6 @@ from datetime import datetime
 example_preloading = InfoPage(
     flask.Markup(
         f"""
-        <p>Welcome to the demo!</p>
         <p>
             This page demonstrates audio preloading.
             A progress bar fills up on the bottom of the screen
@@ -131,7 +131,18 @@ example_audio_meter_calibrate = ModularPage(
     "Here you can experiment with different audio meter parameters.",
     AudioMeterControl(calibrate=True),
     time_estimate=5,
+)
 
+example_audio_meter_calibrate_with_audio = ModularPage(
+    "audio_meter",
+    AudioPrompt(
+        "/static/audio/train1.wav",
+        "The default meter parameters are designed to work well for music playback.",
+        loop=True,
+        enable_response_after=0
+    ),
+    AudioMeterControl(calibrate=True),
+    time_estimate=5,
 )
 
 example_audio_meter_with_audio = ModularPage(
@@ -146,6 +157,20 @@ example_audio_meter_with_audio = ModularPage(
     time_estimate=5
 )
 
+example_audio_meter_calibrate_with_tapping = ModularPage(
+    "audio_meter",
+    """
+    The TappingAudioMeterControl class is a version of the AudioMeterControl class
+    with defaults specialised for tapping experiments. In particular,
+    we disable the clipping warning, decrease the smoothing,
+    and increase the grace period for the
+    too-high warning, to make sure that the short loud tap doesn't cause
+    a warning message.
+    """,
+    TappingAudioMeterControl(calibrate=True),
+    time_estimate=5
+)
+
 example_audio_page = ModularPage(
     "audio_page",
     AudioPrompt(
@@ -155,15 +180,16 @@ example_audio_page = ModularPage(
     time_estimate=5
 )
 
+
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        example_audio_meter,
-        example_audio_meter_calibrate,
-        example_audio_meter_with_audio,
         example_audio_page,
+        example_audio_meter,
+        example_audio_meter_calibrate_with_audio,
+        example_audio_meter_calibrate_with_tapping,
         example_preloading,
         example_on_loaded,
         SuccessfulEndPage()
