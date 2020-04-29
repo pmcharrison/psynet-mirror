@@ -32,6 +32,7 @@
     <script>
         clicked_button = function(id) {
             psynet.response.disable();
+            psynet.submit.disable();
             psynet.next_page(id);
         }
     </script>
@@ -195,9 +196,9 @@
     {{ null(config) }}
 
     <script>
-        psynet.response.wait_for("audio_meter");
+        psynet.submit.wait_for("audio_meter");
         setTimeout(
-            ()=> psynet.response.ready("audio_meter"),
+            ()=> psynet.submit.ready("audio_meter"),
             1000 * {{ config.min_time }}
         );
     </script>

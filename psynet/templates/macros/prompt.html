@@ -10,7 +10,7 @@
     {{ simple(config) }}
 
     <script>
-        psynet.response.wait_for("audio_prompt")
+        psynet.submit.wait_for("audio_prompt")
 
         psynet.media.register_on_loaded_routine(function() {
             var sound = psynet.audio.prompt.play({
