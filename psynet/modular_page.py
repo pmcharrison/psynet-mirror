@@ -453,8 +453,6 @@ class AudioMeterControl(Control):
     def __init__(
             self,
             min_time: float = 2.5,
-            display_half_life=0.2,
-            high_half_life = 0.2,
             calibrate = False
 
     ):
@@ -479,13 +477,13 @@ class AudioMeterControl(Control):
 
     decay = {
         "display": 0.1,
-        "high": 0.5,
-        "low": 0.5
+        "high": 0.1,
+        "low": 0.1
     }
 
     threshold = {
         "high": 0.8,
-        "low": 0.2
+        "low": 0.1
     }
 
     grace = {
