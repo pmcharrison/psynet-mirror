@@ -1,5 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
+from flask import Markup, escape
 from dallinger import db
 from .gibbs import GibbsNetwork, GibbsTrialMaker, GibbsTrial, GibbsNode, GibbsSource
 from ..field import claim_var
@@ -11,6 +12,7 @@ from ..utils import get_object_from_module, import_local_experiment, linspace
 import random
 import os
 import tempfile
+import json
 
 from uuid import uuid4
 
@@ -164,6 +166,11 @@ class AudioGibbsTrial(GibbsTrial):
 
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
+
+    debug : bool
+        If ``True``, then the page displays debugging information about the
+        current trial. If ``False`` (default), no information is displayed.
+        Override this to enable behaviour.
     """
 
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
@@ -172,6 +179,7 @@ class AudioGibbsTrial(GibbsTrial):
     snap_slider_before_release = False
     autoplay = False
     minimal_interactions = 3
+    debug = False
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -181,7 +189,7 @@ class AudioGibbsTrial(GibbsTrial):
 
         return AudioSliderPage(
             "gibbs_audio_trial",
-            self.get_prompt(experiment, participant),
+            self._get_prompt(experiment, participant),
             sound_locations=self.sound_locations,
             start_value=start_value,
             min_value=vector_range[0],
@@ -194,6 +202,18 @@ class AudioGibbsTrial(GibbsTrial):
             media=self.media,
             minimal_interactions=self.minimal_interactions
         )
+
+    def _get_prompt(self, experiment, participant):
+        main = self.get_prompt(experiment, participant)
+        if not self.debug:
+            return main
+        else:
+            return (
+                (Markup(escape(main)) if isinstance(main, str) else main)
+                + Markup("<pre style='overflow: scroll; max-height: 50vh;'>")
+                + Markup(escape(json.dumps(self.summarise(), indent=4)))
+                + Markup("</pre>")
+            )
 
     def _validate(self):
         if (

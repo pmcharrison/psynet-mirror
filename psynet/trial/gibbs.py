@@ -141,9 +141,24 @@ class GibbsTrial(ChainTrial):
 
     @property
     def updated_vector(self):
+        if self.answer is None:
+            return None
         new = self.initial_vector.copy()
         new[self.active_index] = self.answer
         return new
+
+    def summarise(self):
+        return {
+            "trial_id": self.id,
+            "node_id": self.origin.id,
+            "network_id": self.network.id,
+            "network_definition": self.network.definition,
+            "initial_vector": self.initial_vector,
+            "active_index": self.active_index,
+            "reverse_scale": self.reverse_scale,
+            "answer": self.answer,
+            "updated_vector": self.updated_vector
+        }
 
 class GibbsNode(ChainNode):
     """

@@ -828,7 +828,7 @@ class Timeline():
                 time_credit += event.time_estimate * event.expected_repetitions
                 event_id += 1
 
-            elif isinstance(event, StartSwitch) and event.log_chosen_branch:
+            elif isinstance(event, StartSwitch):
                 return self.Branch(
                     label=event.label,
                     children={

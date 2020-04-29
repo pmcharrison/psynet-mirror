@@ -3,7 +3,8 @@ from typing import Union, Optional, List
 
 from .timeline import (
     Page,
-    MediaSpec
+    MediaSpec,
+    is_list_of
 )
 
 from .utils import merge_dicts
@@ -32,13 +33,6 @@ class Prompt():
     macro : str
         The name of the Jinja2 macro as defined within the respective template file.
 
-    ready_for_response : bool
-        Whether or not the page starts ready for a user response.
-        Set this to False if you want the page to wait for a custom
-        event to happen before the response options are enabled.
-        This event can be triggered with ``psynet.response.ready();``
-        in Javascript.
-
     metadata : Object
         Metadata to save about the prompt; can take arbitrary form,
         but must be serialisable to JSON.
@@ -61,7 +55,6 @@ class Prompt():
         self.text = text
 
     macro = "simple"
-    ready_for_response = True
     external_template = None
 
     @property
@@ -108,7 +101,6 @@ class AudioPrompt(Prompt):
         self.loop = loop
 
     macro = "audio"
-    ready_for_response = False
 
     @property
     def metadata(self):
@@ -454,3 +446,107 @@ class ModularPage(Page):
             "prompt": self.prompt.metadata,
             "control": self.control.metadata
         }
+
+class AudioMeterControl(Control):
+    macro = "audio_meter"
+
+    def __init__(
+            self,
+            min_time: float = 2.5,
+            calibrate = False
+
+    ):
+        assert min_time >= 0
+        self.min_time = min_time
+        self.calibrate = calibrate
+        if calibrate:
+            self.sliders = SliderControl([
+                Slider("decay_display", "Decay (display)", self.decay["display"], 0, 3, 0.001),
+                Slider("decay_high", "Decay (too high)", self.decay["high"], 0, 3, 0.001),
+                Slider("decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
+                Slider("threshold_high", "Threshold (high)", self.threshold["high"], 0, 1, 0.01),
+                Slider("threshold_low", "Threshold (low)", self.threshold["low"], 0, 1, 0.01),
+                Slider("grace_high", "Grace period (too high)", self.grace["high"], 0, 5, 0.001),
+                Slider("grace_low", "Grace period (too low)", self.grace["low"], 0, 5, 0.001),
+                Slider("warn_on_clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1),
+                Slider("msg_duration_high", "Message duration (high)", self.msg_duration["high"], 0, 10, 0.1),
+                Slider("msg_duration_low", "Message duration (low)", self.msg_duration["low"], 0, 10, 0.1)
+            ])
+        else:
+            self.slider = None
+
+    decay = {
+        "display": 0.1,
+        "high": 0.1,
+        "low": 0.1
+    }
+
+    threshold = {
+        "high": 0.8,
+        "low": 0.1
+    }
+
+    grace = {
+        "high": 0.0,
+        "low": 1.5
+    }
+
+    warn_on_clip = True
+
+    msg_duration = {
+        "high": 0.25,
+        "low": 0.25
+    }
+
+    @property
+    def metadata(self):
+        return {
+            "min_time": self.min_time
+        }
+
+class TappingAudioMeterControl(AudioMeterControl):
+    def __init__(
+            self,
+            min_time: float = 2.5,
+            calibrate = False):
+        super().__init__(
+            min_time=min_time,
+            calibrate=calibrate
+        )
+        self.warn_on_clip = False
+
+        self.decay["display"] = 0.01
+        self.decay["low"] = 0
+
+        self.grace["high"] = 0.2
+
+        self.threshold["low"] = 0.15
+
+class SliderControl(Control):
+    def __init__(
+            self,
+            sliders,
+            next_button=True,
+        ):
+        assert is_list_of(sliders, Slider)
+        self.sliders = sliders
+        self.next_button = next_button
+
+    # WIP
+
+class Slider():
+    def __init__(
+            self,
+            slider_id,
+            label,
+            start_value,
+            min_value,
+            max_value,
+            step_size
+        ):
+        self.label = label
+        self.start_value = start_value
+        self.min_value = min_value
+        self.max_value = max_value
+        self.step_size = step_size
+        self.slider_id = slider_id
