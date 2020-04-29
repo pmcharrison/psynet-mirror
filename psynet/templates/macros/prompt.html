@@ -18,12 +18,12 @@
             });
 
             sound.source.addEventListener("ended", function() {
-                psynet.response.ready("audio_prompt");
+                psynet.submit.ready("audio_prompt");
             });
 
             {% if config.enable_response_after is not none %}
                 setTimeout(
-                    ()=> psynet.response.ready("audio_prompt"),
+                    ()=> psynet.submit.ready("audio_prompt"),
                     1000 * {{ config.enable_response_after }}
                 );
             {% endif %}

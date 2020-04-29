@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg response" onclick="psynet.next_page();">Next
+            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onclick="psynet.next_page();">Next
             </button>
         </div>
     </div>
@@ -12,7 +12,7 @@
     {% if config.own_line %} <p style="padding:1em"> {% endif %}
     <button
         type="button"
-        class="btn btn-primary response"
+        class="btn btn-primary submit"
         id="{{ config.id }}"
         onclick="clicked_button('{{ config.id }}');"
         style="min-width:{{ config.min_width }}"
