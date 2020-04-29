@@ -391,6 +391,9 @@ class SliderPage(Page):
     minimal_interactions: default: 0
         Minimal interactions with the slider before the user can go to next trial.
 
+    minimal_time: default: 0
+        Minimum amount of time that the user must spend on the page before they can continue.
+
     reverse_scale: default: False
         Flip the scale.
 
@@ -422,6 +425,7 @@ class SliderPage(Page):
             snap_values: Optional[Union[int, list]] = None,
             input_type: Optional[str] = "HTML5_range_slider",
             minimal_interactions: Optional[int] = 0,
+            minimal_time: float = 0.0,
             reverse_scale: Optional[bool] = False,
             slider_id: Optional[str] = 'sliderpage_slider',
             width: Optional[str] = None,  # e.g. "100px"
@@ -435,6 +439,7 @@ class SliderPage(Page):
         self.start_value = start_value
         self.input_type = input_type
         self.minimal_interactions = minimal_interactions
+        self.minimal_time = minimal_time
         self.num_steps = num_steps
 
         self._validate()
@@ -476,6 +481,7 @@ class SliderPage(Page):
         kwargs['js_vars']["num_steps"] = num_steps
         kwargs['js_vars']["start_value"] = start_value
         kwargs['js_vars']['minimal_interactions'] = minimal_interactions
+        kwargs['js_vars']['minimal_time'] = minimal_time
         kwargs['js_vars']["reverse_scale"] = reverse_scale
 
         super().__init__(
@@ -520,7 +526,8 @@ class SliderPage(Page):
             'max_value': self.max_value,
             'start_value': self.start_value,
             'input_type': self.input_type,
-            'minimal_interactions': self.minimal_interactions
+            'minimal_interactions': self.minimal_interactions,
+            'minimal_time': self.minimal_time
         }
 
 

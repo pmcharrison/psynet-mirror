@@ -167,6 +167,10 @@ class AudioGibbsTrial(GibbsTrial):
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
 
+    minimal_time : float : default: 3.0
+        Minimal amount of time that the user must spend on the page before
+        they can proceed to the next trial.
+
     debug : bool
         If ``True``, then the page displays debugging information about the
         current trial. If ``False`` (default), no information is displayed.
@@ -179,6 +183,7 @@ class AudioGibbsTrial(GibbsTrial):
     snap_slider_before_release = False
     autoplay = False
     minimal_interactions = 3
+    minimal_time = 3.0
     debug = False
 
     def show_trial(self, experiment, participant):
@@ -200,7 +205,8 @@ class AudioGibbsTrial(GibbsTrial):
             reverse_scale=self.reverse_scale,
             time_estimate=5,
             media=self.media,
-            minimal_interactions=self.minimal_interactions
+            minimal_interactions=self.minimal_interactions,
+            minimal_time=self.minimal_time
         )
 
     def _get_prompt(self, experiment, participant):

@@ -17,7 +17,7 @@
 {% macro make_button(x) %}
     {% if x.own_line %} <p> {% endif %}
     <button type="button"
-            class="btn btn-primary submit-response"
+            class="btn btn-primary submit"
             id="{{ x.id }}"
             {% if x.start_disabled %}
                 disabled="false"
@@ -47,7 +47,8 @@
     {{super()}}
     <script>
         clicked_button = function(id) {
-            $(".submit-response").attr('disabled',true);
+            psynet.response.disable();
+            psynet.submit.disable();
             psynet.next_page(id);
         }
     </script>

@@ -59,6 +59,7 @@ class CustomTrial(AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
+    minimal_time = 3.0
 
     def get_prompt(self, experiment, participant):
         return Markup(

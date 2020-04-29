@@ -25,6 +25,7 @@ def print_dict(x):
                 'type': 'batch'
             }
         }
+    )
 
 def new_example(description, **kwargs):
     assert len(kwargs["sound_locations"]) == 472
@@ -51,7 +52,9 @@ def new_example(description, **kwargs):
                 document.getElementById("slider_value").innerHTML = slider.value;
                 document.getElementById("slider_audio").innerHTML = slider.audio;
             }}
-            setInterval(update_value, 100);
+            psynet.response.register_on_ready_routine(function() {{
+                setInterval(update_value, 100);
+            }});
         </script>
         """)
     return join(
@@ -71,7 +74,8 @@ class CustomExp(psynet.experiment.Experiment):
         new_example(
             """
             Simple example where no slider snapping is performed. There is one stimulus
-            located at each integer position.
+            located at each integer position. The user must wait 2 seconds before
+            they are allowed to submit their response.
             """,
             sound_locations=dict(zip(ids, [i for i in range(472)])),
             snap_values=None,
@@ -79,7 +83,7 @@ class CustomExp(psynet.experiment.Experiment):
             min_value=0,
             max_value=471,
             autoplay=True,
-            minimal_interactions=3,
+            minimal_time=2,
             time_estimate=5
         ),
         new_example(

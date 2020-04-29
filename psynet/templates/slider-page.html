@@ -21,7 +21,7 @@
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit" onClick="submit();">
                 Submit
             </button>
         </div>
@@ -38,8 +38,16 @@
         };
 
         if (minimal_interactions > 0) {
-            $(".submit-response").attr('disabled', true);
+            psynet.submit.wait_for("slider_minimal_interactions");
         }
+
+        psynet.submit.wait_for("slider_minimal_time");
+
+        psynet.response.register_on_ready_routine(function() {
+            setTimeout(function() {
+                psynet.submit.ready("slider_minimal_time");
+            }, minimal_time * 1000);
+        });
 
         // Metadata collection
         var slider = document.getElementById('{{ slider_id }}');
@@ -83,14 +91,15 @@
             snap_slider();
             slider.interaction_count += 1;
             if (slider.interaction_count >= minimal_interactions) {
-                $(".submit-response").attr('disabled', false);
+                psynet.submit.ready("slider_minimal_interactions");
             }
             on_slider_event('slider_changed');
             slider.update_log();
         }, false);
 
         submit = function () {
-            $(".submit-response").attr('disabled', true);
+            psynet.response.disable();
+            psynet.submit.disable();
             var metadata = {
                 log: slider.log
             };

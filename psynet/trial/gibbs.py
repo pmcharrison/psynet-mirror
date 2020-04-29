@@ -79,6 +79,9 @@ class GibbsTrial(ChainTrial):
 
     resample_free_parameter = True
 
+    def choose_reverse_scale(self):
+        return bool(random.randint(0, 1))
+
     def make_definition(self, experiment, participant):
         """
         In the Gibbs sampler, a trial's definition is created by taking the
@@ -111,7 +114,7 @@ class GibbsTrial(ChainTrial):
         """
         vector = self.node.definition["vector"].copy()
         active_index = self.node.definition["active_index"]
-        reverse_scale = bool(random.randint(0, 1))
+        reverse_scale = self.choose_reverse_scale()
 
         if self.resample_free_parameter:
             vector[active_index] = self.network.random_sample(active_index)
