@@ -27,7 +27,9 @@ var audio_meter_control = {}
 audio_meter_control.init = function(config) {
     this.decay = config.decay;
     this.threshold = config.threshold;
-    this.duration = config.duration;
+    this.grace = config.grace
+    this.warn_on_clip = config.warn_on_clip
+    this.msg_duration = config.msg_duration;
 
     this.audioContext = null;
     this.audio_meter = null;
@@ -39,7 +41,13 @@ audio_meter_control.init = function(config) {
 
     this.time_last_too_low = -1e20;
     this.time_last_too_high = -1e20;
-    this.time_until_too_quiet = 1500; // ms
+    this.time_until_too_low = 1.5; // ms
+    this.time_until_too_high = 0.0; // ms
+
+    this.time_last_not_too_low = -1e20;
+    this.time_last_not_too_high = -1e20;
+
+    this.message_timer = null;
 
     var audio_meter_control = this;
     psynet.media.register_on_loaded_routine(function() {
@@ -78,30 +86,47 @@ audio_meter_control.onMicrophoneGranted = function(stream) {
     });
 }
 
+audio_meter_control.show_message = function(message, colour) {
+    this.audio_meter_text.innerHTML = message;
+    this.audio_meter_text.style.color = colour;
+    this.canvasContext.fillStyle = colour;
+
+    clearTimeout(this.message_timer);
+
+    var self = this;
+    setTimeout(function() {
+        self.reset_message();
+    }, self.msg_duration * 1000);
+}
+
+audio_meter_control.reset_message = function() {
+    this.audio_meter_text.innerHTML = "Just right.";
+    this.audio_meter_text.style.color = "green";
+    this.canvasContext.fillStyle = "green";
+}
+
 audio_meter_control.onLevelChange = function(time) {
-    // clear the background
     this.canvasContext.clearRect(0, 0, this.audio_meter_max_width, this.audio_meter_max_height);
 
-    // check if we're currently clipping
-    // if (audio_meter.checkClipping()) {
     if (this.audio_meter.volume.high >= this.threshold.high) {
         this.time_last_too_high = time;
+    } else {
+        this.time_last_not_too_high = time;
     }
+
     if (this.audio_meter.volume.low <= this.threshold.low) {
         this.time_last_too_low = time;
-    }
-    if ((time - this.time_last_too_high) / 1000.0 <= this.duration.high) {
-        this.audio_meter_text.innerHTML = "Too loud!";
-        this.audio_meter_text.style.color = "red";
-        this.canvasContext.fillStyle = "red";
-    } else if ((time - this.time_last_too_low) / 1000.0 <= this.duration.low) {
-        this.audio_meter_text.innerHTML = "Too quiet!";
-        this.audio_meter_text.style.color = "red";
-        this.canvasContext.fillStyle = "red";
     } else {
-        this.audio_meter_text.innerHTML = "Just right.";
-        this.audio_meter_text.style.color = "green";
-        this.canvasContext.fillStyle = "green";
+        this.time_last_not_too_low = time;
+    }
+
+    if (
+        this.audio_meter.checkClipping() ||
+        time - this.time_last_not_too_high > this.time_until_too_high * 1000.0
+    ) {
+        this.show_message("Too loud!", "red")
+    } else if (time - this.time_last_not_too_low > this.time_until_too_low * 1000.0) {
+        this.show_message("Too quiet!", "red")
     }
 
     // draw a bar based on the current volume

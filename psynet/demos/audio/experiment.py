@@ -121,8 +121,17 @@ example_on_loaded = InfoPage(
 example_audio_meter = ModularPage(
     "audio_meter",
     "This page shows an audio meter.",
-    AudioMeterControl(),
-    time_estimate=5
+    AudioMeterControl(calibrate=False),
+    time_estimate=5,
+
+)
+
+example_audio_meter_calibrate = ModularPage(
+    "audio_meter",
+    "Here you can experiment with different audio meter parameters.",
+    AudioMeterControl(calibrate=True),
+    time_estimate=5,
+
 )
 
 example_audio_meter_with_audio = ModularPage(
@@ -133,7 +142,7 @@ example_audio_meter_with_audio = ModularPage(
         loop=True,
         enable_response_after=2.5
     ),
-    AudioMeterControl(min_time=2.5),
+    AudioMeterControl(min_time=2.5, calibrate=True),
     time_estimate=5
 )
 
@@ -152,6 +161,7 @@ example_audio_page = ModularPage(
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         example_audio_meter,
+        example_audio_meter_calibrate,
         example_audio_meter_with_audio,
         example_audio_page,
         example_preloading,
