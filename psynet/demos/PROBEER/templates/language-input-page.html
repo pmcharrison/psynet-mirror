@@ -1,0 +1,57 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+    {{ super() }}
+    <div class="main_div">
+        {{ prompt }}
+
+        <div style="padding-top:20px; padding-bottom:20px">
+            <select id="example-filter-placeholder" multiple="multiple">
+                {% for code, language in languages.items() %}
+                    <option value="{{ code }}">{{ language }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-xs-10"></div>
+        <div class="col-xs-2">
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit" onClick="submit();">Submit
+            </button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script type="text/javascript" src="/static/scripts/bootstrap-multiselect.js"></script>
+    <link rel="stylesheet" href="/static/css/bootstrap-multiselect.css" type="text/css"/>
+    {{ super() }}
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#example-filter-placeholder').multiselect({
+                enableFiltering: true,
+                filterPlaceholder: 'Search for something...'
+            });
+            submit = function () {
+                var lang_str = $('.multiselect-selected-text').text();
+                var languages = lang_str.split(', ');
+                if (languages.length === 1 && languages[0] === "None selected") {
+                    alert('Please select at least one language')
+                } else {
+                    psynet.response.disable();
+                    psynet.submit.disable();
+                    psynet.next_page(null, languages);
+                }
+            }
+        });
+    </script>
+
+
+    <script>
+
+    </script>
+{% endblock %}

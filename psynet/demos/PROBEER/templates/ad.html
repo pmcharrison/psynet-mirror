@@ -1,0 +1,50 @@
+{% extends "base/ad.html" %}
+​
+{% block no_assignment %}
+    <h1>Call for participants</h1>
+    <p>
+        The Max Planck Institute for Empirical Aesthetics is looking for online participants
+        for a brief psychology experiment. In this study we want to understand how people express intentions with their
+        voice. The only requirements are as follows:
+    </p>
+    <ul>
+        <li>You must be wearing <strong>headphones</strong>.</li>
+        <li>You should be at least <strong>18 years old</strong>.</li>
+        <li>You should be a <strong>fluent English speaker</strong>.</li>
+        <li>You should be sitting in a <strong>quiet environment</strong>.</li>
+        <li>You should use a google <strong>Chrome</strong> browser.</li>
+    </ul>
+    <p>
+        During the experiment you can use a slider that allows you to change the voice of someone saying the word beer.
+        Your task will be to change the slider so the word sounds like a suggestion or like a criticism.
+        The task should take approximately <strong>{{ duration_minutes }} minutes</strong>,
+        and you will be paid at a rate of <strong>&#36;{{ wage_per_hour }}</strong> per hour.
+        This is broken down into a base payment of <strong>&#36;{{ base_payment }}</strong> and
+        a bonus of <strong>&#36;{{ full_bonus }}</strong>.
+    </p>
+    <p>
+        The HIT will begin with a short screening test to check that you are using
+        headphones and can hear properly (2 minutes).
+        If you fail this screening test, the HIT will end,
+        and you will only be eligible for the base payment.
+    </p>
+    ​
+    <p>
+        Please click the "Accept HIT" button on the Amazon site
+        above to begin the task.
+    </p>
+{% endblock no_assignment %}
+
+{% block live %}
+    <h1>Thanks for accepting this HIT.</h1>
+    <p>
+        By clicking the following URL link, you will be taken to the experiment,
+        including complete instructions and an informed consent agreement.
+    </p>
+    <div class="alert alert-warning">
+        <b>Warning</b>: Please disable pop-up blockers before continuing.
+    </div>
+    <button type="button" id="begin-button" class="btn btn-primary btn-lg">
+        Begin Experiment
+    </button>
+{% endblock live %}
