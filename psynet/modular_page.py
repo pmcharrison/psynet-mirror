@@ -505,19 +505,28 @@ class AudioMeterControl(Control):
         }
 
 class TappingAudioMeterControl(AudioMeterControl):
-    def __init__(
-            self,
-            min_time: float = 2.5,
-            calibrate = False):
-        self.warn_on_clip = False
-        self.decay["display"] = 0.01
-        self.decay["low"] = 0
-        self.grace["high"] = 0.2
-        self.threshold["low"] = 0.15
-        super().__init__(
-            min_time=min_time,
-            calibrate=calibrate
-        )
+    decay = {
+        "display": 0.01,
+        "high": 0,
+        "low": 0.1
+    }
+
+    threshold = {
+        "high": 0.8,
+        "low": 0.15
+    }
+
+    grace = {
+        "high": 0.2,
+        "low": 1.5
+    }
+
+    warn_on_clip = True
+
+    msg_duration = {
+        "high": 0.25,
+        "low": 0.25
+    }
 
 class SliderControl(Control):
     def __init__(
