@@ -73,10 +73,14 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
+        config = get_config()
+        if not config.ready:
+            config.load()
+
         self._background_tasks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.base_payment = get_config().get("base_payment")
+        self.base_payment = config.get("base_payment")
 
         # self.register_recruitment_criterion(self.default_recruitment_criterion)
 
