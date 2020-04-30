@@ -28,7 +28,7 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsNetwork, AudioGibbsTrial, AudioGibbsNode, AudioGibbsSource, AudioGibbsTrialMaker
 )
 
-from .language import LanguagePage
+from language import LanguagePage
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -226,23 +226,23 @@ class Exp(psynet.experiment.Experiment):
         ),
         crit_practice_trails
     )
-    if round(random()):
-        block = join(
-            crit_context_first,
-            crit_trails,
-            sugg_context,
-            sugg_trails,
-        )
-    else:
-        block = join(
-            sugg_context_first,
-            sugg_trails,
-            crit_context,
-            crit_trails,
-        )
+    # if round(random()):
+    block = join(
+        crit_context_first,
+        crit_trails,
+        sugg_context,
+        sugg_trails,
+    )
+    # else:
+    #     block = join(
+    #         sugg_context_first,
+    #         sugg_trails,
+    #         crit_context,
+    #         crit_trails,
+    #     )
 
     timeline = Timeline(
-        introduction,
+        # introduction,
         block,
         SuccessfulEndPage()
     )
