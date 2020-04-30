@@ -17,16 +17,28 @@
     <p>
         During the experiment you can use a slider that allows you to change the voice of someone saying the word beer.
         Your task will be to change the slider so the word sounds like a suggestion or like a criticism.
-        The task should take approximately <strong>{{ duration_minutes }} minutes</strong>,
-        and you will be paid at a rate of <strong>&#36;{{ wage_per_hour }}</strong> per hour.
-        This is broken down into a base payment of <strong>&#36;{{ base_payment }}</strong> and
-        a bonus of <strong>&#36;{{ full_bonus }}</strong>.
+        The task should take approximately <strong><span id="duration_minutes"></span> minutes</strong>,
+        and you will be paid at a rate of <strong>&#36;<span id="wage_per_hour"></span></strong> per hour.
+        This is broken down into a base payment of <strong>&#36;<span id="base_payment"></span></strong> and
+        a bonus of <strong>&#36;<span id="bonus_dollars"></span></strong>.
     </p>
+    <script>
+        var experiment_metadata = null;
+        window.addEventListener("load", function() {
+            dallinger.get("/metadata").done(function(resp) {
+                experiment_metadata = resp;
+                document.getElementById("duration_minutes").innerHTML = (resp.duration_seconds / 60).toFixed(0);
+                document.getElementById("wage_per_hour").innerHTML = (resp.wage_per_hour).toFixed(2);
+                document.getElementById("base_payment").innerHTML = (resp.base_payment).toFixed(2);
+                document.getElementById("bonus_dollars").innerHTML = (resp.bonus_dollars).toFixed(2);
+            });
+        });
+    </script>
     <p>
         The HIT will begin with a short screening test to check that you are using
         headphones and can hear properly (2 minutes).
         If you fail this screening test, the HIT will end,
-        and you will only be eligible for the base payment.
+        and you will only be eligible for a small part of the bonus.
     </p>
     ​
     <p>

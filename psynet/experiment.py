@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask import render_template_string, Blueprint, request, render_template
+from flask import render_template_string, Blueprint, request, render_template, jsonify
 import json
 from json import dumps
 from sqlalchemy import exc
@@ -326,6 +326,16 @@ class Experiment(dallinger.experiment.Experiment):
                 rpdb.set_trace()
                 return success_response()
             return error_response()
+
+        @routes.route("/metadata", methods=["GET"])
+        def get_metadata():
+            exp = self.new(db.session)
+            return jsonify({
+                "duration_seconds": exp.timeline.estimated_time_credit.get_max(mode="time"),
+                "bonus_dollars": exp.timeline.estimated_time_credit.get_max(mode="bonus", wage_per_hour=exp.wage_per_hour),
+                "wage_per_hour": exp.wage_per_hour,
+                "base_payment": exp.base_payment
+            })
 
         @routes.route("/consent")
         def consent():
