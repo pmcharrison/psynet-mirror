@@ -5,9 +5,7 @@ from json import dumps
 from sqlalchemy import exc
 
 from dallinger import (
-    db,
-    models,
-    recruiters
+    db
 )
 
 from dallinger.config import get_config
@@ -17,17 +15,6 @@ import dallinger.experiment
 from dallinger.experiment_server.utils import (
     success_response,
     error_response
-)
-
-from dallinger.experiment_server.utils import(
-    nocache,
-    ExperimentError,
-    ValidatesBrowser
-)
-
-from dallinger.experiment_server.experiment_server import (
-    _config,
-    should_show_thanks_page_to
 )
 
 from .participant import get_participant, Participant
@@ -350,107 +337,6 @@ class Experiment(dallinger.experiment.Experiment):
                 worker_id=request.args["worker_id"],
                 mode=config.get("mode"),
                 contact_email_on_error=config.get("contact_email_on_error")
-            )
-
-        @routes.route("/ad", methods=["GET"])
-        @nocache
-        def advertisement():
-            """
-            This is the url we give for the ad for our 'external question'.  The ad has
-            to display two different things: This page will be called from within
-            mechanical turk, with url arguments hitId, assignmentId, and workerId.
-            If the worker has not yet accepted the hit:
-                These arguments will have null values, we should just show an ad for
-                the experiment.
-            If the worker has accepted the hit:
-                These arguments will have appropriate values and we should enter the
-                person in the database and provide a link to the experiment popup.
-            """
-            exp = Experiment(db.session)
-
-            if not ("hitId" in request.args and "assignmentId" in request.args):
-                raise ExperimentError("hit_assign_worker_id_not_set_in_mturk")
-            config = _config()
-
-            # Browser rule validation, if configured:
-            browser = ValidatesBrowser(config)
-            if not browser.is_supported(request.user_agent.string):
-                raise ExperimentError("browser_type_not_allowed")
-
-            hit_id = request.args["hitId"]
-            assignment_id = request.args["assignmentId"]
-            app_id = config.get("id", "unknown")
-            mode = config.get("mode")
-            debug_mode = mode == "debug"
-            worker_id = request.args.get("workerId")
-            participant = None
-
-            if worker_id is not None:
-                # First check if this workerId has completed the task before
-                # under a different assignment (v1):
-                already_participated = bool(
-                    models.Participant.query.filter(
-                        models.Participant.assignment_id != assignment_id
-                    )
-                    .filter(models.Participant.worker_id == worker_id)
-                    .count()
-                )
-
-                if already_participated and not debug_mode:
-                    raise ExperimentError("already_did_exp_hit")
-
-                # Next, check for participants already associated with this very
-                # assignment, and retain their status, if found:
-                try:
-                    participant = (
-                        models.Participant.query.filter(models.Participant.hit_id == hit_id)
-                        .filter(models.Participant.assignment_id == assignment_id)
-                        .filter(models.Participant.worker_id == worker_id)
-                        .one()
-                    )
-                except exc.SQLAlchemyError:
-                    pass
-
-            recruiter_name = request.args.get("recruiter")
-            if recruiter_name:
-                recruiter = recruiters.by_name(recruiter_name)
-            else:
-                recruiter = recruiters.from_config(config)
-                recruiter_name = recruiter.nickname
-
-            if should_show_thanks_page_to(participant):
-                # They've either done, or they're from a recruiter that requires
-                # submission of an external form to complete their participation.
-                return render_template(
-                    "thanks.html",
-                    hitid=hit_id,
-                    assignmentid=assignment_id,
-                    workerid=worker_id,
-                    external_submit_url=recruiter.external_submission_url,
-                    mode=config.get("mode"),
-                    app_id=app_id,
-                )
-            if participant and participant.status == "working":
-                # Once participants have finished the instructions, we do not allow
-                # them to start the task again.
-                raise ExperimentError("already_started_exp_mturk")
-
-            # Participant has not yet agreed to the consent. They might not
-            # even have accepted the HIT.
-            duration_minutes = exp.timeline.estimated_time_credit.get_max(mode="time") / 60
-            full_bonus = exp.timeline.estimated_time_credit.get_max(mode="bonus")
-            return render_template(
-                "ad.html",
-                recruiter=recruiter_name,
-                hitid=hit_id,
-                assignmentid=assignment_id,
-                workerid=worker_id,
-                mode=config.get("mode"),
-                app_id=app_id,
-                duration_minutes=f"{duration_minutes:.0f}",
-                wage_per_hour=f"{exp.wage_per_hour:.2f}",
-                base_payment=f"{exp.base_payment:.2f}",
-                full_bonus=f"{full_bonus:.2f}"
             )
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
