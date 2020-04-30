@@ -779,6 +779,8 @@ class Timeline():
             ]
 
         def get_max(self, mode, wage_per_hour=None):
+            if mode == "all":
+                raise ValueError("Can't call get_max with mode == 'all'.")
             return max([
                 child.get_max(mode, wage_per_hour) for child in self.children.values()
             ])
