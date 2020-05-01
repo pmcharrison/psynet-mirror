@@ -1,4 +1,4 @@
-image: python:latest
+image: publysher/alpine-numpy
 
 before_script:
   - apk add gcc gfortran musl-dev postgresql-dev libc-dev linux-headers
