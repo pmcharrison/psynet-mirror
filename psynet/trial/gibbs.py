@@ -2,10 +2,10 @@
 
 from statistics import mean
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
+from ..utils import corr
 
 import random
-import scipy.stats
-from scipy import nan, isnan
+from math import isnan
 
 # pylint: disable=unused-import
 import rpdb
@@ -346,22 +346,19 @@ class GibbsTrialMaker(ChainTrialMaker):
         answer_groups = [[t.answer for t in trials] for trials in trials_by_node.values() if len(trials) > 1]
         if len(answer_groups) < self.min_nodes_for_performance_check:
             score = None
-            p = None
             passed = True
         else:
-            cor, p = self.monte_carlo_pearson(answer_groups, n=100)
+            cor = self.monte_carlo_pearson(answer_groups, n=100)
             if isnan(cor):
                 score = None
-                p = None
                 passed = False
             else:
                 score = float(cor)
                 passed = bool(score >= self.performance_threshold)
         logger.info(
-            "Performance check for participant %i: r = %s, p = %s, passed = %s",
+            "Performance check for participant %i: r = %s, passed = %s",
             participant.id,
             "NA" if score is None else f"{score:.3f}",
-            "NA" if p is None else f"{p:.3f}",
             passed
         )
         return (score, passed)
@@ -369,15 +366,12 @@ class GibbsTrialMaker(ChainTrialMaker):
     @staticmethod
     def monte_carlo_pearson(groups, n):
         cors = []
-        ps = []
         for _ in range(n):
             trial_pairs = [random.sample(group, 2) for group in groups]
             x = [pair[0] for pair in trial_pairs]
             y = [pair[1] for pair in trial_pairs]
-            cor, p = scipy.stats.pearsonr(x, y)
-            cors.append(cor)
-            ps.append(p)
-        return (mean(cors), mean(ps))
+            cors.append(corr(x, y))
+        return mean(cors)
 
     @staticmethod
     def group_trials_by_node(trials):

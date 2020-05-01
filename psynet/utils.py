@@ -4,6 +4,7 @@ import importlib
 import time
 import sys
 import os
+import pandas as pd
 
 from functools import reduce, wraps
 from sqlalchemy.sql import func
@@ -181,3 +182,10 @@ def merge_two_dicts(x: dict, y: dict, overwrite: bool):
 
 class DuplicateKeyError(ValueError):
     pass
+
+def corr(x: list, y: list, method="pearson"):
+    df = pd.DataFrame(
+        {"x": x, "y": y},
+        columns=["x", "y"]
+    )
+    return float(df.corr(method=method).at["x", "y"])

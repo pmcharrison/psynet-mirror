@@ -1,5 +1,6 @@
 import pytest
-from psynet.utils import linspace, merge_dicts, DuplicateKeyError
+from psynet.utils import linspace, merge_dicts, DuplicateKeyError, corr
+from math import isnan
 
 def test_linspace():
     assert linspace(0, 5, 6) == [0, 1, 2, 3, 4, 5]
@@ -14,3 +15,12 @@ def test_merge_dicts():
 
     with pytest.raises(DuplicateKeyError) as e:
         merge_dicts(x, y, z, overwrite=False)
+
+def test_corr():
+    x = [1, 5, 2, 6, 8]
+    y = [2, 7, 3, 4, 5]
+    assert corr(x, y) == pytest.approx(0.658647361238887)
+
+    x = [1, 1]
+    y = [1, 1]
+    assert isnan(corr(x, y))
