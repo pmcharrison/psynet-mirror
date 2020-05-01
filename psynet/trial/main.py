@@ -30,6 +30,7 @@ from ..timeline import (
 )
 
 from ..page import (
+    InfoPage,
     UnsuccessfulEndPage
 )
 
@@ -311,6 +312,12 @@ class TrialMaker(Module):
       (optional), which is used to estimate how many more participants are
       still required in the case that ``recruit_mode="num_trials"``.
 
+    * :attr:`~psynet.trial.main.TrialMaker.give_end_feedback_passed`
+      (default = ``False``); if ``True``, then participants who pass the
+      final performance check will be given feedback. This feedback can
+      be customised by overriding
+      :meth:`~psynet.trial.main.TrialMaker.get_end_feedback_passed_page`.
+
     Users are also invited to add new recruitment criteria for selection with
     the ``recruit_mode`` argument. This may be achieved using a custom subclass
     of :class:`~psynet.trial.main.TrialMaker` as follows:
@@ -400,6 +407,11 @@ class TrialMaker(Module):
 
     introduction
         An optional event or list of events to execute prior to beginning the trial loop.
+
+    give_end_feedback_passed : bool
+        If ``True``, then participants who pass the final performance check
+        are given feedback. This feedback can be customised by overriding
+        :meth:`~psynet.trial.main.TrialMaker.get_end_feedback_passed_page`.
     """
 
     def __init__(
@@ -570,7 +582,27 @@ class TrialMaker(Module):
     give_end_feedback_passed = False
 
     def get_end_feedback_passed_page(self, score):
-        return NullEvent
+        """
+        Defines the feedback given to participants who pass the final performance check.
+        This feedback is only given if :attr:`~psynet.trial.main.TrialMaker.give_end_feedback_passed`
+        is set to ``True``.
+
+        Parameters
+        ----------
+
+        score :
+            The participant's score on the performance check.
+
+        Returns
+        -------
+
+        :class:`~psynet.timeline.Page` :
+            A feedback page.
+        """
+        return InfoPage(
+            f"Your score was {score}.",
+            time_estimate=5
+        )
 
     def _get_end_feedback_passed_logic(self):
         if self.give_end_feedback_passed:
