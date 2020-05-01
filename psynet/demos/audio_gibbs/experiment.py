@@ -94,7 +94,7 @@ trial_maker = CustomTrialMaker(
     phase="experiment", # can be whatever you like
     time_estimate_per_trial=5,
     chain_type="within", # can be "within" or "across"
-    num_trials_per_participant=2,
+    num_trials_per_participant=12,
     num_nodes_per_chain=4, # note that the final node doesn't get any trials
     num_chains_per_participant=2, # set to None if chain_type="across"
     num_chains_per_experiment=None, # set to None if chain_type="within"
