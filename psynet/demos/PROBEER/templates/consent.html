@@ -171,11 +171,12 @@
         window.addEventListener("load", function() {
             console.log(platform.toString());
             if (platform.name != "Chrome") {
+                $("#consent").prop("disabled", true);
+                $("#consent").append("(disabled, please try again in Chrome)");
                 alert(
                     "It seems like you're using a different browser than Chrome (" + platform.name + "). " +
                     "This experiment only supports Chrome. If you're using a different " +
-                    "browser, please reopen the same page in Chrome. Otherwise, " +
-                    "you may continue in your current browser."
+                    "browser, please reopen the same page in Chrome."
                 )
             }
         });
