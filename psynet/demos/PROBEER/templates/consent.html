@@ -169,7 +169,7 @@
 
     <script>
         window.addEventListener("load", function() {
-            console.log("User seems to be running " + platform.name + platform.version + ".");
+            console.log(platform.toString());
             if (platform.name != "Chrome") {
                 alert(
                     "It seems like you're using a different browser than Chrome (" + platform.name + "). " +
