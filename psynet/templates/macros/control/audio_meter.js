@@ -24,7 +24,10 @@ SOFTWARE.
 
 var audio_meter_control = {}
 
-audio_meter_control.init = function(config) {
+audio_meter_control.init = function(json) {
+    config = JSON.parse(json);
+
+    this.display_range = config.display_range;
     this.decay = config.decay;
     this.threshold = config.threshold;
     this.grace = config.grace
@@ -72,6 +75,8 @@ audio_meter_control.onMicrophoneDenied = function() {
 }
 
 audio_meter_control.onMicrophoneGranted = function(stream) {
+    this.show_message("Starting audio meter...", "blue");
+
     // Create an AudioNode from the stream.
     var mediaStreamSource = this.audioContext.createMediaStreamSource(stream);
 
@@ -130,7 +135,16 @@ audio_meter_control.onLevelChange = function(time) {
     }
 
     // draw a bar based on the current volume
-    this.canvasContext.fillRect(0, 0, this.audio_meter.volume.display * this.audio_meter_max_width * 1.4, this.audio_meter_max_height);
+    var proportion;
+    if (this.audio_meter.volume.display <= this.display_range.min) {
+        proportion = 0.0;
+    } else if (this.audio_meter.volume.display >= this.display_range.max) {
+        proportion = 1.0;
+    } else {
+        proportion = (this.audio_meter.volume.display - this.display_range.min) / (this.display_range.max - this.display_range.min);
+    }
+
+    this.canvasContext.fillRect(0, 0, proportion * this.audio_meter_max_width, this.audio_meter_max_height);
 
     // set up the next visual callback
     var audio_meter_control = this;
@@ -220,8 +234,37 @@ audio_meter_control.volumeAudioProcess = function(event) {
     ["display", "high", "low"].forEach(function(x) {
         // Exponential smmoothing, see https://en.wikipedia.org/wiki/Exponential_smoothing
         var alpha = 1 - Math.exp(- buffer_duration / self.decay[x]);
-        self.audio_meter.volume[x] = (1 - alpha) * self.audio_meter.volume[x] + alpha * rms;
+        self.audio_meter.volume[x] = (1 - alpha) * self.audio_meter.volume[x] + alpha * self.rms_to_db(rms);
     })
 
     // this.volume = Math.max(rms, this.volume*this.averaging);
+}
+
+audio_meter_control.rms_to_db = function(rms) {
+    return Math.max(-100, 20 * Math.log10(rms));
+}
+
+audio_meter_control.update_from_sliders = function() {
+    this.decay = {
+        display: $("#decay_display").get(0).value,
+        high: $("#decay_high").get(0).value,
+        low: $("#decay_low").get(0).value
+    }
+
+    this.threshold = {
+        high: $("#threshold_high").get(0).value,
+        low: $("#threshold_low").get(0).value,
+    }
+
+    this.grace = {
+        high: $("#grace_high").get(0).value,
+        low: $("#grace_low").get(0).value,
+    }
+
+    this.warn_on_clip = Boolean($("#warn_on_clip").get(0).value)
+
+    this.msg_duration = {
+        high: $("#msg_duration_high").get(0).value,
+        low: $("#msg_duration_low").get(0).value,
+    }
 }

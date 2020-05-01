@@ -1,5 +1,6 @@
 from flask import Markup
 from typing import Union, Optional, List
+import json
 
 from .timeline import (
     Page,
@@ -464,8 +465,8 @@ class AudioMeterControl(Control):
                 Slider("decay_display", "Decay (display)", self.decay["display"], 0, 3, 0.001),
                 Slider("decay_high", "Decay (too high)", self.decay["high"], 0, 3, 0.001),
                 Slider("decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
-                Slider("threshold_high", "Threshold (high)", self.threshold["high"], 0, 1, 0.01),
-                Slider("threshold_low", "Threshold (low)", self.threshold["low"], 0, 1, 0.01),
+                Slider("threshold_high", "Threshold (high)", self.threshold["high"], -60, 0, 0.01),
+                Slider("threshold_low", "Threshold (low)", self.threshold["low"], -60, 0, 0.01),
                 Slider("grace_high", "Grace period (too high)", self.grace["high"], 0, 5, 0.001),
                 Slider("grace_low", "Grace period (too low)", self.grace["low"], 0, 5, 0.001),
                 Slider("warn_on_clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1),
@@ -475,6 +476,11 @@ class AudioMeterControl(Control):
         else:
             self.slider = None
 
+    display_range = {
+        "min": -60,
+        "max": 0
+    }
+
     decay = {
         "display": 0.1,
         "high": 0.1,
@@ -482,8 +488,8 @@ class AudioMeterControl(Control):
     }
 
     threshold = {
-        "high": 0.8,
-        "low": 0.1
+        "high": -2,
+        "low": -20
     }
 
     grace = {
@@ -498,6 +504,16 @@ class AudioMeterControl(Control):
         "low": 0.25
     }
 
+    def to_json(self):
+        return Markup(json.dumps({
+            "display_range": self.display_range,
+            "decay": self.decay,
+            "threshold": self.threshold,
+            "grace": self.grace,
+            "warn_on_clip": self.warn_on_clip,
+            "msg_duration": self.msg_duration
+        }))
+
     @property
     def metadata(self):
         return {
@@ -508,12 +524,12 @@ class TappingAudioMeterControl(AudioMeterControl):
     decay = {
         "display": 0.01,
         "high": 0,
-        "low": 0.1
+        "low": 0.01
     }
 
     threshold = {
-        "high": 0.8,
-        "low": 0.15
+        "high": -2,
+        "low": -20
     }
 
     grace = {
@@ -521,7 +537,7 @@ class TappingAudioMeterControl(AudioMeterControl):
         "low": 1.5
     }
 
-    warn_on_clip = True
+    warn_on_clip = False
 
     msg_duration = {
         "high": 0.25,
