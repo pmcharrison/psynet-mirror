@@ -4,9 +4,15 @@ from statistics import mean
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 import random
+import scipy.stats
+from scipy import nan, isnan
 
 # pylint: disable=unused-import
 import rpdb
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
 class GibbsNetwork(ChainNetwork):
     """
@@ -320,4 +326,65 @@ class GibbsTrialMaker(ChainTrialMaker):
     see the documentation for
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
+
+    Attributes
+    ----------
+
+    performance_threshold : float (default = -1.0)
+        The performance threshold that is used in the
+        :meth:`~psynet.trial.gibbs.GibbsTrialMaker.performance_check` method.
+        Corresponds to a minimum Pearson correlation between the participant's repeaetd
+        answers to the same nodes.
     """
+
+    performance_threshold = -1.0
+    min_nodes_for_performance_check = 3
+
+    def performance_check(self, experiment, participant, participant_trials):
+        assert self.min_nodes_for_performance_check >= 2
+        trials_by_node = self.group_trials_by_node(participant_trials)
+        answer_groups = [[t.answer for t in trials] for trials in trials_by_node.values() if len(trials) > 1]
+        if len(answer_groups) < self.min_nodes_for_performance_check:
+            score = None
+            p = None
+            passed = True
+        else:
+            cor, p = self.monte_carlo_pearson(answer_groups, n=100)
+            if isnan(cor):
+                score = None
+                p = None
+                passed = False
+            else:
+                score = float(cor)
+                passed = bool(score >= self.performance_threshold)
+        logger.info(
+            "Performance check for participant %i: r = %s, p = %s, passed = %s",
+            participant.id,
+            "NA" if score is None else f"{score:.3f}",
+            "NA" if p is None else f"{p:.3f}",
+            passed
+        )
+        return (score, passed)
+
+    @staticmethod
+    def monte_carlo_pearson(groups, n):
+        cors = []
+        ps = []
+        for _ in range(n):
+            trial_pairs = [random.sample(group, 2) for group in groups]
+            x = [pair[0] for pair in trial_pairs]
+            y = [pair[1] for pair in trial_pairs]
+            cor, p = scipy.stats.pearsonr(x, y)
+            cors.append(cor)
+            ps.append(p)
+        return (mean(cors), mean(ps))
+
+    @staticmethod
+    def group_trials_by_node(trials):
+        res = {}
+        for trial in trials:
+            node_id = trial.origin.id
+            if node_id not in res:
+                res[node_id] = []
+            res[node_id].append(trial)
+        return res

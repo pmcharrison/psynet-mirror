@@ -793,7 +793,6 @@ class TrialMaker(Module):
                 participant=participant,
                 participant_trials=participant_trials
             )
-            assert isinstance(score, (float, int))
             assert isinstance(passed, bool)
             participant.var.set(self.with_namespace("performance_check"), {
                 "score": score,

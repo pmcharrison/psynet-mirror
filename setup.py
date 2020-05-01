@@ -24,7 +24,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    install_requires=["dallinger", "datetime", "flask", "importlib_resources", "pandas", "rpdb"]
+    install_requires=["dallinger", "datetime", "flask", "importlib_resources", "pandas", "rpdb", "scipy"]
 )
 
 # python3.7 setup.py sdist bdist_wheel
