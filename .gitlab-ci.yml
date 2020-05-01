@@ -1,4 +1,4 @@
-image: nickgryg/alpine-pandas
+image: python:latest
 
 before_script:
   - apk add gcc gfortran musl-dev postgresql-dev libc-dev linux-headers
