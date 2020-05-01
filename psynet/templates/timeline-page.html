@@ -838,6 +838,13 @@
                     }
                 };
 
+                psynet.estimate_download_speed = function() {
+                    // Returns estimated download speed in megabits/second
+                    // (at the time of writing, this is capped at 10).
+                    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    return connection.downlink
+                }
+
                 psynet.init_page = function () {
                     psynet.register_error_handler();
                     psynet.response.disable();
@@ -895,7 +902,8 @@
 
                     var all_metadata = {
                         "time_taken": (current_time - psynet.page_load_time) / 1000,
-                        "platform": platform.toString()
+                        "platform": platform.toString(),
+                        "download_speed_megabits_per_sec": psynet.estimate_download_speed()
                     };
 
                     if (metadata !== undefined) {
