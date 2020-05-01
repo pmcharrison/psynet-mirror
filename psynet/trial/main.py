@@ -22,9 +22,11 @@ from ..timeline import (
     BackgroundTask,
     Module,
     conditional,
+    switch,
     while_loop,
     reactive_seq,
-    join
+    join,
+    NullEvent
 )
 
 from ..page import (
@@ -442,7 +444,7 @@ class TrialMaker(Module):
             self.introduction,
             self._trial_loop(),
             CodeBlock(self.on_complete),
-            self._check_performance_logic() if check_performance_at_end else None
+            self._check_performance_logic(type="end") if check_performance_at_end else None
         )
         super().__init__(label=self.with_namespace(), events=events)
 
@@ -564,6 +566,20 @@ class TrialMaker(Module):
         "num_participants": num_participants_criterion,
         "num_trials": num_trials_criterion
     }
+
+    give_end_feedback_passed = False
+
+    def get_end_feedback_passed_page(self, score):
+        return NullEvent
+
+    def _get_end_feedback_passed_logic(self):
+        if self.give_end_feedback_passed:
+            def f(participant):
+                score = participant.var.get(self.with_namespace("performance_check"))["score"]
+                return self.get_end_feedback_passed_page(score)
+            return PageMaker(f, time_estimate = 5)
+        else:
+            return []
 
     @property
     def num_trials_pending(self):
@@ -737,7 +753,7 @@ class TrialMaker(Module):
             UnsuccessfulEndPage(failure_tags=["performance_check"])
         )
 
-    def _check_performance_logic(self):
+    def _check_performance_logic(self, type):
         def eval_checks(experiment, participant):
             participant_trials = self.get_participant_trials(participant)
             (score, passed) = self.performance_check(
@@ -751,12 +767,17 @@ class TrialMaker(Module):
                 "score": score,
                 "passed": passed
             })
-            return not passed
+            return passed
 
-        return conditional(
+        assert type in ["trial", "end"]
+
+        return switch(
             "performance_check",
-            condition=eval_checks,
-            logic_if_true=self.check_fail_logic(),
+            function=eval_checks,
+            branches={
+                True: [] if type == "trial" else self._get_end_feedback_passed_logic(),
+                False: self.check_fail_logic()
+            },
             fix_time_credit=False,
             log_chosen_branch=False
         )
@@ -846,7 +867,7 @@ class TrialMaker(Module):
                     CodeBlock(self._postprocess_answer),
                     CodeBlock(self._finalise_trial),
                     self._construct_feedback_logic(),
-                    self._check_performance_logic() if self.check_performance_every_trial else None,
+                    self._check_performance_logic(type="trial") if self.check_performance_every_trial else None,
                     CodeBlock(self._prepare_trial)
                 ),
                 expected_repetitions=self.expected_num_trials,
