@@ -1,9 +1,13 @@
 import random
 import operator
+import json
+import hashlib
+import os
 from statistics import mean
 from typing import Optional
 from collections import Counter
 from functools import reduce
+from progress.bar import Bar
 
 
 from sqlalchemy.sql.expression import not_
@@ -168,6 +172,13 @@ class StimulusSpec():
             version = StimulusVersion(version_spec, stimulus, network)
             experiment.session.add(version)
 
+    @property
+    def hash(self):
+        return hashlib.md5(json.dumps({
+            "definition": self.definition,
+            "versions": [x.hash for x in self.version_specs]
+        }))
+
 class StimulusVersion(dallinger.models.Node):
     """
     A stimulus version class for non-adaptive experiments.
@@ -260,6 +271,17 @@ class StimulusVersionSpec():
         assert isinstance(definition, dict)
         self.definition = definition
 
+    has_media = False
+    media_ext = ""
+
+    @classmethod
+    def generate_media(cls, definition, output_path):
+        pass
+
+    @property
+    def hash(self):
+        return hashlib.md5(json.dumps(self.definition))
+
 class StimulusSet():
     """
     Defines a stimulus set for a non-adaptive experiment.
@@ -282,10 +304,12 @@ class StimulusSet():
         as long as these phases are specified in the ``phase`` parameters
         for the :class:`~psynet.trial.non_adaptive.StimulusSpec` objects.
     """
-    def __init__(self, stimulus_specs):
+    def __init__(self, stimulus_specs, version="default"):
         assert isinstance(stimulus_specs, list)
+        assert isinstance(version, str)
 
         self.stimulus_specs = stimulus_specs
+        self.version = version
 
         network_specs = set()
         blocks = set()
@@ -323,6 +347,52 @@ class StimulusSet():
 
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
+
+    @property
+    def hash(self):
+        return hashlib.md5(json.dumps({
+            "version": self.version,
+            "stimulus_specs": [x.hash for x in self.stimulus_specs]
+        }))
+
+    cache_parent_dir = "cache"
+
+    @property
+    def cache_dir(self):
+        return os.path.join(self.cache_parent_dir, self.version)
+
+    def prepare(self):
+        if os.path.exists(self.cache_dir):
+            if self.get_cache_hash() == self.hash:
+                logger.info("Local media cache appears to be up-to-date.")
+                return None
+            else:
+                logger.info("Local media cache appears to be out-of-date, removing.")
+                shutil.rmtree(self.cache_dir)
+
+        os.makedirs(self.cache_dir)
+
+        with Bar("Caching media", max=len(self.stimulus_specs)):
+            for s in self.stimulus_specs:
+                s.cache(self.cache_dir)
+
+        self.write_cache_hash()
+        logger.info("Finished caching local media.")
+
+
+
+
+
+
+    # def qualify_path(self, path):
+    #     return os.path.join(self.version, path)
+
+
+
+
+
+
+
 
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):
@@ -440,8 +510,6 @@ class NonAdaptiveTrial(Trial):
             **self.stimulus.definition,
             **self.stimulus_version.definition
         }
-
-
 
 class NonAdaptiveTrialMaker(NetworkTrialMaker):
     """
