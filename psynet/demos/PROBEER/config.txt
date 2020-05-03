@@ -9,7 +9,8 @@ base_payment = 0.10
 auto_recruit = true
 lifetime = 24
 duration = 2
-us_only = true
+# TODO for real change to true
+us_only = false
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet

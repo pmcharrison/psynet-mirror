@@ -1,5 +1,5 @@
--e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@dev#egg=psynet
-dallinger
+-e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@22-probeer-experiment#egg=psynet
+dallinger==6.1.0
 scipy
 numpy
 praat-parselmouth

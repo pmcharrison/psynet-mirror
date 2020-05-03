@@ -12,7 +12,9 @@ import psynet.experiment
 from psynet.headphone import headphone_check
 from psynet.timeline import (
     Timeline,
+    CodeBlock,
     MediaSpec,
+    conditional,
     join
 )
 from psynet.page import (
@@ -28,7 +30,6 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsNetwork, AudioGibbsTrial, AudioGibbsNode, AudioGibbsSource, AudioGibbsTrialMaker
 )
 
-from language import LanguagePage
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -36,13 +37,84 @@ logger = logging.getLogger(__file__)
 
 import rpdb
 
+
+from psynet.page import (
+    Page
+)
+from flask import Markup
+
+import os
+import json
+
+def get_template(name):
+    assert isinstance(name, str)
+    data_path = os.path.join('templates', name)
+    with open(data_path, encoding='utf-8') as fp:
+        template_str = fp.read()
+    return template_str
+
+class LanguagePage(Page):
+        """
+        This page solicits a text response from the user.
+        By default this response is saved in the database as a
+        :class:`psynet.timeline.Response` object,
+        which can be found in the ``Questions`` table.
+
+        Parameters
+        ----------
+
+        label:
+            Internal label for the page (used to store results).
+
+        prompt:
+            Prompt to display to the user. Use :class:`flask.Markup`
+            to display raw HTML.
+
+        time_estimate:
+            Time estimated for the page.
+
+        **kwargs:
+            Further arguments to pass to :class:`psynet.timeline.Page`.
+        """
+
+        def __init__(
+                self,
+                label: str,
+                prompt: str,
+                time_estimate: float,
+                **kwargs
+        ):
+            self.prompt = prompt
+            with open('languages.json', 'r') as f:
+                languages = json.load(f)
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("language-input-page.html"),
+                label=label,
+                template_arg={
+                    "prompt": prompt,
+                    "languages": languages
+                },
+                **kwargs
+            )
+
+        def metadata(self, **kwargs):
+            # pylint: disable=unused-argument
+            return {
+                "prompt": self.prompt
+            }
+
+
+
 # Custom parameters, change these as you like!
 DIMENSIONS = 5
 # SD = round(267*2.2)
 SD = 600
 RANGE = [-SD, SD]
 NUMBER_OF_SLIDER_TICKS = 120
-NUM_TRAILS_PER_CHAIN = 10
+# TODO change to 10
+#NUM_TRAILS_PER_CHAIN = 10
+NUM_TRAILS_PER_CHAIN = 1
 SNAP_SLIDER = True
 AUTOPLAY = True
 MIN_DURATION=5
@@ -126,6 +198,15 @@ class CustomSource(AudioGibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
 
+def make_instructions(target, initial=False):
+    with open("instructions/%s.md" % target, "r") as f:
+        text = f.read()
+    context = InfoPage(Markup(text), time_estimate=3)
+    if initial:
+        return InfoPage(Markup("Let's start with %s: <br><br>" % target + text), time_estimate=3)
+    else:
+        return context
+
 def make_block(target, phase="experiment"):
     if target == 'suggestion':
         network_class = SuggestionNetwork
@@ -135,12 +216,6 @@ def make_block(target, phase="experiment"):
         trial_class = CriticismTrial
     else:
         raise NotImplementedError()
-
-    with open("instructions/%s.md" % target, "r") as f:
-        text = f.read()
-    context = InfoPage(Markup(text), time_estimate=3)
-
-    first_context = InfoPage(Markup("Let's start with %s: <br><br>" % target + text), time_estimate=3)
 
     if phase == 'experiment':
         num_chains_per_participant = 3
@@ -171,7 +246,7 @@ def make_block(target, phase="experiment"):
         recruit_mode="num_participants",
         target_num_participants=10
     )
-    return first_context, context, trial_maker
+    return trial_maker
 
 
 ##########################################################################################
@@ -182,17 +257,15 @@ def make_block(target, phase="experiment"):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    crit_context_first, crit_context, crit_trails = make_block('criticism')
-    sugg_context_first, sugg_context, sugg_trails = make_block('suggestion')
-
-    _, _, crit_practice_trails = make_block("criticism", phase="training")
-
     with open("instructions/instructions.md", "r") as f:
         instruction_text = f.read()
 
-    introduction = join(
+    timeline = Timeline(
+        # Perform volume check
         VolumeCalibration(),
         headphone_check(),
+
+        # Demographic data
         NumberInputPage(
             label='age',
             prompt='What is your age?',
@@ -220,30 +293,35 @@ class Exp(psynet.experiment.Experiment):
             'Which language(s) did you speak during childhood?',
             time_estimate=2
         ),
+
+        # Instructions
         InfoPage(
             Markup(instruction_text),
             time_estimate=3
         ),
-        crit_practice_trails
-    )
-    # if round(random()):
-    block = join(
-        crit_context_first,
-        crit_trails,
-        sugg_context,
-        sugg_trails,
-    )
-    # else:
-    #     block = join(
-    #         sugg_context_first,
-    #         sugg_trails,
-    #         crit_context,
-    #         crit_trails,
-    #     )
 
-    timeline = Timeline(
-        # introduction,
-        block,
+        # Practice trials
+        make_block("criticism", phase="training"),
+
+        # Main experiment
+        CodeBlock(lambda experiment, participant: participant.var.set("suggestion_first", round(random()) == 1)),
+        conditional(
+            "main_block",
+            lambda experiment, participant: participant.var.suggestion_first,
+            join(
+                make_instructions("suggestion", initial=True),
+                make_block("suggestion"),
+                make_instructions("criticism"),
+                make_block("criticism"),
+            ),
+            join(
+                make_instructions("criticism", initial=True),
+                make_block("criticism"),
+                make_instructions("suggestion"),
+                make_block("suggestion"),
+            ),
+            fix_time_credit=False
+        ),
         SuccessfulEndPage()
     )
 
