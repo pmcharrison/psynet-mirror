@@ -275,7 +275,7 @@ class StimulusVersionSpec():
     media_ext = ""
 
     @classmethod
-    def generate_media(cls, definition, output_path):
+    def export_media(cls, definition, output_path):
         pass
 
     @property
