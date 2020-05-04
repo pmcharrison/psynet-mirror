@@ -17,11 +17,13 @@ import json
 from uuid import uuid4
 
 import logging
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
 # pylint: disable=unused-import
 import rpdb
+
 
 class AudioGibbsNetwork(GibbsNetwork):
     """
@@ -96,12 +98,12 @@ class AudioGibbsNetwork(GibbsNetwork):
 
     def validate(self):
         if not (
-            isinstance(self.synth_function_location, dict) and
-            "module_name" in self.synth_function_location and
-            "function_name" in self.synth_function_location and
-            len(self.synth_function_location["module_name"]) > 0 and
-            len(self.synth_function_location["function_name"]) > 0
-            ):
+                isinstance(self.synth_function_location, dict) and
+                "module_name" in self.synth_function_location and
+                "function_name" in self.synth_function_location and
+                len(self.synth_function_location["module_name"]) > 0 and
+                len(self.synth_function_location["function_name"]) > 0
+        ):
             raise ValueError(f"Invalid <synth_function_location> ({self.synth_function_location}).")
 
         if not (isinstance(self.s3_bucket, str) and len(self.s3_bucket) > 0):
@@ -121,8 +123,8 @@ class AudioGibbsNetwork(GibbsNetwork):
                 )
 
         if not (
-            (isinstance(self.granularity, int) and self.granularity > 0)
-            or (isinstance(self.granularity, str) and self.granularity == "custom")
+                (isinstance(self.granularity, int) and self.granularity > 0)
+                or (isinstance(self.granularity, str) and self.granularity == "custom")
         ):
             raise ValueError("<granularity> must be either a positive integer or the string 'custom'.")
 
@@ -131,6 +133,7 @@ class AudioGibbsNetwork(GibbsNetwork):
             self.vector_ranges[i][0],
             self.vector_ranges[i][1]
         )
+
 
 class AudioGibbsTrial(GibbsTrial):
     """
@@ -215,16 +218,16 @@ class AudioGibbsTrial(GibbsTrial):
             return main
         else:
             return (
-                (Markup(escape(main)) if isinstance(main, str) else main)
-                + Markup("<pre style='overflow: scroll; max-height: 50vh;'>")
-                + Markup(escape(json.dumps(self.summarise(), indent=4)))
-                + Markup("</pre>")
+                    (Markup(escape(main)) if isinstance(main, str) else main)
+                    + Markup("<pre style='overflow: scroll; max-height: 50vh;'>")
+                    + Markup(escape(json.dumps(self.summarise(), indent=4)))
+                    + Markup("</pre>")
             )
 
     def _validate(self):
         if (
-            self.snap_slider_before_release
-            and not isinstance(self.network.granularity, int)
+                self.snap_slider_before_release
+                and not isinstance(self.network.granularity, int)
         ):
             raise ValueError("<snap_slider_before_release> can only equal <True> if <granularity> is an integer.")
 
@@ -265,6 +268,15 @@ class AudioGibbsTrial(GibbsTrial):
     def vector_ranges(self):
         return self.network.vector_ranges
 
+    def summarise(self):
+        return {
+            **super().summarise(),
+            "trial_id": self.id,
+            "start_value": self.initial_vector[self.active_index],
+            "vector_range": self.vector_ranges[self.active_index],
+            "vector_range": self.sound_locations
+        }
+
 class AudioGibbsNode(GibbsNode):
     """
     A Node class for Audio Gibbs sampler chains.
@@ -274,12 +286,14 @@ class AudioGibbsNode(GibbsNode):
 
     slider_stimuli = claim_var("slider_stimuli")
 
+
 class AudioGibbsSource(GibbsSource):
     """
     A Source class for Audio Gibbs sampler chains.
     The user should not have to modify this.
     """
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_source"}
+
 
 class AudioGibbsTrialMaker(GibbsTrialMaker):
     """
@@ -300,6 +314,7 @@ class AudioGibbsTrialMaker(GibbsTrialMaker):
             **kwargs
         )
 
+
 def make_audio(network_id):
     logger.info("Synthesising audio for network %i...", network_id)
 
@@ -310,56 +325,58 @@ def make_audio(network_id):
     network = AudioGibbsNetwork.query.filter_by(id=network_id).one()
     node = network.head
 
-    granularity = network.granularity
-    vector = node.definition["vector"]
-    active_index = node.definition["active_index"]
+    if isinstance(node, AudioGibbsSource):
+        logger.info("Network %i only contains a Source, no audio to be synthesised.", network_id)
+    else:
+        granularity = network.granularity
+        vector = node.definition["vector"]
+        active_index = node.definition["active_index"]
 
-    with tempfile.TemporaryDirectory() as temp_dir:
-        individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
-        os.mkdir(individual_stimuli_dir)
+        with tempfile.TemporaryDirectory() as temp_dir:
+            individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
+            os.mkdir(individual_stimuli_dir)
 
-        batch_file = f"{uuid4()}.batch"
-        batch_path = os.path.join(temp_dir, batch_file)
+            batch_file = f"{uuid4()}.batch"
+            batch_path = os.path.join(temp_dir, batch_file)
 
-        args = {
-            "vector": vector,
-            "active_index": active_index,
-            "range_to_sample": network.vector_ranges[active_index],
-            "chain_definition": network.definition,
-            "output_dir": individual_stimuli_dir,
-            "synth_function": network.synth_function
-        }
+            args = {
+                "vector": vector,
+                "active_index": active_index,
+                "range_to_sample": network.vector_ranges[active_index],
+                "chain_definition": network.definition,
+                "output_dir": individual_stimuli_dir,
+                "synth_function": network.synth_function
+            }
 
-        if granularity == "custom":
-            stimuli = make_audio_custom_intervals(**args)
-        else:
-            stimuli = make_audio_regular_intervals(granularity=granularity, **args)
+            if granularity == "custom":
+                stimuli = make_audio_custom_intervals(**args)
+            else:
+                stimuli = make_audio_regular_intervals(granularity=granularity, **args)
 
-        make_audio_batch_file(stimuli, batch_path)
-        batch_url = upload_to_s3(batch_path, network.s3_bucket, key=batch_file, public_read=True)["url"]
+            make_audio_batch_file(stimuli, batch_path)
+            batch_url = upload_to_s3(batch_path, network.s3_bucket, key=batch_file, public_read=True)["url"]
 
-        node.slider_stimuli = {
-            "url": batch_url,
-            "all": stimuli
-        }
+            node.slider_stimuli = {
+                "url": batch_url,
+                "all": stimuli
+            }
+    network.awaiting_process = False
+    db.session.commit() # pylint: disable=no-member
 
-        network.awaiting_process = False
-
-        # pylint: disable=no-member
-        db.session.commit()
 
 def make_audio_batch_file(stimuli, output_path):
     paths = [x["path"] for x in stimuli]
     make_batch_file(paths, output_path)
 
+
 def make_audio_regular_intervals(
-    granularity,
-    vector,
-    active_index,
-    range_to_sample,
-    chain_definition,
-    output_dir,
-    synth_function
+        granularity,
+        vector,
+        active_index,
+        range_to_sample,
+        chain_definition,
+        output_dir,
+        synth_function
 ):
     stimuli = []
     for _i, _value in enumerate(linspace(range_to_sample[0], range_to_sample[1], granularity)):
@@ -372,6 +389,7 @@ def make_audio_regular_intervals(
 
         stimuli.append({"id": _id, "value": _value, "path": _path})
     return stimuli
+
 
 def make_audio_custom_intervals(vector, active_index, range_to_sample, chain_definition, output_dir, synth_function):
     raise NotImplementedError

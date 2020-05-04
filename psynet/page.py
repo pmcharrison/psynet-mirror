@@ -115,8 +115,8 @@ def wait_while(
     Displays the participant a waiting page while a given condition
     remains satisfied.
 
-    Parameter
-    ---------
+    Parameters
+    ----------
 
     condition
         The condition to be checked;

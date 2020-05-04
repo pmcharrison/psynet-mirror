@@ -10,17 +10,17 @@ import psynet.experiment
 from psynet.field import claim_field
 from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page, 
+    Page,
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
-    conditional, 
+    PageMaker,
+    CodeBlock,
+    while_loop,
+    conditional,
     switch
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
+    InfoPage,
+    SuccessfulEndPage,
     NAFCPage
 )
 from psynet.trial.non_adaptive import (
@@ -68,7 +68,7 @@ class AnimalTrial(NonAdaptiveTrial):
         block = self.block
 
         page = NAFCPage(
-            "animal_trial", 
+            "animal_trial",
             Markup(f"<h3>Block {block}</h3> <p style='color: {text_color}'>How much do you like {animal}?</p>"),
             ["Not at all", "A little", "Very much"]
         )
@@ -88,6 +88,13 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
         passed = score == 0
         return (score, passed)
 
+    give_end_feedback_passed = True
+    def get_end_feedback_passed_page(self, score):
+        return InfoPage(
+            Markup(f"You finished the animal questions! Your score was {score}."),
+            time_estimate=5
+        )
+
 
 ##########################################################################################
 #### Experiment
@@ -99,9 +106,9 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         AnimalTrialMaker(
-            trial_class=AnimalTrial, 
+            trial_class=AnimalTrial,
             phase="experiment",
-            stimulus_set=stimulus_set, 
+            stimulus_set=stimulus_set,
             time_estimate_per_trial=3,
             new_participant_group=True,
             max_trials_per_block=2,
@@ -115,7 +122,6 @@ class Exp(psynet.experiment.Experiment):
             target_num_trials_per_stimulus=3,
             recruit_mode="num_trials"
         ),
-        InfoPage("You finished the animal questions!", time_estimate=0),
         SuccessfulEndPage()
     )
 
