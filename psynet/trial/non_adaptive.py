@@ -141,7 +141,7 @@ class StimulusSpec():
         e.g. ``"practice"`` or ``"main"``.
 
     version_specs
-        An optional list of
+        A list of
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects, defining different forms that the stimulus can take.
 
@@ -157,15 +157,11 @@ class StimulusSpec():
         self,
         definition: dict,
         phase: str,
-        version_specs=None,
+        version_specs: list,
         participant_group="default",
         block="default"
     ):
         assert isinstance(definition, dict)
-
-        if version_specs is None:
-            version_specs = [StimulusVersionSpec(definition={})]
-
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:
