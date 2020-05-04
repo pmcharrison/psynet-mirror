@@ -114,7 +114,7 @@ class Stimulus(dallinger.models.Node):
             raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
         return self.target_num_trials - self.num_completed_trials
 
-    def __init__(self, stimulus_spec, network, source, target_num_trials):
+    def __init__(self, stimulus_spec, network, source, target_num_trials, stimulus_set):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
@@ -177,12 +177,12 @@ class StimulusSpec():
         self.participant_group = participant_group
         self.block = block
 
-    def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
-        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
+    def add_stimulus_to_network(self, network, source, experiment, target_num_trials, stimulus_set):
+        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials, stimulus_set)
         experiment.session.add(stimulus)
 
         for version_spec in self.version_specs:
-            version = StimulusVersion(version_spec, stimulus, network)
+            version = StimulusVersion(version_spec, stimulus, network, stimulus_set)
             experiment.session.add(version)
 
     @property
@@ -241,6 +241,10 @@ class StimulusVersion(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
 
     stimulus_id = claim_field(1, int)
+    has_media = claim_field(2, bool)
+    s3_bucket = claim_field(3, str)
+    remote_media_dir = claim_field(4, str)
+    media_file_name = claim_field(5, str)
 
     @property
     def definition(self):
@@ -249,6 +253,18 @@ class StimulusVersion(dallinger.models.Node):
     @definition.setter
     def definition(self, definition):
         self.details = definition
+
+
+    @property
+    def media_url(self):
+        if not self.has_media:
+            return None
+        return os.path.join(
+            "https://s3.amazonaws.com",
+            self.s3_bucket,
+            self.remote_media_dir,
+            self.media_file_name
+        )
 
 
     @property
@@ -267,9 +283,13 @@ class StimulusVersion(dallinger.models.Node):
     def block(self):
         return self.stimulus.block
 
-    def __init__(self, stimulus_version_spec, stimulus, network):
+    def __init__(self, stimulus_version_spec, stimulus, network, stimulus_set):
         super().__init__(network=network)
         self.stimulus_id = stimulus.id
+        self.has_media = stimulus_version_spec.has_media
+        self.s3_bucket = stimulus_set.s3_bucket
+        self.remote_media_dir = stimulus_set.remote_media_dir
+        self.media_file_name = stimulus_version_spec.media_file_name
         self.definition = stimulus_version_spec.definition
         self.connect_to_parent(stimulus)
 
@@ -309,6 +329,8 @@ class StimulusVersionSpec():
 
     @property
     def media_file_name(self):
+        if not self.has_media:
+            return None
         return self.hash + self.media_ext
 
     def cache_media(self, local_media_cache_dir):
@@ -410,6 +432,8 @@ class StimulusSet():
 
     @property
     def remote_media_dir(self):
+        if self.s3_bucket is None:
+            return None
         return self.version
 
     @property
@@ -574,6 +598,10 @@ class NonAdaptiveTrial(Trial):
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
+
+    @property
+    def media_url(self):
+        return self.stimulus_version.media_url
 
     @property
     def stimulus_version(self):
@@ -1247,7 +1275,8 @@ class NonAdaptiveNetwork(TrialNetwork):
                 network=self,
                 source=source,
                 experiment=experiment,
-                target_num_trials=target_num_trials_per_stimulus
+                target_num_trials=target_num_trials_per_stimulus,
+                stimulus_set=stimulus_set
             )
         experiment.save()
 

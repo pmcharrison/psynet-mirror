@@ -248,7 +248,7 @@ class NAFCButton():
 
 class NAFCControl(Control):
     """
-    This control interfae solicits a multiple-choice response from the participant.
+    This control interface solicits a multiple-choice response from the participant.
 
     Parameters
     ----------
