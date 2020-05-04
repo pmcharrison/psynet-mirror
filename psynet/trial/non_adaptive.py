@@ -17,7 +17,18 @@ from sqlalchemy.sql.expression import not_
 import dallinger.models
 import dallinger.nodes
 
+from ..media import (
+    bucket_exists,
+    create_bucket,
+    make_bucket_public,
+    read_string_from_s3,
+    write_string_to_s3,
+    delete_bucket_dir,
+    upload_to_s3
+)
+
 from ..field import claim_field
+from ..utils import DisableLogger
 from .main import Trial, TrialNetwork, NetworkTrialMaker
 
 import logging
@@ -175,11 +186,23 @@ class StimulusSpec():
             experiment.session.add(version)
 
     @property
+    def has_media(self):
+        return any([s.has_media for s in self.version_specs])
+
+    @property
     def hash(self):
         return hashlib.md5(json.dumps({
             "definition": self.definition,
             "versions": [x.hash for x in self.version_specs]
         }))
+
+    def cache_media(self, local_media_cache_dir):
+        for s in self.version_specs:
+            s.cache_media(local_media_cache_dir)
+
+    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
+        for s in self.version_specs:
+            s.upload_media(s3_bucket, local_media_cache_dir, remote_media_dir)
 
 class StimulusVersion(dallinger.models.Node):
     """
@@ -277,12 +300,33 @@ class StimulusVersionSpec():
     media_ext = ""
 
     @classmethod
-    def export_media(cls, definition, output_path):
+    def generate_media(cls, definition, output_path):
         pass
 
     @property
     def hash(self):
         return hashlib.md5(json.dumps(self.definition))
+
+    @property
+    def media_file_name(self):
+        return self.hash + self.media_ext
+
+    def cache_media(self, local_media_cache_dir):
+        if self.has_media:
+            path = os.path.join(local_media_cache_dir, self.media_file_name)
+            self.generate_media(self.definition, path)
+
+    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
+        if self.has_media:
+            local_path = os.path.join(local_media_cache_dir, self.media_file_name)
+            if not os.path.isfile(local_path):
+                raise IOError(
+                    f"Couldn't find local media cache file '{local_path}'. "
+                    "Try deleting your cache and starting again?"
+                )
+            with DisableLogger():
+                upload_to_s3(local_path, s3_bucket, self.media_file_name, public_read=True)
+
 
 class StimulusSet():
     """
@@ -306,12 +350,13 @@ class StimulusSet():
         as long as these phases are specified in the ``phase`` parameters
         for the :class:`~psynet.trial.non_adaptive.StimulusSpec` objects.
     """
-    def __init__(self, stimulus_specs, version="default"):
+    def __init__(self, stimulus_specs, version: str = "default", s3_bucket: Optional[str] = None):
         assert isinstance(stimulus_specs, list)
         assert isinstance(version, str)
 
         self.stimulus_specs = stimulus_specs
         self.version = version
+        self.s3_bucket = s3_bucket
 
         network_specs = set()
         blocks = set()
@@ -357,43 +402,92 @@ class StimulusSet():
             "stimulus_specs": [x.hash for x in self.stimulus_specs]
         }))
 
-    cache_parent_dir = "cache"
+    local_media_cache_parent_dir = "media"
 
     @property
-    def cache_dir(self):
-        return os.path.join(self.cache_parent_dir, self.version)
+    def local_media_cache_dir(self):
+        return os.path.join(self.local_media_cache_parent_dir, self.version)
 
-    def prepare(self):
-        if os.path.exists(self.cache_dir):
-            if self.get_cache_hash() == self.hash:
+    @property
+    def remote_media_dir(self):
+        return self.version
+
+    @property
+    def has_media(self):
+        return any([s.has_media for s in self.stimulus_specs])
+
+    def prepare_media(self):
+        if self.has_media:
+            if self.remote_media_is_up_to_date:
+                logger.info("Remote media seems to be up-to-date, no media preparation necessary.")
+            else:
+                self.cache_media()
+                self.upload_media()
+        else:
+            logger.info("No media found to prepare.")
+
+    def cache_media(self):
+        if os.path.exists(self.local_media_cache_dir):
+            if self.get_local_media_cache_hash() == self.hash:
                 logger.info("Local media cache appears to be up-to-date.")
                 return None
             else:
                 logger.info("Local media cache appears to be out-of-date, removing.")
-                shutil.rmtree(self.cache_dir)
+                shutil.rmtree(self.local_media_cache_dir)
 
-        os.makedirs(self.cache_dir)
+        os.makedirs(self.local_media_cache_dir)
 
         with Bar("Caching media", max=len(self.stimulus_specs)):
             for s in self.stimulus_specs:
-                s.cache(self.cache_dir)
+                s.cache_media(self.local_media_cache_dir)
 
-        self.write_cache_hash()
+        self.write_local_media_cache_hash()
         logger.info("Finished caching local media.")
 
+    def upload_media(self):
+        self.prepare_s3_bucket()
 
+        with Bar("Uploading media", max=len(self.stimulus_specs)):
+            for s in self.stimulus_specs:
+                s.upload_media(self.s3_bucket, self.local_media_cache_dir, self.remote_media_dir)
 
+        self.write_remote_media_hash()
+        logger.info("Finished uploading media.")
 
+    def prepare_s3_bucket(self):
+        if not bucket_exists(self.s3_bucket):
+            create_bucket(self.s3_bucket)
 
+        make_bucket_public(self.s3_bucket)
 
-    # def qualify_path(self, path):
-    #     return os.path.join(self.version, path)
+        delete_bucket_dir(self.s3_bucket, self.remote_media_dir)
 
+    @property
+    def path_to_cache_hash(self):
+        return os.path.join(self.local_media_cache_dir, "hash")
 
+    def get_local_media_cache_hash(self):
+        if os.path.isfile(self.path_to_cache_hash):
+            with open(self.path_to_cache_hash, "r") as file:
+                return file.read()
+        else:
+            return None
 
+    def write_local_media_cache_hash(self):
+        os.makedirs(self.local_media_cache_dir, exist_ok=True)
+        with open(self.path_to_cache_hash, "w") as file:
+            file.write(self.hash)
 
+    @property
+    def remote_media_is_up_to_date(self):
+        return self.get_remote_media_hash() == self.hash
 
+    def get_remote_media_hash(self):
+        # Returns None if the cache doesn't exist
+        return read_string_from_s3(self.s3_bucket, self.path_to_cache_hash)
 
+    def write_remote_media_hash(self):
+        write_string_to_s3(self.hash, bucket_name=self.s3_bucket, key=self.path_to_cache_hash)
 
 
 class NetworkSpec():
@@ -615,7 +709,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         to that participant so far.
 
     active_balancing_across_participants
-        If ``True`` (default), active balancing across participants is enabled, meaning that
+        If ``True`` (default), active balancfing across participants is enabled, meaning that
         stimulus selection favours stimuli that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
