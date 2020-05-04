@@ -28,7 +28,7 @@ database_size = standard-2
 [Server]
 # Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
 # TODO for real change to performance
-dyno_type = standard-1x
+dyno_type = performance-m
 num_dynos_web = 1
 # TODO for real ca 6 workers
 num_dynos_worker = 1

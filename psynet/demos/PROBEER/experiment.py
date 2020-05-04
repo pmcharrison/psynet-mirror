@@ -3,7 +3,7 @@
 # Note: parselmouth must be installed with pip install praat-parselmouth
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 from random import random
@@ -37,6 +37,7 @@ from flask import Markup
 import os
 import json
 
+
 def get_template(name):
     assert isinstance(name, str)
     data_path = os.path.join('templates', name)
@@ -44,8 +45,9 @@ def get_template(name):
         template_str = fp.read()
     return template_str
 
+
 class LanguagePage(Page):
-        """
+    """
         This page solicits a text response from the user.
         By default this response is saved in the database as a
         :class:`psynet.timeline.Response` object,
@@ -68,33 +70,32 @@ class LanguagePage(Page):
             Further arguments to pass to :class:`psynet.timeline.Page`.
         """
 
-        def __init__(
-                self,
-                label: str,
-                prompt: str,
-                time_estimate: float,
-                **kwargs
-        ):
-            self.prompt = prompt
-            with open('languages.json', 'r') as f:
-                languages = json.load(f)
-            super().__init__(
-                time_estimate=time_estimate,
-                template_str=get_template("language-input-page.html"),
-                label=label,
-                template_arg={
-                    "prompt": prompt,
-                    "languages": languages
-                },
-                **kwargs
-            )
+    def __init__(
+            self,
+            label: str,
+            prompt: str,
+            time_estimate: float,
+            **kwargs
+    ):
+        self.prompt = prompt
+        with open('languages.json', 'r') as f:
+            languages = json.load(f)
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=get_template("language-input-page.html"),
+            label=label,
+            template_arg={
+                "prompt": prompt,
+                "languages": languages
+            },
+            **kwargs
+        )
 
-        def metadata(self, **kwargs):
-            # pylint: disable=unused-argument
-            return {
-                "prompt": self.prompt
-            }
-
+    def metadata(self, **kwargs):
+        # pylint: disable=unused-argument
+        return {
+            "prompt": self.prompt
+        }
 
 
 # Custom parameters, change these as you like!
@@ -103,13 +104,12 @@ DIMENSIONS = 5
 SD = 600
 RANGE = [-SD, SD]
 NUMBER_OF_SLIDER_TICKS = 120
-# TODO change to 10
-#NUM_TRAILS_PER_CHAIN = 10
-NUM_TRAILS_PER_CHAIN = 1
+NUM_TRAILS_PER_CHAIN = 10
 SNAP_SLIDER = True
 AUTOPLAY = True
-MIN_DURATION=5
-DEBUG=False
+MIN_DURATION = 5
+DEBUG = False
+
 
 class CriticismNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "criticism_network"}
@@ -190,13 +190,14 @@ class CustomSource(AudioGibbsSource):
 
 
 def make_instructions(target, initial=False):
-    with open("instructions/%s.md" % target, "r") as f:
+    with open("instructions/%s.html" % target, "r") as f:
         text = f.read()
     context = InfoPage(Markup(text), time_estimate=3)
     if initial:
         return InfoPage(Markup("Let's start with %s: <br><br>" % target + text), time_estimate=3)
     else:
         return context
+
 
 def make_block(target, phase="experiment"):
     if target == 'suggestion':
@@ -211,7 +212,7 @@ def make_block(target, phase="experiment"):
     if phase == 'experiment':
         num_chains_per_participant = 3
         num_nodes_per_chain = NUM_TRAILS_PER_CHAIN + 1
-        num_trials_per_participant = (num_nodes_per_chain+1)*num_chains_per_participant
+        num_trials_per_participant = (num_nodes_per_chain + 1) * num_chains_per_participant
     else:
         num_trials_per_participant = 2
         num_nodes_per_chain = 2
@@ -241,14 +242,14 @@ def make_block(target, phase="experiment"):
 
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    with open("instructions/instructions.md", "r") as f:
+    with open("instructions/instructions.html", "r") as f:
         instruction_text = f.read()
 
     timeline = Timeline(
