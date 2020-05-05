@@ -732,7 +732,7 @@ class DebugResponsePage(PageMaker):
 class VolumeCalibration(ModularPage):
     def __init__(
             self,
-            url="https://headphone-check.s3.amazonaws.com/noise_calib_stim.wav",
+            url="https://headphone-check.s3.amazonaws.com/brown_noise.wav",
             min_time=2.5,
             time_estimate=5.0,
         ):

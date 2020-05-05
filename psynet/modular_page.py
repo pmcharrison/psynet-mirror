@@ -602,7 +602,7 @@ class AudioRecordControl(Control):
             *,
             duration: float,
             s3_bucket: str,
-            show_meter: bool = True,
+            show_meter: bool = False,
             public_read: bool = False
         ):
         self.duration = duration

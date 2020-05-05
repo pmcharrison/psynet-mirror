@@ -4,11 +4,15 @@ from psynet.timeline import (
 )
 from psynet.page import (
     SuccessfulEndPage,
+    VolumeCalibration,
+    InfoPage
 )
 from psynet.modular_page import(
     ModularPage,
     AudioPrompt,
-    NAFCControl
+    AudioRecordControl,
+    NAFCControl,
+    AudioMeterControl
 )
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
@@ -57,7 +61,7 @@ stimuli = [
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet(stimuli, version="v2", s3_bucket="non-adaptive-audio-demo")
+stimulus_set = StimulusSet(stimuli, version="v2", s3_bucket="non-adaptive-audio-demo-stimuli")
 
 if __name__ == "__main__":
     stimulus_set.prepare_media()
@@ -68,9 +72,20 @@ class CustomTrial(NonAdaptiveTrial):
     def show_trial(self, experiment, participant):
         return ModularPage(
             "question_page",
-            AudioPrompt(self.media_url, "Is the speaker asking a question?"),
-            NAFCControl(["Yes", "No"]),
+            AudioPrompt(self.media_url, "Please imitate the spoken word as closely as possible."),
+            AudioRecordControl(
+                duration=3.0,
+                s3_bucket="non-adaptive-audio-demo-stimuli-recordings",
+                public_read=True
+            ),
             time_estimate=5
+        )
+
+    def show_feedback(self, experiment, participant):
+        return ModularPage(
+            "feedback_page",
+            AudioPrompt(participant.answer["url"], "Listen back to your recording. Did you do a good job?"),
+            time_estimate=2
         )
 
 
@@ -79,6 +94,24 @@ class CustomTrial(NonAdaptiveTrial):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        VolumeCalibration(),
+        ModularPage(
+            "record_calibrate",
+            """
+            Please speak into your microphone and check that the sound is registered
+            properly. If the sound is too quiet, try moving your microphone
+            closer or increasing the input volume on your computer.
+            """,
+            AudioMeterControl(),
+            time_estimate=5
+        ),
+        InfoPage(
+            """
+            In this experiment you will hear some words. Your task will be to repeat
+            them back as accurately as possible.
+            """,
+            time_estimate=5
+        ),
         NonAdaptiveTrialMaker(
             trial_class=CustomTrial,
             phase="experiment",
