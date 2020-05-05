@@ -766,5 +766,5 @@ class VolumeCalibration(ModularPage):
             self._url,
             self._text,
             loop=True,
-            enable_response_after=self._min_time
+            enable_submit_after=self._min_time
         )

@@ -2,6 +2,7 @@ import os
 import struct
 import json
 import boto3
+import botocore.exceptions
 import botocore.errorfactory
 
 from dallinger.config import get_config

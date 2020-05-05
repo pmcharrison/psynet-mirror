@@ -57,16 +57,10 @@ audio_meter_control.init = function(json) {
         audio_meter_control.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
         audio_meter_control.audioContext = psynet.media.audio_context;
 
-        try {
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-            .then(function(stream) {
-                audio_meter_control.onMicrophoneGranted(stream);
-            })
-            // .catch(onMicrophoneDenied);
-
-        } catch (e) {
-            alert('getUserMedia threw exception :' + e);
-        }
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(function(stream) {
+            audio_meter_control.onMicrophoneGranted(stream);
+        })
     });
 }
 

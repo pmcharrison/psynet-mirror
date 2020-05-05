@@ -12,19 +12,22 @@ from psynet.timeline import (
     CodeBlock,
     while_loop,
     conditional,
-    MediaSpec
+    MediaSpec,
+    join
 )
 from psynet.page import (
     InfoPage,
     SuccessfulEndPage,
     NAFCPage,
-    TextInputPage
+    TextInputPage,
+    DebugResponsePage
 )
 from psynet.modular_page import(
     ModularPage,
     AudioMeterControl,
     TappingAudioMeterControl,
-    AudioPrompt
+    AudioPrompt,
+    AudioRecordControl
 )
 
 import logging
@@ -139,7 +142,7 @@ example_audio_meter_calibrate_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "The default meter parameters are designed to work well for music playback.",
         loop=True,
-        enable_response_after=0
+        enable_submit_after=0
     ),
     AudioMeterControl(calibrate=True),
     time_estimate=5,
@@ -151,7 +154,7 @@ example_audio_meter_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "This page shows an audio meter alongside an audio stimulus.",
         loop=True,
-        enable_response_after=2.5
+        enable_submit_after=2.5
     ),
     AudioMeterControl(min_time=2.5, calibrate=True),
     time_estimate=5
@@ -180,6 +183,26 @@ example_audio_page = ModularPage(
     time_estimate=5
 )
 
+example_record_page = join(
+    ModularPage(
+        "record_page",
+        "This page lets you record audio.",
+        AudioRecordControl(
+            duration=3.0,
+            s3_bucket="audio-record-demo",
+            show_meter=True,
+            public_read=True
+        ),
+        time_estimate=5
+    ),
+    PageMaker(
+        lambda participant: ModularPage(
+            "playback",
+            AudioPrompt(participant.answer["url"], "Here's the recording you just made.")
+        ),
+        time_estimate=5
+    )
+)
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -187,6 +210,7 @@ example_audio_page = ModularPage(
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         example_audio_page,
+        example_record_page,
         example_audio_meter,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
