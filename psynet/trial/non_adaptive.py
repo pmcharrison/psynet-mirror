@@ -1,9 +1,14 @@
 import random
 import operator
+
+import os
+import shutil
+
 from statistics import mean
 from typing import Optional
 from collections import Counter
 from functools import reduce
+from progress.bar import Bar
 
 
 from sqlalchemy.sql.expression import not_
@@ -11,7 +16,18 @@ from sqlalchemy.sql.expression import not_
 import dallinger.models
 import dallinger.nodes
 
+from ..media import (
+    bucket_exists,
+    create_bucket,
+    make_bucket_public,
+    read_string_from_s3,
+    write_string_to_s3,
+    delete_bucket_dir,
+    upload_to_s3
+)
+
 from ..field import claim_field
+from ..utils import DisableLogger, hash_object
 from .main import Trial, TrialNetwork, NetworkTrialMaker
 
 import logging
@@ -97,7 +113,7 @@ class Stimulus(dallinger.models.Node):
             raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
         return self.target_num_trials - self.num_completed_trials
 
-    def __init__(self, stimulus_spec, network, source, target_num_trials):
+    def __init__(self, stimulus_spec, network, source, target_num_trials, stimulus_set):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
@@ -124,7 +140,7 @@ class StimulusSpec():
         e.g. ``"practice"`` or ``"main"``.
 
     version_specs
-        An optional list of
+        A list of
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects, defining different forms that the stimulus can take.
 
@@ -140,15 +156,11 @@ class StimulusSpec():
         self,
         definition: dict,
         phase: str,
-        version_specs=None,
+        version_specs: list,
         participant_group="default",
         block="default"
     ):
         assert isinstance(definition, dict)
-
-        if version_specs is None:
-            version_specs = [StimulusVersionSpec(definition={})]
-
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:
@@ -160,13 +172,32 @@ class StimulusSpec():
         self.participant_group = participant_group
         self.block = block
 
-    def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
-        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
+    def add_stimulus_to_network(self, network, source, experiment, target_num_trials, stimulus_set):
+        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials, stimulus_set=stimulus_set)
         experiment.session.add(stimulus)
 
         for version_spec in self.version_specs:
-            version = StimulusVersion(version_spec, stimulus, network)
+            version = StimulusVersion(version_spec, stimulus, network, stimulus_set)
             experiment.session.add(version)
+
+    @property
+    def has_media(self):
+        return any([s.has_media for s in self.version_specs])
+
+    @property
+    def hash(self):
+        return hash_object({
+            "definition": self.definition,
+            "versions": [x.hash for x in self.version_specs]
+        })
+
+    def cache_media(self, local_media_cache_dir):
+        for s in self.version_specs:
+            s.cache_media(local_media_cache_dir)
+
+    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
+        for s in self.version_specs:
+            s.upload_media(s3_bucket, local_media_cache_dir, remote_media_dir)
 
 class StimulusVersion(dallinger.models.Node):
     """
@@ -205,6 +236,10 @@ class StimulusVersion(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
 
     stimulus_id = claim_field(1, int)
+    has_media = claim_field(2, bool)
+    s3_bucket = claim_field(3, str)
+    remote_media_dir = claim_field(4, str)
+    media_file_name = claim_field(5, str)
 
     @property
     def definition(self):
@@ -213,6 +248,18 @@ class StimulusVersion(dallinger.models.Node):
     @definition.setter
     def definition(self, definition):
         self.details = definition
+
+
+    @property
+    def media_url(self):
+        if not self.has_media:
+            return None
+        return os.path.join(
+            "https://s3.amazonaws.com",
+            self.s3_bucket,
+            self.remote_media_dir,
+            self.media_file_name
+        )
 
 
     @property
@@ -231,9 +278,13 @@ class StimulusVersion(dallinger.models.Node):
     def block(self):
         return self.stimulus.block
 
-    def __init__(self, stimulus_version_spec, stimulus, network):
+    def __init__(self, stimulus_version_spec, stimulus, network, stimulus_set):
         super().__init__(network=network)
         self.stimulus_id = stimulus.id
+        self.has_media = stimulus_version_spec.has_media
+        self.s3_bucket = stimulus_set.s3_bucket
+        self.remote_media_dir = stimulus_set.remote_media_dir
+        self.media_file_name = stimulus_version_spec.media_file_name
         self.definition = stimulus_version_spec.definition
         self.connect_to_parent(stimulus)
 
@@ -260,6 +311,41 @@ class StimulusVersionSpec():
         assert isinstance(definition, dict)
         self.definition = definition
 
+    has_media = False
+    media_ext = ""
+
+    @classmethod
+    def generate_media(cls, definition, output_path):
+        pass
+
+    @property
+    def hash(self):
+        return hash_object(self.definition)
+
+    @property
+    def media_file_name(self):
+        if not self.has_media:
+            return None
+        return self.hash + self.media_ext
+
+    def cache_media(self, local_media_cache_dir):
+        if self.has_media:
+            path = os.path.join(local_media_cache_dir, self.media_file_name)
+            self.generate_media(self.definition, path)
+
+    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
+        if self.has_media:
+            local_path = os.path.join(local_media_cache_dir, self.media_file_name)
+            remote_key = os.path.join(remote_media_dir, self.media_file_name)
+            if not os.path.isfile(local_path):
+                raise IOError(
+                    f"Couldn't find local media cache file '{local_path}'. "
+                    "Try deleting your cache and starting again?"
+                )
+            with DisableLogger():
+                upload_to_s3(local_path, s3_bucket, remote_key, public_read=True)
+
+
 class StimulusSet():
     """
     Defines a stimulus set for a non-adaptive experiment.
@@ -282,10 +368,13 @@ class StimulusSet():
         as long as these phases are specified in the ``phase`` parameters
         for the :class:`~psynet.trial.non_adaptive.StimulusSpec` objects.
     """
-    def __init__(self, stimulus_specs):
+    def __init__(self, stimulus_specs, version: str = "default", s3_bucket: Optional[str] = None):
         assert isinstance(stimulus_specs, list)
+        assert isinstance(version, str)
 
         self.stimulus_specs = stimulus_specs
+        self.version = version
+        self.s3_bucket = s3_bucket
 
         network_specs = set()
         blocks = set()
@@ -323,6 +412,111 @@ class StimulusSet():
 
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
+
+    @property
+    def hash(self):
+        return hash_object({
+            "version": self.version,
+            "stimulus_specs": [x.hash for x in self.stimulus_specs]
+        })
+
+    local_media_cache_parent_dir = "cache"
+
+    @property
+    def local_media_cache_dir(self):
+        return os.path.join(self.local_media_cache_parent_dir, self.version)
+
+    @property
+    def remote_media_dir(self):
+        if self.s3_bucket is None:
+            return None
+        return self.version
+
+    @property
+    def has_media(self):
+        return any([s.has_media for s in self.stimulus_specs])
+
+    def prepare_media(self):
+        if self.has_media:
+            if self.remote_media_is_up_to_date:
+                logger.info("Remote media seems to be up-to-date, no media preparation necessary.")
+            else:
+                self.cache_media()
+                self.upload_media()
+        else:
+            logger.info("No media found to prepare.")
+
+    def cache_media(self):
+        if os.path.exists(self.local_media_cache_dir):
+            if self.get_local_media_cache_hash() == self.hash:
+                logger.info("Local media cache appears to be up-to-date.")
+                return None
+            else:
+                logger.info("Local media cache appears to be out-of-date, removing.")
+                shutil.rmtree(self.local_media_cache_dir)
+
+        os.makedirs(self.local_media_cache_dir)
+
+        with Bar("Caching media", max=len(self.stimulus_specs)) as bar:
+            for s in self.stimulus_specs:
+                s.cache_media(self.local_media_cache_dir)
+                bar.next()
+
+        self.write_local_media_cache_hash()
+        logger.info("Finished caching local media.")
+
+    def upload_media(self):
+        self.prepare_s3_bucket()
+
+        with Bar("Uploading media", max=len(self.stimulus_specs)) as bar:
+            for s in self.stimulus_specs:
+                s.upload_media(self.s3_bucket, self.local_media_cache_dir, self.remote_media_dir)
+                bar.next()
+
+        self.write_remote_media_hash()
+        logger.info("Finished uploading media.")
+
+    def prepare_s3_bucket(self):
+        if not bucket_exists(self.s3_bucket):
+            create_bucket(self.s3_bucket)
+
+        make_bucket_public(self.s3_bucket)
+
+        delete_bucket_dir(self.s3_bucket, self.remote_media_dir)
+
+    @property
+    def path_to_local_cache_hash(self):
+        return os.path.join(self.local_media_cache_dir, "hash")
+
+    def get_local_media_cache_hash(self):
+        if os.path.isfile(self.path_to_local_cache_hash):
+            with open(self.path_to_local_cache_hash, "r") as file:
+                return file.read()
+        else:
+            return None
+
+    def write_local_media_cache_hash(self):
+        os.makedirs(self.local_media_cache_dir, exist_ok=True)
+        with open(self.path_to_local_cache_hash, "w") as file:
+            file.write(self.hash)
+
+    @property
+    def remote_media_is_up_to_date(self):
+        return self.get_remote_media_hash() == self.hash
+
+    @property
+    def path_to_remote_cache_hash(self):
+        return os.path.join(self.remote_media_dir, "hash")
+
+    def get_remote_media_hash(self):
+        # Returns None if the cache doesn't exist
+        if not bucket_exists(self.s3_bucket):
+            return None
+        return read_string_from_s3(self.s3_bucket, self.path_to_remote_cache_hash)
+
+    def write_remote_media_hash(self):
+        write_string_to_s3(self.hash, bucket_name=self.s3_bucket, key=self.path_to_remote_cache_hash)
+
 
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):
@@ -410,6 +604,10 @@ class NonAdaptiveTrial(Trial):
         raise NotImplementedError
 
     @property
+    def media_url(self):
+        return self.stimulus_version.media_url
+
+    @property
     def stimulus_version(self):
         return self.origin
 
@@ -441,7 +639,17 @@ class NonAdaptiveTrial(Trial):
             **self.stimulus_version.definition
         }
 
-
+    def summarise(self):
+        return {
+            "participant_group": self.participant_group,
+            "phase": self.phase,
+            "block": self.block,
+            "definition": self.definition,
+            "media_url": self.media_url,
+            "trial_id": self.id,
+            "stimulus_id": self.stimulus.id,
+            "stimulus_version_id": self.stimulus_version.id
+        }
 
 class NonAdaptiveTrialMaker(NetworkTrialMaker):
     """
@@ -545,7 +753,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         to that participant so far.
 
     active_balancing_across_participants
-        If ``True`` (default), active balancing across participants is enabled, meaning that
+        If ``True`` (default), active balancfing across participants is enabled, meaning that
         stimulus selection favours stimuli that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
@@ -1083,7 +1291,8 @@ class NonAdaptiveNetwork(TrialNetwork):
                 network=self,
                 source=source,
                 experiment=experiment,
-                target_num_trials=target_num_trials_per_stimulus
+                target_num_trials=target_num_trials_per_stimulus,
+                stimulus_set=stimulus_set
             )
         experiment.save()
 

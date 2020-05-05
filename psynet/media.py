@@ -1,5 +1,6 @@
 import os
 import struct
+import json
 import boto3
 import botocore.errorfactory
 
@@ -84,11 +85,85 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool)
 
 @log_time_taken
 def download_from_s3(local_path: str, bucket_name: str, key: str):
+    # Returns False if the file doesn't exist, otherwise True.
     bucket = get_s3_bucket(bucket_name)
-    bucket.download_file(key, local_path)
+    try:
+        bucket.download_file(key, local_path)
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == "NoSuchKey":
+            return False
+        raise
+    return True
+
+def read_string_from_s3(bucket_name: str, key: str):
+    # Returns None if the file doesn't exist, otherwise returns the string.
+    resource = new_s3_resource()
+    obj = resource.Object(bucket_name, key)
+    try:
+        return obj.get()["Body"].read().decode("utf-8")
+    except botocore.exceptions.ClientError as e:
+        if e.response["Error"]["Code"] == "NoSuchKey":
+            return None
+        raise
+
+def write_string_to_s3(string: str, bucket_name: str, key: str):
+    new_s3_client().put_object(
+        Bucket=bucket_name,
+        Body=string,
+        Key=key
+    )
 
 def create_bucket(bucket_name: str, client=None):
     logger.info("Creating bucket '%s'.", bucket_name)
     if client is None:
         client = new_s3_client()
-    client.create_bucket(bucket_name)
+    client.create_bucket(Bucket=bucket_name)
+
+def delete_bucket_dir(bucket_name, bucket_dir):
+    logger.info("Deleting directory '%s' in bucket '%s' (if it exists).", bucket_dir, bucket_name)
+    bucket = get_s3_bucket(bucket_name)
+    bucket.objects.filter(Prefix = bucket_dir).delete()
+
+def bucket_exists(bucket_name):
+    resource = new_s3_resource()
+    try:
+        resource.meta.client.head_bucket(Bucket=bucket_name)
+    except botocore.exceptions.ClientError as e:
+        error_code = int(e.response["Error"]["Code"])
+        if error_code == 404:
+            return False
+    return True
+
+def make_bucket_public(bucket_name):
+    print("Ensuring bucket is publicly accessible...")
+
+    s3_resource = new_s3_resource()
+    bucket = s3_resource.Bucket(bucket_name)
+    bucket.Acl().put(ACL="public-read")
+
+    cors = bucket.Cors()
+
+    config = {
+        "CORSRules": [
+            {
+                "AllowedMethods": ["GET"],
+                "AllowedOrigins": ["*"]
+            }
+        ]
+    }
+
+    cors.delete()
+    cors.put(CORSConfiguration=config)
+
+    bucket_policy = s3_resource.BucketPolicy(bucket_name)
+    new_policy = json.dumps({
+        "Version": "2008-10-17",
+        "Statement": [{
+            "Sid": "AllowPublicRead",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": f"arn:aws:s3:::{bucket_name}/*"
+        }]
+    })
+    bucket_policy.put(Policy = new_policy)
