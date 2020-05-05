@@ -37,6 +37,19 @@ from flask import Markup
 import os
 import json
 
+# Custom parameters, change these as you like!
+DIMENSIONS = 5
+# SD = round(267*2.2)
+SD = 600
+RANGE = [-SD, SD]
+NUMBER_OF_SLIDER_TICKS = 120
+NUM_TRAILS_PER_CHAIN = 15
+NUM_CHAINS_PER_PARTICIPANT = 3
+TIME_ESTIMATE_PER_TRIAL = 6
+SNAP_SLIDER = True
+AUTOPLAY = True
+MIN_DURATION = 5
+DEBUG = False
 
 def get_template(name):
     assert isinstance(name, str)
@@ -98,17 +111,7 @@ class LanguagePage(Page):
         }
 
 
-# Custom parameters, change these as you like!
-DIMENSIONS = 5
-# SD = round(267*2.2)
-SD = 600
-RANGE = [-SD, SD]
-NUMBER_OF_SLIDER_TICKS = 120
-NUM_TRAILS_PER_CHAIN = 10
-SNAP_SLIDER = True
-AUTOPLAY = True
-MIN_DURATION = 5
-DEBUG = False
+
 
 
 class CriticismNetwork(AudioGibbsNetwork):
@@ -194,7 +197,7 @@ def make_instructions(target, initial=False):
         text = f.read()
     context = InfoPage(Markup(text), time_estimate=3)
     if initial:
-        return InfoPage(Markup("Let's start with %s: <br><br>" % target + text + "<br><br> We will start with an example."), time_estimate=3)
+        return InfoPage(Markup(text + "<br><br> We will start with an example."), time_estimate=3)
     else:
         return context
 
@@ -210,7 +213,7 @@ def make_block(target, phase="experiment"):
         raise NotImplementedError()
 
     if phase == 'experiment':
-        num_chains_per_participant = 3
+        num_chains_per_participant = NUM_CHAINS_PER_PARTICIPANT
         num_nodes_per_chain = NUM_TRAILS_PER_CHAIN + 1
         num_trials_per_participant = (num_nodes_per_chain + 1) * num_chains_per_participant
     else:
@@ -224,7 +227,7 @@ def make_block(target, phase="experiment"):
         node_class=CustomNode,
         source_class=CustomSource,
         phase=phase,  # can be whatever you like
-        time_estimate_per_trial=5,
+        time_estimate_per_trial=TIME_ESTIMATE_PER_TRIAL,
         chain_type="within",  # can be "within" or "across"
         num_trials_per_participant=num_trials_per_participant,
         num_nodes_per_chain=num_nodes_per_chain,
@@ -278,45 +281,39 @@ class Exp(psynet.experiment.Experiment):
         LanguagePage(
             'daily_language',
             'Which language(s) do you most frequently speak in your daily life?',
-            time_estimate=2
+            time_estimate=5
         ),
         LanguagePage(
             'child_language',
             'Which language(s) did you speak during childhood?',
-            time_estimate=2
+            time_estimate=5
         ),
 
-        # Instructions
-        InfoPage(
-            Markup(instruction_text),
-            time_estimate=3
-        ),
+
 
 
         # Main experiment
-        CodeBlock(lambda experiment, participant: participant.var.set("suggestion_first", round(random()) == 1)),
+        CodeBlock(lambda experiment, participant: participant.var.set("is_suggestion", participant.id % 2)),
         conditional(
             "main_block",
-            lambda experiment, participant: participant.var.suggestion_first,
+            lambda experiment, participant: participant.var.is_suggestion,
             join(
+                # Instructions
+                InfoPage(Markup(instruction_text % "suggestion"), time_estimate=3),
                 make_instructions("suggestion", initial=True),
                 # Practice trials
                 make_block("suggestion", phase="training"),
                 InfoPage(Markup('You will now start the experiment.'), time_estimate=3),
-                make_block("suggestion"),
-                InfoPage(Markup("You did very well. Let's continue with criticism."), time_estimate=3),
-                make_instructions("criticism"),
-                make_block("criticism"),
+                make_block("suggestion")
             ),
             join(
+                # Instructions
+                InfoPage(Markup(instruction_text % "criticism"), time_estimate=3),
                 make_instructions("criticism", initial=True),
                 # Practice trials
                 make_block("criticism", phase="training"),
                 InfoPage(Markup('You will now start the experiment.'), time_estimate=3),
                 make_block("criticism"),
-                InfoPage(Markup("You did very well. Let's continue with suggestion."), time_estimate=3),
-                make_instructions("suggestion"),
-                make_block("suggestion"),
             ),
             fix_time_credit=False
         ),
