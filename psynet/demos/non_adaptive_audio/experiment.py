@@ -26,6 +26,9 @@ logger = logging.getLogger(__file__)
 #### Stimuli
 ##########################################################################################
 
+# Prepare the audio stimuli by running the following command:
+# python3 experiment.py
+
 class CustomStimulusVersionSpec(StimulusVersionSpec):
     has_media = True
     media_ext = ".wav"
@@ -55,6 +58,9 @@ stimuli = [
 ]
 
 stimulus_set = StimulusSet(stimuli, version="v2", s3_bucket="non-adaptive-audio-demo")
+
+if __name__ == "__main__":
+    stimulus_set.prepare_media()
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -86,7 +92,3 @@ class Exp(psynet.experiment.Experiment):
     )
 
 extra_routes = Exp().extra_routes()
-
-# python3 experiment.py
-if __name__ == "__main__":
-    stimulus_set.prepare_media()
