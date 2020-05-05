@@ -1,5 +1,6 @@
 import os
 import struct
+import json
 import boto3
 import botocore.errorfactory
 
@@ -89,7 +90,7 @@ def download_from_s3(local_path: str, bucket_name: str, key: str):
     try:
         bucket.download_file(key, local_path)
     except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == "404":
+        if e.response['Error']['Code'] == "NoSuchKey":
             return False
         raise
     return True
@@ -101,7 +102,7 @@ def read_string_from_s3(bucket_name: str, key: str):
     try:
         return obj.get()["Body"].read().decode("utf-8")
     except botocore.exceptions.ClientError as e:
-        if e.response["Error"]["Code"] == "404":
+        if e.response["Error"]["Code"] == "NoSuchKey":
             return None
         raise
 
@@ -116,7 +117,7 @@ def create_bucket(bucket_name: str, client=None):
     logger.info("Creating bucket '%s'.", bucket_name)
     if client is None:
         client = new_s3_client()
-    client.create_bucket(bucket_name)
+    client.create_bucket(Bucket=bucket_name)
 
 def delete_bucket_dir(bucket_name, bucket_dir):
     logger.info("Deleting directory '%s' in bucket '%s' (if it exists).", bucket_dir, bucket_name)
@@ -126,7 +127,7 @@ def delete_bucket_dir(bucket_name, bucket_dir):
 def bucket_exists(bucket_name):
     resource = new_s3_resource()
     try:
-        s3_resource.meta.client.head_bucket(Bucket=bucket_name)
+        resource.meta.client.head_bucket(Bucket=bucket_name)
     except botocore.exceptions.ClientError as e:
         error_code = int(e.response["Error"]["Code"])
         if error_code == 404:
@@ -151,22 +152,18 @@ def make_bucket_public(bucket_name):
         ]
     }
 
+    cors.delete()
     cors.put(CORSConfiguration=config)
 
-    cors.delete()
-
     bucket_policy = s3_resource.BucketPolicy(bucket_name)
-    bucket_policy.put(
-        Policy = """
-        {
-            "Version": "2008-10-17",
-            "Statement": [{
-                "Sid": "AllowPublicRead",
-                "Effect": "Allow",
-                "Principal": "*",
-                "Action": "s3:GetObject",
-                "Resource": "arn:aws:s3:::""" + bucket_name + """/*"
-            }]
-        }
-        """
-    )
+    new_policy = json.dumps({
+        "Version": "2008-10-17",
+        "Statement": [{
+            "Sid": "AllowPublicRead",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": f"arn:aws:s3:::{bucket_name}/*"
+        }]
+    })
+    bucket_policy.put(Policy = new_policy)

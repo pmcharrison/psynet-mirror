@@ -5,6 +5,7 @@ import time
 import sys
 import os
 import pandas as pd
+import hashlib
 
 from functools import reduce, wraps
 from sqlalchemy.sql import func
@@ -227,3 +228,6 @@ def query_yes_no(question, default="yes"):
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' "
                              "(or 'y' or 'n').\n")
+
+def hash_object(x):
+    return hashlib.md5(json.dumps(x).encode("utf-8")).hexdigest()

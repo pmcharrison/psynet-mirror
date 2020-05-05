@@ -28,7 +28,7 @@ logger = logging.getLogger(__file__)
 
 class CustomStimulusVersionSpec(StimulusVersionSpec):
     has_media = True
-    media_ext = "wav"
+    media_ext = ".wav"
 
     @classmethod
     def generate_media(cls, definition, output_path):
@@ -41,7 +41,7 @@ stimuli = [
             "frequency_gradient": frequency_gradient,
         },
         version_specs=[
-            StimulusVersionSpec(
+            CustomStimulusVersionSpec(
                 definition={
                     "start_frequency": start_frequency,
                     "frequencies": [start_frequency + i * frequency_gradient for i in range(5)]
@@ -54,7 +54,7 @@ stimuli = [
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet(stimuli, version="v1", s3_bucket="non_adaptive_audio_demo")
+stimulus_set = StimulusSet(stimuli, version="v2", s3_bucket="non-adaptive-audio-demo")
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -86,3 +86,7 @@ class Exp(psynet.experiment.Experiment):
     )
 
 extra_routes = Exp().extra_routes()
+
+# python3 experiment.py
+if __name__ == "__main__":
+    stimulus_set.prepare_media()

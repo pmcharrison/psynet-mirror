@@ -1,7 +1,6 @@
 import random
 import operator
-import json
-import hashlib
+
 import os
 import shutil
 
@@ -28,7 +27,7 @@ from ..media import (
 )
 
 from ..field import claim_field
-from ..utils import DisableLogger
+from ..utils import DisableLogger, hash_object
 from .main import Trial, TrialNetwork, NetworkTrialMaker
 
 import logging
@@ -174,7 +173,7 @@ class StimulusSpec():
         self.block = block
 
     def add_stimulus_to_network(self, network, source, experiment, target_num_trials, stimulus_set):
-        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials, stimulus_set)
+        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials, stimulus_set=stimulus_set)
         experiment.session.add(stimulus)
 
         for version_spec in self.version_specs:
@@ -187,10 +186,10 @@ class StimulusSpec():
 
     @property
     def hash(self):
-        return hashlib.md5(json.dumps({
+        return hash_object({
             "definition": self.definition,
             "versions": [x.hash for x in self.version_specs]
-        }))
+        })
 
     def cache_media(self, local_media_cache_dir):
         for s in self.version_specs:
@@ -321,7 +320,7 @@ class StimulusVersionSpec():
 
     @property
     def hash(self):
-        return hashlib.md5(json.dumps(self.definition))
+        return hash_object(self.definition)
 
     @property
     def media_file_name(self):
@@ -337,13 +336,14 @@ class StimulusVersionSpec():
     def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
         if self.has_media:
             local_path = os.path.join(local_media_cache_dir, self.media_file_name)
+            remote_key = os.path.join(remote_media_dir, self.media_file_name)
             if not os.path.isfile(local_path):
                 raise IOError(
                     f"Couldn't find local media cache file '{local_path}'. "
                     "Try deleting your cache and starting again?"
                 )
             with DisableLogger():
-                upload_to_s3(local_path, s3_bucket, self.media_file_name, public_read=True)
+                upload_to_s3(local_path, s3_bucket, remote_key, public_read=True)
 
 
 class StimulusSet():
@@ -415,12 +415,12 @@ class StimulusSet():
 
     @property
     def hash(self):
-        return hashlib.md5(json.dumps({
+        return hash_object({
             "version": self.version,
             "stimulus_specs": [x.hash for x in self.stimulus_specs]
-        }))
+        })
 
-    local_media_cache_parent_dir = "media"
+    local_media_cache_parent_dir = "cache"
 
     @property
     def local_media_cache_dir(self):
@@ -457,9 +457,10 @@ class StimulusSet():
 
         os.makedirs(self.local_media_cache_dir)
 
-        with Bar("Caching media", max=len(self.stimulus_specs)):
+        with Bar("Caching media", max=len(self.stimulus_specs)) as bar:
             for s in self.stimulus_specs:
                 s.cache_media(self.local_media_cache_dir)
+                bar.next()
 
         self.write_local_media_cache_hash()
         logger.info("Finished caching local media.")
@@ -467,9 +468,10 @@ class StimulusSet():
     def upload_media(self):
         self.prepare_s3_bucket()
 
-        with Bar("Uploading media", max=len(self.stimulus_specs)):
+        with Bar("Uploading media", max=len(self.stimulus_specs)) as bar:
             for s in self.stimulus_specs:
                 s.upload_media(self.s3_bucket, self.local_media_cache_dir, self.remote_media_dir)
+                bar.next()
 
         self.write_remote_media_hash()
         logger.info("Finished uploading media.")
@@ -483,31 +485,37 @@ class StimulusSet():
         delete_bucket_dir(self.s3_bucket, self.remote_media_dir)
 
     @property
-    def path_to_cache_hash(self):
+    def path_to_local_cache_hash(self):
         return os.path.join(self.local_media_cache_dir, "hash")
 
     def get_local_media_cache_hash(self):
-        if os.path.isfile(self.path_to_cache_hash):
-            with open(self.path_to_cache_hash, "r") as file:
+        if os.path.isfile(self.path_to_local_cache_hash):
+            with open(self.path_to_local_cache_hash, "r") as file:
                 return file.read()
         else:
             return None
 
     def write_local_media_cache_hash(self):
         os.makedirs(self.local_media_cache_dir, exist_ok=True)
-        with open(self.path_to_cache_hash, "w") as file:
+        with open(self.path_to_local_cache_hash, "w") as file:
             file.write(self.hash)
 
     @property
     def remote_media_is_up_to_date(self):
         return self.get_remote_media_hash() == self.hash
 
+    @property
+    def path_to_remote_cache_hash(self):
+        return os.path.join(self.remote_media_dir, "hash")
+
     def get_remote_media_hash(self):
         # Returns None if the cache doesn't exist
-        return read_string_from_s3(self.s3_bucket, self.path_to_cache_hash)
+        if not bucket_exists(self.s3_bucket):
+            return None
+        return read_string_from_s3(self.s3_bucket, self.path_to_remote_cache_hash)
 
     def write_remote_media_hash(self):
-        write_string_to_s3(self.hash, bucket_name=self.s3_bucket, key=self.path_to_cache_hash)
+        write_string_to_s3(self.hash, bucket_name=self.s3_bucket, key=self.path_to_remote_cache_hash)
 
 
 class NetworkSpec():

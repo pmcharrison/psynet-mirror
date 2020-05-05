@@ -3,29 +3,18 @@
 {% block consent_text %}
 
 <div class="text-left" style="font-size:18px">
-
+    
     <p>
-        These examples require sound recording permissions. These are only accessible
-        if your connection is deemed secure by your web browser.
-        By default, Dallinger debug mode opens the experiment with an
-        htt://0.0.0.0:5000/... URL, which is not recognised as a secure connection.
-        For this demo to work in debug mode, you must replace 0.0.0.0
-        with localhost. Please do this now, if you haven't already. You will
-        probably have to copy and paste the URL into a new browser window.
-    </p>
-
-    <p>
-        By default, Dallinger opens debug browsers in some kind of sandboxed environment.
-        In some cases, this sandboxed environment crashes when registering audio permissions.
-        In such cases, it is advisable to paste the link into a normal browser session.
+        In a real experiment, you would put an official text here that
+        describes the experimental procedure to the participant.
     </p>
 
 </div>
 {% endblock consent_text %}
 
 {% block consent_button %}
-    <button
-        type="button" class="btn btn-primary btn-lg" id="consent"
+    <button 
+        type="button" class="btn btn-primary btn-lg" id="consent" 
         onClick="window.location='/start?hit_id={{ hit_id }}&assignment_id={{ assignment_id }}&worker_id={{ worker_id }}&mode={{ mode }}';" style="float: left;">
         I agree
     </button>
