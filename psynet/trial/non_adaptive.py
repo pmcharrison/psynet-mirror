@@ -639,6 +639,18 @@ class NonAdaptiveTrial(Trial):
             **self.stimulus_version.definition
         }
 
+    def summarise(self):
+        return {
+            "participant_group": self.participant_group,
+            "phase": self.phase,
+            "block": self.block,
+            "definition": self.definition,
+            "media_url": self.media_url,
+            "trial_id": self.id,
+            "stimulus_id": self.stimulus.id,
+            "stimulus_version_id": self.stimulus_version.id
+        }
+
 class NonAdaptiveTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a non-adaptive experiment.
