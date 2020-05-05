@@ -7,29 +7,29 @@
         <div style="padding:15px; background-color:white">
             {{prompt}}
         </div>
-        
+
 
         <div id="responses" style="padding-top:20px; padding-bottom:20px" selected="{{ selected }}">
                 <fieldset {% if selected != "red" %} hidden="hidden" {% endif %}>
                     <input id="red" type="range" min="0" max="255" id="r" step="1" value="{{ red }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
-                </fieldset>  
-            
+                </fieldset>
+
                 <fieldset {% if selected != "green" %} hidden="hidden" {% endif %}>
                     <input id="green" type="range" min="0" max="255" id="g" step="1" value="{{ green }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
                 </fieldset>
-         
+
                 <fieldset {% if selected != "blue" %} hidden="hidden" {% endif %}>
                     <input id="blue" type="range" min="0" max="255" id="b" step="1" value="{{ blue }}" {% if reverse_scale %} style="direction: rtl" {% endif %}>
-                </fieldset>  
+                </fieldset>
         </div>
     </div>
 
     <hr>
-    
+
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">Submit</button>
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit" onClick="submit();">Submit</button>
         </div>
     </div>
 {% endblock %}
@@ -40,7 +40,7 @@
     <script>
         var selected = document.getElementById("responses").getAttribute("selected");
 
-        var body = document.body, 
+        var body = document.body,
             r = document.getElementById('red'),
             g = document.getElementById('green'),
             b = document.getElementById('blue')
@@ -50,7 +50,7 @@
                 g_hex = parseInt(g.value, 10).toString(16),
                 b_hex = parseInt(b.value, 10).toString(16),
                 hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
-            body.style.backgroundColor = hex; 
+            body.style.backgroundColor = hex;
         }
 
         function pad(n){

@@ -204,6 +204,9 @@
 
                 psynet.log = {};
 
+                psynet.log.max = 100;
+                psynet.log.counter = 0;
+
                 psynet.log.generic = function (msg, level) {
                     if (level !== "error" && level !== "warn" && level !== "info" && level !== "debug") {
                         throw new Error("Invalid log level: " + level);
@@ -211,7 +214,9 @@
 
                     console.log("LOG (" + level.toUpperCase() + "): " + msg);
 
-                    if (level != "debug") {
+                    if (level != "debug" && psynet.log.counter < psynet.log.max) {
+                        psynet.log.counter += 1;
+
                         route = (
                             '/log/' + level
                             + "/" + dallinger.identity.participantId
@@ -238,6 +243,7 @@
                     psynet.log.generic(msg, "debug")
                 }
 
+                psynet.submit = {};
                 psynet.response = {};
 
                 psynet.response.enable = function() {
@@ -248,7 +254,16 @@
                     $('.response').attr('disabled', 'disabled');
                 }
 
+                psynet.submit.enable = function() {
+                    $('.submit').removeAttr('disabled');
+                }
+
+                psynet.submit.disable = function() {
+                    $('.submit').attr('disabled', 'disabled');
+                }
+
                 psynet.response.on_ready_routines = [];
+                psynet.submit.on_ready_routines = [];
 
                 psynet.response.register_on_ready_routine = function (f) {
                     // Registers a function to be called when psynet.response.ready() is called.
@@ -258,29 +273,64 @@
                     psynet.response.on_ready_routines.push(f);
                 };
 
+                psynet.submit.register_on_ready_routine = function (f) {
+                    // Registers a function to be called when psynet.submit.ready() is called.
+                    if (!psynet.utils.is_function(f)) {
+                        throw Error("f was not a function.");
+                    }
+                    psynet.submit.on_ready_routines.push(f);
+                };
+
                 psynet.response.register_on_ready_routine(function () {
                     // When psynet.response.ready() is called, we want to enable all controls
                     // that were waiting for the response-ready event.
                     psynet.response.enable();
                 });
 
+                psynet.submit.register_on_ready_routine(function () {
+                    // When psynet.submit.ready() is called, we want to enable all controls
+                    // that were waiting for the submit-ready event.
+                    psynet.submit.enable();
+                });
+
                 psynet.response.waiting_for = [];
+                psynet.submit.waiting_for = [];
 
                 psynet.response.wait_for = function(event) {
                     psynet.log.debug("Waiting for response-ready event: " + event);
                     psynet.response.waiting_for.push(event);
                 }
 
+                psynet.submit.wait_for = function(event) {
+                    psynet.log.debug("Waiting for submit-ready event: " + event);
+                    psynet.submit.waiting_for.push(event);
+                }
+
                 psynet.response.ready = function (event) {
-                    psynet.log.info("A ready-event occurred: " + event);
+                    psynet.log.info("A response-ready event occurred: " + event);
                     if (event != undefined) {
                         psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
                             return elt != event
                         })
                     }
                     if (psynet.response.waiting_for.length == 0) {
-                        psynet.log.info("Ready for response.");
+                        psynet.log.info("Ready for user to enter response.");
                         psynet.response.on_ready_routines.forEach(function (f) {
+                            f();
+                        });
+                    }
+                };
+
+                psynet.submit.ready = function (event) {
+                    psynet.log.info("A submit-ready event occurred: " + event);
+                    if (event != undefined) {
+                        psynet.submit.waiting_for = psynet.submit.waiting_for.filter(function(elt) {
+                            return elt != event
+                        })
+                    }
+                    if (psynet.submit.waiting_for.length == 0) {
+                        psynet.log.info("Ready for user to submit response.");
+                        psynet.submit.on_ready_routines.forEach(function (f) {
                             f();
                         });
                     }
@@ -322,6 +372,7 @@
 
                     $('.wait-for-media-load').removeAttr('disabled');
                     psynet.response.ready("media_load");
+                    psynet.submit.ready("media_load");
 
                     psynet.media.on_loaded_routines.forEach(function (f) { f(); });
                 };
@@ -418,10 +469,9 @@
                     if (!context) {
                         throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
                     }
-                    // if (context.state == "suspended") {
-                    //     alert("Resuming the experiment.");
-                    //     context.resume();
-                    // }
+                    if (context.state == "suspended") {
+                        context.resume();
+                    }
                     psynet.media.audio_context = context
 
                 };
@@ -442,6 +492,7 @@
 
                 psynet.media.init = function () {
                     psynet.response.wait_for("media_load");
+                    psynet.submit.wait_for("media_load");
                     psynet.media.init_audio_context();
 
                     if (psynet.media.audio_context.state == "suspended") {
@@ -787,9 +838,17 @@
                     }
                 };
 
+                psynet.estimate_download_speed = function() {
+                    // Returns estimated download speed in megabits/second
+                    // (at the time of writing, this is capped at 10).
+                    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    return connection.downlink
+                }
+
                 psynet.init_page = function () {
                     psynet.register_error_handler();
                     psynet.response.disable();
+                    psynet.submit.disable();
                     $('.wait-for-media-load').attr('disabled', 'disabled');
                     check_participant_id();
                     init_modal();
@@ -815,7 +874,7 @@
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
                         alert(response.message);
-                        $(".submit-response").attr('disabled', false);
+                        psynet.submit.enable();
                     } else {
                         throw Error("Received a malformed response.");
                     }
@@ -842,8 +901,9 @@
                     var current_time = new Date();
 
                     var all_metadata = {
-                        // We could add other things like browser information here
-                        "time_taken": (current_time - psynet.page_load_time) / 1000
+                        "time_taken": (current_time - psynet.page_load_time) / 1000,
+                        "platform": platform.toString(),
+                        "download_speed_megabits_per_sec": psynet.estimate_download_speed()
                     };
 
                     if (metadata !== undefined) {
@@ -899,6 +959,14 @@
             ()
         )
     </script>
+
+{% endblock %}
+
+{% block libs %}
+    {{ super() }}
+
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js" type="text/javascript"></script>
 
 {% endblock %}
 

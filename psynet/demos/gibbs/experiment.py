@@ -154,8 +154,20 @@ class CustomNode(GibbsNode):
 class CustomSource(GibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
+class CustomTrialMaker(GibbsTrialMaker):
+    give_end_feedback_passed = True
+    performance_threshold = -1.0
 
-trial_maker = GibbsTrialMaker(
+    def get_end_feedback_passed_page(self, score):
+        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
+
+        return InfoPage(
+            Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
+            time_estimate=5
+        )
+
+
+trial_maker = CustomTrialMaker(
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
@@ -164,17 +176,17 @@ trial_maker = GibbsTrialMaker(
     time_estimate_per_trial=5,
     chain_type="within",  # can be "within" or "across"
     num_trials_per_participant=10,
-    num_nodes_per_chain=5,
+    num_nodes_per_chain=6, # note that the final node receives no trials
     num_chains_per_participant=1,  # set to None if chain_type="across"
     num_chains_per_experiment=None,  # set to None if chain_type="within"
-    trials_per_node=2,
+    trials_per_node=3,
     active_balancing_across_chains=True,
-    check_performance_at_end=False,
+    check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
     target_num_participants=10,
-    # Uncomment the following two lines if you want to experiment 
+    # Uncomment the following two lines if you want to experiment
     # with asynchronous processing.
     # async_post_trial="psynet.demos.gibbs.experiment.async_post_trial",
     # async_post_grow_network="psynet.demos.gibbs.experiment.async_post_grow_network"
@@ -209,7 +221,6 @@ def async_post_grow_network(network_id):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         trial_maker,
-        InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
     )
 

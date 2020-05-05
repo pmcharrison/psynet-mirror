@@ -27,11 +27,11 @@
     </div>
 
     <hr>
-    
+
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-success btn-lg submit-response" onClick="submit();">Submit</button>
+            <button type="button" id="submit_button" class="btn btn-success btn-lg submit" onClick="submit();">Submit</button>
         </div>
     </div>
 {% endblock %}
@@ -40,7 +40,8 @@
     {{super()}}
     <script>
         submit = function() {
-            $(".submit-response").attr('disabled',true);
+            psynet.response.disable();
+            psynet.submit.disable();
             psynet.next_page(document.getElementById("text_input").value);
         }
     </script>

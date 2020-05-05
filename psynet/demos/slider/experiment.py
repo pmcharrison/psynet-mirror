@@ -29,7 +29,9 @@ def make_example(args):
         update_value = function() {{
             document.getElementById("slider_value").innerHTML = slider.value;
         }}
-        setInterval(update_value, 100);
+        psynet.response.register_on_ready_routine(function() {{
+            setInterval(update_value, 100);
+        }});
     </script>
     """)
 

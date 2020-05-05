@@ -3,7 +3,7 @@ import os
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-    
+
 with open(os.path.join("psynet", 'VERSION')) as version_file:
     version = version_file.read().strip()
 
@@ -24,7 +24,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     include_package_data=True,
-    install_requires=["datetime", "flask", "dallinger", "importlib_resources", "pandas", "rpdb"]
+    install_requires=["dallinger", "datetime", "flask", "importlib_resources", "pandas", "rpdb", "progress"]
 )
 
 # python3.7 setup.py sdist bdist_wheel

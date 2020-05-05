@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg response" onclick="psynet.next_page();">Next
+            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onclick="psynet.next_page();">Next
             </button>
         </div>
     </div>
@@ -12,7 +12,7 @@
     {% if config.own_line %} <p style="padding:1em"> {% endif %}
     <button
         type="button"
-        class="btn btn-primary response"
+        class="btn btn-primary submit"
         id="{{ config.id }}"
         onclick="clicked_button('{{ config.id }}');"
         style="min-width:{{ config.min_width }}"
@@ -32,226 +32,160 @@
     <script>
         clicked_button = function(id) {
             psynet.response.disable();
+            psynet.submit.disable();
             psynet.next_page(id);
         }
     </script>
 {% endmacro %}
 
+{% macro slider(config) %}
+    <style type="text/css">
+        .slider-collection {
+            margin: 30px;
+        }
+
+        .slider {
+            margin: 20px;
+        }
+
+        input[type=range] {
+            width: 50%;
+            display: inline-block;
+        }
+
+        .slider-label {
+            font-weight: bold;
+            display: inline-block;
+            min-width: 200px;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .slider-value {
+            width: 60px;
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+    </style>
+
+    <script>
+        var init_sliders = function(){
+            var slider = $('.slider'),
+                range = $('.slider-range'),
+                value = $('.slider-value');
+
+            slider.each(function(){
+                value.each(function(){
+                    var value = $(this).prev().attr('value');
+                    $(this).html(value);
+                });
+
+                range.on('input', function(){
+                    $(this).next(value).html(this.value);
+                });
+            });
+        };
+        window.addEventListener("load", init_sliders);
+    </script>
+
+    <div class="slider-collection">
+        {% for s in config.sliders %}
+            <div class="slider">
+                <span class="slider-label" style=>
+                    {{ s.label }}
+                </span>
+                <input id="{{ s.slider_id }}" class="slider-range form-control-range response" type="range"
+                            style="display: inline-block;"
+                            min="{{ s.min_value }}" max="{{ s.max_value + 0.0001 * s.step_size }}"
+                            step="{{ s.step_size }}" value="{{ s.start_value }}">
+                <span class="slider-value">NA</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
 {% macro audio_meter(config) %}
-    <table style="width: 500px; padding: 10px">
-        <tbody>
-            <tr align="left" valign="middle">
-                <td width="300px">
-                    <div style="background-color: black; width: 300px; height: 50px">
-                        <canvas id="audio_meter" width="300" height="50"></canvas>
-                    </div>
-                </td>
-                <td width="20px"></td>
-                <td align="left">
-                    <p id="audio_meter_text" style="font-weight: bold; margin: 0px"></p>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="audio_meter_block">
+        <table style="width: 500px; padding: 10px">
+            <tbody>
+                <tr align="left" valign="middle">
+                    <td width="300px">
+                        <div style="background-color: black; width: 300px; height: 50px">
+                            <canvas id="audio_meter" width="300" height="50"></canvas>
+                        </div>
+                    </td>
+                    <td width="20px"></td>
+                    <td align="left">
+                        <p id="audio_meter_text" style="font-weight: bold; margin: 0px"></p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-
-        <!-- <div class="col-xs-6"> -->
-
-        <!-- </div> -->
-    <!-- </div> -->
-
-
+        {% if config.calibrate %}
+            {{ audio_meter_calibrate(config) }}
+        {% endif %}
+    </div>
 
     {{ null(config) }}
 
     <script>
-        psynet.response.wait_for("audio_meter");
+        psynet.submit.wait_for("audio_meter");
         setTimeout(
-            ()=> psynet.response.ready("audio_meter"),
+            ()=> psynet.submit.ready("audio_meter"),
             1000 * {{ config.min_time }}
         );
     </script>
 
     <script>
-        /*
-        The MIT License (MIT)
+        {% include "macros/control/audio_meter.js" %}
 
-        Copyright (c) 2014 Chris Wilson, modified 2020 by Peter Harrison
+        audio_meter_control.init('{{ config.to_json() }}');
+    </script>
+{% endmacro %}
 
-        Permission is hereby granted, free of charge, to any person obtaining a copy
-        of this software and associated documentation files (the "Software"), to deal
-        in the Software without restriction, including without limitation the rights
-        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-        copies of the Software, and to permit persons to whom the Software is
-        furnished to do so, subject to the following conditions:
-
-        The above copyright notice and this permission notice shall be included in all
-        copies or substantial portions of the Software.
-
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-        SOFTWARE.
-        */
-
-        audio_meter_control = {
-            enabled: true, // not implemented yet
-            override_message: undefined, // not implemented yet
-            override_message_colour: undefined // not implemented yet
-        };
-
-        audio_meter_control.init = function() {
-            var audioContext = null;
-            var audio_meter = null;
-            var audio_meter_text = document.getElementById("audio_meter_text");
-            var canvasContext = null;
-            var audio_meter_max_width=300;
-            var audio_meter_max_height=50;
-            var rafID = null;
-
-            var moderate_volume_threshold = 0.2;
-            var time_last_at_moderate_volume = -1e6; // ms
-            var time_until_too_quiet = 1500; // ms
-
-            window.addEventListener("load", function() {
-                canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
-                audioContext = new AudioContext();
-
-                try {
-                    navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                    .then(onMicrophoneGranted)
-                    .catch(onMicrophoneDenied);
-
-                } catch (e) {
-                    alert('getUserMedia threw exception :' + e);
-                }
-            });
-
-            /**
-            * Callback triggered if the microphone permission is denied
-            */
-            function onMicrophoneDenied() {
-                alert('Microphone permission denied. You may refresh the page to try again.');
-            }
-
-            var mediaStreamSource = null;
-
-            function onMicrophoneGranted(stream) {
-                // Create an AudioNode from the stream.
-                mediaStreamSource = audioContext.createMediaStreamSource(stream);
-
-                // Create a new volume meter and connect it.
-                audio_meter = createAudioMeter(audioContext);
-                mediaStreamSource.connect(audio_meter);
-
-                // kick off the visual updating
-                onLevelChange();
-            }
-
-            function onLevelChange( time ) {
-                if (audio_meter.volume >= moderate_volume_threshold) {
-                    time_last_at_moderate_volume = time;
-                }
-
-                // clear the background
-                canvasContext.clearRect(0,0,audio_meter_max_width,audio_meter_max_height);
-
-                // check if we're currently clipping
-                if (audio_meter.checkClipping()) {
-                    audio_meter_text.innerHTML = "Too loud!";
-                    audio_meter_text.style.color = "red";
-                    canvasContext.fillStyle = "red";
-                }
-                else if (time - time_last_at_moderate_volume > time_until_too_quiet){
-                    audio_meter_text.innerHTML = "Too quiet!";
-                    audio_meter_text.style.color = "red";
-                    canvasContext.fillStyle = "red";
-                } else {
-                    audio_meter_text.innerHTML = "Just right.";
-                    audio_meter_text.style.color = "green";
-                    canvasContext.fillStyle = "green";
-                }
-
-                // draw a bar based on the current volume
-                canvasContext.fillRect(0, 0, audio_meter.volume * audio_meter_max_width * 1.4, audio_meter_max_height);
-
-                // set up the next visual callback
-                rafID = window.requestAnimationFrame( onLevelChange );
-            }
-
-                /*
-            Usage:
-            audioNode = createAudioMeter(audioContext,clipLevel,averaging,clipLag);
-            audioContext: the AudioContext you're using.
-            clipLevel: the level (0 to 1) that you would consider "clipping".
-            Defaults to 0.98.
-            averaging: how "smoothed" you would like the meter to be over time.
-            Should be between 0 and less than 1.  Defaults to 0.95.
-            clipLag: how long you would like the "clipping" indicator to show
-            after clipping has occured, in milliseconds.  Defaults to 750ms.
-            Access the clipping through node.checkClipping(); use node.shutdown to get rid of it.
-            */
-
-            function createAudioMeter(audioContext,clipLevel,averaging,clipLag) {
-                var processor = audioContext.createScriptProcessor(512);
-                processor.onaudioprocess = volumeAudioProcess;
-                processor.clipping = false;
-                processor.lastClip = 0;
-                processor.volume = 0;
-                processor.clipLevel = clipLevel || 0.98;
-                processor.averaging = averaging || 0.95;
-                processor.clipLag = clipLag || 750;
-
-                // this will have no effect, since we don't copy the input to the output,
-                // but works around a current Chrome bug.
-                processor.connect(audioContext.destination);
-
-                processor.checkClipping =
-                    function(){
-                        if (!this.clipping)
-                            return false;
-                        if ((this.lastClip + this.clipLag) < window.performance.now())
-                            this.clipping = false;
-                        return this.clipping;
-                    };
-
-                processor.shutdown =
-                    function(){
-                        this.disconnect();
-                        this.onaudioprocess = null;
-                    };
-
-                return processor;
-            }
-
-            function volumeAudioProcess( event ) {
-                var buf = event.inputBuffer.getChannelData(0);
-                var bufLength = buf.length;
-                var sum = 0;
-                var x;
-
-                // Do a root-mean-square on the samples: sum up the squares...
-                for (var i=0; i<bufLength; i++) {
-                    x = buf[i];
-                    if (Math.abs(x)>=this.clipLevel) {
-                        this.clipping = true;
-                        this.lastClip = window.performance.now();
-                    }
-                    sum += x * x;
-                }
-
-                // ... then take the square root of the sum.
-                var rms =  Math.sqrt(sum / bufLength);
-
-                // Now smooth this out with the averaging factor applied
-                // to the previous sample - take the max here because we
-                // want "fast attack, slow release."
-                this.volume = Math.max(rms, this.volume*this.averaging);
-            }
+{% macro audio_meter_calibrate(config) %}
+    <style type="text/css">
+        #audio-meter-documentation {
+            padding-top: 20px;
         }
-        audio_meter_control.init();
+    </style>
+
+    <ul class="nav nav-tabs">
+        <li><a href="#audio-meter-sliders" data-toggle="tab">Sliders</a></li>
+        <li><a href="#audio-meter-documentation" data-toggle="tab">Documentation</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="audio-meter-sliders" class="tab-pane active">
+            {{ slider(config.sliders) }}
+        </div>
+
+        <div id="audio-meter-documentation" class="tab-pane">
+            <p>
+                The <strong>decay</strong> parameters determine the amount of smoothing
+                that happens to the signal, and have units of seconds. A high decay parameter
+                means that the signal takes a long time to decay (i.e. high smoothing).
+                There are three decay parameters: one for the displayed audio meter,
+                one for the 'too-high' detector, and one for the 'too-low' detector.
+            </p>
+            <p>
+                The <strong>threshold</strong> parameters determine the point at which
+                the volume is determined to be 'too high' or 'too low'.
+            </p>
+            <p>
+                The <strong>grace</strong> parameters determine how long the volume must be
+                outside the respective threshold for a warning message to be triggered.
+            </p>
+            <p>
+                The <strong>message duration</strong> parameters determine how long
+                warning messages are displayed for.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        setInterval(() => audio_meter_control.update_from_sliders(), 50);
     </script>
 {% endmacro %}

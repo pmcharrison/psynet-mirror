@@ -64,6 +64,10 @@ class ChainNetwork(TrialNetwork):
 
     target_num_nodes
         Indicates the target number of nodes for that network.
+        In a network with one trial per node, the total number of nodes will generally
+        be one greater than the total number of trials. This is because
+        we start with one node, representing the random starting location of the
+        chain, and each new trial takes us to a new node.
 
     participant
         Optional participant with which to associate the network.
@@ -163,7 +167,8 @@ class ChainNetwork(TrialNetwork):
         self.trials_per_node = trials_per_node
         self.target_num_nodes = target_num_nodes
         self.add_source(source_class, experiment, participant)
-        self.target_num_trials = target_num_nodes * trials_per_node
+        # The last node in the chain doesn't receive any trials
+        self.target_num_trials = (target_num_nodes - 1) * trials_per_node
         self.definition = self.make_definition()
 
         self.validate()

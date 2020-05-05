@@ -33,6 +33,7 @@ RANGE = [-800, 800]
 GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
+DEBUG = True
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -57,6 +58,8 @@ class CustomTrial(AudioGibbsTrial):
 
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
+    debug = DEBUG
+    minimal_time = 3.0
 
     def get_prompt(self, experiment, participant):
         return Markup(
@@ -71,7 +74,19 @@ class CustomNode(AudioGibbsNode):
 class CustomSource(AudioGibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-trial_maker = AudioGibbsTrialMaker(
+class CustomTrialMaker(AudioGibbsTrialMaker):
+    performance_threshold = -1.0
+    give_end_feedback_passed = True
+
+    def get_end_feedback_passed_page(self, score):
+        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
+
+        return InfoPage(
+            Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
+            time_estimate=5
+        )
+
+trial_maker = CustomTrialMaker(
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,
@@ -79,13 +94,13 @@ trial_maker = AudioGibbsTrialMaker(
     phase="experiment", # can be whatever you like
     time_estimate_per_trial=5,
     chain_type="within", # can be "within" or "across"
-    num_trials_per_participant=10,
-    num_nodes_per_chain=5,
-    num_chains_per_participant=3, # set to None if chain_type="across"
+    num_trials_per_participant=12,
+    num_nodes_per_chain=4, # note that the final node doesn't get any trials
+    num_chains_per_participant=2, # set to None if chain_type="across"
     num_chains_per_experiment=None, # set to None if chain_type="within"
-    trials_per_node=1,
+    trials_per_node=2,
     active_balancing_across_chains=True,
-    check_performance_at_end=False,
+    check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
@@ -102,7 +117,6 @@ trial_maker = AudioGibbsTrialMaker(
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         trial_maker,
-        InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage()
     )
 
