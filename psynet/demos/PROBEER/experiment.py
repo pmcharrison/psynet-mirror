@@ -194,7 +194,7 @@ def make_instructions(target, initial=False):
         text = f.read()
     context = InfoPage(Markup(text), time_estimate=3)
     if initial:
-        return InfoPage(Markup("Let's start with %s: <br><br>" % target + text), time_estimate=3)
+        return InfoPage(Markup("Let's start with %s: <br><br>" % target + text + "<br><br> We will start with an example."), time_estimate=3)
     else:
         return context
 
@@ -292,8 +292,6 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=3
         ),
 
-        # Practice trials
-        make_block("criticism", phase="training"),
 
         # Main experiment
         CodeBlock(lambda experiment, participant: participant.var.set("suggestion_first", round(random()) == 1)),
@@ -302,13 +300,21 @@ class Exp(psynet.experiment.Experiment):
             lambda experiment, participant: participant.var.suggestion_first,
             join(
                 make_instructions("suggestion", initial=True),
+                # Practice trials
+                make_block("suggestion", phase="training"),
+                InfoPage(Markup('You will now start the experiment.'), time_estimate=3),
                 make_block("suggestion"),
+                InfoPage(Markup("You did very well. Let's continue with criticism."), time_estimate=3),
                 make_instructions("criticism"),
                 make_block("criticism"),
             ),
             join(
                 make_instructions("criticism", initial=True),
+                # Practice trials
+                make_block("criticism", phase="training"),
+                InfoPage(Markup('You will now start the experiment.'), time_estimate=3),
                 make_block("criticism"),
+                InfoPage(Markup("You did very well. Let's continue with suggestion."), time_estimate=3),
                 make_instructions("suggestion"),
                 make_block("suggestion"),
             ),
