@@ -121,6 +121,10 @@ class CustomNetwork(GibbsNetwork):
             "target": self.balance_across_networks(TARGETS)
         }
 
+    # Minimal example of an async_post_grow_network function
+    run_async_post_grow_network = True
+    def async_post_grow_network(self):
+        logger.info("Running custom async_post_grow_network function (network id = %i)", self.id)
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -190,17 +194,6 @@ trial_maker = CustomTrialMaker(
     recruit_mode="num_participants",
     target_num_participants=10
 )
-
-
-# The following function is only necessary if you want to experiment
-# with asynchronous processing.
-def async_post_grow_network(network_id):
-    logger.info("Running async_post_grow_network for network %i...", network_id)
-    network = ChainNetwork.query.filter_by(id=network_id).one()
-    time.sleep(0)
-    network.awaiting_process = False
-    db.session.commit()
-
 
 ##########################################################################################
 #### Experiment

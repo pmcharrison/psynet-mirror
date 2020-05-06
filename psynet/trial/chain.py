@@ -1062,7 +1062,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         check_performance_every_trial: bool,
         recruit_mode: str,
         target_num_participants=Optional[int],
-        async_post_grow_network: Optional[str] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True
@@ -1109,8 +1108,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            async_post_grow_network=async_post_grow_network
+            target_num_participants=target_num_participants
         )
 
     def init_participant(self, experiment, participant):

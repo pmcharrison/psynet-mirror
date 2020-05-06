@@ -1120,8 +1120,7 @@ class NetworkTrialMaker(TrialMaker):
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
         recruit_mode,
-        target_num_participants,
-        async_post_grow_network: Optional[str] = None
+        target_num_participants
     ):
         super().__init__(
             trial_class=trial_class,
@@ -1137,7 +1136,6 @@ class NetworkTrialMaker(TrialMaker):
             target_num_participants=target_num_participants
         )
         self.network_class = network_class
-        self.async_post_grow_network = async_post_grow_network
 
     #### The following methods are overwritten from TrialMaker.
     #### Returns None if no trials could be found (this may not yet be supported by TrialMaker)
@@ -1236,10 +1234,10 @@ class NetworkTrialMaker(TrialMaker):
     def _grow_network(self, network, participant, experiment):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
-        if grown and self.async_post_grow_network:
+        if grown and network.run_async_post_grow_network:
             network.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-            q.enqueue(self.async_post_grow_network, network.id)
+            q.enqueue(call_async_post_grow_network, network.id)
             # pylint: disable=no-member
             db.session.commit()
 
@@ -1376,10 +1374,22 @@ class TrialNetwork(Network):
     def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
 
+    run_async_post_grow_network = False
+    def async_post_grow_network(self):
+        pass
+
 def call_async_post_trial(trial_id):
     logger.info("Running async_post_trial for trial %i...", trial_id)
     import_local_experiment()
     trial = Trial.query.filter_by(id=trial_id).one()
     trial.async_post_trial()
     trial.awaiting_process = False
+    db.session.commit()
+
+def call_async_post_grow_network(network_id):
+    logger.info("Running async_post_grow_network for network %i...", network_id)
+    import_local_experiment()
+    network = Network.query.filter_by(id=network_id).one()
+    network.async_post_grow_network()
+    network.awaiting_process = False
     db.session.commit()

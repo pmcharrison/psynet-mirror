@@ -134,6 +134,47 @@ class AudioGibbsNetwork(GibbsNetwork):
             self.vector_ranges[i][1]
         )
 
+    run_async_post_grow_network = True
+    def async_post_grow_network(self):
+        logger.info("Synthesising audio for network %i...", self.id)
+
+        node = self.head
+
+        if isinstance(node, AudioGibbsSource):
+            logger.info("Network %i only contains a Source, no audio to be synthesised.", self.id)
+        else:
+            granularity = self.granularity
+            vector = node.definition["vector"]
+            active_index = node.definition["active_index"]
+
+            with tempfile.TemporaryDirectory() as temp_dir:
+                individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
+                os.mkdir(individual_stimuli_dir)
+
+                batch_file = f"{uuid4()}.batch"
+                batch_path = os.path.join(temp_dir, batch_file)
+
+                args = {
+                    "vector": vector,
+                    "active_index": active_index,
+                    "range_to_sample": self.vector_ranges[active_index],
+                    "chain_definition": self.definition,
+                    "output_dir": individual_stimuli_dir,
+                    "synth_function": self.synth_function
+                }
+
+                if granularity == "custom":
+                    stimuli = make_audio_custom_intervals(**args)
+                else:
+                    stimuli = make_audio_regular_intervals(granularity=granularity, **args)
+
+                make_audio_batch_file(stimuli, batch_path)
+                batch_url = upload_to_s3(batch_path, self.s3_bucket, key=batch_file, public_read=True)["url"]
+
+                node.slider_stimuli = {
+                    "url": batch_url,
+                    "all": stimuli
+                }
 
 class AudioGibbsTrial(GibbsTrial):
     """
@@ -274,7 +315,7 @@ class AudioGibbsTrial(GibbsTrial):
             "trial_id": self.id,
             "start_value": self.initial_vector[self.active_index],
             "vector_range": self.vector_ranges[self.active_index],
-            "vector_range": self.sound_locations
+            "sound_locations": self.sound_locations
         }
 
 class AudioGibbsNode(GibbsNode):
@@ -296,73 +337,7 @@ class AudioGibbsSource(GibbsSource):
 
 
 class AudioGibbsTrialMaker(GibbsTrialMaker):
-    """
-    A TrialMaker class for Audio Gibbs sampler chains;
-    see the documentation for
-    :class:`~psynet.trial.chain.ChainTrialMaker`
-    for usage instructions.
-    The primary differences is that
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrialMaker.async_post_grow_network`
-    is overwritten with a routine for synthesising audio.
-    The user should only have to customise this through the
-    constructor function parameters.
-    """
-
-    def __init__(self, **kwargs):
-        super().__init__(
-            async_post_grow_network="psynet.trial.audio_gibbs.make_audio",
-            **kwargs
-        )
-
-
-def make_audio(network_id):
-    logger.info("Synthesising audio for network %i...", network_id)
-
-    # This is necessary to make sure that the custom SQLAlchemy network classes
-    # are registered in the worker session.
-    import_local_experiment()
-
-    network = AudioGibbsNetwork.query.filter_by(id=network_id).one()
-    node = network.head
-
-    if isinstance(node, AudioGibbsSource):
-        logger.info("Network %i only contains a Source, no audio to be synthesised.", network_id)
-    else:
-        granularity = network.granularity
-        vector = node.definition["vector"]
-        active_index = node.definition["active_index"]
-
-        with tempfile.TemporaryDirectory() as temp_dir:
-            individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
-            os.mkdir(individual_stimuli_dir)
-
-            batch_file = f"{uuid4()}.batch"
-            batch_path = os.path.join(temp_dir, batch_file)
-
-            args = {
-                "vector": vector,
-                "active_index": active_index,
-                "range_to_sample": network.vector_ranges[active_index],
-                "chain_definition": network.definition,
-                "output_dir": individual_stimuli_dir,
-                "synth_function": network.synth_function
-            }
-
-            if granularity == "custom":
-                stimuli = make_audio_custom_intervals(**args)
-            else:
-                stimuli = make_audio_regular_intervals(granularity=granularity, **args)
-
-            make_audio_batch_file(stimuli, batch_path)
-            batch_url = upload_to_s3(batch_path, network.s3_bucket, key=batch_file, public_read=True)["url"]
-
-            node.slider_stimuli = {
-                "url": batch_url,
-                "all": stimuli
-            }
-    network.awaiting_process = False
-    db.session.commit() # pylint: disable=no-member
-
+    pass
 
 def make_audio_batch_file(stimuli, output_path):
     paths = [x["path"] for x in stimuli]
