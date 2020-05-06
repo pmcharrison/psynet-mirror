@@ -228,7 +228,8 @@
                 };
 
                 psynet.log.error = function (msg) {
-                    psynet.log.generic(msg, "error")
+                    var msg_with_browser_info = msg + "\n    " + "Platform: " + platform.toString();
+                    psynet.log.generic(msg_with_browser_info, "error");
                 };
 
                 psynet.log.warning = function (msg) {
