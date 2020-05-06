@@ -6,7 +6,6 @@ import datetime
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
-import inspect
 
 from rq import Queue
 from dallinger.db import redis_conn
@@ -35,7 +34,7 @@ from ..page import (
     UnsuccessfulEndPage
 )
 
-from ..utils import call_function, log_time_taken, import_module
+from ..utils import call_function, log_time_taken, import_local_experiment
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -1229,8 +1228,7 @@ class NetworkTrialMaker(TrialMaker):
         if trial.run_async_post_trial:
             trial.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-            trial_class_module = inspect.getmodule(self.trial_class)
-            q.enqueue(call_async_post_trial, trial.id, trial_class_module.__name__, trial_class_module.__file__)
+            q.enqueue(call_async_post_trial, trial.id)
             # pylint: disable=no-member
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
@@ -1378,9 +1376,9 @@ class TrialNetwork(Network):
     def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
 
-def call_async_post_trial(trial_id, trial_class_module_name, trial_class_module_source):
+def call_async_post_trial(trial_id):
     logger.info("Running async_post_trial for trial %i...", trial_id)
-    import_module(trial_class_module_name, trial_class_module_source)
+    import_local_experiment()
     trial = Trial.query.filter_by(id=trial_id).one()
     trial.async_post_trial()
     trial.awaiting_process = False
