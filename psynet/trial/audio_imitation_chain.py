@@ -51,6 +51,11 @@ class AudioImitationChainTrial(ImitationChainTrial):
                 self.download_recording(temp_recording.name)
                 self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
                 self.upload_plot(temp_plot.name)
+                try:
+                    if self.analysis["failed"]:
+                        self.fail()
+                except KeyError:
+                    raise KeyError("The recording analysis failed to contain a 'failed' attribute.")
 
     def download_recording(self, local_path):
         recording_info = self.recording_info
@@ -76,7 +81,9 @@ class AudioImitationChainTrial(ImitationChainTrial):
         -------
 
         dict :
-            A dictionary of analysis information.
+            A dictionary of analysis information to be saved in the trial's ``analysis`` slot.
+            This dictionary must include the boolean attribute ``failed``, determining
+            whether the trial is to be failed.
         """
         raise NotImplementedError
 
