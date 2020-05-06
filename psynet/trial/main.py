@@ -60,6 +60,10 @@ class Trial(Info):
     * :meth:`~psynet.trial.main.Trial.show_feedback`,
       defines an optional feedback page to be displayed after the trial.
 
+    The user may also wish to override the
+    :meth:`~psynet.trial.main.Trial.async_post_trial` method
+    if they wish to implement asynchronous trial processing.
+
     This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
     hence can be found in the ``Info`` table in the database.
     It inherits this class's methods, which the user is welcome to use
@@ -149,6 +153,9 @@ class Trial(Info):
         as it is instead determined by
         :meth:`~psynet.trial.main.Trial.make_definition`.
 
+    run_async_post_trial : bool
+        Set this to ``True`` if you want the :meth:`~psynet.trial.main.Trial.async_post_trial`
+        method to run after the user responds to the trial.
     """
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
@@ -276,7 +283,11 @@ class Trial(Info):
     run_async_post_trial = False
 
     def async_post_trial(self):
-        pass
+        """
+        Optional function to be run after a trial is completed by the participant.
+        Will only run if :attr:`~psynet.trial.main.Trial.run_async_post_trial`
+        is set to ``True``.
+        """
 
     # def fail(self):
     #     self.failed = True
@@ -1053,20 +1064,6 @@ class NetworkTrialMaker(TrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    async_post_trial
-        Optional function to be run after a trial is completed by the participant.
-        This should be specified as a fully qualified string, for example
-        ``"psynet.trial.async_example.async_update_trial"``.
-        This function should take one argument, ``trial_id``, corresponding to the
-        ID of the relevant trial to process.
-        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
-        once it is finished. It is also responsible for committing to the database
-        using ``db.session.commit()`` once processing is complete
-        (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``psynet.trial.async_example.async_update_trial``
-        for an example.
-
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
         :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
@@ -1264,6 +1261,9 @@ class TrialNetwork(Network):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
+    The user may also wish to override the
+    :meth:`~psynet.trial.main.TrialNetwork.async_post_grow_network` method
+    if they wish to implement asynchronous network processing.
 
     Parameters
     ----------
@@ -1324,7 +1324,9 @@ class TrialNetwork(Network):
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
-
+    run_async_post_grow_network : bool
+        Set this to ``True`` if you want the :meth:`~psynet.trial.main.TrialNetwork.async_post_grow_network`
+        method to run after the network is grown.
     """
 
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
@@ -1376,7 +1378,11 @@ class TrialNetwork(Network):
 
     run_async_post_grow_network = False
     def async_post_grow_network(self):
-        pass
+        """
+        Optional function to be run after the network is grown.
+        Will only run if :attr:`~psynet.trial.main.TrialNetwork.run_async_post_grow_network`
+        is set to ``True``.
+        """
 
 def call_async_post_trial(trial_id):
     logger.info("Running async_post_trial for trial %i...", trial_id)

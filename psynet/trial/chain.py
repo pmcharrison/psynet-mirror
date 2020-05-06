@@ -727,6 +727,10 @@ class ChainTrial(Trial):
     * :meth:`~psynet.trial.chain.ChainTrial.show_feedback`.
       defines an optional feedback page to be displayed after the trial.
 
+    The user may also wish to override the
+    :meth:`~psynet.trial.chain.ChainTrial.async_post_trial` method
+    if they wish to implement asynchronous trial processing.
+
     This class subclasses the `~psynet.trial.main.Trial` class,
     which in turn subclasses the :class:`~dallinger.models.Info` class from Dallinger,
     hence it can be found in the ``Info`` table in the database.
@@ -767,6 +771,10 @@ class ChainTrial(Trial):
         Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
+
+    run_async_post_trial : bool
+        Set this to ``True`` if you want the :meth:`~psynet.trial.main.Trial.async_post_trial`
+        method to run after the user responds to the trial.
 
     Attributes
     ----------
@@ -994,20 +1002,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         participants must successfully finish the experiment to count
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
-
-    async_post_trial
-        Optional function to be run after a trial is completed by the participant.
-        This should be specified as a fully qualified string, for example
-        ``"psynet.trial.async_example.async_update_trial"``.
-        This function should take one argument, ``trial_id``, corresponding to the
-        ID of the relevant trial to process.
-        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
-        once it is finished. It is also responsible for committing to the database
-        using ``db.session.commit()`` once processing is complete
-        (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``psynet.trial.async_example.async_update_trial``
-        for an example.
 
     async_post_grow_network
         Optional function to be run after a network is grown, only runs if
