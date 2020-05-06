@@ -156,11 +156,15 @@ class StimulusSpec():
         self,
         definition: dict,
         phase: str,
-        version_specs: list,
+        version_specs=None,
         participant_group="default",
         block="default"
     ):
         assert isinstance(definition, dict)
+
+        if version_specs is None:
+            version_specs = [StimulusVersionSpec(definition={})]
+
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:
@@ -193,7 +197,7 @@ class StimulusSpec():
 
     def cache_media(self, local_media_cache_dir):
         for s in self.version_specs:
-            s.cache_media(local_media_cache_dir)
+            s.cache_media(self.definition, local_media_cache_dir)
 
     def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
         for s in self.version_specs:
@@ -328,10 +332,11 @@ class StimulusVersionSpec():
             return None
         return self.hash + self.media_ext
 
-    def cache_media(self, local_media_cache_dir):
+    def cache_media(self, parent_definition, local_media_cache_dir):
         if self.has_media:
             path = os.path.join(local_media_cache_dir, self.media_file_name)
-            self.generate_media(self.definition, path)
+            definition = {**parent_definition, **self.definition}
+            self.generate_media(definition, path)
 
     def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
         if self.has_media:

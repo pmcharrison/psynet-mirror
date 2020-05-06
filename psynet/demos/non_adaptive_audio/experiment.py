@@ -61,7 +61,7 @@ stimuli = [
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet(stimuli, version="v2", s3_bucket="non-adaptive-audio-demo-stimuli")
+stimulus_set = StimulusSet(stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
 
 if __name__ == "__main__":
     stimulus_set.prepare_media()
