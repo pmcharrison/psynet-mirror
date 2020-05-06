@@ -1,0 +1,60 @@
+{% extends "base/ad.html" %}
+​
+{% block no_assignment %}
+    <h1>Call for participants</h1>
+    <p>
+        The Max Planck Institute for Empirical Aesthetics is looking for online participants
+        for a brief psychology experiment. In this study we want to understand how people express intentions with their
+        voice. The only requirements are as follows:
+    </p>
+    <ul>
+        <li>You must be wearing <strong>headphones</strong>.</li>
+        <li>You should be at least <strong>18 years old</strong>.</li>
+        <li>You should be a <strong>fluent English speaker</strong>.</li>
+        <li>You should be sitting in a <strong>quiet environment</strong>.</li>
+        <li>You should use a google <strong>Chrome</strong> browser.</li>
+    </ul>
+    <p>
+        The task should take approximately <strong><span id="duration_minutes"></span> minutes</strong>,
+        and you will be paid at a rate of <strong>&#36;<span id="wage_per_hour"></span></strong> per hour.
+        This is broken down into a base payment of <strong>&#36;<span id="base_payment"></span></strong> and
+        a bonus of <strong>&#36;<span id="bonus_dollars"></span></strong>.
+    </p>
+    <script>
+        var experiment_metadata = null;
+        window.addEventListener("load", function() {
+            dallinger.get("/metadata").done(function(resp) {
+                experiment_metadata = resp;
+                document.getElementById("duration_minutes").innerHTML = (resp.duration_seconds / 60).toFixed(0);
+                document.getElementById("wage_per_hour").innerHTML = (resp.wage_per_hour).toFixed(2);
+                document.getElementById("base_payment").innerHTML = (resp.base_payment).toFixed(2);
+                document.getElementById("bonus_dollars").innerHTML = (resp.bonus_dollars).toFixed(2);
+            });
+        });
+    </script>
+    <p>
+        The HIT will begin with a short screening test to check that you are using
+        headphones and can hear properly (2 minutes).
+        If you fail this screening test, the HIT will end,
+        and you will only be eligible for a small part of the bonus.
+    </p>
+    ​
+    <p>
+        Please click the "Accept HIT" button on the Amazon site
+        above to begin the task.
+    </p>
+{% endblock no_assignment %}
+
+{% block live %}
+    <h1>Thanks for accepting this HIT.</h1>
+    <p>
+        By clicking the following URL link, you will be taken to the experiment,
+        including complete instructions and an informed consent agreement.
+    </p>
+    <div class="alert alert-warning">
+        <b>Warning</b>: Please disable pop-up blockers before continuing.
+    </div>
+    <button type="button" id="begin-button" class="btn btn-primary btn-lg">
+        Begin Experiment
+    </button>
+{% endblock live %}

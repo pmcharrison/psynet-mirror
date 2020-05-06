@@ -237,7 +237,7 @@ class TimeCreditStore:
         self.max_pending_credit = 0.0
         self.wage_per_hour = experiment.wage_per_hour
 
-        experiment_estimated_time_credit = experiment.timeline.estimate_time_credit()
+        experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(mode="time")
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(mode="bonus", wage_per_hour=experiment.wage_per_hour)
         self.export_estimated_payments(experiment_estimated_time_credit, experiment)
