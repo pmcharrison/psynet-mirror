@@ -228,7 +228,8 @@
                 };
 
                 psynet.log.error = function (msg) {
-                    psynet.log.generic(msg, "error")
+                    var msg_with_browser_info = msg + "\n    " + "Platform: " + platform.toString();
+                    psynet.log.generic(msg_with_browser_info, "error");
                 };
 
                 psynet.log.warning = function (msg) {
@@ -245,6 +246,20 @@
 
                 psynet.submit = {};
                 psynet.response = {};
+
+                psynet.response.staged = {
+                    raw_answer: null,
+                    metadata: undefined,
+                    blobs: undefined
+                };
+
+                // psynet.response.stage = function(raw_answer, metadata, blobs) {
+                //     psynet.response.staged = {
+                //         raw_answer: raw_answer,
+                //         metadata: metadata,
+                //         blobs: blobs
+                //     };
+                // }
 
                 psynet.response.enable = function() {
                     $('.response').removeAttr('disabled');
@@ -370,11 +385,11 @@
                 psynet.media.on_loaded = function () {
                     psynet.log.info("All media loaded.");
 
+                    psynet.media.on_loaded_routines.forEach(function (f) { f(); });
+
                     $('.wait-for-media-load').removeAttr('disabled');
                     psynet.response.ready("media_load");
                     psynet.submit.ready("media_load");
-
-                    psynet.media.on_loaded_routines.forEach(function (f) { f(); });
                 };
                 psynet.media.loaded = false;
 
@@ -846,6 +861,9 @@
                 }
 
                 psynet.init_page = function () {
+                    console.log("Initialising page...");
+                    event = new Event("init_page");
+                    window.dispatchEvent(event);
                     psynet.register_error_handler();
                     psynet.response.disable();
                     psynet.submit.disable();
@@ -862,7 +880,18 @@
                     }
                 };
 
-                psynet.next_page = function (raw_answer = null, metadata, blobs) {
+                psynet.next_page = function (raw_answer, metadata, blobs) {
+                    // Arguments default to psynet.response.staged if they
+                    // are not provided explicitly.
+                    if (raw_answer === undefined) {
+                        raw_answer = psynet.response.staged.raw_answer;
+                    }
+                    if (metadata === undefined) {
+                        metadata = psynet.response.staged.metadata;
+                    }
+                    if (blobs === undefined) {
+                        blobs = psynet.response.staged.blobs;
+                    }
                     submit_generic_response(raw_answer, metadata, blobs, on_success_response, on_error_response);
                 };
 
@@ -946,7 +975,6 @@
                             }
                         }
                     };
-
                     request.open("POST", "/response");
                     request.send(formData);
                 };

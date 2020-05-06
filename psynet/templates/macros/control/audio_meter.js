@@ -57,17 +57,14 @@ audio_meter_control.init = function(json) {
         audio_meter_control.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
         audio_meter_control.audioContext = psynet.media.audio_context;
 
-        try {
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-            .then(function(stream) {
-                audio_meter_control.onMicrophoneGranted(stream);
-            })
-            // .catch(onMicrophoneDenied);
-
-        } catch (e) {
-            alert('getUserMedia threw exception :' + e);
-        }
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+        .then(function(stream) {
+            audio_meter_control.onMicrophoneGranted(stream);
+        })
     });
+    setTimeout(function() {
+        audio_meter_control.audio_meter_text.style.display = "block";
+    }, 1000);
 }
 
 audio_meter_control.onMicrophoneDenied = function() {
@@ -101,7 +98,7 @@ audio_meter_control.show_message = function(message, colour) {
     var self = this;
     setTimeout(function() {
         self.reset_message();
-    }, self.msg_duration * 1000);
+    }, self.msg_duration * 2000);
 }
 
 audio_meter_control.reset_message = function() {

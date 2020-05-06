@@ -1,13 +1,19 @@
+import json
+import tempfile
+import boto3.exceptions
+import os
+
 from flask import Markup
 from typing import Union, Optional, List
-import json
+from uuid import uuid4
+from scipy.io import wavfile
 
 from .timeline import (
     Page,
     MediaSpec,
     is_list_of
 )
-
+from .media import upload_to_s3, create_bucket, make_bucket_public
 from .utils import merge_dicts
 
 class Prompt():
@@ -85,20 +91,34 @@ class AudioPrompt(Prompt):
     loop
         Whether the audio should loop back to the beginning after finishing.
 
-    enable_response_after
+    prevent_response
+        Whether the participant should be prevented from interacting with the
+        response controls until the audio is finished.
+
+    prevent_submit
+        Whether the participant should be prevented from submitting their final
+        response until the audio is finished.
+
+    enable_submit_after
         If not ``None``, sets a time interval in seconds after which the response
         options will be enabled.
+
+
     """
     def __init__(
             self,
             url: str,
             text: Union[str, Markup],
             loop: bool = False,
-            enable_response_after: Optional[float] = None
+            prevent_response: bool = True,
+            prevent_submit: bool = True,
+            enable_submit_after: Optional[float] = None
         ):
         super().__init__(text=text)
         self.url = url
-        self.enable_response_after = enable_response_after
+        self.prevent_response = prevent_response
+        self.prevent_submit = prevent_submit
+        self.enable_submit_after = enable_submit_after
         self.loop = loop
 
     macro = "audio"
@@ -454,12 +474,13 @@ class AudioMeterControl(Control):
     def __init__(
             self,
             min_time: float = 2.5,
-            calibrate = False
-
-    ):
+            calibrate: bool = False,
+            submit_button: bool = True
+        ):
         assert min_time >= 0
         self.min_time = min_time
         self.calibrate = calibrate
+        self.submit_button = submit_button
         if calibrate:
             self.sliders = SliderControl([
                 Slider("decay_display", "Decay (display)", self.decay["display"], 0, 3, 0.001),
@@ -572,3 +593,60 @@ class Slider():
         self.max_value = max_value
         self.step_size = step_size
         self.slider_id = slider_id
+
+class AudioRecordControl(Control):
+    macro = "audio_record"
+
+    def __init__(
+            self,
+            *,
+            duration: float,
+            s3_bucket: str,
+            show_meter: bool = False,
+            public_read: bool = False
+        ):
+        self.duration = duration
+        self.s3_bucket = s3_bucket
+        self.show_meter = show_meter
+        self.public_read = public_read
+
+        if show_meter:
+            self.meter = AudioMeterControl(submit_button=False)
+        else:
+            self.meter = None
+
+    @property
+    def metadata(self):
+        return {
+
+        }
+
+    def format_answer(self, raw_answer, **kwargs):
+        recording = kwargs["blobs"]["recording"]
+        fs, data = wavfile.read(recording)
+        duration_sec = data.shape[0] / fs
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            wavfile.write(temp_file.name, fs, data)
+            key = f"{uuid4()}.wav"
+
+            def upload():
+                upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read)
+                if self.public_read:
+                    make_bucket_public(self.s3_bucket)
+
+            try:
+                upload()
+            except boto3.exceptions.S3UploadFailedError as e:
+                if "NoSuchBucket" in str(e):
+                    create_bucket(self.s3_bucket)
+                    upload()
+                else:
+                    raise
+
+            return {
+                "s3_bucket": self.s3_bucket,
+                "key": key,
+                "url": os.path.join("https://s3.amazonaws.com", self.s3_bucket, key),
+                "duration_sec": duration_sec
+            }

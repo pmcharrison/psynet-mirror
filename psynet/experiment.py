@@ -1,6 +1,7 @@
 from datetime import datetime
 from flask import render_template_string, Blueprint, request, render_template, jsonify
 import json
+import os
 from json import dumps
 from sqlalchemy import exc
 
@@ -48,6 +49,10 @@ def json_serial(obj):
 
 class Experiment(dallinger.experiment.Experiment):
     # pylint: disable=abstract-method
+
+    # Introduced this as a hotfix for a compatibility problem with macOS 10.13:
+    # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
+    os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5),
@@ -382,18 +387,8 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/response", methods=["POST"])
         def route_response():
             exp = self.new(db.session)
-
             json_data = json.loads(request.values["json"])
-
-            # Everything that isn't named 'json' is a blob
-            blobs = {**request.values}
-
-            if "json" not in blobs:
-                logger.info("request.values: %s", request.values)
-                logger.info("request.values.keys(): %s", list(request.values.keys()))
-                raise ValueError("POST request to '/response' was missing a json field.")
-
-            del blobs["json"]
+            blobs = dict(request.files)
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")

@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onclick="psynet.next_page();">Next
+            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onclick="$(this).prop('disabled', true); psynet.next_page();">Next
             </button>
         </div>
     </div>
@@ -117,7 +117,7 @@
                     </td>
                     <td width="20px"></td>
                     <td align="left">
-                        <p id="audio_meter_text" style="font-weight: bold; margin: 0px"></p>
+                        <p id="audio_meter_text" style="font-weight: bold; margin: 0px; display: none;"></p>
                     </td>
                 </tr>
             </tbody>
@@ -128,7 +128,9 @@
         {% endif %}
     </div>
 
-    {{ null(config) }}
+    {% if config.submit_button %}
+        {{ null(config) }}
+    {% endif %}
 
     <script>
         psynet.submit.wait_for("audio_meter");
@@ -187,5 +189,94 @@
 
     <script>
         setInterval(() => audio_meter_control.update_from_sliders(), 50);
+    </script>
+{% endmacro %}
+
+{% macro audio_record(config) %}
+
+    {% if config.show_meter %}
+        {{ audio_meter(config.meter) }}
+    {% endif %}
+
+    <style>
+        #record-status {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <div id="record-status">
+        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
+            Waiting to record...
+        </div>
+
+        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
+            Recording...
+        </div>
+
+        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
+            Recording finished.
+        </div>
+
+        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
+            Uploading response...
+        </div>
+    </div>
+
+    {{ null(config) }}
+
+    <script>
+
+    </script>
+
+    <script>
+        {% include "macros/control/recorder.js" %}
+
+        var recorder;
+
+        psynet.media.register_on_loaded_routine(function() {
+            $("#next_button").on("click", function() {
+                $(".record-alert").hide();
+                $("#record-upload").show();
+            });
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(function(stream) {
+                psynet.log.debug("Initialising recorder.");
+                var input = psynet.media.audio_context.createMediaStreamSource(stream);
+                recorder = new Recorder(input);
+                psynet.response.ready("recorder_ready")
+            })
+        });
+
+        psynet.response.wait_for("page_load_buffer");
+        psynet.response.wait_for("recorder_ready");
+        psynet.submit.wait_for("finished-recording");
+
+        setTimeout(function() {
+            psynet.response.ready("page_load_buffer");
+        }, 1000)
+
+        start_recording = function() {
+            psynet.log.debug("Starting recording.");
+            $(".record-alert").hide();
+            $("#record-active").show();
+            recorder.clear();
+            recorder.record();
+        }
+
+        end_recording = function() {
+            psynet.log.debug("Ending recording.")
+            recorder.exportWAV(function (blob) {
+                psynet.response.staged.blobs = {recording: blob};
+                psynet.submit.ready("finished-recording");
+            })
+            $(".record-alert").hide();
+            $("#record-finish").show();
+        }
+
+        psynet.response.register_on_ready_routine(function() {
+            start_recording();
+            setTimeout(end_recording, 1000 * {{ config.duration }});
+        });
     </script>
 {% endmacro %}
