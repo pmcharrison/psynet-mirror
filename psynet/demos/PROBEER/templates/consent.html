@@ -168,16 +168,46 @@
     {{ super() }}
 
     <script>
+        is_version_at_least = function(x, comparison) {
+            var x_split = x.split(".").map(Number);
+            var comparison_split = comparison.split(".").map(Number);
+            for (var i = 0; i < comparison_split.length; i ++) {
+                if (i < x_split.length) {
+                    // Both have version numbers at that specifity to compare
+                    if (x_split[i] > comparison_split[i]) {
+                        return true;
+                    } else if (x_split[i] < comparison_split[i]) {
+                        return false;
+                    }
+                } else {
+                    if (comparison_split[i] > 0) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
         window.addEventListener("load", function() {
             console.log(platform.toString());
+            var min_browser_version = "{{ min_browser_version }}";
             if (platform.name != "Chrome") {
                 $("#consent").prop("disabled", true);
-                $("#consent").append("(disabled, please try again in Chrome)");
+                $("#consent").append("(please reload in Chrome first)");
                 alert(
                     "It seems like you're using a different browser than Chrome (" + platform.name + "). " +
                     "This experiment only supports Chrome. If you're using a different " +
                     "browser, please reopen the same page in Chrome."
                 )
+            } else if (!is_version_at_least(platform.version, min_browser_version)) {
+                $("#consent").prop("disabled", true);
+                $("#consent").append("(please update browser first)");
+                alert(
+                    "It seems like you're using an out-of-date version of Chrome "
+                    + "(you're using " + platform.version + ", this app requires at least "
+                    + min_browser_version + "). "
+                    + "Please update your browser and open this web page again."
+                );
             }
         });
     </script>

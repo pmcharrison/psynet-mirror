@@ -55,6 +55,7 @@ class Experiment(dallinger.experiment.Experiment):
     )
 
     wage_per_hour = 9.0
+    min_browser_version = "80.0"
     # min_working_participants = 5
 
     def __init__(self, session=None):
@@ -346,7 +347,8 @@ class Experiment(dallinger.experiment.Experiment):
                 assignment_id=request.args["assignment_id"],
                 worker_id=request.args["worker_id"],
                 mode=config.get("mode"),
-                contact_email_on_error=config.get("contact_email_on_error")
+                contact_email_on_error=config.get("contact_email_on_error"),
+                min_browser_version=self.min_browser_version
             )
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
