@@ -9,8 +9,7 @@ base_payment = 0.10
 auto_recruit = true
 lifetime = 24
 duration = 2
-# TODO for real change to true
-us_only = false
+us_only = true
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
@@ -27,11 +26,9 @@ database_size = standard-2
 
 [Server]
 # Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
-# TODO for real change to performance
 dyno_type = performance-m
-num_dynos_web = 1
-# TODO for real ca 6 workers
-num_dynos_worker = 1
-redis_size = hobby-dev
+num_dynos_web = 3
+num_dynos_worker = 5
+redis_size = premium-3
 host = 0.0.0.0
 clock_on = true

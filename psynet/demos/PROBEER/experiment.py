@@ -20,6 +20,7 @@ from psynet.page import (
     InfoPage,
     NumberInputPage,
     NAFCPage,
+    TextInputPage,
     SuccessfulEndPage,
     VolumeCalibration,
 )
@@ -45,7 +46,9 @@ RANGE = [-SD, SD]
 NUMBER_OF_SLIDER_TICKS = 120
 NUM_TRAILS_PER_CHAIN = 15
 NUM_CHAINS_PER_PARTICIPANT = 3
-TIME_ESTIMATE_PER_TRIAL = 6
+TIME_ESTIMATE_PER_TRIAL = 17 # seconds
+TARGET_PARTICIPANTS = 50
+INITIAL_RECRUITMENT_SIZE = 11 # minimal size for mTurk to prioritize HIT
 SNAP_SLIDER = True
 AUTOPLAY = True
 MIN_DURATION = 5
@@ -195,7 +198,7 @@ class CustomSource(AudioGibbsSource):
 def make_instructions(target, initial=False):
     with open("instructions/%s.html" % target, "r") as f:
         text = f.read()
-    context = InfoPage(Markup(text), time_estimate=3)
+    context = InfoPage(Markup(text), time_estimate=60)
     if initial:
         return InfoPage(Markup(text + "<br><br> We will start with an example."), time_estimate=3)
     else:
@@ -239,7 +242,7 @@ def make_block(target, phase="experiment"):
         check_performance_every_trial=False,
         propagate_failure=False,
         recruit_mode="num_participants",
-        target_num_participants=10
+        target_num_participants=TARGET_PARTICIPANTS
     )
     return trial_maker
 
@@ -264,33 +267,30 @@ class Exp(psynet.experiment.Experiment):
         NumberInputPage(
             label='age',
             prompt='What is your age?',
-            time_estimate=2
+            time_estimate=20
         ),
         NAFCPage(
             label='gender',
             prompt='With what gender do you most identify yourself?',
-            time_estimate=2,
+            time_estimate=20,
             choices=['male', 'female', 'other']
         ),
         NAFCPage(
             label='education',
             prompt='What is your highest educational qualification?',
-            time_estimate=2,
+            time_estimate=20,
             choices=['none', 'elementary school', 'middle school', 'high school', 'bachelor', 'master', 'PhD']
         ),
         LanguagePage(
             'daily_language',
             'Which language(s) do you most frequently speak in your daily life?',
-            time_estimate=5
+            time_estimate=30
         ),
         LanguagePage(
             'child_language',
             'Which language(s) did you speak during childhood?',
-            time_estimate=5
+            time_estimate=30
         ),
-
-
-
 
         # Main experiment
         CodeBlock(lambda experiment, participant: participant.var.set("is_suggestion", participant.id % 2)),
@@ -299,23 +299,41 @@ class Exp(psynet.experiment.Experiment):
             lambda experiment, participant: participant.var.is_suggestion,
             join(
                 # Instructions
-                InfoPage(Markup(instruction_text % "suggestion"), time_estimate=3),
+                InfoPage(Markup(instruction_text % "suggestion"), time_estimate=60),
                 make_instructions("suggestion", initial=True),
                 # Practice trials
                 make_block("suggestion", phase="training"),
-                InfoPage(Markup('You will now start the experiment.'), time_estimate=3),
+                InfoPage(Markup('You will now start the experiment.'), time_estimate=10),
                 make_block("suggestion")
             ),
             join(
                 # Instructions
-                InfoPage(Markup(instruction_text % "criticism"), time_estimate=3),
+                InfoPage(Markup(instruction_text % "criticism"), time_estimate=60),
                 make_instructions("criticism", initial=True),
                 # Practice trials
                 make_block("criticism", phase="training"),
-                InfoPage(Markup('You will now start the experiment.'), time_estimate=3),
+                InfoPage(Markup('You will now start the experiment.'), time_estimate=10),
                 make_block("criticism"),
             ),
             fix_time_credit=False
+        ),
+        TextInputPage(
+            "feedback",
+            Markup("""
+                 Did you like the experiment?
+                 """),
+            time_estimate=5,
+            one_line=False
+        ),
+        TextInputPage(
+            "technical_problems",
+            Markup("""
+                 Did you encounter any technical problems during the
+                 experiment? <br>If so, please provide a few words describing the
+                 problem.
+                 """),
+            time_estimate=5,
+            one_line=False
         ),
         SuccessfulEndPage()
     )
@@ -323,7 +341,7 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
+        self.initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
 
 
 extra_routes = Exp().extra_routes()
