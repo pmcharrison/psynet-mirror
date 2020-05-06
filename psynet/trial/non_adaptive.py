@@ -830,8 +830,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
-        fail_trials_on_participant_performance_check: bool = True,
-        async_post_trial: Optional[str] = None
+        fail_trials_on_participant_performance_check: bool = True
     ):
         if (recruit_mode == "num_participants" and target_num_participants is None):
             raise ValueError("<target_num_participants> cannot be None if recruit_mode == 'num_participants'.")
@@ -863,8 +862,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=False,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            async_post_trial=async_post_trial
+            target_num_participants=target_num_participants
         )
 
     @property

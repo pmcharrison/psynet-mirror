@@ -10,7 +10,6 @@ import random
 import re
 from typing import Union, List
 import time
-from . import templates
 from dallinger import db
 
 import psynet.experiment

@@ -6,6 +6,7 @@ import datetime
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
+import inspect
 
 from rq import Queue
 from dallinger.db import redis_conn
@@ -34,7 +35,7 @@ from ..page import (
     UnsuccessfulEndPage
 )
 
-from ..utils import call_function
+from ..utils import call_function, log_time_taken, import_module
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -272,6 +273,11 @@ class Trial(Info):
 
     def gives_feedback(self, experiment, participant):
         return self.show_feedback(experiment=experiment, participant=participant) is not None
+
+    run_async_post_trial = False
+
+    def async_post_trial(self):
+        pass
 
     # def fail(self):
     #     self.failed = True
@@ -1116,7 +1122,6 @@ class NetworkTrialMaker(TrialMaker):
         propagate_failure,
         recruit_mode,
         target_num_participants,
-        async_post_trial: Optional[str] = None, # this should be a string, for example "psynet.trial.async_example.async_update_network"
         async_post_grow_network: Optional[str] = None
     ):
         super().__init__(
@@ -1133,7 +1138,6 @@ class NetworkTrialMaker(TrialMaker):
             target_num_participants=target_num_participants
         )
         self.network_class = network_class
-        self.async_post_trial = async_post_trial
         self.async_post_grow_network = async_post_grow_network
 
     #### The following methods are overwritten from TrialMaker.
@@ -1222,10 +1226,11 @@ class NetworkTrialMaker(TrialMaker):
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         super().finalise_trial(answer, trial, experiment, participant)
-        if self.async_post_trial:
+        if trial.run_async_post_trial:
             trial.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-            q.enqueue(self.async_post_trial, trial.id)
+            trial_class_module = inspect.getmodule(self.trial_class)
+            q.enqueue(call_async_post_trial, trial.id, trial_class_module.__name__, trial_class_module.__file__)
             # pylint: disable=no-member
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
@@ -1372,3 +1377,11 @@ class TrialNetwork(Network):
     @property
     def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
+
+def call_async_post_trial(trial_id, trial_class_module_name, trial_class_module_source):
+    logger.info("Running async_post_trial for trial %i...", trial_id)
+    import_module(trial_class_module_name, trial_class_module_source)
+    trial = Trial.query.filter_by(id=trial_id).one()
+    trial.async_post_trial()
+    trial.awaiting_process = False
+    db.session.commit()

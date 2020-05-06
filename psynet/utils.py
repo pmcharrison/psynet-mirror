@@ -6,6 +6,7 @@ import sys
 import os
 import pandas as pd
 import hashlib
+import importlib.util
 
 from functools import reduce, wraps
 from sqlalchemy.sql import func
@@ -231,3 +232,8 @@ def query_yes_no(question, default="yes"):
 
 def hash_object(x):
     return hashlib.md5(json.dumps(x).encode("utf-8")).hexdigest()
+
+def import_module(name, source):
+    spec = importlib.util.spec_from_file_location(name, source)
+    foo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(foo)
