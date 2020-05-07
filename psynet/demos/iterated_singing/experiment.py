@@ -1,0 +1,188 @@
+from statistics import mean
+from flask import Markup
+
+import psynet.experiment
+from psynet.timeline import (
+    Timeline,
+)
+from psynet.page import (
+    SuccessfulEndPage,
+    VolumeCalibration,
+    InfoPage
+)
+from psynet.modular_page import(
+    ModularPage,
+    AudioPrompt,
+    AudioRecordControl,
+    NAFCControl,
+    AudioMeterControl
+)
+from psynet.trial.audio import (
+    AudioImitationChainTrial,
+    AudioImitationChainNode,
+    AudioImitationChainSource,
+    AudioImitationChainTrialMaker,
+    AudioImitationChainNetwork
+)
+
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
+import rpdb
+
+NOTE_DURATION = 0.25
+NOTE_IOI = 1.0
+SING_DURATION = 4.0
+MAX_MEAN_ABSOLUTE_DEVIATION = 5.0
+SAMPLE_RATE = 44100
+
+class CustomTrial(AudioImitationChainTrial):
+    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "singing_page",
+            AudioPrompt(self.origin.target_url, "Please sing back the melody to the syllable 'Ta'."),
+            AudioRecordControl(
+                duration=SING_DURATION,
+                s3_bucket="iterated-singing-demo",
+                public_read=False
+            ),
+            time_estimate=5
+        )
+
+    def analyse_recording(self, audio_file: str, output_plot: str):
+        import singing_extract
+        raw = singing_extract.analyze(
+            audio_file,
+            singing_extract.PlotOptions(
+                save=True,
+                path=output_plot,
+                format="png"
+            )
+        )
+        midi = [x["median_f0"] for x in raw]
+        error = get_singing_error(midi, self.definition["target_midi"])
+        failed = (
+            (not error["correct_num_notes"])
+            or
+            (error["mean_absolute_deviation"] > MAX_MEAN_ABSOLUTE_DEVIATION)
+        )
+        return {
+            "failed": failed,
+            "error": error,
+            "midi": midi,
+            "raw": raw
+        }
+
+def diff(x):
+    return [j - i for i, j in zip(x[: -1], x[1 :])]
+
+def get_singing_error(sung_midi, target_midi):
+    assert len(target_midi) > 1
+
+    target_int = diff(target_midi)
+    actual_int = diff(sung_midi)
+
+    if len(target_int) != len(actual_int):
+        return {
+            "correct_num_notes": False,
+            "mean_absolute_deviation": None
+        }
+    else:
+        absolute_deviations = [abs(j - i) for i, j in zip(target_int, actual_int)]
+        return {
+            "correct_num_notes": True,
+            "mean_absolute_deviation": mean(absolute_deviations)
+        }
+
+class CustomNetwork(AudioImitationChainNetwork):
+    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+
+class CustomNode(AudioImitationChainNode):
+    __mapper_args__ = {"polymorphic_identity": "custom_node"}
+
+    def summarise_trials(self, trials: list, experiment, participant):
+        melodies = [trial.analysis["midi"] for trial in trials]
+        return [mean(x) for x in zip(melodies)]
+
+    def synthesise_target(self, file):
+        import singing_extract
+        midis = self.definition
+        spec = {
+            "midis": midis,
+            "durations": [NOTE_DURATION for _ in midis],
+            "onsets": [i * NOTE_IOI for i in range(len(midis))]
+        }
+        samples = singing_extract.generate_stimulus_samples(spec, SAMPLE_RATE)
+        singing_extract.save_samples_to_file(samples, file, SAMPLE_RATE)
+
+class CustomSource(AudioImitationChainSource):
+    __mapper_args__ = {"polymorphic_identity": "custom_source"}
+
+    def generate_seed(self, network, experiment, participant):
+        return [55, 59, 62]
+
+
+##########################################################################################
+#### Experiment
+##########################################################################################
+
+# Weird bug: if you instead import Experiment from psynet.experiment,
+# Dallinger won't allow you to override the bonus method
+# (or at least you can override it but it won't work).
+class Exp(psynet.experiment.Experiment):
+    timeline = Timeline(
+        VolumeCalibration(),
+        ModularPage(
+            "record_calibrate",
+            """
+            Please speak into your microphone and check that the sound is registered
+            properly. If the sound is too quiet, try moving your microphone
+            closer or increasing the input volume on your computer.
+            """,
+            AudioMeterControl(),
+            time_estimate=5
+        ),
+        InfoPage(
+            Markup("""
+            <p>
+                In this experiment you will hear some melodies. Your task will be to sing
+                them back as accurately as possible.
+            </p>
+            <p>
+                For the recording to work effectively, we need you to sing in a specific way.
+                In particular, we want you to sing each note with a short and sharp
+                'Ta' sound, so a melody sounds like 'Ta! Ta! Ta!'.
+            </p>
+            """),
+            time_estimate=5
+        ),
+        AudioImitationChainTrialMaker(
+            network_class=CustomNetwork,
+            trial_class=CustomTrial,
+            node_class=CustomNode,
+            source_class=CustomSource,
+            phase="experiment",
+            time_estimate_per_trial=5,
+            chain_type="within",
+            num_nodes_per_chain=5,
+            num_trials_per_participant=5,
+            num_chains_per_participant=1,
+            num_chains_per_experiment=None,
+            trials_per_node=1,
+            active_balancing_across_chains=True,
+            check_performance_at_end=False,
+            check_performance_every_trial=False,
+            recruit_mode="num_participants",
+            target_num_participants=10
+        ),
+        SuccessfulEndPage()
+    )
+
+    def __init__(self, session=None):
+        super().__init__(session)
+        self.initial_recruitment_size = 1
+
+extra_routes = Exp().extra_routes()

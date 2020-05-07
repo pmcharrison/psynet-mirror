@@ -3,27 +3,28 @@
 import os
 import tempfile
 
+from uuid import uuid4
+
 from ..media import download_from_s3, upload_to_s3
 from ..field import claim_field
-from .imitation_chain import ImitationChainNetwork, ImitationChainTrial, ImitationChainNode, ImitationChainSource, ImitationChainTrialMaker
 
-class AudioImitationChainNetwork(ImitationChainNetwork):
-    """
-    A Network class for audio imitation chains.
-    """
-    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_network"}
+from .main import Trial
+from .imitation_chain import (
+    ImitationChainNetwork,
+    ImitationChainTrial,
+    ImitationChainNode,
+    ImitationChainSource,
+    ImitationChainTrialMaker
+)
 
-class AudioImitationChainTrial(ImitationChainTrial):
-    """
-    A Trial class for audio imitation chains.
-    The user must override
-    :meth:`~psynet.trial.audio_imitation_chain.analyse_recording`.
-    """
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
 
-    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_trial"}
+class AudioRecordTrial(Trial):
+    __mapper_args__ = {"polymorphic_identity": "audio_record_trial"}
 
     run_async_post_trial = True
-
     analysis = claim_field(5)
 
     @property
@@ -87,11 +88,53 @@ class AudioImitationChainTrial(ImitationChainTrial):
         """
         raise NotImplementedError
 
+
+class AudioImitationChainNetwork(ImitationChainNetwork):
+    """
+    A Network class for audio imitation chains.
+    """
+    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_network"}
+
+    run_async_post_grow_network = True
+
+    def async_post_grow_network(self):
+        logger.info("Synthesising audio for network %i...", self.id)
+
+        node = self.head
+
+        if isinstance(node, AudioImitationChainSource):
+            logger.info("Network %i only contains a Source, no audio to be synthesised.", self.id)
+        else:
+            with tempfile.NamedTemporaryFile() as temp_file:
+                node.synthesise_target(temp_file)
+                target_key = f"{uuid4()}.wav"
+                node.target_url = upload_to_s3(temp_file, self.s3_bucket, key=target_key, public_read=True)["url"]
+
+
+class AudioImitationChainTrial(ImitationChainTrial, AudioRecordTrial):
+    """
+    A Trial class for audio imitation chains.
+    The user must override
+    :meth:`~psynet.trial.audio_imitation_chain.analyse_recording`.
+    """
+
+    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_trial"}
+
 class AudioImitationChainNode(ImitationChainNode):
     """
     A Node class for audio imitation chains.
+    Users must override the
+    :meth:`~psynet.trial.audio.AudioImitationChainNode.synthesise_target` method.
     """
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_node"}
+
+    def synthesise_target(self, file):
+        """
+        Generates the target stimulus (i.e. the stimulus to be imitated by the participant).
+        This method will typically rely on the ``self.definition`` attribute,
+        which carries the definition of the current node.
+        """
+        raise NotImplementedError
 
 class AudioImitationChainSource(ImitationChainSource):
     """

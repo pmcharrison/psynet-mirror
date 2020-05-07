@@ -1064,19 +1064,6 @@ class NetworkTrialMaker(TrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    async_post_grow_network
-        Optional function to be run after a network is grown, only runs if
-        :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
-        This should be specified as a fully qualified string, for example
-        ``psynet.trial.async_example.async_update_network``.
-        This function should take one argument, ``network_id``, corresponding to the
-        ID of the relevant network to process.
-        ``network.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``network.awaiting_process = False``
-        once it is finished, and for committing to the database
-        using ``db.session.commit()`` (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``psynet.trial.async_example.async_update_trial``
-        for a relevant example (for processing trials, not networks).
 
     Attributes
     ----------

@@ -790,20 +790,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         if the participant fails a performance check.
         Defaults to ``True``.
 
-    async_post_trial
-        Optional function to be run after a trial is completed by the participant.
-        This should be specified as a fully qualified string, for example
-        ``"psynet.trial.async_example.async_update_trial"``.
-        This function should take one argument, ``trial_id``, corresponding to the
-        ID of the relevant trial to process.
-        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
-        once it is finished. It is also responsible for committing to the database
-        using ``db.session.commit()`` once processing is complete
-        (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``~psynet.trial.async_example.async_update_trial``
-        for an example.
-
     Returns
     -------
 
