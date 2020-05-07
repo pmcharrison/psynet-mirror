@@ -38,7 +38,7 @@
           });
         }
 
-
+        /// auxiliry function that scans all nodes and find the participant in their info
       function participants_for_node(ndata,node_id) {
       info_for_node=[];for (var i = 0; i< ndata.net_structure.infos.length; i++) {
                   info=ndata.net_structure.infos[i];  if (info.origin_id==node_id) info_for_node=info_for_node.concat([parseInt(info.property1)]); }; info_for_node=info_for_node.unique();
@@ -247,18 +247,18 @@
                 if (!node.failed) {
                   participant.clr='blue'
                 }
-                //// ADNADN
+                  // if node  has no  participant it may be in the new format - in this case try to look at the  info and get from them all participants
                  pn=participants_for_node(ndata,node.id);
-                if (pn.length==1) {
+                if (pn.length==1) { // one participant in the infos: that is basically the participant_id
                     participant_id=pn[0];
                     participant=list_of_participants[participant_id];
                 } else {
-                    if (pn.length>1) {
+                    if (pn.length>1) { // mark nodes with more than one participant in a way clearly  visible
                         participant.clr='black' 
                     }
 
                 }
-                //// ADNADN
+                
               } else {
                 participant=list_of_participants[participant_id];
                 }
@@ -306,8 +306,8 @@
               my_node_id=count_nodes;
               to=my_node_id;
               from=info.origin_id;
-              //participant_id=list_of_nodes[from].participant_id
-              participant_id=parseInt(info.property1)
+              //participant_id=list_of_nodes[from].participant_id (used to be based on the node)
+              participant_id=parseInt(info.property1) // now based on the info itself
               participant={}
               if (participant_id==null) {
                 participant_id=0;
