@@ -32,6 +32,17 @@
         var network = null;
         var ndata = {{ my_data |safe }}; // this  is a container for all the data coming from the route
 
+        Array.prototype.unique = function() {
+          return this.filter(function (value, index, self) { 
+            return self.indexOf(value) === index;
+          });
+        }
+
+      function participants_for_node(ndata,node_id) {
+      info_for_node=[];for (var i = 0; i< ndata.net_structure.infos.length; i++) {
+                  info=ndata.net_structure.infos[i];  if (info.origin_id==node_id) info_for_node=info_for_node.concat([parseInt(info.property1)]); }; info_for_node=info_for_node.unique();
+                  return info_for_node;}
+
         /// set display options and groups: this will modify the way the network show up.
         function getOptions() {
           var options = {
@@ -235,6 +246,18 @@
                 if (!node.failed) {
                   participant.clr='blue'
                 }
+                //// ADNADN
+                 pn=participants_for_node(ndata,node.id);
+                if (pn.length==1) {
+                    participant_id=pn[0];
+                    participant=list_of_participants[participant_id];
+                } else {
+                    if (pn.length>1) {
+                        participant.clr='green'
+                    }
+
+                }
+                //// ADNADN
               } else {
                 participant=list_of_participants[participant_id];
                 }
@@ -282,7 +305,8 @@
               my_node_id=count_nodes;
               to=my_node_id;
               from=info.origin_id;
-              participant_id=list_of_nodes[from].participant_id
+              //participant_id=list_of_nodes[from].participant_id
+              participant_id=parseInt(info.property1)
               participant={}
               if (participant_id==null) {
                 participant_id=0;
@@ -301,7 +325,8 @@
                 label: "info:"+ String(info.id), dashes:true,
                 title: ('<pre><code><font size="-2">'+ JSON.stringify(info, null, 2) + '</font></code></pre>'),
                 group: mgroup,
-                font: {align: 'inside'}
+                font: {align: 'inside'},
+                icon: {color: participant.clr}
 
               });
               if (participant_id>0) {
@@ -312,6 +337,7 @@
                 label: "participant: "+ String(participant_id), font: {size:15, color:participant.clr, strokeWidth:0, strokeColor:'yellow',align: 'top'},
                 //arrows:'to', dashes:true,
                 title: ('<pre><code><font size="-2">'+ JSON.stringify(participant, null, 2) + '</font></code></pre>'),
+                color: participant.clr
               });
               } else {
               edges.push({
