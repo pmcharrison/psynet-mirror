@@ -4,6 +4,8 @@ import json
 import boto3
 import botocore.exceptions
 import botocore.errorfactory
+import tempfile
+import shutil
 
 from dallinger.config import get_config
 
@@ -66,7 +68,8 @@ def empty_s3_bucket(bucket_name: str):
     )
 
 @log_time_taken
-def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool):
+def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool, create_new_bucket: bool = False):
+    "If create_new_bucket, then a new bucket is created if the bucket doesn't exist."
     logger.info("Uploading %s to bucket %s with key %s...", local_path, bucket_name, key)
 
     # client = new_s3_client()
@@ -77,7 +80,18 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool)
         args["ACL"] = "public-read"
 
     bucket = get_s3_bucket(bucket_name)
-    bucket.upload_file(local_path, key, ExtraArgs=args)
+
+    def upload():
+        bucket.upload_file(local_path, key, ExtraArgs=args)
+
+    try:
+        upload()
+    except boto3.exceptions.S3UploadFailedError as e:
+        if ("NoSuchBucket" in str(e)) and create_new_bucket:
+            create_bucket(bucket_name)
+            upload()
+        else:
+            raise
 
     return {
         "key": key,
@@ -168,3 +182,10 @@ def make_bucket_public(bucket_name):
         }]
     })
     bucket_policy.put(Policy = new_policy)
+
+def recode_wav(file_path):
+    import parselmouth
+    with tempfile.NamedTemporaryFile() as temp_file:
+        shutil.copyfile(file_path, temp_file.name)
+        s = parselmouth.Sound(temp_file.name)
+        s.save(file_path, "WAV")

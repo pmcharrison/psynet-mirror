@@ -630,19 +630,9 @@ class AudioRecordControl(Control):
             wavfile.write(temp_file.name, fs, data)
             key = f"{uuid4()}.wav"
 
-            def upload():
-                upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read)
-                if self.public_read:
-                    make_bucket_public(self.s3_bucket)
-
-            try:
-                upload()
-            except boto3.exceptions.S3UploadFailedError as e:
-                if "NoSuchBucket" in str(e):
-                    create_bucket(self.s3_bucket)
-                    upload()
-                else:
-                    raise
+            upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read, create_new_bucket=True)
+            if self.public_read:
+                make_bucket_public(self.s3_bucket)
 
             return {
                 "s3_bucket": self.s3_bucket,

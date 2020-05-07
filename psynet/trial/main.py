@@ -288,6 +288,7 @@ class Trial(Info):
         Will only run if :attr:`~psynet.trial.main.Trial.run_async_post_trial`
         is set to ``True``.
         """
+        raise NotImplementedError
 
     # def fail(self):
     #     self.failed = True

@@ -4,9 +4,10 @@ import os
 import tempfile
 
 from uuid import uuid4
+from dallinger import db
 
-from ..media import download_from_s3, upload_to_s3
-from ..field import claim_field
+from ..media import download_from_s3, upload_to_s3, recode_wav
+from ..field import claim_field, claim_var
 
 from .main import Trial
 from .imitation_chain import (
@@ -21,11 +22,9 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-class AudioRecordTrial(Trial):
-    __mapper_args__ = {"polymorphic_identity": "audio_record_trial"}
-
+class AudioRecordTrial():
     run_async_post_trial = True
-    analysis = claim_field(5)
+    analysis = claim_var("analysis")
 
     @property
     def recording_info(self):
@@ -47,6 +46,7 @@ class AudioRecordTrial(Trial):
         return base + ".png"
 
     def async_post_trial(self):
+        logger.info("Analysing recording for trial %i...", self.id)
         with tempfile.NamedTemporaryFile() as temp_recording:
             with tempfile.NamedTemporaryFile() as temp_plot:
                 self.download_recording(temp_recording.name)
@@ -57,6 +57,9 @@ class AudioRecordTrial(Trial):
                         self.fail()
                 except KeyError:
                     raise KeyError("The recording analysis failed to contain a 'failed' attribute.")
+                finally:
+                    db.session.commit()
+
 
     def download_recording(self, local_path):
         recording_info = self.recording_info
@@ -95,6 +98,12 @@ class AudioImitationChainNetwork(ImitationChainNetwork):
     """
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_network"}
 
+    s3_bucket = ""
+
+    def validate(self):
+        if self.s3_bucket == "":
+            raise ValueError("The AudioImitationChainNetwork must possess a valid s3_bucket attribute.")
+
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
@@ -106,12 +115,19 @@ class AudioImitationChainNetwork(ImitationChainNetwork):
             logger.info("Network %i only contains a Source, no audio to be synthesised.", self.id)
         else:
             with tempfile.NamedTemporaryFile() as temp_file:
-                node.synthesise_target(temp_file)
+                node.synthesise_target(temp_file.name)
+                recode_wav(temp_file.name)
                 target_key = f"{uuid4()}.wav"
-                node.target_url = upload_to_s3(temp_file, self.s3_bucket, key=target_key, public_read=True)["url"]
+                node.target_url = upload_to_s3(
+                    temp_file.name,
+                    self.s3_bucket,
+                    key=target_key,
+                    public_read=True,
+                    create_new_bucket=True
+                )["url"]
 
 
-class AudioImitationChainTrial(ImitationChainTrial, AudioRecordTrial):
+class AudioImitationChainTrial(AudioRecordTrial, ImitationChainTrial):
     """
     A Trial class for audio imitation chains.
     The user must override
@@ -128,7 +144,9 @@ class AudioImitationChainNode(ImitationChainNode):
     """
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_node"}
 
-    def synthesise_target(self, file):
+    target_url = claim_var("target_url")
+
+    def synthesise_target(self, output_file):
         """
         Generates the target stimulus (i.e. the stimulus to be imitated by the participant).
         This method will typically rely on the ``self.definition`` attribute,
