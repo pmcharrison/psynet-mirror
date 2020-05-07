@@ -38,6 +38,7 @@
           });
         }
 
+
       function participants_for_node(ndata,node_id) {
       info_for_node=[];for (var i = 0; i< ndata.net_structure.infos.length; i++) {
                   info=ndata.net_structure.infos[i];  if (info.origin_id==node_id) info_for_node=info_for_node.concat([parseInt(info.property1)]); }; info_for_node=info_for_node.unique();
