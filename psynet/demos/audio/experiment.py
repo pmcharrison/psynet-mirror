@@ -210,9 +210,10 @@ example_record_with_audio_prompt = join(
         AudioPrompt(
             url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             text="This page plays audio and enables the recorder straight away.",
-
+            prevent_response=False
+        ),
         AudioRecordControl(
-            duration=3.0,
+            duration=5.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True
@@ -234,6 +235,7 @@ example_record_with_audio_prompt = join(
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         example_audio_page,
+        example_record_with_audio_prompt,
         example_record_page,
         example_audio_meter,
         example_audio_meter_calibrate_with_audio,
