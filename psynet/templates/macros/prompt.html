@@ -24,8 +24,8 @@
             });
 
             sound.source.addEventListener("ended", function() {
-                psynet.response.ready("audio_prompt");
-                psynet.submit.ready("audio_prompt");
+                {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
+                {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
             });
 
             {% if config.enable_submit_after is not none %}

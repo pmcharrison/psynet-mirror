@@ -204,6 +204,30 @@ example_record_page = join(
     )
 )
 
+example_record_with_audio_prompt = join(
+    ModularPage(
+        "record_page",
+        AudioPrompt(
+            url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
+            text="This page plays audio and enables the recorder straight away.",
+
+        AudioRecordControl(
+            duration=3.0,
+            s3_bucket="audio-record-demo",
+            show_meter=True,
+            public_read=True
+        ),
+        time_estimate=5
+    ),
+    PageMaker(
+        lambda participant: ModularPage(
+            "playback",
+            AudioPrompt(participant.answer["url"], "Here's the recording you just made.")
+        ),
+        time_estimate=5
+    )
+)
+
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).

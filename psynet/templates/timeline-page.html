@@ -311,6 +311,9 @@
                 psynet.response.waiting_for = [];
                 psynet.submit.waiting_for = [];
 
+                psynet.response.ready_done = false;
+                psynet.submit.ready_done = false;
+
                 psynet.response.wait_for = function(event) {
                     psynet.log.debug("Waiting for response-ready event: " + event);
                     psynet.response.waiting_for.push(event);
@@ -329,10 +332,15 @@
                         })
                     }
                     if (psynet.response.waiting_for.length == 0) {
-                        psynet.log.info("Ready for user to enter response.");
-                        psynet.response.on_ready_routines.forEach(function (f) {
-                            f();
-                        });
+                        if (psynet.response.ready_done) {
+                            psynet.log.warn("Response-ready has already been called.");
+                        } else {
+                            psynet.log.info("Ready for user to enter response.");
+                            psynet.response.on_ready_routines.forEach(function (f) {
+                                f();
+                            });
+                            psynet.response.ready_done = true;
+                        }
                     }
                 };
 
@@ -344,10 +352,15 @@
                         })
                     }
                     if (psynet.submit.waiting_for.length == 0) {
-                        psynet.log.info("Ready for user to submit response.");
-                        psynet.submit.on_ready_routines.forEach(function (f) {
-                            f();
-                        });
+                        if (psynet.submit.ready_done) {
+                            psynet.log.warn("Submit-ready has already been called.");
+                        } else {
+                            psynet.log.info("Ready for user to submit response.");
+                            psynet.submit.on_ready_routines.forEach(function (f) {
+                                f();
+                            });
+                            psynet.submit.ready_done = true;
+                        }
                     }
                 };
 
