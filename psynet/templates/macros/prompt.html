@@ -19,21 +19,23 @@
         {% endif %}
 
         psynet.media.register_on_loaded_routine(function() {
-            var sound = psynet.audio.prompt.play({
-                loop: {{ config.loop | lower }}
-            });
+            setTimeout(function() {
+                var sound = psynet.audio.prompt.play({
+                    loop: {{ config.loop | lower }}
+                });
 
-            sound.source.addEventListener("ended", function() {
-                {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
-                {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
-            });
+                sound.source.addEventListener("ended", function() {
+                    {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
+                    {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
+                });
 
-            {% if config.enable_submit_after is not none %}
-                setTimeout(
-                    ()=> psynet.submit.ready("audio_prompt"),
-                    1000 * {{ config.enable_submit_after }}
-                );
-            {% endif %}
-        })
+                {% if config.enable_submit_after is not none %}
+                    setTimeout(
+                        ()=> psynet.submit.ready("audio_prompt"),
+                        1000 * {{ config.enable_submit_after }}
+                    );
+                {% endif %}
+            }, {{config.start_delay}} * 1000)
+        });
     </script>
 {% endmacro %}

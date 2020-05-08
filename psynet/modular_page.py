@@ -103,7 +103,9 @@ class AudioPrompt(Prompt):
         If not ``None``, sets a time interval in seconds after which the response
         options will be enabled.
 
-
+    start_delay
+        Delay in seconds before the sound should start playing, counting from
+        the media load event.
     """
     def __init__(
             self,
@@ -112,7 +114,8 @@ class AudioPrompt(Prompt):
             loop: bool = False,
             prevent_response: bool = True,
             prevent_submit: bool = True,
-            enable_submit_after: Optional[float] = None
+            enable_submit_after: Optional[float] = None,
+            start_delay = 0.0
         ):
         super().__init__(text=text)
         self.url = url
@@ -120,6 +123,7 @@ class AudioPrompt(Prompt):
         self.prevent_submit = prevent_submit
         self.enable_submit_after = enable_submit_after
         self.loop = loop
+        self.start_delay = start_delay
 
     macro = "audio"
 

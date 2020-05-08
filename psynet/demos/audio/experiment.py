@@ -209,8 +209,9 @@ example_record_with_audio_prompt = join(
         "record_page",
         AudioPrompt(
             url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
-            text="This page plays audio and enables the recorder straight away.",
-            prevent_response=False
+            text="This page enables the recorder and plays the audio 0.5 seconds later.",
+            prevent_response=False,
+            start_delay=0.5
         ),
         AudioRecordControl(
             duration=5.0,
