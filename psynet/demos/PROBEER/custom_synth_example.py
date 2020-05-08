@@ -4,4 +4,4 @@
 
 from custom_synth import synth_stimulus
 
-synth_stimulus([-300, -200, -100, 100, 200], "synth_files/output_single/example.wav")
+synth_stimulus([-300, -200, -100, 100, 200], "synth_files/output_single/example.wav", {})

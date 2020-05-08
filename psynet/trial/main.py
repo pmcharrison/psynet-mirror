@@ -34,7 +34,7 @@ from ..page import (
     UnsuccessfulEndPage
 )
 
-from ..utils import call_function
+from ..utils import call_function, log_time_taken, import_local_experiment
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -59,6 +59,10 @@ class Trial(Info):
       determines how the trial is turned into a webpage for presentation to the participant.
     * :meth:`~psynet.trial.main.Trial.show_feedback`,
       defines an optional feedback page to be displayed after the trial.
+
+    The user may also wish to override the
+    :meth:`~psynet.trial.main.Trial.async_post_trial` method
+    if they wish to implement asynchronous trial processing.
 
     This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
     hence can be found in the ``Info`` table in the database.
@@ -149,6 +153,9 @@ class Trial(Info):
         as it is instead determined by
         :meth:`~psynet.trial.main.Trial.make_definition`.
 
+    run_async_post_trial : bool
+        Set this to ``True`` if you want the :meth:`~psynet.trial.main.Trial.async_post_trial`
+        method to run after the user responds to the trial.
     """
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
@@ -272,6 +279,16 @@ class Trial(Info):
 
     def gives_feedback(self, experiment, participant):
         return self.show_feedback(experiment=experiment, participant=participant) is not None
+
+    run_async_post_trial = False
+
+    def async_post_trial(self):
+        """
+        Optional function to be run after a trial is completed by the participant.
+        Will only run if :attr:`~psynet.trial.main.Trial.run_async_post_trial`
+        is set to ``True``.
+        """
+        raise NotImplementedError
 
     # def fail(self):
     #     self.failed = True
@@ -1048,33 +1065,6 @@ class NetworkTrialMaker(TrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    async_post_trial
-        Optional function to be run after a trial is completed by the participant.
-        This should be specified as a fully qualified string, for example
-        ``"psynet.trial.async_example.async_update_trial"``.
-        This function should take one argument, ``trial_id``, corresponding to the
-        ID of the relevant trial to process.
-        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
-        once it is finished. It is also responsible for committing to the database
-        using ``db.session.commit()`` once processing is complete
-        (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``psynet.trial.async_example.async_update_trial``
-        for an example.
-
-    async_post_grow_network
-        Optional function to be run after a network is grown, only runs if
-        :meth:`~psynet.trial.main.NetworkTrialMaker.grow_network` returns ``True``.
-        This should be specified as a fully qualified string, for example
-        ``psynet.trial.async_example.async_update_network``.
-        This function should take one argument, ``network_id``, corresponding to the
-        ID of the relevant network to process.
-        ``network.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``network.awaiting_process = False``
-        once it is finished, and for committing to the database
-        using ``db.session.commit()`` (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``psynet.trial.async_example.async_update_trial``
-        for a relevant example (for processing trials, not networks).
 
     Attributes
     ----------
@@ -1115,9 +1105,7 @@ class NetworkTrialMaker(TrialMaker):
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
         recruit_mode,
-        target_num_participants,
-        async_post_trial: Optional[str] = None, # this should be a string, for example "psynet.trial.async_example.async_update_network"
-        async_post_grow_network: Optional[str] = None
+        target_num_participants
     ):
         super().__init__(
             trial_class=trial_class,
@@ -1133,8 +1121,6 @@ class NetworkTrialMaker(TrialMaker):
             target_num_participants=target_num_participants
         )
         self.network_class = network_class
-        self.async_post_trial = async_post_trial
-        self.async_post_grow_network = async_post_grow_network
 
     #### The following methods are overwritten from TrialMaker.
     #### Returns None if no trials could be found (this may not yet be supported by TrialMaker)
@@ -1222,10 +1208,10 @@ class NetworkTrialMaker(TrialMaker):
     def finalise_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         super().finalise_trial(answer, trial, experiment, participant)
-        if self.async_post_trial:
+        if trial.run_async_post_trial:
             trial.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-            q.enqueue(self.async_post_trial, trial.id)
+            q.enqueue(call_async_post_trial, trial.id)
             # pylint: disable=no-member
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
@@ -1233,10 +1219,10 @@ class NetworkTrialMaker(TrialMaker):
     def _grow_network(self, network, participant, experiment):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
-        if grown and self.async_post_grow_network:
+        if grown and network.run_async_post_grow_network:
             network.awaiting_process = True
             q = Queue("default", connection = redis_conn)
-            q.enqueue(self.async_post_grow_network, network.id)
+            q.enqueue(call_async_post_grow_network, network.id)
             # pylint: disable=no-member
             db.session.commit()
 
@@ -1263,6 +1249,9 @@ class TrialNetwork(Network):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
+    The user may also wish to override the
+    :meth:`~psynet.trial.main.TrialNetwork.async_post_grow_network` method
+    if they wish to implement asynchronous network processing.
 
     Parameters
     ----------
@@ -1323,7 +1312,9 @@ class TrialNetwork(Network):
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
-
+    run_async_post_grow_network : bool
+        Set this to ``True`` if you want the :meth:`~psynet.trial.main.TrialNetwork.async_post_grow_network`
+        method to run after the network is grown.
     """
 
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
@@ -1372,3 +1363,27 @@ class TrialNetwork(Network):
     @property
     def num_completed_trials(self):
         return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
+
+    run_async_post_grow_network = False
+    def async_post_grow_network(self):
+        """
+        Optional function to be run after the network is grown.
+        Will only run if :attr:`~psynet.trial.main.TrialNetwork.run_async_post_grow_network`
+        is set to ``True``.
+        """
+
+def call_async_post_trial(trial_id):
+    logger.info("Running async_post_trial for trial %i...", trial_id)
+    import_local_experiment()
+    trial = Trial.query.filter_by(id=trial_id).one()
+    trial.async_post_trial()
+    trial.awaiting_process = False
+    db.session.commit()
+
+def call_async_post_grow_network(network_id):
+    logger.info("Running async_post_grow_network for network %i...", network_id)
+    import_local_experiment()
+    network = Network.query.filter_by(id=network_id).one()
+    network.async_post_grow_network()
+    network.awaiting_process = False
+    db.session.commit()

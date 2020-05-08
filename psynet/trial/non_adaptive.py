@@ -790,20 +790,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         if the participant fails a performance check.
         Defaults to ``True``.
 
-    async_post_trial
-        Optional function to be run after a trial is completed by the participant.
-        This should be specified as a fully qualified string, for example
-        ``"psynet.trial.async_example.async_update_trial"``.
-        This function should take one argument, ``trial_id``, corresponding to the
-        ID of the relevant trial to process.
-        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
-        once it is finished. It is also responsible for committing to the database
-        using ``db.session.commit()`` once processing is complete
-        (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``~psynet.trial.async_example.async_update_trial``
-        for an example.
-
     Returns
     -------
 
@@ -830,8 +816,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
-        fail_trials_on_participant_performance_check: bool = True,
-        async_post_trial: Optional[str] = None
+        fail_trials_on_participant_performance_check: bool = True
     ):
         if (recruit_mode == "num_participants" and target_num_participants is None):
             raise ValueError("<target_num_participants> cannot be None if recruit_mode == 'num_participants'.")
@@ -863,8 +848,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=False,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            async_post_trial=async_post_trial
+            target_num_participants=target_num_participants
         )
 
     @property

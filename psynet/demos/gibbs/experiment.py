@@ -10,7 +10,6 @@ import random
 import re
 from typing import Union, List
 import time
-from . import templates
 from dallinger import db
 
 import psynet.experiment
@@ -122,6 +121,10 @@ class CustomNetwork(GibbsNetwork):
             "target": self.balance_across_networks(TARGETS)
         }
 
+    # Minimal example of an async_post_grow_network function
+    run_async_post_grow_network = True
+    def async_post_grow_network(self):
+        logger.info("Running custom async_post_grow_network function (network id = %i)", self.id)
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -146,6 +149,10 @@ class CustomTrial(GibbsTrial):
             time_estimate=5
         )
 
+    # Minimal example of an async_post_trial function
+    run_async_post_trial = True
+    def async_post_trial(self):
+        logger.info("Running custom async post trial (id = %i)", self.id)
 
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -185,31 +192,8 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
-    target_num_participants=10,
-    # Uncomment the following two lines if you want to experiment
-    # with asynchronous processing.
-    # async_post_trial="psynet.demos.gibbs.experiment.async_post_trial",
-    # async_post_grow_network="psynet.demos.gibbs.experiment.async_post_grow_network"
+    target_num_participants=10
 )
-
-
-# The following two functions are only necessary if you want to experiment
-# with asynchronous processing.
-def async_post_trial(trial_id):
-    logger.info("Running async_post_trial for trial %i...", trial_id)
-    trial = CustomTrial.query.filter_by(id=trial_id).one()
-    time.sleep(1000)
-    trial.awaiting_process = False
-    db.session.commit()
-
-
-def async_post_grow_network(network_id):
-    logger.info("Running async_post_grow_network for network %i...", network_id)
-    network = ChainNetwork.query.filter_by(id=network_id).one()
-    time.sleep(0)
-    network.awaiting_process = False
-    db.session.commit()
-
 
 ##########################################################################################
 #### Experiment
