@@ -166,6 +166,7 @@ class Trial(Info):
     answer = claim_field(3)
     awaiting_process = claim_field(4, bool)
 
+    async_process_start_time = claim_var("async_process_start_time")
     propagate_failure = claim_var("propagate_failure")
     response_id = claim_var("response_id")
 
@@ -213,6 +214,7 @@ class Trial(Info):
         super().__init__(origin=node)
         self.complete = False
         self.awaiting_process = False
+        self.async_process_start_time = None
         self.participant_id = participant.id
         self.definition = self.make_definition(experiment, participant)
         self.propagate_failure = propagate_failure
@@ -1210,6 +1212,7 @@ class NetworkTrialMaker(TrialMaker):
         super().finalise_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
             trial.awaiting_process = True
+            trial.async_process_start_time = datetime.datetime.now()
             q = Queue("default", connection = redis_conn)
             q.enqueue(call_async_post_trial, trial.id)
             # pylint: disable=no-member
@@ -1221,6 +1224,7 @@ class NetworkTrialMaker(TrialMaker):
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
             network.awaiting_process = True
+            network.async_process_start_time = datetime.datetime.now()
             q = Queue("default", connection = redis_conn)
             q.enqueue(call_async_post_grow_network, network.id)
             # pylint: disable=no-member
@@ -1323,6 +1327,8 @@ class TrialNetwork(Network):
     target_num_trials = claim_field(2, int)
     awaiting_process = claim_field(3, bool)
 
+    async_process_start_time = claim_var("async_process_start_time")
+
     def add_node(self, node):
         """
         Adds a node to the network. This method is responsible for setting
@@ -1354,6 +1360,7 @@ class TrialNetwork(Network):
         # pylint: disable=unused-argument
         self.trial_type = trial_type
         self.awaiting_process = False
+        self.async_process_start_time = None
         self.phase = phase
 
     @property
@@ -1378,6 +1385,7 @@ def call_async_post_trial(trial_id):
     trial = Trial.query.filter_by(id=trial_id).one()
     trial.async_post_trial()
     trial.awaiting_process = False
+    trial.async_process_start_time = None
     db.session.commit()
 
 def call_async_post_grow_network(network_id):
@@ -1386,4 +1394,5 @@ def call_async_post_grow_network(network_id):
     network = Network.query.filter_by(id=network_id).one()
     network.async_post_grow_network()
     network.awaiting_process = False
+    network.async_process_start_time = None
     db.session.commit()
