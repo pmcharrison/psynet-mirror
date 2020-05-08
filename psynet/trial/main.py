@@ -127,11 +127,14 @@ class Trial(Info):
         The user should not typically change this directly.
         Stored in ``property3`` in the database.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
+
+    async_process_start_time : Optional[datetime]
+        Time at which the async process was called.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other
@@ -164,7 +167,7 @@ class Trial(Info):
     participant_id = claim_field(1, int)
     complete = claim_field(2, bool)
     answer = claim_field(3)
-    awaiting_process = claim_field(4, bool)
+    awaiting_async_process = claim_field(4, bool)
 
     async_process_start_time = claim_var("async_process_start_time")
     propagate_failure = claim_var("propagate_failure")
@@ -213,7 +216,7 @@ class Trial(Info):
     def __init__(self, experiment, node, participant, propagate_failure):
         super().__init__(origin=node)
         self.complete = False
-        self.awaiting_process = False
+        self.awaiting_async_process = False
         self.async_process_start_time = None
         self.participant_id = participant.id
         self.definition = self.make_definition(experiment, participant)
@@ -1211,7 +1214,7 @@ class NetworkTrialMaker(TrialMaker):
         # pylint: disable=unused-argument,no-self-use
         super().finalise_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
-            trial.awaiting_process = True
+            trial.awaiting_async_process = True
             trial.async_process_start_time = datetime.datetime.now()
             q = Queue("default", connection = redis_conn)
             q.enqueue(call_async_post_trial, trial.id)
@@ -1223,7 +1226,7 @@ class NetworkTrialMaker(TrialMaker):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            network.awaiting_process = True
+            network.awaiting_async_process = True
             network.async_process_start_time = datetime.datetime.now()
             q = Queue("default", connection = redis_conn)
             q.enqueue(call_async_post_grow_network, network.id)
@@ -1295,10 +1298,13 @@ class TrialNetwork(Network):
         Left empty by default, but can be set by custom ``__init__`` functions.
         Stored as the field ``property2`` in the database.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
         Stored as the field ``property3`` in the database.
+
+    async_process_start_time : Optional[datetime]
+        Time at which the async process was called.
 
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
@@ -1325,7 +1331,7 @@ class TrialNetwork(Network):
 
     trial_type = claim_field(1, str)
     target_num_trials = claim_field(2, int)
-    awaiting_process = claim_field(3, bool)
+    awaiting_async_process = claim_field(3, bool)
 
     async_process_start_time = claim_var("async_process_start_time")
 
@@ -1359,7 +1365,7 @@ class TrialNetwork(Network):
     def __init__(self, trial_type: str, phase: str, experiment):
         # pylint: disable=unused-argument
         self.trial_type = trial_type
-        self.awaiting_process = False
+        self.awaiting_async_process = False
         self.async_process_start_time = None
         self.phase = phase
 
@@ -1384,7 +1390,7 @@ def call_async_post_trial(trial_id):
     import_local_experiment()
     trial = Trial.query.filter_by(id=trial_id).one()
     trial.async_post_trial()
-    trial.awaiting_process = False
+    trial.awaiting_async_process = False
     trial.async_process_start_time = None
     db.session.commit()
 
@@ -1393,6 +1399,6 @@ def call_async_post_grow_network(network_id):
     import_local_experiment()
     network = Network.query.filter_by(id=network_id).one()
     network.async_post_grow_network()
-    network.awaiting_process = False
+    network.awaiting_async_process = False
     network.async_process_start_time = None
     db.session.commit()

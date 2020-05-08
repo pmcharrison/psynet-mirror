@@ -565,11 +565,14 @@ class NonAdaptiveTrial(Trial):
         The user should not typically change this directly.
         Stored in ``property3`` in the database.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
+
+    async_process_start_time : Optional[datetime]
+        Time at which the async process was called.
 
     definition
         A dictionary of parameters defining the trial.
@@ -1070,7 +1073,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
                                   trial_type=self.trial_type,
                                   participant_group=self.get_participant_group(participant),
                                   phase=self.phase,
-                                  awaiting_process=False
+                                  awaiting_async_process=False
                               )
                               .filter(NonAdaptiveNetwork.block.in_(block_order))
                               .all()
@@ -1217,10 +1220,13 @@ class NonAdaptiveNetwork(TrialNetwork):
         Indicates the target number of trials for that network.
         Stored as the field ``property2`` in the database.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         This should always be ``False`` for non-adaptive experiments.
         Stored as the field ``property3`` in the database.
+
+    async_process_start_time : Optional[datetime]
+        Time at which the async process was called.
 
     participant_group : bool
         The network's associated participant group.
