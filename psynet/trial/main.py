@@ -1,6 +1,7 @@
 # pylint: disable=unused-argument
 
 import json
+import random
 from typing import Union, Optional
 import datetime
 from uuid import uuid4
@@ -189,8 +190,6 @@ class Trial(Info, AsyncProcessOwner):
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
-        The user should not typically change this directly.
-        Stored in ``property4`` in the database.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -226,6 +225,7 @@ class Trial(Info, AsyncProcessOwner):
     participant_id = claim_field(1, int)
     complete = claim_field(2, bool)
     answer = claim_field(3)
+    is_repeat_trial = claim_var(4, bool)
 
     propagate_failure = claim_var("propagate_failure")
     response_id = claim_var("response_id")
@@ -270,13 +270,14 @@ class Trial(Info, AsyncProcessOwner):
 
     #################
 
-    def __init__(self, experiment, node, participant, propagate_failure):
+    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
         super().__init__(origin=node)
         self.complete = False
         self.awaiting_async_process = False
         self.participant_id = participant.id
         self.definition = self.make_definition(experiment, participant)
         self.propagate_failure = propagate_failure
+        self.is_repeat_trial = is_repeat_trial
 
     def make_definition(self, experiment, participant):
         """
@@ -358,6 +359,17 @@ class Trial(Info, AsyncProcessOwner):
     # def fail(self):
     #     self.failed = True
     #     self.time_of_death = timenow()
+
+    def new_repeat_trial(self, experiment):
+        repeat_trial = self.__class__(
+            experiment=experiment,
+            node=self.origin,
+            participant=self.participant,
+            propagate_failure=False,
+            is_repeat_trial=True
+        )
+        repeat_trial.definition = self.definition
+        return repeat_trial
 
 class TrialMaker(Module):
     """
@@ -473,6 +485,11 @@ class TrialMaker(Module):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
+    num_repeat_trials
+        Number of repeat trials to present to the participant. These trials
+        are typically used to estimate the reliability of the participant's
+        responses.
+
     Attributes
     ----------
 
@@ -525,7 +542,8 @@ class TrialMaker(Module):
         fail_trials_on_participant_performance_check: bool,
         propagate_failure: bool,
         recruit_mode: str,
-        target_num_participants: Optional[int]
+        target_num_participants: Optional[int],
+        num_repeat_trials: int
     ):
         if recruit_mode == "num_participants" and target_num_participants is None:
             raise ValueError("If <recruit_mode> == 'num_participants', then <target_num_participants> must be provided.")
@@ -545,6 +563,7 @@ class TrialMaker(Module):
         self.propagate_failure = propagate_failure
         self.recruit_mode = recruit_mode
         self.target_num_participants = target_num_participants
+        self.num_repeat_trials = num_repeat_trials
 
         events = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
@@ -791,6 +810,7 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
         self.init_num_completed_trials_in_phase(participant)
+        participant.var.set(self.with_namespace("in_repeat_phase"), False)
 
     def on_complete(self, experiment, participant):
         """
@@ -964,12 +984,42 @@ class TrialMaker(Module):
         return self.trial_class.query.filter_by(participant_id=participant.id).all()
 
     def _prepare_trial(self, experiment, participant):
-        trial = self.prepare_trial(experiment=experiment, participant=participant)
+        if participant.var.get(self.with_namespace("in_repeat_phase")):
+            trial = None
+        else:
+            # Returns None if there are no more experiment trials available.
+            trial = self.prepare_trial(experiment=experiment, participant=participant)
+        if trial is None and self.num_repeat_trials > 0:
+            participant.var.set(self.with_namespace("in_repeat_phase"), True)
+            trial = self._prepare_repeat_trial(experiment=experiment, participant=participant)
         if trial is not None:
             participant.var.current_trial = trial.id
         else:
             participant.var.current_trial = None
         experiment.save()
+
+    def _prepare_repeat_trial(self, experiment, participant):
+        if not participant.var.has(self.with_namespace("trials_to_repeat")):
+            self._init_trials_to_repeat(participant)
+        trials_to_repeat = participant.var.get(self.with_namespace("trials_to_repeat"))
+        repeat_trial_index = participant.var.get(self.with_namespace("repeat_trial_index"))
+        try:
+            trial_to_repeat_id = trials_to_repeat[repeat_trial_index]
+            trial_to_repeat = self.trial_class.query.filter_by(id=trial_to_repeat_id).one()
+            trial = trial_to_repeat.new_repeat_trial(experiment)
+            participant.var.inc(self.with_namespace("repeat_trial_index"))
+            experiment.save(trial)
+        except IndexError:
+            trial = None
+        return trial
+
+    def _init_trials_to_repeat(self, participant):
+        completed_trial_ids = [t.id for t in self.get_participant_trials(participant)]
+        actual_num_repeat_trials = min(len(completed_trial_ids), self.num_repeat_trials)
+        participant.var.set(
+            self.with_namespace("trials_to_repeat"),
+            random.sample(completed_trial_ids, actual_num_repeat_trials)
+        )
 
     def _show_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
@@ -1183,6 +1233,11 @@ class NetworkTrialMaker(TrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
+    num_repeat_trials
+        Number of repeat trials to present to the participant. These trials
+        are typically used to estimate the reliability of the participant's
+        responses.
+
 
     Attributes
     ----------
@@ -1240,7 +1295,8 @@ class NetworkTrialMaker(TrialMaker):
         # latest performance check is saved in as a participant variable (value, success)
         propagate_failure,
         recruit_mode,
-        target_num_participants
+        target_num_participants,
+        num_repeat_trials: int
     ):
         super().__init__(
             trial_class=trial_class,
@@ -1253,7 +1309,8 @@ class NetworkTrialMaker(TrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants
+            target_num_participants=target_num_participants,
+            num_repeat_trials=num_repeat_trials
         )
         self.network_class = network_class
 
@@ -1335,7 +1392,7 @@ class NetworkTrialMaker(TrialMaker):
         raise NotImplementedError
 
     def _create_trial(self, node, participant, experiment):
-        trial = self.trial_class(experiment, node, participant, self.propagate_failure)
+        trial = self.trial_class(experiment, node, participant, self.propagate_failure, is_repeat_trial=False)
         experiment.session.add(trial)
         experiment.save()
         return trial
@@ -1437,7 +1494,6 @@ class TrialNetwork(Network, AsyncProcessOwner):
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
-        Stored as the field ``property3`` in the database.
 
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
@@ -1450,7 +1506,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     num_completed_trials : int
         Returns the number of completed and non-failed trials in the network
-        (irrespective of asynchronous processes).
+        (irrespective of asynchronous processes, but excluding repeat trials).
 
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
@@ -1504,7 +1560,12 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     @property
     def num_completed_trials(self):
-        return Trial.query.filter_by(network_id=self.id, failed=False, complete=True).count()
+        return Trial.query.filter_by(
+            network_id=self.id,
+            failed=False,
+            complete=True,
+            is_repeat_trial=False
+        ).count()
 
     run_async_post_grow_network = False
     def async_post_grow_network(self):

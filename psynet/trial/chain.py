@@ -99,7 +99,6 @@ class ChainNetwork(TrialNetwork):
 
     awaiting_async_process : bool
         Whether the network is currently waiting for an asynchronous process to complete.
-        Set by default to ``False`` in the ``__init__`` function.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -109,7 +108,7 @@ class ChainNetwork(TrialNetwork):
 
     num_completed_trials : int
         Returns the number of completed and non-failed trials in the network
-        (irrespective of asynchronous processes).
+        (irrespective of asynchronous processes, but excluding repeat trials).
 
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
@@ -451,11 +450,11 @@ class ChainNode(dallinger.models.Node):
 
     completed_trials
         Returns all completed trials associated with the node.
-        Excludes failed nodes.
+        Excludes failed nodes and repeat trials.
 
     num_completed_trials
         Counts the number of completed trials associated with the node.
-        Excludes failed nodes.
+        Excludes failed nodes and repeat_trials.
 
     num_viable_trials
         Returns all viable trials associated with the node,
@@ -580,13 +579,20 @@ class ChainNode(dallinger.models.Node):
     @property
     def completed_and_processed_trials(self):
         return Trial.query.filter_by(
-            origin_id=self.id, failed=False, complete=True, awaiting_async_process=False
+            origin_id=self.id,
+            failed=False,
+            complete=True,
+            awaiting_async_process=False,
+            is_repeat_trial=False
         )
 
     @property
     def _query_completed_trials(self):
         return Trial.query.filter_by(
-            origin_id=self.id, failed=False, complete=True
+            origin_id=self.id,
+            failed=False,
+            complete=True,
+            is_repeat_trial=False
         )
 
     @property
@@ -599,7 +605,7 @@ class ChainNode(dallinger.models.Node):
 
     @property
     def num_viable_trials(self):
-        return Trial.query.filter_by(origin_id=self.id, failed=False).count()
+        return Trial.query.filter_by(origin_id=self.id, failed=False, is_repeat_trial=False).count()
 
     def fail(self):
         """
@@ -810,7 +816,6 @@ class ChainTrial(Trial):
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
-        Stored in ``property4`` in the database.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -1026,6 +1031,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
 
+    num_repeat_trials
+        Number of repeat trials to present to the participant. These trials
+        are typically used to estimate the reliability of the participant's
+        responses.
+
     Attributes
     ----------
 
@@ -1089,7 +1099,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         target_num_participants=Optional[int],
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
-        propagate_failure: bool = True
+        propagate_failure: bool = True,
+        num_repeat_trials: int = 0
     ):
         assert chain_type in ["within", "across"]
 
@@ -1133,7 +1144,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants
+            target_num_participants=target_num_participants,
+            num_repeat_trials=num_repeat_trials
         )
 
     def init_participant(self, experiment, participant):

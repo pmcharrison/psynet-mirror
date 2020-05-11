@@ -100,7 +100,7 @@ class Stimulus(dallinger.models.Node):
         return (
             NonAdaptiveTrial
                 .query
-                .filter_by(stimulus_id=self.id, failed=False, complete=True)
+                .filter_by(stimulus_id=self.id, failed=False, complete=True, is_repeat_trial=False)
         )
 
     @property
@@ -569,7 +569,6 @@ class NonAdaptiveTrial(Trial):
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
-        Stored in ``property4`` in the database.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -793,6 +792,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         if the participant fails a performance check.
         Defaults to ``True``.
 
+    num_repeat_trials
+        Number of repeat trials to present to the participant. These trials
+        are typically used to estimate the reliability of the participant's
+        responses.
+
     Attributes
     ----------
 
@@ -853,7 +857,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
-        fail_trials_on_participant_performance_check: bool = True
+        fail_trials_on_participant_performance_check: bool = True,
+        num_repeat_trials: int = 0
     ):
         if (recruit_mode == "num_participants" and target_num_participants is None):
             raise ValueError("<target_num_participants> cannot be None if recruit_mode == 'num_participants'.")
@@ -885,7 +890,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
             propagate_failure=False,
             recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants
+            target_num_participants=target_num_participants,
+            num_repeat_trials=num_repeat_trials
         )
 
     @property
@@ -1135,7 +1141,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
                     network_id=network.id,
                     participant_id=participant.id,
                     failed=False,
-                    complete=True
+                    complete=True,
+                    is_repeat_trial=False
                 )
                 .count()
         )
@@ -1257,7 +1264,6 @@ class NonAdaptiveNetwork(TrialNetwork):
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         This should always be ``False`` for non-adaptive experiments.
-        Stored as the field ``property3`` in the database.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -1280,8 +1286,9 @@ class NonAdaptiveNetwork(TrialNetwork):
         Returns the number of non-failed nodes in the network.
 
     num_completed_trials : int
-        Returns the number of completed and non-failed trials in the network
-        (irrespective of asynchronous processes).
+        Returns the number of completed and non-failed trials in the network,
+        irrespective of asynchronous processes,
+        but excluding end-of-phase repeat trials.
 
     stimuli : list
         Returns the stimuli associated with the network.
