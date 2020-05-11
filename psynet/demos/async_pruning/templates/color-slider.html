@@ -1,0 +1,30 @@
+{% extends "slider-page.html" %}
+
+
+{% block main_body %}
+    {{ super() }}
+    {% for color, value in hidden_inputs.items() %}
+        <input type="hidden" value="{{ value }}" id="{{ color }}">
+    {% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        console.log('Color page is loaded');
+
+        function pad(n) {
+            return (n.length < 2) ? "0" + n : n;
+        }
+
+        // Set the color
+        on_slider_event = function (event_type) {
+            var r_hex = parseInt(document.getElementById('red').value, 10).toString(16),
+                g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
+                b_hex = parseInt(document.getElementById('blue').value, 10).toString(16),
+                hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
+            document.body.style.backgroundColor = hex;
+        };
+    </script>
+{% endblock %}

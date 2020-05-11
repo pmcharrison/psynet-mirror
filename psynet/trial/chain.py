@@ -97,9 +97,12 @@ class ChainNetwork(TrialNetwork):
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the network is currently waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
+
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     num_nodes : int
         Returns the number of non-failed nodes in the network.
@@ -332,6 +335,10 @@ class ChainNetwork(TrialNetwork):
     def num_trials_still_required(self):
         assert self.target_num_trials is not None
         return self.target_num_trials - self.num_completed_trials
+
+    def fail_async_processes(self, reason):
+        super().fail_async_processes(reason)
+        self.head.fail()
 
 class ChainNode(dallinger.models.Node):
     """
@@ -573,7 +580,7 @@ class ChainNode(dallinger.models.Node):
     @property
     def completed_and_processed_trials(self):
         return Trial.query.filter_by(
-            origin_id=self.id, failed=False, complete=True, awaiting_process=False
+            origin_id=self.id, failed=False, complete=True, awaiting_async_process=False
         )
 
     @property
@@ -799,11 +806,14 @@ class ChainTrial(Trial):
         The user should not typically change this directly.
         Stored in ``property3`` in the database.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
+
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     source
         The :class:`~psynet.trial.chain.ChainSource of the
@@ -1117,7 +1127,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 )
                 .all()
         )
-        return all([not x.awaiting_process for x in networks])
+        return all([not x.awaiting_async_process for x in networks])
 
     @property
     def num_trials_still_required(self):
@@ -1186,7 +1196,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             trial_type=self.trial_type,
             phase=self.phase,
             full=False,
-            awaiting_process=False
+            awaiting_async_process=False
         )
 
         if self.chain_type == "within":
@@ -1195,11 +1205,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks = self.exclude_participated(networks, participant)
 
         networks = networks.all()
+        random.shuffle(networks)
 
         if self.active_balancing_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
-        else:
-            random.shuffle(networks)
 
         return networks
 

@@ -13,19 +13,19 @@ import psynet.experiment
 from psynet.field import claim_field
 from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page, 
+    Page,
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
-    conditional, 
+    PageMaker,
+    CodeBlock,
+    while_loop,
+    conditional,
     switch,
     FailedValidation
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage, 
+    InfoPage,
+    SuccessfulEndPage,
+    NAFCPage,
     NumberInputPage,
     TextInputPage
 )
@@ -74,10 +74,10 @@ class CustomTrial(ImitationChainTrial):
         page_2 = FixedDigitInputPage("number", "What was the number?")
 
         return [
-            page_1, 
+            page_1,
             page_2
         ]
-        
+
 class CustomNetwork(ImitationChainNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
@@ -94,8 +94,8 @@ class CustomSource(ImitationChainSource):
         return random.randint(0, 9999999)
 
 class CustomTrialMaker(ImitationChainTrialMaker):
-    trial_timeout_sec = 60
-    trial_timeout_check_interval = 30
+    response_timeout_sec = 60
+    check_timeout_interval = 30
 
 ##########################################################################################
 #### Experiment

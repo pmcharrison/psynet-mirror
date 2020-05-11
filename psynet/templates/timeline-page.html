@@ -333,7 +333,7 @@
                     }
                     if (psynet.response.waiting_for.length == 0) {
                         if (psynet.response.ready_done) {
-                            psynet.log.warn("Response-ready has already been called.");
+                            psynet.log.warning("Response-ready has already been called.");
                         } else {
                             psynet.log.info("Ready for user to enter response.");
                             psynet.response.on_ready_routines.forEach(function (f) {
@@ -353,7 +353,7 @@
                     }
                     if (psynet.submit.waiting_for.length == 0) {
                         if (psynet.submit.ready_done) {
-                            psynet.log.warn("Submit-ready has already been called.");
+                            psynet.log.warning("Submit-ready has already been called.");
                         } else {
                             psynet.log.info("Ready for user to submit response.");
                             psynet.submit.on_ready_routines.forEach(function (f) {

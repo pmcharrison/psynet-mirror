@@ -1344,7 +1344,7 @@ class BackgroundTask(NullEvent):
             end_time = time.monotonic()
             time_taken = end_time - start_time
             logger.info("The background task '%s' completed in %s seconds.", self.label, f"{time_taken:.3f}")
-        except RuntimeError:
+        except Exception:
             logger.info("An exception was thrown in the background task '%s'.", self.label, exc_info=True)
 
     def daemon(self):

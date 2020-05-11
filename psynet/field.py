@@ -30,7 +30,7 @@ def claim_field(db_index, field_type=object):
 
 class Field():
     def __init__(self, db_index, from_db, to_db, permitted_python_types, sql_type, null_value=lambda: None):
-        assert 1 <= db_index and db_index <= 5    
+        assert 1 <= db_index and db_index <= 5
         db_field = f"property{db_index}"
 
         @hybrid_property
@@ -40,7 +40,7 @@ class Field():
                 return null_value()
             else:
                 return from_db(val)
-        
+
         @function.setter
         def function(self, value):
             if value is null_value():
@@ -56,11 +56,17 @@ class Field():
 
         self.function = function
 
-def claim_var(name, use_default=False, default=lambda: None):
+def claim_var(
+        name,
+        use_default=False,
+        default=lambda: None,
+        serialise=lambda x: x,
+        unserialise=lambda x: x
+    ):
     @property
     def function(self):
         try:
-            return getattr(self.var, name)
+            return unserialise(getattr(self.var, name))
         except UndefinedVariableError:
             if use_default:
                 return default()
@@ -68,7 +74,7 @@ def claim_var(name, use_default=False, default=lambda: None):
 
     @function.setter
     def function(self, value):
-        setattr(self.var, name, value)
+        setattr(self.var, name, serialise(value))
 
     return function
 
@@ -112,10 +118,10 @@ class DictField(Field):
     def __init__(self, db_index):
         super().__init__(
             db_index,
-            from_db=json.loads, 
-            to_db=json.dumps, 
-            permitted_python_types=[dict], 
-            sql_type=String, 
+            from_db=json.loads,
+            to_db=json.dumps,
+            permitted_python_types=[dict],
+            sql_type=String,
             null_value=lambda: {}
         )
 
@@ -123,20 +129,20 @@ class ListField(Field):
     def __init__(self, db_index):
         super().__init__(
             db_index,
-            from_db=json.loads, 
-            to_db=json.dumps, 
-            permitted_python_types=[list], 
-            sql_type=String, 
+            from_db=json.loads,
+            to_db=json.dumps,
+            permitted_python_types=[list],
+            sql_type=String,
             null_value=lambda: []
         )
 
 class ObjectField(Field):
     def __init__(self, db_index):
         super().__init__(
-            db_index, 
-            from_db=json.loads, 
-            to_db=json.dumps, 
-            permitted_python_types=[object], 
+            db_index,
+            from_db=json.loads,
+            to_db=json.dumps,
+            permitted_python_types=[object],
             sql_type=String
         )
 
@@ -145,14 +151,14 @@ class UndefinedVariableError(Exception):
 
 class VarStore:
     """
-    A repository for arbitrary variables which will be serialized to JSON for storage into the 
+    A repository for arbitrary variables which will be serialized to JSON for storage into the
     database, specifically in the ``details`` field. Variables can be set with the following syntax:
     ``participant.var.my_var_name = "value_to_set"``.
     The variable can then be accessed with ``participant.var.my_var_name``.
     See the methods below for an alternative API.
 
     **TIP 1:** the standard setter function is unavailable in lambda functions,
-    which are otherwise convenient to use when defining e.g. 
+    which are otherwise convenient to use when defining e.g.
     :class:`~psynet.timeline.CodeBlock` objects.
     Use :meth:`psynet.field.VarStore.set` instead, for example:
 
@@ -164,7 +170,7 @@ class VarStore:
 
     **TIP 2:** by convention, the ``VarStore`` object is placed in an object's ``var`` slot.
     The :class:`psynet.participant.Participant` object comes with one by default
-    (unfortunately the :class:`psynet.experiment.Experiment` object doesn't, 
+    (unfortunately the :class:`psynet.experiment.Experiment` object doesn't,
     because it is not stored in the database).
     You can add a ``VarStore`` object to a custom object (e.g. a Dallinger ``Node``) as follows:
 
@@ -180,13 +186,13 @@ class VarStore:
             def var(self):
                 return VarStore(self)
 
-    **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``), 
-    as such modifications will (probably) not get propagated to the database.    
-    Support could be added in the future if Dallinger takes advantage of 
+    **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``),
+    as such modifications will (probably) not get propagated to the database.
+    Support could be added in the future if Dallinger takes advantage of
     `mutable structures in SQLAlchemy <https://docs.sqlalchemy.org/en/13/orm/extensions/mutable.html#module-sqlalchemy.ext.mutable>`_.
-    
+
     **WARNING 2:** avoid storing large objects here on account of the performance cost
-    of converting to and from JSON. 
+    of converting to and from JSON.
     """
     def __init__(self, owner):
         self._owner = owner
@@ -221,9 +227,9 @@ class VarStore:
         ----------
 
         name
-            Name of variable to retrieve. 
+            Name of variable to retrieve.
 
-        Returns 
+        Returns
         -------
 
         object
@@ -246,12 +252,12 @@ class VarStore:
         ----------
 
         name
-            Name of variable to set. 
+            Name of variable to set.
 
         value
             Value to assign to the variable.
 
-        Returns 
+        Returns
         -------
 
         VarStore
@@ -268,9 +274,9 @@ class VarStore:
         ----------
 
         name
-            Name of variable to look for. 
+            Name of variable to look for.
 
-        Returns 
+        Returns
         -------
 
         bool
@@ -291,12 +297,12 @@ class VarStore:
         ----------
 
         name
-            Name of variable to increment. 
+            Name of variable to increment.
 
         value
             Value by which to increment the varibable (default = 1).
 
-        Returns 
+        Returns
         -------
 
         VarStore
@@ -315,19 +321,19 @@ class VarStore:
 
     def new(self, name, value):
         """
-        Like :meth:`~psynet.field.VarStore.set`, except throws 
+        Like :meth:`~psynet.field.VarStore.set`, except throws
         an error if the variable exists already.
 
         Parameters
         ----------
 
         name
-            Name of variable to set. 
+            Name of variable to set.
 
         value
             Value to assign to the variable.
 
-        Returns 
+        Returns
         -------
 
         VarStore
