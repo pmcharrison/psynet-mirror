@@ -67,7 +67,11 @@ class AsyncProcessOwner():
         self.push_async_process(process_id)
         db.session.commit()
         q = Queue("default", connection = redis_conn)
-        q.enqueue(function, self.id, process_id) # pylint: disable=no-member
+        q.enqueue_call(
+            func=function,
+            args=(self.id, process_id),
+            timeout=1e10 # PsyNet deals with timeouts itself
+        ) # pylint: disable=no-member
 
     def push_async_process(self, process_id):
         pending_processes = self.pending_async_processes.copy()
