@@ -336,8 +336,8 @@ class ChainNetwork(TrialNetwork):
         assert self.target_num_trials is not None
         return self.target_num_trials - self.num_completed_trials
 
-    def fail_async_process(self):
-        super().fail_async_process()
+    def fail_async_processes(self):
+        super().fail_async_processes()
         self.head.fail()
 
 class ChainNode(dallinger.models.Node):
