@@ -1,6 +1,15 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
+#### About
+##########################################################################################
+
+# This is a version of the Gibbs demo that introduces failing of asynchronous
+# processes on various nodes and trials. It is intended to demonstrate the
+# pruning processes by which PsyNet copes with these failures. Try taking the experiment
+# as a few participants then inspecting the monitor route.
+
+##########################################################################################
 #### Imports
 ##########################################################################################
 
@@ -121,6 +130,17 @@ class CustomNetwork(GibbsNetwork):
             "target": self.balance_across_networks(TARGETS)
         }
 
+    # Minimal example of an async_post_grow_network function
+    run_async_post_grow_network = True
+    def async_post_grow_network(self):
+        logger.info("Running custom async_post_grow_network function (network id = %i)", self.id)
+        if self.num_nodes > 1:
+            if self.head.id % 3 == 0:
+                assert False
+            elif self.head.id % 4 == 0:
+                import time
+                time.sleep(1e6)
+
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
@@ -143,6 +163,16 @@ class CustomTrial(GibbsTrial):
             time_estimate=5
         )
 
+    # Minimal example of an async_post_trial function
+    run_async_post_trial = True
+    def async_post_trial(self):
+        logger.info("Running custom async post trial (id = %i)", self.id)
+        if self.id % 3 == 0:
+            assert False
+        elif self.id % 4 == 0:
+            import time
+            time.sleep(1e6)
+
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
@@ -153,6 +183,8 @@ class CustomSource(GibbsSource):
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
+    async_timeout_sec = 10
+    check_timeout_interval = 10
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
