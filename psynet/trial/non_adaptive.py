@@ -603,8 +603,8 @@ class NonAdaptiveTrial(Trial):
 
     stimulus_id = claim_field(4, int)
 
-    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial, definition):
-        super().__init__(experiment, node, participant, propagate_failure, is_repeat_trial, definition)
+    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
+        super().__init__(experiment, node, participant, propagate_failure, is_repeat_trial)
         self.stimulus_id = self.stimulus_version.stimulus_id
 
     def show_trial(self, experiment, participant):

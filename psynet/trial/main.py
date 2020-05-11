@@ -276,18 +276,14 @@ class Trial(Info, AsyncProcessOwner):
 
     #################
 
-    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial, definition):
+    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
         super().__init__(origin=node)
         self.complete = False
         self.awaiting_async_process = False
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
-
-        if definition is None:
-            self.definition = self.make_definition(experiment, participant)
-        else:
-            self.definition = definition
+        self.definition = self.make_definition(experiment, participant)
 
     def make_definition(self, experiment, participant):
         """
@@ -376,8 +372,7 @@ class Trial(Info, AsyncProcessOwner):
             node=self.origin,
             participant=self.participant,
             propagate_failure=False,
-            is_repeat_trial=True,
-            definition=self.definition
+            is_repeat_trial=True
         )
         repeat_trial.repeat_trial_index = repeat_trial_index
         repeat_trial.num_repeat_trials = num_repeat_trials
@@ -1410,8 +1405,7 @@ class NetworkTrialMaker(TrialMaker):
             node,
             participant,
             self.propagate_failure,
-            is_repeat_trial=False,
-            definition=None
+            is_repeat_trial=False
         )
         experiment.session.add(trial)
         experiment.save()

@@ -181,7 +181,8 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
-    target_num_participants=10
+    target_num_participants=10,
+    num_repeat_trials=3
 )
 
 ##########################################################################################
