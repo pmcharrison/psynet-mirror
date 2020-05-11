@@ -33,7 +33,7 @@ from ..timeline import (
 from ..page import (
     InfoPage,
     UnsuccessfulEndPage,
-    WaitPage
+    wait_while
 )
 
 from ..utils import (
@@ -627,6 +627,7 @@ class TrialMaker(Module):
     check_timeout_interval = 30
     response_timeout_sec = 60
     async_timeout_sec = 300
+    end_performance_check_waits = True
 
     def participant_fail_routine(self, participant, experiment):
         if (
@@ -937,7 +938,7 @@ class TrialMaker(Module):
 
         if type == "end" and self.end_performance_check_waits:
             return join(
-                WaitPage(self.any_pending_async_trials, wait_time=5),
+                wait_while(self.any_pending_async_trials, expected_wait=5),
                 logic
             )
         else:
@@ -960,7 +961,7 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        return self.trial_class.query.filter_by(participant_id=participant.id, phase=self.phase).all()
+        return self.trial_class.query.filter_by(participant_id=participant.id).all()
 
     def _prepare_trial(self, experiment, participant):
         trial = self.prepare_trial(experiment=experiment, participant=participant)
