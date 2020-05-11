@@ -185,7 +185,7 @@ class Trial(Info, AsyncProcessOwner):
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
-        Stored in ``property3`` in the database.
+        Stored in ``details`` in the database.
 
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
@@ -224,11 +224,13 @@ class Trial(Info, AsyncProcessOwner):
     # Properties ###
     participant_id = claim_field(1, int)
     complete = claim_field(2, bool)
-    answer = claim_field(3)
-    is_repeat_trial = claim_var(4, bool)
+    is_repeat_trial = claim_field(3, bool)
 
+    answer = claim_var("answer")
     propagate_failure = claim_var("propagate_failure")
     response_id = claim_var("response_id")
+    repeat_trial_index = claim_var("repeat_trial_index")
+    num_repeat_trials = claim_var("num_repeat_trials")
 
     # Override this if you intend to return multiple pages
     num_pages = 1
@@ -251,6 +253,10 @@ class Trial(Info, AsyncProcessOwner):
     def definition(self, definition):
         self.contents = json.dumps(definition)
 
+    @property
+    def participant(self):
+        return Participant.query.filter_by(id=self.participant_id).one()
+
     def fail(self):
         """
         Marks a trial as failed. Failing a trial means that it is somehow
@@ -270,14 +276,18 @@ class Trial(Info, AsyncProcessOwner):
 
     #################
 
-    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
+    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial, definition):
         super().__init__(origin=node)
         self.complete = False
         self.awaiting_async_process = False
         self.participant_id = participant.id
-        self.definition = self.make_definition(experiment, participant)
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
+
+        if definition is None:
+            self.definition = self.make_definition(experiment, participant)
+        else:
+            self.definition = definition
 
     def make_definition(self, experiment, participant):
         """
@@ -360,15 +370,17 @@ class Trial(Info, AsyncProcessOwner):
     #     self.failed = True
     #     self.time_of_death = timenow()
 
-    def new_repeat_trial(self, experiment):
+    def new_repeat_trial(self, experiment, repeat_trial_index, num_repeat_trials):
         repeat_trial = self.__class__(
             experiment=experiment,
             node=self.origin,
             participant=self.participant,
             propagate_failure=False,
-            is_repeat_trial=True
+            is_repeat_trial=True,
+            definition=self.definition
         )
-        repeat_trial.definition = self.definition
+        repeat_trial.repeat_trial_index = repeat_trial_index
+        repeat_trial.num_repeat_trials = num_repeat_trials
         return repeat_trial
 
 class TrialMaker(Module):
@@ -1006,7 +1018,7 @@ class TrialMaker(Module):
         try:
             trial_to_repeat_id = trials_to_repeat[repeat_trial_index]
             trial_to_repeat = self.trial_class.query.filter_by(id=trial_to_repeat_id).one()
-            trial = trial_to_repeat.new_repeat_trial(experiment)
+            trial = trial_to_repeat.new_repeat_trial(experiment, repeat_trial_index, len(trials_to_repeat))
             participant.var.inc(self.with_namespace("repeat_trial_index"))
             experiment.save(trial)
         except IndexError:
@@ -1020,6 +1032,7 @@ class TrialMaker(Module):
             self.with_namespace("trials_to_repeat"),
             random.sample(completed_trial_ids, actual_num_repeat_trials)
         )
+        participant.var.set(self.with_namespace("repeat_trial_index"), 0)
 
     def _show_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
@@ -1392,7 +1405,14 @@ class NetworkTrialMaker(TrialMaker):
         raise NotImplementedError
 
     def _create_trial(self, node, participant, experiment):
-        trial = self.trial_class(experiment, node, participant, self.propagate_failure, is_repeat_trial=False)
+        trial = self.trial_class(
+            experiment,
+            node,
+            participant,
+            self.propagate_failure,
+            is_repeat_trial=False,
+            definition=None
+        )
         experiment.session.add(trial)
         experiment.save()
         return trial

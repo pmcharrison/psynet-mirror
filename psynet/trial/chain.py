@@ -810,7 +810,7 @@ class ChainTrial(Trial):
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
-        Stored in ``property3`` in the database.
+        Stored in ``details`` in the database.
 
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process

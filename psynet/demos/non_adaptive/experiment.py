@@ -67,9 +67,18 @@ class AnimalTrial(NonAdaptiveTrial):
         animal = self.definition["animal"]
         block = self.block
 
+        if self.is_repeat_trial:
+            header = f"<h3>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+        else:
+            header = f"<h3>Block {block}</h3>"
+
         page = NAFCPage(
             "animal_trial",
-            Markup(f"<h3>Block {block}</h3> <p style='color: {text_color}'>How much do you like {animal}?</p>"),
+            Markup(
+                f"""
+                {header}
+                <p style='color: {text_color}'>How much do you like {animal}?</p>
+                """),
             ["Not at all", "A little", "Very much"]
         )
 
@@ -120,7 +129,8 @@ class Exp(psynet.experiment.Experiment):
             check_performance_every_trial=True,
             target_num_participants=None,
             target_num_trials_per_stimulus=3,
-            recruit_mode="num_trials"
+            recruit_mode="num_trials",
+            num_repeat_trials=3
         ),
         SuccessfulEndPage()
     )

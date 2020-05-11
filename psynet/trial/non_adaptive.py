@@ -563,7 +563,7 @@ class NonAdaptiveTrial(Trial):
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
-        Stored in ``property3`` in the database.
+        Stored in ``details`` in the database.
 
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
@@ -601,10 +601,10 @@ class NonAdaptiveTrial(Trial):
     """
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
 
-    stimulus_id = claim_field(5, int)
+    stimulus_id = claim_field(4, int)
 
-    def __init__(self, experiment, node, participant, propagate_failure):
-        super().__init__(experiment, node, participant, propagate_failure)
+    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial, definition):
+        super().__init__(experiment, node, participant, propagate_failure, is_repeat_trial, definition)
         self.stimulus_id = self.stimulus_version.stimulus_id
 
     def show_trial(self, experiment, participant):
