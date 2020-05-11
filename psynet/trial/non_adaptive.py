@@ -571,8 +571,8 @@ class NonAdaptiveTrial(Trial):
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
 
-    async_process_start_time : Optional[datetime]
-        Time at which the async process was called.
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     definition
         A dictionary of parameters defining the trial.
@@ -1225,8 +1225,8 @@ class NonAdaptiveNetwork(TrialNetwork):
         This should always be ``False`` for non-adaptive experiments.
         Stored as the field ``property3`` in the database.
 
-    async_process_start_time : Optional[datetime]
-        Time at which the async process was called.
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     participant_group : bool
         The network's associated participant group.

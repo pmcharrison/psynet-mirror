@@ -101,8 +101,8 @@ class ChainNetwork(TrialNetwork):
         Whether the network is currently waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
 
-    async_process_start_time : Optional[datetime]
-        Time at which the async process was called.
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     num_nodes : int
         Returns the number of non-failed nodes in the network.
@@ -336,8 +336,8 @@ class ChainNetwork(TrialNetwork):
         assert self.target_num_trials is not None
         return self.target_num_trials - self.num_completed_trials
 
-    def fail_async_processes(self):
-        super().fail_async_processes()
+    def fail_async_processes(self, reason):
+        super().fail_async_processes(reason)
         self.head.fail()
 
 class ChainNode(dallinger.models.Node):
@@ -812,8 +812,8 @@ class ChainTrial(Trial):
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
 
-    async_process_start_time : Optional[datetime]
-        Time at which the async process was called.
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     source
         The :class:`~psynet.trial.chain.ChainSource of the

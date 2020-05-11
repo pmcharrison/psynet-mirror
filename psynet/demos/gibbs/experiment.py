@@ -125,9 +125,12 @@ class CustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
     def async_post_grow_network(self):
         logger.info("Running custom async_post_grow_network function (network id = %i)", self.id)
-        if self.num_nodes > 1 and self.head.id % 3 == 0:
-            import time
-            time.sleep(1e6)
+        if self.num_nodes > 1:
+            if self.head.id % 3 == 0:
+                assert False
+            elif self.head.id % 4 == 0:
+                import time
+                time.sleep(1e6)
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -155,9 +158,11 @@ class CustomTrial(GibbsTrial):
     run_async_post_trial = True
     def async_post_trial(self):
         logger.info("Running custom async post trial (id = %i)", self.id)
-        # assert False
-        # import time
-        # time.sleep(1)
+        if self.id % 3 == 0:
+            assert False
+        elif self.id % 4 == 0:
+            import time
+            time.sleep(1e6)
 
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -170,6 +175,7 @@ class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
     async_timeout_sec = 10
+    check_timeout_interval = 10
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"

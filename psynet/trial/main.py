@@ -38,7 +38,8 @@ from ..page import (
 from ..utils import (
     call_function,
     import_local_experiment,
-    serialise_datetime
+    serialise_datetime,
+    unserialise_datetime
 )
 
 from sqlalchemy import String
@@ -54,57 +55,51 @@ import rpdb
 
 class AsyncProcessOwner():
     awaiting_async_process = claim_field(5, bool)
-    pending_async_processes = claim_var("pending_async_processes", use_default=True, default=lambda: [])
-    failed_async_processes = claim_var("failed_async_processes", use_default=True, default=lambda: [])
+    pending_async_processes = claim_var("pending_async_processes", use_default=True, default=lambda: {})
+    failed_async_processes = claim_var("failed_async_processes", use_default=True, default=lambda: {})
 
-    def has_async_process(self, process_id):
-        for process in self.pending_async_processes:
-            if process["process_id"] == process_id:
-                return True
-        return False
+    @property
+    def earliest_async_process_start_time(self):
+        return min([unserialise_datetime(x["start_time"]) for x in self.pending_async_processes.values()])
 
     def queue_async_process(self, function):
-        process_id = uuid4()
+        process_id = str(uuid4())
         self.push_async_process(process_id)
+        db.session.commit()
         q = Queue("default", connection = redis_conn)
         q.enqueue(function, self.id, process_id) # pylint: disable=no-member
 
     def push_async_process(self, process_id):
-        process = {
-            "process_id": process_id,
-            "start_time": datetime.datetime.now()
+        pending_processes = self.pending_async_processes.copy()
+        pending_processes[process_id] = {
+            "start_time": serialise_datetime(datetime.datetime.now())
         }
-        self.pending_async_processes = self.pending_async_processes + [process]
+        self.pending_async_processes = pending_processes
         self.awaiting_async_process = True
 
     def pop_async_process(self, process_id):
-        processes = []
-        match = False
-        for process in self.pending_async_processes:
-            if process["process_id"] == process_id:
-                match = True
-            else:
-                processes.append(process)
-        if not match:
+        pending_processes = self.pending_async_processes.copy()
+        if process_id not in pending_processes:
             raise ValueError(
                 f"process_id {process_id} not found in pending async processes"
-                + " for {self.__class__.__name__} {self.id}."
+                + f" for {self.__class__.__name__} {self.id}."
             )
-        self.pending_async_processes = processes
-        self.awaiting_async_process = len(processes) > 0
+        del pending_processes[process_id]
+        self.pending_async_processes = pending_processes
+        self.awaiting_async_process = len(pending_processes) > 0
 
-    def fail_async_processes(self):
+    def fail_async_processes(self, reason):
         pending_processes = self.pending_async_processes
-        for process in pending_processes:
-            self.register_failed_process(process["process_id"])
-            self.pop_async_process(process["process_id"])
+        for process_id, _ in pending_processes.items():
+            self.register_failed_process(process_id, reason)
+            self.pop_async_process(process_id)
 
-    def register_failed_process(self, process_id):
-        failed_async_processes = self.failed_async_processes
-        failed_async_processes.append({
-            "process_id": process_id,
-            "time": serialise_datetime(datetime.datetime.now())
-        })
+    def register_failed_process(self, process_id, reason):
+        failed_async_processes = self.failed_async_processes.copy()
+        failed_async_processes[process_id] = {
+            "time": serialise_datetime(datetime.datetime.now()),
+            "reason": reason
+        }
         self.failed_async_processes = failed_async_processes
 
 class Trial(Info, AsyncProcessOwner):
@@ -192,8 +187,8 @@ class Trial(Info, AsyncProcessOwner):
         The user should not typically change this directly.
         Stored in ``property4`` in the database.
 
-    async_process_start_time : Optional[datetime]
-        Time at which the async process was called.
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
 
     propagate_failure : bool
         Whether failure of a trial should be propagated to other
@@ -274,7 +269,6 @@ class Trial(Info, AsyncProcessOwner):
         super().__init__(origin=node)
         self.complete = False
         self.awaiting_async_process = False
-        self.async_process_start_time = None
         self.participant_id = participant.id
         self.definition = self.make_definition(experiment, participant)
         self.propagate_failure = propagate_failure
@@ -351,6 +345,10 @@ class Trial(Info, AsyncProcessOwner):
         is set to ``True``.
         """
         raise NotImplementedError
+
+    def fail_async_processes(self, reason):
+        super().fail_async_processes(reason)
+        self.fail()
 
     # def fail(self):
     #     self.failed = True
@@ -750,12 +748,12 @@ class TrialMaker(Module):
             trial.fail()
 
     def check_async_trials(self):
-        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
         trials_awaiting_processes = self.trial_class.query.filter_by(awaiting_async_process=True).all()
-        trials_to_fail = [t for t in trials_awaiting_processes if t.async_process_start_time < time_threshold]
+        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
+        trials_to_fail = [t for t in trials_awaiting_processes if t.earliest_async_process_start_time < time_threshold]
         logger.info("Found %i trial(s) with long-pending asynchronous processes to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
-            trial.fail_async_processes()
+            trial.fail_async_processes(reason="long-pending trial process")
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -1339,10 +1337,10 @@ class NetworkTrialMaker(TrialMaker):
     def check_async_networks(self):
         time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
         networks_awaiting_processes = self.network_class.query.filter_by(awaiting_async_process=True).all()
-        networks_to_fail = [n for n in networks_awaiting_processes if n.async_process_start_time < time_threshold]
+        networks_to_fail = [n for n in networks_awaiting_processes if n.earliest_async_process_start_time < time_threshold]
         logger.info("Found %i network(s) with long-pending asynchronous processes to clear.", len(networks_to_fail))
         for network in networks_to_fail:
-            network.fail_async_processes()
+            network.fail_async_processes(reason="long-pending network process")
 
 class TrialNetwork(Network, AsyncProcessOwner):
     """
@@ -1394,9 +1392,6 @@ class TrialNetwork(Network, AsyncProcessOwner):
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         Set by default to ``False`` in the ``__init__`` function.
         Stored as the field ``property3`` in the database.
-
-    async_process_start_time : Optional[datetime]
-        Time at which the async process was called.
 
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
@@ -1455,7 +1450,6 @@ class TrialNetwork(Network, AsyncProcessOwner):
         # pylint: disable=unused-argument
         self.trial_type = trial_type
         self.awaiting_async_process = False
-        self.async_process_start_time = None
         self.phase = phase
 
     @property
@@ -1479,13 +1473,13 @@ def call_async_post_trial(trial_id, process_id):
     import_local_experiment()
     trial = Trial.query.filter_by(id=trial_id).one()
     try:
-        if trial.has_async_process(process_id):
+        if process_id in trial.pending_async_processes:
             trial.async_post_trial()
             trial.pop_async_process(process_id)
         else:
-            logger.info("Skipping async process %i as it is no longer queued.", process_id)
-    except Exception:
-        trial.fail_async_processes()
+            logger.info("Skipping async process %s as it is no longer queued.", process_id)
+    except Exception as e:
+        trial.fail_async_processes(reason=f"exception in post-trial process: {e.__class__.__name__}")
         raise
     finally:
         db.session.commit() # pylint: disable=no-member
@@ -1495,13 +1489,13 @@ def call_async_post_grow_network(network_id, process_id):
     import_local_experiment()
     network = Network.query.filter_by(id=network_id).one()
     try:
-        if network.has_async_process(process_id):
+        if process_id in network.pending_async_processes:
             network.async_post_grow_network()
             network.pop_async_process(process_id)
         else:
-            logger.info("Skipping async process %i as it is no longer queued.", process_id)
-    except Exception:
-        network.fail_async_processes()
+            logger.info("Skipping async process %s as it is no longer queued.", process_id)
+    except Exception as e:
+        network.fail_async_processes(reason=f"exception in post-grow-network process: {e.__class__.__name__}")
         raise
     finally:
         db.session.commit() # pylint: disable=no-member
