@@ -1262,10 +1262,10 @@ class NonAdaptiveNetwork(TrialNetwork):
 
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
 
-    participant_group = claim_field(4, str)
-    block = claim_field(5, str)
+    participant_group = claim_field(3, str)
+    block = claim_field(4, str)
 
-    def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
+    def __init__(self, *, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group
         self.block = block
         super().__init__(trial_type, phase, experiment)

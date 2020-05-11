@@ -137,8 +137,8 @@ class ChainNetwork(TrialNetwork):
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
 
-    participant_id = claim_field(4, int)
-    id_within_participant = claim_field(5, int)
+    participant_id = claim_field(3, int)
+    id_within_participant = claim_field(4, int)
 
     chain_type = claim_var("_chain_type")
     trials_per_node = claim_var("_trials_per_node")
