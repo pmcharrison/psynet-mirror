@@ -977,8 +977,8 @@ class TrialMaker(Module):
 
     def get_participant_trials(self, participant):
         """
-        Returns all trials (complete and incomplete) owned by the current participant.
-        Not intended for overriding.
+        Returns all trials (complete and incomplete) owned by the current participant,
+        including repeat trials. Not intended for overriding.
 
         Parameters
         ----------
