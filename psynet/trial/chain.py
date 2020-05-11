@@ -932,10 +932,6 @@ class ChainTrialMaker(NetworkTrialMaker):
     either being owned by individual participants ("within-participant" designs)
     or shared across participants ("across-participant" designs).
 
-    The user will typically not have to override any methods or attributes in this class,
-    but will instead customise it through parameters passed to the
-    ``__init__`` function.
-
     Parameters
     ----------
 
@@ -1030,7 +1026,46 @@ class ChainTrialMaker(NetworkTrialMaker):
         parts of the experiment (the nature of this propagation is left up
         to the implementation).
 
+    Attributes
+    ----------
 
+    check_timeout_interval : float
+        How often to check for trials that have timed out, in seconds (default = 30).
+        Users are invited to override this.
+
+    response_timeout_sec : float
+        How long until a trial's response times out, in seconds (default = 60)
+        (i.e. how long PsyNet will wait for the participant's response to a trial).
+        This is a lower bound on the actual timeout
+        time, which depends on when the timeout daemon next runs,
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        Users are invited to override this.
+
+    async_timeout_sec : float
+        How long until an async process times out, in seconds (default = 300).
+        This is a lower bound on the actual timeout
+        time, which depends on when the timeout daemon next runs,
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        Users are invited to override this.
+
+    network_query
+        An SQLAlchemy query for retrieving all networks owned by the current trial maker.
+        Can be used for operations such as the following: ``self.network_query.count()``.
+
+    num_networks : int
+        Returns the number of networks owned by the trial maker.
+
+    networks : list
+        Returns the networks owned by the trial maker.
+
+    performance_check_threshold : float
+        Score threshold used by the default performance check method, defaults to 0.0.
+        By default, corresponds to the minimum proportion of non-failed trials that
+        the participant must achieve to pass the performance check.
+
+    end_performance_check_waits : bool
+        If True (default), then the final performance check waits until all trials no
+        longer have any pending asynchronous processes.
     """
     def __init__(
         self,

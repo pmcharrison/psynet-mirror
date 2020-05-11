@@ -32,7 +32,8 @@ from ..timeline import (
 
 from ..page import (
     InfoPage,
-    UnsuccessfulEndPage
+    UnsuccessfulEndPage,
+    wait_while
 )
 
 from ..utils import (
@@ -501,6 +502,15 @@ class TrialMaker(Module):
         If ``True``, then participants who pass the final performance check
         are given feedback. This feedback can be customised by overriding
         :meth:`~psynet.trial.main.TrialMaker.get_end_feedback_passed_page`.
+
+    performance_check_threshold : float
+        Score threshold used by the default performance check method, defaults to 0.0.
+        By default, corresponds to the minimum proportion of non-failed trials that
+        the participant must achieve to pass the performance check.
+
+    end_performance_check_waits : bool
+        If True (default), then the final performance check waits until all trials no
+        longer have any pending asynchronous processes.
     """
 
     def __init__(
@@ -550,6 +560,8 @@ class TrialMaker(Module):
         super().__init__(label=self.with_namespace(), events=events)
 
     participant_progress_threshold = 0.1
+
+    performance_check_threshold = 0.0
 
     introduction = None
 
@@ -615,6 +627,7 @@ class TrialMaker(Module):
     check_timeout_interval = 30
     response_timeout_sec = 60
     async_timeout_sec = 300
+    end_performance_check_waits = True
 
     def participant_fail_routine(self, participant, experiment):
         if (
@@ -853,13 +866,21 @@ class TrialMaker(Module):
 
         A tuple (float, bool)
             The first value in the tuple should some kind of score,
-            expressed as a ``float``.
+            expressed as a ``float`` or ``None``.
             The second value should be equal to ``True``
             if the participant passed the check,
             and ``False`` otherwise.
-            Defaults to ``(0, True)``.
+            Defaults to ``(p, True)``, where p is the proportion of non-failed trials.
         """
-        return (0, True)
+        num_trials = len(participant_trials)
+        if num_trials == 0:
+            p = None
+            passed = True
+        else:
+            num_failed_trials = len([t for t in participant_trials if t.failed])
+            p = 1 - num_failed_trials / num_trials
+            passed = p >= self.performance_check_threshold
+        return (p, passed)
 
     def with_namespace(self, x=None, shared_between_phases=False):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
@@ -904,7 +925,7 @@ class TrialMaker(Module):
 
         assert type in ["trial", "end"]
 
-        return switch(
+        logic = switch(
             "performance_check",
             function=eval_checks,
             branches={
@@ -914,6 +935,18 @@ class TrialMaker(Module):
             fix_time_credit=False,
             log_chosen_branch=False
         )
+
+        if type == "end" and self.end_performance_check_waits:
+            return join(
+                wait_while(self.any_pending_async_trials, expected_wait=5),
+                logic
+            )
+        else:
+            return logic
+
+    def any_pending_async_trials(self, participant):
+        trials = self.get_participant_trials(participant)
+        return any([t.awaiting_async_process for t in trials])
 
     def get_participant_trials(self, participant):
         """
@@ -1182,6 +1215,15 @@ class NetworkTrialMaker(TrialMaker):
 
     networks : list
         Returns the networks owned by the trial maker.
+
+    performance_check_threshold : float
+        Score threshold used by the default performance check method, defaults to 0.0.
+        By default, corresponds to the minimum proportion of non-failed trials that
+        the participant must achieve to pass the performance check.
+
+    end_performance_check_waits : bool
+        If True (default), then the final performance check waits until all trials no
+        longer have any pending asynchronous processes.
     """
 
     def __init__(
