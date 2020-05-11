@@ -33,7 +33,7 @@
         var ndata = {{ my_data |safe }}; // this  is a container for all the data coming from the route
 
         Array.prototype.unique = function() {
-          return this.filter(function (value, index, self) { 
+          return this.filter(function (value, index, self) {
             return self.indexOf(value) === index;
           });
         }
@@ -254,11 +254,11 @@
                     participant=list_of_participants[participant_id];
                 } else {
                     if (pn.length>1) { // mark nodes with more than one participant in a way clearly  visible
-                        participant.clr='black' 
+                        participant.clr='black'
                     }
 
                 }
-                
+
               } else {
                 participant=list_of_participants[participant_id];
                 }
@@ -316,18 +316,22 @@
               } else {
                 participant=list_of_participants[participant_id];
                 }
+                var color;
                if (info.failed) {
                 mgroup='failed_infos'
+                color = "red";
               } else {
                 mgroup='good_infos'
+                color = participant.clr;
               }
               nodes.push({
                 id: my_node_id,
-                label: "info:"+ String(info.id), dashes:true,
+                label: "info:"+ String(info.id),
+                dashes:true,
                 title: ('<pre><code><font size="-2">'+ JSON.stringify(info, null, 2) + '</font></code></pre>'),
                 group: mgroup,
                 font: {align: 'inside'},
-                icon: {color: participant.clr}
+                icon: {color: color}
 
               });
               if (participant_id>0) {

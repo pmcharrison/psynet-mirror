@@ -125,6 +125,9 @@ class CustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
     def async_post_grow_network(self):
         logger.info("Running custom async_post_grow_network function (network id = %i)", self.id)
+        if self.num_nodes > 1 and self.head.id % 3 == 0:
+            import time
+            time.sleep(1e6)
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -134,7 +137,6 @@ class CustomTrial(GibbsTrial):
     resample_free_parameter = True
 
     def show_trial(self, experiment, participant):
-        selected_color = COLORS[self.active_index]
         target = self.network.definition["target"]
         prompt = Markup(
             "Adjust the slider to match the following word as well as possible: "
@@ -153,6 +155,9 @@ class CustomTrial(GibbsTrial):
     run_async_post_trial = True
     def async_post_trial(self):
         logger.info("Running custom async post trial (id = %i)", self.id)
+        # assert False
+        # import time
+        # time.sleep(1)
 
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -164,6 +169,7 @@ class CustomSource(GibbsSource):
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
+    async_timeout_sec = 10
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
@@ -181,12 +187,12 @@ trial_maker = CustomTrialMaker(
     source_class=CustomSource,
     phase="experiment",  # can be whatever you like
     time_estimate_per_trial=5,
-    chain_type="within",  # can be "within" or "across"
-    num_trials_per_participant=10,
+    chain_type="across",  # can be "within" or "across"
+    num_trials_per_participant=4,
     num_nodes_per_chain=6, # note that the final node receives no trials
-    num_chains_per_participant=1,  # set to None if chain_type="across"
-    num_chains_per_experiment=None,  # set to None if chain_type="within"
-    trials_per_node=3,
+    num_chains_per_participant=None,  # set to None if chain_type="across"
+    num_chains_per_experiment=4,  # set to None if chain_type="within"
+    trials_per_node=1,
     active_balancing_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,

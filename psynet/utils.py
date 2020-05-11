@@ -7,6 +7,7 @@ import os
 import pandas as pd
 import hashlib
 import importlib.util
+import datetime
 
 from functools import reduce, wraps
 from sqlalchemy.sql import func
@@ -237,3 +238,13 @@ def import_module(name, source):
     spec = importlib.util.spec_from_file_location(name, source)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
+
+def serialise_datetime(x):
+    if x is None:
+        return None
+    return x.isoformat()
+
+def unserialise_datetime(x):
+    if x is None:
+        return None
+    return datetime.datetime.fromisoformat(x)

@@ -3,6 +3,8 @@
 import json
 from typing import Union, Optional
 import datetime
+from uuid import uuid4
+
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network
@@ -34,7 +36,13 @@ from ..page import (
     UnsuccessfulEndPage
 )
 
-from ..utils import call_function, log_time_taken, import_local_experiment
+from ..utils import (
+    call_function,
+    log_time_taken,
+    import_local_experiment,
+    serialise_datetime,
+    unserialise_datetime
+)
 
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -169,7 +177,18 @@ class Trial(Info):
     answer = claim_field(3)
     awaiting_async_process = claim_field(4, bool)
 
-    async_process_start_time = claim_var("async_process_start_time")
+    async_process_start_time = claim_var(
+        "async_process_start_time",
+        serialise=serialise_datetime,
+        unserialise=unserialise_datetime
+    )
+    async_process_failed = claim_var(
+        "async_process_failed",
+        serialise=serialise_datetime,
+        unserialise=unserialise_datetime
+    )
+
+    pending_async_processes = claim_var("pending_async_processes")
     propagate_failure = claim_var("propagate_failure")
     response_id = claim_var("response_id")
 
@@ -295,6 +314,39 @@ class Trial(Info):
         """
         raise NotImplementedError
 
+    def queue_async_process(self, function):
+        process_id = uuid4()
+        self.push_async_process(process_id)
+        q = Queue("default", connection = redis_conn)
+        q.enqueue(function, self.id, process_id)
+
+    def push_async_process(self, process_id):
+        process = {
+            "process_id": process_id,
+            "start_time": datetime.datetime.now()
+        }
+        self.pending_async_processes = self.pending_async_processes + [process]
+        self.awaiting_async_process = True
+
+    def pop_async_process(self, process_id):
+        processes = []
+        match = False
+        for process in self.pending_async_processes:
+            if process["process_id"] == process_id:
+                match = True
+            else:
+                processes.append(process)
+        if not match:
+            raise ValueError(f"process_id {process_id} not found in pending async processes for trial {self.id}.")
+        self.pending_async_processes = processes
+        self.awaiting_async_process = len(processes) > 0
+
+    def fail_async_processes(self):
+        self.pending_async_processes = []
+        self.awaiting_async_process = False
+        self.async_process_failed = datetime.datetime.now()
+        self.fail()
+
     # def fail(self):
     #     self.failed = True
     #     self.time_of_death = timenow()
@@ -416,15 +468,23 @@ class TrialMaker(Module):
     Attributes
     ----------
 
-    trial_timeout_check_interval : float
-        How often to check for trials that have timed out, in seconds (default = 30).
+    check_timeout_interval : float
+        How often to check for timeouts, in seconds (default = 30).
         Users are invited to override this.
 
-    trial_timeout_sec : float
-        How long until a trial times out, in seconds (default = 60).
-        Tthis is a lower bound on the actual timeout
+    response_timeout_sec : float
+        How long until a trial's response times out, in seconds (default = 60)
+        (i.e. how long PsyNet will wait for the participant's response to a trial).
+        This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.trial_timeout_sec`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        Users are invited to override this.
+
+    async_timeout_sec : float
+        How long until an async process times out, in seconds (default = 300).
+        This is a lower bound on the actual timeout
+        time, which depends on when the timeout daemon next runs,
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
         Users are invited to override this.
 
     introduction
@@ -473,7 +533,7 @@ class TrialMaker(Module):
             ExperimentSetupRoutine(self.experiment_setup_routine),
             ParticipantFailRoutine(self.with_namespace(), self.participant_fail_routine),
             RecruitmentCriterion(self.with_namespace(), self.selected_recruit_criterion),
-            self.fail_old_trials_task,
+            self.check_timeout_task,
             CodeBlock(self.init_participant),
             self.introduction,
             self._trial_loop(),
@@ -545,8 +605,9 @@ class TrialMaker(Module):
         """
         raise NotImplementedError
 
-    trial_timeout_check_interval = 30
-    trial_timeout_sec = 60
+    check_timeout_interval = 30
+    response_timeout_sec = 60
+    async_timeout_sec = 300
 
     def participant_fail_routine(self, participant, experiment):
         if (
@@ -559,12 +620,18 @@ class TrialMaker(Module):
             self.fail_participant_trials(participant)
 
     @property
-    def fail_old_trials_task(self):
+    def check_timeout_task(self):
         return BackgroundTask(
-            self.with_namespace("fail_old_trials"),
-            self.fail_old_trials,
-            interval_sec=self.trial_timeout_check_interval
+            self.with_namespace("check_timeout"),
+            self.check_timeout,
+            interval_sec=self.check_timeout_interval
         )
+
+    def check_timeout(self):
+        # pylint: disable=no-member
+        self.check_old_trials()
+        self.check_async_trials()
+        db.session.commit()
 
     def selected_recruit_criterion(self, experiment):
         if self.recruit_mode not in self.recruit_criteria:
@@ -661,8 +728,8 @@ class TrialMaker(Module):
             if p.progress > self.participant_progress_threshold
         ]
 
-    def fail_old_trials(self):
-        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.trial_timeout_sec)
+    def check_old_trials(self):
+        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.response_timeout_sec)
         trials_to_fail = (
             self.trial_class
                 .query
@@ -676,8 +743,14 @@ class TrialMaker(Module):
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
             trial.fail()
-        # pylint: disable=no-member
-        db.session.commit()
+
+    def check_async_trials(self):
+        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
+        trials_awaiting_processes = self.trial_class.query.filter_by(awaiting_async_process=True).all()
+        trials_to_fail = [t for t in trials_awaiting_processes if t.async_process_start_time < time_threshold]
+        logger.info("Found %i trial(s) with long-pending asynchronous processes to fail.", len(trials_to_fail))
+        for trial in trials_to_fail:
+            trial.fail_async_processes()
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -1074,15 +1147,23 @@ class NetworkTrialMaker(TrialMaker):
     Attributes
     ----------
 
-    trial_timeout_check_interval : float
+    check_timeout_interval : float
         How often to check for trials that have timed out, in seconds (default = 30).
         Users are invited to override this.
 
-    trial_timeout_sec : float
-        How long until a trial times out, in seconds (default = 60).
-        Tthis is a lower bound on the actual timeout
+    response_timeout_sec : float
+        How long until a trial's response times out, in seconds (default = 60)
+        (i.e. how long PsyNet will wait for the participant's response to a trial).
+        This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.trial_timeout_sec`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        Users are invited to override this.
+
+    async_timeout_sec : float
+        How long until an async process times out, in seconds (default = 300).
+        This is a lower bound on the actual timeout
+        time, which depends on when the timeout daemon next runs,
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
         Users are invited to override this.
 
     network_query
@@ -1211,26 +1292,19 @@ class NetworkTrialMaker(TrialMaker):
         return trial
 
     def finalise_trial(self, answer, trial, experiment, participant):
-        # pylint: disable=unused-argument,no-self-use
+        # pylint: disable=unused-argument,no-self-use,no-member
         super().finalise_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
-            trial.awaiting_async_process = True
-            trial.async_process_start_time = datetime.datetime.now()
-            q = Queue("default", connection = redis_conn)
-            q.enqueue(call_async_post_trial, trial.id)
-            # pylint: disable=no-member
+            trial.queue_async_process(call_async_post_trial)
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
     def _grow_network(self, network, participant, experiment):
+        # pylint: disable=no-member
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            network.awaiting_async_process = True
-            network.async_process_start_time = datetime.datetime.now()
-            q = Queue("default", connection = redis_conn)
-            q.enqueue(call_async_post_grow_network, network.id)
-            # pylint: disable=no-member
+            network.queue_async_process(call_async_post_grow_network)
             db.session.commit()
 
     @property
@@ -1251,6 +1325,19 @@ class NetworkTrialMaker(TrialMaker):
     @property
     def networks(self):
         return self.network_query.all()
+
+    def check_timeout(self):
+        super().check_timeout()
+        self.check_async_networks()
+        db.session.commit()
+
+    def check_async_networks(self):
+        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
+        networks_awaiting_processes = self.network_class.query.filter_by(awaiting_async_process=True).all()
+        networks_to_fail = [n for n in networks_awaiting_processes if n.async_process_start_time < time_threshold]
+        logger.info("Found %i network(s) with long-pending asynchronous processes to clear.", len(networks_to_fail))
+        for network in networks_to_fail:
+            network.fail_async_processes()
 
 class TrialNetwork(Network):
     """
@@ -1333,7 +1420,13 @@ class TrialNetwork(Network):
     target_num_trials = claim_field(2, int)
     awaiting_async_process = claim_field(3, bool)
 
-    async_process_start_time = claim_var("async_process_start_time")
+    pending_async_processes = claim_var("pending_async_processes")
+
+    async_process_start_time = claim_var(
+        "async_process_start_time",
+        serialise=serialise_datetime,
+        unserialise=unserialise_datetime
+    )
 
     def add_node(self, node):
         """
@@ -1385,20 +1478,87 @@ class TrialNetwork(Network):
         is set to ``True``.
         """
 
-def call_async_post_trial(trial_id):
-    logger.info("Running async_post_trial for trial %i...", trial_id)
+    def fail_async_processes(self):
+        time = serialise_datetime(datetime.datetime.now())
+
+        if self.var.has("async_process_failed"):
+            fail_log = self.var.async_process_failed
+        else:
+            fail_log = []
+
+        def register_failed_process(process_id):
+            fail_log.append({
+                "process_id": process_id,
+                "time": time
+            })
+
+        pending_processes = self.pending_async_processes
+        for process in pending_processes:
+            register_failed_process(process["process_id"])
+            self.pop_async_process(process["process_id"])
+
+        self.clear_async_process()
+
+    def clear_async_process(self):
+        self.awaiting_async_process = False
+        self.async_process_start_time = None
+
+    def queue_async_process(self, function):
+        process_id = uuid4()
+        self.push_async_process(process_id)
+        q = Queue("default", connection = redis_conn)
+        q.enqueue(function, self.id, process_id)
+
+    def push_async_process(self, process_id):
+        process = {
+            "process_id": process_id,
+            "start_time": datetime.datetime.now()
+        }
+        self.pending_async_processes = self.pending_async_processes + [process]
+        self.awaiting_async_process = True
+
+    def pop_async_process(self, process_id):
+        processes = []
+        match = False
+        for process in self.pending_async_processes:
+            if process["process_id"] == process_id:
+                match = True
+            else:
+                processes.append(process)
+        if not match:
+            raise ValueError(f"process_id {process_id} not found in pending async processes for network {self.id}.")
+        self.pending_async_processes = processes
+        self.awaiting_async_process = len(processes) > 0
+
+def call_async_post_trial(trial_id, process_id):
+    logger.info("Running async_post_trial process %s for trial %i...", process_id, trial_id)
     import_local_experiment()
     trial = Trial.query.filter_by(id=trial_id).one()
-    trial.async_post_trial()
-    trial.awaiting_async_process = False
-    trial.async_process_start_time = None
-    db.session.commit()
+    try:
+        if trial.awaiting_async_process:
+            trial.async_post_trial()
+            trial.pop_async_process(process_id)
+        else:
+            logger.info("Cancelling async process as trial.awaiting_async_process is False.")
+    except Exception:
+        trial.fail_async_process(process_id)
+        raise
+    finally:
+        db.session.commit()
 
 def call_async_post_grow_network(network_id):
     logger.info("Running async_post_grow_network for network %i...", network_id)
     import_local_experiment()
     network = Network.query.filter_by(id=network_id).one()
-    network.async_post_grow_network()
-    network.awaiting_async_process = False
-    network.async_process_start_time = None
-    db.session.commit()
+    try:
+        if network.awaiting_async_process:
+            network.async_post_grow_network()
+            network.clear_async_process()
+        else:
+            logger.info("Cancelling async process as network.awaiting_async_process is False.")
+            network.clear_async_process()
+    except Exception:
+        network.fail_async_process()
+        raise
+    finally:
+        db.session.commit()

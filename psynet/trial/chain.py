@@ -336,6 +336,10 @@ class ChainNetwork(TrialNetwork):
         assert self.target_num_trials is not None
         return self.target_num_trials - self.num_completed_trials
 
+    def fail_async_process(self):
+        super().fail_async_process()
+        self.head.fail()
+
 class ChainNode(dallinger.models.Node):
     """
     Represents a node in a chain network.
@@ -1201,11 +1205,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks = self.exclude_participated(networks, participant)
 
         networks = networks.all()
+        random.shuffle(networks)
 
         if self.active_balancing_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
-        else:
-            random.shuffle(networks)
 
         return networks
 
