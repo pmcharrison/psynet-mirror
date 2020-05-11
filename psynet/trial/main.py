@@ -32,7 +32,8 @@ from ..timeline import (
 
 from ..page import (
     InfoPage,
-    UnsuccessfulEndPage
+    UnsuccessfulEndPage,
+    WaitPage
 )
 
 from ..utils import (
@@ -506,6 +507,10 @@ class TrialMaker(Module):
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
+
+    end_performance_check_waits : bool
+        If True (default), then the final performance check waits until all trials no
+        longer have any pending asynchronous processes.
     """
 
     def __init__(
@@ -919,7 +924,7 @@ class TrialMaker(Module):
 
         assert type in ["trial", "end"]
 
-        return switch(
+        logic = switch(
             "performance_check",
             function=eval_checks,
             branches={
@@ -929,6 +934,18 @@ class TrialMaker(Module):
             fix_time_credit=False,
             log_chosen_branch=False
         )
+
+        if type == "end" and self.end_performance_check_waits:
+            return join(
+                WaitPage(self.any_pending_async_trials, wait_time=5),
+                logic
+            )
+        else:
+            return logic
+
+    def any_pending_async_trials(self, participant):
+        trials = self.get_participant_trials(participant)
+        return any([t.awaiting_async_process for t in trials])
 
     def get_participant_trials(self, participant):
         """
@@ -1202,6 +1219,10 @@ class NetworkTrialMaker(TrialMaker):
         Score threshold used by the default performance check method, defaults to 0.0.
         By default, corresponds to the minimum proportion of non-failed trials that
         the participant must achieve to pass the performance check.
+
+    end_performance_check_waits : bool
+        If True (default), then the final performance check waits until all trials no
+        longer have any pending asynchronous processes.
     """
 
     def __init__(
