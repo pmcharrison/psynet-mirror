@@ -76,7 +76,8 @@ def gibbs_factory(config):
                 return 0.0
             elif self.phase == "experiment":
                 return max(0.0, score)
-            else raise NotImplementedError
+            else:
+                raise NotImplementedError
 
     instructions = join(
         InfoPage(

@@ -66,6 +66,7 @@ class ColorSliderPage(SliderPage):
             reverse_scale=reverse_scale,
             template_arg={
                 'hidden_inputs': hidden_inputs,
+                'starting_values': starting_values
             },
             continuous_updates=True
         )
