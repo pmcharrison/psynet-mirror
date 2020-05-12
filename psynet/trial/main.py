@@ -1289,8 +1289,6 @@ class NetworkTrialMaker(TrialMaker):
     performance_threshold : float (default = -1.0)
         The performance threshold that is used in the
         :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check` method.
-        Corresponds to a minimum Pearson correlation between the participant's repeaetd
-        answers to the same nodes.
     """
 
     def __init__(
@@ -1466,7 +1464,7 @@ class NetworkTrialMaker(TrialMaker):
     performance_threshold = -1.0
     min_nodes_for_performance_check = 3
     performance_check_type = "consistency"
-    consistency_check_type = "pearson_correlation"
+    consistency_check_type = "spearman_correlation"
 
     def compute_bonus(self, score, passed):
         """
@@ -1547,6 +1545,8 @@ class NetworkTrialMaker(TrialMaker):
     def get_consistency(self, x, y):
         if self.consistency_check_type == "pearson_correlation":
             return corr(x, y)
+        elif self.consistency_check_type == "spearman_correlation":
+            return corr(x, y, method="spearman")
         elif self.consistency_check_type == "percent_agreement":
             num_cases = len(x)
             num_agreements = sum([a == b for a, b in zip(x, y)])
