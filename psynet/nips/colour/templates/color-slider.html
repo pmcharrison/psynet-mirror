@@ -1,0 +1,39 @@
+{% extends "slider-page.html" %}
+
+
+{% block main_body %}
+    {{ super() }}
+
+    <style>
+        .main_div {
+            background-color: white;
+            padding: 30px;
+        }
+    </style>
+
+    {% for color, value in hidden_inputs.items() %}
+        <input type="hidden" value="{{ value }}" id="{{ color }}">
+    {% endfor %}
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function pad(n) {
+            return (n.length < 2) ? "0" + n : n;
+        }
+
+        // Set the color
+        on_slider_event = function (event_type) {
+            psynet.log.debug("Updating slider background");
+            var r_hex = parseInt(document.getElementById('red').value, 10).toString(16),
+                g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
+                b_hex = parseInt(document.getElementById('blue').value, 10).toString(16),
+                hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
+            document.body.style.backgroundColor = hex;
+        };
+
+        document.addEventListener("load", on_slider_event);
+    </script>
+{% endblock %}

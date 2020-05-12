@@ -208,7 +208,7 @@
                 psynet.log.counter = 0;
 
                 psynet.log.generic = function (msg, level) {
-                    if (level !== "error" && level !== "warn" && level !== "info" && level !== "debug") {
+                    if (level !== "error" && level !== "warning" && level !== "info" && level !== "debug") {
                         throw new Error("Invalid log level: " + level);
                     }
 
@@ -233,8 +233,10 @@
                 };
 
                 psynet.log.warning = function (msg) {
-                    psynet.log.generic(msg, "warn")
+                    psynet.log.generic(msg, "warning")
                 };
+
+                psynet.log.warn = psynet.log.warning
 
                 psynet.log.info = function (msg) {
                     psynet.log.generic(msg, "info")
@@ -282,6 +284,12 @@
 
                 psynet.response.register_on_ready_routine = function (f) {
                     // Registers a function to be called when psynet.response.ready() is called.
+                    if (psynet.response.ready_done) {
+                        psynet.log.warn(
+                            "Tried to register a response.register_on_ready_routine, " +
+                            "but the response-ready event has already occurred."
+                        );
+                    }
                     if (!psynet.utils.is_function(f)) {
                         throw Error("f was not a function.");
                     }
@@ -290,6 +298,12 @@
 
                 psynet.submit.register_on_ready_routine = function (f) {
                     // Registers a function to be called when psynet.submit.ready() is called.
+                    if (psynet.submit.ready_done) {
+                        psynet.log.warn(
+                            "Tried to register a submit.register_on_ready_routine, " +
+                            "but the submit-ready event has already occurred."
+                        );
+                    }
                     if (!psynet.utils.is_function(f)) {
                         throw Error("f was not a function.");
                     }
@@ -519,8 +533,12 @@
                 };
 
                 psynet.media.init = function () {
+                    psynet.response.wait_for("page_load");
+                    psynet.submit.wait_for("page_load");
+
                     psynet.response.wait_for("media_load");
                     psynet.submit.wait_for("media_load");
+
                     psynet.media.init_audio_context();
 
                     if (psynet.media.audio_context.state == "suspended") {
@@ -885,6 +903,10 @@
                     init_modal();
                     psynet.page_load_time = new Date();
                     psynet.media.init();
+                    window.addEventListener("load", function() {
+                        psynet.response.ready("page_load");
+                        psynet.submit.ready("page_load");
+                    })
                 };
 
                 psynet.register_error_handler = function () {
