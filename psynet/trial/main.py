@@ -891,13 +891,13 @@ class TrialMaker(Module):
         Returns
         -------
 
-        A tuple (float, bool)
-            The first value in the tuple should some kind of score,
-            expressed as a ``float`` or ``None``.
-            The second value should be equal to ``True``
-            if the participant passed the check,
-            and ``False`` otherwise.
-            Defaults to ``(p, True)``, where p is the proportion of non-failed trials.
+        dict
+            The dictionary should include the following values:
+
+            - ``score``, expressed as a ``float`` or ``None``.
+            - ``passed`` (Boolean), identifying whether the participant passed the check.
+            - ``bonus`` (float), bonus to award the participant (in dollars).
+
         """
         num_trials = len(participant_trials)
         if num_trials == 0:
@@ -907,7 +907,11 @@ class TrialMaker(Module):
             num_failed_trials = len([t for t in participant_trials if t.failed])
             p = 1 - num_failed_trials / num_trials
             passed = p >= self.performance_check_threshold
-        return (p, passed)
+        return {
+            "score": p,
+            "passed": passed,
+            "bonus": 0.0
+        }
 
     def with_namespace(self, x=None, shared_between_phases=False):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
@@ -938,17 +942,15 @@ class TrialMaker(Module):
     def _check_performance_logic(self, type):
         def eval_checks(experiment, participant):
             participant_trials = self.get_participant_trials(participant)
-            (score, passed) = self.performance_check(
+            results = self.performance_check(
                 experiment=experiment,
                 participant=participant,
                 participant_trials=participant_trials
             )
-            assert isinstance(passed, bool)
-            participant.var.set(self.with_namespace("performance_check"), {
-                "score": score,
-                "passed": passed
-            })
-            return passed
+            assert isinstance(results["passed"], bool)
+            participant.var.set(self.with_namespace("performance_check"), results)
+            participant.inc_performance_bonus(results["bonus"])
+            return results["passed"]
 
         assert type in ["trial", "end"]
 

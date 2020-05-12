@@ -361,7 +361,11 @@ class GibbsTrialMaker(ChainTrialMaker):
             "NA" if score is None else f"{score:.3f}",
             passed
         )
-        return (score, passed)
+        return {
+            "score": score,
+            "passed": passed,
+            "bonus": 0.0
+        }
 
     @staticmethod
     def monte_carlo_pearson(groups, n):

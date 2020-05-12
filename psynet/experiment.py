@@ -248,7 +248,10 @@ class Experiment(dallinger.experiment.Experiment):
         }
 
     def bonus(self, participant):
-        return round(participant.time_credit.get_bonus(), ndigits=2)
+        return round(
+            participant.time_credit.get_bonus() + participant.performance_bonus,
+            ndigits=2
+        )
 
     def render_monitor_template(self):
         res = self.network_structure()

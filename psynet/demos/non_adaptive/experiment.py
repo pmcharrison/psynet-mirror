@@ -95,7 +95,11 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
             if trial.answer == "Not at all":
                 score +=1
         passed = score == 0
-        return (score, passed)
+        return {
+            "score": score,
+            "passed": passed,
+            "bonus": 0.0
+        }
 
     give_end_feedback_passed = True
     def get_end_feedback_passed_page(self, score):

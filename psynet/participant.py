@@ -107,6 +107,8 @@ class Participant(dallinger.models.Participant):
 
     failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
     last_response_id = claim_var("last_response_id")
+    base_payment = claim_var("base_payment")
+    performance_bonus = claim_var("performance_bonus")
 
     def set_answer(self, value):
         self.answer = value
@@ -116,6 +118,11 @@ class Participant(dallinger.models.Participant):
         self.event_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
+        self.performance_bonus = 0.0
+        self.base_payment = experiment.base_payment
+
+    def inc_performance_bonus(self, value):
+        self.performance_bonus = self.performance_bonus + value
 
     @property
     def response(self):
