@@ -168,14 +168,17 @@ class UnsuccessfulEndPage(EndPage):
     Indicates an unsuccessful end to the experiment.
     """
 
-    def __init__(self, content="default", failure_tags: Optional[List] = None):
-        if content == "default":
-            content = (
-                "Unfortunately you did not meet the criteria to continue in the experiment. "
-                "You will still be paid for the time you spent already. "
-                "Thank you for taking part!"
-            )
-        super().__init__(content=content)
+    def get_content(self, participant):
+        return Markup(
+            "Unfortunately you did not meet the criteria to continue in the experiment. "
+            + "However, you will still be paid for the time you spent already. "
+            + self.get_time_bonus_message(participant)
+            + self.get_performance_bonus_message(participant)
+            + " Thank you for taking part."
+        )
+
+    def __init__(self, failure_tags: Optional[List] = None):
+        super().__init__()
         self.failure_tags = failure_tags
 
     def finalise_participant(self, experiment, participant):

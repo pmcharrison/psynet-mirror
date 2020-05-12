@@ -70,7 +70,11 @@ def headphone_trial_maker(
                 if trial.answer == trial.definition["correct_answer"]:
                     score +=1
             passed = score >= performance_threshold
-            return (score, passed)
+            return {
+                "score": score,
+                "passed": passed,
+                "bonus": 0.0
+            }
 
     return HeadphoneTrialMaker(
         trial_class=headphone_trial(time_estimate_per_trial),

@@ -162,6 +162,10 @@ class CustomTrialMaker(GibbsTrialMaker):
             time_estimate=5
         )
 
+    def performance_check(self, *args, **kwargs):
+        result = super().performance_check(*args, **kwargs)
+        result["bonus"] = max(0.0, result["score"])
+        return result
 
 trial_maker = CustomTrialMaker(
     network_class=CustomNetwork,
@@ -181,7 +185,8 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
-    target_num_participants=10
+    target_num_participants=10,
+    num_repeat_trials=3
 )
 
 ##########################################################################################
