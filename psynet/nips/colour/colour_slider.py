@@ -40,7 +40,7 @@ class ColorSliderPage(SliderPage):
         }
         super().__init__(
             time_estimate=time_estimate,
-            template_str=get_template("color-slider.html"),
+            template_str=get_template("colour_slider.html"),
             label=label,
             prompt=prompt,
             start_value=starting_values[selected_idx],

@@ -36,7 +36,18 @@ CONFIG = {
 }
 
 def make_timeline(config):
+    from .colour_2afc import Colour2AFCControl
+    from psynet.modular_page import ModularPage
+    from psynet.page import DebugResponsePage
+
     return Timeline(
+        ModularPage(
+            "colour_2afc",
+            "Test prompt",
+            Colour2AFCControl(["green", "yellow"]),
+            time_estimate=5
+        ),
+        DebugResponsePage(),
         make_trial_maker(config),
         SuccessfulEndPage()
     )

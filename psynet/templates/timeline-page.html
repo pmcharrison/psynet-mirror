@@ -131,6 +131,8 @@
 {% block head %}
     {{ super() }}
 
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
+
     <script>
         var psynet = (function () {
                 /**
@@ -988,6 +990,8 @@
                     // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
+                    $( " .response, .submit " ).prop('disabled', true);
+
                     json = prepare_json_submission(raw_answer, metadata);
 
                     var formData = new FormData();
