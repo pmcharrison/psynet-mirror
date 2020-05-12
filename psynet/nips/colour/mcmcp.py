@@ -31,7 +31,7 @@ def mcmcp_factory(config):
         def show_trial(self, experiment, participant):
             target = self.network.definition["target"]
             prompt = Markup(
-                "Which colour best matches the following word?"
+                "Choose which colour best matches the following word: "
                 f"<strong>{target}</strong>"
             )
             colours = [
@@ -50,7 +50,7 @@ def mcmcp_factory(config):
 
         def generate_seed(self, network, experiment, participant):
             return {
-                "rgb": [random.uniform(0, 255) % 255 for _ in range(3)]
+                "rgb": [random.randint(0, 255) for _ in range(3)]
             }
 
     class CustomNode(MCMCPNode):
@@ -58,7 +58,7 @@ def mcmcp_factory(config):
 
         def get_proposal(self, state, experiment, participant):
             rgb = [
-                (x + random.gauss(0.0, config["proposal_sigma"])) % 255.0
+                (x + round(random.gauss(0, config["proposal_sigma"]))) % 256
                 for x in state["rgb"]
             ]
             return {

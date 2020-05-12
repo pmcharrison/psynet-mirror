@@ -189,5 +189,10 @@ class MCMCPTrialMaker(ChainTrialMaker):
         }
         super().finalise_trial(answer, trial, experiment, participant)
 
-    def get_answer_for_consistency_check(self, trial):
-        return float(trial.answer["value"])
+    def get_answer_for_performance_check(self, trial):
+        role = trial.answer["role"]
+        assert role in ["proposal", "current_state"]
+        return float(role == "proposal")
+
+    performance_check_type = "consistency"
+    consistency_check_type = "percent_agreement"

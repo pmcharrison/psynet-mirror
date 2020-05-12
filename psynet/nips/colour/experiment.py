@@ -39,13 +39,6 @@ CONFIG = {
 
 def make_timeline(config):
     return Timeline(
-        ModularPage(
-            "colour_2afc",
-            "Test prompt",
-            Colour2AFCControl(["green", "yellow"]),
-            time_estimate=5
-        ),
-        DebugResponsePage(),
         make_trial_maker(config),
         SuccessfulEndPage()
     )
@@ -59,7 +52,7 @@ def import_classes(config):
             return gibbs_factory(config)
         elif mode == "2afc":
             from .mcmcp import mcmcp_factory
-            return mcmcmp_factory(config)
+            return mcmcp_factory(config)
         else:
             raise NotImplementedError
 

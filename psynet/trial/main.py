@@ -5,7 +5,7 @@ import random
 import datetime
 
 from statistics import mean
-from math import isnan
+from math import isnan, nan
 from typing import Union, Optional
 from uuid import uuid4
 
@@ -1473,11 +1473,16 @@ class NetworkTrialMaker(TrialMaker):
 
     performance_threshold = -1.0
     min_nodes_for_performance_check = 3
+    performance_check_type = "consistency"
+    consistency_check_type = "pearson_correlation"
 
     def performance_check(self, experiment, participant, participant_trials):
-        return self.performance_check_consistency(experiment, participant, participant_trials)
+        if self.performance_check_type == "consistency":
+            return self.performance_check_consistency(experiment, participant, participant_trials)
+        else:
+            raise NotImplementedError
 
-    def get_answer_for_consistency_check(self, trial):
+    def get_answer_for_performance_check(self, trial):
         # Must return a number
         return float(trial.answer)
 
@@ -1485,7 +1490,7 @@ class NetworkTrialMaker(TrialMaker):
         assert self.min_nodes_for_performance_check >= 2
         trials_by_node = self.group_trials_by_node(participant_trials)
         answer_groups = [
-            [self.get_answer_for_consistency_check(t) for t in trials]
+            [self.get_answer_for_performance_check(t) for t in trials]
             for trials in trials_by_node.values()
             if len(trials) > 1
         ]
@@ -1493,15 +1498,15 @@ class NetworkTrialMaker(TrialMaker):
             score = None
             passed = True
         else:
-            cor = self.monte_carlo_pearson(answer_groups, n=100)
-            if isnan(cor):
+            consistency = self.monte_carlo_consistency(answer_groups, n=100)
+            if isnan(consistency):
                 score = None
                 passed = False
             else:
-                score = float(cor)
+                score = float(consistency)
                 passed = bool(score >= self.performance_threshold)
         logger.info(
-            "Performance check for participant %i: r = %s, passed = %s",
+            "Performance check for participant %i: consistency = %s, passed = %s",
             participant.id,
             "NA" if score is None else f"{score:.3f}",
             passed
@@ -1512,15 +1517,28 @@ class NetworkTrialMaker(TrialMaker):
             "bonus": 0.0
         }
 
-    @staticmethod
-    def monte_carlo_pearson(groups, n):
-        cors = []
+    def monte_carlo_consistency(self, groups, n):
+        rels = []
         for _ in range(n):
             trial_pairs = [random.sample(group, 2) for group in groups]
             x = [pair[0] for pair in trial_pairs]
             y = [pair[1] for pair in trial_pairs]
-            cors.append(corr(x, y))
-        return mean(cors)
+            res = self.get_consistency(x, y)
+            if not isnan(res):
+                rels.append(res)
+        if len(rels) == 0:
+            return nan
+        return mean(rels)
+
+    def get_consistency(self, x, y):
+        if self.consistency_check_type == "pearson_correlation":
+            return corr(x, y)
+        elif self.consistency_check_type == "percent_agreement":
+            num_cases = len(x)
+            num_agreements = sum([a == b for a, b in zip(x, y)])
+            return num_agreements / num_cases
+        else:
+            raise NotImplementedError
 
     @staticmethod
     def group_trials_by_node(trials):
