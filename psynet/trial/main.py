@@ -4,6 +4,7 @@ import json
 import random
 import datetime
 
+from flask import Markup
 from statistics import mean
 from math import isnan, nan
 from typing import Union, Optional
@@ -738,8 +739,10 @@ class TrialMaker(Module):
         :class:`~psynet.timeline.Page` :
             A feedback page.
         """
+        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
+
         return InfoPage(
-            f"Your score was {score}.",
+            Markup(f"Your performance score was <strong>{score_to_display}&#37;</strong>."),
             time_estimate=5
         )
 
@@ -900,22 +903,9 @@ class TrialMaker(Module):
 
             - ``score``, expressed as a ``float`` or ``None``.
             - ``passed`` (Boolean), identifying whether the participant passed the check.
-            - ``bonus`` (float), bonus to award the participant (in dollars).
 
         """
-        num_trials = len(participant_trials)
-        if num_trials == 0:
-            p = None
-            passed = True
-        else:
-            num_failed_trials = len([t for t in participant_trials if t.failed])
-            p = 1 - num_failed_trials / num_trials
-            passed = p >= self.performance_check_threshold
-        return {
-            "score": p,
-            "passed": passed,
-            "bonus": 0.0
-        }
+        raise NotImplementedError
 
     def with_namespace(self, x=None, shared_between_phases=False):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
@@ -951,9 +941,11 @@ class TrialMaker(Module):
                 participant=participant,
                 participant_trials=participant_trials
             )
+            bonus = self.compute_bonus(**results)
             assert isinstance(results["passed"], bool)
             participant.var.set(self.with_namespace("performance_check"), results)
-            participant.inc_performance_bonus(results["bonus"])
+            participant.var.set(self.with_namespace("performance_bonus"), bonus)
+            participant.inc_performance_bonus(bonus)
             return results["passed"]
 
         assert type in ["trial", "end"]
@@ -1476,13 +1468,36 @@ class NetworkTrialMaker(TrialMaker):
     performance_check_type = "consistency"
     consistency_check_type = "pearson_correlation"
 
+    def compute_bonus(self, score, passed):
+        """
+        Computes the bonus to allocate to the participant at the end of a phase
+        on the basis of the results of the final performance check.
+        """
+        return 0.0
+
     def performance_check(self, experiment, participant, participant_trials):
         if self.performance_check_type == "consistency":
             return self.performance_check_consistency(experiment, participant, participant_trials)
+        elif self.performance_check_type == "performance":
+            return self.performance_check_accuracy(experiment, participant, participant_trials)
         else:
             raise NotImplementedError
 
-    def get_answer_for_performance_check(self, trial):
+    def performance_check_accuracy(self, experiment, participant, participant_trials):
+        num_trials = len(participant_trials)
+        if num_trials == 0:
+            p = None
+            passed = True
+        else:
+            num_failed_trials = len([t for t in participant_trials if t.failed])
+            p = 1 - num_failed_trials / num_trials
+            passed = p >= self.performance_check_threshold
+        return {
+            "score": p,
+            "passed": passed
+        }
+
+    def get_answer_for_consistency_check(self, trial):
         # Must return a number
         return float(trial.answer)
 
@@ -1490,7 +1505,7 @@ class NetworkTrialMaker(TrialMaker):
         assert self.min_nodes_for_performance_check >= 2
         trials_by_node = self.group_trials_by_node(participant_trials)
         answer_groups = [
-            [self.get_answer_for_performance_check(t) for t in trials]
+            [self.get_answer_for_consistency_check(t) for t in trials]
             for trials in trials_by_node.values()
             if len(trials) > 1
         ]
@@ -1513,8 +1528,7 @@ class NetworkTrialMaker(TrialMaker):
         )
         return {
             "score": score,
-            "passed": passed,
-            "bonus": 0.0
+            "passed": passed
         }
 
     def monte_carlo_consistency(self, groups, n):

@@ -3,6 +3,8 @@ import random
 from .colour_slider import ColorSliderPage
 from flask import Markup
 
+from psynet.timeline import join
+
 from psynet.page import (
     InfoPage
 )
@@ -67,15 +69,34 @@ def gibbs_factory(config):
                 time_estimate=5
             )
 
-        def performance_check(self, *args, **kwargs):
-            result = super().performance_check(*args, **kwargs)
-            result["bonus"] = max(0.0, result["score"])
-            return result
+        def compute_bonus(self, score, passed):
+            return max(0.0, score)
+
+    instructions = join(
+        InfoPage(
+            """
+            In each trial of this experiment you will be presented with a word,
+            and your task will be to choose a colour that matches this word.
+            You will choose this colour using a continuous slider.
+            """,
+            time_estimate=5
+        ),
+        InfoPage(
+            """
+            The quality of your responses will be automatically monitored,
+            and you will receive a bonus at the end of the experiment
+            in proportion to your quality score. The best way to achieve
+            a high score is to concentrate and give each trial your best attempt.
+            """,
+            time_estimate=5
+        )
+    )
 
     return {
         "Network": CustomNetwork,
         "Node": CustomNode,
         "Source": CustomSource,
         "Trial": CustomTrial,
-        "TrialMaker": CustomTrialMaker
+        "TrialMaker": CustomTrialMaker,
+        "instructions": instructions
     }

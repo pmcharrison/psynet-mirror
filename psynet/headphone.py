@@ -72,8 +72,7 @@ def headphone_trial_maker(
             passed = score >= performance_threshold
             return {
                 "score": score,
-                "passed": passed,
-                "bonus": 0.0
+                "passed": passed
             }
 
     return HeadphoneTrialMaker(

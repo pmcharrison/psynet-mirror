@@ -1,13 +1,12 @@
 # pylint: disable=unused-argument,abstract-method
 
+import random
+import rpdb
+import logging
+
+from statistics import mean
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
-import random
-
-# pylint: disable=unused-import
-import rpdb
-
-import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 

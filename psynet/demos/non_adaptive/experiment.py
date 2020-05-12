@@ -97,8 +97,7 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
         passed = score == 0
         return {
             "score": score,
-            "passed": passed,
-            "bonus": 0.0
+            "passed": passed
         }
 
     give_end_feedback_passed = True

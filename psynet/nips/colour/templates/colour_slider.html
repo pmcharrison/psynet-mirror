@@ -1,19 +1,33 @@
 {% extends "slider-page.html" %}
 
-
 {% block main_body %}
-    {{ super() }}
-
     <style>
         .main_div {
             background-color: white;
             padding: 30px;
+        }
+        .colour_box_container {
+            display: flex;
+            justify-content: center;
+        }
+        .colour_box {
+            width: 200px;
+            height: 200px;
+            margin: 30px;
+            border-style: solid;
+            border-color: black;
         }
     </style>
 
     {% for color, value in hidden_inputs.items() %}
         <input type="hidden" value="{{ value }}" id="{{ color }}">
     {% endfor %}
+
+    <div class="colour_box_container">
+        <div class="colour_box response"></div>
+    </div>
+
+    {{ super() }}
 
 {% endblock %}
 
@@ -31,7 +45,7 @@
                 g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
                 b_hex = parseInt(document.getElementById('blue').value, 10).toString(16),
                 hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
-            document.body.style.backgroundColor = hex;
+            $(" .colour_box ").css("backgroundColor", hex);
         };
 
         document.addEventListener("load", on_slider_event);

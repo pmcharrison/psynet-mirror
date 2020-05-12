@@ -7,6 +7,7 @@ from psynet.page import (
     DebugResponsePage,
     InfoPage
 )
+from psynet.timeline import join
 from psynet.trial.mcmcp import (
     MCMCPNetwork, MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
 )
@@ -77,17 +78,34 @@ def mcmcp_factory(config):
                 time_estimate=5
             )
 
-        def performance_check(self, *args, **kwargs):
-            result = super().performance_check(*args, **kwargs)
-            score = result["score"]
-            bonus = 0.0 if score is None else max(0.0, score)
-            result["bonus"] = bonus
-            return result
+        def compute_bonus(self, score, passed):
+            return max(0.0, 2 * (score - 0.5))
+
+    instructions = join(
+        InfoPage(
+            """
+            In each trial of this experiment you will be presented with a word
+            and two colours. Your task will be to choose the colour that
+            best matches this word.
+            """,
+            time_estimate=5
+        ),
+        InfoPage(
+            """
+            The quality of your responses will be automatically monitored,
+            and you will receive a bonus at the end of the experiment
+            in proportion to your quality score. The best way to achieve
+            a high score is to concentrate and give each trial your best attempt.
+            """,
+            time_estimate=5
+        )
+    )
 
     return {
         "Network": CustomNetwork,
         "Node": CustomNode,
         "Source": CustomSource,
         "Trial": CustomTrial,
-        "TrialMaker": CustomTrialMaker
+        "TrialMaker": CustomTrialMaker,
+        "instructions": instructions
     }
