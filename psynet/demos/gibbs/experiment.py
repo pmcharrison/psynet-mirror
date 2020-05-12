@@ -97,7 +97,8 @@ class ColorSliderPage(SliderPage):
             reverse_scale=reverse_scale,
             template_arg={
                 'hidden_inputs': hidden_inputs,
-            }
+            },
+            continuous_updates=True
         )
 
     def metadata(self, **kwargs):

@@ -400,6 +400,10 @@ class SliderPage(Page):
     reverse_scale: default: False
         Flip the scale.
 
+    continuous_updates : default: False
+        If ``True``, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled.
+
     width:
         Optional CSS width property for the text box.
 
@@ -430,6 +434,7 @@ class SliderPage(Page):
             minimal_interactions: Optional[int] = 0,
             minimal_time: float = 0.0,
             reverse_scale: Optional[bool] = False,
+            continuous_updates: bool = False,
             slider_id: Optional[str] = 'sliderpage_slider',
             width: Optional[str] = None,  # e.g. "100px"
             height: Optional[str] = None,
@@ -486,6 +491,7 @@ class SliderPage(Page):
         kwargs['js_vars']['minimal_interactions'] = minimal_interactions
         kwargs['js_vars']['minimal_time'] = minimal_time
         kwargs['js_vars']["reverse_scale"] = reverse_scale
+        kwargs['js_vars']["slider_continuous_updates"] = continuous_updates
 
         super().__init__(
             time_estimate=time_estimate,

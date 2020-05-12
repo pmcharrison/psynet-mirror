@@ -417,7 +417,7 @@ class Experiment(dallinger.experiment.Experiment):
                     assignment_id
                 )
 
-            assert level in ["warn", "info", "error"]
+            assert level in ["warning", "info", "error"]
 
             string = f"[CLIENT {participant_id}]: {message}"
 
