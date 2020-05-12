@@ -5,7 +5,23 @@ from typing import Union, List
 
 from psynet.page import SliderPage
 
-COLORS = ["red", "green", "blue"]
+hsl_dimensions = [
+    {
+        "name": "hue",
+        "min_value": 0,
+        "max_value": 360
+    },
+    {
+        "name": "saturation",
+        "min_value": 0,
+        "max_value": 100
+    },
+    {
+        "name": "lightness",
+        "min_value": 0,
+        "max_value": 100
+    },
+]
 
 def get_template(name):
     assert isinstance(name, str)
@@ -25,16 +41,16 @@ class ColorSliderPage(SliderPage):
             time_estimate=None,
             **kwargs
     ):
-        assert selected_idx >= 0 and selected_idx < len(COLORS)
+        assert selected_idx >= 0 and selected_idx < len(hsl_dimensions)
         self.prompt = prompt
         self.selected_idx = selected_idx
         self.starting_values = starting_values
 
-        not_selected_idxs = list(range(len(COLORS)))
+        not_selected_idxs = list(range(len(hsl_dimensions)))
         not_selected_idxs.remove(selected_idx)
-        not_selected_colors = [COLORS[i] for i in not_selected_idxs]
+        not_selected_names = [hsl_dimensions[i]["name"] for i in not_selected_idxs]
         not_selected_values = [starting_values[i] for i in not_selected_idxs]
-        hidden_inputs = dict(zip(not_selected_colors, not_selected_values))
+        hidden_inputs = dict(zip(not_selected_names, not_selected_values))
         kwargs['template_arg'] = {
             'hidden_inputs': hidden_inputs,
         }
@@ -44,9 +60,9 @@ class ColorSliderPage(SliderPage):
             label=label,
             prompt=prompt,
             start_value=starting_values[selected_idx],
-            min_value=0,
-            max_value=255,
-            slider_id=COLORS[selected_idx],
+            min_value=hsl_dimensions[selected_idx]["min_value"],
+            max_value=hsl_dimensions[selected_idx]["max_value"],
+            slider_id=hsl_dimensions[selected_idx]["name"],
             reverse_scale=reverse_scale,
             template_arg={
                 'hidden_inputs': hidden_inputs,

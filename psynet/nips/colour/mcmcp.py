@@ -79,7 +79,12 @@ def mcmcp_factory(config):
             )
 
         def compute_bonus(self, score, passed):
-            return max(0.0, 2 * (score - 0.5))
+            if self.phase == "practice":
+                return 0.0
+            elif self.phase == "experiment":
+                return max(0.0, 2 * (score - 0.5))
+            else:
+                raise NotImplementedError
 
     instructions = join(
         InfoPage(

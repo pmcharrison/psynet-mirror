@@ -1,6 +1,6 @@
 import random
 
-from .colour_slider import ColorSliderPage
+from .colour_slider import ColorSliderPage, hsl_dimensions
 from flask import Markup
 
 from psynet.timeline import join
@@ -21,7 +21,9 @@ def gibbs_factory(config):
         vector_length = 3
 
         def random_sample(self, i):
-            return random.randint(0, 255)
+            min_value = hsl_dimensions[i]["min_value"]
+            max_value = hsl_dimensions[i]["max_value"]
+            return random.randint(min_value, max_value)
 
         def make_definition(self):
             return {
@@ -70,7 +72,11 @@ def gibbs_factory(config):
             )
 
         def compute_bonus(self, score, passed):
-            return max(0.0, score)
+            if self.phase == "practice":
+                return 0.0
+            elif self.phase == "experiment":
+                return max(0.0, score)
+            else raise NotImplementedError
 
     instructions = join(
         InfoPage(
