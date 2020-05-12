@@ -1,9 +1,11 @@
 {% macro colour_box(id, colour) %}
-    <div
+    <button
         id="{{ id }}"
+        type="button"
         class="colour_box response submit"
+        onload="this.style.background-color"
         style="background-color: {{ colour }};"
-    ></div>
+    ></button>
 {% endmacro %}
 
 {% macro colour_2afc(config) %}
@@ -18,9 +20,6 @@
             margin: 30px;
             border-style: solid;
             border-color: black;
-        }
-        .colour_box_disabled {
-            opacity: 0.5;
         }
     </style>
 

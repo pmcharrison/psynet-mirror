@@ -2,8 +2,11 @@
 
 import json
 import random
-from typing import Union, Optional
 import datetime
+
+from statistics import mean
+from math import isnan
+from typing import Union, Optional
 from uuid import uuid4
 
 from dallinger import db
@@ -39,6 +42,7 @@ from ..page import (
 
 from ..utils import (
     call_function,
+    corr,
     import_local_experiment,
     serialise_datetime,
     unserialise_datetime
@@ -1289,6 +1293,12 @@ class NetworkTrialMaker(TrialMaker):
     end_performance_check_waits : bool
         If True (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
+
+    performance_threshold : float (default = -1.0)
+        The performance threshold that is used in the
+        :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check` method.
+        Corresponds to a minimum Pearson correlation between the participant's repeaetd
+        answers to the same nodes.
     """
 
     def __init__(
@@ -1460,6 +1470,67 @@ class NetworkTrialMaker(TrialMaker):
         logger.info("Found %i network(s) with long-pending asynchronous processes to clear.", len(networks_to_fail))
         for network in networks_to_fail:
             network.fail_async_processes(reason="long-pending network process")
+
+    performance_threshold = -1.0
+    min_nodes_for_performance_check = 3
+
+    def performance_check(self, experiment, participant, participant_trials):
+        return self.performance_check_consistency(experiment, participant, participant_trials)
+
+    def get_answer_for_consistency_check(self, trial):
+        # Must return a number
+        return float(trial.answer)
+
+    def performance_check_consistency(self, experiment, participant, participant_trials):
+        assert self.min_nodes_for_performance_check >= 2
+        trials_by_node = self.group_trials_by_node(participant_trials)
+        answer_groups = [
+            [self.get_answer_for_consistency_check(t) for t in trials]
+            for trials in trials_by_node.values()
+            if len(trials) > 1
+        ]
+        if len(answer_groups) < self.min_nodes_for_performance_check:
+            score = None
+            passed = True
+        else:
+            cor = self.monte_carlo_pearson(answer_groups, n=100)
+            if isnan(cor):
+                score = None
+                passed = False
+            else:
+                score = float(cor)
+                passed = bool(score >= self.performance_threshold)
+        logger.info(
+            "Performance check for participant %i: r = %s, passed = %s",
+            participant.id,
+            "NA" if score is None else f"{score:.3f}",
+            passed
+        )
+        return {
+            "score": score,
+            "passed": passed,
+            "bonus": 0.0
+        }
+
+    @staticmethod
+    def monte_carlo_pearson(groups, n):
+        cors = []
+        for _ in range(n):
+            trial_pairs = [random.sample(group, 2) for group in groups]
+            x = [pair[0] for pair in trial_pairs]
+            y = [pair[1] for pair in trial_pairs]
+            cors.append(corr(x, y))
+        return mean(cors)
+
+    @staticmethod
+    def group_trials_by_node(trials):
+        res = {}
+        for trial in trials:
+            node_id = trial.origin.id
+            if node_id not in res:
+                res[node_id] = []
+            res[node_id].append(trial)
+        return res
 
 class TrialNetwork(Network, AsyncProcessOwner):
     """

@@ -32,14 +32,12 @@ from psynet.page import (
 )
 
 CONFIG = {
-    "targets": ["tree", "rock", "carrot", "banana"]
+    "mode": "2afc",
+    "targets": ["tree", "rock", "carrot", "banana"],
+    "proposal_sigma": 50.0
 }
 
 def make_timeline(config):
-    from .colour_2afc import Colour2AFCControl
-    from psynet.modular_page import ModularPage
-    from psynet.page import DebugResponsePage
-
     return Timeline(
         ModularPage(
             "colour_2afc",
@@ -55,8 +53,15 @@ def make_timeline(config):
 def import_classes(config):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=sa_exc.SAWarning)
-        from .gibbs import gibbs_factory
-        return gibbs_factory(config)
+        mode = config["mode"]
+        if mode == "slider":
+            from .gibbs import gibbs_factory
+            return gibbs_factory(config)
+        elif mode == "2afc":
+            from .mcmcp import mcmcp_factory
+            return mcmcmp_factory(config)
+        else:
+            raise NotImplementedError
 
 def make_trial_maker(config):
     classes = import_classes(config)
