@@ -393,7 +393,7 @@ class Experiment(dallinger.experiment.Experiment):
         def route_response():
             exp = self.new(db.session)
             json_data = json.loads(request.values["json"])
-            blobs = dict(request.files)
+            blobs = request.files.to_dict()
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
