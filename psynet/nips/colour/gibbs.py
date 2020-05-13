@@ -40,15 +40,23 @@ def gibbs_factory(config):
             target = self.network.definition["target"]
             prompt = Markup(
                 f"""
-                <p>
-                    Adjust the slider to match the following word as well as possible:
-                    <strong>{target}</strong>.
-                </p>
-                <p>
-                    You must explore at least three points on the slider before submitting a response.
-                    If all slider positions are equally good,
-                    put the slider in a central position.
-                </p>
+                <style>
+                    .text_prompt {{
+                        text-align: center;
+                    }}
+                </style>
+                <div class="text_prompt">
+                    <p>
+                        Adjust the slider to match the following word as well as possible:
+                    </p>
+                    <p>
+                        <strong>{target}</strong>
+                    </p>
+                    <p>
+                        If all slider positions are equally good,
+                        put the slider in a central position.
+                    </p>
+                </div>
                 """
             )
             return ColorSliderPage(

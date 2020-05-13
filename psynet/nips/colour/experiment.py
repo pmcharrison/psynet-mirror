@@ -38,7 +38,7 @@ from psynet.page import (
 from psynet.ishihara import colour_blind_test
 
 CONFIG = {
-    "mode": "2afc",
+    "mode": "slider",
     "targets": [
         "sunset",
         "eggshell",
