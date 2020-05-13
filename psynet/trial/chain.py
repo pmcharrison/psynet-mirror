@@ -168,10 +168,10 @@ class ChainNetwork(TrialNetwork):
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
         self.target_num_nodes = target_num_nodes
-        self.add_source(source_class, experiment, participant)
         # The last node in the chain doesn't receive any trials
         self.target_num_trials = (target_num_nodes - 1) * trials_per_node
         self.definition = self.make_definition()
+        self.add_source(source_class, experiment, participant)
 
         self.validate()
 
