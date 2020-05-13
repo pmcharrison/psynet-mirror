@@ -535,12 +535,8 @@
                 };
 
                 psynet.media.init = function () {
-                    psynet.response.wait_for("page_load");
-                    psynet.submit.wait_for("page_load");
-
                     psynet.response.wait_for("media_load");
                     psynet.submit.wait_for("media_load");
-
                     psynet.media.init_audio_context();
 
                     if (psynet.media.audio_context.state == "suspended") {
@@ -900,6 +896,8 @@
                     psynet.register_error_handler();
                     psynet.response.disable();
                     psynet.submit.disable();
+                    psynet.response.wait_for("page_load");
+                    psynet.submit.wait_for("page_load");
                     $('.wait-for-media-load').attr('disabled', 'disabled');
                     check_participant_id();
                     init_modal();
