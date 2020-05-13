@@ -877,7 +877,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         self.active_balancing_within_participants = active_balancing_within_participants
         self.active_balancing_across_participants = active_balancing_across_participants
 
-        expected_num_trials = self.estimate_num_trials()
+        expected_num_trials = self.estimate_num_trials(num_repeat_trials)
         super().__init__(
             trial_class,
             network_class=NonAdaptiveNetwork,
@@ -939,7 +939,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             else:
                 return min(num_stimuli_in_block, self.max_trials_per_block)
 
-    def estimate_num_trials(self):
+    def estimate_num_trials(self, num_repeat_trials):
         return mean([
             sum([
                 self.estimate_num_trials_in_block(num_stimuli_in_block)
@@ -947,7 +947,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             ])
             for participant_group, num_stimuli_by_block
             in self.stimulus_set.num_stimuli.items()
-        ])
+        ]) + num_repeat_trials
 
     def finalise_trial(self, answer, trial, experiment, participant):
         """

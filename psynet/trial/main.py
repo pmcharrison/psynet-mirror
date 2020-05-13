@@ -2,8 +2,12 @@
 
 import json
 import random
-from typing import Union, Optional
 import datetime
+
+from flask import Markup
+from statistics import mean
+from math import isnan, nan
+from typing import Union, Optional
 from uuid import uuid4
 
 from dallinger import db
@@ -39,6 +43,7 @@ from ..page import (
 
 from ..utils import (
     call_function,
+    corr,
     import_local_experiment,
     serialise_datetime,
     unserialise_datetime
@@ -456,7 +461,8 @@ class TrialMaker(Module):
         Time estimated for each trial (seconds).
 
     expected_num_trials
-        Expected number of trials that the participant will take
+        Expected number of trials that the participant will take,
+        including repeat trials
         (used for progress estimation).
 
     check_performance_at_end
@@ -734,8 +740,10 @@ class TrialMaker(Module):
         :class:`~psynet.timeline.Page` :
             A feedback page.
         """
+        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
+
         return InfoPage(
-            f"Your score was {score}.",
+            Markup(f"Your performance score was <strong>{score_to_display}&#37;</strong>."),
             time_estimate=5
         )
 
@@ -896,22 +904,9 @@ class TrialMaker(Module):
 
             - ``score``, expressed as a ``float`` or ``None``.
             - ``passed`` (Boolean), identifying whether the participant passed the check.
-            - ``bonus`` (float), bonus to award the participant (in dollars).
 
         """
-        num_trials = len(participant_trials)
-        if num_trials == 0:
-            p = None
-            passed = True
-        else:
-            num_failed_trials = len([t for t in participant_trials if t.failed])
-            p = 1 - num_failed_trials / num_trials
-            passed = p >= self.performance_check_threshold
-        return {
-            "score": p,
-            "passed": passed,
-            "bonus": 0.0
-        }
+        raise NotImplementedError
 
     def with_namespace(self, x=None, shared_between_phases=False):
         prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
@@ -947,9 +942,11 @@ class TrialMaker(Module):
                 participant=participant,
                 participant_trials=participant_trials
             )
+            bonus = self.compute_bonus(**results)
             assert isinstance(results["passed"], bool)
             participant.var.set(self.with_namespace("performance_check"), results)
-            participant.inc_performance_bonus(results["bonus"])
+            participant.var.set(self.with_namespace("performance_bonus"), bonus)
+            participant.inc_performance_bonus(bonus)
             return results["passed"]
 
         assert type in ["trial", "end"]
@@ -980,7 +977,7 @@ class TrialMaker(Module):
     def get_participant_trials(self, participant):
         """
         Returns all trials (complete and incomplete) owned by the current participant,
-        including repeat trials. Not intended for overriding.
+        including repeat trials, in the current phase. Not intended for overriding.
 
         Parameters
         ----------
@@ -990,7 +987,9 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        return self.trial_class.query.filter_by(participant_id=participant.id).all()
+        all_participant_trials = self.trial_class.query.filter_by(participant_id=participant.id).all()
+        trials_in_phase = [t for t in all_participant_trials if t.phase == self.phase]
+        return trials_in_phase
 
     def _prepare_trial(self, experiment, participant):
         if participant.var.get(self.with_namespace("in_repeat_phase")):
@@ -1207,7 +1206,8 @@ class NetworkTrialMaker(TrialMaker):
         Time estimated for each trial (seconds).
 
     expected_num_trials
-        Expected number of trials that the participant will take
+        Expected number of trials that the participant will take,
+        including repeat trials
         (used for progress estimation).
 
     check_performance_at_end
@@ -1289,6 +1289,10 @@ class NetworkTrialMaker(TrialMaker):
     end_performance_check_waits : bool
         If True (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
+
+    performance_threshold : float (default = -1.0)
+        The performance threshold that is used in the
+        :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check` method.
     """
 
     def __init__(
@@ -1460,6 +1464,109 @@ class NetworkTrialMaker(TrialMaker):
         logger.info("Found %i network(s) with long-pending asynchronous processes to clear.", len(networks_to_fail))
         for network in networks_to_fail:
             network.fail_async_processes(reason="long-pending network process")
+
+    performance_threshold = -1.0
+    min_nodes_for_performance_check = 2
+    performance_check_type = "consistency"
+    consistency_check_type = "spearman_correlation"
+
+    def compute_bonus(self, score, passed):
+        """
+        Computes the bonus to allocate to the participant at the end of a phase
+        on the basis of the results of the final performance check.
+        """
+        return 0.0
+
+    def performance_check(self, experiment, participant, participant_trials):
+        if self.performance_check_type == "consistency":
+            return self.performance_check_consistency(experiment, participant, participant_trials)
+        elif self.performance_check_type == "performance":
+            return self.performance_check_accuracy(experiment, participant, participant_trials)
+        else:
+            raise NotImplementedError
+
+    def performance_check_accuracy(self, experiment, participant, participant_trials):
+        num_trials = len(participant_trials)
+        if num_trials == 0:
+            p = None
+            passed = True
+        else:
+            num_failed_trials = len([t for t in participant_trials if t.failed])
+            p = 1 - num_failed_trials / num_trials
+            passed = p >= self.performance_check_threshold
+        return {
+            "score": p,
+            "passed": passed
+        }
+
+    def get_answer_for_consistency_check(self, trial):
+        # Must return a number
+        return float(trial.answer)
+
+    def performance_check_consistency(self, experiment, participant, participant_trials):
+        assert self.min_nodes_for_performance_check >= 2
+        trials_by_node = self.group_trials_by_node(participant_trials)
+        answer_groups = [
+            [self.get_answer_for_consistency_check(t) for t in trials]
+            for trials in trials_by_node.values()
+            if len(trials) > 1
+        ]
+        if len(answer_groups) < self.min_nodes_for_performance_check:
+            score = None
+            passed = True
+        else:
+            consistency = self.monte_carlo_consistency(answer_groups, n=100)
+            if isnan(consistency):
+                score = None
+                passed = False
+            else:
+                score = float(consistency)
+                passed = bool(score >= self.performance_threshold)
+        logger.info(
+            "Performance check for participant %i: consistency = %s, passed = %s",
+            participant.id,
+            "NA" if score is None else f"{score:.3f}",
+            passed
+        )
+        return {
+            "score": score,
+            "passed": passed
+        }
+
+    def monte_carlo_consistency(self, groups, n):
+        rels = []
+        for _ in range(n):
+            trial_pairs = [random.sample(group, 2) for group in groups]
+            x = [pair[0] for pair in trial_pairs]
+            y = [pair[1] for pair in trial_pairs]
+            res = self.get_consistency(x, y)
+            if not isnan(res):
+                rels.append(res)
+        if len(rels) == 0:
+            return nan
+        return mean(rels)
+
+    def get_consistency(self, x, y):
+        if self.consistency_check_type == "pearson_correlation":
+            return corr(x, y)
+        elif self.consistency_check_type == "spearman_correlation":
+            return corr(x, y, method="spearman")
+        elif self.consistency_check_type == "percent_agreement":
+            num_cases = len(x)
+            num_agreements = sum([a == b for a, b in zip(x, y)])
+            return num_agreements / num_cases
+        else:
+            raise NotImplementedError
+
+    @staticmethod
+    def group_trials_by_node(trials):
+        res = {}
+        for trial in trials:
+            node_id = trial.origin.id
+            if node_id not in res:
+                res[node_id] = []
+            res[node_id].append(trial)
+        return res
 
 class TrialNetwork(Network, AsyncProcessOwner):
     """

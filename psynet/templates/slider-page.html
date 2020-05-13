@@ -52,13 +52,19 @@
         // Metadata collection
         var slider = document.getElementById('{{ slider_id }}');
 
-        slider.log = [];
+        if (slider_continuous_updates) {
+            slider.log = "The slider log is disabled when continuous slider updates are enabled.";
+        } else {
+            slider.log = [];
+        }
 
         slider.update_log = function() {
-            slider.log.push({
-                'time': new Date(),
-                'value': slider.value
-            })
+            if (!slider_continuous_updates) {
+                slider.log.push({
+                    'time': new Date(),
+                    'value': slider.value
+                });
+            }
         }
 
         slider.interaction_count = 0;
@@ -84,10 +90,17 @@
             slider.update_log();
         };
 
-        psynet.media.register_on_loaded_routine(slider.initialise);
+        psynet.response.register_on_ready_routine(slider.initialise);
 
-        // Each change is documented
-        slider.addEventListener('change', function () {
+        var slider_listener;
+
+        if (slider_continuous_updates) {
+            slider_listener = "input";
+        } else {
+            slider_listener = "change";
+        }
+
+        slider.addEventListener(slider_listener, function () {
             snap_slider();
             slider.interaction_count += 1;
             if (slider.interaction_count >= minimal_interactions) {
