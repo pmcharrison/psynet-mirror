@@ -1,8 +1,25 @@
 {% macro null(config) %}
+    <script>
+        on_next_button = function() {
+            $(this).prop('disabled', true);
+            debugger
+            if (typeof retrieve_response == "undefined") {
+                psynet.next_page();
+            } else {
+                response = retrieve_response();
+                psynet.next_page(
+                    response.raw_answer,
+                    response.metadata,
+                    response.blobs
+                );
+            }
+        }
+    </script>
+
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onclick="$(this).prop('disabled', true); psynet.next_page();">Next
+            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onclick="on_next_button();">Next
             </button>
         </div>
     </div>
@@ -279,4 +296,37 @@
             setTimeout(end_recording, 1000 * {{ config.duration }});
         });
     </script>
+{% endmacro %}
+
+{% macro text(config) %}
+    <style>
+        #text_input_container {
+            margin: 15px;
+            margin: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        #text_input {
+            {% if config.width is not none %} width: {{ config.width }}; {% endif %}
+            {% if config.height is not none %} height: {{ config.height }}; {% endif %}
+        }
+    </style>
+
+    <div id="text_input_container">
+        {% if config.one_line %}
+            <input id="text_input" class="form-control response" type="text" value=""/>
+        {% else %}
+            <textarea id="text_input" class="form-control response" type="text"></textarea>
+        {% endif %}
+    </div>
+
+    <script>
+        retrieve_response = function() {
+            return {
+                raw_answer: $("#text_input").get(0).value
+            }
+        }
+    </script>
+
+    {{ null(config) }}
 {% endmacro %}
