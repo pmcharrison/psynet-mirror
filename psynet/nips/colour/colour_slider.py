@@ -5,23 +5,7 @@ from typing import Union, List
 
 from psynet.page import SliderPage
 
-hsl_dimensions = [
-    {
-        "name": "hue",
-        "min_value": 0,
-        "max_value": 360
-    },
-    {
-        "name": "saturation",
-        "min_value": 0,
-        "max_value": 100
-    },
-    {
-        "name": "lightness",
-        "min_value": 0,
-        "max_value": 100
-    },
-]
+from .colour import hsl_dimensions
 
 def get_template(name):
     assert isinstance(name, str)

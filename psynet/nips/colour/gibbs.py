@@ -1,6 +1,7 @@
 import random
 
-from .colour_slider import ColorSliderPage, hsl_dimensions
+from .colour import hsl_dimensions, random_hsl_sample
+from .colour_slider import ColorSliderPage
 from flask import Markup
 
 from psynet.timeline import join
@@ -21,9 +22,7 @@ def gibbs_factory(config):
         vector_length = 3
 
         def random_sample(self, i):
-            min_value = hsl_dimensions[i]["min_value"]
-            max_value = hsl_dimensions[i]["max_value"]
-            return random.randint(min_value, max_value)
+            return random_hsl_sample(i)
 
         def make_definition(self):
             return {
@@ -40,8 +39,16 @@ def gibbs_factory(config):
         def show_trial(self, experiment, participant):
             target = self.network.definition["target"]
             prompt = Markup(
-                "Adjust the slider to match the following word as well as possible: "
-                f"<strong>{target}</strong>"
+                f"""
+                <p>
+                    Adjust the slider to match the following word as well as possible:
+                    <strong>{target}</strong>.
+                </p>
+                <p>
+                    If all slider positions are equally good,
+                    put the slider in a central position.
+                </p>
+                """
             )
             return ColorSliderPage(
                 "color_trial",
@@ -63,19 +70,14 @@ def gibbs_factory(config):
         give_end_feedback_passed = True
         performance_threshold = -1.0
 
-        def get_end_feedback_passed_page(self, score):
-            score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
-
-            return InfoPage(
-                Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
-                time_estimate=5
-            )
-
         def compute_bonus(self, score, passed):
             if self.phase == "practice":
                 return 0.0
             elif self.phase == "experiment":
-                return max(0.0, score)
+                if score is None:
+                    return 0.0
+                else:
+                    return max(0.0, score)
             else:
                 raise NotImplementedError
 

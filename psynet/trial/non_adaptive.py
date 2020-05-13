@@ -947,7 +947,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             ])
             for participant_group, num_stimuli_by_block
             in self.stimulus_set.num_stimuli.items()
-        ])
+        ]) + self.num_repeat_trials
 
     def finalise_trial(self, answer, trial, experiment, participant):
         """

@@ -13,6 +13,8 @@ from psynet.trial.mcmcp import (
 )
 from psynet.utils import rgb_to_hex
 
+
+from .colour import hsl_dimensions, random_hsl_sample
 from .colour_2afc import Colour2AFCControl
 
 def mcmcp_factory(config):
@@ -32,12 +34,14 @@ def mcmcp_factory(config):
         def show_trial(self, experiment, participant):
             target = self.network.definition["target"]
             prompt = Markup(
-                "Choose which colour best matches the following word: "
-                f"<strong>{target}</strong>"
+                f"""
+                Choose which colour best matches the following word:
+                <strong>{target}</strong>.
+                """
             )
             colours = [
-                rgb_to_hex(*self.first_stimulus["rgb"]),
-                rgb_to_hex(*self.second_stimulus["rgb"])
+                self.first_stimulus["colour"],
+                self.second_stimulus["colour"]
             ]
             return ModularPage(
                 "mcmcp_trial",
@@ -51,38 +55,34 @@ def mcmcp_factory(config):
 
         def generate_seed(self, network, experiment, participant):
             return {
-                "rgb": [random.randint(0, 255) for _ in range(3)]
+                "colour": [random_hsl_sample(i) for i in range(3)]
             }
 
     class CustomNode(MCMCPNode):
         __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
         def get_proposal(self, state, experiment, participant):
-            rgb = [
-                (x + round(random.gauss(0, config["proposal_sigma"]))) % 256
-                for x in state["rgb"]
+            hsl_max_values = [x["max_value"] for x in hsl_dimensions]
+            colour = [
+                (origin + round(random.gauss(0, config["proposal_sigma"]))) % (max_value + 1)
+                for origin, max_value in zip(state["colour"], hsl_max_values)
             ]
             return {
-                "rgb": rgb
+                "colour": colour
             }
 
     class CustomTrialMaker(MCMCPTrialMaker):
         give_end_feedback_passed = True
         performance_threshold = -1.0
 
-        def get_end_feedback_passed_page(self, score):
-            score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
-
-            return InfoPage(
-                Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
-                time_estimate=5
-            )
-
         def compute_bonus(self, score, passed):
             if self.phase == "practice":
                 return 0.0
             elif self.phase == "experiment":
-                return max(0.0, 2 * (score - 0.5))
+                if score is None:
+                    return 0.0
+                else:
+                    return max(0.0, 2 * (score - 0.5))
             else:
                 raise NotImplementedError
 

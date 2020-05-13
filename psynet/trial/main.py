@@ -461,7 +461,8 @@ class TrialMaker(Module):
         Time estimated for each trial (seconds).
 
     expected_num_trials
-        Expected number of trials that the participant will take
+        Expected number of trials that the participant will take,
+        including repeat trials
         (used for progress estimation).
 
     check_performance_at_end
@@ -976,7 +977,7 @@ class TrialMaker(Module):
     def get_participant_trials(self, participant):
         """
         Returns all trials (complete and incomplete) owned by the current participant,
-        including repeat trials. Not intended for overriding.
+        including repeat trials, in the current phase. Not intended for overriding.
 
         Parameters
         ----------
@@ -986,7 +987,10 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        return self.trial_class.query.filter_by(participant_id=participant.id).all()
+        return self.trial_class.query.filter_by(
+            participant_id=participant.id,
+            phase=self.phase
+        ).all()
 
     def _prepare_trial(self, experiment, participant):
         if participant.var.get(self.with_namespace("in_repeat_phase")):
@@ -1203,7 +1207,8 @@ class NetworkTrialMaker(TrialMaker):
         Time estimated for each trial (seconds).
 
     expected_num_trials
-        Expected number of trials that the participant will take
+        Expected number of trials that the participant will take,
+        including repeat trials
         (used for progress estimation).
 
     check_performance_at_end
@@ -1462,7 +1467,7 @@ class NetworkTrialMaker(TrialMaker):
             network.fail_async_processes(reason="long-pending network process")
 
     performance_threshold = -1.0
-    min_nodes_for_performance_check = 3
+    min_nodes_for_performance_check = 2
     performance_check_type = "consistency"
     consistency_check_type = "spearman_correlation"
 

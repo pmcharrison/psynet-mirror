@@ -31,6 +31,9 @@ from psynet.timeline import (
 from psynet.page import (
     InfoPage,
     SuccessfulEndPage,
+    NumberInputPage,
+    NAFCPage,
+    TextInputPage
 )
 
 CONFIG = {
@@ -45,8 +48,8 @@ CONFIG = {
         "chocolate",
         "grass"
     ],
-    "num_practice_trials": 6,
-    "num_experiment_trials": 20,
+    "num_practice_trials": 4, # 6,
+    "num_experiment_trials": 3, #20,
     "proposal_sigma": 50.0, # only relevant for MCMPC and RC
     "trial_maker": {
         "chain_type": "within",
@@ -59,7 +62,7 @@ CONFIG = {
         "propagate_failure": False,
         "recruit_mode": "num_participants",
         "target_num_participants": 10,
-        "num_repeat_trials": 6
+        "num_repeat_trials": 3 #6
     }
 }
 CONFIG["trial_maker"]["time_estimate_per_trial"] = {
@@ -68,9 +71,59 @@ CONFIG["trial_maker"]["time_estimate_per_trial"] = {
 }[CONFIG["mode"]]
 
 
+demographics = join(
+    InfoPage(
+        "First we need to ask some quick questions about you.",
+        time_estimate=5
+    ),
+    NumberInputPage(
+        label='age',
+        prompt='What is your age, in years?',
+        time_estimate=5
+    ),
+    NAFCPage(
+        label='gender',
+        prompt='With what gender do you most identify yourself?',
+        time_estimate=5,
+        choices=['Male', 'Female', 'Other'],
+        arrange_vertically=True
+    ),
+    NAFCPage(
+        label='education',
+        prompt='What is your highest educational qualification?',
+        time_estimate=7,
+        choices=['None', 'Elementary school', 'Middle school', 'High school', 'Bachelor', 'Master', 'PhD'],
+        arrange_vertically=True
+    )
+)
+
+final_questionnaire = join(
+    TextInputPage(
+        "strategy",
+        """
+        Please tell us in a few words about your strategy
+        for the task and your experience taking it.
+        Did you find the task easy or difficult?
+        Did you find it interesting or boring?
+        """,
+        time_estimate=20,
+        one_line=False
+    ),
+    TextInputPage(
+        "technical",
+        """
+        Did you experience any technical problems during the task?
+        If so, please describe them.
+        """,
+        time_estimate=10,
+        one_line=False
+    )
+)
+
 def make_timeline(config):
     resources = import_resources(config)
     return Timeline(
+        demographics,
         resources["instructions"],
         InfoPage(
             f"""
@@ -82,13 +135,15 @@ def make_timeline(config):
         make_practice_trials(resources, config),
         InfoPage(
             f"""
-            You will now take {config['num_experiment_trials']} trials
-            similar to the ones you just took. Remember to pay careful attention
+            You will now take
+            {config['num_experiment_trials'] + config['trial_maker']['num_repeat_trials']}
+            trials similar to the ones you just took. Remember to pay careful attention
             in order to get the best bonus!
             """,
             time_estimate=5
         ),
         make_experiment_trials(resources, config),
+        final_questionnaire,
         SuccessfulEndPage()
     )
 

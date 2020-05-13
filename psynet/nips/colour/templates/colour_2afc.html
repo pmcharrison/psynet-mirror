@@ -4,7 +4,7 @@
         type="button"
         class="colour_box response submit"
         onload="this.style.background-color"
-        style="background-color: {{ colour }};"
+        style="background-color: hsl({{ colour[0] }}, {{ colour[1] }}%, {{ colour[2] }}%)"
     ></button>
 {% endmacro %}
 

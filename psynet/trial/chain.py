@@ -1137,7 +1137,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             network_class=network_class,
             phase=phase,
             time_estimate_per_trial=time_estimate_per_trial,
-            expected_num_trials=num_trials_per_participant,
+            expected_num_trials=num_trials_per_participant + num_repeat_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
