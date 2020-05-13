@@ -45,6 +45,7 @@ def gibbs_factory(config):
                     <strong>{target}</strong>.
                 </p>
                 <p>
+                    You must explore at least three points on the slider before submitting a response.
                     If all slider positions are equally good,
                     put the slider in a central position.
                 </p>

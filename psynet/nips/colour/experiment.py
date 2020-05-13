@@ -94,6 +94,18 @@ demographics = join(
         time_estimate=7,
         choices=['None', 'Elementary school', 'Middle school', 'High school', 'Bachelor', 'Master', 'PhD'],
         arrange_vertically=True
+    ),
+    TextInputPage(
+        "country",
+        "What country are you from?",
+        time_estimate=5,
+        one_line=True
+    ),
+    TextInputPage(
+        "mother_tongue",
+        "What is your mother tongue?",
+        time_estimate=5,
+        one_line=True
     )
 )
 

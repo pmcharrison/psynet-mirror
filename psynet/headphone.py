@@ -89,7 +89,7 @@ def instruction_page():
         """
         <p>We will now perform a quick test to check that you are wearing headphones.</p>
         <p>
-            In each trial, you will hear three sounds separted by silences.
+            In each trial, you will hear three sounds separated by silences.
             Your task will be to judge
             <strong>which sound was softest (quietest).</strong>
         </p>
