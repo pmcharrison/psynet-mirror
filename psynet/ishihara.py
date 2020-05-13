@@ -105,7 +105,7 @@ def instruction_page(hide_after):
         """
     ), time_estimate=10)
 
-def ishihara_test(
+def colour_blind_test(
         media_url: str = "https://s3.amazonaws.com/ishihara-eye-test/jpg",
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 4,

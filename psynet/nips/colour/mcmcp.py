@@ -89,7 +89,7 @@ def mcmcp_factory(config):
     instructions = join(
         InfoPage(
             """
-            In each trial of this experiment you will be presented with a word
+            In each trial of the main experiment you will be presented with a word
             and two colours. Your task will be to choose the colour that
             best matches this word.
             """,

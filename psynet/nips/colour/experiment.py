@@ -35,6 +35,7 @@ from psynet.page import (
     NAFCPage,
     TextInputPage
 )
+from psynet.ishihara import colour_blind_test
 
 CONFIG = {
     "mode": "2afc",
@@ -113,8 +114,8 @@ final_questionnaire = join(
     TextInputPage(
         "strategy",
         """
-        Please tell us in a few words about your strategy
-        for the task and your experience taking it.
+        Please tell us in a few words about your experience taking the task.
+        What was your strategy?
         Did you find the task easy or difficult?
         Did you find it interesting or boring?
         """,
@@ -135,7 +136,8 @@ final_questionnaire = join(
 def make_timeline(config):
     resources = import_resources(config)
     return Timeline(
-        demographics,
+        # demographics,
+        colour_blind_test(),
         resources["instructions"],
         InfoPage(
             f"""

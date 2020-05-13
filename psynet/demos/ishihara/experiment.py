@@ -20,7 +20,7 @@ from psynet.participant import Participant, get_participant
 from psynet.timeline import (
     Timeline
 )
-from psynet.ishihara import ishihara_test
+from psynet.ishihara import colour_blind_test
 from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCalibration
 
 ##########################################################################################
@@ -32,8 +32,8 @@ from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCa
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        ishihara_test(),
-        InfoPage("You passed the colour perception task! Congratulations.", time_estimate=3),
+        colour_blind_test(),
+        InfoPage("You passed the colour blindness task! Congratulations.", time_estimate=3),
         SuccessfulEndPage()
     )
 

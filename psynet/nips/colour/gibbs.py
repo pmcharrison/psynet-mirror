@@ -85,7 +85,7 @@ def gibbs_factory(config):
     instructions = join(
         InfoPage(
             """
-            In each trial of this experiment you will be presented with a word,
+            In each trial of the main experiment you will be presented with a word,
             and your task will be to choose a colour that matches this word.
             You will choose this colour using a continuous slider.
             """,
