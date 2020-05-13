@@ -987,10 +987,9 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        return self.trial_class.query.filter_by(
-            participant_id=participant.id,
-            phase=self.phase
-        ).all()
+        all_participant_trials = self.trial_class.query.filter_by(participant_id=participant.id).all()
+        trials_in_phase = [t for t in all_participant_trials if t.phase == self.phase]
+        return trials_in_phase
 
     def _prepare_trial(self, experiment, participant):
         if participant.var.get(self.with_namespace("in_repeat_phase")):

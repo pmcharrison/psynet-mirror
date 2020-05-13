@@ -37,7 +37,7 @@ from psynet.page import (
 )
 
 CONFIG = {
-    "mode": "slider",
+    "mode": "2afc",
     "targets": [
         "sunset",
         "eggshell",
@@ -49,19 +49,19 @@ CONFIG = {
         "grass"
     ],
     "num_practice_trials": 4, # 6,
-    "num_experiment_trials": 3, #20,
+    "num_experiment_trials": 4, #20,
     "proposal_sigma": 50.0, # only relevant for MCMPC and RC
     "trial_maker": {
-        "chain_type": "within",
-        "num_nodes_per_chain": 6, # note that the final node receives no trials
-        "num_chains_per_participant": 4,
-        "num_chains_per_experiment": None,  # set to None if chain_type="within"
+        "chain_type": "across",
+        "num_nodes_per_chain": 10, # note that the final node receives no trials
+        "num_chains_per_participant": None,
+        "num_chains_per_experiment": 4,  # set to None if chain_type="within"
         "trials_per_node": 1,
         "active_balancing_across_chains": False,
         "check_performance_every_trial": False,
         "propagate_failure": False,
-        "recruit_mode": "num_participants",
-        "target_num_participants": 10,
+        "recruit_mode": "num_trials",
+        "target_num_participants": None,
         "num_repeat_trials": 3 #6
     }
 }
@@ -172,7 +172,9 @@ def make_practice_trials(resources, config):
         "chain_type": "within",
         "num_chains_per_participant": num_trials,
         "active_balancing_across_chains": True,
-        "num_repeat_trials": num_repeats
+        "num_repeat_trials": num_repeats,
+        "recruit_mode": "num_participants",
+        "target_num_participants": 0
     }
     return make_trial_maker(resources, config, **kwargs)
 
