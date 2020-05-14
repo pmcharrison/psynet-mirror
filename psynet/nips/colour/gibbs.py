@@ -40,15 +40,18 @@ def gibbs_factory(config):
             target = self.network.definition["target"]
             prompt = Markup(
                 f"""
-                <p>
-                    Adjust the slider to match the following word as well as possible:
-                    <strong>{target}</strong>.
-                </p>
-                <p>
-                    You must explore at least three points on the slider before submitting a response.
-                    If all slider positions are equally good,
-                    put the slider in a central position.
-                </p>
+                <div style="text-align: center">
+                    <p>
+                        Adjust the slider to match the following word as well as possible:
+                    </p>
+                    <p>
+                        <strong>{target}</strong>.
+                    </p>
+                    <p>
+                        If all slider positions are equally good,
+                        put the slider in a central position.
+                    </p>
+                </div>
                 """
             )
             return ColorSliderPage(
@@ -57,7 +60,9 @@ def gibbs_factory(config):
                 starting_values=self.initial_vector,
                 selected_idx=self.active_index,
                 reverse_scale=self.reverse_scale,
-                time_estimate=5
+                time_estimate=5,
+                minimal_interactions=3,
+                minimal_time=2
             )
 
     class CustomNode(GibbsNode):

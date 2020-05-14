@@ -65,8 +65,8 @@ CONFIG = {
     }
 }
 CONFIG["trial_maker"]["time_estimate_per_trial"] = {
-    "mcmcp": 3,
-    "gsp": 5
+    "mcmcp": 4,
+    "gsp": 6
 }[CONFIG["mode"]]
 
 CONFIG["num_experiment_trials"] = {
@@ -217,6 +217,6 @@ class Exp(psynet.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 1
+        self.initial_recruitment_size = 11
 
 extra_routes = Exp().extra_routes()

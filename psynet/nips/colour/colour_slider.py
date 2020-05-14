@@ -35,9 +35,7 @@ class ColorSliderPage(SliderPage):
         not_selected_names = [hsl_dimensions[i]["name"] for i in not_selected_idxs]
         not_selected_values = [starting_values[i] for i in not_selected_idxs]
         hidden_inputs = dict(zip(not_selected_names, not_selected_values))
-        kwargs['template_arg'] = {
-            'hidden_inputs': hidden_inputs,
-        }
+
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("colour_slider.html"),
@@ -52,7 +50,8 @@ class ColorSliderPage(SliderPage):
                 'hidden_inputs': hidden_inputs,
                 'starting_values': starting_values
             },
-            continuous_updates=True
+            continuous_updates=True,
+            **kwargs
         )
 
     def metadata(self, **kwargs):

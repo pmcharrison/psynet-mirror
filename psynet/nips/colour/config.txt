@@ -2,20 +2,20 @@
 mode = sandbox
 
 [Payment information]
-title = Colour perception experiment
+title = Colour perception experiment ($9.00/hour bonus!)
 base_payment = 0.10
 
 [Recruitment strategy]
 auto_recruit = true
 lifetime = 24
-duration = 2
+duration = 1
 us_only = true
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
-description = This app investigates how you perceive colours.
+description = This app investigates how you perceive colours. You will be paid at a rate of approximately $9.00/hour via bonuses.
 keywords = perception
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
