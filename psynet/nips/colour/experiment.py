@@ -38,7 +38,7 @@ from psynet.page import (
 from psynet.ishihara import colour_blind_test
 
 CONFIG = {
-    "mode": "slider",
+    "mode": "mcmcp",
     "targets": [
         "sunset",
         "eggshell",
@@ -219,6 +219,6 @@ class Exp(psynet.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 11
+        self.initial_recruitment_size = 1
 
 extra_routes = Exp().extra_routes()
