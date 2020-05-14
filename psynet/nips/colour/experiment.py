@@ -35,6 +35,7 @@ from psynet.page import (
     NAFCPage,
     TextInputPage
 )
+from psynet.ishihara import colour_test
 
 CONFIG = {
     "mode": "mcmcp",
@@ -139,6 +140,7 @@ final_questionnaire = join(
 def make_timeline(config):
     resources = import_resources(config)
     return Timeline(
+        colour_test(),
         demographics,
         resources["instructions"],
         InfoPage(
