@@ -1,6 +1,14 @@
 {% macro simple(config) %}
     {% if config.text is not none %}
-        <div style="margin-top:15px; margin-bottom: 15px;">
+        <style>
+            #prompt_text {
+                margin-top: 15px;
+                margin-bottom: 15px;
+                text-align: {{ config.text_align }};
+            }
+        </style>
+
+        <div id="prompt_text">
             {{ config.text }}
         </div>
     {% endif %}
@@ -38,4 +46,44 @@
             }, {{config.start_delay}} * 1000)
         });
     </script>
+{% endmacro %}
+
+{% macro image(config) %}
+    <style>
+        #prompt_image {
+            width: {{ config.width }};
+            height: {{ config.height }};
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: {{ config.margin_top}};
+            margin-bottom: {{ config.margin_bottom}};
+        }
+    </style>
+
+    <img id="prompt_image" src="{{ config.url }}" alt="Image not found">
+
+    {% if config.hide_after is not none %}
+        <script>
+            var prompt_image = $("#prompt_image").get(0);
+
+            hide_prompt_image = function() {
+                psynet.log.debug("Hiding prompt image.");
+                prompt_image.style.opacity = 0;
+            }
+
+            hide_prompt_image_countdown = function() {
+                psynet.log.debug("Counting down until prompt image hide...");
+                setTimeout(hide_prompt_image, {{ 1000 * config.hide_after }});
+            }
+
+            if (prompt_image.complete) {
+                hide_prompt_image_countdown();
+            } else {
+                prompt_image.addEventListener("load", hide_prompt_image_countdown);
+            }
+        </script>
+    {% endif %}
+
+    {{ simple(config) }}
 {% endmacro %}

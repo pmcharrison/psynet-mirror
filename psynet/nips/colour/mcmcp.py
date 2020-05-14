@@ -35,8 +35,20 @@ def mcmcp_factory(config):
             target = self.network.definition["target"]
             prompt = Markup(
                 f"""
-                Choose which colour best matches the following word:
-                <strong>{target}</strong>.
+                <style>
+                    .text_prompt {{
+                        text-align: center;
+                    }}
+                </style>
+
+                <div class="text_prompt">
+                    <p>
+                        Choose which colour best matches the following word:
+                    </p>
+                    <p>
+                        <strong>{target}</strong>
+                    </p>
+                </div>
                 """
             )
             colours = [

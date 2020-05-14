@@ -34,6 +34,9 @@ class Prompt():
         and displayed as regular text, or an HTML string
         as produced by ``flask.Markup``.
 
+    text_align
+        CSS alignment of the text.
+
     Attributes
     ----------
 
@@ -57,9 +60,11 @@ class Prompt():
 
     def __init__(
             self,
-            text: Union[None, str, Markup] = None
+            text: Union[None, str, Markup] = None,
+            text_align: str = "left"
         ):
         self.text = text
+        self.text_align = text_align
 
     macro = "simple"
     external_template = None
@@ -106,6 +111,9 @@ class AudioPrompt(Prompt):
     start_delay
         Delay in seconds before the sound should start playing, counting from
         the media load event.
+
+    text_align
+        CSS alignment of the text.
     """
     def __init__(
             self,
@@ -115,9 +123,10 @@ class AudioPrompt(Prompt):
             prevent_response: bool = True,
             prevent_submit: bool = True,
             enable_submit_after: Optional[float] = None,
-            start_delay = 0.0
+            start_delay = 0.0,
+            text_align = "left"
         ):
-        super().__init__(text=text)
+        super().__init__(text=text, text_align=text_align)
         self.url = url
         self.prevent_response = prevent_response
         self.prevent_submit = prevent_submit
@@ -130,12 +139,79 @@ class AudioPrompt(Prompt):
     @property
     def metadata(self):
         return {
+            "text": self.text,
             "url": self.url
         }
 
     @property
     def media(self):
         return MediaSpec(audio={"prompt": self.url})
+
+class ImagePrompt(Prompt):
+    """
+    Displays an image to the participant.
+
+    Parameters
+    ----------
+
+    url
+        URL of the image to show.
+
+    text
+        Text to display to the participant. This can either be a string
+        for plain text, or an HTML specification from ``flask.Markup``.
+
+    width
+        CSS width specification for the image (e.g. ``'50%'``).
+
+    height
+        CSS height specification for the image (e.g. ``'50%'``).
+        ``'auto'`` will choose the height automatically to match the width;
+        the disadvantage of this is that other page content may move
+        once the image loads.
+
+    hide_after
+        If not ``None``, specifies a time in seconds after which the image should be hidden.
+
+    margin_top
+        CSS specification of the image's top margin.
+
+    margin_bottom
+        CSS specification of the image's bottom margin.
+
+    text_align
+        CSS alignment of the text.
+
+    """
+    def __init__(
+            self,
+            url: str,
+            text: Union[str, Markup],
+            width: str,
+            height: str,
+            hide_after: Optional[float] = None,
+            margin_top: str = "0px",
+            margin_bottom: str = "0px",
+            text_align: str = "left"
+        ):
+        super().__init__(text=text)
+        self.url = url
+        self.width = width
+        self.height = height
+        self.hide_after = hide_after
+        self.margin_top = margin_top
+        self.margin_bottom = margin_bottom
+        self.text_align = text_align
+
+    macro = "image"
+
+    @property
+    def metadata(self):
+        return {
+            "text": self.text,
+            "url": self.url,
+            "hide_after": self.hide_after
+        }
 
 class Control():
     """
@@ -318,6 +394,53 @@ class NAFCControl(Control):
         return {
             "choices": self.choices,
             "labels": self.labels
+        }
+
+class TextControl(Control):
+    """
+    This control interface solicits free text from the participant.
+
+    Parameters
+    ----------
+
+    one_line:
+        Whether the text box should comprise solely one line.
+
+    width:
+        Optional CSS width property for the text box.
+
+    height:
+        Optional CSS height property for the text box.
+
+    align:
+        Alignment for the text.
+
+    """
+
+    def __init__(
+            self,
+            one_line: bool = True,
+            width: Optional[str] = None,  # e.g. "100px"
+            height: Optional[str] = None,
+            text_align: str = "left"
+    ):
+        if one_line and height is not None:
+            raise ValueError("If <one_line> is True, then <height> must be None.")
+
+        self.one_line = one_line
+        self.width = width
+        self.height = height
+        self.text_align = text_align
+
+    macro = "text"
+
+    @property
+    def metadata(self):
+        return {
+            "one_line": self.one_line,
+            "width": self.width,
+            "height": self.height,
+            "text_align": self.text_align
         }
 
 class ModularPage(Page):

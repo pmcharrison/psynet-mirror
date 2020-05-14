@@ -40,12 +40,17 @@ def gibbs_factory(config):
             target = self.network.definition["target"]
             prompt = Markup(
                 f"""
-                <div style="text-align: center">
+                <style>
+                    .text_prompt {{
+                        text-align: center;
+                    }}
+                </style>
+                <div class="text_prompt">
                     <p>
                         Adjust the slider to match the following word as well as possible:
                     </p>
                     <p>
-                        <strong>{target}</strong>.
+                        <strong>{target}</strong>
                     </p>
                     <p>
                         If all slider positions are equally good,
@@ -90,7 +95,7 @@ def gibbs_factory(config):
     instructions = join(
         InfoPage(
             """
-            In each trial of this experiment you will be presented with a word,
+            In each trial of the main experiment you will be presented with a word,
             and your task will be to choose a colour that matches this word.
             You will choose this colour using a continuous slider.
             """,
