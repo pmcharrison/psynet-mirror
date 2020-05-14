@@ -1,0 +1,2 @@
+dallinger==6.2.2
+-e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet.git@b00692696d29cc5e36cd9a2f6fc8fbf42fc348c6#egg=psynet

@@ -1,7 +1,7 @@
 import random
 
-from .colour import hsl_dimensions, random_hsl_sample
-from .colour_slider import ColorSliderPage
+from colour import hsl_dimensions, random_hsl_sample
+from colour_slider import ColorSliderPage
 from flask import Markup
 
 from psynet.timeline import join

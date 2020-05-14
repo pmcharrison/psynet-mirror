@@ -37,37 +37,41 @@ from psynet.page import (
 )
 
 CONFIG = {
-    "mode": "2afc",
+    "mode": "mcmcp",
     "targets": [
         "sunset",
         "eggshell",
         "lavender",
+        "chocolate",
         "lemon",
         "cloud",
         "strawberry",
-        "chocolate",
         "grass"
     ],
-    "num_practice_trials": 4, # 6,
-    "num_experiment_trials": 4, #20,
-    "proposal_sigma": 50.0, # only relevant for MCMPC and RC
+    "num_practice_trials": 6,
+    "proposal_sigma": 30.0, # only relevant for MCMPC
     "trial_maker": {
         "chain_type": "across",
-        "num_nodes_per_chain": 10, # note that the final node receives no trials
+        "num_nodes_per_chain": 31, # note that the final node receives no trials
         "num_chains_per_participant": None,
-        "num_chains_per_experiment": 4,  # set to None if chain_type="within"
+        "num_chains_per_experiment": 40,  # set to None if chain_type="within"
         "trials_per_node": 1,
         "active_balancing_across_chains": False,
         "check_performance_every_trial": False,
         "propagate_failure": False,
         "recruit_mode": "num_trials",
         "target_num_participants": None,
-        "num_repeat_trials": 3 #6
+        "num_repeat_trials": 6
     }
 }
 CONFIG["trial_maker"]["time_estimate_per_trial"] = {
-    "2afc": 3,
-    "slider": 5
+    "mcmcp": 3,
+    "gsp": 5
+}[CONFIG["mode"]]
+
+CONFIG["num_experiment_trials"] = {
+    "mcmcp": 25,
+    "gsp": 25
 }[CONFIG["mode"]]
 
 
@@ -163,11 +167,11 @@ def import_resources(config):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=sa_exc.SAWarning)
         mode = config["mode"]
-        if mode == "slider":
-            from .gibbs import gibbs_factory
+        if mode == "gsp":
+            from gibbs import gibbs_factory
             return gibbs_factory(config)
-        elif mode == "2afc":
-            from .mcmcp import mcmcp_factory
+        elif mode == "mcmcp":
+            from mcmcp import mcmcp_factory
             return mcmcp_factory(config)
         else:
             raise NotImplementedError

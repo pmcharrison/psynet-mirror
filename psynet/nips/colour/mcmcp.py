@@ -14,8 +14,8 @@ from psynet.trial.mcmcp import (
 from psynet.utils import rgb_to_hex
 
 
-from .colour import hsl_dimensions, random_hsl_sample
-from .colour_2afc import Colour2AFCControl
+from colour import hsl_dimensions, random_hsl_sample
+from colour_2afc import Colour2AFCControl
 
 def mcmcp_factory(config):
     targets = config["targets"]
@@ -87,12 +87,18 @@ def mcmcp_factory(config):
                 raise NotImplementedError
 
     instructions = join(
-        InfoPage(
+        InfoPage(Markup(
             """
-            In each trial of this experiment you will be presented with a word
-            and two colours. Your task will be to choose the colour that
-            best matches this word.
-            """,
+            <p>
+                In each trial of this experiment you will be presented with a word
+                and two colours. Your task will be to choose the colour that
+                best matches this word.
+            </p>
+            <p>
+                In some cases, no colour will match the word particularly well.
+                If so, don't worry, and just give your best guess!
+            </p>
+            """),
             time_estimate=5
         ),
         InfoPage(

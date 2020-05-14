@@ -5,7 +5,7 @@ from typing import Union, List
 
 from psynet.page import SliderPage
 
-from .colour import hsl_dimensions
+from colour import hsl_dimensions
 
 def get_template(name):
     assert isinstance(name, str)

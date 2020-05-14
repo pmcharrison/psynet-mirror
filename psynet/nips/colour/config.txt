@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Gibbs sampler demo
+title = Colour perception experiment
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -15,8 +15,8 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
-description = This app demos a Gibbs Sampler experiment.
-keywords = non_adaptive
+description = This app investigates how you perceive colours.
+keywords = perception
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 
