@@ -141,3 +141,5 @@ dmypy.json
 # Other
 .DS_Store
 .vscode/settings.json
+psynet/nips/colour/data/colmcmcp-data.zip
+psynet/nips/colour/data/coltest-data.zip

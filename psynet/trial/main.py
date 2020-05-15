@@ -18,7 +18,7 @@ from rq import Queue
 from dallinger.db import redis_conn
 
 from ..participant import Participant
-from ..field import claim_field, claim_var, VarStore
+from ..field import claim_field, claim_var, VarStore, UndefinedVariableError
 
 from ..timeline import (
     PageMaker,
@@ -1108,7 +1108,10 @@ class TrialMaker(Module):
         participant.var.set(self.num_completed_trials_in_phase_var_id, value)
 
     def get_num_completed_trials_in_phase(self, participant):
-        return participant.var.get(self.num_completed_trials_in_phase_var_id)
+        try:
+            return participant.var.get(self.num_completed_trials_in_phase_var_id)
+        except UndefinedVariableError:
+            return 0
 
     def init_num_completed_trials_in_phase(self, participant):
         self.set_num_completed_trials_in_phase(participant, 0)
