@@ -48,6 +48,11 @@ def mcmcp_factory(config):
                     <p>
                         <strong>{target}</strong>
                     </p>
+                    <p>
+                        If neither matches particularly well,
+                        or if both colours are very similar,
+                        don't worry, and just give your best guess!
+                    </p>
                 </div>
                 """
             )

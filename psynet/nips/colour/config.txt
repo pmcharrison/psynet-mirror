@@ -2,14 +2,14 @@
 mode = sandbox
 
 [Payment information]
-title = Colour perception experiment ($9.00/hour bonus!)
+title = Colour perception experiment (EIV) ($9.00/hour bonus!)
 base_payment = 0.10
 
 [Recruitment strategy]
 auto_recruit = true
 lifetime = 24
 duration = 1
-us_only = true
+us_only = false
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
@@ -32,3 +32,4 @@ num_dynos_worker = 1
 redis_size = hobby-dev
 host = 0.0.0.0
 clock_on = true
+heroku_python_version = 3.7.0

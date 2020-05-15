@@ -109,7 +109,7 @@ def colour_blind_test(
         media_url: str = "https://s3.amazonaws.com/ishihara-eye-test/jpg",
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 4,
-        hide_after: float = 1.5
+        hide_after: float = 3.0
     ):
     return Module(
         "headphone_check",

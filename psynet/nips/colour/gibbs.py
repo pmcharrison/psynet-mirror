@@ -53,8 +53,8 @@ def gibbs_factory(config):
                         <strong>{target}</strong>
                     </p>
                     <p>
-                        If all slider positions are equally good,
-                        put the slider in a central position.
+                        If moving the slider doesn't make any difference,
+                        just put the slider in a central position.
                     </p>
                 </div>
                 """
