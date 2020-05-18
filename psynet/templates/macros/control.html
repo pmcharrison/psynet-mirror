@@ -268,8 +268,14 @@
                 $(".record-alert").hide();
                 $("#record-upload").show();
             });
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-            .then(function(stream) {
+            navigator.mediaDevices.getUserMedia({
+                audio: {
+                    autoGainControl: false,
+                    echoCancellation: false,
+                    noiseSuppression: false
+                },
+                video: false
+            }).then(function(stream) {
                 psynet.log.debug("Initialising recorder.");
                 var input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);

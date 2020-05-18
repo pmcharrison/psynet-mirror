@@ -208,10 +208,12 @@ example_record_with_audio_prompt = join(
     ModularPage(
         "record_page",
         AudioPrompt(
-            url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
+            # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
+            url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="This page enables the recorder and plays the audio 0.5 seconds later.",
             prevent_response=False,
-            start_delay=0.5
+            start_delay=0.5,
+            enable_submit_after=5.5
         ),
         AudioRecordControl(
             duration=5.0,
