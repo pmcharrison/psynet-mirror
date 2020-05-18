@@ -1036,6 +1036,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         are typically used to estimate the reliability of the participant's
         responses.
 
+    wait_for_networks
+        If ``True``, then the participant will be made to wait if there are
+        still more networks to participate in, but these networks are pending asynchronous processes.
+
     Attributes
     ----------
 
@@ -1100,7 +1104,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
-        num_repeat_trials: int = 0
+        num_repeat_trials: int = 0,
+        wait_for_networks: bool = False
     ):
         assert chain_type in ["within", "across"]
 
@@ -1145,7 +1150,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials
+            num_repeat_trials=num_repeat_trials,
+            wait_for_networks=wait_for_networks
         )
 
     def init_participant(self, experiment, participant):
@@ -1235,16 +1241,18 @@ class ChainTrialMaker(NetworkTrialMaker):
         self._grow_network(network, participant, experiment)
         return network
 
-    def find_networks(self, participant, experiment):
+    def find_networks(self, participant, experiment, ignore_async_processes=False):
         if self.get_num_completed_trials_in_phase(participant) >= self.num_trials_per_participant:
             return []
 
         networks = self.network_class.query.filter_by(
             trial_type=self.trial_type,
             phase=self.phase,
-            full=False,
-            awaiting_async_process=False
+            full=False
         )
+
+        if not ignore_async_processes:
+            networks = networks.filter_by(awaiting_async_process=False)
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)

@@ -143,7 +143,7 @@ def wait_while(
     list :
         A list of test events suitable for inclusion in a PsyNet timeline.
     """
-    assert expected_wait > 0
+    assert expected_wait >= 0
     assert check_interval > 0
     expected_repetitions = ceil(expected_wait / check_interval)
 
