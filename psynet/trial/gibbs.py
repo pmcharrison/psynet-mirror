@@ -168,6 +168,14 @@ class GibbsNode(ChainNode):
     """
     __mapper_args__ = {"polymorphic_identity": "gibbs_node"}
 
+    @property
+    def vector(self):
+        return self.definition["vector"]
+
+    @property
+    def active_index(self):
+        return self.definition["active_index"]
+
     @staticmethod
     def parallel_mean(*vectors):
         return [mean(x) for x in zip(*vectors)]

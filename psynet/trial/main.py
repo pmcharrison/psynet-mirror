@@ -1737,7 +1737,7 @@ def call_async_post_trial(trial_id, process_id):
             trial.pop_async_process(process_id)
         else:
             logger.info("Skipping async process %s as it is no longer queued.", process_id)
-    except Exception as e:
+    except BaseException as e:
         trial.fail_async_processes(reason=f"exception in post-trial process: {e.__class__.__name__}")
         raise
     finally:
@@ -1753,7 +1753,7 @@ def call_async_post_grow_network(network_id, process_id):
             network.pop_async_process(process_id)
         else:
             logger.info("Skipping async process %s as it is no longer queued.", process_id)
-    except Exception as e:
+    except BaseException as e:
         network.fail_async_processes(reason=f"exception in post-grow-network process: {e.__class__.__name__}")
         raise
     finally:

@@ -40,6 +40,7 @@ from psynet.colour_vocab import colour_vocab_test
 
 CONFIG = {
     "mode": "gsp",
+    "ganspace_server": "http://54.204.210.121:5000",
     "targets": [
         "trustworthy",
         "beautiful",

@@ -1,7 +1,9 @@
 import random
+import logging
 
-from colour import hsl_dimensions, random_hsl_sample
-from colour_slider import ColorSliderPage
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
 from flask import Markup
 from uuid import uuid4
 
@@ -47,11 +49,11 @@ def gibbs_factory(config):
 
             pc_values = [0 for _ in range(70)]
             for i in range(config["num_dimensions"]):
-                pc_values[i] = head.initial_vector[i]
+                pc_values[i] = head.vector[i]
 
             pc_to_manipulate = head.active_index
 
-            response = requests.post(url + "/generate", json={
+            response = requests.post(config["ganspace_server"] + "/generate", json={
                 "password": "helmholtz-is-cool",
                 "bucket": "cap-ganspace",
                 "key": filename,
@@ -66,8 +68,8 @@ def gibbs_factory(config):
                 }
             })
             info = json.loads(response.content)
-            head.var.key = response["key"]
-            head.var.url = response["url"]
+            head.var.key = info["key"]
+            head.var.url = info["url"]
 
     class CustomTrial(GibbsTrial):
         __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -99,21 +101,38 @@ def gibbs_factory(config):
                 </div>
                 """
             )
-            start_value = self.initial_vector[self.active_index]
-            return ModularPage(
+            return FaceSliderPage(
+                prompt=prompt,
+                url=self.origin.var.url,
+                reverse_scale=self.reverse_scale,
+                start_value = self.initial_vector[self.active_index]
+            )
+
+    class FaceSliderPage(ModularPage):
+        def __init__(self, prompt, url, reverse_scale, start_value):
+            super().__init__(
                 "face_slider",
                 prompt=prompt,
                 control=VideoSliderControl(
-                    url=self.origin.url,
+                    url=url,
                     file_type="mp4",
-                    width="400px",
-                    height="400px",
-                    reverse_scale=self.reverse_scale,
-                    starting_value=start_value
+                    width="350px",
+                    height="350px",
+                    reverse_scale=reverse_scale,
+                    starting_value=self.from_sigma_scale_to_unit_interval(start_value),
+                    minimal_time=5
                 ),
-                minimal_time=5
                 time_estimate=5
             )
+
+        def from_unit_interval_to_sigma_scale(self, x):
+            return (x - 0.5) * 2 * config["slider_sigma"]
+
+        def from_sigma_scale_to_unit_interval(self, x):
+            return (x + config["slider_sigma"]) / (2 * config["slider_sigma"])
+
+        def format_answer(self, raw_answer, **kwargs):
+            return self.from_unit_interval_to_sigma_scale(raw_answer)
 
     class CustomNode(GibbsNode):
         __mapper_args__ = {"polymorphic_identity": "custom_node"}

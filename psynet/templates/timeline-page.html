@@ -355,7 +355,7 @@
                 }
 
                 psynet.response.ready = function (event) {
-                    psynet.log.info("A response-ready event occurred: " + event);
+                    psynet.log.debug("A response-ready event occurred: " + event);
                     if (event != undefined) {
                         psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
                             return elt != event
@@ -365,7 +365,7 @@
                         if (psynet.response.ready_done) {
                             psynet.log.warning("Response-ready has already been called.");
                         } else {
-                            psynet.log.info("Ready for user to enter response.");
+                            psynet.log.debug("Ready for user to enter response.");
                             psynet.response.on_ready_routines.forEach(function (f) {
                                 f();
                             });
@@ -375,7 +375,7 @@
                 };
 
                 psynet.submit.ready = function (event) {
-                    psynet.log.info("A submit-ready event occurred: " + event);
+                    psynet.log.debug("A submit-ready event occurred: " + event);
                     if (event != undefined) {
                         psynet.submit.waiting_for = psynet.submit.waiting_for.filter(function(elt) {
                             return elt != event
@@ -385,7 +385,7 @@
                         if (psynet.submit.ready_done) {
                             psynet.log.warning("Submit-ready has already been called.");
                         } else {
-                            psynet.log.info("Ready for user to submit response.");
+                            psynet.log.debug("Ready for user to submit response.");
                             psynet.submit.on_ready_routines.forEach(function (f) {
                                 f();
                             });
@@ -426,7 +426,7 @@
                 };
 
                 psynet.media.on_loaded = function () {
-                    psynet.log.info("All media loaded.");
+                    psynet.log.debug("All media loaded.");
 
                     psynet.media.on_loaded_routines.forEach(function (f) { f(); });
 
