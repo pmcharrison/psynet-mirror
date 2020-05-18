@@ -194,14 +194,13 @@ class ImagePrompt(Prompt):
             margin_bottom: str = "0px",
             text_align: str = "left"
         ):
-        super().__init__(text=text)
+        super().__init__(text=text, text_align=text_align)
         self.url = url
         self.width = width
         self.height = height
         self.hide_after = hide_after
         self.margin_top = margin_top
         self.margin_bottom = margin_bottom
-        self.text_align = text_align
 
     macro = "image"
 
@@ -211,6 +210,53 @@ class ImagePrompt(Prompt):
             "text": self.text,
             "url": self.url,
             "hide_after": self.hide_after
+        }
+
+class ColourPrompt(Prompt):
+    """
+    Displays a colour to the participant.
+
+    Parameters
+    ----------
+
+    colour
+        Colour to show, specified as a list of HSL values.
+
+    text
+        Text to display to the participant. This can either be a string
+        for plain text, or an HTML specification from ``flask.Markup``.
+
+    width
+        CSS width specification for the colour box (default ``'200px'``).
+
+    height
+        CSS height specification for the colour box (default ``'200px'``).
+
+    text_align
+        CSS alignment of the text.
+
+    """
+    def __init__(
+            self,
+            colour: List[float],
+            text: Union[str, Markup],
+            width: str = "200px",
+            height: str = "200px",
+            text_align: str = "left"
+        ):
+        assert isinstance(colour, list)
+        super().__init__(text=text, text_align=text_align)
+        self.hsl = colour
+        self.width = width
+        self.height = height
+
+    macro = "colour"
+
+    @property
+    def metadata(self):
+        return {
+            "text": self.text,
+            "hsl": self.hsl
         }
 
 class Control():
@@ -339,12 +385,14 @@ class NullControl(Control):
     metadata = {}
 
 class NAFCButton():
-    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
+    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False, margin="10px"):
         self.id = button_id
         self.label = label
         self.min_width = min_width
         self.own_line = own_line
         self.start_disabled = start_disabled
+        self.margin = margin
+        self.display = "block" if own_line else "inline"
 
 class NAFCControl(Control):
     """
@@ -366,6 +414,9 @@ class NAFCControl(Control):
     min_width:
         CSS ``min_width`` parameter for the buttons.
 
+    margin:
+        CSS margin parameter for the buttons.
+
     """
 
     def __init__(
@@ -374,7 +425,7 @@ class NAFCControl(Control):
             labels: Optional[List[str]] = None,
             arrange_vertically: bool = False,
             min_width: str = "100px",
-            **kwargs
+            margin: str = "10px"
     ):
         self.choices = choices
         self.labels = choices if labels is None else labels
@@ -383,7 +434,13 @@ class NAFCControl(Control):
         assert len(self.choices) == len(self.labels)
 
         self.buttons = [
-            NAFCButton(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
+            NAFCButton(
+                button_id=choice,
+                label=label,
+                min_width=min_width,
+                own_line=arrange_vertically,
+                margin=margin
+            )
             for choice, label in zip(self.choices, self.labels)
         ]
 

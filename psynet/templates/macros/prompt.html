@@ -87,3 +87,30 @@
 
     {{ simple(config) }}
 {% endmacro %}
+
+{% macro colour(config) %}
+    <style>
+        /* .main_div {
+            background-color: white;
+            padding: 30px;
+        } */
+        .colour_box_container {
+            display: flex;
+            justify-content: center;
+        }
+        .colour_box {
+            width: 200px;
+            height: 200px;
+            margin: 0px;
+            border-style: solid;
+            border-color: black;
+            background-color: hsl({{ config.hsl[0] }}, {{ config.hsl[1] }}%, {{ config.hsl[2] }}%);
+        }
+    </style>
+
+    <div class="colour_box_container">
+        <div class="colour_box"></div>
+    </div>
+
+    {{ simple(config) }}
+{% endmacro %}

@@ -26,7 +26,7 @@ def get_stimulus_set(media_url: str):
                 "correct_answer": answer,
                 "url": f"{media_url}/antiphase_HC_{label}.wav"
             },
-            phase="test"
+            phase="experiment"
         )
         for label, answer in
         [
@@ -77,7 +77,7 @@ def headphone_trial_maker(
 
     return HeadphoneTrialMaker(
         trial_class=headphone_trial(time_estimate_per_trial),
-        phase="test",
+        phase="experiment",
         stimulus_set=get_stimulus_set(media_url),
         time_estimate_per_trial=time_estimate_per_trial,
         new_participant_group=True,

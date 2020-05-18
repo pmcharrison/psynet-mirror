@@ -27,7 +27,7 @@ def get_stimulus_set(media_url: str):
                 "correct_answer": answer,
                 "url": f"{media_url}/ishihara-{label}.jpg"
             },
-            phase="test"
+            phase="experiment"
         )
         for label, answer in
         [
@@ -82,7 +82,7 @@ def ishihara_trial_maker(
 
     return IshiharaTrialMaker(
         trial_class=ishihara_trial(time_estimate_per_trial, hide_after),
-        phase="test",
+        phase="experiment",
         stimulus_set=get_stimulus_set(media_url),
         time_estimate_per_trial=time_estimate_per_trial,
         new_participant_group=True,

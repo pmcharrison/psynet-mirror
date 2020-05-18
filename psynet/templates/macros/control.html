@@ -26,21 +26,33 @@
 {% endmacro %}
 
 {% macro nafc_button(config) %}
-    {% if config.own_line %} <p style="padding:1em"> {% endif %}
+    <style>
+        .nafc_button {
+            margin: {{ config.margin }};
+            display: {{ config.display }};
+        }
+    </style>
     <button
         type="button"
-        class="btn btn-primary submit"
+        class="btn nafc_button btn-primary submit"
         id="{{ config.id }}"
         onclick="clicked_button('{{ config.id }}');"
         style="min-width:{{ config.min_width }}"
     >
-    {{ config.label }}
+        {{ config.label }}
     </button>
-    {% if config.own_line %} </p> {% endif %}
 {% endmacro %}
 
 {% macro nafc(config) %}
-    <div>
+    <style>
+        .nafc-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
+
+    <div class="nafc-container">
         {% for button in config.buttons %}
             {{ nafc_button(button) }}
         {% endfor %}

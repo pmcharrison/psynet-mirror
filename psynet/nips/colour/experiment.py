@@ -36,6 +36,7 @@ from psynet.page import (
     TextInputPage
 )
 from psynet.ishihara import colour_blind_test
+from psynet.colour_vocab import colour_vocab_test
 
 CONFIG = {
     "mode": "mcmcp",
@@ -140,7 +141,8 @@ final_questionnaire = join(
 def make_timeline(config):
     resources = import_resources(config)
     return Timeline(
-        demographics,
+        # demographics,
+        colour_vocab_test(),
         colour_blind_test(),
         resources["instructions"],
         InfoPage(
@@ -219,6 +221,6 @@ class Exp(psynet.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 11
+        self.initial_recruitment_size = 1
 
 extra_routes = Exp().extra_routes()
