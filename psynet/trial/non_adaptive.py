@@ -891,7 +891,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             propagate_failure=False,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials
+            num_repeat_trials=num_repeat_trials,
+            wait_for_networks=False
         )
 
     @property

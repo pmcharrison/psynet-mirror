@@ -27,7 +27,6 @@ DEFAULT_COLOURS = [
     ("granite",   [0,   0,   40]),
     ("ivory",     [60,  100, 97]),
     ("maroon",    [0,   100, 25]),
-    ("mint",      [158, 49,  47]),
     ("navy",      [240, 100, 25])
 ]
 
@@ -35,10 +34,11 @@ def get_stimulus_set(colours: list):
     stimuli = []
     words = [x[0] for x in colours]
     for i, (correct_answer, hsl) in enumerate(colours):
-        random.shuffle(words)
+        choices = words.copy()
+        random.shuffle(choices)
         definition = {
             "target_hsl": hsl,
-            "choices": words,
+            "choices": choices,
             "correct_answer": correct_answer
         }
         stimuli.append(StimulusSpec(definition=definition, phase="experiment"))
@@ -106,7 +106,7 @@ def instruction_page():
 
 def colour_vocab_test(
         time_estimate_per_trial: float = 5.0,
-        performance_threshold: int = 7,
+        performance_threshold: int = 4,
         colours: list = DEFAULT_COLOURS
     ):
     return Module(

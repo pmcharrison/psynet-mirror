@@ -1339,7 +1339,7 @@ class NetworkTrialMaker(TrialMaker):
             num_repeat_trials=num_repeat_trials
         )
         self.network_class = network_class
-        self.wait_for_networks = True
+        self.wait_for_networks = wait_for_networks
 
     #### The following methods are overwritten from TrialMaker.
     #### Returns None if no trials could be found (this may not yet be supported by TrialMaker)
@@ -1526,7 +1526,7 @@ class NetworkTrialMaker(TrialMaker):
         ]
         if len(answer_groups) < self.min_nodes_for_performance_check:
             score = None
-            passed = True
+            passed = False
         else:
             consistency = self.monte_carlo_consistency(answer_groups, n=100)
             if isnan(consistency):

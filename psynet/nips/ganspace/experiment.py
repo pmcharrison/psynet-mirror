@@ -44,26 +44,27 @@ CONFIG = {
     "targets": [
         "trustworthy",
         "beautiful",
-        "innocent"
+        "innocent",
+        "intelligent"
     ],
-    "num_dimensions": 5,
+    "num_dimensions": 10,
     "num_practice_trials": 6,
-    "num_experiment_trials": 20,
+    "num_experiment_trials": 16,
     "slider_sigma": 2.0,
     "trial_maker": {
-        "chain_type": "within",
+        "chain_type": "across",
         "num_nodes_per_chain": 31, # note that the final node receives no trials
-        "num_chains_per_participant": 1,
-        "num_chains_per_experiment": None,  # set to None if chain_type="within"
-        "trials_per_node": 1,
+        "num_chains_per_participant": None,
+        "num_chains_per_experiment": 16,  # set to None if chain_type="within"
+        "trials_per_node": 5,
         "active_balancing_across_chains": False,
         "check_performance_every_trial": False,
         "propagate_failure": False,
-        "recruit_mode": "num_participants",
-        "target_num_participants": 10,
+        "recruit_mode": "num_trials",
+        "target_num_participants": None,
         "num_repeat_trials": 6,
         "time_estimate_per_trial": 7.5,
-        "wait_for_networks": True
+        "wait_for_networks": False
     }
 }
 
@@ -131,10 +132,10 @@ final_questionnaire = join(
 def make_timeline(config):
     resources = import_resources(config)
     return Timeline(
-        # demographics,
-        # colour_vocab_test(),
+        demographics,
+        colour_vocab_test(),
         # colour_blind_test(),
-        # resources["instructions"],
+        resources["instructions"],
         InfoPage(
             f"""
             You will now take {config['num_practice_trials']} practice trials
@@ -142,16 +143,16 @@ def make_timeline(config):
             """,
             time_estimate=5
         ),
-        # make_practice_trials(resources, config),
-        # InfoPage(
-        #     f"""
-        #     You will now take
-        #     {config['num_experiment_trials'] + config['trial_maker']['num_repeat_trials']}
-        #     trials similar to the ones you just took. Remember to pay careful attention
-        #     in order to get the best bonus!
-        #     """,
-        #     time_estimate=5
-        # ),
+        make_practice_trials(resources, config),
+        InfoPage(
+            f"""
+            You will now take
+            {config['num_experiment_trials'] + config['trial_maker']['num_repeat_trials']}
+            trials similar to the ones you just took. Remember to pay careful attention
+            in order to get the best bonus!
+            """,
+            time_estimate=5
+        ),
         make_experiment_trials(resources, config),
         final_questionnaire,
         SuccessfulEndPage()
@@ -179,7 +180,7 @@ def make_practice_trials(resources, config):
         "chain_type": "across",
         "num_chains_per_experiment": num_trials,
         "active_balancing_across_chains": False,
-        "trials_per_node": 1e9,
+        "trials_per_node": int(1e9),
         "num_nodes_per_chain": 10,
         "num_repeat_trials": num_repeats,
         "recruit_mode": "num_participants",

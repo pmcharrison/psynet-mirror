@@ -1291,7 +1291,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def find_node(self, network, participant, experiment):
         head = network.head
-        if head.num_viable_trials >= self.trials_per_node:
+        if network.awaiting_async_process or (head.num_viable_trials >= self.trials_per_node):
             return None
         return head
 

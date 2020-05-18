@@ -170,7 +170,7 @@ class UnsuccessfulEndPage(EndPage):
 
     def get_content(self, participant):
         return Markup(
-            "Unfortunately you did not meet the criteria to continue in the experiment. "
+            "Unfortunately the experiment must end early. "
             + "However, you will still be paid for the time you spent already. "
             + self.get_time_bonus_message(participant)
             + self.get_performance_bonus_message(participant)

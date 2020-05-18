@@ -144,6 +144,7 @@ def gibbs_factory(config):
     class CustomTrialMaker(GibbsTrialMaker):
         give_end_feedback_passed = True
         performance_threshold = -1.0
+        async_timeout_sec = 60 * 60 # 1 hour for async processes to time out.
 
         def compute_bonus(self, score, passed):
             if self.phase == "practice":
@@ -155,6 +156,7 @@ def gibbs_factory(config):
                     return max(0.0, score)
             else:
                 raise NotImplementedError
+
 
     instructions = join(
         InfoPage(
