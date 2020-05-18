@@ -838,6 +838,10 @@
                         player.load();
                     }
 
+                    out = psynet.media.data[media_type][stimulus_id];
+                    out.player = player;
+                    out.loaded = true;
+
                     psynet.media.download_progress.set(media_type, file_id, 100);
                     psynet.media.check_loaded();
                 };

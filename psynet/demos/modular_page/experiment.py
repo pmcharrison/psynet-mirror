@@ -75,11 +75,13 @@ class Exp(psynet.experiment.Experiment):
             control=VideoSliderControl(
                 url="https://psynet.s3.amazonaws.com/video-slider.mp4",
                 file_type="mp4",
-                width="300px",
-                height="300px"
+                width="400px",
+                height="400px",
+                reverse_scale=True
             ),
             time_estimate=5
         ),
+        DebugResponsePage(),
         ModularPage(
             "example_hello",
             prompt=HelloPrompt("""

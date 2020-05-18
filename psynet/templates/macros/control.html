@@ -2,7 +2,6 @@
     <script>
         on_next_button = function() {
             $(this).prop('disabled', true);
-            debugger
             if (typeof retrieve_response == "undefined") {
                 psynet.next_page();
             } else {
@@ -351,15 +350,58 @@
 
 {% macro video_slider(config) %}
     <style>
-        #video_container {
+        #slider_video_container {
             display: flex;
             justify-content: center;
+            align-items: center;
+            margin: 25px;
+            min-height: {{ config.height }};
+            min-width: {{ config.width }};
+        }
+        #slider_container {
+            margin: 25px;
+        }
+        #slider {
+            {%if config.reverse_scale %} direction: rtl {% endif %}
         }
     </style>
 
-    <div id="video_container">
-        <video id="video_for_slider" class="loader" width="{{ config.width }}" height="{{ config.height }}">
+    <div id="slider_video_container">
+        <video id="slider_video" class="loader" width="{{ config.width }}" height="{{ config.height }}">
             <source src="" type="video/{{ config.file_type }}"
         </video>
     </div>
+
+    <div id="slider_container">
+        <input  id="slider" class="slider-range form-control-range response" type="range"
+                style="display: inline-block;" min="0" max="1" step="0.001" value="{{ config.starting_value }}">
+    </div>
+
+    {{ null(config) }}
+
+    <script>
+        update_video_from_slider = function() {
+            var slider_value = document.getElementById("slider").value;
+            var video = document.getElementById("slider_video");
+            if (psynet.response.ready_done && !isNaN(video.duration)) {
+                video.currentTime = slider_value * video.duration;
+            };
+            window.requestAnimationFrame(update_video_from_slider);
+        }
+        update_video_from_slider();
+
+        var minimal_time = parseFloat("{{ config.minimal_time }}");
+        psynet.submit.wait_for("slider_minimal_time");
+        psynet.response.register_on_ready_routine(function() {
+            setTimeout(function() {
+                psynet.submit.ready("slider_minimal_time");
+            }, minimal_time * 1000);
+        });
+
+        retrieve_response = function() {
+            return {
+                raw_answer: $("#slider").get(0).value
+            }
+        }
+    </script>
 {% endmacro %}

@@ -834,19 +834,30 @@ class VideoSliderControl(Control):
             url: str,
             file_type: str,
             width: str,
-            height: str
+            height: str,
+            starting_value: float = 0.5,
+            minimal_time: float = 2.0,
+            reverse_scale: bool = False
         ):
+        assert 0 <= starting_value and starting_value <= 1
+
         self.url = url
         self.file_type = file_type
         self.width = width
         self.height = height
+        self.starting_value = starting_value
+        self.minimal_time = minimal_time
+        self.reverse_scale = reverse_scale
 
     @property
     def metadata(self):
         return {
-            "url": self.url
+            "url": self.url,
+            "starting_value": self.starting_value,
+            "minimal_time": self.minimal_time,
+            "reverse_scale": self.reverse_scale
         }
 
     @property
     def media(self):
-        return MediaSpec(video={"video_for_slider": self.url})
+        return MediaSpec(video={"slider_video": self.url})
