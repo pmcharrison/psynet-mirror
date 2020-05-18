@@ -184,15 +184,26 @@ class MediaSpec():
                     'type': 'batch'
                 }
             }
-    """
-    modalities = ["audio"]
 
-    def __init__(self, audio: Optional[dict] = None):
+    video: dict
+        An analogously structured dictionary of video stimuli.
+    """
+    modalities = ["audio", "video"]
+
+    def __init__(
+            self,
+            audio: Optional[dict] = None,
+            video: Optional[dict] = None
+            ):
         if audio is None:
             audio = {}
 
+        if video is None:
+            video = {}
+
         self.data = {
-            "audio": audio
+            "audio": audio,
+            "video": video
         }
 
         assert list(self.data) == self.modalities
@@ -228,7 +239,7 @@ class MediaSpec():
     def check(self):
         assert isinstance(self.data, dict)
         for key, value in self.data.items():
-            assert key in ["audio"]
+            assert key in self.modalities
             ids = set()
             for file_id, file in value.items():
                 if file_id in ids:

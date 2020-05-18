@@ -824,3 +824,29 @@ class AudioRecordControl(Control):
                 "url": os.path.join("https://s3.amazonaws.com", self.s3_bucket, key),
                 "duration_sec": duration_sec
             }
+
+class VideoSliderControl(Control):
+    macro = "video_slider"
+
+    def __init__(
+            self,
+            *,
+            url: str,
+            file_type: str,
+            width: str,
+            height: str
+        ):
+        self.url = url
+        self.file_type = file_type
+        self.width = width
+        self.height = height
+
+    @property
+    def metadata(self):
+        return {
+            "url": self.url
+        }
+
+    @property
+    def media(self):
+        return MediaSpec(video={"video_for_slider": self.url})

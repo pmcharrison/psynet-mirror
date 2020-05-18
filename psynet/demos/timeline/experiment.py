@@ -16,7 +16,8 @@ from psynet.page import (
     InfoPage,
     SuccessfulEndPage,
     NAFCPage,
-    TextInputPage
+    TextInputPage,
+    WaitPage,
 )
 
 import logging

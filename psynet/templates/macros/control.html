@@ -348,3 +348,18 @@
 
     {{ null(config) }}
 {% endmacro %}
+
+{% macro video_slider(config) %}
+    <style>
+        #video_container {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+
+    <div id="video_container">
+        <video id="video_for_slider" class="loader" width="{{ config.width }}" height="{{ config.height }}">
+            <source src="" type="video/{{ config.file_type }}"
+        </video>
+    </div>
+{% endmacro %}
