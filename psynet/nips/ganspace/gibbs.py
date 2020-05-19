@@ -121,8 +121,7 @@ def gibbs_factory(config):
                     reverse_scale=reverse_scale,
                     starting_value=self.from_sigma_scale_to_unit_interval(start_value),
                     minimal_time=5
-                ),
-                time_estimate=5
+                )
             )
 
         def from_unit_interval_to_sigma_scale(self, x):

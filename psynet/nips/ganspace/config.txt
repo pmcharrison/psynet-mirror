@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Colour perception experiment (EIV) ($9.00/hour bonus!)
+title = Face perception experiment ($9.00/hour bonus!)
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -15,7 +15,7 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
-description = This app investigates how you perceive colours. You will be paid at a rate of approximately $9.00/hour via bonuses.
+description = This app investigates how you perceive faces. You will be paid at a rate of approximately $9.00/hour via bonuses.
 keywords = perception
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
