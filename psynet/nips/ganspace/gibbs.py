@@ -144,7 +144,7 @@ def gibbs_factory(config):
         __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     class CustomTrialMaker(GibbsTrialMaker):
-        give_end_feedback_passed = True
+        give_end_feedback_passed = False
         performance_threshold = -1.0
         async_timeout_sec = 60 * 60 # 1 hour for async processes to time out.
 
