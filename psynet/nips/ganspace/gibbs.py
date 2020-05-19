@@ -30,8 +30,10 @@ def gibbs_factory(config):
 
         def random_sample(self, i):
             slider_sigma = config["slider_sigma"]
-            # return random.uniform(- slider_sigma, slider_sigma)
-            return random.normalvariate(0, slider_sigma)
+            lower_bound = - slider_sigma
+            upper_bound = slider_sigma
+            raw = random.normalvariate(0, 1)
+            return min(max(raw, lower_bound), upper_bound)
 
         def make_definition(self):
             return {
