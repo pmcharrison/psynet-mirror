@@ -1080,6 +1080,10 @@ class ChainTrialMaker(NetworkTrialMaker):
     end_performance_check_waits : bool
         If True (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
+
+    allow_revisiting_networks_in_across_chains : bool
+        If this is set to ``True``, then participants can revisit the same network
+        in across-participant chains. The default is ``False``.
     """
     def __init__(
         self,
@@ -1153,6 +1157,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=wait_for_networks
         )
+
+    allow_revisiting_networks_in_across_chains = False
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
@@ -1256,7 +1262,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)
-        elif self.chain_type == "across":
+        elif self.chain_type == "across" and not self.allow_revisiting_networks_in_across_chains:
             networks = self.exclude_participated(networks, participant)
 
         networks = networks.all()
