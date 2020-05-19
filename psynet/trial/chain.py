@@ -1113,10 +1113,14 @@ class ChainTrialMaker(NetworkTrialMaker):
     ):
         assert chain_type in ["within", "across"]
 
-        if chain_type == "across" and num_trials_per_participant > num_chains_per_experiment:
+        if (
+            chain_type == "across" and num_trials_per_participant > num_chains_per_experiment
+            and not self.allow_revisiting_networks_in_across_chains
+        ):
             raise ValueError(
                 "In across-chain experiments, <num_trials_per_participant> "
-                "cannot exceed <num_chains_per_experiment>."
+                "cannot exceed <num_chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
+                "is ``True``."
             )
 
         if chain_type == "within" and recruit_mode == "num_trials":
