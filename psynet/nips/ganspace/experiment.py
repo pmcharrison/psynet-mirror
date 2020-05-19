@@ -49,13 +49,13 @@ CONFIG = {
     ],
     "num_dimensions": 10,
     "num_practice_trials": 6,
-    "num_experiment_trials": 16,
+    "num_experiment_trials": 25,
     "slider_sigma": 2.0,
     "trial_maker": {
         "chain_type": "across",
-        "num_nodes_per_chain": 31, # note that the final node receives no trials
+        "num_nodes_per_chain": 51, # note that the final node receives no trials
         "num_chains_per_participant": None,
-        "num_chains_per_experiment": 16,  # set to None if chain_type="within"
+        "num_chains_per_experiment": 8,  # set to None if chain_type="within"
         "trials_per_node": 5,
         "active_balancing_across_chains": False,
         "check_performance_every_trial": False,
