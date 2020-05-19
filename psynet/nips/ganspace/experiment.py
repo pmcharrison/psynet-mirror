@@ -42,10 +42,10 @@ CONFIG = {
     "mode": "gsp",
     "ganspace_server": "http://54.204.210.121:5000",
     "targets": [
-        "trustworthy",
         "beautiful",
-        "innocent",
-        "intelligent"
+        "confident",
+        "shy",
+        "innocent"
     ],
     "num_dimensions": 10,
     "num_practice_trials": 6,

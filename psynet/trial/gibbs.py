@@ -3,8 +3,11 @@
 import random
 import rpdb
 import logging
+import statsmodels.api as sm
+import numpy as np
 
-from statistics import mean
+from numpy import linspace
+from statistics import mean, median
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 logging.basicConfig(level=logging.INFO)
@@ -184,6 +187,45 @@ class GibbsNode(ChainNode):
     def get_unique(x):
         assert len(set(x)) == 1
         return x[0]
+
+    # mean, median, kernel
+    summarise_trials_method = "mean"
+
+    @classmethod
+    def summarise_trial_dimension(cls, observations):
+        method = cls.summarise_trials_method
+        if method == "mean":
+            return mean(observations)
+        elif method == "median":
+            return median(observations)
+        elif method == "kernel_mode":
+            return cls.kernel_summarise(observations, method="mode")
+        else:
+            raise NotImplementedError
+
+    # can be a number, or normal_reference, cv_ml, cv_ls (see https://www.statsmodels.org/devel/generated/statsmodels.nonparametric.kernel_density.KDEMultivariate.html)
+    kernel_width = "cv_ls"
+
+    @classmethod
+    def kernel_summarise(cls, observations, method):
+        assert isinstance(observations, list)
+
+        kernel_width = cls.kernel_width
+        if (not isinstance(kernel_width, str)) and (np.ndim(kernel_width) == 0):
+            kernel_width = [kernel_width]
+
+        density = sm.nonparametric.KDEMultivariate(
+            data=observations,
+            var_type="c",
+            bw=kernel_width
+        )
+        points_to_evaluate = linspace(min(observations), max(observations), num=5001)
+        pdf = density.pdf(points_to_evaluate)
+        index_max = np.argmax(pdf)
+        if method == "mode":
+            return points_to_evaluate[index_max]
+        else:
+            raise NotImplementedError
 
     def summarise_trials(self, trials: list, experiment, participant):
         """
