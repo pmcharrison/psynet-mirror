@@ -42,7 +42,7 @@ CONFIG = {
     "mode": "gsp",
     "ganspace_server": "http://54.204.210.121:5000",
     "targets": [
-        "beautiful",
+        "attractive",
         "fun",
         "serious",
         "youthful"
