@@ -31,7 +31,7 @@ progress==1.5
 psutil==5.6.1
 psycopg2==2.8.5
 psycopg2-binary==2.8.2
--e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet.git@d3e2d6d6e903511fa6498bf8511991663c931fd8#egg=psynet
+-e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet.git@peter#egg=psynet
 ptyprocess==0.6.0
 python-dateutil==2.8.1
 pytz==2020.1
