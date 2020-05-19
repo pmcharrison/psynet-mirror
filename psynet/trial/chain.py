@@ -1040,6 +1040,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         If ``True``, then the participant will be made to wait if there are
         still more networks to participate in, but these networks are pending asynchronous processes.
 
+    allow_revisiting_networks_in_across_chains : bool
+        If this is set to ``True``, then participants can revisit the same network
+        in across-participant chains. The default is ``False``.
+
     Attributes
     ----------
 
@@ -1080,10 +1084,6 @@ class ChainTrialMaker(NetworkTrialMaker):
     end_performance_check_waits : bool
         If True (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
-
-    allow_revisiting_networks_in_across_chains : bool
-        If this is set to ``True``, then participants can revisit the same network
-        in across-participant chains. The default is ``False``.
     """
     def __init__(
         self,
@@ -1109,13 +1109,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
         num_repeat_trials: int = 0,
-        wait_for_networks: bool = False
+        wait_for_networks: bool = False,
+        allow_revisiting_networks_in_across_chains: bool = False
     ):
         assert chain_type in ["within", "across"]
 
         if (
             chain_type == "across" and num_trials_per_participant > num_chains_per_experiment
-            and not self.allow_revisiting_networks_in_across_chains
+            and not allow_revisiting_networks_in_across_chains
         ):
             raise ValueError(
                 "In across-chain experiments, <num_trials_per_participant> "
@@ -1144,6 +1145,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
+        self.allow_revisiting_networks_in_across_chains = allow_revisiting_networks_in_across_chains
 
         super().__init__(
             trial_class,
@@ -1161,8 +1163,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=wait_for_networks
         )
-
-    allow_revisiting_networks_in_across_chains = False
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
