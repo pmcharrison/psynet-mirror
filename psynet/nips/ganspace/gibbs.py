@@ -62,7 +62,7 @@ def gibbs_factory(config):
                     "pc_to_manipulate": pc_to_manipulate,
                     "sigma_range": config["slider_sigma"],
                     "n_frames": 150,
-                    "scale": "640x640",
+                    "scale": "350x350",
                     "resample": False,
                     "seed": 0
                 }
