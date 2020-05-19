@@ -48,8 +48,8 @@ CONFIG = {
         "innocent"
     ],
     "num_dimensions": 10,
-    "num_practice_trials": 6,
-    "num_experiment_trials": 25,
+    "num_practice_trials": 4,
+    "num_experiment_trials": 24,
     "slider_sigma": 2.0,
     "trial_maker": {
         "chain_type": "across",
@@ -62,7 +62,7 @@ CONFIG = {
         "propagate_failure": False,
         "recruit_mode": "num_trials",
         "target_num_participants": None,
-        "num_repeat_trials": 6,
+        "num_repeat_trials": 4,
         "time_estimate_per_trial": 10.0,
         "wait_for_networks": False
     }
@@ -170,12 +170,14 @@ def import_resources(config):
 
 def make_practice_trials(resources, config):
     overall_num_trials = config["num_practice_trials"]
-    num_trials = ceil(overall_num_trials / 2)
-    num_repeats = overall_num_trials - num_trials
+    # num_trials = ceil(overall_num_trials / 2)
+    # num_repeats = overall_num_trials - num_trials
+    num_trials = overall_num_trials
+    num_repeats = 0
     kwargs = {
         **config["trial_maker"],
         "phase": "practice",
-        "check_performance_at_end": True,
+        "check_performance_at_end": False,
         "num_trials_per_participant": num_trials,
         "chain_type": "across",
         "num_chains_per_experiment": num_trials,
@@ -184,22 +186,20 @@ def make_practice_trials(resources, config):
         "num_nodes_per_chain": 10,
         "num_repeat_trials": num_repeats,
         "recruit_mode": "num_participants",
-        "target_num_participants": 0
+        "target_num_participants": 0,
+        "allow_revisiting_networks_in_across_chains": False
     }
-    trial_maker = make_trial_maker(resources, config, **kwargs)
-    trial_maker.allow_revisiting_networks_in_across_chains = False
-    return trial_maker
+    return make_trial_maker(resources, config, **kwargs)
 
 def make_experiment_trials(resources, config):
     kwargs = {
         **config["trial_maker"],
         "phase": "experiment",
         "check_performance_at_end": True,
-        "num_trials_per_participant": config["num_experiment_trials"]
+        "num_trials_per_participant": config["num_experiment_trials"],
+        "allow_revisiting_networks_in_across_chains": True
     }
-    trial_maker = make_trial_maker(resources, config, **kwargs)
-    trial_maker.allow_revisiting_networks_in_across_chains = True
-    return trial_maker
+    return make_trial_maker(resources, config, **kwargs)
 
 def make_trial_maker(resources, config, **kwargs):
     return resources["TrialMaker"](
