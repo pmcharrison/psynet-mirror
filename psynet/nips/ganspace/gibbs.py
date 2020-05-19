@@ -147,7 +147,6 @@ def gibbs_factory(config):
         give_end_feedback_passed = False
         performance_threshold = -1.0
         async_timeout_sec = 60 * 60 # 1 hour for async processes to time out.
-        allow_revisiting_networks_in_across_chains = True
 
         def compute_bonus(self, score, passed):
             if self.phase == "practice":

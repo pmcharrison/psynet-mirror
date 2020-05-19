@@ -55,7 +55,7 @@ CONFIG = {
         "chain_type": "across",
         "num_nodes_per_chain": 51, # note that the final node receives no trials
         "num_chains_per_participant": None,
-        "num_chains_per_experiment": 8,  # set to None if chain_type="within"
+        "num_chains_per_experiment": 12,  # set to None if chain_type="within"
         "trials_per_node": 5,
         "active_balancing_across_chains": False,
         "check_performance_every_trial": False,
@@ -186,7 +186,9 @@ def make_practice_trials(resources, config):
         "recruit_mode": "num_participants",
         "target_num_participants": 0
     }
-    return make_trial_maker(resources, config, **kwargs)
+    trial_maker = make_trial_maker(resources, config, **kwargs)
+    trial_maker.allow_revisiting_networks_in_across_chains = False
+    return trial_maker
 
 def make_experiment_trials(resources, config):
     kwargs = {
@@ -195,7 +197,9 @@ def make_experiment_trials(resources, config):
         "check_performance_at_end": True,
         "num_trials_per_participant": config["num_experiment_trials"]
     }
-    return make_trial_maker(resources, config, **kwargs)
+    trial_maker = make_trial_maker(resources, config, **kwargs)
+    trial_maker.allow_revisiting_networks_in_across_chains = True
+    return trial_maker
 
 def make_trial_maker(resources, config, **kwargs):
     return resources["TrialMaker"](
@@ -211,6 +215,6 @@ class Exp(psynet.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 11
+        self.initial_recruitment_size = 5
 
 extra_routes = Exp().extra_routes()
