@@ -43,13 +43,13 @@ CONFIG = {
     "ganspace_server": "http://54.204.210.121:5000",
     "targets": [
         "beautiful",
-        "confident",
-        "shy",
-        "innocent"
+        "fun",
+        "serious",
+        "youthful"
     ],
     "num_dimensions": 10,
     "num_practice_trials": 4,
-    "num_experiment_trials": 24,
+    "num_experiment_trials": 12,
     "slider_sigma": 2.0,
     "trial_maker": {
         "chain_type": "across",
@@ -62,7 +62,7 @@ CONFIG = {
         "propagate_failure": False,
         "recruit_mode": "num_trials",
         "target_num_participants": None,
-        "num_repeat_trials": 4,
+        "num_repeat_trials": 6,
         "time_estimate_per_trial": 10.0,
         "wait_for_networks": False
     }
@@ -186,8 +186,7 @@ def make_practice_trials(resources, config):
         "num_nodes_per_chain": 10,
         "num_repeat_trials": num_repeats,
         "recruit_mode": "num_participants",
-        "target_num_participants": 0,
-        "allow_revisiting_networks_in_across_chains": False
+        "target_num_participants": 0
     }
     return make_trial_maker(resources, config, **kwargs)
 
@@ -196,8 +195,7 @@ def make_experiment_trials(resources, config):
         **config["trial_maker"],
         "phase": "experiment",
         "check_performance_at_end": True,
-        "num_trials_per_participant": config["num_experiment_trials"],
-        "allow_revisiting_networks_in_across_chains": True
+        "num_trials_per_participant": config["num_experiment_trials"]
     }
     return make_trial_maker(resources, config, **kwargs)
 
