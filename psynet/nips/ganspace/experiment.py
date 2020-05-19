@@ -95,13 +95,13 @@ demographics = join(
     TextInputPage(
         "country",
         "What country are you from?",
-        time_estimate=5,
+        time_estimate=7.5,
         one_line=True
     ),
     TextInputPage(
         "mother_tongue",
         "What is your mother tongue?",
-        time_estimate=5,
+        time_estimate=7.5,
         one_line=True
     )
 )
@@ -115,7 +115,7 @@ final_questionnaire = join(
         Did you find the task easy or difficult?
         Did you find it interesting or boring?
         """,
-        time_estimate=20,
+        time_estimate=25,
         one_line=False
     ),
     TextInputPage(
