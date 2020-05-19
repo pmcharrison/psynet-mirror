@@ -194,6 +194,7 @@ class GibbsNode(ChainNode):
     @classmethod
     def summarise_trial_dimension(cls, observations):
         method = cls.summarise_trials_method
+        logger.info("Summarising observations using method %s...", method)
         if method == "mean":
             return mean(observations)
         elif method == "median":
@@ -219,7 +220,7 @@ class GibbsNode(ChainNode):
             var_type="c",
             bw=kernel_width
         )
-        points_to_evaluate = linspace(min(observations), max(observations), num=5001)
+        points_to_evaluate = linspace(min(observations), max(observations), num=501)
         pdf = density.pdf(points_to_evaluate)
         index_max = np.argmax(pdf)
         if method == "mode":
@@ -265,11 +266,14 @@ class GibbsNode(ChainNode):
             and ``active_index`` is an integer identifying which was the
             free parameter.
         """
-        updated_vectors = [trial.updated_vector for trial in trials]
-        mean_updated_vector = self.parallel_mean(*updated_vectors)
-        active_index = self.get_unique([trial.active_index for trial in trials])
+        active_index = trials[0].active_index
+        observations = [t.updated_vector[active_index] for t in trials]
+        summary = self.summarise_trial_dimension(observations)
+        vector = trials[0].updated_vector.copy()
+        vector[active_index] = summary
+
         return {
-            "vector": mean_updated_vector,
+            "vector": vector,
             "active_index": active_index
         }
 
