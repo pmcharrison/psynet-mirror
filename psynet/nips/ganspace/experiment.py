@@ -63,7 +63,7 @@ CONFIG = {
         "recruit_mode": "num_trials",
         "target_num_participants": None,
         "num_repeat_trials": 6,
-        "time_estimate_per_trial": 7.5,
+        "time_estimate_per_trial": 10.0,
         "wait_for_networks": False
     }
 }
