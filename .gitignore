@@ -143,3 +143,4 @@ dmypy.json
 .vscode/settings.json
 psynet/nips/colour/data/colmcmcp-data.zip
 psynet/nips/colour/data/coltest-data.zip
+psynet/nips/ganspace/snapshots/ganspace-code.zip
