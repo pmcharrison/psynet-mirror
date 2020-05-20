@@ -35,6 +35,20 @@
             font-size: 28px;
             font-weight: bold;
         }
+
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 
     {% for x in css %}
@@ -341,7 +355,7 @@
                 }
 
                 psynet.response.ready = function (event) {
-                    psynet.log.info("A response-ready event occurred: " + event);
+                    psynet.log.debug("A response-ready event occurred: " + event);
                     if (event != undefined) {
                         psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
                             return elt != event
@@ -351,7 +365,7 @@
                         if (psynet.response.ready_done) {
                             psynet.log.warning("Response-ready has already been called.");
                         } else {
-                            psynet.log.info("Ready for user to enter response.");
+                            psynet.log.debug("Ready for user to enter response.");
                             psynet.response.on_ready_routines.forEach(function (f) {
                                 f();
                             });
@@ -361,7 +375,7 @@
                 };
 
                 psynet.submit.ready = function (event) {
-                    psynet.log.info("A submit-ready event occurred: " + event);
+                    psynet.log.debug("A submit-ready event occurred: " + event);
                     if (event != undefined) {
                         psynet.submit.waiting_for = psynet.submit.waiting_for.filter(function(elt) {
                             return elt != event
@@ -371,7 +385,7 @@
                         if (psynet.submit.ready_done) {
                             psynet.log.warning("Submit-ready has already been called.");
                         } else {
-                            psynet.log.info("Ready for user to submit response.");
+                            psynet.log.debug("Ready for user to submit response.");
                             psynet.submit.on_ready_routines.forEach(function (f) {
                                 f();
                             });
@@ -380,7 +394,7 @@
                     }
                 };
 
-                psynet.media.types = ["audio"];
+                psynet.media.types = ["audio", "video"];
                 psynet.media.data = {};
 
                 // Can be very dangerous if indexes are not sorted properly!
@@ -412,7 +426,7 @@
                 };
 
                 psynet.media.on_loaded = function () {
-                    psynet.log.info("All media loaded.");
+                    psynet.log.debug("All media loaded.");
 
                     psynet.media.on_loaded_routines.forEach(function (f) { f(); });
 
@@ -600,7 +614,7 @@
                         init_stimulus(id, media_type);
                     });
 
-                    create_request(url, process_audio_batch, args);
+                    create_request(url, media_type, process_media_batch[media_type], args);
                 };
 
                 preload_stimulus = function (stimulus_id, url, media_type) {
@@ -610,7 +624,7 @@
                         file_id: stimulus_id
                     };
                     init_stimulus(stimulus_id, media_type);
-                    create_request(url, create_sound_from_buffer, args);
+                    create_request(url, media_type, create_media_from_buffer[media_type], args);
                 };
 
                 function report_request_error(url, status) {
@@ -623,10 +637,18 @@
                     throw Error(msg);
                 }
 
-                function create_request(url, callback_function, args) {
+                function create_request(url, media_type, callback_function, args) {
                     var request = new XMLHttpRequest();
                     request.open('GET', url, true);
-                    request.responseType = 'arraybuffer';
+
+                    if (media_type == "audio") {
+                        request.responseType = "arraybuffer";
+                    } else if (media_type == "video") {
+                        request.responseType = "blob";
+                    } else {
+                        throw Error("Unsupported media type: " + media_type);
+                    }
+
                     request.onload = function () {
                         if (request.status === 200) {
                             callback_function(request.response, args);
@@ -675,7 +697,9 @@
                     Object.keys(requests).forEach(log);
                 };
 
-                create_sound_from_buffer = function (data, args) {
+                create_media_from_buffer = {};
+
+                create_media_from_buffer.audio = function (data, args) {
                     var stimulus_id = args['stimulus_id'];
                     var media_type = args['media_type'];
                     var file_id = args['file_id'];
@@ -797,7 +821,34 @@
                     });
                 };
 
-                process_audio_batch = function (data, args) { //, ids,) {
+                create_media_from_buffer.video = function (data, args) {
+                    var stimulus_id = args['stimulus_id'];
+                    var media_type = args['media_type'];
+                    var file_id = args['file_id'];
+                    var last_in_batch = args['last_in_batch'];
+
+                    var player = document.getElementById(stimulus_id);
+                    if (player != null) {
+                        psynet.log.debug(
+                            "Associating video '" + stimulus_id
+                            + "' with the player of the same name.'"
+                        );
+                        player.src = URL.createObjectURL(data);
+                        player.classList.remove("loader");
+                        player.load();
+                    }
+
+                    out = psynet.media.data[media_type][stimulus_id];
+                    out.player = player;
+                    out.loaded = true;
+
+                    psynet.media.download_progress.set(media_type, file_id, 100);
+                    psynet.media.check_loaded();
+                };
+
+                process_media_batch = {};
+
+                process_media_batch.audio = function (data, args) { //, ids,) {
                     var stimulus_ids = args["stimulus_ids"];
                     var media_type = args["media_type"];
                     var file_id = args['file_id'];
@@ -838,7 +889,7 @@
                             file_id: file_id
                         };
 
-                        create_sound_from_buffer(sound.buffer, args);
+                        create_media_from_buffer.audio(sound.buffer, args);
                     }
                     if (num_files < stimulus_ids.length) {
                         throw Error(

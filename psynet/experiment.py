@@ -301,13 +301,13 @@ class Experiment(dallinger.experiment.Experiment):
             return error_response()
 
     def response_approved(self):
-        logger.info("The response was approved.")
+        logger.debug("The response was approved.")
         return success_response(
             submission="approved"
         )
 
     def response_rejected(self, message):
-        logger.info("The response was rejected with the following message: '%s'.", message)
+        logger.warning("The response was rejected with the following message: '%s'.", message)
         return success_response(
             submission="rejected",
             message=message

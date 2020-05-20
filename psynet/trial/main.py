@@ -1076,6 +1076,9 @@ class TrialMaker(Module):
             log_chosen_branch=False
         )
 
+    def _wait_for_trial(self, experiment, participant):
+        return False
+
     def _trial_loop(self):
         return join(
             CodeBlock(self._prepare_trial),
@@ -1093,6 +1096,7 @@ class TrialMaker(Module):
                     CodeBlock(self._finalise_trial),
                     self._construct_feedback_logic(),
                     self._check_performance_logic(type="trial") if self.check_performance_every_trial else None,
+                    wait_while(self._wait_for_trial, expected_wait=0.0),
                     CodeBlock(self._prepare_trial)
                 ),
                 expected_repetitions=self.expected_num_trials,
@@ -1251,6 +1255,10 @@ class NetworkTrialMaker(TrialMaker):
         are typically used to estimate the reliability of the participant's
         responses.
 
+    wait_for_networks
+        If ``True``, then the participant will be made to wait if there are
+        still more networks to participate in, but these networks are pending asynchronous processes.
+
 
     Attributes
     ----------
@@ -1313,7 +1321,8 @@ class NetworkTrialMaker(TrialMaker):
         propagate_failure,
         recruit_mode,
         target_num_participants,
-        num_repeat_trials: int
+        num_repeat_trials: int,
+        wait_for_networks: bool
     ):
         super().__init__(
             trial_class=trial_class,
@@ -1330,6 +1339,7 @@ class NetworkTrialMaker(TrialMaker):
             num_repeat_trials=num_repeat_trials
         )
         self.network_class = network_class
+        self.wait_for_networks = wait_for_networks
 
     #### The following methods are overwritten from TrialMaker.
     #### Returns None if no trials could be found (this may not yet be supported by TrialMaker)
@@ -1349,7 +1359,7 @@ class NetworkTrialMaker(TrialMaker):
 
     ####
 
-    def find_networks(self, participant, experiment):
+    def find_networks(self, participant, experiment, ignore_async_processes=False):
         """
         Returns a list of all available networks for the participant's next trial, ordered
         in preference (most preferred to least preferred).
@@ -1516,7 +1526,7 @@ class NetworkTrialMaker(TrialMaker):
         ]
         if len(answer_groups) < self.min_nodes_for_performance_check:
             score = None
-            passed = True
+            passed = False
         else:
             consistency = self.monte_carlo_consistency(answer_groups, n=100)
             if isnan(consistency):
@@ -1570,6 +1580,22 @@ class NetworkTrialMaker(TrialMaker):
                 res[node_id] = []
             res[node_id].append(trial)
         return res
+
+    def _wait_for_trial(self, experiment, participant):
+        if not self.wait_for_networks:
+            return False
+        else:
+            num_networks_available_now = len(self.find_networks(participant, experiment))
+            if num_networks_available_now > 0:
+                return False
+            else:
+                num_networks_available_in_future = len(self.find_networks(
+                    participant, experiment, ignore_async_processes=True))
+                if num_networks_available_in_future > 0:
+                    return True
+                else:
+                    return False
+
 
 class TrialNetwork(Network, AsyncProcessOwner):
     """
@@ -1711,7 +1737,7 @@ def call_async_post_trial(trial_id, process_id):
             trial.pop_async_process(process_id)
         else:
             logger.info("Skipping async process %s as it is no longer queued.", process_id)
-    except Exception as e:
+    except BaseException as e:
         trial.fail_async_processes(reason=f"exception in post-trial process: {e.__class__.__name__}")
         raise
     finally:
@@ -1727,7 +1753,7 @@ def call_async_post_grow_network(network_id, process_id):
             network.pop_async_process(process_id)
         else:
             logger.info("Skipping async process %s as it is no longer queued.", process_id)
-    except Exception as e:
+    except BaseException as e:
         network.fail_async_processes(reason=f"exception in post-grow-network process: {e.__class__.__name__}")
         raise
     finally:

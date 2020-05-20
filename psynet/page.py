@@ -143,7 +143,7 @@ def wait_while(
     list :
         A list of test events suitable for inclusion in a PsyNet timeline.
     """
-    assert expected_wait > 0
+    assert expected_wait >= 0
     assert check_interval > 0
     expected_repetitions = ceil(expected_wait / check_interval)
 
@@ -170,7 +170,7 @@ class UnsuccessfulEndPage(EndPage):
 
     def get_content(self, participant):
         return Markup(
-            "Unfortunately you did not meet the criteria to continue in the experiment. "
+            "Unfortunately the experiment must end early. "
             + "However, you will still be paid for the time you spent already. "
             + self.get_time_bonus_message(participant)
             + self.get_performance_bonus_message(participant)

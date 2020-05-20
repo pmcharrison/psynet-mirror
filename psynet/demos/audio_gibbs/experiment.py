@@ -95,16 +95,17 @@ trial_maker = CustomTrialMaker(
     time_estimate_per_trial=5,
     chain_type="within", # can be "within" or "across"
     num_trials_per_participant=12,
-    num_nodes_per_chain=4, # note that the final node doesn't get any trials
-    num_chains_per_participant=2, # set to None if chain_type="across"
+    num_nodes_per_chain=13, # note that the final node doesn't get any trials
+    num_chains_per_participant=1, # set to None if chain_type="across"
     num_chains_per_experiment=None, # set to None if chain_type="within"
-    trials_per_node=2,
+    trials_per_node=1,
     active_balancing_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
-    target_num_participants=10
+    target_num_participants=10,
+    wait_for_networks=True
 )
 
 ##########################################################################################

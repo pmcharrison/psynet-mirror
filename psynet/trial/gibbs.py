@@ -3,8 +3,11 @@
 import random
 import rpdb
 import logging
+import statsmodels.api as sm
+import numpy as np
 
-from statistics import mean
+from numpy import linspace
+from statistics import mean, median
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
 logging.basicConfig(level=logging.INFO)
@@ -168,6 +171,14 @@ class GibbsNode(ChainNode):
     """
     __mapper_args__ = {"polymorphic_identity": "gibbs_node"}
 
+    @property
+    def vector(self):
+        return self.definition["vector"]
+
+    @property
+    def active_index(self):
+        return self.definition["active_index"]
+
     @staticmethod
     def parallel_mean(*vectors):
         return [mean(x) for x in zip(*vectors)]
@@ -176,6 +187,46 @@ class GibbsNode(ChainNode):
     def get_unique(x):
         assert len(set(x)) == 1
         return x[0]
+
+    # mean, median, kernel
+    summarise_trials_method = "mean"
+
+    @classmethod
+    def summarise_trial_dimension(cls, observations):
+        method = cls.summarise_trials_method
+        logger.info("Summarising observations using method %s...", method)
+        if method == "mean":
+            return mean(observations)
+        elif method == "median":
+            return median(observations)
+        elif method == "kernel_mode":
+            return cls.kernel_summarise(observations, method="mode")
+        else:
+            raise NotImplementedError
+
+    # can be a number, or normal_reference, cv_ml, cv_ls (see https://www.statsmodels.org/devel/generated/statsmodels.nonparametric.kernel_density.KDEMultivariate.html)
+    kernel_width = "cv_ls"
+
+    @classmethod
+    def kernel_summarise(cls, observations, method):
+        assert isinstance(observations, list)
+
+        kernel_width = cls.kernel_width
+        if (not isinstance(kernel_width, str)) and (np.ndim(kernel_width) == 0):
+            kernel_width = [kernel_width]
+
+        density = sm.nonparametric.KDEMultivariate(
+            data=observations,
+            var_type="c",
+            bw=kernel_width
+        )
+        points_to_evaluate = linspace(min(observations), max(observations), num=501)
+        pdf = density.pdf(points_to_evaluate)
+        index_max = np.argmax(pdf)
+        if method == "mode":
+            return points_to_evaluate[index_max]
+        else:
+            raise NotImplementedError
 
     def summarise_trials(self, trials: list, experiment, participant):
         """
@@ -215,11 +266,14 @@ class GibbsNode(ChainNode):
             and ``active_index`` is an integer identifying which was the
             free parameter.
         """
-        updated_vectors = [trial.updated_vector for trial in trials]
-        mean_updated_vector = self.parallel_mean(*updated_vectors)
-        active_index = self.get_unique([trial.active_index for trial in trials])
+        active_index = trials[0].active_index
+        observations = [t.updated_vector[active_index] for t in trials]
+        summary = self.summarise_trial_dimension(observations)
+        vector = trials[0].updated_vector.copy()
+        vector[active_index] = summary
+
         return {
-            "vector": mean_updated_vector,
+            "vector": vector,
             "active_index": active_index
         }
 

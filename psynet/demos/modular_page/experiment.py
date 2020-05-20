@@ -26,7 +26,8 @@ from psynet.modular_page import (
     Prompt,
     AudioPrompt,
     Control,
-    NAFCControl
+    NAFCControl,
+    VideoSliderControl
 )
 
 
@@ -68,6 +69,19 @@ class Exp(psynet.experiment.Experiment):
             prompt=Markup("This is an example of a text page with some <strong>simple formatting</strong>."),
             time_estimate=5
         ),
+        ModularPage(
+            "video_slider",
+            prompt="This is an example of a video slider page.",
+            control=VideoSliderControl(
+                url="https://psynet.s3.amazonaws.com/video-slider.mp4",
+                file_type="mp4",
+                width="400px",
+                height="400px",
+                reverse_scale=True
+            ),
+            time_estimate=5
+        ),
+        DebugResponsePage(),
         ModularPage(
             "example_hello",
             prompt=HelloPrompt("""

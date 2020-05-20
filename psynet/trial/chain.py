@@ -1036,6 +1036,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         are typically used to estimate the reliability of the participant's
         responses.
 
+    wait_for_networks
+        If ``True``, then the participant will be made to wait if there are
+        still more networks to participate in, but these networks are pending asynchronous processes.
+
+    allow_revisiting_networks_in_across_chains : bool
+        If this is set to ``True``, then participants can revisit the same network
+        in across-participant chains. The default is ``False``.
+
     Attributes
     ----------
 
@@ -1100,14 +1108,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
-        num_repeat_trials: int = 0
+        num_repeat_trials: int = 0,
+        wait_for_networks: bool = False,
+        allow_revisiting_networks_in_across_chains: bool = False
     ):
         assert chain_type in ["within", "across"]
 
-        if chain_type == "across" and num_trials_per_participant > num_chains_per_experiment:
+        if (
+            chain_type == "across" and num_trials_per_participant > num_chains_per_experiment
+            and not allow_revisiting_networks_in_across_chains
+        ):
             raise ValueError(
                 "In across-chain experiments, <num_trials_per_participant> "
-                "cannot exceed <num_chains_per_experiment>."
+                "cannot exceed <num_chains_per_experiment> unless ``allow_revisiting_networks_in_across_chains`` "
+                "is ``True``."
             )
 
         if chain_type == "within" and recruit_mode == "num_trials":
@@ -1131,6 +1145,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
+        self.allow_revisiting_networks_in_across_chains = allow_revisiting_networks_in_across_chains
 
         super().__init__(
             trial_class,
@@ -1145,7 +1160,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials
+            num_repeat_trials=num_repeat_trials,
+            wait_for_networks=wait_for_networks
         )
 
     def init_participant(self, experiment, participant):
@@ -1235,20 +1251,22 @@ class ChainTrialMaker(NetworkTrialMaker):
         self._grow_network(network, participant, experiment)
         return network
 
-    def find_networks(self, participant, experiment):
+    def find_networks(self, participant, experiment, ignore_async_processes=False):
         if self.get_num_completed_trials_in_phase(participant) >= self.num_trials_per_participant:
             return []
 
         networks = self.network_class.query.filter_by(
             trial_type=self.trial_type,
             phase=self.phase,
-            full=False,
-            awaiting_async_process=False
+            full=False
         )
+
+        if not ignore_async_processes:
+            networks = networks.filter_by(awaiting_async_process=False)
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)
-        elif self.chain_type == "across":
+        elif self.chain_type == "across" and not self.allow_revisiting_networks_in_across_chains:
             networks = self.exclude_participated(networks, participant)
 
         networks = networks.all()
@@ -1283,7 +1301,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def find_node(self, network, participant, experiment):
         head = network.head
-        if head.num_viable_trials >= self.trials_per_node:
+        if network.awaiting_async_process or (head.num_viable_trials >= self.trials_per_node):
             return None
         return head
 
