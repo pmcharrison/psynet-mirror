@@ -953,6 +953,7 @@ class Response(Question):
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
         Stored in ``property2`` in the database.
+        (Not yet implemented)
     """
 
     __mapper_args__ = {"polymorphic_identity": "response"}
