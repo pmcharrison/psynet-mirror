@@ -314,7 +314,20 @@ class ChainNetwork(TrialNetwork):
         assert degree >= 0
         if degree == 0:
             return self.source
-        return ChainNode.query.filter_by(degree=degree, network_id=self.id, failed=False).one()
+        nodes = (
+            ChainNode
+                .query
+                .filter_by(degree=degree, network_id=self.id, failed=False)
+                .order_by(ChainNode.id)
+                .all()
+        )
+        # This deals with the case where somehow we've ended up with multiple
+        # nodes at the same degree.
+        first_node = nodes[0]
+        other_nodes = nodes[1:]
+        for node in other_nodes:
+            node.fail()
+        return first_node
 
     def add_node(self, node):
         if node.degree > 0:
