@@ -1526,12 +1526,12 @@ class NetworkTrialMaker(TrialMaker):
         ]
         if len(answer_groups) < self.min_nodes_for_performance_check:
             score = None
-            passed = False
+            passed = True
         else:
             consistency = self.monte_carlo_consistency(answer_groups, n=100)
             if isnan(consistency):
                 score = None
-                passed = False
+                passed = True
             else:
                 score = float(consistency)
                 passed = bool(score >= self.performance_threshold)
