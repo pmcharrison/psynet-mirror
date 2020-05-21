@@ -139,9 +139,9 @@ class ChainNetwork(TrialNetwork):
     participant_id = claim_field(3, int)
     id_within_participant = claim_field(4, int)
 
-    chain_type = claim_var("_chain_type")
-    trials_per_node = claim_var("_trials_per_node")
-    definition = claim_var("_definition")
+    chain_type = claim_var("chain_type")
+    trials_per_node = claim_var("trials_per_node")
+    definition = claim_var("definition")
 
     # Note - the <details> slot is occupied by VarStore.
 
