@@ -6,6 +6,14 @@ trial_properties <- function() {
   )
 }
 
+network_properties <- function() {
+  c(
+    property1 = "trial_type",
+    property2 = "target_num_trials",
+    property5 = "awaiting_async_processes"
+  )
+}
+
 chain_node_properties <- function() {
   c(
     property1 = "degree",
@@ -21,6 +29,10 @@ gsp_node_properties <- function() {
 
 chain_trial_properties <- function() {
   trial_properties()
+}
+
+chain_network_properties <- function() {
+  network_properties()
 }
 
 gsp_trial_properties <- function() {
