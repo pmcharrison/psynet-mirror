@@ -40,5 +40,6 @@ get_node_answers <- function(node, trial) {
               answer = answer)
  inner_join(node_df, trial_df, by = "node_id") %>%
    group_by(node_id) %>%
-   summarise(answers = list(answer))
+   summarise(num_answers = length(answer),
+             answers = list(answer))
 }

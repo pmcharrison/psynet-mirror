@@ -146,3 +146,5 @@ psynet/nips/colour/data/coltest-data.zip
 psynet/nips/ganspace/snapshots/ganspace-code.zip
 psynet/nips/ganspace/.vscode/settings.json
 .Rproj.user
+psynetR/test.R
+test.R
