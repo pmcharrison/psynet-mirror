@@ -44,7 +44,6 @@ get_config <- function(files) {
 }
 
 load_raw_data <- function(files) {
-  message("Loading raw data...")
   tibble(
     path = list.files(files$data, full.names = TRUE),
     file = basename(path),
@@ -53,4 +52,13 @@ load_raw_data <- function(files) {
   ) %>% {
     set_names(.$data, .$id)
   }
+}
+
+get_response <- function(raw) {
+  raw$question %>%
+    label_properties(response_properties()) %>%
+    rename(answer = response,
+           metadata = details) %>%
+    mutate(answer = map(answer, jsonlite::fromJSON),
+           metadata = map(metadata, jsonlite::fromJSON))
 }

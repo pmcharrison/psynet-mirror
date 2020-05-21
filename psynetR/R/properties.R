@@ -1,25 +1,43 @@
 trial_properties <- function() {
-  c(
-    property1 = "participant_id",
-    property2 = "complete",
-    property3 = "is_repeat_trial"
+  list(
+    property1 = int_field("participant_id"),
+    property2 = bool_field("complete"),
+    property3 = bool_field("is_repeat_trial")
   )
 }
 
 network_properties <- function() {
-  c(
-    property1 = "trial_type",
-    property2 = "target_num_trials",
-    property5 = "awaiting_async_processes"
+  list(
+    property1 = str_field("trial_type"),
+    property2 = numeric_field("target_num_trials"),
+    property5 = bool_field("awaiting_async_processes")
+  )
+}
+
+response_properties <- function() {
+  list(
+    property1 = str_field("page_type"),
+    property2 = bool_field("successful_validation")
+  )
+}
+
+
+participant_properties <- function() {
+  list(
+    property1 = int_field("event_id"),
+    property2 = str_field("page_uuid"),
+    property3 = bool_field("complete"),
+    property4 = misc_field("answer"),
+    property5 = misc_field("branch_log")
   )
 }
 
 chain_node_properties <- function() {
-  c(
-    property1 = "degree",
-    property2 = "child_id",
-    property3 = "seed",
-    property4 = "definition"
+  list(
+    property1 = int_field("degree"),
+    property2 = int_field("child_id"),
+    property3 = misc_field("seed"),
+    property4 = misc_field("definition")
   )
 }
 
@@ -37,4 +55,30 @@ chain_network_properties <- function() {
 
 gsp_trial_properties <- function() {
   chain_trial_properties()
+}
+
+field <- function(name, coerce) {
+  x <- list(name = name, coerce = coerce)
+  class(x) <- c("field", class(x))
+  x
+}
+
+int_field <- function(name) {
+  field(name, as.integer)
+}
+
+numeric_field <- function(name) {
+  field(name, as.numeric)
+}
+
+bool_field <- function(name) {
+  field(name, function(x) as.logical(as.integer(x)))
+}
+
+str_field <- function(name) {
+  field(name, as.character)
+}
+
+misc_field <- function(name) {
+  field(name, identity)
 }

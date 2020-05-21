@@ -7,6 +7,10 @@ import_chain <- function(
 ) {
   raw <- import_generic(experiment_dir, label)
 
+  message("Preprocessing data...")
+
+  response <- get_response(raw)
+  participant <- get_chain_participant(raw)
   node <- get_chain_node(raw, node_type)
   trial <- get_chain_trial(raw, trial_type)
   network <- get_chain_network(raw, network_type)
@@ -18,6 +22,9 @@ import_chain <- function(
   network <- network %>% unpack_list_col("definition")
 
   list(
+    raw = raw,
+    response = response,
+    participant = participant,
     trial = trial,
     node = node,
     network = network
@@ -30,9 +37,9 @@ get_chain_node <- function(raw, node_type) {
     filter(!failed) %>%
     label_properties(chain_node_properties()) %>%
     unpack_json_col("details") %>%
+    unpack_json_col("seed", prefix = "seed_") %>%
     mutate(definition = map(definition, jsonlite::fromJSON)) %>%
-    rename(node_id = id) %>%
-    select(- seed)
+    rename(node_id = id)
 }
 
 get_chain_trial <- function(raw, trial_type) {
@@ -42,7 +49,8 @@ get_chain_trial <- function(raw, trial_type) {
     label_properties(chain_trial_properties()) %>%
     unpack_json_col("details") %>%
     unpack_json_col("contents") %>%
-    rename(trial_id = id)
+    rename(trial_id = id,
+           node_id = origin_id)
 }
 
 get_chain_network <- function(raw, network_type) {
@@ -52,4 +60,10 @@ get_chain_network <- function(raw, network_type) {
     unpack_json_col("details") %>%
     rename(network_id = id,
            phase = role)
+}
+
+get_chain_participant <- function(raw) {
+  raw$participant %>%
+    label_properties(participant_properties()) %>%
+    unpack_json_col("details")
 }

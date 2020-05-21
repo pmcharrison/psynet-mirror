@@ -9,7 +9,7 @@ unpack_list_col <- function(df, col, prefix = "", keep_original = FALSE) {
     bind_rows() %>%
     map(simplify_column) %>%
     as_tibble()
-  names(new_cols) <- paste(prefix, names(new_cols), sep = "") %>% gsub("^_", "", .)
+  names(new_cols) <- paste(prefix, names(new_cols), sep = "") %>% gsub("^_*", "", .)
   if (!keep_original) df[[col]] <- NULL
   bind_cols(df, new_cols)
 }
@@ -20,10 +20,16 @@ as_safe_tibble_row <- function(x) {
 }
 
 label_properties <- function(df, spec) {
-  missing_properties <- setdiff(paste("property", 1:5, sep = ""), names(spec))
-  cols_to_keep <- setdiff(names(df), missing_properties)
+  properties_to_keep <- names(spec)
+  properties_to_discard <- setdiff(paste("property", 1:5, sep = ""), names(spec))
+  cols_to_keep <- setdiff(names(df), properties_to_discard)
   df <- df[cols_to_keep]
-  names(df) <- plyr::mapvalues(names(df), from = names(spec), to = spec)
+  for (i in seq_along(spec)) {
+    original_name <- names(spec)[i]
+    field_definition <- spec[[i]]
+    df[[original_name]] <- field_definition$coerce(df[[original_name]])
+    names(df) <- plyr::mapvalues(names(df), from = original_name, to = field_definition$name)
+  }
   df
 }
 
@@ -46,7 +52,7 @@ get_node_metadata <- function(trial, node, network) {
   trial_df <-
     trial %>%
     filter(!is_repeat_trial) %>%
-    transmute(node_id = origin_id, answer = answer)
+    select(answer, node_id)
 
   network_df <-
     network %>%
@@ -57,18 +63,25 @@ get_node_metadata <- function(trial, node, network) {
     node_df %>%
     inner_join(trial_df, by = "node_id") %>%
     group_by(node_id) %>%
-    summarise(num_answers_excl_repeats = length(answer),
+    summarise(num_answers_excl_repeats = n(),
               answers_excl_repeats = list(answer))
 
   stopifnot(!anyDuplicated(answers_df$node_id))
 
   node_df %>%
-    inner_join(network_df, by = "network_id") %>%
-    inner_join(answers_df, by = "node_id")
+    left_join(network_df, by = "network_id") %>%
+    left_join(answers_df, by = "node_id") %>%
+    select(- network_id) %>%
+    mutate(num_answers_excl_repeats = if_else(is.na(num_answers_excl_repeats),
+                                              0L,
+                                              num_answers_excl_repeats),
+           answers_excl_repeats = map2(num_answers_excl_repeats,
+                                       answers_excl_repeats,
+                                       function(n, answers) if (n == 0) list() else answers))
 }
 
 get_trial_metadata <- function(trial, node, network) {
-  trial_df <- trial %>% select(trial_id, network_id, node_id = origin_id)
+  trial_df <- trial %>% select(trial_id, network_id, node_id)
 
   node_df <-
     node %>%
@@ -82,5 +95,6 @@ get_trial_metadata <- function(trial, node, network) {
 
   trial_df %>%
     left_join(node_df, by = "node_id") %>%
-    left_join(network_df, by = "network_id")
+    left_join(network_df, by = "network_id") %>%
+    select(- c(network_id, node_id))
 }
