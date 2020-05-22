@@ -17,11 +17,12 @@ import_chain <- function(
 
   trial <- add_response(trial, response)
 
-  node <- inner_join(node, get_node_metadata(trial, node, network), by = "node_id")
-  trial <- inner_join(trial, get_trial_metadata(trial, node, network), by = "trial_id")
+  node <- left_join(node, get_node_metadata(trial, node, network), by = "node_id")
+  trial <- left_join(trial, get_trial_metadata(trial, node, network), by = "trial_id")
+  network <- left_join(network, get_network_metadata(trial, node, network), by = "network_id")
 
-  node <- node %>% unpack_list_col("definition")
-  network <- network %>% unpack_list_col("definition")
+  node <- node %>% unpack_list_col("definition", keep_original = TRUE)
+  network <- network %>% unpack_list_col("definition", keep_original = TRUE)
 
   list(
     raw = raw,

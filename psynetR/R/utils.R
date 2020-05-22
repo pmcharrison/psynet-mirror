@@ -9,8 +9,14 @@ unpack_list_col <- function(df, col, prefix = "", keep_original = FALSE) {
     bind_rows() %>%
     simplify_columns()
   names(new_cols) <- paste(prefix, names(new_cols), sep = "") %>% gsub("^_*", "", .)
-  if (!keep_original) df[[col]] <- NULL
-  bind_cols(df, new_cols)
+
+  col_index <- which(names(df) == col)[1]
+  df_before <- df[seq_along(df) <= col_index]
+  df_after <- df[seq_along(df) > col_index]
+
+  res <- bind_cols(df_before, new_cols, df_after)
+  if (!keep_original) res[[col]] <- NULL
+  res
 }
 
 simplify_columns <- function(df) {
@@ -136,6 +142,40 @@ get_trial_metadata <- function(trial, node, network) {
     left_join(node_df, by = "node_id") %>%
     left_join(network_df, by = "network_id") %>%
     select(- c(network_id, node_id))
+}
+
+get_network_metadata <- function(trial, node, network) {
+  node_df <-
+    node %>%
+    select(network_id, node_id, failed)
+
+  trial_df <-
+    trial %>%
+    select(network_id, trial_id, failed)
+
+  node_stats <-
+    network %>%
+    select(network_id) %>%
+    inner_join(node_df, by = "network_id") %>%
+    group_by(network_id) %>%
+    summarise(n_nodes = n(),
+              n_active_nodes = sum(!failed),
+              n_failed_nodes = sum(failed))
+
+  trial_stats <-
+    network %>%
+    select(network_id) %>%
+    inner_join(trial_df, by = "network_id") %>%
+    group_by(network_id) %>%
+    summarise(n_trials = n(),
+              n_active_trials = sum(!failed),
+              n_failed_trials = sum(failed))
+
+  network %>%
+    select(network_id) %>%
+    left_join(node_stats, by = "network_id") %>%
+    left_join(trial_stats, by = "network_id") %>%
+    mutate_at(vars(starts_with("n_")), ~ if_else(is.na(.), 0L, .))
 }
 
 add_response <- function(trial, response) {

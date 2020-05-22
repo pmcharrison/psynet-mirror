@@ -18,6 +18,9 @@ Depends:
     dplyr,
     purrr,
     tibble,
-    glue
+    glue,
+    shiny
 Imports: 
-    plyr
+    plyr,
+    shinythemes,
+    DT
