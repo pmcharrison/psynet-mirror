@@ -7,6 +7,8 @@ import botocore.errorfactory
 import tempfile
 import shutil
 
+from pathlib import Path
+
 from dallinger.config import get_config
 
 from .utils import log_time_taken
@@ -14,6 +16,10 @@ from .utils import log_time_taken
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
+
+# For debugging, currently only partly implemented
+LOCAL_S3 = False
+LOCAL_S3_CLONE = None
 
 def make_batch_file(in_files, output_path):
     with open(output_path, "wb") as output:
@@ -70,6 +76,9 @@ def empty_s3_bucket(bucket_name: str):
 @log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool, create_new_bucket: bool = False):
     "If create_new_bucket, then a new bucket is created if the bucket doesn't exist."
+    if LOCAL_S3:
+        return upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_bucket)
+
     logger.info("Uploading %s to bucket %s with key %s...", local_path, bucket_name, key)
 
     # client = new_s3_client()
@@ -98,9 +107,35 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool,
         "url": f"https://{bucket_name}.s3.amazonaws.com/{key}"
     }
 
+def upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_bucket):
+    logger.info("Simulating uploading %s to bucket %s with key %s...", local_path, bucket_name, key)
+
+    output_dirs = ["static/s3"]
+    if LOCAL_S3_CLONE is not None:
+        output_dirs.append(LOCAL_S3_CLONE)
+
+    for output_dir in output_dirs:
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        bucket_dir = os.path.join(output_dir, bucket_name)
+        if create_new_bucket:
+            Path(bucket_dir).mkdir(parents=True, exist_ok=True)
+
+        destination = os.path.join(bucket_dir, key)
+        shutil.copyfile(local_path, destination)
+
+def download_from_local_s3(local_path: str, bucket_name: str, key: str):
+    logger.info("Simulating downloading %s from bucket %s to local path %s...", key, bucket_name, local_path)
+    source_path = os.path.join("static/s3", bucket_name, key)
+    shutil.copyfile(source_path, local_path)
+
 @log_time_taken
 def download_from_s3(local_path: str, bucket_name: str, key: str):
     # Returns False if the file doesn't exist, otherwise True.
+
+    if LOCAL_S3:
+        return download_from_local_s3(local_path, bucket_name, key)
+
     bucket = get_s3_bucket(bucket_name)
     try:
         bucket.download_file(key, local_path)
