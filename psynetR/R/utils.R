@@ -69,7 +69,8 @@ get_node_metadata <- function(trial, node, network) {
   network_df <-
     network %>%
     select(network_id, phase, definition) %>%
-    unpack_list_col("definition", prefix = "network_")
+    rename(network_definition = definition)
+    # unpack_list_col("definition", prefix = "network_")
 
   trial_df <-
     trial %>%
@@ -131,12 +132,13 @@ get_trial_metadata <- function(trial, node, network) {
   node_df <-
     node %>%
     select(node_id, phase, degree, definition) %>%
-    unpack_list_col("definition", prefix = "node_")
+    rename(node_definition = definition)
 
   network_df <-
     network %>%
     select(network_id, definition) %>%
-    unpack_list_col("definition", prefix = "network_")
+    rename(network_definition = definition)
+    # unpack_list_col("definition", prefix = "network_")
 
   trial_df %>%
     left_join(node_df, by = "node_id") %>%
@@ -182,4 +184,10 @@ add_response <- function(trial, response) {
   trial %>%
     left_join(response %>% select(response_id = id, response_time = creation_time),
               by = "response_id")
+}
+
+row_to_list <- function(row) {
+  stopifnot(is_tibble(row), nrow(row) == 1)
+  # This looks weird but it's necessary to deal with list columns
+  map(row, ~ .[[1]])
 }

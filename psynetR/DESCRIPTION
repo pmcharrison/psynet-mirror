@@ -19,7 +19,9 @@ Depends:
     purrr,
     tibble,
     glue,
-    shiny
+    shiny,
+    ggplot2,
+    shinyjs
 Imports: 
     plyr,
     shinythemes,

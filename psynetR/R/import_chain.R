@@ -21,8 +21,8 @@ import_chain <- function(
   trial <- left_join(trial, get_trial_metadata(trial, node, network), by = "trial_id")
   network <- left_join(network, get_network_metadata(trial, node, network), by = "network_id")
 
-  node <- node %>% unpack_list_col("definition", keep_original = TRUE)
-  network <- network %>% unpack_list_col("definition", keep_original = TRUE)
+  # noLde <- node %>% unpack_list_col("definition", keep_original = TRUE)
+  # network <- network %>% unpack_list_col("definition", keep_original = TRUE)
 
   list(
     raw = raw,
@@ -40,8 +40,10 @@ get_chain_node <- function(raw, node_type) {
     filter(!failed) %>%
     label_properties(chain_node_properties()) %>%
     unpack_json_col("details") %>%
-    unpack_json_col("seed", prefix = "seed_", keep_original = TRUE) %>%
-    mutate(definition = map(definition, jsonlite::fromJSON)) %>%
+    mutate(
+      seed = map(seed, jsonlite::fromJSON),
+      definition = map(definition, jsonlite::fromJSON)
+    ) %>%
     rename(node_id = id)
 }
 

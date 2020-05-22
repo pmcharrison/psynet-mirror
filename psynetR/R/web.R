@@ -21,7 +21,8 @@ chain_app_ui <- function(display_node,
       "Select node",
       chain_app_select_node_ui(display_node,
                                display_responses)
-    )
+    ),
+    useShinyjs()
   )
 }
 
@@ -45,7 +46,7 @@ chain_app_select_node_ui <- function(display_node,
 }
 
 chain_app_server <- function(data, display_node, display_responses) {
-  function(input, output) {
+  function(input, output, session, ...) {
     state <- reactiveValues(
       network_table = NULL,
       network_id = NULL,
@@ -67,21 +68,43 @@ chain_app_server <- function(data, display_node, display_responses) {
 
     output$dt_select_chain <- DT::renderDataTable({
         DT::datatable(state$network_table,
-                      selection = "single")
+                      selection = "single",
+                      extensions = c("FixedColumns"),
+                      rownames = FALSE,
+                      options = list(paging = FALSE,
+                                     scrollX = TRUE,
+                                     scrollY = 300,
+                                     scrollCollapse = TRUE,
+                                     fixedColumns = list(
+                                       leftColumns = 1
+                                     )))
     })
 
     observe({
-      state$network_id <-
-        if (is.null(state$network_table)) {
-          NULL
-        } else if (length(input$dt_select_chain_rows_selected) != 1) {
-          NULL
-        } else {
-          state$network_table %>%
-            slice(input$dt_select_chain_rows_selected) %>%
-            pull(network_id)
-        }
-      showNotification(glue("Selected network {state$network_id}."))
+      if (is.null(state$network_table)) {
+        state$network_id <- NULL
+      } else if (length(input$dt_select_chain_rows_selected) != 1) {
+        state$network_id <- NULL
+      } else {
+        state$network_id <- state$network_table %>%
+          slice(input$dt_select_chain_rows_selected) %>%
+          pull(network_id)
+        showNotification(glue("Selected network {state$network_id}."))
+      }
+    })
+
+    observe({
+      if (is.null(state$node_table)) {
+        state$node_id <- NULL
+      } else if (length(input$dt_select_node_rows_selected) != 1) {
+        state$node_id <- NULL
+      } else {
+        state$node_id <-
+          state$node_table %>%
+          slice(input$dt_select_node_rows_selected) %>%
+          pull(node_id)
+        showNotification(glue("Selected node {state$node_id}."))
+      }
     })
 
     observe({
@@ -95,7 +118,7 @@ chain_app_server <- function(data, display_node, display_responses) {
             select(degree,
                    node_id,
                    definition,
-                   n_answers_for_seed)%>%
+                   n_answers_for_seed) %>%
             unpack_list_col("definition")
         }
     })
@@ -113,6 +136,20 @@ chain_app_server <- function(data, display_node, display_responses) {
                                      leftColumns = 1
                                    )))
     })
+
+    observe({
+      if (is.null(state$node_id)) {
+        display_node$server$null(output = output)
+      } else {
+        display_node$server$main(input = input,
+                                 output = output,
+                                 session = session,
+                                 data = data,
+                                 node_id = state$node_id,
+                                 node_data = data$node %>% filter(node_id == !!state$node_id) %>% row_to_list())
+      }
+    })
+
 
   }
 }
