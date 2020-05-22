@@ -9,7 +9,7 @@ trial_properties <- function() {
 network_properties <- function() {
   list(
     property1 = str_field("trial_type"),
-    property2 = numeric_field("target_num_trials"),
+    property2 = numeric_field("target_n_trials"),
     property5 = bool_field("awaiting_async_processes")
   )
 }

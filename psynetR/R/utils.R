@@ -98,7 +98,7 @@ get_node_metadata <- function(trial, node, network) {
     list(
       node_id = node_id,
       answers_for_seed = answers_for_seed,
-      num_answers_for_seed = length(answers_for_seed)
+      n_answers_for_seed = length(answers_for_seed)
     ) %>% as_safe_tibble_row()
   }
 
@@ -116,11 +116,11 @@ get_node_metadata <- function(trial, node, network) {
   node_df %>%
     left_join(network_df, by = "network_id") %>%
     left_join(answers_df, by = "node_id") %>%
-    select(- network_id) %>%
-    mutate(num_answers_for_seed = if_else(is.na(num_answers_for_seed),
+    select(- network_id, - child_id) %>%
+    mutate(n_answers_for_seed = if_else(is.na(n_answers_for_seed),
                                           0L,
-                                          num_answers_for_seed),
-           answers_for_seed = map2(num_answers_for_seed,
+                                          n_answers_for_seed),
+           answers_for_seed = map2(n_answers_for_seed,
                                    answers_for_seed,
                                    function(n, answers) if (n == 0) NULL else answers))
 }
