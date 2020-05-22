@@ -17,6 +17,7 @@ RoxygenNote: 7.1.0
 Depends: 
     dplyr,
     purrr,
-    tibble
+    tibble,
+    glue
 Imports: 
     plyr

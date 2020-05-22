@@ -15,6 +15,8 @@ import_chain <- function(
   trial <- get_chain_trial(raw, trial_type)
   network <- get_chain_network(raw, network_type)
 
+  trial <- add_response(trial, response)
+
   node <- inner_join(node, get_node_metadata(trial, node, network), by = "node_id")
   trial <- inner_join(trial, get_trial_metadata(trial, node, network), by = "trial_id")
 
@@ -37,7 +39,7 @@ get_chain_node <- function(raw, node_type) {
     filter(!failed) %>%
     label_properties(chain_node_properties()) %>%
     unpack_json_col("details") %>%
-    unpack_json_col("seed", prefix = "seed_") %>%
+    unpack_json_col("seed", prefix = "seed_", keep_original = TRUE) %>%
     mutate(definition = map(definition, jsonlite::fromJSON)) %>%
     rename(node_id = id)
 }
@@ -45,7 +47,6 @@ get_chain_node <- function(raw, node_type) {
 get_chain_trial <- function(raw, trial_type) {
   raw$info %>%
     filter(type == !!trial_type) %>%
-    filter(!failed) %>%
     label_properties(chain_trial_properties()) %>%
     unpack_json_col("details") %>%
     unpack_json_col("contents") %>%
