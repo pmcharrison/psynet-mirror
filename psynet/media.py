@@ -187,6 +187,9 @@ def bucket_exists(bucket_name):
 def make_bucket_public(bucket_name):
     print("Ensuring bucket is publicly accessible...")
 
+    if LOCAL_S3:
+        return
+
     s3_resource = new_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
     bucket.Acl().put(ACL="public-read")
