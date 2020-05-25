@@ -33,7 +33,8 @@ format_node_df <- function(df) {
 display_node <-
   list(
     ui = tags$div(
-      includeHTML("video-slider.html")
+      # includeHTML("video-slider.html")
+      includeHTML(system.file("video-slider.html", package = "psynetR", mustWork = TRUE))
     ),
     server = list(
       null = function(output, ...) {
