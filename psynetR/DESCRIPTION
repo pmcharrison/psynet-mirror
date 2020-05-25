@@ -21,7 +21,8 @@ Depends:
     glue,
     shiny,
     ggplot2,
-    shinyjs
+    shinyjs,
+    tibble
 Imports: 
     plyr,
     shinythemes,
