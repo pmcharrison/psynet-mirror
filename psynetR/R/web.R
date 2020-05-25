@@ -1,36 +1,41 @@
 chain_app <- function(data,
                       display_node,
-                      display_responses) {
-  shinyApp(chain_app_ui(display_node,
-                        display_responses),
-           chain_app_server(data,
-                            display_node,
-                            display_responses))
+                      display_responses,
+                      display_network_summary,
+                      format_node_df) {
+  display <- list(
+    node = display_node,
+    responses = display_responses,
+    network_summary = display_network_summary
+  )
+  shinyApp(chain_app_ui(display),
+           chain_app_server(data, display, format_node_df))
 }
 
-chain_app_ui <- function(display_node,
-                         display_responses) {
+chain_app_ui <- function(display) {
   navbarPage(
     "Chain visualisation",
     theme = shinythemes::shinytheme("cerulean"),
     tabPanel(
       "Select chain",
-      DT::dataTableOutput("dt_select_chain")
+      DT::dataTableOutput("dt_select_chain"),
+      tags$em("Select a chain to visualise, then click 'Select node' to explore this chain.")
     ),
     tabPanel(
       "Select node",
-      chain_app_select_node_ui(display_node,
-                               display_responses)
+      chain_app_select_node_ui(display)
     ),
     useShinyjs()
   )
 }
 
-chain_app_select_node_ui <- function(display_node,
-                                     display_responses) {
+chain_app_select_node_ui <- function(display) {
   fluidRow(
     column(
       6,
+      h2("Network"),
+      display$network_summary$ui,
+
       h2("Select node"),
       DT::dataTableOutput("dt_select_node")
     ),
@@ -38,14 +43,14 @@ chain_app_select_node_ui <- function(display_node,
       6,
 
       h2("Node"),
-      display_node$ui,
+      display$node$ui,
 
       h2("Responses"),
-      display_responses$ui
+      display$responses$ui
   ))
 }
 
-chain_app_server <- function(data, display_node, display_responses) {
+chain_app_server <- function(data, display, format_node_df) {
   function(input, output, session, ...) {
     state <- reactiveValues(
       network_table = NULL,
@@ -119,29 +124,31 @@ chain_app_server <- function(data, display_node, display_responses) {
                    node_id,
                    definition,
                    n_answers_for_seed) %>%
-            unpack_list_col("definition")
+            unpack_list_col("definition") %>%
+            format_node_df()
         }
     })
 
     output$dt_select_node <- DT::renderDataTable({
-      DT::datatable(state$node_table,
-                    selection = "single",
-                    extensions = c("FixedColumns"),
-                    rownames = FALSE,
-                    options = list(paging = FALSE,
-                                   scrollX = TRUE,
-                                   scrollY = 300,
-                                   scrollCollapse = TRUE,
-                                   fixedColumns = list(
-                                     leftColumns = 1
-                                   )))
+      state$node_table %>%
+        DT::datatable(
+          selection = "single",
+          extensions = c("FixedColumns"),
+          rownames = FALSE,
+          options = list(paging = FALSE,
+                         scrollX = TRUE,
+                         scrollY = 300,
+                         scrollCollapse = TRUE,
+                         fixedColumns = list(
+                           leftColumns = 1
+                         )))
     })
 
     observe({
       if (is.null(state$node_id)) {
-        display_node$server$null(output = output)
+        display$node$server$null(output = output)
       } else {
-        display_node$server$main(input = input,
+        display$node$server$main(input = input,
                                  output = output,
                                  session = session,
                                  data = data,
@@ -150,6 +157,39 @@ chain_app_server <- function(data, display_node, display_responses) {
       }
     })
 
+    observe({
+      if (is.null(state$node_id)) {
+        display$responses$server$null(output = output)
+      } else {
+        node_id <- state$node_id
+        node_data <- data$node %>% filter(node_id == !!state$node_id) %>% row_to_list()
+        display$responses$server$main(
+          input = input,
+          output = output,
+          session = session,
+          data = data,
+          node_id = node_id,
+          node_data = node_data
+        )
+      }
+    })
+
+    observe({
+      if (is.null(state$network_id)) {
+        display$network_summary$server$null(output = output)
+      } else {
+        network_id <- state$network_id
+        network_data <- data$network %>% filter(network_id == !!state$network_id) %>% row_to_list()
+        display$network_summary$server$main(
+          input = input,
+          output = output,
+          session = session,
+          data = data,
+          network_id = network_id,
+          network_data = network_data
+        )
+      }
+    })
 
   }
 }
