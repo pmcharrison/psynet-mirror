@@ -35,7 +35,7 @@
         }
 
         #sidebar-left {
-            width: 15rem;
+            width: 20rem;
         }
 
         #wrapper.toggled #sidebar-left {
@@ -48,7 +48,7 @@
             }
 
             #wrapper.toggled #sidebar-left {
-                margin-left: -18rem;
+                margin-left: -20rem;
             }
         }
 
@@ -77,6 +77,15 @@
             return this.filter(function (value, index, self) {
                 return self.indexOf(value) === index;
             });
+        };
+
+
+        function createElementFromHTML(htmlString) {
+            var div = document.createElement('div');
+            div.innerHTML = htmlString.trim();
+
+            // Change this to div.childNodes to support multiple top-level nodes
+            return div.firstChild;
         }
 
         /// auxiliry function that scans all nodes and find the participant in their info
@@ -86,8 +95,89 @@
                 info = ndata.net_structure.infos[i];
                 if (info.origin_id == node_id) info_for_node = info_for_node.concat([parseInt(info.property1)]);
             }
-            ;info_for_node = info_for_node.unique();
+            info_for_node = info_for_node.unique();
             return info_for_node;
+        }
+
+        var network_meta_data_dict = {};
+        var network_meta;
+
+        function extract_edge_network_meta_data(from_node_id, to_node_id, from_type = "nodes", to_type = "nodes") {
+            var network_origin = extract_network_meta_data(
+                ndata.net_structure[from_type].filter(function (el) {
+                    return el.id === from_node_id
+                })[0].network_id
+            );
+            var network_destination = extract_network_meta_data(
+                ndata.net_structure[to_type].filter(function (el) {
+                    return el.id === to_node_id
+                })[0].network_id
+            );
+
+            return network_origin;
+        }
+
+        function extract_network_meta_data(network_id) {
+            if (network_meta_data_dict[network_id] === undefined) {
+                var network = ndata.net_structure.networks.filter(function (el) {
+                    return el.id === network_id
+                });
+                console.assert(network.length === 1, 'The same network id cannot occur twice!');
+                network = network[0];
+                return {
+                    network_full: network.full,
+                    network_id: network.id,
+                    network_role: network.role
+                }
+            }
+            return network_meta_data_dict[network_id];
+
+        }
+
+        function filter_network(field_key, field_value, hidden) {
+            console.log(edges._data)
+            for (const [key, value] of Object.entries(edges._data)) {
+                if (field_key in value && value[field_key] == field_value) {
+                    //console.log(value)
+                    edges.update({'id': value.id, hidden: hidden})
+                }
+            }
+
+            for (const [key, value] of Object.entries(nodes._data)) {
+                if (field_key in value && value[field_key] == field_value) {
+                    //console.log(value)
+                    nodes.update({'id': value.id, hidden: hidden})
+                }
+            }
+        }
+
+        function eventFire(el, etype) {
+            if (el.fireEvent) {
+                el.fireEvent('on' + etype);
+            } else {
+                var evObj = document.createEvent('Events');
+                evObj.initEvent(etype, true, false);
+                el.dispatchEvent(evObj);
+            }
+        }
+
+        function check_all_boxes() {
+            document.querySelectorAll('input[type=checkbox]').forEach(function (input_el) {
+                if (input_el.checked !== true) {
+                    input_el.click();
+                }
+            });
+        }
+
+        function uncheck_boxes(key, value) {
+            document.querySelectorAll('input[type=checkbox]').forEach(function (input_el) {
+                if (input_el.getAttribute(key) !== undefined && input_el.getAttribute(key) == value) {
+                    if (input_el.checked === true) {
+                        console.log('Fire!');
+                        input_el.click();
+                    }
+                }
+            });
         }
 
         /// set display options and groups: this will modify the way the network show up.
@@ -214,6 +304,7 @@
             /// These lines finds all the roles that involved  in this networks (typically "experiment"/"practice" but this is general)
             roles = []; // list of unique roles
             networks_roles = []; // the role of each network
+            document.getElementById('networks');
             for (var i = 0; i < ndata.net_structure.networks.length; i++) {
                 net = ndata.net_structure.networks[i];
                 my_role = net.role
@@ -227,14 +318,30 @@
 
                 }
                 if (!is_found) {
-
                     networks_roles[net.id] = roles.length;
                     roles[roles.length] = my_role;
-
                 } else {
                     networks_roles[net.id] = j;
                 }
+
+                // Append network checkboxes to form
+                var elem = createElementFromHTML(
+                    '<div class="form-check">\n' +
+                    `  <input class="form-check-input" type="checkbox" value="" network_id=${net.id} id="net-${net.id}" role="${my_role}"  is_full="${net.full}" checked>\n` +
+                    '  <label class="form-check-label" for="defaultCheck1">\n' +
+                    `Network ${net.id} (${my_role})` +
+                    '  </label>\n' +
+                    '</div>'
+                );
+
+                document.getElementById('networks').appendChild(elem)
             }
+
+            roles.forEach(function (role) {
+                var inner_html = `<button class="btn btn-secondary my-1" id="deselect_all_${role}" type="button" onclick="uncheck_boxes('role', '${role}', true)" role="button">Hide all ${role}</button>`
+                document.getElementById('filter_buttons').appendChild(createElementFromHTML(inner_html))
+            });
+            document.getElementById('filter_buttons').appendChild(createElementFromHTML('<button class="btn btn-secondary my-1" id="select_all_networks" onclick="check_all_boxes()" role="button">Show all networks</button>'));
 
             roles_colors = []; ///  assign pseudorandom colors for each role
             for (var j = 0; j < roles.length; j++) {
@@ -315,13 +422,16 @@
                 }
 
                 // actually push the node to node list
-                nodes.push({
-                    id: list_of_node_indx[node.id],
-                    label: msg + String(node.id), color: clr,
-                    title: ('<pre><code><font size="-2">' + JSON.stringify(node, null, 2) + '</font></code></pre>'),
-                    group: mgroup,
-                    font: {align: 'inside'}
-                });
+                nodes.push(Object.assign(
+                    {
+                        id: list_of_node_indx[node.id],
+                        label: msg + String(node.id), color: clr,
+                        title: ('<pre><code><font size="-2">' + JSON.stringify(node, null, 2) + '</font></code></pre>'),
+                        group: mgroup,
+                        font: {align: 'inside'}
+                    },
+                    extract_network_meta_data(node.network_id)
+                ));
             }
 
             // create edges for vectors
@@ -334,20 +444,33 @@
                 } else {
                     mclr = 'blue'
                 }
-                edges.push({
-                    from: list_of_node_indx[from],
-                    to: list_of_node_indx[to],
-                    arrows: 'to',
-                    title: ('<pre><code><font size="-2">' + JSON.stringify(vector, null, 2) + '</font></code></pre>'),
-                    color: mclr
-                });
+
+                edges.push(Object.assign(
+                    {
+                        from: list_of_node_indx[from],
+                        to: list_of_node_indx[to],
+                        arrows: 'to',
+                        title: ('<pre><code><font size="-2">' + JSON.stringify(vector, null, 2) + '</font></code></pre>'),
+                        color: mclr
+                    },
+                    extract_network_meta_data(
+                        ndata.net_structure.nodes.filter(function (el) {
+                            return el.id === from
+                        })[0].network_id
+                    )
+                ));
             }
 
             // now pushes infos
             for (var i = 0; i < ndata.net_structure.infos.length; i++) {
                 info = ndata.net_structure.infos[i];
+                network_meta = extract_network_meta_data(
+                    ndata.net_structure.infos.filter(function (el) {
+                        return el.id === info.id
+                    })[0].network_id
+                );
                 count_nodes++;
-                map_infoid_to_infonum[info.id] = count_nodes
+                map_infoid_to_infonum[info.id] = count_nodes;
 
                 my_node_id = count_nodes;
                 to = my_node_id;
@@ -367,36 +490,59 @@
                     mgroup = 'failed_infos'
                     color = "red";
                 } else {
-                    mgroup = 'good_infos'
-                    color = participant.clr;
+                    mgroup = 'good_infos';
+                    if (participant !== undefined && "clr" in participant) {
+                        color = participant.clr;
+                    } else {
+                        console.log('Warning: participant was undefined!');
+                        color = 'blue'
+                    }
                 }
-                nodes.push({
-                    id: my_node_id,
-                    label: "info:" + String(info.id),
-                    dashes: true,
-                    title: ('<pre><code><font size="-2">' + JSON.stringify(info, null, 2) + '</font></code></pre>'),
-                    group: mgroup,
-                    font: {align: 'inside'},
-                    icon: {color: color}
-
-                });
+                nodes.push(Object.assign(
+                    {
+                        id: my_node_id,
+                        label: "info:" + String(info.id),
+                        dashes: true,
+                        title: ('<pre><code><font size="-2">' + JSON.stringify(info, null, 2) + '</font></code></pre>'),
+                        group: mgroup,
+                        font: {align: 'inside'},
+                        icon: {color: color}
+                    },
+                    network_meta
+                ));
                 if (participant_id > 0) {
-                    edges.push({
-                        from: list_of_node_indx[from],
-                        to: to,
-                        dashes: true,
-                        label: "participant: " + String(participant_id),
-                        font: {size: 15, color: participant.clr, strokeWidth: 0, strokeColor: 'yellow', align: 'top'},
-                        //arrows:'to', dashes:true,
-                        title: ('<pre><code><font size="-2">' + JSON.stringify(participant, null, 2) + '</font></code></pre>'),
-                        color: participant.clr
-                    });
+                    edges.push(Object.assign(
+                        {
+                            from: list_of_node_indx[from],
+                            to: to,
+                            dashes: true,
+                            label: "participant: " + String(participant_id),
+                            font: {
+                                size: 15,
+                                color: participant.clr,
+                                strokeWidth: 0,
+                                strokeColor: 'yellow',
+                                align: 'top'
+                            },
+                            //arrows:'to', dashes:true,
+                            title: ('<pre><code><font size="-2">' + JSON.stringify(participant, null, 2) + '</font></code></pre>'),
+                            color: participant.clr
+                        },
+                        network_meta
+                    ));
                 } else {
-                    edges.push({
-                        from: list_of_node_indx[from],
-                        to: to,
-                        dashes: true,
-                    });
+                    edges.push(Object.assign(
+                        {
+                            from: list_of_node_indx[from],
+                            to: to,
+                            dashes: true
+                        },
+                        extract_network_meta_data(
+                            ndata.net_structure.nodes.filter(function (el) {
+                                return el.id === from
+                            })[0].network_id
+                        )
+                    ));
                 }
             }
 
@@ -420,14 +566,21 @@
                     bb = 200
                     mclr = 'rgb(' + String(rr) + ',' + String(gg) + ',' + String(bb) + ')'
                 }
-                edges.push({
-                    from: from_n,
-                    to: to_n,
-                    arrows: 'to',
-                    dashes: true,
-                    title: ('<pre><code><font size="-2">' + JSON.stringify(tran, null, 2) + '</font></code></pre>'),
-                    color: mclr
-                });
+                edges.push(Object.assign(
+                    {
+                        from: from_n,
+                        to: to_n,
+                        arrows: 'to',
+                        dashes: true,
+                        title: ('<pre><code><font size="-2">' + JSON.stringify(tran, null, 2) + '</font></code></pre>'),
+                        color: mclr
+                    },
+                    extract_network_meta_data(
+                        ndata.net_structure.nodes.filter(function (el) {
+                            return el.id === from_n
+                        })[0].network_id
+                    )
+                ));
             }
 
             // This is needed to group networks according to roles
@@ -498,33 +651,41 @@
                     mgroup = 'group_networks_close';
                 }
 
+
                 father = group_fathres[networks_roles[net.id]]; // find father network
                 clr = roles_colors[networks_roles[net.id]];
-                nodes.push({
-                    id: my_node_id,
-                    label: "network:" + String(net.id),
-                    title: ('<pre><code><font size="-2">' + JSON.stringify(net, null, 2) + '</font></code></pre>'),
-                    group: mgroup,
-                    font: {align: 'inside'},
-                    icon: {
-                        face: 'FontAwesome',
-                        code: '\uf0c2',
-                        color: clr
-                    }
+                nodes.push(Object.assign(
+                    {
+                        id: my_node_id,
+                        label: "network:" + String(net.id),
+                        title: ('<pre><code><font size="-2">' + JSON.stringify(net, null, 2) + '</font></code></pre>'),
+                        group: mgroup,
+                        font: {align: 'inside'},
+                        icon: {
+                            face: 'FontAwesome',
+                            code: '\uf0c2',
+                            color: clr
+                        }
 
-                });
-                edges.push({
-                    from: from,
-                    to: to,
-                    color: 'black'
-                });
+                    },
+                    extract_network_meta_data(net.id)
+                ));
+                edges.push(Object.assign({
+                        from: from,
+                        to: to,
+                        color: 'black',
+                    },
+                    extract_network_meta_data(net.id)
+                ));
                 //connect network to father
-                edges.push({
-                    from: father,
-                    to: from,
-                    color: 'white',
-                    font: {align: 'inside'}
-                });
+                edges.push(Object.assign({
+                        from: father,
+                        to: from,
+                        color: 'white',
+                        font: {align: 'inside'}
+                    },
+                    extract_network_meta_data(net.id)
+                ));
 
             }
 
@@ -548,18 +709,36 @@
 
             destroy();
 
-            var data = getnNetwork()
+            var data = getnNetwork();
+            nodes = new vis.DataSet(data['nodes']);
+            edges = new vis.DataSet(data['edges']);
 
             // create a network
             var container = document.getElementById('mynetwork');
 
             var options = getOptions();
-            network = new vis.Network(container, data, options);
+            network = new vis.Network(container, {nodes, edges}, options);
 
             // add event listeners
             network.on('select', function (params) {
                 document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
             });
+
+
+            document.querySelectorAll('input[type=checkbox]').forEach(function (input_el) {
+                input_el.addEventListener('change', function () {
+                    //var input_el = this.getElementsByClassName('form-check-input')[0];
+                    var checked_el = input_el.checked;
+                    var network_id = input_el.getAttribute('network_id');
+                    filter_network('network_id', network_id, checked_el === false)
+                });
+            });
+
+            document.querySelectorAll('button').forEach(function (e) {
+                e.preventDefault();
+            });
+
+
         }
 
     </script>
@@ -570,8 +749,8 @@
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <a class="navbar-brand">
-        <span id="menu-toggle" class="navbar-toggler-icon"> </span>
-         <i class="fa fa-cloud"></i> Network Monitor
+        <span id="menu-toggle"> <i class="fa fa-cloud"></i></span>
+        Network Monitor
     </a>
 </nav>
 
@@ -579,6 +758,25 @@
     <!-- Sidebar -->
     <div class="bg-light" id="sidebar-left">
         <div class="p-3">
+            <form>
+                <fieldset>
+                    <legend>Settings</legend>
+                    <div class="form-group">
+                        <label>Show networks</label>
+                        <div id="networks"></div>
+                    </div>
+
+                    <div id="filter_buttons">
+                        <button class="btn btn-dark my-1" id="deselect_all_full_networks" type="button"
+                                onclick="filter_network('full', true, true)" role="button">Hide full
+                            networks
+                        </button>
+                    </div>
+
+
+                    <legend>Stats</legend>
+                </fieldset>
+            </form>
             <div id="stats">
                 {{ my_msg |safe }}
             </div>
