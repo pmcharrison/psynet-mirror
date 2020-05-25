@@ -4,20 +4,61 @@
     <title>Network | Monitor </title>
 
     <style type="text/css">
-        body {
-            font: 10pt sans;
-        }
 
         #mynetwork {
-            width: 1200px;
+            width: 100%;
             height: 600px;
             border: 1px solid lightgray;
         }
+
+        /*!
+         * Start Bootstrap - Simple Sidebar (https://startbootstrap.com/template-overviews/simple-sidebar)
+         * Copyright 2013-2019 Start Bootstrap
+         * Licensed under MIT (https://github.com/BlackrockDigital/startbootstrap-simple-sidebar/blob/master/LICENSE)
+         */
+        body {
+            overflow-x: hidden;
+            font-size: 10pt;
+        }
+
+        #sidebar-left {
+            min-height: 100vh;
+            margin-left: -15rem;
+            -webkit-transition: margin .25s ease-out;
+            -moz-transition: margin .25s ease-out;
+            -o-transition: margin .25s ease-out;
+            transition: margin .25s ease-out;
+        }
+
+        #sidebar-left {
+            padding: 0.875rem 1.25rem;
+        }
+
+        #sidebar-left {
+            width: 15rem;
+        }
+
+        #wrapper.toggled #sidebar-left {
+            margin-left: 0;
+        }
+
+        @media (min-width: 768px) {
+            #sidebar-left {
+                margin-left: 0;
+            }
+
+            #wrapper.toggled #sidebar-left {
+                margin-left: -18rem;
+            }
+        }
+
+
     </style>
     <!-- NORI: I CHANGED THIS TO STATIC REFERENCE FOR PERFORMANCE -->
-
-    <link   rel="stylesheet" href="/static/css/font-awesome.min.css">
-    <link   rel="stylesheet" href="/static/css/vis-network.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/css/vis-network.min.css">
     <script src="/static/scripts/vis.min.js" type="text/javascript"></script>
 
     <!-- NORI: IN CASE YOU WANT TO NOT CHANGE STATIC LINK USE THIS -->
@@ -32,456 +73,462 @@
         var network = null;
         var ndata = {{ my_data |safe }}; // this  is a container for all the data coming from the route
 
-        Array.prototype.unique = function() {
-          return this.filter(function (value, index, self) {
-            return self.indexOf(value) === index;
-          });
+        Array.prototype.unique = function () {
+            return this.filter(function (value, index, self) {
+                return self.indexOf(value) === index;
+            });
         }
 
         /// auxiliry function that scans all nodes and find the participant in their info
-      function participants_for_node(ndata,node_id) {
-      info_for_node=[];for (var i = 0; i< ndata.net_structure.infos.length; i++) {
-                  info=ndata.net_structure.infos[i];  if (info.origin_id==node_id) info_for_node=info_for_node.concat([parseInt(info.property1)]); }; info_for_node=info_for_node.unique();
-                  return info_for_node;}
+        function participants_for_node(ndata, node_id) {
+            info_for_node = [];
+            for (var i = 0; i < ndata.net_structure.infos.length; i++) {
+                info = ndata.net_structure.infos[i];
+                if (info.origin_id == node_id) info_for_node = info_for_node.concat([parseInt(info.property1)]);
+            }
+            ;info_for_node = info_for_node.unique();
+            return info_for_node;
+        }
 
         /// set display options and groups: this will modify the way the network show up.
         function getOptions() {
-          var options = {
-            layout: {
-                improvedLayout: false,
-                 hierarchical: {
-                     direction: 'UD',
-                     sortMethod: 'directed',
-                     edgeMinimization: false, // this is super important as of a bug in the library
-                     nodeSpacing: 80, // important due to a bug in the library
-                     treeSpacing: 200 // important due to a bug in the librarys
-                 }
-             },
-             interaction: {dragNodes :false},
-             physics: {
-                enabled: false,
-                stabilization:  false
-             },
-                        edges: {
-                                width: 2
-                        },
-
-                        groups: {
-                                failed_nodes: {
-                                    color: 'red'
-                                },
-                                good_nodes: {
-                                    font: {
-                                          color: '#ffffff'
-                                        }
-                                },
-                                failed_sources: {
-                                    color: 'red',
-                                    color: {background:'red', border:'black'},
-                                    border: 5,
-                                    size: 30
-                                },
-                                good_sources: {
-                                    color: {background:'blue', border:'black'},
-                                    border: 5,
-                                    size: 30,
-                                    font: {
-                                          color: '#ffffff'
-                                    }
-                                },
-                                group_networks_open: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 80,
-                                        color: 'green'
-                                    },
-                                     font: {
-                                          size: 14,
-                                          color: 'green'
-                                        }
-                                },
-
-                                 group_networks_close: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 80,
-                                        color: 'rgb(0,0,100)'
-                                    },
-                                     font: {
-                                          size: 14,
-                                          color: 'blue'
-                                        }
-                                },
-
-                                group_father: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 120,
-                                        color: 'green'
-                                    },
-                                    font: {
-                                          size: 25,
-                                          color: '#000000'
-                                        }
-                                },
-
-                                good_infos: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0e5',
-                                        size: 30,
-                                        color:'blue'
-                                    }
-                                },
-                                failed_infos: {
-                                    shape: 'icon',
-                                    icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0e5',
-                                        size: 30,
-                                        color: 'red'
-                                    }
-                                },
-
-                            }
+            var options = {
+                layout: {
+                    improvedLayout: false,
+                    hierarchical: {
+                        direction: 'UD',
+                        sortMethod: 'directed',
+                        edgeMinimization: false, // this is super important as of a bug in the library
+                        nodeSpacing: 80, // important due to a bug in the library
+                        treeSpacing: 200 // important due to a bug in the librarys
                     }
-                    return options
+                },
+                interaction: {dragNodes: false},
+                physics: {
+                    enabled: false,
+                    stabilization: false
+                },
+                edges: {
+                    width: 2
+                },
+
+                groups: {
+                    failed_nodes: {
+                        color: 'red'
+                    },
+                    good_nodes: {
+                        font: {
+                            color: '#ffffff'
+                        }
+                    },
+                    failed_sources: {
+                        color: 'red',
+                        color: {background: 'red', border: 'black'},
+                        border: 5,
+                        size: 30
+                    },
+                    good_sources: {
+                        color: {background: 'blue', border: 'black'},
+                        border: 5,
+                        size: 30,
+                        font: {
+                            color: '#ffffff'
+                        }
+                    },
+                    group_networks_open: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'FontAwesome',
+                            code: '\uf0c2',
+                            size: 80,
+                            color: 'green'
+                        },
+                        font: {
+                            size: 14,
+                            color: 'green'
+                        }
+                    },
+
+                    group_networks_close: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'FontAwesome',
+                            code: '\uf0c2',
+                            size: 80,
+                            color: 'rgb(0,0,100)'
+                        },
+                        font: {
+                            size: 14,
+                            color: 'blue'
+                        }
+                    },
+
+                    group_father: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'FontAwesome',
+                            code: '\uf0c2',
+                            size: 120,
+                            color: 'green'
+                        },
+                        font: {
+                            size: 25,
+                            color: '#000000'
+                        }
+                    },
+
+                    good_infos: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'FontAwesome',
+                            code: '\uf0e5',
+                            size: 30,
+                            color: 'blue'
+                        }
+                    },
+                    failed_infos: {
+                        shape: 'icon',
+                        icon: {
+                            face: 'FontAwesome',
+                            code: '\uf0e5',
+                            size: 30,
+                            color: 'red'
+                        }
+                    },
+
+                }
+            }
+            return options
         }
 
         /// Draw the network
         /// This long function is drawing the network structure.
         function getnNetwork() {
-          var nodes = []; // list of all nodes
-          var edges = []; // list of all edges
-          var list_of_nodes=[]; // list of objects with nodes (not only nodes for example networks)
-          var list_of_participants=[]; // list of objects with participants
-          var list_of_node_indx=[]; // list of objects with nodes
-          var map_infoid_to_infonum=[]; // map info id  to nodes in the visualization
+            var nodes = []; // list of all nodes
+            var edges = []; // list of all edges
+            var list_of_nodes = []; // list of objects with nodes (not only nodes for example networks)
+            var list_of_participants = []; // list of objects with participants
+            var list_of_node_indx = []; // list of objects with nodes
+            var map_infoid_to_infonum = []; // map info id  to nodes in the visualization
 
-          /// These lines finds all the roles that involved  in this networks (typically "experiment"/"practice" but this is general)
-          roles=[]; // list of unique roles
-          networks_roles=[]; // the role of each network
-          for (var i = 0; i< ndata.net_structure.networks.length; i++) {
-                          net=ndata.net_structure.networks[i];
-                          my_role=net.role
+            /// These lines finds all the roles that involved  in this networks (typically "experiment"/"practice" but this is general)
+            roles = []; // list of unique roles
+            networks_roles = []; // the role of each network
+            for (var i = 0; i < ndata.net_structure.networks.length; i++) {
+                net = ndata.net_structure.networks[i];
+                my_role = net.role
 
-                          is_found = false;
-                          for (var j=0;j<roles.length;j++) {
-                            if (my_role.localeCompare(roles[j])==0) {
-                              is_found=true;
-                              break;
-                            }
-
-                          }
-                        if (!is_found) {
-
-                              networks_roles[net.id]=roles.length;
-                              roles[roles.length]=my_role;
-
-                        } else{
-                          networks_roles[net.id]=j;
-                        }
-          }
-
-          roles_colors=[]; ///  assign pseudorandom colors for each role
-          for (var j=0;j<roles.length;j++) {
-            rr= 50 + (((j+3)*11557)  % 200); // pseudorandom colors
-            gg= 50 + (((j+3171)*31511) % 200);
-            bb= 50 +  (((j+371)*11517) % 200);
-            clr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')';
-            roles_colors[j]=clr;
-          }
-
-          // find all participants and make list, also asigned unique colors to participants
-          for (var i = 0; i< ndata.net_structure.participants.length; i++) {
-            participant=ndata.net_structure.participants[i];
-            participant_id=participant.id;
-            if (participant_id==null) {
-              participant_id=0;
-              participant='<empty>';
-            }
-            rr= 10 +  (((i+357)*2551)  % 150); // pseudorandom colors
-            gg= 30 +  (((i+3571)*2511) % 200);
-            bb= 100 + (((i+3571)*2511) % 150);
-            participant.clr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')'
-            list_of_participants[participant_id]=participant;
-          }
-
-          // preperation to push to the graph all nodes from the data
-          count_nodes=0;
-          for (var i = 0; i< ndata.net_structure.nodes.length; i++) {
-              node=ndata.net_structure.nodes[i];
-              count_nodes++; // count the nodes
-              list_of_nodes[node.id]=node;
-              list_of_node_indx[node.id]=count_nodes;
-
-              /// find if the node is a source:
-              if (node.type.toLowerCase().search('source')>0) {
-                msg='source:'
-                 if (node.failed) {
-                  mgroup='failed_sources'
-                } else {
-                  mgroup='good_sources'
-                }
-              } else {
-                msg=''
-                 if (node.failed) {
-                  mgroup='failed_nodes'
-                } else {
-                  mgroup='good_nodes'
-                }
-              }
-
-              // find participant and show it on the graph
-              participant_id=node.participant_id
-              participant={}
-               if (participant_id==null) {
-                participant_id=0;
-                if (!node.failed) {
-                  participant.clr='blue'
-                }
-                  // if node  has no  participant it may be in the new format - in this case try to look at the  info and get from them all participants
-                 pn=participants_for_node(ndata,node.id);
-                if (pn.length==1) { // one participant in the infos: that is basically the participant_id
-                    participant_id=pn[0];
-                    participant=list_of_participants[participant_id];
-                } else {
-                    if (pn.length>1) { // mark nodes with more than one participant in a way clearly  visible
-                        participant.clr='black'
+                is_found = false;
+                for (var j = 0; j < roles.length; j++) {
+                    if (my_role.localeCompare(roles[j]) == 0) {
+                        is_found = true;
+                        break;
                     }
 
                 }
+                if (!is_found) {
 
-              } else {
-                participant=list_of_participants[participant_id];
+                    networks_roles[net.id] = roles.length;
+                    roles[roles.length] = my_role;
+
+                } else {
+                    networks_roles[net.id] = j;
                 }
-               if (node.failed) {
-                clr='red';
-              } else {
-                clr=participant.clr
-              }
+            }
 
-             // actually push the node to node list
-              nodes.push({
-                id: list_of_node_indx[node.id],
-                label: msg+String(node.id), color:clr,
-                title: ('<pre><code><font size="-2">'+ JSON.stringify(node, null, 2) + '</font></code></pre>'),
-                group: mgroup,
-                font: {align: 'inside'}
-              });
+            roles_colors = []; ///  assign pseudorandom colors for each role
+            for (var j = 0; j < roles.length; j++) {
+                rr = 50 + (((j + 3) * 11557) % 200); // pseudorandom colors
+                gg = 50 + (((j + 3171) * 31511) % 200);
+                bb = 50 + (((j + 371) * 11517) % 200);
+                clr = 'rgb(' + String(rr) + ',' + String(gg) + ',' + String(bb) + ')';
+                roles_colors[j] = clr;
+            }
+
+            // find all participants and make list, also asigned unique colors to participants
+            for (var i = 0; i < ndata.net_structure.participants.length; i++) {
+                participant = ndata.net_structure.participants[i];
+                participant_id = participant.id;
+                if (participant_id == null) {
+                    participant_id = 0;
+                    participant = '<empty>';
+                }
+                rr = 10 + (((i + 357) * 2551) % 150); // pseudorandom colors
+                gg = 30 + (((i + 3571) * 2511) % 200);
+                bb = 100 + (((i + 3571) * 2511) % 150);
+                participant.clr = 'rgb(' + String(rr) + ',' + String(gg) + ',' + String(bb) + ')'
+                list_of_participants[participant_id] = participant;
+            }
+
+            // preperation to push to the graph all nodes from the data
+            count_nodes = 0;
+            for (var i = 0; i < ndata.net_structure.nodes.length; i++) {
+                node = ndata.net_structure.nodes[i];
+                count_nodes++; // count the nodes
+                list_of_nodes[node.id] = node;
+                list_of_node_indx[node.id] = count_nodes;
+
+                /// find if the node is a source:
+                if (node.type.toLowerCase().search('source') > 0) {
+                    msg = 'source:'
+                    if (node.failed) {
+                        mgroup = 'failed_sources'
+                    } else {
+                        mgroup = 'good_sources'
+                    }
+                } else {
+                    msg = ''
+                    if (node.failed) {
+                        mgroup = 'failed_nodes'
+                    } else {
+                        mgroup = 'good_nodes'
+                    }
+                }
+
+                // find participant and show it on the graph
+                participant_id = node.participant_id
+                participant = {}
+                if (participant_id == null) {
+                    participant_id = 0;
+                    if (!node.failed) {
+                        participant.clr = 'blue'
+                    }
+                    // if node  has no  participant it may be in the new format - in this case try to look at the  info and get from them all participants
+                    pn = participants_for_node(ndata, node.id);
+                    if (pn.length == 1) { // one participant in the infos: that is basically the participant_id
+                        participant_id = pn[0];
+                        participant = list_of_participants[participant_id];
+                    } else {
+                        if (pn.length > 1) { // mark nodes with more than one participant in a way clearly  visible
+                            participant.clr = 'black'
+                        }
+
+                    }
+
+                } else {
+                    participant = list_of_participants[participant_id];
+                }
+                if (node.failed) {
+                    clr = 'red';
+                } else {
+                    clr = participant.clr
+                }
+
+                // actually push the node to node list
+                nodes.push({
+                    id: list_of_node_indx[node.id],
+                    label: msg + String(node.id), color: clr,
+                    title: ('<pre><code><font size="-2">' + JSON.stringify(node, null, 2) + '</font></code></pre>'),
+                    group: mgroup,
+                    font: {align: 'inside'}
+                });
             }
 
             // create edges for vectors
-            for (var i = 0; i< ndata.net_structure.vectors.length; i++) {
-              vector=ndata.net_structure.vectors[i]
-              var from = vector.origin_id;
-              var to = vector.destination_id;
-              if (vector.failed) {
-                mclr='red'
-              } else {
-              mclr='blue'
-              }
-              edges.push({
-                from: list_of_node_indx[from],
-                to: list_of_node_indx[to],
-                arrows:'to',
-                title: ('<pre><code><font size="-2">'+ JSON.stringify(vector, null, 2) + '</font></code></pre>'),
-                color: mclr
-              });
+            for (var i = 0; i < ndata.net_structure.vectors.length; i++) {
+                vector = ndata.net_structure.vectors[i]
+                var from = vector.origin_id;
+                var to = vector.destination_id;
+                if (vector.failed) {
+                    mclr = 'red'
+                } else {
+                    mclr = 'blue'
+                }
+                edges.push({
+                    from: list_of_node_indx[from],
+                    to: list_of_node_indx[to],
+                    arrows: 'to',
+                    title: ('<pre><code><font size="-2">' + JSON.stringify(vector, null, 2) + '</font></code></pre>'),
+                    color: mclr
+                });
             }
 
             // now pushes infos
-            for (var i = 0; i< ndata.net_structure.infos.length; i++) {
-              info=ndata.net_structure.infos[i];
-              count_nodes++;
-              map_infoid_to_infonum[info.id]=count_nodes
+            for (var i = 0; i < ndata.net_structure.infos.length; i++) {
+                info = ndata.net_structure.infos[i];
+                count_nodes++;
+                map_infoid_to_infonum[info.id] = count_nodes
 
-              my_node_id=count_nodes;
-              to=my_node_id;
-              from=info.origin_id;
-              //participant_id=list_of_nodes[from].participant_id (used to be based on the node)
-              participant_id=parseInt(info.property1) // now based on the info itself
-              participant={}
-              if (participant_id==null) {
-                participant_id=0;
-                participant.clr='black';
-                participant='<empty>';
-              } else {
-                participant=list_of_participants[participant_id];
+                my_node_id = count_nodes;
+                to = my_node_id;
+                from = info.origin_id;
+                //participant_id=list_of_nodes[from].participant_id (used to be based on the node)
+                participant_id = parseInt(info.property1) // now based on the info itself
+                participant = {}
+                if (participant_id == null) {
+                    participant_id = 0;
+                    participant.clr = 'black';
+                    participant = '<empty>';
+                } else {
+                    participant = list_of_participants[participant_id];
                 }
                 var color;
-               if (info.failed) {
-                mgroup='failed_infos'
-                color = "red";
-              } else {
-                mgroup='good_infos'
-                color = participant.clr;
-              }
-              nodes.push({
-                id: my_node_id,
-                label: "info:"+ String(info.id),
-                dashes:true,
-                title: ('<pre><code><font size="-2">'+ JSON.stringify(info, null, 2) + '</font></code></pre>'),
-                group: mgroup,
-                font: {align: 'inside'},
-                icon: {color: color}
+                if (info.failed) {
+                    mgroup = 'failed_infos'
+                    color = "red";
+                } else {
+                    mgroup = 'good_infos'
+                    color = participant.clr;
+                }
+                nodes.push({
+                    id: my_node_id,
+                    label: "info:" + String(info.id),
+                    dashes: true,
+                    title: ('<pre><code><font size="-2">' + JSON.stringify(info, null, 2) + '</font></code></pre>'),
+                    group: mgroup,
+                    font: {align: 'inside'},
+                    icon: {color: color}
 
-              });
-              if (participant_id>0) {
-                edges.push({
-                from: list_of_node_indx[from],
-                to: to,
-                dashes:true,
-                label: "participant: "+ String(participant_id), font: {size:15, color:participant.clr, strokeWidth:0, strokeColor:'yellow',align: 'top'},
-                //arrows:'to', dashes:true,
-                title: ('<pre><code><font size="-2">'+ JSON.stringify(participant, null, 2) + '</font></code></pre>'),
-                color: participant.clr
-              });
-              } else {
-              edges.push({
-                from: list_of_node_indx[from],
-                to: to,
-                dashes:true,
-              });
-              }
+                });
+                if (participant_id > 0) {
+                    edges.push({
+                        from: list_of_node_indx[from],
+                        to: to,
+                        dashes: true,
+                        label: "participant: " + String(participant_id),
+                        font: {size: 15, color: participant.clr, strokeWidth: 0, strokeColor: 'yellow', align: 'top'},
+                        //arrows:'to', dashes:true,
+                        title: ('<pre><code><font size="-2">' + JSON.stringify(participant, null, 2) + '</font></code></pre>'),
+                        color: participant.clr
+                    });
+                } else {
+                    edges.push({
+                        from: list_of_node_indx[from],
+                        to: to,
+                        dashes: true,
+                    });
+                }
             }
 
             // create edges for transformation
-            for (var i = 0; i< ndata.net_structure.trans.length; i++) {
-              tran=ndata.net_structure.trans[i]
-              var from = tran.origin_id;
-              var to = tran.destination_id;
-              var from_n=map_infoid_to_infonum[from];
-              var to_n=map_infoid_to_infonum[to];
+            for (var i = 0; i < ndata.net_structure.trans.length; i++) {
+                tran = ndata.net_structure.trans[i]
+                var from = tran.origin_id;
+                var to = tran.destination_id;
+                var from_n = map_infoid_to_infonum[from];
+                var to_n = map_infoid_to_infonum[to];
 
-              if (tran.failed) {
-                rr=200
-                gg=100
-                bb=100
-                mclr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')'
-              } else {
-                //mclr='black'
-                rr=200
-                gg=200
-                bb=200
-                mclr='rgb('+String(rr)+','+ String(gg)+',' + String (bb)+')'
-              }
-              edges.push({
-                from: from_n,
-                to: to_n,
-                arrows:'to',
-                dashes:true,
-                title: ('<pre><code><font size="-2">'+ JSON.stringify(tran, null, 2) + '</font></code></pre>'),
-                color: mclr
-              });
+                if (tran.failed) {
+                    rr = 200
+                    gg = 100
+                    bb = 100
+                    mclr = 'rgb(' + String(rr) + ',' + String(gg) + ',' + String(bb) + ')'
+                } else {
+                    //mclr='black'
+                    rr = 200
+                    gg = 200
+                    bb = 200
+                    mclr = 'rgb(' + String(rr) + ',' + String(gg) + ',' + String(bb) + ')'
+                }
+                edges.push({
+                    from: from_n,
+                    to: to_n,
+                    arrows: 'to',
+                    dashes: true,
+                    title: ('<pre><code><font size="-2">' + JSON.stringify(tran, null, 2) + '</font></code></pre>'),
+                    color: mclr
+                });
             }
 
-          // This is needed to group networks according to roles
-          // we used "father" for all the network and connect it
-          // so the visualization will group things according to their role
-          group_fathres=[];
-          for (var j=0;j<roles.length;j++) {
-             //group fathers of all practice networks
-             count_nodes++;
-            my_node_id=count_nodes;
-            clr=roles_colors[j]
-            gtitle=roles[j] + ' networks'
+            // This is needed to group networks according to roles
+            // we used "father" for all the network and connect it
+            // so the visualization will group things according to their role
+            group_fathres = [];
+            for (var j = 0; j < roles.length; j++) {
+                //group fathers of all practice networks
+                count_nodes++;
+                my_node_id = count_nodes;
+                clr = roles_colors[j]
+                gtitle = roles[j] + ' networks'
 
-            nodes.push({
+                nodes.push({
                     id: my_node_id,
                     label: gtitle,
                     title: gtitle,
                     group: 'group_father',
                     font: {align: 'inside'},
                     icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        size: 120,
-                                        color: clr
-                                    }
-                  });
-                  group_fathres[j]=my_node_id;
-          }
+                        face: 'FontAwesome',
+                        code: '\uf0c2',
+                        size: 120,
+                        color: clr
+                    }
+                });
+                group_fathres[j] = my_node_id;
+            }
 
 
-          //connect network to correct source (or father)
-          for (var i = 0; i< ndata.net_structure.networks.length; i++) {
-                net=ndata.net_structure.networks[i];
+            //connect network to correct source (or father)
+            for (var i = 0; i < ndata.net_structure.networks.length; i++) {
+                net = ndata.net_structure.networks[i];
                 count_nodes++;
-                my_node_id=count_nodes;
-                from=my_node_id;
-                is_found=false;
+                my_node_id = count_nodes;
+                from = my_node_id;
+                is_found = false;
 
-                min_id=99999999
+                min_id = 99999999
                 // find the node with minimal id that belong to this network
-                for (var j = 0; j< ndata.net_structure.nodes.length; j++) {
-                  node=ndata.net_structure.nodes[j];
-                    if ((node.id<=min_id) && (node.network_id==net.id))  {
-                      min_id=node.id
-                      to_min=list_of_node_indx[node.id]
+                for (var j = 0; j < ndata.net_structure.nodes.length; j++) {
+                    node = ndata.net_structure.nodes[j];
+                    if ((node.id <= min_id) && (node.network_id == net.id)) {
+                        min_id = node.id
+                        to_min = list_of_node_indx[node.id]
 
                     }
                 }
 
                 // find the source that belong to this network
-                for (var j = 0; j< ndata.net_structure.nodes.length; j++) {
-                  node=ndata.net_structure.nodes[j];
-                    if ((node.type.toLowerCase().search('source')>0) && (node.network_id==net.id))  {
-                      is_found=true
-                      to=list_of_node_indx[node.id]
-                      break
+                for (var j = 0; j < ndata.net_structure.nodes.length; j++) {
+                    node = ndata.net_structure.nodes[j];
+                    if ((node.type.toLowerCase().search('source') > 0) && (node.network_id == net.id)) {
+                        is_found = true
+                        to = list_of_node_indx[node.id]
+                        break
                     }
                 }
 
                 if (!is_found) {
-                  to=to_min // use a default strategy that the source is the minimal id
+                    to = to_min // use a default strategy that the source is the minimal id
                     //to=my_node_id
                 }
 
-                  if (net.property1=='True') { // assume that there is a feature in property1 that decide if a network is open or close
-                      mgroup='group_networks_open';
-                    } else {
-                      mgroup='group_networks_close';
+                if (net.property1 == 'True') { // assume that there is a feature in property1 that decide if a network is open or close
+                    mgroup = 'group_networks_open';
+                } else {
+                    mgroup = 'group_networks_close';
+                }
+
+                father = group_fathres[networks_roles[net.id]]; // find father network
+                clr = roles_colors[networks_roles[net.id]];
+                nodes.push({
+                    id: my_node_id,
+                    label: "network:" + String(net.id),
+                    title: ('<pre><code><font size="-2">' + JSON.stringify(net, null, 2) + '</font></code></pre>'),
+                    group: mgroup,
+                    font: {align: 'inside'},
+                    icon: {
+                        face: 'FontAwesome',
+                        code: '\uf0c2',
+                        color: clr
                     }
 
-                    father=group_fathres[networks_roles[net.id]]; // find father network
-                    clr=roles_colors[networks_roles[net.id]];
-                nodes.push({
-                  id: my_node_id,
-                  label: "network:"+ String(net.id),
-                  title: ('<pre><code><font size="-2">'+ JSON.stringify(net, null, 2) + '</font></code></pre>'),
-                  group: mgroup,
-                  font: {align: 'inside'},
-                  icon: {
-                                        face: 'FontAwesome',
-                                        code: '\uf0c2',
-                                        color: clr
-                                    }
-
                 });
-                 edges.push({
-                  from: from,
-                  to: to,
-                  color: 'black'
-                });
-                 //connect network to father
                 edges.push({
-                  from: father,
-                  to: from,
-                  color: 'white',
-                  font: {align: 'inside'}
+                    from: from,
+                    to: to,
+                    color: 'black'
+                });
+                //connect network to father
+                edges.push({
+                    from: father,
+                    to: from,
+                    color: 'white',
+                    font: {align: 'inside'}
                 });
 
             }
 
-          return {nodes:nodes, edges:edges};
+            return {nodes: nodes, edges: edges};
         }
 
         function get_network_data() {
@@ -489,6 +536,7 @@
             draw();
 
         }
+
         function destroy() {
             if (network !== null) {
                 network.destroy();
@@ -505,7 +553,7 @@
             // create a network
             var container = document.getElementById('mynetwork');
 
-            var options=getOptions();
+            var options = getOptions();
             network = new vis.Network(container, data, options);
 
             // add event listeners
@@ -520,17 +568,50 @@
 
 <body onload="get_network_data();">
 
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand">
+        <span id="menu-toggle" class="navbar-toggler-icon"> </span>
+         <i class="fa fa-cloud"></i> Network Monitor
+    </a>
+</nav>
 
-<h2><i class="fa fa-cloud"></i> Network Monitor</h2>
-<div id="stats">
-{{ my_msg |safe }}
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar -->
+    <div class="bg-light" id="sidebar-left">
+        <div class="p-3">
+            <div id="stats">
+                {{ my_msg |safe }}
+            </div>
+        </div>
+    </div>
+    <!-- /#sidebar-left -->
+
+    <script>
+        var menuToggle = document.getElementById('menu-toggle');
+        var wrapper = document.getElementById('wrapper');
+        toggle_menu = function () {
+            if (wrapper.classList.contains('toggled')) {
+                wrapper.classList.remove('toggled');
+            } else {
+                wrapper.classList.add('toggled');
+            }
+        };
+
+        menuToggle.addEventListener("click", function (e) {
+            e.preventDefault();
+            toggle_menu();
+        });
+
+    </script>
+
+    <div class="container mt-5" id="content">
+        Zoom in to see details:
+        <br>
+        <div id="mynetwork"></div>
+    </div>
+
+
+    <div id="debug"></div>
 </div>
-Zoom in to see details:
-
-<br>
-
-<div id="mynetwork"></div>
-
-<div id="debug"></div>
 </body>
 </html>
