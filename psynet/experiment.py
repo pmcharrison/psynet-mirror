@@ -4,7 +4,7 @@ import json
 import os
 from json import dumps
 from sqlalchemy import exc
-
+import numpy as np
 from dallinger import (
     db
 )
@@ -233,8 +233,22 @@ class Experiment(dallinger.experiment.Experiment):
             active_participants = active_participants + 1
         msg_part = f"# participants = {len(participants)} working: {len(relevant_participants)} active: {active_participants}"
 
+        # times = (participant['end_time'].astype('datetime64[m]') - participant['creation_time'].astype('datetime64[m]'))[participant['bonus'] > 2.5].astype('timedelta64[m]')
+
+        def minute_duration_per_participant(participant):
+            return (participant.end_time - participant.creation_time).seconds//60
+
+        durations = [minute_duration_per_participant(p) for p in participants if p.status == 'approved']
+        avg_duration = 0
+        if len(durations) > 0:
+            avg_duration = sum(durations)/len(durations)
+        from math import ceil
+        estimated_duration = ceil((self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=9)/9)*60)
+
         return {
             'n_participants': len(participants),
+            'n_relevant_participants': len(relevant_participants),
+            'n_active_participants': active_participants,
             'n_networks': len(networks),
             'n_e_networks': len(experiment_networks),
             'nodes': len(nodes),
@@ -244,7 +258,10 @@ class Experiment(dallinger.experiment.Experiment):
             'msg_networks': msg_networks,
             'msg_nodes': msg_nodes,
             'msg_infos': msg_infos,
-            'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n"
+            'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n",
+            'durations': durations,
+            'avg_duration': avg_duration,
+            'estimated_duration': estimated_duration,
         }
 
     def bonus(self, participant):
@@ -257,9 +274,8 @@ class Experiment(dallinger.experiment.Experiment):
         res = self.network_structure()
         stat = self.network_stats()
         data = {"status": "success", "net_structure": res}
-        msg = stat['msg'].replace("\n",'<br>')
         html = get_template("network-monitor.html")
-        return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
+        return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = stat)
 
     def init_participant(self, participant_id):
         logger.info("Initialising participant {}...".format(participant_id))
