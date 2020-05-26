@@ -1,0 +1,39 @@
+<style>
+  .colour_box_container {
+      display: flex;
+      justify-content: center;
+  }
+  .colour_box {
+      width: 200px;
+      height: 200px;
+      margin: 30px;
+      border-style: solid;
+      border-color: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+  }
+  .colour_text {
+      background-color: white;
+      padding: 10px;
+  }
+</style>
+
+<div class="colour_box_container">
+    <div id="current_state" class="colour_box">
+      <p class="colour_text">Current state</p>
+    </div>
+    <div id="proposal" class="colour_box">
+      <p class="colour_text">Proposal</p>
+    </div>
+</div>
+
+<script>
+  var current_state = document.getElementById("current_state");
+  var proposal = document.getElementById("proposal");
+
+  function set_colour(object, hsl) {
+    var css = "hsl(" + hsl[0] + ", " + hsl[1] + "%, " + hsl[2] + "%)";
+    object.style.background = css;
+  }
+</script>

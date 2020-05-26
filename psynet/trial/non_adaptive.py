@@ -10,11 +10,14 @@ from collections import Counter
 from functools import reduce
 from progress.bar import Bar
 
-
+from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
 
 import dallinger.models
 import dallinger.nodes
+
+from dallinger import db
+from dallinger.models import Network
 
 from ..media import (
     bucket_exists,
@@ -26,8 +29,8 @@ from ..media import (
     upload_to_s3
 )
 
-from ..field import claim_field
-from ..utils import DisableLogger, hash_object
+from ..field import claim_field, claim_var
+from ..utils import DisableLogger, hash_object, import_local_experiment
 from .main import Trial, TrialNetwork, NetworkTrialMaker
 
 import logging
@@ -36,6 +39,12 @@ logger = logging.getLogger(__file__)
 
 # pylint: disable=unused-import
 import rpdb
+
+def filter_for_completed_trials(x):
+    return x.filter_by(failed=False, complete=True, is_repeat_trial=False)
+
+def query_all_completed_trials():
+    return filter_for_completed_trials(NonAdaptiveTrial.query)
 
 class Stimulus(dallinger.models.Node):
     """
@@ -97,11 +106,7 @@ class Stimulus(dallinger.models.Node):
 
     @property
     def _query_completed_trials(self):
-        return (
-            NonAdaptiveTrial
-                .query
-                .filter_by(stimulus_id=self.id, failed=False, complete=True, is_repeat_trial=False)
-        )
+        return query_all_completed_trials().filter_by(stimulus_id=self.id)
 
     @property
     def num_completed_trials(self):
@@ -176,13 +181,13 @@ class StimulusSpec():
         self.participant_group = participant_group
         self.block = block
 
-    def add_stimulus_to_network(self, network, source, experiment, target_num_trials, stimulus_set):
+    def add_stimulus_to_network(self, network, source, target_num_trials, stimulus_set):
         stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials, stimulus_set=stimulus_set)
-        experiment.session.add(stimulus)
+        db.session.add(stimulus)
 
         for version_spec in self.version_specs:
             version = StimulusVersion(version_spec, stimulus, network, stimulus_set)
-            experiment.session.add(version)
+            db.session.add(version)
 
     @property
     def has_media(self):
@@ -892,7 +897,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
             num_repeat_trials=num_repeat_trials,
-            wait_for_networks=False
+            wait_for_networks=True
         )
 
     @property
@@ -1105,7 +1110,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             )
         experiment.save()
 
-    def find_networks(self, participant, experiment):
+    def find_networks(self, participant, experiment, ignore_async_processes=False):
         # pylint: disable=protected-access
         block_order = participant.var.get(self.with_namespace("block_order"))
         networks = (
@@ -1113,12 +1118,14 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
                               .filter_by(
                                   trial_type=self.trial_type,
                                   participant_group=self.get_participant_group(participant),
-                                  phase=self.phase,
-                                  awaiting_async_process=False
+                                  phase=self.phase
                               )
                               .filter(NonAdaptiveNetwork.block.in_(block_order))
-                              .all()
+
         )
+        if not ignore_async_processes:
+            networks = networks.filter_by(awaiting_async_process=False)
+        networks = networks.all()
         networks.sort(key=lambda network: block_order.index(network.block))
         return networks
 
@@ -1162,6 +1169,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             candidates = self.filter_out_repeated_stimuli(candidates, completed_stimuli)
         if not allow_new_stimulus:
             candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
+
         candidates = candidates.all()
         if self.active_balancing_within_participants:
             candidates = self.balance_within_participants(candidates, completed_stimuli)
@@ -1194,9 +1202,34 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             if candidate_count_within == min_count_within
         ]
 
-    @staticmethod
-    def balance_across_participants(candidates):
-        candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
+    def get_trial_counts(self, stimuli, new=True):
+        # Old inefficient version:
+        if not new:
+            return [s.num_completed_trials for s in stimuli]
+
+        # New version:
+        n_trials_all_stimuli = filter_for_completed_trials(
+            db.session
+            .query(NonAdaptiveTrial.stimulus_id, func.count(NonAdaptiveTrial.id))
+            .group_by(NonAdaptiveTrial.stimulus_id)
+        ).all()
+        n_trials_all_stimuli = {x[0]: x[1] for x in n_trials_all_stimuli}
+
+        def get_count(stimulus):
+            try:
+                return n_trials_all_stimuli[stimulus.id]
+            except KeyError:
+                return 0
+
+        return [get_count(stim) for stim in stimuli]
+
+    def balance_across_participants(self, candidates):
+        # candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
+        candidate_counts_across = self.get_trial_counts(candidates)
+        # logger.info("%s", [
+        #     (candidate.id, count) for candidate, count in zip(candidates, candidate_counts_across)
+        # ])
+
         min_count_across = 0 if len(candidate_counts_across) == 0 else min(candidate_counts_across)
         return [
             candidate for candidate, candidate_count_across in zip(candidates, candidate_counts_across)
@@ -1307,31 +1340,47 @@ class NonAdaptiveNetwork(TrialNetwork):
     participant_group = claim_field(3, str)
     block = claim_field(4, str)
 
+    creation_started = claim_var("creation_started")
+    creation_progress = claim_var("creation_progress")
+
     def __init__(self, *, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group
         self.block = block
+        self.creation_started = False
+        self.creation_progress = 0.0
         super().__init__(trial_type, phase, experiment)
-        if self.num_nodes == 0:
-            self.populate(stimulus_set, experiment, target_num_trials_per_stimulus)
+        db.session.add(self)
+        if not self.creation_started:
+            self.creation_started = True
+            self.queue_async_process(call_network_populate, stimulus_set, target_num_trials_per_stimulus)
+        db.session.commit()
 
-    def populate(self, stimulus_set, experiment, target_num_trials_per_stimulus):
+    def populate(self, stimulus_set, target_num_trials_per_stimulus):
         source = dallinger.nodes.Source(network=self)
-        experiment.session.add(source)
+        db.session.add(source)
         stimulus_specs = [
             x for x in stimulus_set.stimulus_specs
             if x.phase == self.phase
             and x.participant_group == self.participant_group
             and x.block == self.block
         ]
-        for stimulus_spec in stimulus_specs:
+        N = len(stimulus_specs)
+        n = 0
+        for i, stimulus_spec in enumerate(stimulus_specs):
             stimulus_spec.add_stimulus_to_network(
                 network=self,
                 source=source,
-                experiment=experiment,
                 target_num_trials=target_num_trials_per_stimulus,
                 stimulus_set=stimulus_set
             )
-        experiment.save()
+            n = i + 1
+            if n % 100 == 0:
+                logger.info("Populated network %i with %i/%i stimuli...", self.id, n, N)
+                self.creation_progress = (1 + i) / N
+                db.session.commit()
+        logger.info("Finished populating network %i with %i/%i stimuli.", self.id, n, N)
+        self.creation_progress = 1.0
+        db.session.commit()
 
     @property
     def stimulus_query(self):
@@ -1345,3 +1394,18 @@ class NonAdaptiveNetwork(TrialNetwork):
     def num_stimuli(self):
         return self.stimulus_query.count()
 
+def call_network_populate(network_id, process_id, stimulus_set, target_num_trials_per_stimulus):
+    logger.info("Running populate function for network %i...", network_id)
+    import_local_experiment()
+    network = Network.query.filter_by(id=network_id).one()
+    try:
+        if process_id in network.pending_async_processes:
+            network.populate(stimulus_set, target_num_trials_per_stimulus)
+            network.pop_async_process(process_id)
+        else:
+            logger.info("Skipping async process %s as it is no longer queued.", process_id)
+    except BaseException as e:
+        network.fail_async_processes(reason=f"exception in network.populate(): {e.__class__.__name__}")
+        raise
+    finally:
+        db.session.commit() # pylint: disable=no-member

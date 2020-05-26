@@ -112,15 +112,21 @@ get_node_metadata <- function(trial, node, network) {
     bind_rows() %>%
     simplify_columns()
 
+  child_df <-
+    node %>%
+    select(child_id = node_id,
+           generated_seed = seed)
+
   stopifnot(!anyDuplicated(answers_df$node_id))
 
   node_df %>%
     left_join(network_df, by = "network_id") %>%
     left_join(answers_df, by = "node_id") %>%
+    left_join(child_df, by = "child_id") %>%
     select(- network_id, - child_id) %>%
     mutate(n_answers_for_seed = if_else(is.na(n_answers_for_seed),
-                                          0L,
-                                          n_answers_for_seed),
+                                        0L,
+                                        n_answers_for_seed),
            answers_for_seed = map2(n_answers_for_seed,
                                    answers_for_seed,
                                    function(n, answers) if (n == 0) NULL else answers))
