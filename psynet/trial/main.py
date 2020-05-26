@@ -12,7 +12,7 @@ from uuid import uuid4
 
 from dallinger import db
 import dallinger.models
-from dallinger.models import Info, Network
+from dallinger.models import Info, Network, Node
 
 from rq import Queue
 from dallinger.db import redis_conn
@@ -1672,6 +1672,11 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     trial_type = claim_field(1, str)
     target_num_trials = claim_field(2, int)
+
+    def calculate_full(self):
+        "A more efficient version of Dallinger's built-in calculate_full method."
+        n_nodes = Node.query.filter_by(network_id=self.id, failed=False).count()
+        self.full = n_nodes >= (self.max_size or 0)
 
     def add_node(self, node):
         """
