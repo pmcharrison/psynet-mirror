@@ -1226,9 +1226,9 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def balance_across_participants(self, candidates):
         # candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
         candidate_counts_across = self.get_trial_counts(candidates)
-        logger.info("%s", [
-            (candidate.id, count) for candidate, count in zip(candidates, candidate_counts_across)
-        ])
+        # logger.info("%s", [
+        #     (candidate.id, count) for candidate, count in zip(candidates, candidate_counts_across)
+        # ])
 
         min_count_across = 0 if len(candidate_counts_across) == 0 else min(candidate_counts_across)
         return [
