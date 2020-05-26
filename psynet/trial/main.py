@@ -69,14 +69,14 @@ class AsyncProcessOwner():
     def earliest_async_process_start_time(self):
         return min([unserialise_datetime(x["start_time"]) for x in self.pending_async_processes.values()])
 
-    def queue_async_process(self, function):
+    def queue_async_process(self, function, *args):
         process_id = str(uuid4())
         self.push_async_process(process_id)
         db.session.commit()
         q = Queue("default", connection = redis_conn)
         q.enqueue_call(
             func=function,
-            args=(self.id, process_id),
+            args=(self.id, process_id, *args),
             timeout=1e10 # PsyNet deals with timeouts itself
         ) # pylint: disable=no-member
 
@@ -1081,6 +1081,7 @@ class TrialMaker(Module):
 
     def _trial_loop(self):
         return join(
+            wait_while(self._wait_for_trial, expected_wait=0.0),
             CodeBlock(self._prepare_trial),
             while_loop(
                 self.with_namespace("trial_loop"),
