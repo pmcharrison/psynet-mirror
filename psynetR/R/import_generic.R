@@ -64,7 +64,16 @@ get_generic_response <- function(raw) {
 get_generic_participant <- function(raw) {
   raw$participant %>%
     label_properties(participant_properties()) %>%
-    rename(participant_id = id) %>%
+    mutate(time_taken_min = difftime(end_time, creation_time, units = "mins")) %>%
+    rename(participant_id = id,
+           total_bonus = bonus,
+           last_answer = answer,
+           last_event_id = event_id,
+           last_page_uuid = page_uuid) %>%
     arrange(participant_id) %>%
-    unpack_json_col("details")
+    unpack_json_col("details") %>%
+    mutate(time_credit_sec = time_credit__confirmed_credit,
+           time_bonus = time_credit_sec * time_credit__wage_per_hour / (60 * 60)) %>%
+    select(participant_id, worker_id, creation_time, end_time, time_taken_min, complete, failed, time_of_death,
+           base_payment, time_bonus, performance_bonus, total_bonus, status, last_event_id, everything()) %>% View
 }
