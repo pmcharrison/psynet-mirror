@@ -236,12 +236,12 @@ class Experiment(dallinger.experiment.Experiment):
         # times = (participant['end_time'].astype('datetime64[m]') - participant['creation_time'].astype('datetime64[m]'))[participant['bonus'] > 2.5].astype('timedelta64[m]')
 
         def minute_duration_per_participant(participant):
-            return (participant.end_time - participant.creation_time).seconds//60
+            return (participant.end_time - participant.creation_time).seconds / 60
 
-        durations = [minute_duration_per_participant(p) for p in participants if p.status == 'approved']
+        durations = [minute_duration_per_participant(p) for p in participants if p.complete]
         avg_duration = 0
         if len(durations) > 0:
-            avg_duration = sum(durations)/len(durations)
+            avg_duration = sum(durations) / len(durations)
         from math import ceil
         estimated_duration = ceil((self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=9)/9)*60)
 
