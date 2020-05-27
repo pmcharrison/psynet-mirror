@@ -100,6 +100,10 @@ class Experiment(dallinger.experiment.Experiment):
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
 
+    # @property
+    # def allotted_bonus_dollars(self):
+    #     return self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=self.wage_per_hour)
+
     @property
     def background_tasks(self):
         return self._background_tasks
@@ -238,7 +242,7 @@ class Experiment(dallinger.experiment.Experiment):
         def minute_duration_per_participant(participant):
             return (participant.end_time - participant.creation_time).seconds / 60
 
-        durations = [minute_duration_per_participant(p) for p in participants if p.complete]
+        durations = [minute_duration_per_participant(p) for p in participants if p.complete and p.status == "approved"]
         avg_duration = 0
         if len(durations) > 0:
             avg_duration = sum(durations) / len(durations)
