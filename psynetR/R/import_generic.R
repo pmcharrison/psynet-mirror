@@ -75,5 +75,5 @@ get_generic_participant <- function(raw) {
     mutate(time_credit_sec = time_credit__confirmed_credit,
            time_bonus = time_credit_sec * time_credit__wage_per_hour / (60 * 60)) %>%
     select(participant_id, worker_id, creation_time, end_time, time_taken_min, complete, failed, time_of_death,
-           base_payment, time_bonus, performance_bonus, total_bonus, status, last_event_id, everything()) %>% View
+           base_payment, time_bonus, performance_bonus, total_bonus, status, last_event_id, everything())
 }
