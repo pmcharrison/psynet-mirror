@@ -1,29 +1,27 @@
-import_generic <- function(experiment_dir, label) {
-  files <- unpack_files(experiment_dir, label)
+import_generic <- function(zip_file) {
+  files <- unpack_files(zip_file)
   raw <- load_raw_data(files)
   raw
 }
 
 # theme_set(theme_pubr())
 
-unpack_files <- function(experiment_dir, label, dir = tempfile(pattern = "dir")) {
-  zip_file <- file.path(experiment_dir, "data", paste0(label, "-data.zip"))
-
+unpack_files <- function(zip_file, output_dir = tempfile(pattern = "dir")) {
   if (!file.exists(zip_file))
     stop("input file ", zip_file, " does not exist")
 
   files <- list(
-    root = dir,
+    root = output_dir,
     # code_zip = file.path(dir, paste0(label, "-code.zip")),
     # code = file.path(dir, "code"),
-    data = file.path(dir, "data")
+    data = file.path(output_dir, "data")
   )
 
   # files$config <- file.path(files$code, "config.txt")
 
-  extract <- function(zip_file, dir) {
-    message("Extracting ", zip_file, " into ", dir, "...")
-    unzip(zip_file, exdir = dir)
+  extract <- function(zip_file, output_dir) {
+    message("Extracting ", zip_file, " into ", output_dir, "...")
+    unzip(zip_file, exdir = output_dir)
   }
 
   extract(zip_file, files$root)
@@ -32,16 +30,16 @@ unpack_files <- function(experiment_dir, label, dir = tempfile(pattern = "dir"))
   files
 }
 
-get_config <- function(files) {
-  tibble(raw = readLines(files$config)) %>%
-    filter(grepl("=", raw)) %>%
-    mutate(
-      key = gsub(" = .*", "", raw),
-      value = gsub(".* = ", "", raw)
-    ) %>% {
-      set_names(as.list(.$value), .$key)
-    }
-}
+# get_config <- function(files) {
+#   tibble(raw = readLines(files$config)) %>%
+#     filter(grepl("=", raw)) %>%
+#     mutate(
+#       key = gsub(" = .*", "", raw),
+#       value = gsub(".* = ", "", raw)
+#     ) %>% {
+#       set_names(as.list(.$value), .$key)
+#     }
+# }
 
 load_raw_data <- function(files) {
   tibble(
@@ -54,11 +52,19 @@ load_raw_data <- function(files) {
   }
 }
 
-get_response <- function(raw) {
+get_generic_response <- function(raw) {
   raw$question %>%
     label_properties(response_properties()) %>%
     rename(answer = response,
            metadata = details) %>%
     mutate(answer = map(answer, jsonlite::fromJSON),
            metadata = map(metadata, jsonlite::fromJSON))
+}
+
+get_generic_participant <- function(raw) {
+  raw$participant %>%
+    label_properties(participant_properties()) %>%
+    rename(participant_id = id) %>%
+    arrange(participant_id) %>%
+    unpack_json_col("details")
 }

@@ -21,7 +21,6 @@ response_properties <- function() {
   )
 }
 
-
 participant_properties <- function() {
   list(
     property1 = int_field("event_id"),
@@ -30,31 +29,6 @@ participant_properties <- function() {
     property4 = misc_field("answer"),
     property5 = misc_field("branch_log")
   )
-}
-
-chain_node_properties <- function() {
-  list(
-    property1 = int_field("degree"),
-    property2 = int_field("child_id"),
-    property3 = misc_field("seed"),
-    property4 = misc_field("definition")
-  )
-}
-
-gsp_node_properties <- function() {
-  chain_node_properties()
-}
-
-chain_trial_properties <- function() {
-  trial_properties()
-}
-
-chain_network_properties <- function() {
-  network_properties()
-}
-
-gsp_trial_properties <- function() {
-  chain_trial_properties()
 }
 
 field <- function(name, coerce) {

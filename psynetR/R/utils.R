@@ -1,6 +1,11 @@
 unpack_json_col <- function(df, col, prefix = "", keep_original = FALSE) {
-  df[[col]] <- map(df[[col]], jsonlite::fromJSON)
+  df <- parse_json_col(df, col)
   unpack_list_col(df, col, prefix, keep_original)
+}
+
+parse_json_col <- function(df, col) {
+  df[[col]] <- map(df[[col]], jsonlite::fromJSON)
+  df
 }
 
 unpack_list_col <- function(df, col, prefix = "", keep_original = FALSE) {
@@ -60,7 +65,7 @@ warning("summarise_node_answers is currently a bit of a hack. PsyNet should be u
         "future experiments such that the trials used for seed generation ",
         "are stored explicitly.")
 
-get_node_metadata <- function(trial, node, network) {
+get_chain_node_metadata <- function(trial, node, network) {
   node_df <- node %>%
     select(node_id, network_id, child_id) %>%
     left_join(node %>% select(child_id = node_id, child_creation_time = creation_time, child_seed = seed),
@@ -130,60 +135,6 @@ get_node_metadata <- function(trial, node, network) {
            answers_for_seed = map2(n_answers_for_seed,
                                    answers_for_seed,
                                    function(n, answers) if (n == 0) NULL else answers))
-}
-
-get_trial_metadata <- function(trial, node, network) {
-  trial_df <- trial %>% select(trial_id, network_id, node_id)
-
-  node_df <-
-    node %>%
-    select(node_id, phase, degree, definition) %>%
-    rename(node_definition = definition)
-
-  network_df <-
-    network %>%
-    select(network_id, definition) %>%
-    rename(network_definition = definition)
-    # unpack_list_col("definition", prefix = "network_")
-
-  trial_df %>%
-    left_join(node_df, by = "node_id") %>%
-    left_join(network_df, by = "network_id") %>%
-    select(- c(network_id, node_id))
-}
-
-get_network_metadata <- function(trial, node, network) {
-  node_df <-
-    node %>%
-    select(network_id, node_id, failed)
-
-  trial_df <-
-    trial %>%
-    select(network_id, trial_id, failed)
-
-  node_stats <-
-    network %>%
-    select(network_id) %>%
-    inner_join(node_df, by = "network_id") %>%
-    group_by(network_id) %>%
-    summarise(n_nodes = n(),
-              n_active_nodes = sum(!failed),
-              n_failed_nodes = sum(failed))
-
-  trial_stats <-
-    network %>%
-    select(network_id) %>%
-    inner_join(trial_df, by = "network_id") %>%
-    group_by(network_id) %>%
-    summarise(n_trials = n(),
-              n_active_trials = sum(!failed),
-              n_failed_trials = sum(failed))
-
-  network %>%
-    select(network_id) %>%
-    left_join(node_stats, by = "network_id") %>%
-    left_join(trial_stats, by = "network_id") %>%
-    mutate_at(vars(starts_with("n_")), ~ if_else(is.na(.), 0L, .))
 }
 
 add_response <- function(trial, response) {
