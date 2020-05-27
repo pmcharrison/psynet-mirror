@@ -902,7 +902,18 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     @property
     def num_trials_still_required(self):
-        return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
+        # Old version:
+        # return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
+
+        stimuli = self.stimuli
+        stimulus_actual_counts = self.get_trial_counts(stimuli)
+        stimulus_target_counts = [s.target_num_trials for s in stimuli]
+        stimulus_remaining_trials = [
+            max(0, target - actual)
+            for target, actual in zip(stimulus_target_counts, stimulus_actual_counts)
+        ]
+
+        return sum(stimulus_remaining_trials)
 
     @property
     def stimuli(self):
