@@ -191,27 +191,28 @@ class GibbsNode(ChainNode):
     # mean, median, kernel
     summarise_trials_method = "mean"
 
-    @classmethod
-    def summarise_trial_dimension(cls, observations):
-        method = cls.summarise_trials_method
+    def summarise_trial_dimension(self, observations):
+        method = self.summarise_trials_method
         logger.info("Summarising observations using method %s...", method)
+
+        self.var.summarise_trial_method = method
+
         if method == "mean":
             return mean(observations)
         elif method == "median":
             return median(observations)
         elif method == "kernel_mode":
-            return cls.kernel_summarise(observations, method="mode")
+            return self.kernel_summarise(observations, method="mode")
         else:
             raise NotImplementedError
 
     # can be a number, or normal_reference, cv_ml, cv_ls (see https://www.statsmodels.org/devel/generated/statsmodels.nonparametric.kernel_density.KDEMultivariate.html)
     kernel_width = "cv_ls"
 
-    @classmethod
-    def kernel_summarise(cls, observations, method):
+    def kernel_summarise(self, observations, method):
         assert isinstance(observations, list)
 
-        kernel_width = cls.kernel_width
+        kernel_width = self.kernel_width
         if (not isinstance(kernel_width, str)) and (np.ndim(kernel_width) == 0):
             kernel_width = [kernel_width]
 
@@ -222,9 +223,20 @@ class GibbsNode(ChainNode):
         )
         points_to_evaluate = linspace(min(observations), max(observations), num=501)
         pdf = density.pdf(points_to_evaluate)
-        index_max = np.argmax(pdf)
+
         if method == "mode":
-            return points_to_evaluate[index_max]
+            index_max = np.argmax(pdf)
+            mode = points_to_evaluate[index_max]
+
+            self.var.summary_kernel = {
+                "bandwidth": kernel_width,
+                "index_max": int(index_max),
+                "mode": float(mode),
+                "observations": observations,
+                "pdf_locations": points_to_evaluate.tolist(),
+                "pdf_values": pdf.tolist()
+            }
+            return mode
         else:
             raise NotImplementedError
 
@@ -266,9 +278,13 @@ class GibbsNode(ChainNode):
             and ``active_index`` is an integer identifying which was the
             free parameter.
         """
+        self.var.summarise_trials_used = [t.id for t in trials]
         active_index = trials[0].active_index
         observations = [t.updated_vector[active_index] for t in trials]
+
         summary = self.summarise_trial_dimension(observations)
+        self.var.summarise_trials_output = summary
+
         vector = trials[0].updated_vector.copy()
         vector[active_index] = summary
 
