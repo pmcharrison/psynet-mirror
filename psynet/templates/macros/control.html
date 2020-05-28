@@ -360,6 +360,7 @@
         }
         #slider_container {
             margin: 25px;
+            {% if config.hide_slider == true %} display: none; {% endif %}
         }
         #slider {
             {%if config.reverse_scale %} direction: rtl {% endif %}
@@ -371,6 +372,7 @@
             <source src="" type="video/{{ config.file_type }}"
         </video>
     </div>
+
 
     <div id="slider_container">
         <input  id="slider" class="slider-range form-control-range response" type="range"

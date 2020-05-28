@@ -837,7 +837,8 @@ class VideoSliderControl(Control):
             height: str,
             starting_value: float = 0.5,
             minimal_time: float = 2.0,
-            reverse_scale: bool = False
+            reverse_scale: bool = False,
+            hide_slider: bool = False
         ):
         assert 0 <= starting_value and starting_value <= 1
 
@@ -848,6 +849,7 @@ class VideoSliderControl(Control):
         self.starting_value = starting_value
         self.minimal_time = minimal_time
         self.reverse_scale = reverse_scale
+        self.hide_slider = hide_slider
 
     @property
     def metadata(self):
@@ -855,7 +857,8 @@ class VideoSliderControl(Control):
             "url": self.url,
             "starting_value": self.starting_value,
             "minimal_time": self.minimal_time,
-            "reverse_scale": self.reverse_scale
+            "reverse_scale": self.reverse_scale,
+            "hide_slider": self.hide_slider
         }
 
     @property
