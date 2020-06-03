@@ -683,6 +683,7 @@ class TrialMaker(Module):
         # pylint: disable=no-member
         self.check_old_trials()
         self.check_async_trials()
+        self.check_grow_networks()
         db.session.commit()
 
     def selected_recruit_criterion(self, experiment):
@@ -805,6 +806,12 @@ class TrialMaker(Module):
         logger.info("Found %i trial(s) with long-pending asynchronous processes to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
             trial.fail_async_processes(reason="long-pending trial process")
+
+    def check_grow_networks(self):
+        networks = self.network_class.query.all()
+        logger.info("Growing any available networks (%i networks to check)...", len(networks))
+        for n in networks:
+            self._grow_network(n, experiment=None, participant=None)
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
