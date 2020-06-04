@@ -1348,9 +1348,11 @@ class NetworkTrialMaker(TrialMaker):
         logger.info("Preparing trial for participant %i.", participant.id)
         networks = self.find_networks(participant=participant, experiment=experiment)
         logger.info("Found %i network(s) for participant %i.", len(networks), participant.id)
+
+        # Used to grow all available networks, but this was unscalable.
+
         for network in networks:
             self._grow_network(network, participant, experiment)
-        for network in networks:
             node = self.find_node(network=network, participant=participant, experiment=experiment)
             if node is not None:
                 logger.info("Attached node %i to participant %i.", node.id, participant.id)
