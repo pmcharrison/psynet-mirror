@@ -169,8 +169,11 @@ def create_bucket(bucket_name: str, client=None):
 
 def delete_bucket_dir(bucket_name, bucket_dir):
     logger.info("Deleting directory '%s' in bucket '%s' (if it exists).", bucket_dir, bucket_name)
-    bucket = get_s3_bucket(bucket_name)
-    bucket.objects.filter(Prefix = bucket_dir).delete()
+    if LOCAL_S3:
+        os.rmdir(os.path.join(LOCAL_S3_CLONE, bucket_name, bucket_dir))
+    else:
+        bucket = get_s3_bucket(bucket_name)
+        bucket.objects.filter(Prefix = bucket_dir).delete()
 
 def bucket_exists(bucket_name):
     if LOCAL_S3:
