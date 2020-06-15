@@ -142,6 +142,8 @@ def download_from_s3(local_path: str, bucket_name: str, key: str):
 
 def read_string_from_s3(bucket_name: str, key: str):
     # Returns None if the file doesn't exist, otherwise returns the string.
+    if LOCAL_S3:
+        return read_string_from_local_s3(bucket_name, key)
     resource = new_s3_resource()
     obj = resource.Object(bucket_name, key)
     try:
@@ -151,12 +153,28 @@ def read_string_from_s3(bucket_name: str, key: str):
             return None
         raise
 
+def read_string_from_local_s3(bucket_name: str, key: str):
+    path = os.path.join(LOCAL_S3_CLONE, bucket_name, key)
+    if os.path.exists(path) and os.path.isfile(path):
+        with open(path, "r") as f:
+            return f.read()
+    else:
+        return None
+
 def write_string_to_s3(string: str, bucket_name: str, key: str):
-    new_s3_client().put_object(
-        Bucket=bucket_name,
-        Body=string,
-        Key=key
-    )
+    if LOCAL_S3:
+        write_string_to_local_s3(string, bucket_name, key)
+    else:
+        new_s3_client().put_object(
+            Bucket=bucket_name,
+            Body=string,
+            Key=key
+        )
+
+def write_string_to_local_s3(string: str, bucket_name: str, key: str):
+    path = os.path.join(LOCAL_S3_CLONE, bucket_name, key)
+    with open(path, "w") as f:
+        f.write(string)
 
 def create_bucket(bucket_name: str, client=None):
     logger.info("Creating bucket '%s'.", bucket_name)
@@ -170,7 +188,7 @@ def create_bucket(bucket_name: str, client=None):
 def delete_bucket_dir(bucket_name, bucket_dir):
     logger.info("Deleting directory '%s' in bucket '%s' (if it exists).", bucket_dir, bucket_name)
     if LOCAL_S3:
-        os.rmdir(os.path.join(LOCAL_S3_CLONE, bucket_name, bucket_dir))
+        shutil.rmtree(os.path.join(LOCAL_S3_CLONE, bucket_name, bucket_dir))
     else:
         bucket = get_s3_bucket(bucket_name)
         bucket.objects.filter(Prefix = bucket_dir).delete()
