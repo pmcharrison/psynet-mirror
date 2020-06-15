@@ -27,7 +27,8 @@ from ..media import (
     read_string_from_s3,
     write_string_to_s3,
     delete_bucket_dir,
-    upload_to_s3
+    upload_to_s3,
+    get_s3_url
 )
 
 from ..field import claim_field, claim_var
@@ -264,13 +265,10 @@ class StimulusVersion(dallinger.models.Node):
     def media_url(self):
         if not self.has_media:
             return None
-        return os.path.join(
-            "https://s3.amazonaws.com",
+        return get_s3_url(
             self.s3_bucket,
-            self.remote_media_dir,
-            self.media_file_name
+            os.path.join(self.remote_media_dir, self.media_file_name)
         )
-
 
     @property
     def stimulus(self):
