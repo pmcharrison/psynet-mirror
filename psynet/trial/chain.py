@@ -1188,7 +1188,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         if self.chain_type == "within":
             return wait_while(
                 negate(self.all_participant_networks_ready),
-                expected_wait=5.0
+                expected_wait=5.0,
+                log_message="Waiting for participant networks to be ready."
             )
         return None
 

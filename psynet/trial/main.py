@@ -70,6 +70,13 @@ class AsyncProcessOwner():
         return min([unserialise_datetime(x["start_time"]) for x in self.pending_async_processes.values()])
 
     def queue_async_process(self, function, *args):
+        """
+        Args will be pickled with pickle.dumps. Be careful about using complicated args that rely on
+        class definitions from the experiment directory, these may cause downstream problems.
+        For safety, any such arguments should be pickled first (using pickle.dumps),
+        then the function should run import_local_experiment(), then the arguments should be unpickled
+        (see trial.non_adaptive for an example).
+        """
         process_id = str(uuid4())
         self.push_async_process(process_id)
         db.session.commit()
@@ -964,7 +971,7 @@ class TrialMaker(Module):
 
         if type == "end" and self.end_performance_check_waits:
             return join(
-                wait_while(self.any_pending_async_trials, expected_wait=5),
+                wait_while(self.any_pending_async_trials, expected_wait=5, log_message="Waiting for pending async trials."),
                 logic
             )
         else:
@@ -1081,7 +1088,7 @@ class TrialMaker(Module):
 
     def _trial_loop(self):
         return join(
-            wait_while(self._wait_for_trial, expected_wait=0.0),
+            wait_while(self._wait_for_trial, expected_wait=0.0, log_message="Waiting for trial to be ready."),
             CodeBlock(self._prepare_trial),
             while_loop(
                 self.with_namespace("trial_loop"),
@@ -1097,7 +1104,7 @@ class TrialMaker(Module):
                     CodeBlock(self._finalise_trial),
                     self._construct_feedback_logic(),
                     self._check_performance_logic(type="trial") if self.check_performance_every_trial else None,
-                    wait_while(self._wait_for_trial, expected_wait=0.0),
+                    wait_while(self._wait_for_trial, expected_wait=0.0, log_message="Waiting for trial to be ready."),
                     CodeBlock(self._prepare_trial)
                 ),
                 expected_repetitions=self.expected_num_trials,

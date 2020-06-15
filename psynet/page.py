@@ -10,10 +10,16 @@ from math import ceil
 import itertools
 import json
 
+import logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__file__)
+
 from .timeline import (
     get_template,
+    join,
     Page,
     PageMaker,
+    CodeBlock,
     MediaSpec,
     EndPage,
     FailedValidation,
@@ -109,7 +115,8 @@ def wait_while(
         condition,
         expected_wait: float,
         check_interval: float = 2.0,
-        wait_page=WaitPage
+        wait_page=WaitPage,
+        log_message: Optional[str]=None
     ):
     """
     Displays the participant a waiting page while a given condition
@@ -137,6 +144,9 @@ def wait_while(
         The wait page that should be displayed to the participant;
         defaults to :class:`~psynet.page.WaitPage`.
 
+    log_message
+        Optional message to display in the log.
+
     Returns
     -------
 
@@ -147,10 +157,20 @@ def wait_while(
     assert check_interval > 0
     expected_repetitions = ceil(expected_wait / check_interval)
 
+    _wait_page = wait_page(wait_time=check_interval)
+
+    def log(participant):
+        logger.info(f"Participant {participant.id}: {log_message}")
+
+    if log_message is None:
+        logic = _wait_page
+    else:
+        logic = join(CodeBlock(log), _wait_page)
+
     return while_loop(
         "wait_while",
         condition,
-        logic=wait_page(wait_time=check_interval),
+        logic=logic,
         expected_repetitions=expected_repetitions
     )
 
