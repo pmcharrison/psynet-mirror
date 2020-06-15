@@ -115,13 +115,8 @@ def upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_buc
         output_dirs.append(LOCAL_S3_CLONE)
 
     for output_dir in output_dirs:
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
-
-        bucket_dir = os.path.join(output_dir, bucket_name)
-        if create_new_bucket:
-            Path(bucket_dir).mkdir(parents=True, exist_ok=True)
-
-        destination = os.path.join(bucket_dir, key)
+        destination = os.path.join(output_dir, bucket_name, key)
+        Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
         shutil.copyfile(local_path, destination)
 
 def download_from_local_s3(local_path: str, bucket_name: str, key: str):
@@ -165,9 +160,12 @@ def write_string_to_s3(string: str, bucket_name: str, key: str):
 
 def create_bucket(bucket_name: str, client=None):
     logger.info("Creating bucket '%s'.", bucket_name)
-    if client is None:
-        client = new_s3_client()
-    client.create_bucket(Bucket=bucket_name)
+    if LOCAL_S3:
+        Path(os.path.join(LOCAL_S3_CLONE, bucket_name)).mkdir(parents=True, exist_ok=True)
+    else:
+        if client is None:
+            client = new_s3_client()
+        client.create_bucket(Bucket=bucket_name)
 
 def delete_bucket_dir(bucket_name, bucket_dir):
     logger.info("Deleting directory '%s' in bucket '%s' (if it exists).", bucket_dir, bucket_name)
@@ -175,6 +173,9 @@ def delete_bucket_dir(bucket_name, bucket_dir):
     bucket.objects.filter(Prefix = bucket_dir).delete()
 
 def bucket_exists(bucket_name):
+    if LOCAL_S3:
+        path = os.path.join(LOCAL_S3_CLONE, bucket_name)
+        return os.path.exists(path) and os.path.isdir(path)
     resource = new_s3_resource()
     try:
         resource.meta.client.head_bucket(Bucket=bucket_name)
