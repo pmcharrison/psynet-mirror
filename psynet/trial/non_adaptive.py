@@ -3,6 +3,7 @@ import operator
 
 import os
 import shutil
+import pickle
 
 from statistics import mean
 from typing import Optional
@@ -1363,7 +1364,7 @@ class NonAdaptiveNetwork(TrialNetwork):
         db.session.add(self)
         if not self.creation_started:
             self.creation_started = True
-            self.queue_async_process(call_network_populate, stimulus_set, target_num_trials_per_stimulus)
+            self.queue_async_process(call_network_populate, pickle.dumps(stimulus_set), target_num_trials_per_stimulus)
         db.session.commit()
 
     def populate(self, stimulus_set, target_num_trials_per_stimulus):
@@ -1405,9 +1406,10 @@ class NonAdaptiveNetwork(TrialNetwork):
     def num_stimuli(self):
         return self.stimulus_query.count()
 
-def call_network_populate(network_id, process_id, stimulus_set, target_num_trials_per_stimulus):
+def call_network_populate(network_id, process_id, pickled_stimulus_set, target_num_trials_per_stimulus):
     logger.info("Running populate function for network %i...", network_id)
     import_local_experiment()
+    stimulus_set = pickle.loads(pickled_stimulus_set)
     network = Network.query.filter_by(id=network_id).one()
     try:
         if process_id in network.pending_async_processes:

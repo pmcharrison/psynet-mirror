@@ -42,6 +42,5 @@ def test_summarise():
 
     assert 1.5 < Node5a.summarise_trial_dimension(observations_3) == Node5b.summarise_trial_dimension(observations_3) < 2.0
 
-    import pdb; pdb.set_trace()
     assert Node5a.summarise_trial_dimension([0, 0, 0, 1]) == 0.0
     assert Node5a.summarise_trial_dimension([0, 0, 0, 1, 3]) == 0.0
