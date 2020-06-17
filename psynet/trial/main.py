@@ -664,7 +664,7 @@ class TrialMaker(Module):
         raise NotImplementedError
 
     check_timeout_interval = 30
-    response_timeout_sec = 60
+    response_timeout_sec = 60 * 5
     async_timeout_sec = 300
     end_performance_check_waits = True
 
