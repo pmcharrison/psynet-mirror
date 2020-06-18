@@ -42,7 +42,7 @@ def get_stimulus_set(colours: list):
             "correct_answer": correct_answer
         }
         stimuli.append(StimulusSpec(definition=definition, phase="experiment"))
-    return StimulusSet(stimuli)
+    return StimulusSet("colour_vocab", stimuli)
 
 def colour_vocab_trial(time_estimate: float):
     class ColourVocabTrial(NonAdaptiveTrial):
@@ -85,11 +85,11 @@ def colour_vocab_trial_maker(
             }
 
     return ColourVocabTrialMaker(
+        id_="colour_vocab",
         trial_class=colour_vocab_trial(time_estimate_per_trial),
         phase="experiment",
         stimulus_set=get_stimulus_set(colours),
         time_estimate_per_trial=time_estimate_per_trial,
-        new_participant_group=True,
         check_performance_at_end=True
     )
 

@@ -373,17 +373,25 @@ class StimulusSet():
         A list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
         with these objects potentially containing
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
-        This list may contain stimuli for several experiment phases,
-        as long as these phases are specified in the ``phase`` parameters
-        for the :class:`~psynet.trial.non_adaptive.StimulusSpec` objects.
+        These objects must all correspond to the same experiment phase
+        (se the ``phase`` attribute of the
+        :class:`~psynet.trial.non_adaptive.StimulusSpec` objects).
     """
-    def __init__(self, stimulus_specs, version: str = "default", s3_bucket: Optional[str] = None):
+    def __init__(
+            self,
+            id_: str,
+            stimulus_specs,
+            version: str = "default",
+            s3_bucket: Optional[str] = None
+        ):
         assert isinstance(stimulus_specs, list)
         assert isinstance(version, str)
 
         self.stimulus_specs = stimulus_specs
+        self.id = id_
         self.version = version
         self.s3_bucket = s3_bucket
+        self.phase = None
 
         network_specs = set()
         blocks = set()
@@ -392,6 +400,15 @@ class StimulusSet():
 
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
+
+            if self.phase is None:
+                self.phase = s.phase
+            elif self.phase != s.phase:
+                raise ValueError(
+                    "All stimuli in StimulusSpec must have the same phase "
+                    f"(found both '{self.phase}' and '{s.phase}')."
+                )
+
             network_specs.add((
                 s.phase,
                 s.participant_group,
@@ -433,13 +450,13 @@ class StimulusSet():
 
     @property
     def local_media_cache_dir(self):
-        return os.path.join(self.local_media_cache_parent_dir, self.version)
+        return os.path.join(self.local_media_cache_parent_dir, self.id, self.version)
 
     @property
     def remote_media_dir(self):
         if self.s3_bucket is None:
             return None
-        return self.version
+        return os.path.join(self.id, self.version)
 
     @property
     def has_media(self):
@@ -534,9 +551,9 @@ class NetworkSpec():
         self.block = block
         self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
 
-    def create_network(self, trial_type, experiment, target_num_trials_per_stimulus):
+    def create_network(self, trial_maker_id, experiment, target_num_trials_per_stimulus):
         network = NonAdaptiveNetwork(
-            trial_type=trial_type,
+            trial_maker_id=trial_maker_id,
             phase=self.phase,
             participant_group=self.participant_group,
             block=self.block,
@@ -736,17 +753,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         (as opposed to for each stimulus version). This target is only relevant if
         ``recruit_mode="num_trials"``.
 
-    new_participant_group
-        If ``True``, :meth:`~psynet.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`
-        is run to assign the participant to a new participant group.
-        Unless overridden, a given participant's participant group will persist
-        for all phases of the experiment,
-        except if switching to a :class:`~psynet.non_adaptive.NonAdaptiveTrialMaker`
-        where the trial class (:class:`~psynet.non_adaptive.NonAdaptiveTrial`)
-        has a different name.
-        Only set this to ``False`` if the participant is taking a subsequent phase
-        of a non-adaptive experiment.
-
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block.
 
@@ -845,11 +851,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def __init__(
         self,
         *,
+        id_: str,
         trial_class,
         phase: str,
         stimulus_set: StimulusSet,
         time_estimate_per_trial: int,
-        new_participant_group: bool,
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_stimulus: Optional[int] = None,
@@ -874,7 +880,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         self.stimulus_set = stimulus_set
         self.target_num_participants = target_num_participants
         self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
-        self.new_participant_group = new_participant_group
         self.max_trials_per_block = max_trials_per_block
         self.allow_repeated_stimuli = allow_repeated_stimuli
         self.max_unique_stimuli_per_block = max_unique_stimuli_per_block
@@ -883,7 +888,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
         expected_num_trials = self.estimate_num_trials(num_repeat_trials)
         super().__init__(
-            trial_class,
+            id_=id_,
+            trial_class=trial_class,
             network_class=NonAdaptiveNetwork,
             phase=phase,
             time_estimate_per_trial=time_estimate_per_trial,
@@ -981,13 +987,10 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         )
 
     def init_participant_group(self, experiment, participant):
-        if self.new_participant_group:
-            self.set_participant_group(
-                participant,
-                self.choose_participant_group(experiment=experiment, participant=participant)
-            )
-        elif not self.has_participant_group(participant):
-            raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
+        self.set_participant_group(
+            participant,
+            self.choose_participant_group(experiment=experiment, participant=participant)
+        )
 
     @property
     def block_order_var_id(self):
@@ -1002,7 +1005,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     @property
     def participant_group_var_id(self):
-        return self.with_namespace("participant_group", shared_between_phases=True)
+        return self.with_namespace("participant_group")
 
     def set_participant_group(self, participant, participant_group):
         participant.var.new(self.participant_group_var_id, participant_group)
@@ -1114,7 +1117,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
             network_spec.create_network(
-                trial_type=self.trial_type,
+                trial_maker_id=self.id,
                 experiment=experiment,
                 target_num_trials_per_stimulus=self.target_num_trials_per_stimulus
             )
@@ -1126,7 +1129,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         networks = (
             NonAdaptiveNetwork.query
                               .filter_by(
-                                  trial_type=self.trial_type,
+                                  trial_maker_id=self.id,
                                   participant_group=self.get_participant_group(participant),
                                   phase=self.phase
                               )
@@ -1291,16 +1294,6 @@ class NonAdaptiveNetwork(TrialNetwork):
     Attributes
     ----------
 
-    trial_type : str
-        A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class,
-        e.g. ``"MelodyTrial"``.
-        The same experiment should not contain multiple TrialMaker objects
-        with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the
-        ``phase`` parameter.
-        Stored as the field ``property1`` in the database.
-
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Stored as the field ``property2`` in the database.
@@ -1353,12 +1346,12 @@ class NonAdaptiveNetwork(TrialNetwork):
     creation_started = claim_var("creation_started")
     creation_progress = claim_var("creation_progress")
 
-    def __init__(self, *, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
+    def __init__(self, *, trial_maker_id, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group
         self.block = block
         self.creation_started = False
         self.creation_progress = 0.0
-        super().__init__(trial_type, phase, experiment)
+        super().__init__(trial_maker_id, phase, experiment)
         db.session.add(self)
         if not self.creation_started:
             self.creation_started = True

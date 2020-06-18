@@ -20,7 +20,7 @@ from .modular_page import(
 )
 
 def get_stimulus_set(media_url: str):
-    return StimulusSet([
+    return StimulusSet("ishihara", [
         StimulusSpec(
             definition={
                 "label": label,
@@ -81,11 +81,11 @@ def ishihara_trial_maker(
             }
 
     return IshiharaTrialMaker(
+        id_="ishihara",
         trial_class=ishihara_trial(time_estimate_per_trial, hide_after),
         phase="experiment",
         stimulus_set=get_stimulus_set(media_url),
         time_estimate_per_trial=time_estimate_per_trial,
-        new_participant_group=True,
         check_performance_at_end=True
     )
 
@@ -112,7 +112,7 @@ def colour_blind_test(
         hide_after: float = 3.0
     ):
     return Module(
-        "headphone_check",
+        "colour_blind",
         join(
             instruction_page(hide_after),
             ishihara_trial_maker(media_url, time_estimate_per_trial, performance_threshold, hide_after)

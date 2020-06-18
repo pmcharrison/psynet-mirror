@@ -41,7 +41,7 @@ import rpdb
 #### Stimuli
 ##########################################################################################
 
-stimulus_set = StimulusSet([
+stimulus_set = StimulusSet("animals", [
     StimulusSpec(
         definition={"animal": animal},
         version_specs=[
@@ -118,11 +118,11 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         AnimalTrialMaker(
+            id_="animals",
             trial_class=AnimalTrial,
             phase="experiment",
             stimulus_set=stimulus_set,
             time_estimate_per_trial=3,
-            new_participant_group=True,
             max_trials_per_block=2,
             allow_repeated_stimuli=True,
             max_unique_stimuli_per_block=None,

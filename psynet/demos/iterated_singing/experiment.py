@@ -166,6 +166,7 @@ class Exp(psynet.experiment.Experiment):
         #     time_estimate=5
         # ),
         AudioImitationChainTrialMaker(
+            id="iterated_singing_demo",
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,

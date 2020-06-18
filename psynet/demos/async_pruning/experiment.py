@@ -196,6 +196,7 @@ class CustomTrialMaker(GibbsTrialMaker):
 
 
 trial_maker = CustomTrialMaker(
+    id_="async_pruning",
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,

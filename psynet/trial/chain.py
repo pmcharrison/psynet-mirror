@@ -32,15 +32,6 @@ class ChainNetwork(TrialNetwork):
     Parameters
     ----------
 
-    trial_type
-        A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class,
-        e.g. ``"MelodyTrial"``.
-        The same experiment should not contain multiple TrialMaker objects
-        with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the
-        ``phase`` parameter.
-
     source_class
         The class object for network sources. A source is the 'seed' for a network,
         providing some data which is somehow propagated to other nodes.
@@ -78,15 +69,6 @@ class ChainNetwork(TrialNetwork):
 
     Attributes
     ----------
-
-    trial_type : str
-        A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class,
-        e.g. ``"MelodyTrial"``.
-        The same experiment should not contain multiple TrialMaker objects
-        with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the
-        ``phase`` parameter.
 
     target_num_trials : int or None
         Indicates the target number of trials for that network.
@@ -147,7 +129,7 @@ class ChainNetwork(TrialNetwork):
 
     def __init__(
         self,
-        trial_type: str,
+        trial_maker_id: str,
         source_class,
         phase: str,
         experiment,
@@ -157,7 +139,7 @@ class ChainNetwork(TrialNetwork):
         participant=None,
         id_within_participant: Optional[int]=None
     ):
-        super().__init__(trial_type, phase, experiment)
+        super().__init__(trial_maker_id, phase, experiment)
         experiment.session.add(self)
         experiment.save()
 
@@ -1101,6 +1083,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     def __init__(
         self,
         *,
+        id_,
         network_class,
         node_class,
         source_class,
@@ -1161,7 +1144,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.allow_revisiting_networks_in_across_chains = allow_revisiting_networks_in_across_chains
 
         super().__init__(
-            trial_class,
+            id_=id_,
+            trial_class=trial_class,
             network_class=network_class,
             phase=phase,
             time_estimate_per_trial=time_estimate_per_trial,
@@ -1200,7 +1184,7 @@ class ChainTrialMaker(NetworkTrialMaker):
                 .filter_by(
                     participant_id=participant.id,
                     phase=self.phase,
-                    trial_type=self.trial_type
+                    trial_maker_id=self.id
                 )
                 .all()
         )
@@ -1250,7 +1234,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def create_network(self, experiment, participant=None, id_within_participant=None):
         network = self.network_class(
-            trial_type=self.trial_type,
+            trial_maker_id=self.id,
             source_class=self.source_class,
             phase=self.phase,
             experiment=experiment,
@@ -1270,7 +1254,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             return []
 
         networks = self.network_class.query.filter_by(
-            trial_type=self.trial_type,
+            trial_maker_id=self.id,
             phase=self.phase,
             full=False
         )

@@ -107,6 +107,7 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CustomTrialMaker(
+            id_="imitation_demo",
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,

@@ -552,6 +552,7 @@ class TrialMaker(Module):
 
     def __init__(
         self,
+        id_: str,
         trial_class,
         phase: str,
         time_estimate_per_trial: Union[int, float],
@@ -572,7 +573,7 @@ class TrialMaker(Module):
             raise ValueError("If <recruit_mode> == 'num_trials', then <target_num_participants> must be None.")
 
         self.trial_class = trial_class
-        self.trial_type = trial_class.__name__
+        self.id = id_
         self.phase = phase
         self.time_estimate_per_trial = time_estimate_per_trial
         self.expected_num_trials = expected_num_trials
@@ -915,8 +916,8 @@ class TrialMaker(Module):
         """
         raise NotImplementedError
 
-    def with_namespace(self, x=None, shared_between_phases=False):
-        prefix = self.trial_type if shared_between_phases else f"{self.trial_type}__{self.phase}"
+    def with_namespace(self, x=None):
+        prefix = self.id
         if x is None:
             return prefix
         return f"__{prefix}__{x}"
@@ -1316,6 +1317,7 @@ class NetworkTrialMaker(TrialMaker):
 
     def __init__(
         self,
+        id_,
         trial_class,
         network_class,
         phase,
@@ -1333,6 +1335,7 @@ class NetworkTrialMaker(TrialMaker):
         wait_for_networks: bool
     ):
         super().__init__(
+            id_=id_,
             trial_class=trial_class,
             phase=phase,
             time_estimate_per_trial=time_estimate_per_trial,
@@ -1462,7 +1465,7 @@ class NetworkTrialMaker(TrialMaker):
             self.network_class
                 .query
                 .filter_by(
-                    trial_type=self.trial_type,
+                    trial_maker_id=self.id,
                     phase=self.phase
                 )
         )
@@ -1618,15 +1621,6 @@ class TrialNetwork(Network, AsyncProcessOwner):
     Parameters
     ----------
 
-    trial_type
-        A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class,
-        e.g. ``"MelodyTrial"``.
-        The same experiment should not contain multiple TrialMaker objects
-        with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the
-        ``phase`` parameter.
-
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
@@ -1637,16 +1631,6 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     Attributes
     ----------
-
-    trial_type : str
-        A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class,
-        e.g. ``"MelodyTrial"``.
-        The same experiment should not contain multiple TrialMaker objects
-        with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the
-        ``phase`` parameter.
-        Stored as the field ``property1`` in the database.
 
     target_num_trials : int or None
         Indicates the target number of trials for that network.
@@ -1680,7 +1664,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
 
-    trial_type = claim_field(1, str)
+    trial_maker_id = claim_field(1, str)
     target_num_trials = claim_field(2, int)
 
     def calculate_full(self):
@@ -1715,9 +1699,9 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     ####
 
-    def __init__(self, trial_type: str, phase: str, experiment):
+    def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
-        self.trial_type = trial_type
+        self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
 

@@ -167,6 +167,7 @@ class CustomTrialMaker(GibbsTrialMaker):
         return max(0.0, score)
 
 trial_maker = CustomTrialMaker(
+    id_="gibbs_demo",
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,

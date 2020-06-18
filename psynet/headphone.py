@@ -19,7 +19,7 @@ from .modular_page import(
 )
 
 def get_stimulus_set(media_url: str):
-    return StimulusSet([
+    return StimulusSet("headphone_check", [
         StimulusSpec(
             definition={
                 "label": label,
@@ -76,11 +76,11 @@ def headphone_trial_maker(
             }
 
     return HeadphoneTrialMaker(
+        id_="headphone_check",
         trial_class=headphone_trial(time_estimate_per_trial),
         phase="experiment",
         stimulus_set=get_stimulus_set(media_url),
         time_estimate_per_trial=time_estimate_per_trial,
-        new_participant_group=True,
         check_performance_at_end=True
     )
 

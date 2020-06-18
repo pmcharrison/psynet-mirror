@@ -17,7 +17,6 @@ from psynet.modular_page import(
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
-    StimulusSet,
     StimulusSpec,
     StimulusVersionSpec
 )
@@ -31,12 +30,25 @@ logger = logging.getLogger(__file__)
 #### Stimuli
 ##########################################################################################
 
-stimulus_set = audio_stimulus_set_from_dir("input", version="v1", s3_bucket="audio-stimulus-set-from-dir-demo")
+practice_stimuli = audio_stimulus_set_from_dir(
+    id_="practice_stimuli",
+    input_dir="input/practice",
+    phase="practice",
+    version="v1",
+    s3_bucket="audio-stimulus-set-from-dir-demo"
+)
+experiment_stimuli = audio_stimulus_set_from_dir(
+    id_="experiment_stimuli",
+    input_dir="input/experiment",
+    phase="experiment",
+    version="v1",
+    s3_bucket="audio-stimulus-set-from-dir-demo"
+)
 
 # Run ``python3 experiment.py`` to prepare the stimulus set.
 if __name__ == "__main__":
-    stimulus_set.prepare_media()
-
+    for s in [practice_stimuli, experiment_stimuli]:
+        s.prepare_media()
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -59,22 +71,22 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         InfoPage("We begin with the practice trials.", time_estimate=5),
         NonAdaptiveTrialMaker(
+            id_="audio_practice",
             trial_class=CustomTrial,
             phase="practice",
-            stimulus_set=stimulus_set,
+            stimulus_set=practice_stimuli,
             time_estimate_per_trial=5,
-            new_participant_group=True,
             target_num_participants=3,
             recruit_mode="num_participants"
         ),
         InfoPage("We continue with the experiment trials.", time_estimate=5),
         NonAdaptiveTrialMaker(
+            id_="audio_experiment",
             trial_class=CustomTrial,
             phase="experiment",
-            stimulus_set=stimulus_set,
+            stimulus_set=experiment_stimuli,
             time_estimate_per_trial=5,
-            new_participant_group=False,
-            target_num_participants=3,
+            target_num_participants=10,
             recruit_mode="num_participants"
         ),
         SuccessfulEndPage()

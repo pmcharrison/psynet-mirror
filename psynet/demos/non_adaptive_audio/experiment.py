@@ -61,7 +61,7 @@ stimuli = [
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet(stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
+stimulus_set = StimulusSet("audio_stimuli", stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
 
 if __name__ == "__main__":
     stimulus_set.prepare_media()
@@ -117,7 +117,6 @@ class Exp(psynet.experiment.Experiment):
             phase="experiment",
             stimulus_set=stimulus_set,
             time_estimate_per_trial=5,
-            new_participant_group=True,
             target_num_participants=3,
             recruit_mode="num_participants"
         ),

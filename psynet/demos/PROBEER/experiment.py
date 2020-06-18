@@ -225,6 +225,7 @@ def make_block(target, phase="experiment"):
         num_chains_per_participant = 1
 
     trial_maker = AudioGibbsTrialMaker(
+        id_="probeer",
         network_class=network_class,
         trial_class=trial_class,
         node_class=CustomNode,
