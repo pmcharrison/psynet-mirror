@@ -1,5 +1,6 @@
 import random
 import operator
+import sys
 
 import os
 import shutil
@@ -10,6 +11,7 @@ from typing import Optional
 from collections import Counter
 from functools import reduce
 from progress.bar import Bar
+from pathlib import Path
 
 from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
@@ -439,6 +441,9 @@ class StimulusSet():
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
 
+        # if len(sys.argv) > 1 and sys.argv[1] == "prepare":
+        #     self.prepare_media()
+
     @property
     def hash(self):
         return hash_object({
@@ -462,23 +467,26 @@ class StimulusSet():
     def has_media(self):
         return any([s.has_media for s in self.stimulus_specs])
 
+    def load(self):
+        return self
+
     def prepare_media(self):
         if self.has_media:
             if self.remote_media_is_up_to_date:
-                logger.info("Remote media seems to be up-to-date, no media preparation necessary.")
+                logger.info("(%s) Remote media seems to be up-to-date, no media preparation necessary.", self.id)
             else:
                 self.cache_media()
                 self.upload_media()
         else:
-            logger.info("No media found to prepare.")
+            logger.info("(%s) No media found to prepare.", self.id)
 
     def cache_media(self):
         if os.path.exists(self.local_media_cache_dir):
             if self.get_local_media_cache_hash() == self.hash:
-                logger.info("Local media cache appears to be up-to-date.")
+                logger.info("(%s) Local media cache appears to be up-to-date.", self.id)
                 return None
             else:
-                logger.info("Local media cache appears to be out-of-date, removing.")
+                logger.info("(%s) Local media cache appears to be out-of-date, removing.", self.id)
                 shutil.rmtree(self.local_media_cache_dir)
 
         os.makedirs(self.local_media_cache_dir)
@@ -489,7 +497,7 @@ class StimulusSet():
                 bar.next()
 
         self.write_local_media_cache_hash()
-        logger.info("Finished caching local media.")
+        logger.info("(%s) Finished caching local media.", self.id)
 
     def upload_media(self):
         self.prepare_s3_bucket()
@@ -500,7 +508,7 @@ class StimulusSet():
                 bar.next()
 
         self.write_remote_media_hash()
-        logger.info("Finished uploading media.")
+        logger.info("(%s) Finished uploading media.", self.id)
 
     def prepare_s3_bucket(self):
         if not bucket_exists(self.s3_bucket):
@@ -543,6 +551,55 @@ class StimulusSet():
     def write_remote_media_hash(self):
         write_string_to_s3(self.hash, bucket_name=self.s3_bucket, key=self.path_to_remote_cache_hash)
 
+class VirtualStimulusSet():
+    def __init__(self, id_: str, version: str, construct):
+        self.id = id_
+        self.version = version
+        self.construct = construct
+
+        if not self.cache_exists:
+            self.build_cache()
+
+        # if len(sys.argv) > 1 and sys.argv[1] == "prepare":
+        #     self.prepare_media()
+
+    def build_cache(self):
+        logger.info("(%s) Building stimulus set cache...", self.id)
+        stimulus_set = self.construct()
+        self.save_to_cache(stimulus_set)
+
+    @property
+    def cache_dir(self):
+        return os.path.join("_stimulus_sets", self.id)
+
+    @property
+    def cache_path(self):
+        return os.path.join(self.cache_dir, f"{self.version}.pickle")
+
+    @property
+    def cache_exists(self):
+        return os.path.isfile(self.cache_path)
+
+    def save_to_cache(self, stimulus_set):
+        Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
+        with open(self.cache_path, "wb") as f:
+            pickle.dump(stimulus_set, f)
+
+    def load(self):
+        # if os.path.isfile(self.cache_path):
+        with open(self.cache_path, "rb") as f:
+            return pickle.load(f)
+        # else:
+        #     raise IOError(
+        #         f"Couldn't find the stimulus set cache file ({self.cache_path}). "
+        #         "Potential fixes: "
+        #         "a) run stimulus_set.prepare_media(), "
+        #         "b) remove _virtual_stimulus_sets from .gitignore."
+        #     )
+
+    def prepare_media(self):
+        self.build_cache()
+        self.load().prepare_media()
 
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):
@@ -877,7 +934,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         if (target_num_participants is not None) and (target_num_trials_per_stimulus is not None):
             raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided.")
 
-        self.stimulus_set = stimulus_set
+        self.stimulus_set = stimulus_set.load()
         self.target_num_participants = target_num_participants
         self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
         self.max_trials_per_block = max_trials_per_block
@@ -1413,3 +1470,50 @@ def call_network_populate(network_id, process_id, pickled_stimulus_set, target_n
         raise
     finally:
         db.session.commit() # pylint: disable=no-member
+
+class LocalMediaStimulusVersionSpec(StimulusVersionSpec):
+    has_media = True
+
+    def __init__(self, definition, media_ext):
+        super().__init__(definition)
+        self.media_ext = media_ext
+
+    @classmethod
+    def generate_media(cls, definition, output_path):
+        shutil.copyfile(definition["local_media_path"], output_path)
+
+
+def stimulus_set_from_dir(id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str):
+    # example media_ext: .wav
+
+    def construct():
+        return compile_stimulus_set_from_dir(id_, input_dir, media_ext, phase, version, s3_bucket)
+
+    return VirtualStimulusSet(id_, version, construct)
+
+def compile_stimulus_set_from_dir(id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str):
+    # example media_ext: .wav
+    stimuli = []
+    participant_groups = [(f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()]
+    for participant_group, group_path in participant_groups:
+        blocks = [(f.name, f.path) for f in os.scandir(group_path) if f.is_dir()]
+        for block, block_path in blocks:
+            media_files = [(f.name, f.path) for f in os.scandir(block_path) if f.is_file() and f.path.endswith(media_ext)]
+            for media_name, media_path in media_files:
+                stimuli.append(
+                    StimulusSpec(
+                        definition={
+                            "name": media_name,
+                        },
+                        phase=phase,
+                        version_specs=[LocalMediaStimulusVersionSpec(
+                            definition={
+                                "local_media_path": media_path
+                            },
+                            media_ext=media_ext
+                        )],
+                        participant_group=participant_group,
+                        block=block
+                    )
+                )
+    return StimulusSet(id_, stimuli, version=version, s3_bucket=s3_bucket)

@@ -18,37 +18,18 @@ from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
     StimulusSpec,
-    StimulusVersionSpec
+    StimulusVersionSpec,
+    stimulus_set_from_dir
 )
-from psynet.helpers import audio_stimulus_set_from_dir
 
 import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__file__)
 
-##########################################################################################
-#### Stimuli
-##########################################################################################
-
-practice_stimuli = audio_stimulus_set_from_dir(
-    id_="practice_stimuli",
-    input_dir="input/practice",
-    phase="practice",
-    version="v1",
-    s3_bucket="audio-stimulus-set-from-dir-demo"
+from .stimuli import (
+    practice_stimuli,
+    experiment_stimuli
 )
-experiment_stimuli = audio_stimulus_set_from_dir(
-    id_="experiment_stimuli",
-    input_dir="input/experiment",
-    phase="experiment",
-    version="v1",
-    s3_bucket="audio-stimulus-set-from-dir-demo"
-)
-
-# Run ``python3 experiment.py`` to prepare the stimulus set.
-if __name__ == "__main__":
-    for s in [practice_stimuli, experiment_stimuli]:
-        s.prepare_media()
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -62,7 +43,6 @@ class CustomTrial(NonAdaptiveTrial):
             NAFCControl(["Yes", "No"]),
             time_estimate=5
         )
-
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
