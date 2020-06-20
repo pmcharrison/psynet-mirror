@@ -23,9 +23,8 @@ from psynet.trial.non_adaptive import (
 )
 from .custom_synth import synth_stimulus
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 ##########################################################################################
 #### Stimuli
@@ -62,9 +61,6 @@ stimuli = [
 ]
 
 stimulus_set = StimulusSet("non_adaptive_audio", stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
-
-if __name__ == "__main__":
-    stimulus_set.prepare_media()
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}

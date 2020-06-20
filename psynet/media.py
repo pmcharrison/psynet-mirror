@@ -11,11 +11,9 @@ from pathlib import Path
 
 from dallinger.config import get_config
 
-from .utils import log_time_taken
+from .utils import log_time_taken, get_logger
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = get_logger()
 
 # For debugging, currently only partly implemented
 LOCAL_S3 = False

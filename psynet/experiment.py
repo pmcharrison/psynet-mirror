@@ -2,6 +2,7 @@ from datetime import datetime
 from flask import render_template_string, Blueprint, request, render_template, jsonify
 import json
 import os
+import rpdb
 from json import dumps
 from sqlalchemy import exc
 import numpy as np
@@ -32,13 +33,9 @@ from .page import (
     InfoPage,
     SuccessfulEndPage
 )
-from .utils import get_arg_from_dict, call_function
+from .utils import get_arg_from_dict, call_function, get_logger
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
-
-import rpdb
+logger = get_logger()
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""

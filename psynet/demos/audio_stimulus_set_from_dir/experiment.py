@@ -22,9 +22,8 @@ from psynet.trial.non_adaptive import (
     stimulus_set_from_dir
 )
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 from psynet.trial.non_adaptive import (
     stimulus_set_from_dir
@@ -49,13 +48,10 @@ experiment_stimuli = stimulus_set_from_dir(
     s3_bucket="audio-stimulus-set-from-dir-demo"
 )
 
-# Run ``python3 stimuli.py`` to prepare the stimulus sets.
+# Run ``psynet prepare`` (or ``psynet prepare --force``) to prepare the stimulus sets.
 # Note: you can .gitignore the input/ directory, where you store your
 # stimuli. However, don't .gitignore the automatically generated
 # _stimulus_sets directory - this needs to be accessible by Heroku.
-if __name__ == "__main__":
-    for s in [practice_stimuli, experiment_stimuli]:
-        s.prepare_media()
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}

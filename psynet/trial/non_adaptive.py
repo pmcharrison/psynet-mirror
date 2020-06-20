@@ -38,9 +38,6 @@ from ..utils import DisableLogger, hash_object, import_local_experiment, get_log
 from .main import Trial, TrialNetwork, NetworkTrialMaker
 from .. import command_line
 
-# import logging
-# logging.basicConfig(level=logging.INFO)
-# logger = logging.getLogger()
 logger = get_logger()
 
 # pylint: disable=unused-import

@@ -8,13 +8,18 @@ import pandas as pd
 import hashlib
 import importlib.util
 import datetime
+import logging
 
 from functools import reduce, wraps
 from sqlalchemy.sql import func
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from dallinger.config import get_config
+
+def get_logger():
+    logging.basicConfig(level=logging.INFO)
+    return logging.getLogger()
+
+logger = get_logger()
 
 def get_arg_from_dict(x, desired: str, use_default = False, default = None):
     if desired not in x:
@@ -31,8 +36,11 @@ def import_local_experiment():
     # Imports experiment.py and returns it as a module.
     # Also adds the experiment directory to sys.path,
     # meaning that any other modules defined there can be imported using ``import``.`
-    from dallinger.config import initialize_experiment_package
-    initialize_experiment_package(os.getcwd())
+
+    config = get_config()
+    if not config.ready:
+        config.load() # a side-effect is exposing dallinger_experiment
+
     from dallinger_experiment import experiment
     sys.path.append(os.getcwd())
     return experiment
@@ -264,6 +272,3 @@ def clamp(x):
 
 def rgb_to_hex(r, g, b):
     return "#{0:02x}{1:02x}{2:02x}".format(clamp(round(r)), clamp(round(g)), clamp(round(b)))
-
-def get_logger():
-    return logging.getLogger()

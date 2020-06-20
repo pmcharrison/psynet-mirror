@@ -29,12 +29,10 @@ from psynet.modular_page import(
     AudioPrompt,
     AudioRecordControl
 )
-
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
-
+from psynet.utils import get_logger
 from datetime import datetime
+
+logger = get_logger()
 
 example_preloading = InfoPage(
     flask.Markup(

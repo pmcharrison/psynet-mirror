@@ -18,9 +18,8 @@ from .imitation_chain import (
     ImitationChainTrialMaker
 )
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from ..utils import get_logger
+logger = get_logger()
 
 class AudioRecordTrial():
     run_async_post_trial = True

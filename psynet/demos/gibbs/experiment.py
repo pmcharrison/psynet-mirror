@@ -39,10 +39,8 @@ from psynet.trial.gibbs import (
     GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 # import rpdb
 

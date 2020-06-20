@@ -2,6 +2,7 @@ import psynet
 import click
 
 from dallinger.command_line import require_exp_directory
+from dallinger.config import get_config
 
 from .utils import import_local_experiment
 
@@ -11,6 +12,11 @@ FLAGS = set()
 @click.version_option(psynet.__version__, "--version", "-v", message="%(version)s")
 def psynet():
     pass
+    # 1 + 1
+    # config = get_config()
+    # if not config.ready:
+    #     import pdb; pdb.set_trace()
+    #     config.load()
 
 @psynet.command()
 @click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode.")

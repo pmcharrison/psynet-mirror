@@ -10,7 +10,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 
 from typing import List, Optional, Dict, Callable
 
-from .utils import dict_to_js_vars, call_function, check_function_args, merge_dicts
+from .utils import dict_to_js_vars, call_function, check_function_args, merge_dicts, get_logger
 from . import templates
 
 from dallinger.models import Question
@@ -18,9 +18,7 @@ from dallinger.config import get_config
 
 from functools import reduce
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = get_logger()
 
 from .field import claim_field
 
