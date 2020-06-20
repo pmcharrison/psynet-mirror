@@ -39,7 +39,7 @@ class CustomStimulusVersionSpec(StimulusVersionSpec):
 
     @classmethod
     def generate_media(cls, definition, output_path):
-        from custom_synth import synth_stimulus
+        from .custom_synth import synth_stimulus
         synth_stimulus(definition["frequencies"], output_path)
 
 stimuli = [

@@ -28,9 +28,13 @@ def sql_sample_one(x):
     return x.order_by(func.random()).first()
 
 def import_local_experiment():
+    # Imports experiment.py and returns it as a module.
+    # Also adds the experiment directory to sys.path,
+    # meaning that any other modules defined there can be imported using ``import``.`
     from dallinger.config import initialize_experiment_package
     initialize_experiment_package(os.getcwd())
     from dallinger_experiment import experiment
+    sys.path.append(os.getcwd())
     return experiment
 
 # def import_local_experiment():
