@@ -28,8 +28,14 @@ def sql_sample_one(x):
     return x.order_by(func.random()).first()
 
 def import_local_experiment():
-    sys.path.append(os.getcwd())
-    import experiment
+    from dallinger.config import initialize_experiment_package
+    initialize_experiment_package(os.getcwd())
+    from dallinger_experiment import experiment
+    return experiment
+
+# def import_local_experiment():
+#     sys.path.append(os.getcwd())
+#     import experiment
 
 # def get_json_arg_from_request(request, desired: str, use_default = False, default = None):
 #     arguments = request.json
