@@ -34,12 +34,14 @@ from ..media import (
 )
 
 from ..field import claim_field, claim_var
-from ..utils import DisableLogger, hash_object, import_local_experiment
+from ..utils import DisableLogger, hash_object, import_local_experiment, get_logger
 from .main import Trial, TrialNetwork, NetworkTrialMaker
+from .. import command_line
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+# import logging
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger()
+logger = get_logger()
 
 # pylint: disable=unused-import
 import rpdb
@@ -441,8 +443,9 @@ class StimulusSet():
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
 
-        # if len(sys.argv) > 1 and sys.argv[1] == "prepare":
-        #     self.prepare_media()
+        if "prepare" in command_line.FLAGS:
+            force = "force" in command_line.FLAGS
+            self.prepare_media(force=force)
 
     @property
     def hash(self):
@@ -470,23 +473,26 @@ class StimulusSet():
     def load(self):
         return self
 
-    def prepare_media(self):
+    def prepare_media(self, force):
         if self.has_media:
-            if self.remote_media_is_up_to_date:
+            if not force and self.remote_media_is_up_to_date:
                 logger.info("(%s) Remote media seems to be up-to-date, no media preparation necessary.", self.id)
             else:
-                self.cache_media()
+                self.cache_media(force=force)
                 self.upload_media()
         else:
             logger.info("(%s) No media found to prepare.", self.id)
 
-    def cache_media(self):
+    def cache_media(self, force):
         if os.path.exists(self.local_media_cache_dir):
-            if self.get_local_media_cache_hash() == self.hash:
+            if not force and self.get_local_media_cache_hash() == self.hash:
                 logger.info("(%s) Local media cache appears to be up-to-date.", self.id)
                 return None
             else:
-                logger.info("(%s) Local media cache appears to be out-of-date, removing.", self.id)
+                if force:
+                    logger.info("(%s) Forcing removal of local media cache.", self.id)
+                else:
+                    logger.info("(%s) Local media cache appears to be out-of-date, removing.", self.id)
                 shutil.rmtree(self.local_media_cache_dir)
 
         os.makedirs(self.local_media_cache_dir)
@@ -557,14 +563,14 @@ class VirtualStimulusSet():
         self.version = version
         self.construct = construct
 
-        if not self.cache_exists:
+        if "prepare" in command_line.FLAGS or not self.cache_exists:
             self.build_cache()
 
         # if len(sys.argv) > 1 and sys.argv[1] == "prepare":
         #     self.prepare_media()
 
     def build_cache(self):
-        logger.info("(%s) Building stimulus set cache...", self.id)
+        # logger.info("(%s) Building stimulus set cache...", self.id)
         stimulus_set = self.construct()
         self.save_to_cache(stimulus_set)
 
@@ -586,20 +592,8 @@ class VirtualStimulusSet():
             pickle.dump(stimulus_set, f)
 
     def load(self):
-        # if os.path.isfile(self.cache_path):
         with open(self.cache_path, "rb") as f:
             return pickle.load(f)
-        # else:
-        #     raise IOError(
-        #         f"Couldn't find the stimulus set cache file ({self.cache_path}). "
-        #         "Potential fixes: "
-        #         "a) run stimulus_set.prepare_media(), "
-        #         "b) remove _virtual_stimulus_sets from .gitignore."
-        #     )
-
-    def prepare_media(self):
-        self.build_cache()
-        self.load().prepare_media()
 
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):

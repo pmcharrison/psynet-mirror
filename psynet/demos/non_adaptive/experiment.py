@@ -33,7 +33,7 @@ from psynet.trial.non_adaptive import (
 
 import logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = logging.getLogger()
 
 import rpdb
 

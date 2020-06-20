@@ -209,7 +209,7 @@ def bucket_exists(bucket_name):
     return True
 
 def make_bucket_public(bucket_name):
-    print("Ensuring bucket is publicly accessible...")
+    logger.info("Ensuring bucket is publicly accessible...")
 
     if LOCAL_S3:
         return

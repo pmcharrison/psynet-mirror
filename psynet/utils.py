@@ -264,3 +264,6 @@ def clamp(x):
 
 def rgb_to_hex(r, g, b):
     return "#{0:02x}{1:02x}{2:02x}".format(clamp(round(r)), clamp(round(g)), clamp(round(b)))
+
+def get_logger():
+    return logging.getLogger()
