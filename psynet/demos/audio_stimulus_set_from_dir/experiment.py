@@ -18,37 +18,40 @@ from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
     StimulusSpec,
-    StimulusVersionSpec
+    StimulusVersionSpec,
+    stimulus_set_from_dir
 )
-from psynet.helpers import audio_stimulus_set_from_dir
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
-##########################################################################################
-#### Stimuli
-##########################################################################################
+from psynet.trial.non_adaptive import (
+    stimulus_set_from_dir
+)
 
-practice_stimuli = audio_stimulus_set_from_dir(
+version = "v1"
+
+practice_stimuli = stimulus_set_from_dir(
     id_="practice_stimuli",
     input_dir="input/practice",
+    media_ext=".wav",
     phase="practice",
-    version="v1",
+    version=version,
     s3_bucket="audio-stimulus-set-from-dir-demo"
 )
-experiment_stimuli = audio_stimulus_set_from_dir(
+experiment_stimuli = stimulus_set_from_dir(
     id_="experiment_stimuli",
     input_dir="input/experiment",
+    media_ext=".wav",
     phase="experiment",
-    version="v1",
+    version=version,
     s3_bucket="audio-stimulus-set-from-dir-demo"
 )
 
-# Run ``python3 experiment.py`` to prepare the stimulus set.
-if __name__ == "__main__":
-    for s in [practice_stimuli, experiment_stimuli]:
-        s.prepare_media()
+# Run ``psynet prepare`` (or ``psynet prepare --force``) to prepare the stimulus sets.
+# Note: you can .gitignore the input/ directory, where you store your
+# stimuli. However, don't .gitignore the automatically generated
+# _stimulus_sets directory - this needs to be accessible by Heroku.
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -62,7 +65,6 @@ class CustomTrial(NonAdaptiveTrial):
             NAFCControl(["Yes", "No"]),
             time_estimate=5
         )
-
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

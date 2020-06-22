@@ -10,8 +10,8 @@ from numpy import linspace
 from statistics import mean, median
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from ..utils import get_logger
+logger = get_logger()
 
 class GibbsNetwork(ChainNetwork):
     """

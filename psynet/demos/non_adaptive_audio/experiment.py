@@ -21,10 +21,10 @@ from psynet.trial.non_adaptive import (
     StimulusSpec,
     StimulusVersionSpec
 )
+from .custom_synth import synth_stimulus
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 ##########################################################################################
 #### Stimuli
@@ -39,7 +39,6 @@ class CustomStimulusVersionSpec(StimulusVersionSpec):
 
     @classmethod
     def generate_media(cls, definition, output_path):
-        from custom_synth import synth_stimulus
         synth_stimulus(definition["frequencies"], output_path)
 
 stimuli = [
@@ -61,10 +60,7 @@ stimuli = [
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet("audio_stimuli", stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
-
-if __name__ == "__main__":
-    stimulus_set.prepare_media()
+stimulus_set = StimulusSet("non_adaptive_audio", stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -113,6 +109,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5
         ),
         NonAdaptiveTrialMaker(
+            id_="non_adaptive_audio",
             trial_class=CustomTrial,
             phase="experiment",
             stimulus_set=stimulus_set,

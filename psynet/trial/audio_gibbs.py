@@ -16,10 +16,8 @@ import json
 
 from uuid import uuid4
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from ..utils import get_logger
+logger = get_logger()
 
 # pylint: disable=unused-import
 import rpdb

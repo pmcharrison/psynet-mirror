@@ -6,9 +6,8 @@ from sqlalchemy.sql.expression import cast
 
 import json
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from .utils import get_logger
+logger = get_logger()
 
 def claim_field(db_index, field_type=object):
     if field_type is int:

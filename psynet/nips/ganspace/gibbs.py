@@ -1,8 +1,8 @@
 import random
 import logging
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 from flask import Markup
 from uuid import uuid4

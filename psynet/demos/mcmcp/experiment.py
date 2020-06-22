@@ -33,9 +33,8 @@ from psynet.trial.mcmcp import (
     MCMCPNetwork, MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
 )
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 import rpdb
 

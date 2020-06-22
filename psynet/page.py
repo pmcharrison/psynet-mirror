@@ -10,10 +10,6 @@ from math import ceil
 import itertools
 import json
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
-
 from .timeline import (
     get_template,
     join,
@@ -25,11 +21,13 @@ from .timeline import (
     FailedValidation,
     while_loop
 )
-from .utils import linspace
+from .utils import linspace, get_logger
 from .modular_page import (
     ModularPage,
     AudioPrompt
 )
+
+logger = get_logger()
 
 class InfoPage(Page):
     """

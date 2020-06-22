@@ -53,9 +53,8 @@ from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from ..utils import get_logger
+logger = get_logger()
 
 # pylint: disable=unused-import
 import rpdb

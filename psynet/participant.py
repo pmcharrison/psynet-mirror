@@ -8,10 +8,9 @@ from .field import VarStore, claim_var
 from .timeline import Response
 import json
 import os
+from .utils import get_logger
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = get_logger()
 
 # pylint: disable=unused-import
 import rpdb

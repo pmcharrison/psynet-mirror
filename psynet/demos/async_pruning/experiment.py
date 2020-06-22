@@ -47,11 +47,9 @@ from psynet.trial.chain import ChainNetwork
 from psynet.trial.gibbs import (
     GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
+from psynet.utils import get_logger
 
-import logging
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = get_logger()
 
 # import rpdb
 

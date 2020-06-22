@@ -5,7 +5,7 @@
 import numpy as np
 import os
 
-from custom_synth import synth_batch
+from .custom_synth import synth_batch
 
 BPFs = []
 filenames = []

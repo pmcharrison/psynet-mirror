@@ -18,9 +18,8 @@ from .main import Trial, TrialNetwork, NetworkTrialMaker
 # pylint: disable=unused-import
 import rpdb
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from ..utils import get_logger
+logger = get_logger()
 
 class ChainNetwork(TrialNetwork):
     """

@@ -11,11 +11,9 @@ from pathlib import Path
 
 from dallinger.config import get_config
 
-from .utils import log_time_taken
+from .utils import log_time_taken, get_logger
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = get_logger()
 
 # For debugging, currently only partly implemented
 LOCAL_S3 = False
@@ -119,6 +117,11 @@ def upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_buc
         Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
         shutil.copyfile(local_path, destination)
 
+    return {
+        "key": key,
+        "url": os.path.join("/static/s3", bucket_name, key)
+    }
+
 def download_from_local_s3(local_path: str, bucket_name: str, key: str):
     logger.info("Simulating downloading %s from bucket %s to local path %s...", key, bucket_name, local_path)
     source_path = os.path.join("static/s3", bucket_name, key)
@@ -209,7 +212,7 @@ def bucket_exists(bucket_name):
     return True
 
 def make_bucket_public(bucket_name):
-    print("Ensuring bucket is publicly accessible...")
+    logger.info("Ensuring bucket is publicly accessible...")
 
     if LOCAL_S3:
         return

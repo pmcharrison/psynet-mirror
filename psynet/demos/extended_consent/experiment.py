@@ -1,29 +1,28 @@
 # This is a minimal experiment implementation for prototyping the monitor route.
 import flask
 
-import dallinger.deployment 
+import dallinger.deployment
 from dallinger.models import Info, Node, Transformation
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 
 import psynet.experiment
-from psynet.timeline import ( 
+from psynet.timeline import (
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
+    PageMaker,
+    CodeBlock,
+    while_loop,
     conditional
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage, 
+    InfoPage,
+    SuccessfulEndPage,
+    NAFCPage,
     TextInputPage
 )
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 from datetime import datetime
 
@@ -43,9 +42,9 @@ class Exp(psynet.experiment.Experiment):
                     Once these audio files are loaded, you can access them programmatically.
                 </p>
                 <p>
-                    If you're running this demo locally, the audio files will load too 
+                    If you're running this demo locally, the audio files will load too
                     fast for you to see the progress bar. However, you can simulate
-                    a slower internet connection by using the Developer Options 
+                    a slower internet connection by using the Developer Options
                     of your browser.
                     Note how the buttons only become enabled once the audio has finished loading.
                 </p>
