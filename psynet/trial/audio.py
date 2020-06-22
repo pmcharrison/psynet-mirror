@@ -50,7 +50,8 @@ class AudioRecordTrial():
             with tempfile.NamedTemporaryFile() as temp_plot:
                 self.download_recording(temp_recording.name)
                 self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
-                self.upload_plot(temp_plot.name)
+                if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
+                    self.upload_plot(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
                         self.fail()
@@ -87,6 +88,11 @@ class AudioRecordTrial():
             A dictionary of analysis information to be saved in the trial's ``analysis`` slot.
             This dictionary must include the boolean attribute ``failed``, determining
             whether the trial is to be failed.
+            The following optional terms are also recognised by PsyNet:
+
+            - ``no_plot_generated``: Set this to ``True`` if the function did not generate any output plot,
+              and this will tell PsyNet not to try uploading the output plot to S3.
+              The default value (i.e. the assumed value if no value is provided) is ``False``.
         """
         raise NotImplementedError
 

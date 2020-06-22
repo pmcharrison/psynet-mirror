@@ -32,6 +32,9 @@ logger = get_logger()
 
 import rpdb
 
+import psynet.media
+psynet.media.LOCAL_S3 = True # set this to False if you want to actually use S3 instead of a local version
+
 NOTE_DURATION = 0.25
 NOTE_IOI = 1.0
 SING_DURATION = 4.0
@@ -80,7 +83,8 @@ class CustomTrial(AudioImitationChainTrial):
             "failed": failed,
             "error": error,
             "midi": midi,
-            "raw": raw
+            "raw": raw,
+            "no_plot_generated": True
         }
 
 def diff(x):
@@ -165,7 +169,7 @@ class Exp(psynet.experiment.Experiment):
         #     time_estimate=5
         # ),
         AudioImitationChainTrialMaker(
-            id="iterated_singing_demo",
+            id_="iterated_singing_demo",
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,

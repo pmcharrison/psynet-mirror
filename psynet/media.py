@@ -117,6 +117,11 @@ def upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_buc
         Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
         shutil.copyfile(local_path, destination)
 
+    return {
+        "key": key,
+        "url": os.path.join("/static/s3", bucket_name, key)
+    }
+
 def download_from_local_s3(local_path: str, bucket_name: str, key: str):
     logger.info("Simulating downloading %s from bucket %s to local path %s...", key, bucket_name, local_path)
     source_path = os.path.join("static/s3", bucket_name, key)
