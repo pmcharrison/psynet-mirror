@@ -67,10 +67,12 @@ class AnimalTrial(NonAdaptiveTrial):
         animal = self.definition["animal"]
         block = self.block
 
+        header = f"<h3>Trial {self.position + 1}</h3>"
+
         if self.is_repeat_trial:
-            header = f"<h3>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+            header = header + f"<h3>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
         else:
-            header = f"<h3>Block {block}</h3>"
+            header = header + f"<h3>Block {block}</h3>"
 
         page = NAFCPage(
             "animal_trial",

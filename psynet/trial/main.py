@@ -268,6 +268,35 @@ class Trial(Info, AsyncProcessOwner):
     def participant(self):
         return Participant.query.filter_by(id=self.participant_id).one()
 
+    @property
+    def position(self):
+        """
+        Returns the position of the current trial within that participant's current trial maker (0-indexed).
+        This can be used, for example, to display how many trials the participant has taken so far.
+        """
+        trials = self.get_for_participant(self.participant_id, self.network.trial_maker_id)
+        trial_ids = [t.id for t in trials]
+        return trial_ids.index(self.id)
+
+    @classmethod
+    def get_for_participant(cls, participant_id: int, trial_maker_id: int = None):
+        """
+        Returns all trials for a given participant.
+        """
+        query =  (
+            db.session
+            .query(cls)
+            .join(TrialNetwork)
+            .filter(Trial.participant_id == participant_id)
+        )
+        if trial_maker_id is not None:
+            query = query.filter(TrialNetwork.trial_maker_id == trial_maker_id)
+        return (
+            query
+            .order_by(Trial.id)
+            .all()
+        )
+
     def fail(self):
         """
         Marks a trial as failed. Failing a trial means that it is somehow
