@@ -246,6 +246,8 @@ class Trial(Info, AsyncProcessOwner):
     # Override this if you intend to return multiple pages
     num_pages = 1
 
+    wait_for_feedback = True # determines whether feedback waits for async_post_trial
+
     # @property
     # def num_pages(self):
     #     raise NotImplementedError
@@ -313,6 +315,13 @@ class Trial(Info, AsyncProcessOwner):
         if not self.failed:
             self.failed = True
             self.time_of_death = datetime.datetime.now()
+
+    @property
+    def ready_for_feedback(self):
+        """
+        Determines whether a trial is ready to give feedback to the participant.
+        """
+        return self.complete and ((not self.wait_for_feedback) or (not self.awaiting_async_process))
 
     #################
 
@@ -1101,12 +1110,18 @@ class TrialMaker(Module):
                 self._get_current_trial(participant)
                     .gives_feedback(experiment, participant)
             ),
-            logic_if_true=PageMaker(
-                lambda experiment, participant: (
-                    self._get_current_trial(participant)
-                        .show_feedback(experiment=experiment, participant=participant)
+            logic_if_true=join(
+                wait_while(
+                    lambda participant: not self._get_current_trial(participant).ready_for_feedback,
+                    expected_wait=0
                 ),
-                time_estimate=0
+                PageMaker(
+                    lambda experiment, participant: (
+                        self._get_current_trial(participant)
+                            .show_feedback(experiment=experiment, participant=participant)
+                    ),
+                    time_estimate=0
+                )
             ),
             fix_time_credit=False,
             log_chosen_branch=False

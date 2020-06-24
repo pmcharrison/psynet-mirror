@@ -161,6 +161,14 @@ class CustomTrial(GibbsTrial):
             time_estimate=5
         )
 
+    def show_feedback(self, experiment, participant):
+        if self.failed:
+            prompt = "Trial failed."
+        else:
+            prompt = "Trial was successful."
+
+        return InfoPage(prompt, time_estimate=5)
+
     # Minimal example of an async_post_trial function
     run_async_post_trial = True
     def async_post_trial(self):
@@ -181,8 +189,8 @@ class CustomSource(GibbsSource):
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
-    async_timeout_sec = 10
-    check_timeout_interval = 10
+    async_timeout_sec = 5
+    check_timeout_interval = 5
 
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
