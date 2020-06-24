@@ -1113,7 +1113,8 @@ class TrialMaker(Module):
             logic_if_true=join(
                 wait_while(
                     lambda participant: not self._get_current_trial(participant).ready_for_feedback,
-                    expected_wait=0
+                    expected_wait=0,
+                    log_message="Waiting for feedback to be ready."
                 ),
                 PageMaker(
                     lambda experiment, participant: (
