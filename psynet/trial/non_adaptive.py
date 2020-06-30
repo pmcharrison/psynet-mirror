@@ -802,7 +802,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         ``recruit_mode="num_trials"``.
 
     max_trials_per_block
-        Determines the maximum number of trials that a participant will be allowed to experience in each block.
+        Determines the maximum number of trials that a participant will be allowed to experience in each block,
+        including failed trials.
 
     allow_repeated_stimuli
         Determines whether the participant can be administered the same stimulus more than once.
@@ -1209,7 +1210,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
                 .filter_by(
                     network_id=network.id,
                     participant_id=participant.id,
-                    failed=False,
                     complete=True,
                     is_repeat_trial=False
                 )
