@@ -819,7 +819,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         to that participant so far.
 
     active_balancing_across_participants
-        If ``True`` (default), active balancfing across participants is enabled, meaning that
+        If ``True`` (default), active balancing across participants is enabled, meaning that
         stimulus selection favours stimuli that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
