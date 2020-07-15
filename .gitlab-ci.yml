@@ -1,12 +1,12 @@
 image: python:3.7.0
 
 before_script:
-  - pip install -e .[test]
+  - pip install -e .[dev]
 
 tests:
   stage: test
   script:
-  - python setup.py test
+  - pytest tests/
 
 pages:
   stage: deploy

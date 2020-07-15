@@ -36,8 +36,12 @@ setuptools.setup(
         "scipy",
         "statsmodels"
     ],
-    setup_requires=['pytest-runner'],
-    tests_require=['pytest'],
+    extras_require={
+        "dev": [
+            "pytest",
+            "mock"
+        ]
+    },
     entry_points={
         "console_scripts": [
             "psynet = psynet.command_line:psynet"
