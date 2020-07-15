@@ -4,7 +4,6 @@ from statistics import mean
 
 from dallinger.models import Network
 from dallinger.experiment import Experiment
-from dallinger.pytest_dallinger import db_session
 
 @pytest.fixture
 def experiment(db_session):
