@@ -1,8 +1,4 @@
-image: nickgryg/alpine-pandas
-
-before_script:
-  - apk add gcc gfortran musl-dev postgresql-dev libc-dev linux-headers
-  - pip install numpy
+image: ubuntu:latest
 
 pages:
   stage: deploy
@@ -19,3 +15,4 @@ pages:
     - public/low_level
   only:
   - dev
+  - refactor
