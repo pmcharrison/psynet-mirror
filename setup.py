@@ -24,7 +24,23 @@ setuptools.setup(
     ],
     python_requires='>=3.7.0',
     include_package_data=True,
-    install_requires=["dallinger", "click", "datetime", "flask", "importlib_resources", "pandas", "rpdb", "progress", "scipy", "statsmodels"],
+    install_requires=[
+        "dallinger",
+        "click",
+        "datetime",
+        "flask",
+        "importlib_resources",
+        "pandas",
+        "rpdb",
+        "progress",
+        "scipy",
+        "statsmodels"
+    ],
+    extras_require={
+        "dev": [
+            "pytest"
+        ]
+    },
     entry_points={
         "console_scripts": [
             "psynet = psynet.command_line:psynet"
