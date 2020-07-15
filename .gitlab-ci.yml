@@ -8,7 +8,7 @@ variables:
   POSTGRES_USER: dallinger
   POSTGRES_PASSWORD: ""
   POSTGRES_HOST_AUTH_METHOD: trust
-  DATABASE_URL: postgresql://dallinger@localhost:5432/dallinger
+  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 before_script:
   - pip install dallinger[dev]
