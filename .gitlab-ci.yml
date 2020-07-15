@@ -1,13 +1,12 @@
 image: python:3.7.0
 
 before_script:
-  - pip install dallinger[dev]
-  - pip install -e .[dev]
   - uname -a
-  - apt-get install -y postgresql-12 postgresql-client-12 libpq-dev
   - createuser dallinger --createdb
   - createdb -O dallinger dallinger
   - createdb -O dallinger dallinger-import-bartlett-test
+  - pip install dallinger[dev]
+  - pip install -e .[dev]
 
 tests:
   stage: test
