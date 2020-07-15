@@ -11,8 +11,6 @@ variables:
   DATABASE_URL: postgresql://dallinger@localhost:5432/dallinger
 
 before_script:
-  - export PGPASSWORD=$POSTGRES_PASSWORD
-  - psql -h "postgres" -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT 'OK' AS status;"
   - pip install dallinger[dev]
   - pip install -e .[dev]
 
