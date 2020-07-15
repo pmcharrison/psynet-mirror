@@ -38,8 +38,7 @@ setuptools.setup(
     ],
     extras_require={
         "dev": [
-            "pytest",
-            "mock"
+            "pytest"
         ]
     },
     entry_points={
