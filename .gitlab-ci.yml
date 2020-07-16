@@ -12,7 +12,7 @@ variables:
 
 before_script:
   - apt-get update
-  - apt-get install python-enchant
+  - apt-get -f -y install python-enchant
   - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
