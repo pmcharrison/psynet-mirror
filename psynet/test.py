@@ -10,9 +10,9 @@ logger = logging.getLogger(__file__)
 
 def bot_class(headless=None):
     if headless is None:
-        headless_env = os.getenv("HEADLESS", default="FALSE")
-        assert headless_env in ["TRUE", "FALSE"]
-        headless = headless_env == "TRUE"
+        headless_env = os.getenv("HEADLESS", default="no")
+        assert headless_env in ["yes", "no"]
+        headless = headless_env == "yes"
 
     class PYTEST_BOT_CLASS(BotBase):
         def sign_off(self):
