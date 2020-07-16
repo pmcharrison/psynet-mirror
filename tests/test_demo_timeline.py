@@ -18,31 +18,12 @@ def exp_dir(root):
 @pytest.mark.usefixtures("exp_dir")
 class TestExp(object):
 
-    # @pytest.fixture
-    # def exp_config(self, active_config):
-    #     from psynet.demos.timeline.experiment import extra_parameters
-    #
-    #     extra_parameters()
-    #     active_config.set("num_participants", 3)
-    #     yield active_config
-
     @pytest.fixture
     def demo(self, db_session): #, exp_config):
         from psynet.demos.timeline.experiment import Exp
 
         instance = Exp(db_session)
         yield instance
-
-    # @pytest.fixture
-    # def two_iterations(self):
-    #     # Sets environment variable for debug sub-process configuration
-    #     os.environ["NUM_PARTICIPANTS"] = "2"
-    #     yield None
-    #     del os.environ["NUM_PARTICIPANTS"]
-
-    # def test_networks_holds_single_experiment_node(self, demo):
-    #     assert len(demo.networks()) == 1
-    #     assert u"experiment" == demo.networks()[0].role
 
     def test_exp_selenium(self, bot_recruits):    #two_iterations, bot_recruits):
         for participant, bot in enumerate(bot_recruits):
@@ -94,5 +75,4 @@ class TestExp(object):
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 
-            driver.find_element_by_id("next_button").click()
-            # next_page(driver, "next_button", finished=True)
+            next_page(driver, "next_button", finished=True)
