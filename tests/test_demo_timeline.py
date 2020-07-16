@@ -7,7 +7,7 @@ import time
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
-PYTEST_BOT_CLASS = bot_class(headless=True)
+PYTEST_BOT_CLASS = bot_class()
 
 @pytest.fixture(scope="class")
 def exp_dir(root):

@@ -1,5 +1,6 @@
 import logging
 import time
+import os
 
 from cached_property import cached_property
 from selenium.common.exceptions import TimeoutException
@@ -7,7 +8,12 @@ from dallinger.bots import BotBase
 
 logger = logging.getLogger(__file__)
 
-def bot_class(headless: bool):
+def bot_class(headless=None):
+    if headless is None:
+        headless_env = os.getenv("HEADLESS", default="FALSE")
+        assert headless_env in ["TRUE", "FALSE"]
+        headless = headless_env == "TRUE"
+
     class PYTEST_BOT_CLASS(BotBase):
         def sign_off(self):
             try:

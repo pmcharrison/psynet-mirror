@@ -17,6 +17,7 @@ before_script:
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
   - pip install -e .[dev]
+  - export HEADLESS=TRUE
 
 tests:
   stage: test
