@@ -12,8 +12,8 @@ variables:
 
 before_script:
   - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
-  - pip install -r dev-requirements.txt
-  - pip install -e .[data]
+  - pip install -r /tmp/dallinger/dev-requirements.txt
+  - pip install -e /tmp/dallinger[data]
 
 tests:
   stage: test
