@@ -68,10 +68,18 @@ class TestExp(object):
 
             next_page(driver, "No")
 
+            assert driver.find_element_by_class_name(
+                "main_div").text == "What's your favourite colour?\nRed Green Blue"
+            next_page(driver, "Red")
+
+            assert driver.find_element_by_class_name(
+                "main_div").text == "Red is a nice colour, wait 1s.\nNext"
+            next_page(driver, "next_button")
+
             # Final page
             assert driver.find_element_by_class_name("main_div").text == (
                 'That\'s the end of the experiment! In addition to your base payment of $0.10, '
-                'you will receive a bonus of $0.10 for the time you spent on the experiment. '
+                'you will receive a bonus of $0.12 for the time you spent on the experiment. '
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 

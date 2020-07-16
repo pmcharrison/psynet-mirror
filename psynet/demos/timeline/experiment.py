@@ -1,7 +1,4 @@
 import dallinger.deployment
-from dallinger.models import Info, Node, Transformation
-from dallinger.networks import Chain
-from dallinger.nodes import Source
 
 import psynet.experiment
 from psynet.timeline import (
@@ -9,14 +6,14 @@ from psynet.timeline import (
     PageMaker,
     CodeBlock,
     while_loop,
-    conditional
+    conditional,
+    switch
 )
 from psynet.page import (
     InfoPage,
     SuccessfulEndPage,
     NAFCPage,
     TextInputPage,
-    WaitPage,
 )
 
 from psynet.utils import get_logger
@@ -83,31 +80,26 @@ class Exp(psynet.experiment.Experiment):
             expected_repetitions=3,
             fix_time_credit=True
         ),
-        # NAFCPage(
-        #     label="test_nafc",
-        #     prompt="What's your favourite colour?",
-        #     choices=["Red", "Green", "Blue"],
-        #     time_estimate=5
-        # ),
-        # switch(
-        #     "colour",
-        #     lambda experiment, participant: participant.answer,
-        #     branches = {
-        #         "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
-        #         "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_estimate=2),
-        #         "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_estimate=3)
-        #     },
-        #     fix_time_credit=False
-        # ),
-        # CodeBlock(
-        #     lambda experiment, participant:
-        #         participant.var.set("favourite_colour", participant.answer)
-        # ),
-        # PageMaker(
-        #     lambda experiment, participant:
-        #         InfoPage(f"OK, your favourite colour is {participant.answer.lower()}."),
-        #     time_estimate=3
-        # ),
+        NAFCPage(
+            label="test_nafc",
+            prompt="What's your favourite colour?",
+            choices=["Red", "Green", "Blue"],
+            time_estimate=5
+        ),
+        CodeBlock(
+            lambda experiment, participant:
+            participant.var.set("favourite_colour", participant.answer)
+        ),
+        switch(
+            "colour",
+            lambda experiment, participant: participant.answer,
+            branches = {
+                "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
+                "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_estimate=2),
+                "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_estimate=3)
+            },
+            fix_time_credit=False
+        ),
         SuccessfulEndPage()
     )
 
