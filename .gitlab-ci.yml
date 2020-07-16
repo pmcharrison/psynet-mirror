@@ -9,7 +9,6 @@ variables:
   POSTGRES_PASSWORD: ""
   POSTGRES_HOST_AUTH_METHOD: trust
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
-  HEADLESS: 'TRUE'
 
 before_script:
   - apt-get update
@@ -31,6 +30,7 @@ tests:
   - apt-get -f -y install ./chrome-84.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
+  - export HEADLESS=TRUE
   - echo $HEADLESS
   - pytest --chrome tests/
 
