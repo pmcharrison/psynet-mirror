@@ -12,7 +12,7 @@ variables:
 
 before_script:
   - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
-  - pip install -e /tmp/dallinger[dev]
+  - pip install -e -c /tmp/dallinger/constraints.txt -c /tmp/dallinger/constraints-deps.txt -c /tmp/dallinger/dev-constraints.txt /tmp/dallinger[dev]
   - pip install -e .[dev]
 
 tests:
