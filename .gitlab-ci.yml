@@ -20,8 +20,8 @@ tests:
   - wget -O chrome-84.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_84.0.4147.89-1_amd64.deb
   - wget -O chrome-driver-84.zip https://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip
   - apt-get update
-  - apt-get -f install ./chrome-84.deb
-  - apt-get -f install -yqq unzip
+  - apt-get -f -y install ./chrome-84.deb
+  - apt-get -f -y install -yqq unzip
   - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
   - pytest --chrome tests/
 
