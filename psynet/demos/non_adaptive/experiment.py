@@ -67,7 +67,7 @@ class AnimalTrial(NonAdaptiveTrial):
         animal = self.definition["animal"]
         block = self.block
 
-        header = f"<h3>Trial {self.position + 1}</h3>"
+        header = f"<h3 id='trial-position'>Trial {self.position + 1}</h3>"
 
         if self.is_repeat_trial:
             header = header + f"<h3>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
@@ -132,9 +132,9 @@ class Exp(psynet.experiment.Experiment):
             active_balancing_across_participants=True,
             check_performance_at_end=True,
             check_performance_every_trial=True,
-            target_num_participants=None,
-            target_num_trials_per_stimulus=3,
-            recruit_mode="num_trials",
+            target_num_participants=1,
+            target_num_trials_per_stimulus=None,
+            recruit_mode="num_participants",
             num_repeat_trials=3
         ),
         SuccessfulEndPage()

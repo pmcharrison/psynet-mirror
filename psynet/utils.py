@@ -38,12 +38,12 @@ def import_local_experiment():
     # meaning that any other modules defined there can be imported using ``import``.`
 
     config = get_config()
-    if not config.ready:
-        config.load() # a side-effect is exposing dallinger_experiment
-
-    from dallinger_experiment import experiment
+    # if not config.ready:
+    config.load() # a side-effect is exposing dallinger_experiment
+    dallinger_experiment = sys.modules.get("dallinger_experiment")
+    # from dallinger_experiment import experiment
     sys.path.append(os.getcwd())
-    return experiment
+    return dallinger_experiment.experiment
 
 # def import_local_experiment():
 #     sys.path.append(os.getcwd())
