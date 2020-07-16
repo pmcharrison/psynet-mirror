@@ -11,7 +11,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 before_script:
-  - pip install dallinger[dev]
+  - pip install -e dallinger[dev]
   - pip install -e .[dev]
 
 tests:
