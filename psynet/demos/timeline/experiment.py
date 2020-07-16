@@ -31,15 +31,10 @@ dallinger.deployment.MAX_ATTEMPTS = 1
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    # You can customise these parameters ####
-    num_networks = 3
-    num_nodes_per_network = 3
-    num_infos_per_node = 2
-    network_roles = ["practice", "experiment"]
-#    network_roles = ["male", "female","other"]
-#    network_roles = ["role1", "role2","role3","role4","role5","role6"]
-    use_sources = False
-    create_transformation = True
+    # initial_recruitment_size = 2
+    # def recruit(self):
+    #     """Recruit one participant at a time until all networks are full."""
+    #     self.recruiter.recruit(n=1)
 
     timeline = Timeline(
         InfoPage(
@@ -121,59 +116,5 @@ class Exp(psynet.experiment.Experiment):
         # ),
         SuccessfulEndPage()
     )
-
-    assert num_nodes_per_network > 0
-
-    @property
-    def num_non_source_nodes_per_network(self):
-        return (
-            self.num_nodes_per_network - 1
-            if self.use_sources
-            else self.num_nodes_per_network
-        )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-
-        if session:
-            self.setup()
-
-    def setup(self):
-        super().setup()
-        if not self.networks():
-            for role in self.network_roles:
-                for _ in range(self.num_networks):
-                    self.setup_network(role=role)
-            self.session.commit()
-
-    def setup_network(self, role):
-        net = Chain()
-        net.role = role
-        self.session.add(net)
-        self.populate_network(net)
-
-    def populate_network(self, network):
-        if self.use_sources:
-            source = Source(network)
-            self.session.add(source)
-            network.add_node(source)
-
-        for _ in range(self.num_non_source_nodes_per_network):
-            node = Node(network)
-            self.session.add(node)
-            self.populate_node(node)
-            network.add_node(node)
-
-    def populate_node(self, node):
-        if self.create_transformation:
-            info1 = Info(node)
-            info2 = Info(node)
-            self.session.add(info1)
-            self.session.add(info2)
-            Transformation(info_in=info2, info_out=info1)
-        else:
-            for _ in range(self.num_infos_per_node):
-                info = Info(node)
-                self.session.add(info)
 
 extra_routes = Exp().extra_routes()
