@@ -40,8 +40,8 @@ def bot_class(headless=None):
             chrome_options.add_argument("--disable-dev-shm-usage")
             # chrome_options.add_argument("--no-sandbox")
 
-            if headless:
-                chrome_options.add_argument('--headless')
+            # if headless:
+            chrome_options.add_argument('--headless')
 
             return webdriver.Chrome(chrome_options=chrome_options)
     return PYTEST_BOT_CLASS
