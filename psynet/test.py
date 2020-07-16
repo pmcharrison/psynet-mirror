@@ -42,6 +42,7 @@ def bot_class(headless=None):
 
             # if headless:
             chrome_options.add_argument('--headless')
+            assert False
 
             return webdriver.Chrome(chrome_options=chrome_options)
     return PYTEST_BOT_CLASS
