@@ -12,15 +12,18 @@ variables:
 
 before_script:
   - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
-  - pip install -c /tmp/dallinger/dev-constraints.txt -e /tmp/dallinger[dev]
-  - pip install -e .[dev]
+  - pip install -r dev-requirements.txt
+  - pip install -e .[data]
 
 tests:
   stage: test
   script:
+  - apt-get update
+  - curl https://cli-assets.heroku.com/install.sh | sh
+  - apt-get -f -y install curl redis-server
+  - service redis-server start
   - wget -O chrome-84.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_84.0.4147.89-1_amd64.deb
   - wget -O chrome-driver-84.zip https://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip
-  - apt-get update
   - apt-get -f -y install ./chrome-84.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
