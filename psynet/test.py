@@ -9,7 +9,7 @@ from dallinger.bots import BotBase
 logger = logging.getLogger(__file__)
 
 def bot_class(headless=None):
-    assert headless is not None
+    assert headless is None
 
     if headless is None:
         headless_env = os.getenv("HEADLESS", default="FALSE").upper()
