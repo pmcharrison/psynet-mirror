@@ -1,4 +1,3 @@
-# This is a minimal experiment implementation for prototyping the monitor route.
 import dallinger.deployment
 from dallinger.models import Info, Node, Transformation
 from dallinger.networks import Chain
@@ -31,11 +30,6 @@ dallinger.deployment.MAX_ATTEMPTS = 1
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    # initial_recruitment_size = 2
-    # def recruit(self):
-    #     """Recruit one participant at a time until all networks are full."""
-    #     self.recruiter.recruit(n=1)
-
     timeline = Timeline(
         InfoPage(
             "Welcome to the experiment!",
