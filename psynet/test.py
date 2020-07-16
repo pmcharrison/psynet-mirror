@@ -9,10 +9,14 @@ from dallinger.bots import BotBase
 logger = logging.getLogger(__file__)
 
 def bot_class(headless=None):
+    assert headless is not None
+
     if headless is None:
         headless_env = os.getenv("HEADLESS", default="FALSE").upper()
         assert headless_env in ["TRUE", "FALSE"]
         headless = headless_env == "TRUE"
+
+    assert headless
 
     class PYTEST_BOT_CLASS(BotBase):
         def sign_off(self):

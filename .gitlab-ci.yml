@@ -31,6 +31,7 @@ tests:
   - apt-get -f -y install ./chrome-84.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
+  - echo $HEADLESS
   - pytest --chrome tests/
 
 pages:
