@@ -28,3 +28,4 @@ def firefox_options(firefox_options, pytestconfig):
     if pytestconfig.getoption('headless'):
         firefox_options.add_argument('-headless')
     return firefox_options
+
