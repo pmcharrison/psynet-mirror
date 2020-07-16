@@ -17,7 +17,6 @@ before_script:
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
   - pip install -e .[dev]
-  - export HEADLESS=TRUE
 
 tests:
   stage: test
@@ -31,6 +30,7 @@ tests:
   - apt-get -f -y install ./chrome-84.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
+  - export HEADLESS=TRUE
   - pytest --chrome tests/
 
 pages:
