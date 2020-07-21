@@ -145,8 +145,16 @@ class Experiment(dallinger.experiment.Experiment):
         return Participant.query.filter_by(status="working", failed=False).count()
 
     def recruit(self):
-        logger.info("Evaluating recruitment criteria (%i found)...", len(self.recruitment_criteria))
-        complete = True
+        if self.need_more_participants:
+            logger.info("Conclusion: recruiting another participant.")
+            self.recruiter.recruit(n=1)
+        else:
+            logger.info("Conclusion: no recruitment required.")
+            self.recruiter.close_recruitment()
+
+    @property
+    def need_more_participants(self):
+        need_more = False
         for i, criterion in enumerate(self.recruitment_criteria):
             logger.info("Evaluating recruitment criterion %i/%i...", i + 1, len(self.recruitment_criteria))
             res = call_function(criterion.function, {"experiment": self})
@@ -162,13 +170,11 @@ class Experiment(dallinger.experiment.Experiment):
                 )
             )
             if res:
-                complete = False
-        if complete:
-            logger.info("Conclusion: no recruitment required.")
-            self.recruiter.close_recruitment()
-        else:
-            logger.info("Conclusion: recruiting another participant.")
-            self.recruiter.recruit(n=1)
+                need_more = True
+        return need_more
+
+    def is_complete(self):
+        return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
         participant.append_failure_tags("assignment_abandoned", "premature_exit")

@@ -940,6 +940,8 @@
                     return connection.downlink
                 }
 
+                psynet.page_loaded = false;
+
                 psynet.init_page = function () {
                     console.log("Initialising page...");
                     event = new Event("init_page");
@@ -957,6 +959,7 @@
                     window.addEventListener("load", function() {
                         psynet.response.ready("page_load");
                         psynet.submit.ready("page_load");
+                        psynet.page_loaded = true;
                     })
                 };
 

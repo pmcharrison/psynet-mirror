@@ -193,7 +193,7 @@ class GibbsNode(ChainNode):
 
     def summarise_trial_dimension(self, observations):
         method = self.summarise_trials_method
-        logger.info("Summarising observations using method %s...", method)
+        logger.debug("Summarising observations using method %s...", method)
 
         self.var.summarise_trial_method = method
 

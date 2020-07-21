@@ -8,7 +8,7 @@ with open(os.path.join("psynet", 'VERSION')) as version_file:
     version = version_file.read().strip()
 
 setuptools.setup(
-    name="psynet", # Replace with your own username
+    name="psynet",
     version="0.11.0",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
@@ -24,7 +24,24 @@ setuptools.setup(
     ],
     python_requires='>=3.7.0',
     include_package_data=True,
-    install_requires=["dallinger>=6.3.0", "click", "datetime", "flask", "importlib_resources", "pandas", "rpdb", "progress", "scipy", "statsmodels"],
+    install_requires=[
+        "dallinger>=6.3.0",
+        "click",
+        "datetime",
+        "flask",
+        "importlib_resources",
+        "pandas",
+        "rpdb",
+        "progress",
+        "scipy",
+        "statsmodels"
+    ],
+    extras_require={
+        "dev": [
+            "pytest",
+            "mock"
+        ]
+    },
     entry_points={
         "console_scripts": [
             "psynet = psynet.command_line:psynet"
