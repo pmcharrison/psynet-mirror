@@ -21,8 +21,8 @@
         }
 
         .modal-content {
-            background-color: #4989C8;
-            color: white;
+            background-color: white;
+            color: black;
             margin: auto;
             padding: 20px;
             border: 1px solid #888;
@@ -84,22 +84,24 @@
             <div id="help_modal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
-                    <h3>In case of a problem, try the following:</h3>
-                    <ul>
-                        <li>Reload the page.</li>
-                        <li>Check that your internet connection is working.</li>
-                        <li>If the above doesn't help,
-                            <a style="color:pink"
-                            href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
-                            target="_top">send us an email</a>
-                            with the following information:
-                            <ol>
-                                <li>A link to the current web page;</li>
-                                <li>Your Worker ID;</li>
-                                <li>The problem you're experiencing.</li>
-                            </ol>
-                        </li>
-                    </ul>
+                    <div style="margin: 20px">
+                        <h3>In case of a problem, try the following:</h3>
+                        <ul>
+                            <li>Reload the page.</li>
+                            <li>Check that your internet connection is working.</li>
+                            <li>If the above doesn't help,
+                                <a
+                                href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
+                                target="_top">send us an email</a>
+                                with the following information:
+                                <ol>
+                                    <li>A link to the current web page;</li>
+                                    <li>Your Worker ID;</li>
+                                    <li>The problem you're experiencing.</li>
+                                </ol>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         {% endblock %}
@@ -107,12 +109,11 @@
         {% block resume_modal %}
             <div id="resume_modal" class="modal">
                 <div class="modal-content">
-                    <span class="close">&times;</span>
                     <h3>Are you ready?</h3>
                     <p>
                         Click the button when you're ready to continue the experiment.
                     </p>
-                    <button type="button" class="btn btn-primary" id="resume_button" onclick="psynet.resume();">
+                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume_button" onclick="psynet.resume();">
                         Resume
                     </button>
                 </div>
@@ -122,19 +123,39 @@
 
     {% block footer %}
         {% if footer.show %}
-            <nav class="navbar navbar-fixed-bottom"
-                 style="background-color: #4989C8; color: white; margin: 0px; line-height: 33px; border-style: none">
-                <div id="media_download_progress_bar"
-                     style="width: {{ initial_download_progress }}%; height: 6px; background-color: #006191;"></div>
-                <div style="padding: 8px; padding-left: 20px; padding-right: 20px;">
-                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                        {% for text in footer.text_to_show %}
-                            <div style="margin: 0px">
-                                {{ text }}
-                            </div>
-                        {% endfor %}
+            <style>
+                #footer {
+                    background-color: rgb(49, 124, 246);
+                    color: white;
+                    margin: 0px;
+                    padding: 0px;
+                    line-height: 33px;
+                    border-style: none;
+                }
+                #media_download_progress_bar {
+                    width: {{ initial_download_progress }}%;
+                    height: 6px;
+                    background-color: black;
+                }
+                .footer-text {
+                    margin: 0px;
+                }
+                #help_button {
+                    min-width: 50px;
+                    background-color: white;
+                    color: black
+                }
+                #help_button:hover {
+                    background-color: rgb(234, 236, 239);
+                }
+            </style>
 
-                        <button type="button" class="btn btn-primary" id="help_button" style="min-width: 50px">Help!</button>
+            <nav id="footer" class="navbar fixed-bottom">
+                <div id="media_download_progress_bar"></div>
+                <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
+                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                        {% for text in footer.text_to_show %} <div class="footer-text"> {{ text }} </div> {% endfor %}
+                        <button type="button" class="btn btn-primary" id="help_button">Help!</button>
                     </div>
                 </div>
             </nav>
