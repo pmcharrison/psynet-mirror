@@ -28,8 +28,14 @@ class TestExp(object):
     def test_exp_selenium(self, bot_recruits):    #two_iterations, bot_recruits):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
-            time.sleep(1)
+
+            # Page 0
+            time.sleep(0.2)
+            assert driver.find_element_by_id("main-body").text == "Welcome to the experiment!\nNext"
+            next_page(driver, "next_button")
+
             # Page 1
+
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
                 driver.find_element_by_id("main-body").text
