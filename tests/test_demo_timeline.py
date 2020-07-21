@@ -32,14 +32,14 @@ class TestExp(object):
             # Page 1
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
-                driver.find_element_by_class_name("main_div").text
+                driver.find_element_by_id("main-body").text
             )
             button = driver.find_element_by_id("next_button")
             assert button.text == "Next"
             next_page(driver, "next_button")
 
             # Page 2
-            assert driver.find_element_by_class_name("main_div").text == "Write me a message!\nSubmit"
+            assert driver.find_element_by_id("main-body").text == "Write me a message!\nSubmit"
             text_input = driver.find_element_by_id("text_input")
             text_input.send_keys("Hello! I am a robot.")
             button = driver.find_element_by_id("submit_button")
@@ -47,37 +47,37 @@ class TestExp(object):
             next_page(driver, "submit_button")
 
             # Page 3
-            assert driver.find_element_by_class_name("main_div").text == "Your message: Hello! I am a robot.\nNext"
+            assert driver.find_element_by_id("main-body").text == "Your message: Hello! I am a robot.\nNext"
             next_page(driver, "next_button")
 
             # Page 4
-            assert driver.find_element_by_class_name("main_div").text == "Do you like chocolate?\nYes\nNo"
+            assert driver.find_element_by_id("main-body").text == "Do you like chocolate?\nYes\nNo"
             next_page(driver, "Yes")
 
             # Page 5
-            assert driver.find_element_by_class_name("main_div").text == "It's nice to hear that you like chocolate!\nNext"
+            assert driver.find_element_by_id("main-body").text == "It's nice to hear that you like chocolate!\nNext"
             next_page(driver, "next_button")
 
             # Loop
-            assert driver.find_element_by_class_name("main_div").text == "Would you like to stay in this loop?\nYes No"
+            assert driver.find_element_by_id("main-body").text == "Would you like to stay in this loop?\nYes No"
 
             for _ in range(3):
                 next_page(driver, "Yes")
-                assert driver.find_element_by_class_name(
-                    "main_div").text == "Would you like to stay in this loop?\nYes No"
+                assert driver.find_element_by_id(
+                    "main-body").text == "Would you like to stay in this loop?\nYes No"
 
             next_page(driver, "No")
 
-            assert driver.find_element_by_class_name(
-                "main_div").text == "What's your favourite colour?\nRed Green Blue"
+            assert driver.find_element_by_id(
+                "main-body").text == "What's your favourite colour?\nRed Green Blue"
             next_page(driver, "Red")
 
-            assert driver.find_element_by_class_name(
-                "main_div").text == "Red is a nice colour, wait 1s.\nNext"
+            assert driver.find_element_by_id(
+                "main-body").text == "Red is a nice colour, wait 1s.\nNext"
             next_page(driver, "next_button")
 
             # Final page
-            assert driver.find_element_by_class_name("main_div").text == (
+            assert driver.find_element_by_id("main-body").text == (
                 'That\'s the end of the experiment! In addition to your base payment of $0.10, '
                 'you will receive a bonus of $0.12 for the time you spent on the experiment. '
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'

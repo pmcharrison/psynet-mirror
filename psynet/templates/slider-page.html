@@ -1,31 +1,27 @@
 {% extends "timeline-page.html" %}
 
 {% macro slider(min_value, max_value, step_size) %}
-    <input class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
+    <input style="width: 250px" class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
            id="{{ slider_id }}" class="form-control-range"
            min="{{ min_value }}" max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}">
 {% endmacro %}
 
 {% block main_body %}
     {{ super() }}
-    <div class="main_div">
-        {{ prompt }}
 
-        <div class="form-group" style="padding-top:20px; padding-bottom:20px">
-            {{ slider(min_value, max_value, step_size) }}
-        </div>
+    {{ prompt }}
+
+    <p class="vspace"></p>
+
+    <div>
+        {{ slider(min_value, max_value, step_size) }}
     </div>
 
-    <hr>
+    <p class="vspace"></p>
 
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">
-                Submit
-            </button>
-        </div>
-    </div>
+    <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">
+        Submit
+    </button>
 {% endblock %}
 
 {% block scripts %}

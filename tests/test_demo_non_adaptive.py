@@ -57,7 +57,7 @@ class TestExp(object):
             for _ in range(num_remaining_trials + num_repeat_trials):
                 next_page(driver, "Very much")
 
-            assert driver.find_element_by_class_name("main_div").text == "You finished the animal questions! Your score was 0.\nNext"
+            assert driver.find_element_by_id("main-body").text == "You finished the animal questions! Your score was 0.\nNext"
 
             trials = NonAdaptiveTrial.query.all()
 

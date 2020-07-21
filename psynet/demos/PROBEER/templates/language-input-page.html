@@ -2,27 +2,21 @@
 
 {% block main_body %}
     {{ super() }}
-    <div class="main_div">
         {{ prompt }}
 
-        <div style="padding-top:20px; padding-bottom:20px">
-            <select id="example-filter-placeholder" multiple="multiple">
-                {% for code, language in languages.items() %}
-                    <option value="{{ code }}">{{ language }}</option>
-                {% endfor %}
-            </select>
-        </div>
+    <div style="padding-top:20px; padding-bottom:20px">
+        <select id="example-filter-placeholder" multiple="multiple">
+            {% for code, language in languages.items() %}
+                <option value="{{ code }}">{{ language }}</option>
+            {% endfor %}
+        </select>
     </div>
 
-    <hr>
+    <p class="vspace"></p>
 
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">Submit
-            </button>
-        </div>
-    </div>
+    <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">
+        Submit
+    </button>
 {% endblock %}
 
 {% block scripts %}
