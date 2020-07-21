@@ -4,12 +4,10 @@
 {% import "macros/control.html" as psynet_controls %}
 
 {% macro next_button() %}
-    <hr>
-
-    <div class="row">
+    <div class="row" style="margin-top: 30px">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg submit" onClick="psynet.next_page();">Next
+            <button type="button" id="next_button" class="btn btn-primary btn-lg submit" onClick="psynet.next_page();">Next
             </button>
         </div>
     </div>

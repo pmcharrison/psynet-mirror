@@ -31,12 +31,14 @@
 
 {% block main_body %}
     {{super()}}
-    <div class="main_div">
-        {{ prompt }}
-
-        <hr>
-
+    <div>
         <div class="row">
+            <div class="col-xs-12">
+                {{prompt}}
+            </div>
+        </div>
+
+        <div class="row" style="margin-top: 50px">
             {{make_buttons(buttons, arrange_vertically)}}
         </div>
 

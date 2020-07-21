@@ -1,7 +1,11 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-    {{content}}
+    <div class="row">
+        <div class="col-xs-12">
+            {{content}}
+        </div>
+    </div>
     
     {{next_button()}}
 {% endblock %}

@@ -14,24 +14,31 @@
 
 {% block main_body %}
     {{super()}}
-    <div class="main_div">
-        {{prompt}}
 
-        <div style="padding-top:20px; padding-bottom:20px">
-            {% if (one_line) %}
-                {{one_line_input(style)}}
-            {% else %}
-                {{multi_line_input(style)}}
-            {% endif %}
+    <style>
+        #text_input {
+            min-width: 500px
+        }
+    </style>
+
+    <div class="row">
+        <div class="col-xs-12">
+            {{prompt}}
+
+            <div style="padding-top:20px; padding-bottom:20px">
+                {% if (one_line) %}
+                    {{one_line_input(style)}}
+                {% else %}
+                    {{multi_line_input(style)}}
+                {% endif %}
+            </div>
         </div>
     </div>
-
-    <hr>
 
     <div class="row">
         <div class="col-xs-10"></div>
         <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-success btn-lg submit" onClick="submit();">Submit</button>
+            <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">Submit</button>
         </div>
     </div>
 {% endblock %}
