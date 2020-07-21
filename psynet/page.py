@@ -749,8 +749,10 @@ class DebugResponsePage(PageMaker):
             f"""
             <h3>Page type</h3>
             {page_type}
+            <p class="vspace"></p>
             <h3>Answer</h3>
             {answer}
+            <p class="vspace"></p>
             <h3>Metadata</h3>
             <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
             """

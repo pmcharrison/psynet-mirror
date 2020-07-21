@@ -49,6 +49,11 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        .vspace {
+            height: 25px;
+            margin: 0px
+        }
     </style>
 
     {% for x in css %}
@@ -73,7 +78,7 @@
         </div>
     {% endblock %}
 
-    <div class="container" style="padding: 5% 10% 5% 10%;">
+    <div style="padding: 5% 10% 5% 10%;">
         {% block main_body %}
 
         {% endblock %}

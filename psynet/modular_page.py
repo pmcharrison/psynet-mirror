@@ -569,6 +569,8 @@ class ModularPage(Page):
 
         {{{{ {self.prompt_macro}(prompt_config) }}}}
 
+        <p class="vspace"></p>
+
         {{{{ {self.control_macro}(control_config) }}}}
 
         {{% endblock %}}

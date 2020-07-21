@@ -2,16 +2,12 @@
     {% if config.text is not none %}
         <style>
             #prompt-text {
-                margin-top: 15px;
-                margin-bottom: 15px;
                 text-align: {{ config.text_align }};
             }
         </style>
 
-        <div class="row">
-            <div id="prompt-text" class="col">
-                {{ config.text }}
-            </div>
+        <div id="prompt-text">
+            {{ config.text }}
         </div>
     {% endif %}
 {% endmacro %}
@@ -63,9 +59,7 @@
         }
     </style>
 
-    <div class="row">
-        <img id="prompt_image" class="col" src="{{ config.url }}" alt="Image not found">
-    </div>
+    <img id="prompt_image" src="{{ config.url }}" alt="Image not found">
 
     {% if config.hide_after is not none %}
         <script>
@@ -108,10 +102,8 @@
         }
     </style>
 
-    <div class="row">
-        <div class="colour-box-container col">
-            <div class="colour-box"></div>
-        </div>
+    <div class="colour-box-container">
+        <div class="colour-box"></div>
     </div>
 
     {{ simple(config) }}

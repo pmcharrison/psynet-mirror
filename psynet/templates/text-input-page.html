@@ -21,26 +21,21 @@
         }
     </style>
 
-    <div class="row">
-        <div class="col">
-            {{prompt}}
+    {{prompt}}
 
-            <div style="padding-top:20px; padding-bottom:20px">
-                {% if (one_line) %}
-                    {{one_line_input(style)}}
-                {% else %}
-                    {{multi_line_input(style)}}
-                {% endif %}
-            </div>
-        </div>
+    <p class="vspace"></p>
+
+    <div style="padding-top:20px; padding-bottom:20px">
+        {% if (one_line) %}
+            {{one_line_input(style)}}
+        {% else %}
+            {{multi_line_input(style)}}
+        {% endif %}
     </div>
 
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">Submit</button>
-        </div>
-    </div>
+    <p class="vspace"></p>
+
+    <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">Submit</button>
 {% endblock %}
 
 {% block scripts %}

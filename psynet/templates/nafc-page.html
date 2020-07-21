@@ -32,16 +32,11 @@
 {% block main_body %}
     {{super()}}
     <div>
-        <div class="row">
-            <div class="col">
-                {{prompt}}
-            </div>
-        </div>
+        {{prompt}}
 
-        <div class="row" style="margin-top: 50px">
-            {{make_buttons(buttons, arrange_vertically)}}
-        </div>
+        <p class="vspace"></p>
 
+        {{make_buttons(buttons, arrange_vertically)}}
     </div>
 {% endblock %}
 
