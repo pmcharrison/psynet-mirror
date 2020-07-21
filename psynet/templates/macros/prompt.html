@@ -1,15 +1,17 @@
 {% macro simple(config) %}
     {% if config.text is not none %}
         <style>
-            #prompt_text {
+            #prompt-text {
                 margin-top: 15px;
                 margin-bottom: 15px;
                 text-align: {{ config.text_align }};
             }
         </style>
 
-        <div id="prompt_text">
-            {{ config.text }}
+        <div class="row">
+            <div id="prompt-text" class="col">
+                {{ config.text }}
+            </div>
         </div>
     {% endif %}
 {% endmacro %}
@@ -61,7 +63,9 @@
         }
     </style>
 
-    <img id="prompt_image" src="{{ config.url }}" alt="Image not found">
+    <div class="row">
+        <img id="prompt_image" class="col" src="{{ config.url }}" alt="Image not found">
+    </div>
 
     {% if config.hide_after is not none %}
         <script>
@@ -90,15 +94,11 @@
 
 {% macro colour(config) %}
     <style>
-        /* .main_div {
-            background-color: white;
-            padding: 30px;
-        } */
-        .colour_box_container {
+        .colour-box-container {
             display: flex;
             justify-content: center;
         }
-        .colour_box {
+        .colour-box {
             width: 200px;
             height: 200px;
             margin: 0px;
@@ -108,8 +108,10 @@
         }
     </style>
 
-    <div class="colour_box_container">
-        <div class="colour_box"></div>
+    <div class="row">
+        <div class="colour-box-container col">
+            <div class="colour-box"></div>
+        </div>
     </div>
 
     {{ simple(config) }}
