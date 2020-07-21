@@ -185,104 +185,11 @@ class Experiment(dallinger.experiment.Experiment):
     def assignment_reassigned(self, participant):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
 
-    def network_structure(self):
-        from dallinger import models
-        from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
-
-        jnodes = [n.__json__() for n in Node.query.all()]
-        jnetworks = [n.__json__() for n in Network.query.all()]
-        jinfos = [n.__json__() for n in Info.query.all()]
-        jparticipants = [n.__json__() for n in Participant.query.all()]
-
-        jvectors = [{
-            "origin_id": v.origin_id,
-            "destination_id": v.destination_id,
-            "id": v.id,
-            "failed": v.failed
-        } for v in Vector.query.all()]
-
-        return {
-            "networks": jnetworks,
-            "nodes": jnodes,
-            "vectors": jvectors,
-            "infos": jinfos,
-            "participants": jparticipants,
-            "trans": []
-        }
-
-    def network_stats(self):
-        from dallinger import models
-        from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
-
-        networks = Network.query.all()
-        nodes = Node.query.all()
-        infos = Info.query.all()
-        participants = Participant.query.all()
-
-        experiment_networks = set([net.id for net in networks if (net.role!= "practice")])
-
-        failed_nodes = [node for node in nodes if node.failed]
-        failed_infos = [info for info in infos if info.failed]
-
-        pct_failed_nodes = round(100.0*len(failed_nodes)/(0.001+len(nodes)))
-        pct_failed_infos = round(100.0*len(failed_infos)/(0.001+len(infos)))
-
-        msg_networks = f"# networks = {len(networks)} (experiment= {len(experiment_networks)})"
-        msg_nodes = f"# nodes = {len(nodes)} [failed= {len(failed_nodes)} ({pct_failed_nodes} %)]"
-        msg_infos = f"# infos = {len(infos)} [failed= {len(failed_infos)} ({pct_failed_infos} %)]"
-
-        active_participants = 0
-        relevant_participants = [p for p in participants if (p.status=="working")]
-        for participant in relevant_participants:
-            nets_for_p = len([node for node in nodes if (node.participant_id == participant.id)])
-            if (nets_for_p <= 1): # make sure player played at least one valid nodes
-                continue
-            active_participants = active_participants + 1
-        msg_part = f"# participants = {len(participants)} working: {len(relevant_participants)} active: {active_participants}"
-
-        # times = (participant['end_time'].astype('datetime64[m]') - participant['creation_time'].astype('datetime64[m]'))[participant['bonus'] > 2.5].astype('timedelta64[m]')
-
-        def minute_duration_per_participant(participant):
-            return (participant.end_time - participant.creation_time).seconds / 60
-
-        durations = [minute_duration_per_participant(p) for p in participants if p.complete and p.status == "approved"]
-        avg_duration = 0
-        if len(durations) > 0:
-            avg_duration = sum(durations) / len(durations)
-        from math import ceil
-        estimated_duration = ceil((self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=9)/9)*60)
-
-        return {
-            'n_participants': len(participants),
-            'n_relevant_participants': len(relevant_participants),
-            'n_active_participants': active_participants,
-            'n_networks': len(networks),
-            'n_e_networks': len(experiment_networks),
-            'nodes': len(nodes),
-            'failed_nodes': len(failed_nodes),
-            'infos': len(infos),
-            'failed_infos': len(failed_infos),
-            'msg_networks': msg_networks,
-            'msg_nodes': msg_nodes,
-            'msg_infos': msg_infos,
-            'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n",
-            'durations': durations,
-            'avg_duration': avg_duration,
-            'estimated_duration': estimated_duration,
-        }
-
     def bonus(self, participant):
         return round(
             participant.time_credit.get_bonus() + participant.performance_bonus,
             ndigits=2
         )
-
-    def render_monitor_template(self):
-        res = self.network_structure()
-        stat = self.network_stats()
-        data = {"status": "success", "net_structure": res}
-        html = get_template("network-monitor.html")
-        return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = stat)
 
     def init_participant(self, participant_id):
         logger.info("Initialising participant {}...".format(participant_id))
@@ -342,10 +249,6 @@ class Experiment(dallinger.experiment.Experiment):
         routes = Blueprint(
             "extra_routes", __name__, template_folder="templates", static_folder="static"
         )
-
-        @routes.route("/monitor", methods=["GET"])
-        def route_monitor():
-            return self.render_monitor_template()
 
         @routes.route("/start", methods=["GET"])
         def route_start():
