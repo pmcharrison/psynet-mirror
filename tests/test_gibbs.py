@@ -1,13 +1,7 @@
-import pytest
 from psynet.trial.gibbs import GibbsNode
 from statistics import mean
 
 from dallinger.models import Network
-from dallinger.experiment import Experiment
-
-@pytest.fixture
-def experiment(db_session):
-    return Experiment(session=db_session)
 
 def make_gibbs_node(cls, experiment):
     seed = {

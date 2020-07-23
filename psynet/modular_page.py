@@ -160,17 +160,16 @@ class AudioPrompt(Prompt):
         return MediaSpec(audio={"prompt": self.url})
 
     def visualize(self, trial):
-        return (
-            super.visualize(trial) +
+        html = (
+            super().visualize(trial) +
             "\n" +
             tags.audio(
-                tags.source(
-                    src=trial.url,
-                    type="audio"
-                ),
+                tags.source(src=self.url),
                 id="visualize-audio-prompt",
-            )
-        ).render()
+                controls=True
+            ).render()
+        )
+        return html
 
 class ImagePrompt(Prompt):
     """
