@@ -2,6 +2,10 @@ import json
 import tempfile
 import boto3.exceptions
 import os
+import dominate
+
+from dominate import tags
+from dominate.util import raw
 
 from flask import Markup
 from typing import Union, Optional, List
@@ -78,6 +82,14 @@ class Prompt():
     @property
     def media(self):
         return MediaSpec()
+
+    def visualize(self, trial):
+        if self.text is None:
+            return ""
+        elif isinstance(self.text, Markup):
+            return str(self.text)
+        else:
+            return tags.p(self.text).render()
 
 class AudioPrompt(Prompt):
     """
@@ -377,6 +389,9 @@ class Control():
         """
         return None
 
+    def visualize_response(self, answer, response, trial):
+        return ""
+
 class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
@@ -452,6 +467,23 @@ class NAFCControl(Control):
             "choices": self.choices,
             "labels": self.labels
         }
+
+    def visualize_response(self, answer, response, trial):
+        html = tags.div(id="response-options")
+        with html:
+            for choice, label in zip(self.choices, self.labels):
+                tags.input(
+                    type="radio",
+                    id=choice,
+                    name="response-options",
+                    value=choice,
+                    checked=(answer is not None and choice == answer),
+                    disabled=True
+                )
+                tags.span(label)
+                tags.br()
+        return html.render()
+
 
 class TextControl(Control):
     """
@@ -628,6 +660,38 @@ class ModularPage(Page):
             )
             if path is not None
         ])
+
+    def visualize(self, trial):
+        prompt = self.prompt.visualize(trial)
+        response = self.control.visualize_response(
+            answer=trial.answer,
+            response=trial.response,
+            trial=trial
+        )
+        div = tags.div(id="trial-visualization")
+        div_style = (
+            "background-color: white; padding: 10px; "
+            "margin-top: 10px; margin-bottom: 10px; "
+            "border-style: solid; border-width: 1px;"
+        )
+        with div:
+            if prompt != "":
+                tags.h3("Prompt"),
+                tags.div(
+                    raw(prompt),
+                    id="prompt-visualization",
+                    style=div_style
+                )
+            if prompt != "" and response != "":
+                tags.br()
+            if response != "":
+                tags.h3("Response"),
+                tags.div(
+                    raw(response),
+                    id="response-visualization",
+                    style=div_style
+                )
+        return div.render()
 
     def format_answer(self, raw_answer, **kwargs):
         """

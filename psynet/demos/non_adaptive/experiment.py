@@ -7,21 +7,16 @@
 from flask import Markup
 
 import psynet.experiment
-from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page,
     Timeline,
-    PageMaker,
-    CodeBlock,
-    while_loop,
-    conditional,
-    switch
 )
 from psynet.page import (
     InfoPage,
-    SuccessfulEndPage,
-    NAFCPage
+    SuccessfulEndPage
+)
+from psynet.modular_page import (
+    ModularPage,
+    NAFCControl
 )
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
@@ -67,21 +62,21 @@ class AnimalTrial(NonAdaptiveTrial):
         animal = self.definition["animal"]
         block = self.block
 
-        header = f"<h3 id='trial-position'>Trial {self.position + 1}</h3>"
+        header = f"<h4 id='trial-position'>Trial {self.position + 1}</h3>"
 
         if self.is_repeat_trial:
-            header = header + f"<h3>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+            header = header + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
         else:
-            header = header + f"<h3>Block {block}</h3>"
+            header = header + f"<h4>Block {block}</h3>"
 
-        page = NAFCPage(
+        page = ModularPage(
             "animal_trial",
             Markup(
                 f"""
                 {header}
                 <p style='color: {text_color}'>How much do you like {animal}?</p>
                 """),
-            ["Not at all", "A little", "Very much"]
+            NAFCControl(["Not at all", "A little", "Very much"])
         )
 
         return page

@@ -28,6 +28,7 @@ setuptools.setup(
         "dallinger>=6.3.0",
         "click",
         "datetime",
+        "dominate",
         "flask",
         "importlib_resources",
         "pandas",

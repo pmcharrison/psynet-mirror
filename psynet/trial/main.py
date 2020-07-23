@@ -10,6 +10,7 @@ from math import isnan, nan
 from typing import Union, Optional
 from uuid import uuid4
 
+import dallinger.experiment
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network, Node
@@ -27,6 +28,7 @@ from ..timeline import (
     ParticipantFailRoutine,
     RecruitmentCriterion,
     BackgroundTask,
+    Response,
     Module,
     conditional,
     switch,
@@ -237,9 +239,9 @@ class Trial(Info, AsyncProcessOwner):
     complete = claim_field(2, bool)
     is_repeat_trial = claim_field(3, bool)
 
-    answer = claim_var("answer")
-    propagate_failure = claim_var("propagate_failure")
-    response_id = claim_var("response_id")
+    answer = claim_var("answer", use_default=True)
+    propagate_failure = claim_var("propagate_failure", use_default=True)
+    response_id = claim_var("response_id", use_default=True)
     repeat_trial_index = claim_var("repeat_trial_index")
     num_repeat_trials = claim_var("num_repeat_trials")
 
@@ -299,6 +301,16 @@ class Trial(Info, AsyncProcessOwner):
             .all()
         )
 
+    @property
+    def visualization_html(self):
+        experiment = dallinger.experiment.load()
+        participant = self.participant
+        page = self.show_trial(
+            experiment=experiment,
+            participant=participant
+        )
+        return page.visualize(trial=self)
+
     def fail(self):
         """
         Marks a trial as failed. Failing a trial means that it is somehow
@@ -322,6 +334,12 @@ class Trial(Info, AsyncProcessOwner):
         Determines whether a trial is ready to give feedback to the participant.
         """
         return self.complete and ((not self.wait_for_feedback) or (not self.awaiting_async_process))
+
+    @property
+    def response(self):
+        if self.response_id is None:
+            return None
+        return Response.query.filter_by(id=self.response_id).one()
 
     #################
 

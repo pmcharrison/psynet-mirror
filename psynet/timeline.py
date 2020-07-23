@@ -378,6 +378,9 @@ class Page(Event):
         else:
             return 100
 
+    def visualize(self, trial):
+        return ""
+
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
