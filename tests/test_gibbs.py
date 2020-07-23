@@ -1,3 +1,4 @@
+import pytest
 from psynet.trial.gibbs import GibbsNode
 from statistics import mean
 
@@ -17,10 +18,11 @@ def make_gibbs_node(cls, experiment):
         participant=None
     )
 
-def test_summarise(experiment):
+@pytest.mark.usefixtures("demo_iterated_singing") # we can replace this with the gibbs demo eventually
+def test_summarise(experiment_object):
     class Node1(GibbsNode):
         summarise_trials_method = "mean"
-    n1 = make_gibbs_node(Node1, experiment)
+    n1 = make_gibbs_node(Node1, experiment_object)
 
     observations = [0, 1, 8, 9, 10]
 
@@ -28,19 +30,19 @@ def test_summarise(experiment):
 
     class Node2(GibbsNode):
         summarise_trials_method = "median"
-    n2 = make_gibbs_node(Node2, experiment)
+    n2 = make_gibbs_node(Node2, experiment_object)
 
     assert n2.summarise_trial_dimension(observations) == 8
 
     class Node3(GibbsNode):
         summarise_trials_method = "kernel_mode"
         kernel_width = [1]
-    n3 = make_gibbs_node(Node3, experiment)
+    n3 = make_gibbs_node(Node3, experiment_object)
 
     class Node4(GibbsNode):
         summarise_trials_method = "kernel_mode"
         kernel_width = [7]
-    n4 = make_gibbs_node(Node4, experiment)
+    n4 = make_gibbs_node(Node4, experiment_object)
 
     assert n3.summarise_trial_dimension(observations) == 9.0
     assert 5.9 < n4.summarise_trial_dimension(observations) < 6.1
@@ -52,12 +54,12 @@ def test_summarise(experiment):
     class Node5a(GibbsNode):
         summarise_trials_method = "kernel_mode"
         kernel_width = "cv_ls"
-    n5a = make_gibbs_node(Node5a, experiment)
+    n5a = make_gibbs_node(Node5a, experiment_object)
 
     class Node5b(GibbsNode):
         summarise_trials_method = "kernel_mode"
         # kernel_width should be the same as Node4a, because cv_ls is the default
-    n5b = make_gibbs_node(Node5b, experiment)
+    n5b = make_gibbs_node(Node5b, experiment_object)
 
     observations_3 = [0, 2, 3]
 

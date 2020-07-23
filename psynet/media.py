@@ -17,7 +17,7 @@ logger = get_logger()
 
 # For debugging, currently only partly implemented
 LOCAL_S3 = False
-LOCAL_S3_CLONE = None
+LOCAL_S3_CLONE = "local-s3-clone"
 
 def make_batch_file(in_files, output_path):
     with open(output_path, "wb") as output:

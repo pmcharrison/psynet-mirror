@@ -84,7 +84,7 @@ class CustomTrial(AudioImitationChainTrial):
             "error": error,
             "midi": midi,
             "raw": raw,
-            "no_plot_generated": True
+            "no_plot_generated": False
         }
 
 def diff(x):
@@ -177,16 +177,16 @@ class Exp(psynet.experiment.Experiment):
             phase="experiment",
             time_estimate_per_trial=5,
             chain_type="across",
-            num_nodes_per_chain=5,
-            num_trials_per_participant=2,
+            num_nodes_per_chain=11,
+            num_trials_per_participant=5,
             num_chains_per_participant=None,
-            num_chains_per_experiment=2,
+            num_chains_per_experiment=5,
             trials_per_node=1,
             active_balancing_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
-            recruit_mode="num_participants",
-            target_num_participants=100
+            recruit_mode="num_trials",
+            target_num_participants=None
         ),
         SuccessfulEndPage()
     )

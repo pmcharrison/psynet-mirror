@@ -1,8 +1,5 @@
 import json
 import tempfile
-import boto3.exceptions
-import os
-import dominate
 
 from dominate import tags
 from dominate.util import raw
@@ -17,8 +14,7 @@ from .timeline import (
     MediaSpec,
     is_list_of
 )
-from .media import upload_to_s3, create_bucket, make_bucket_public
-from .utils import merge_dicts
+from .media import upload_to_s3, create_bucket, make_bucket_public, get_s3_url
 
 class Prompt():
     """
@@ -899,9 +895,19 @@ class AudioRecordControl(Control):
             return {
                 "s3_bucket": self.s3_bucket,
                 "key": key,
-                "url": os.path.join("https://s3.amazonaws.com", self.s3_bucket, key),
+                "url": get_s3_url(self.s3_bucket, key),
                 "duration_sec": duration_sec
             }
+
+    def visualize_response(self, answer, response, trial):
+        if answer is None:
+            return tags.p("No audio recorded yet.").render()
+        else:
+            return tags.audio(
+                tags.source(src=answer["url"]),
+                id="visualize-audio-response",
+                controls=True
+            ).render()
 
 class VideoSliderControl(Control):
     macro = "video_slider"

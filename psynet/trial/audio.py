@@ -2,11 +2,12 @@
 
 import os
 import tempfile
+import dominate.tags as tags
 
 from uuid import uuid4
 from dallinger import db
 
-from ..media import download_from_s3, upload_to_s3, recode_wav
+from ..media import download_from_s3, upload_to_s3, recode_wav, get_s3_url
 from ..field import claim_field, claim_var
 
 from .main import Trial
@@ -40,9 +41,42 @@ class AudioRecordTrial():
             raise KeyError(str(e) + " Did the trial include an AudioRecordControl, as required?")
 
     @property
+    def has_recording(self):
+        return self.recording_info is not None
+
+    @property
+    def audio_url(self):
+        if self.has_recording:
+            return self.recording_info["url"]
+
+    @property
     def plot_key(self):
-        base = os.path.splitext(self.recording_info["key"])[0]
-        return base + ".png"
+        if self.has_recording:
+            base = os.path.splitext(self.recording_info["key"])[0]
+            return base + ".png"
+
+    @property
+    def s3_bucket(self):
+        if self.has_recording:
+            return self.recording_info["s3_bucket"]
+
+    @property
+    def plot_url(self):
+        if self.has_recording:
+            return get_s3_url(self.s3_bucket, self.plot_key)
+
+    @property
+    def visualization_html(self):
+        html = super().visualization_html
+        if self.has_recording:
+            html += tags.div(
+                tags.img(
+                    src=self.plot_url,
+                    style="max-width: 100%;"
+                ),
+                style="border-style: solid; border-width: 1px;"
+            ).render()
+        return html
 
     def async_post_trial(self):
         logger.info("Analysing recording for trial %i...", self.id)
