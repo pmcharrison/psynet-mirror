@@ -159,6 +159,19 @@ class AudioPrompt(Prompt):
     def media(self):
         return MediaSpec(audio={"prompt": self.url})
 
+    def visualize(self, trial):
+        return (
+            super.visualize(trial) +
+            "\n" +
+            tags.audio(
+                tags.source(
+                    src=trial.url,
+                    type="audio"
+                ),
+                id="visualize-audio-prompt",
+            )
+        ).render()
+
 class ImagePrompt(Prompt):
     """
     Displays an image to the participant.
