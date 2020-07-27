@@ -356,6 +356,11 @@ class Trial(Info, AsyncProcessOwner):
         self.is_repeat_trial = is_repeat_trial
         self.definition = self.make_definition(experiment, participant)
 
+    def json_data(self):
+        x = super().json_data()
+        x["participant_id"] = self.participant_id
+        return x
+
     def make_definition(self, experiment, participant):
         """
         Creates and returns a definition for the trial,
