@@ -9,6 +9,7 @@ import json
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from typing import List, Optional, Dict, Callable
+from collections import Counter
 
 from .utils import dict_to_js_vars, call_function, check_function_args, merge_dicts, get_logger
 from . import templates
@@ -763,6 +764,7 @@ class Timeline():
             raise ValueError("The final element in the timeline must be a EndPage.")
         self.check_for_time_estimate()
         self.check_start_fix_times()
+        self.check_modules()
 
     def check_for_time_estimate(self):
         for i, event in enumerate(self.events):
@@ -786,6 +788,13 @@ class Timeline():
                 "Such constructs cannot be nested; instead you should choose one level "
                 "at which to set fix_time_credit=True."
             )
+
+    def check_modules(self):
+        modules = [x.label for x in self.events if isinstance(x, StartModule)]
+        counts = Counter(modules)
+        duplicated = [key for key, value in counts.items() if value > 1]
+        if len(duplicated) > 0:
+            raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
 
     def add_event_ids(self):
         for i, event in enumerate(self.events):
