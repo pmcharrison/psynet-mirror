@@ -178,12 +178,15 @@ class Experiment(dallinger.experiment.Experiment):
 
     def assignment_abandoned(self, participant):
         participant.append_failure_tags("assignment_abandoned", "premature_exit")
+        super().assignment_abandoned(participant)
 
     def assignment_returned(self, participant):
         participant.append_failure_tags("assignment_returned", "premature_exit")
+        super().assignment_abandoned(participant)
 
     def assignment_reassigned(self, participant):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
+        super().assignment_abandoned(participant)
 
     def bonus(self, participant):
         return round(
