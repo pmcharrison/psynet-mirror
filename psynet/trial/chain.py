@@ -1,5 +1,6 @@
 import random
 import datetime
+import warnings
 from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
 
@@ -974,9 +975,18 @@ class ChainTrialMaker(NetworkTrialMaker):
         Number of chains to be created for the entire experiment;
         only relevant if ``chain_type="across"``.
 
+    num_iterations_per_chain
+        Specifies chain length in terms of the
+        number of data-collection iterations that are required to complete a chain.
+        The number of successful participant trials required to complete the chain then
+        corresponds to ``trials_per_node * num_iterations_per_chain``.
+        Previously chain length was specified using the now-deprecated argument ``num_nodes_per_chain``.
+
     num_nodes_per_chain
-        Maximum number of nodes in the chain before the chain is marked as
-        full and no more nodes will be added.
+        [DEPRECATED; new code should use ``num_iterations_per_chain`` and leave this argument empty.]
+        Maximum number of nodes in the chain before the chain is marked as full and no more nodes will be added.
+        The final node receives no participant trials, but instead summarises the state of the network.
+        So, ``num_nodes_per_chain`` is equal to ``1 + num_iterations_per_chain``.
 
     trials_per_node
         Number of satisfactory trials to be received by the last node
@@ -1093,19 +1103,20 @@ class ChainTrialMaker(NetworkTrialMaker):
         num_trials_per_participant: int,
         num_chains_per_participant: Optional[int],
         num_chains_per_experiment: Optional[int],
-        num_nodes_per_chain: int,
         trials_per_node: int,
         active_balancing_across_chains: bool,
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         recruit_mode: str,
         target_num_participants=Optional[int],
+        num_iterations_per_chain: Optional[int] = None,
+        num_nodes_per_chain: Optional[int] = None,
         fail_trials_on_premature_exit: bool = False,
         fail_trials_on_participant_performance_check: bool = False,
         propagate_failure: bool = True,
         num_repeat_trials: int = 0,
         wait_for_networks: bool = False,
-        allow_revisiting_networks_in_across_chains: bool = False
+        allow_revisiting_networks_in_across_chains: bool = False,
     ):
         assert chain_type in ["within", "across"]
 
@@ -1124,6 +1135,15 @@ class ChainTrialMaker(NetworkTrialMaker):
                 "In within-chain experiments the 'num_trials' recruit method is not available."
         )
 
+        if (num_nodes_per_chain is not None) and (num_iterations_per_chain is not None):
+            raise ValueError("num_nodes_per_chain and num_iterations_per_chain cannot both be provided")
+        elif num_nodes_per_chain is not None:
+            num_iterations_per_chain = num_nodes_per_chain - 1
+            warnings.warn("num_nodes_per_chain is deprecated, use num_iterations_per_chain instead", DeprecationWarning)
+        elif num_iterations_per_chain is not None:
+            pass
+        elif (num_nodes_per_chain is None) and (num_iterations_per_chain is None):
+            raise ValueError("one of num_nodes_per_chain and num_iterations_per_chain must be provided")
 
         self.node_class = node_class
         self.source_class = source_class
@@ -1134,7 +1154,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.num_trials_per_participant = num_trials_per_participant
         self.num_chains_per_participant = num_chains_per_participant
         self.num_chains_per_experiment = num_chains_per_experiment
-        self.num_nodes_per_chain = num_nodes_per_chain
+        self.num_iterations_per_chain = num_iterations_per_chain
+        self.num_nodes_per_chain = num_iterations_per_chain + 1
         self.trials_per_node = trials_per_node
         self.active_balancing_across_chains = active_balancing_across_chains
         self.check_performance_at_end = check_performance_at_end
