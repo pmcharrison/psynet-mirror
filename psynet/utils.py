@@ -36,12 +36,10 @@ def import_local_experiment():
     # Imports experiment.py and returns it as a module.
     # Also adds the experiment directory to sys.path,
     # meaning that any other modules defined there can be imported using ``import``.`
-
+    # import pdb; pdb.set_trace()
     config = get_config()
-    if not config.ready:
-        config.load() # a side-effect is exposing dallinger_experiment
-    else:
-        initialize_experiment_package(os.getcwd())
+    config.load()
+    initialize_experiment_package(os.getcwd())
     dallinger_experiment = sys.modules.get("dallinger_experiment") # this corresponds to the experiment *package*
     sys.path.append(os.getcwd())
     return dallinger_experiment.experiment # this corresponds to the experiment *module*
