@@ -13,7 +13,7 @@ import logging
 from functools import reduce, wraps
 from sqlalchemy.sql import func
 
-from dallinger.config import get_config
+from dallinger.config import get_config, initialize_experiment_package
 
 def get_logger():
     logging.basicConfig(level=logging.INFO)
@@ -38,12 +38,13 @@ def import_local_experiment():
     # meaning that any other modules defined there can be imported using ``import``.`
 
     config = get_config()
-    # if not config.ready:
-    config.load() # a side-effect is exposing dallinger_experiment
-    dallinger_experiment = sys.modules.get("dallinger_experiment")
-    # from dallinger_experiment import experiment
+    if not config.ready:
+        config.load() # a side-effect is exposing dallinger_experiment
+    else:
+        initialize_experiment_package(os.getcwd())
+    dallinger_experiment = sys.modules.get("dallinger_experiment") # this corresponds to the experiment *package*
     sys.path.append(os.getcwd())
-    return dallinger_experiment.experiment
+    return dallinger_experiment.experiment # this corresponds to the experiment *module*
 
 # def import_local_experiment():
 #     sys.path.append(os.getcwd())

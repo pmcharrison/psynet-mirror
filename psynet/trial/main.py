@@ -341,6 +341,10 @@ class Trial(Info, AsyncProcessOwner):
             return None
         return Response.query.filter_by(id=self.response_id).one()
 
+    @property
+    def trial_maker_id(self):
+        return self.network.trial_maker_id
+
     #################
 
     def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
@@ -1051,8 +1055,10 @@ class TrialMaker(Module):
 
         """
         all_participant_trials = self.trial_class.query.filter_by(participant_id=participant.id).all()
-        trials_in_phase = [t for t in all_participant_trials if t.phase == self.phase]
-        return trials_in_phase
+        return [
+            t for t in all_participant_trials
+            if t.trial_maker_id == self.id and t.phase == self.phase # the latter check shouldn't strictly be necessary
+        ]
 
     def _prepare_trial(self, experiment, participant):
         if participant.var.get(self.with_namespace("in_repeat_phase")):

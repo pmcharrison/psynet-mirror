@@ -6,24 +6,27 @@ import time
 from collections import Counter
 from psynet.test import bot_class, next_page
 from psynet.trial.non_adaptive import NonAdaptiveNetwork, Stimulus, StimulusVersion, NonAdaptiveTrial
+from psynet.participant import Participant
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
+EXPERIMENT = None
 
-@pytest.fixture(scope="class")
-def exp_dir(root):
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/non_adaptive"))
+# @pytest.fixture(scope="class")
+# def exp_dir(root):
+#     global EXPERIMENT_MODULE
+#     os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/non_adaptive"))
+#
+#     import psynet.utils
+#     EXPERIMENT_MODULE = psynet.utils.import_local_experiment()
+#
+#     yield
+#     os.chdir(root)
 
-    import psynet.utils
-    psynet.utils.import_local_experiment()
+@pytest.mark.usefixtures("demo_non_adaptive")
+class TestExp():
 
-    yield
-    os.chdir(root)
-
-@pytest.mark.usefixtures("exp_dir")
-class TestExp(object):
-
-    def test_exp(self, bot_recruits, db_session):    #two_iterations, bot_recruits):
+    def test_exp(self, bot_recruits, db_session, trial_maker):    #two_iterations, bot_recruits):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(0.2)
@@ -74,6 +77,14 @@ class TestExp(object):
             assert list(trials_by_stimulus.values()) == [1, 1, 1, 1, 1, 1]  # no stimuli comes twice
 
             assert len([t for t in trials if t.is_repeat_trial]) == 3 # 3 repeat trials
+
+            participant = Participant.query.filter_by(id=1).one()
+            p_trials = trial_maker.get_participant_trials(participant=participant)
+
+            assert len(p_trials) == 9
+            for t in p_trials:
+                assert t.participant_id == 1
+                assert t.trial_maker_id == "animals"
 
             next_page(driver, "next_button")
             next_page(driver, "next_button", finished=True)

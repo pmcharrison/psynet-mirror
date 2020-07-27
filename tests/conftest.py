@@ -85,6 +85,13 @@ def trial_class(experiment_module):
         return experiment_module.CustomTrial
 
 @pytest.fixture
+def trial_maker(experiment_module):
+    if ACTIVE_EXPERIMENT == "non_adaptive":
+        return experiment_module.trial_maker
+    else:
+        raise NotImplementedError
+
+@pytest.fixture
 def trial(trial_class, db_session, experiment_object, node, participant):
     t = trial_class(
         experiment=experiment_object,

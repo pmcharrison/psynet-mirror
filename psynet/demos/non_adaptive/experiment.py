@@ -104,6 +104,24 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
             time_estimate=5
         )
 
+trial_maker = AnimalTrialMaker(
+    id_="animals",
+    trial_class=AnimalTrial,
+    phase="experiment",
+    stimulus_set=stimulus_set,
+    time_estimate_per_trial=3,
+    max_trials_per_block=2,
+    allow_repeated_stimuli=True,
+    max_unique_stimuli_per_block=None,
+    active_balancing_within_participants=True,
+    active_balancing_across_participants=True,
+    check_performance_at_end=True,
+    check_performance_every_trial=True,
+    target_num_participants=1,
+    target_num_trials_per_stimulus=None,
+    recruit_mode="num_participants",
+    num_repeat_trials=3
+)
 
 ##########################################################################################
 #### Experiment
@@ -114,24 +132,7 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        AnimalTrialMaker(
-            id_="animals",
-            trial_class=AnimalTrial,
-            phase="experiment",
-            stimulus_set=stimulus_set,
-            time_estimate_per_trial=3,
-            max_trials_per_block=2,
-            allow_repeated_stimuli=True,
-            max_unique_stimuli_per_block=None,
-            active_balancing_within_participants=True,
-            active_balancing_across_participants=True,
-            check_performance_at_end=True,
-            check_performance_every_trial=True,
-            target_num_participants=1,
-            target_num_trials_per_stimulus=None,
-            recruit_mode="num_participants",
-            num_repeat_trials=3
-        ),
+        trial_maker,
         SuccessfulEndPage()
     )
 
