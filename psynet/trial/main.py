@@ -14,11 +14,14 @@ import dallinger.experiment
 from dallinger import db
 import dallinger.models
 from dallinger.models import Info, Network, Node
+import dallinger.nodes
 
 from rq import Queue
 from dallinger.db import redis_conn
 
 from ..participant import Participant
+
+from .. import field
 from ..field import claim_field, claim_var, VarStore, UndefinedVariableError
 
 from ..timeline import (
@@ -62,9 +65,11 @@ logger = get_logger()
 import rpdb
 
 class AsyncProcessOwner():
+    __extra_vars__ = {}
+
     awaiting_async_process = claim_field(5, bool)
-    pending_async_processes = claim_var("pending_async_processes", use_default=True, default=lambda: {})
-    failed_async_processes = claim_var("failed_async_processes", use_default=True, default=lambda: {})
+    pending_async_processes = claim_var("pending_async_processes", __extra_vars__, use_default=True, default=lambda: {})
+    failed_async_processes = claim_var("failed_async_processes", __extra_vars__, use_default=True, default=lambda: {})
 
     @property
     def earliest_async_process_start_time(self):
@@ -233,22 +238,32 @@ class Trial(Info, AsyncProcessOwner):
     """
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
+    __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
 
     # Properties ###
     participant_id = claim_field(1, int)
     complete = claim_field(2, bool)
     is_repeat_trial = claim_field(3, bool)
 
-    answer = claim_var("answer", use_default=True)
-    propagate_failure = claim_var("propagate_failure", use_default=True)
-    response_id = claim_var("response_id", use_default=True)
-    repeat_trial_index = claim_var("repeat_trial_index")
-    num_repeat_trials = claim_var("num_repeat_trials")
+    answer = claim_var("answer", __extra_vars__, use_default=True)
+    propagate_failure = claim_var("propagate_failure", __extra_vars__, use_default=True)
+    response_id = claim_var("response_id", __extra_vars__, use_default=True)
+    repeat_trial_index = claim_var("repeat_trial_index", __extra_vars__)
+    num_repeat_trials = claim_var("num_repeat_trials", __extra_vars__)
 
     # Override this if you intend to return multiple pages
     num_pages = 1
 
     wait_for_feedback = True # determines whether feedback waits for async_post_trial
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_clean(x, details=True, contents=True)
+        x["definition"] = self.definition
+        field.json_add_extra_vars(x, self)
+        field.json_format_vars(x)
+        return x
+
 
     # @property
     # def num_pages(self):
@@ -1737,9 +1752,19 @@ class TrialNetwork(Network, AsyncProcessOwner):
     """
 
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
+    __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
 
     trial_maker_id = claim_field(1, str)
     target_num_trials = claim_field(2, int)
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_clean(x, details=True)
+        x["phase"] = self.phase
+        field.json_add_extra_vars(x, self)
+        del x["role"]
+        field.json_format_vars(x)
+        return x
 
     def calculate_full(self):
         "A more efficient version of Dallinger's built-in calculate_full method."
@@ -1781,7 +1806,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     @property
     def num_nodes(self):
-        return dallinger.models.Node.query.filter_by(network_id=self.id, failed=False).count()
+        return TrialNode.query.filter_by(network_id=self.id, failed=False).count()
 
     @property
     def num_completed_trials(self):
@@ -1831,3 +1856,25 @@ def call_async_post_grow_network(network_id, process_id):
         raise
     finally:
         db.session.commit() # pylint: disable=no-member
+
+class TrialNode(dallinger.models.Node):
+    __mapper_args__ = {"polymorphic_identity": "trial_node"}
+    __extra_vars__ = {}
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_clean(x, details=True)
+        field.json_add_extra_vars(x, self)
+        field.json_format_vars(x)
+        return x
+
+class TrialSource(dallinger.nodes.Source):
+    __mapper_args__ = {"polymorphic_identity": "trial_source"}
+    __extra_vars__ = {}
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_clean(x, details=True)
+        field.json_add_extra_vars(x, self)
+        field.json_format_vars(x)
+        return x

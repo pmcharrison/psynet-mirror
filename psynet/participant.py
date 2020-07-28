@@ -5,16 +5,15 @@ from sqlalchemy import desc
 import dallinger.models
 import datetime
 from . import field
-from .field import VarStore, claim_var
+from .field import VarStore, claim_var, json_clean, json_add_extra_vars
 from .timeline import Response
 import json
 import os
-from .utils import get_logger, serialise_datetime
+from .utils import get_logger, serialise_datetime, unserialise_datetime
 
 logger = get_logger()
 
 # pylint: disable=unused-import
-import rpdb
 
 class Participant(dallinger.models.Participant):
     """
@@ -98,6 +97,7 @@ class Participant(dallinger.models.Participant):
     """
 
     __mapper_args__ = {"polymorphic_identity": "participant"}
+    __extra_vars__ = {}
 
     event_id = field.claim_field(1, int)
     page_uuid = field.claim_field(2, str)
@@ -105,11 +105,33 @@ class Participant(dallinger.models.Participant):
     answer = field.claim_field(4, object)
     branch_log = field.claim_field(5, list)
 
-    failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
-    last_response_id = claim_var("last_response_id")
-    base_payment = claim_var("base_payment")
-    performance_bonus = claim_var("performance_bonus")
-    modules = claim_var("modules", use_default=True, default=lambda: {})
+    failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
+    last_response_id = claim_var("last_response_id", __extra_vars__)
+    base_payment = claim_var("base_payment", __extra_vars__)
+    performance_bonus = claim_var("performance_bonus", __extra_vars__)
+    modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_clean(x, details=True)
+        field.json_add_extra_vars(x, self)
+        x["started_modules"] = self.started_modules
+        x["finished_modules"] = self.finished_modules
+        del x["modules"]
+        field.json_format_vars(x)
+        return x
+
+    @property
+    def started_modules(self):
+        modules = [(key, value) for key, value in self.modules.items() if len(value["time_started"]) > 0]
+        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
+        return [m[0] for m in modules]
+
+    @property
+    def finished_modules(self):
+        modules = [(key, value) for key, value in self.modules.items() if len(value["time_started"]) > 0]
+        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
+        return [m[0] for m in modules]
 
     def start_module(self, label):
         modules = self.modules.copy()

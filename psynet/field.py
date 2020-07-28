@@ -1,8 +1,10 @@
 import copy
+import re
 
 from sqlalchemy import Boolean, String, Integer, Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
+from datetime import datetime
 
 import json
 
@@ -57,11 +59,16 @@ class Field():
 
 def claim_var(
         name,
+        extra_vars: dict,
         use_default=False,
         default=lambda: None,
         serialise=lambda x: x,
-        unserialise=lambda x: x
+        unserialise=lambda x: x,
+        overwrite=False
     ):
+    if name in extra_vars and not overwrite:
+        raise ValueError(f"tried to overwrite the variable {name} but overwrite was False")
+
     @property
     def function(self):
         try:
@@ -74,6 +81,10 @@ def claim_var(
     @function.setter
     def function(self, value):
         setattr(self.var, name, serialise(value))
+
+    extra_vars[name] = {
+        "function": function
+    }
 
     return function
 
@@ -218,7 +229,7 @@ class VarStore:
             all_vars[name] = value
             self.__dict__["_owner"].details = all_vars
 
-    def get(self, name: str):
+    def get(self, name: str, unserialise: bool = True):
         """
         Gets a variable with a specified name.
 
@@ -227,6 +238,7 @@ class VarStore:
 
         name
             Name of variable to retrieve.
+
 
         Returns
         -------
@@ -347,3 +359,33 @@ class VarStore:
         if self.has(name):
             raise ValueError(f"There is already a variable called {name}.")
         self.set(name, value)
+
+def json_clean(x, details=False, contents=False):
+    for i in range(5):
+        del x[f"property{i + 1}"]
+
+    del x["object_type"]
+
+    if details:
+        del x["details"]
+
+    if contents:
+        del x["contents"]
+
+def json_add_extra_vars(x, obj):
+    for key in obj.__extra_vars__.keys():
+        if not re.search("^__", key):
+            try:
+                val = getattr(obj, key)
+            except UndefinedVariableError:
+                val = None
+            x[key] = val
+    return x
+
+def json_format_vars(x):
+    for key, value in x.items():
+        if not isinstance(value, (int, float, str, bool, datetime)):
+            x[key] = json.dumps(value)
+        elif isinstance(value, datetime):
+            x[key] = value.strftime("%Y-%m-%d %H:%M")
+

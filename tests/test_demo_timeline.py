@@ -39,11 +39,14 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 1
-            modules = get_participant(1).modules
+            participant = get_participant(1)
+            modules = participant.modules
             assert list(modules.keys()) == ["introduction"]
             assert set(list(modules["introduction"].keys())) == {"time_started", "time_finished"}
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 0
+            assert participant.started_modules == ["introduction"]
+            assert participant.finished_modules == []
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
@@ -66,12 +69,15 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 4
-            modules = get_participant(1).modules
+            participant = get_participant(1)
+            modules = participant.modules
             assert set(list(modules.keys())) == {"chocolate", "introduction"}
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 1
             assert len(modules["chocolate"]["time_started"]) == 1
             assert len(modules["chocolate"]["time_finished"]) == 0
+            assert participant.started_modules == ["introduction", "chocolate"]
+            assert participant.finished_modules == ["introduction"]
 
             assert driver.find_element_by_id("main-body").text == "Do you like chocolate?\nYes\nNo"
             next_page(driver, "Yes")

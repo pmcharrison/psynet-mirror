@@ -12,9 +12,10 @@ import dallinger.nodes
 import dallinger.networks
 
 from ..page import wait_while
+from .. import field
 from ..field import claim_field, claim_var, VarStore
 from ..utils import negate
-from .main import Trial, TrialNetwork, NetworkTrialMaker
+from .main import Trial, TrialNetwork, NetworkTrialMaker, TrialNode, TrialSource
 
 # pylint: disable=unused-import
 import rpdb
@@ -117,13 +118,14 @@ class ChainNetwork(TrialNetwork):
     """
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
+    __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     participant_id = claim_field(3, int)
     id_within_participant = claim_field(4, int)
 
-    chain_type = claim_var("chain_type")
-    trials_per_node = claim_var("trials_per_node")
-    definition = claim_var("definition")
+    chain_type = claim_var("chain_type", __extra_vars__)
+    trials_per_node = claim_var("trials_per_node", __extra_vars__)
+    definition = claim_var("definition", __extra_vars__)
 
     # Note - the <details> slot is occupied by VarStore.
 
@@ -334,7 +336,7 @@ class ChainNetwork(TrialNetwork):
         super().fail_async_processes(reason)
         self.head.fail()
 
-class ChainNode(dallinger.models.Node):
+class ChainNode(TrialNode):
     """
     Represents a node in a chain network.
     In an experimental context, the node represents a state in the experiment;
@@ -459,6 +461,7 @@ class ChainNode(dallinger.models.Node):
 
 
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
+    __class_vars__ = {}
 
     def __init__(self, seed, degree: int, network, experiment, propagate_failure: bool, participant=None):
         # pylint: disable=unused-argument
@@ -619,7 +622,7 @@ class ChainNode(dallinger.models.Node):
                 if self.child:
                     self.child.fail()
 
-class ChainSource(dallinger.nodes.Source):
+class ChainSource(TrialSource):
     """
     Represents a source in a chain network.
     The source provides the seed from which the rest of the chain is ultimately derived.
@@ -674,6 +677,7 @@ class ChainSource(dallinger.nodes.Source):
     """
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
+    __extra_vars__ = TrialSource.__extra_vars__.copy()
 
     ready_to_spawn = True
     seed = claim_field(1)

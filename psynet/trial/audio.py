@@ -23,8 +23,10 @@ from ..utils import get_logger
 logger = get_logger()
 
 class AudioRecordTrial():
+    __extra_vars__ = {}
+
     run_async_post_trial = True
-    analysis = claim_var("analysis")
+    analysis = claim_var("analysis", __extra_vars__)
 
     @property
     def recording_info(self):
@@ -174,6 +176,10 @@ class AudioImitationChainTrial(AudioRecordTrial, ImitationChainTrial):
     """
 
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_trial"}
+    __extra_vars__ = {
+        **AudioRecordTrial.__extra_vars__,
+        **ImitationChainTrial.__extra_vars__
+    }
 
 class AudioImitationChainNode(ImitationChainNode):
     """
@@ -182,8 +188,9 @@ class AudioImitationChainNode(ImitationChainNode):
     :meth:`~psynet.trial.audio.AudioImitationChainNode.synthesise_target` method.
     """
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_node"}
+    __extra_vars__ = ImitationChainNode.__extra_vars__.copy()
 
-    target_url = claim_var("target_url")
+    target_url = claim_var("target_url", __extra_vars__)
 
     def synthesise_target(self, output_file):
         """

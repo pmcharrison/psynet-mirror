@@ -322,8 +322,9 @@ class AudioGibbsNode(GibbsNode):
     The user should not have to modify this.
     """
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_node"}
+    __extra_vars__ = GibbsNode.__extra_vars__.copy()
 
-    slider_stimuli = claim_var("slider_stimuli")
+    slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
 
 
 class AudioGibbsSource(GibbsSource):

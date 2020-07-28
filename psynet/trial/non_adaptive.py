@@ -35,7 +35,7 @@ from ..media import (
 
 from ..field import claim_field, claim_var
 from ..utils import DisableLogger, hash_object, import_local_experiment, get_logger
-from .main import Trial, TrialNetwork, NetworkTrialMaker
+from .main import Trial, TrialNetwork, NetworkTrialMaker, TrialNode, TrialSource
 from .. import command_line
 
 logger = get_logger()
@@ -49,7 +49,7 @@ def filter_for_completed_trials(x):
 def query_all_completed_trials():
     return filter_for_completed_trials(NonAdaptiveTrial.query)
 
-class Stimulus(dallinger.models.Node):
+class Stimulus(TrialNode):
     """
     A stimulus class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class.
@@ -211,7 +211,7 @@ class StimulusSpec():
         for s in self.version_specs:
             s.upload_media(s3_bucket, local_media_cache_dir, remote_media_dir)
 
-class StimulusVersion(dallinger.models.Node):
+class StimulusVersion(TrialNode):
     """
     A stimulus version class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class;
@@ -1387,12 +1387,13 @@ class NonAdaptiveNetwork(TrialNetwork):
     #pylint: disable=abstract-method
 
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
+    __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     participant_group = claim_field(3, str)
     block = claim_field(4, str)
 
-    creation_started = claim_var("creation_started")
-    creation_progress = claim_var("creation_progress")
+    creation_started = claim_var("creation_started", __extra_vars__)
+    creation_progress = claim_var("creation_progress", __extra_vars__)
 
     def __init__(self, *, trial_maker_id, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group
@@ -1407,7 +1408,7 @@ class NonAdaptiveNetwork(TrialNetwork):
         db.session.commit()
 
     def populate(self, stimulus_set, target_num_trials_per_stimulus):
-        source = dallinger.nodes.Source(network=self)
+        source = TrialSource(network=self)
         db.session.add(source)
         stimulus_specs = [
             x for x in stimulus_set.stimulus_specs
