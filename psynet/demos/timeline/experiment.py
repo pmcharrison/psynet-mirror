@@ -7,7 +7,8 @@ from psynet.timeline import (
     CodeBlock,
     while_loop,
     conditional,
-    switch
+    switch,
+    Module
 )
 from psynet.page import (
     InfoPage,
@@ -20,6 +21,7 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 from datetime import datetime
+import rpdb
 
 dallinger.deployment.MAX_ATTEMPTS = 1
 
@@ -32,73 +34,85 @@ class Exp(psynet.experiment.Experiment):
             "Welcome to the experiment!",
             time_estimate=5
         ),
-        PageMaker(
-            lambda experiment, participant:
-                InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-            time_estimate=5
-        ),
-        TextInputPage(
-            "message",
-            "Write me a message!",
-            time_estimate=5,
-            one_line=False
-        ),
-        PageMaker(
-            lambda participant: InfoPage(f"Your message: {participant.answer}"),
-            time_estimate=5
-        ),
-        NAFCPage(
-            label="chocolate",
-            prompt="Do you like chocolate?",
-            choices=["Yes", "No"],
-            time_estimate=3,
-            arrange_vertically=True
-        ),
-        conditional(
-            "like_chocolate",
-            lambda experiment, participant: participant.answer == "Yes",
-            InfoPage(
-                "It's nice to hear that you like chocolate!",
+        Module(
+            "introduction",
+            PageMaker(
+                lambda experiment, participant:
+                    InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
                 time_estimate=5
             ),
-            InfoPage(
-                "I'm sorry to hear that you don't like chocolate...",
-                time_estimate=3
+            TextInputPage(
+                "message",
+                "Write me a message!",
+                time_estimate=5,
+                one_line=False
             ),
-            fix_time_credit=False
+            PageMaker(
+                lambda participant: InfoPage(f"Your message: {participant.answer}"),
+                time_estimate=5
+            )
+        ),
+        Module(
+            "chocolate",
+            NAFCPage(
+                label="chocolate",
+                prompt="Do you like chocolate?",
+                choices=["Yes", "No"],
+                time_estimate=3,
+                arrange_vertically=True
+            ),
+            conditional(
+                "like_chocolate",
+                lambda experiment, participant: participant.answer == "Yes",
+                InfoPage(
+                    "It's nice to hear that you like chocolate!",
+                    time_estimate=5
+                ),
+                InfoPage(
+                    "I'm sorry to hear that you don't like chocolate...",
+                    time_estimate=3
+                ),
+                fix_time_credit=False
+            )
         ),
         CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
         while_loop(
             "example_loop",
             lambda experiment, participant: participant.answer == "Yes",
-            NAFCPage(
-                label="loop_nafc",
-                prompt="Would you like to stay in this loop?",
-                choices=["Yes", "No"],
-                time_estimate=3
+            Module(
+                "loop",
+                NAFCPage(
+                    label="loop_nafc",
+                    prompt="Would you like to stay in this loop?",
+                    choices=["Yes", "No"],
+                    time_estimate=3
+                ),
             ),
             expected_repetitions=3,
             fix_time_credit=True
         ),
-        NAFCPage(
-            label="test_nafc",
-            prompt="What's your favourite colour?",
-            choices=["Red", "Green", "Blue"],
-            time_estimate=5
-        ),
-        CodeBlock(
-            lambda experiment, participant:
-            participant.var.set("favourite_colour", participant.answer)
-        ),
-        switch(
+        Module(
             "colour",
-            lambda experiment, participant: participant.answer,
-            branches = {
-                "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
-                "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_estimate=2),
-                "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_estimate=3)
-            },
-            fix_time_credit=False
+            NAFCPage(
+                label="test_nafc",
+                prompt="What's your favourite colour?",
+                choices=["Red", "Green", "Blue"],
+                time_estimate=5
+            ),
+            CodeBlock(
+                lambda experiment, participant:
+                participant.var.set("favourite_colour", participant.answer)
+            ),
+            switch(
+                "colour",
+                lambda experiment, participant: participant.answer,
+                branches = {
+                    "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
+                    "Green": InfoPage("Green is quite a nice colour, wait 2s.", time_estimate=2),
+                    "Blue": InfoPage("Blue is an unpleasant colour, wait 3s.", time_estimate=3)
+                },
+                fix_time_credit=False
+            )
         ),
         SuccessfulEndPage()
     )

@@ -3,12 +3,13 @@
 from sqlalchemy import desc
 
 import dallinger.models
+import datetime
 from . import field
 from .field import VarStore, claim_var
 from .timeline import Response
 import json
 import os
-from .utils import get_logger
+from .utils import get_logger, serialise_datetime
 
 logger = get_logger()
 
@@ -108,6 +109,29 @@ class Participant(dallinger.models.Participant):
     last_response_id = claim_var("last_response_id")
     base_payment = claim_var("base_payment")
     performance_bonus = claim_var("performance_bonus")
+    modules = claim_var("modules", use_default=True, default=lambda: {})
+
+    def start_module(self, label):
+        modules = self.modules.copy()
+        try:
+            log = modules[label]
+        except KeyError:
+            log = {
+                "time_started": [],
+                "time_finished": []
+            }
+        time_now = serialise_datetime(datetime.datetime.now())
+        log["time_started"] = log["time_started"] + [time_now]
+        modules[label] = log.copy()
+        self.modules = modules.copy()
+
+    def end_module(self, label):
+        modules = self.modules.copy()
+        log = modules[label]
+        time_now = serialise_datetime(datetime.datetime.now())
+        log["time_finished"] = log["time_finished"] + [time_now]
+        modules[label] = log.copy()
+        self.modules = modules.copy()
 
     def set_answer(self, value):
         self.answer = value

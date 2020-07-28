@@ -1021,8 +1021,13 @@ def join(*args):
 
     if len(args) == 0:
         return []
-    elif len(args) == 1 and isinstance(args[0], Event):
-        return [args[0]]
+    elif len(args) == 1:
+        if isinstance(args[0], Event):
+            return [args[0]]
+        elif isinstance(args[0], Module):
+            return args[0].resolve()
+        else:
+            raise RuntimeError("Unexpected class: " + args[0].__class__)
     else:
         def f(x, y):
             if isinstance(x, Module):
@@ -1045,14 +1050,6 @@ def join(*args):
                 return Exception("An unexpected error occurred.")
 
         return reduce(f, args)
-
-def check_logic(logic):
-    assert isinstance(logic, Event) or is_list_of(logic, Event)
-    if isinstance(logic, Event):
-        logic = [logic]
-    if len(logic) == 0:
-        raise ValueError("<logic> may not be empty.")
-    return logic
 
 class StartWhile(NullEvent):
     def __init__(self, label):
@@ -1108,7 +1105,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     start_while = StartWhile(label)
     end_while = EndWhile(label)
 
-    logic = check_logic(logic)
+    logic = join(logic)
     logic = multiply_expected_repetitions(logic, expected_repetitions)
 
     conditional_logic = join(logic, GoTo(start_while))
@@ -1332,7 +1329,9 @@ class Module():
     default_label = None
     default_events = None
 
-    def __init__(self, label: str = None, events: list = None):
+    def __init__(self, label: str = None, *args):
+        events = join(*args)
+
         if self.default_label is None and label is None:
             raise ValueError("Either one of <default_label> or <label> must not be none.")
         if self.default_events is None and events is None:
@@ -1353,10 +1352,16 @@ class StartModule(NullEvent):
         super().__init__()
         self.label = label
 
+    def consume(self, experiment, participant):
+        participant.start_module(self.label)
+
 class EndModule(NullEvent):
     def __init__(self, label):
         super().__init__()
         self.label = label
+
+    def consume(self, experiment, participant):
+        participant.end_module(self.label)
 
 class ExperimentSetupRoutine(NullEvent):
     def __init__(self, function):

@@ -4,6 +4,7 @@ import re
 import logging
 import time
 
+from psynet.participant import Participant, get_participant
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
@@ -26,15 +27,23 @@ class TestExp(object):
         yield instance
 
     def test_exp_selenium(self, bot_recruits):    #two_iterations, bot_recruits):
-        for participant, bot in enumerate(bot_recruits):
+        for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 
             # Page 0
             time.sleep(0.2)
+
+            assert get_participant(1).modules == {}
+
             assert driver.find_element_by_id("main-body").text == "Welcome to the experiment!\nNext"
             next_page(driver, "next_button")
 
             # Page 1
+            modules = get_participant(1).modules
+            assert list(modules.keys()) == ["introduction"]
+            assert set(list(modules["introduction"].keys())) == {"time_started", "time_finished"}
+            assert len(modules["introduction"]["time_started"]) == 1
+            assert len(modules["introduction"]["time_finished"]) == 0
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
@@ -57,6 +66,13 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 4
+            modules = get_participant(1).modules
+            assert set(list(modules.keys())) == {"chocolate", "introduction"}
+            assert len(modules["introduction"]["time_started"]) == 1
+            assert len(modules["introduction"]["time_finished"]) == 1
+            assert len(modules["chocolate"]["time_started"]) == 1
+            assert len(modules["chocolate"]["time_finished"]) == 0
+
             assert driver.find_element_by_id("main-body").text == "Do you like chocolate?\nYes\nNo"
             next_page(driver, "Yes")
 
@@ -73,6 +89,10 @@ class TestExp(object):
                     "main-body").text == "Would you like to stay in this loop?\nYes No"
 
             next_page(driver, "No")
+
+            modules = get_participant(1).modules
+            assert len(modules["loop"]["time_started"]) == 4
+            assert len(modules["loop"]["time_finished"]) == 4
 
             assert driver.find_element_by_id(
                 "main-body").text == "What's your favourite colour?\nRed Green Blue"
