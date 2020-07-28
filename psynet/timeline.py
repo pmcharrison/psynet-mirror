@@ -1026,6 +1026,8 @@ def join(*args):
             return [args[0]]
         elif isinstance(args[0], Module):
             return args[0].resolve()
+        else:
+            return args[0]
     else:
         def f(x, y):
             if isinstance(x, Module):
@@ -1102,6 +1104,9 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
 
     start_while = StartWhile(label)
     end_while = EndWhile(label)
+
+    if join(logic) is None:
+        import pdb; pdb.set_trace()
 
     logic = join(logic)
     logic = multiply_expected_repetitions(logic, expected_repetitions)

@@ -661,7 +661,8 @@ class TrialMaker(Module):
             CodeBlock(self.on_complete),
             self._check_performance_logic(type="end") if check_performance_at_end else None
         )
-        super().__init__(label=self.with_namespace(), events=events)
+        label = self.with_namespace()
+        super().__init__(label, events)
 
     participant_progress_threshold = 0.1
 
