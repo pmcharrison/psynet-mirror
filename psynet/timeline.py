@@ -1026,8 +1026,6 @@ def join(*args):
             return [args[0]]
         elif isinstance(args[0], Module):
             return args[0].resolve()
-        else:
-            raise RuntimeError("Unexpected class: " + args[0].__class__)
     else:
         def f(x, y):
             if isinstance(x, Module):
