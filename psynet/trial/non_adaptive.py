@@ -33,7 +33,7 @@ from ..media import (
     get_s3_url
 )
 
-from ..field import claim_field, claim_var
+from ..field import claim_field, claim_var, extra_var
 from ..utils import DisableLogger, hash_object, import_local_experiment, get_logger
 from .main import Trial, TrialNetwork, NetworkTrialMaker, TrialNode, TrialSource
 from .. import command_line
@@ -89,6 +89,7 @@ class Stimulus(TrialNode):
     target_num_trials = claim_field(1, "target_num_trials", __extra_vars__, int)
 
     @property
+    @extra_var(__extra_vars__)
     def definition(self):
         return self.details.copy()
 
@@ -101,10 +102,12 @@ class Stimulus(TrialNode):
         return self.network.phase
 
     @property
+    @extra_var(__extra_vars__)
     def participant_group(self):
         return self.network.participant_group
 
     @property
+    @extra_var(__extra_vars__)
     def block(self):
         return self.network.block
 
@@ -256,6 +259,7 @@ class StimulusVersion(TrialNode):
     media_file_name = claim_field(5, "media_file_name", __extra_vars__, str)
 
     @property
+    @extra_var(__extra_vars__)
     def definition(self):
         return self.details.copy()
 
@@ -263,8 +267,8 @@ class StimulusVersion(TrialNode):
     def definition(self, definition):
         self.details = definition
 
-
     @property
+    @extra_var(__extra_vars__)
     def media_url(self):
         if not self.has_media:
             return None
@@ -278,14 +282,17 @@ class StimulusVersion(TrialNode):
         return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
     @property
+    @extra_var(__extra_vars__)
     def phase(self):
         return self.stimulus.phase
 
     @property
+    @extra_var(__extra_vars__)
     def participant_group(self):
         return self.stimulus.participant_group
 
     @property
+    @extra_var(__extra_vars__)
     def block(self):
         return self.stimulus.block
 
@@ -683,6 +690,7 @@ class NonAdaptiveTrial(Trial):
         raise NotImplementedError
 
     @property
+    @extra_var(__extra_vars__)
     def media_url(self):
         return self.stimulus_version.media_url
 

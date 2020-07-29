@@ -5,7 +5,7 @@ from sqlalchemy import desc
 import dallinger.models
 import datetime
 from . import field
-from .field import VarStore, claim_var, json_clean, json_add_extra_vars
+from .field import VarStore, claim_var, extra_var
 from .timeline import Response
 import json
 import os
@@ -105,6 +105,7 @@ class Participant(dallinger.models.Participant):
     answer = field.claim_field(4, "answer", __extra_vars__, object)
     branch_log = field.claim_field(5, "branch_log", __extra_vars__, list)
 
+    initialised = claim_var("initialised", __extra_vars__, use_default=True, default=lambda: False)
     failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
     last_response_id = claim_var("last_response_id", __extra_vars__)
     base_payment = claim_var("base_payment", __extra_vars__)
@@ -122,12 +123,14 @@ class Participant(dallinger.models.Participant):
         return x
 
     @property
+    @extra_var(__extra_vars__)
     def started_modules(self):
         modules = [(key, value) for key, value in self.modules.items() if len(value["time_started"]) > 0]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
 
     @property
+    @extra_var(__extra_vars__)
     def finished_modules(self):
         modules = [(key, value) for key, value in self.modules.items() if len(value["time_finished"]) > 0]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
@@ -165,6 +168,7 @@ class Participant(dallinger.models.Participant):
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0
         self.base_payment = experiment.base_payment
+        self.initialised = True
 
     def inc_performance_bonus(self, value):
         self.performance_bonus = self.performance_bonus + value
@@ -180,8 +184,14 @@ class Participant(dallinger.models.Participant):
         )
 
     @property
+    @extra_var(__extra_vars__)
     def progress(self):
         return 1.0 if self.complete else self.time_credit.progress
+
+    @property
+    @extra_var(__extra_vars__)
+    def estimated_bonus(self):
+        return self.time_credit.estimate_bonus()
 
     @property
     def var(self):
@@ -190,10 +200,6 @@ class Participant(dallinger.models.Participant):
     @property
     def time_credit(self):
         return TimeCreditStore(self)
-
-    @property
-    def initialised(self):
-        return self.event_id is not None
 
     def append_branch_log(self, entry: str):
         # We need to create a new list otherwise the change may not be recognised
@@ -335,4 +341,7 @@ class TimeCreditStore:
 
     @property
     def progress(self):
-        return self.estimate_time_credit() / self.experiment_max_time_credit
+        if self.participant.initialised:
+            return self.estimate_time_credit() / self.experiment_max_time_credit
+        else:
+            return 0.0

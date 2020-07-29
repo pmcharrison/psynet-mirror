@@ -5,20 +5,35 @@ from sqlalchemy import Boolean, String, Integer, Float
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 from datetime import datetime
+from functools import wraps
 
 import json
 
 from .utils import get_logger
 logger = get_logger()
 
-def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
-    if name in extra_vars:
+def register_extra_var(extra_vars, name, db_index=None, overwrite=False, **kwargs):
+    if (not overwrite) and (name in extra_vars):
         raise ValueError(f"tried to overwrite the variable {name}")
 
-    for var in extra_vars.values():
-        if "db_index" in var.keys() and var["db_index"] == db_index:
-            raise ValueError(f"tried to create duplicate field for db_index {db_index}")
+    if db_index is not None:
+        for var in extra_vars.values():
+            if var["db_index"] == db_index:
+                raise ValueError(f"tried to create duplicate field for db_index {db_index}")
 
+    extra_vars[name] = {
+        "db_index": db_index,
+        **kwargs
+    }
+
+# Don't apply this decorator to time consuming operations, especially database queries!
+def extra_var(extra_vars):
+    def real_decorator(function):
+        register_extra_var(extra_vars, function.__name__, overwrite=True)
+        return function
+    return real_decorator
+
+def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
     if field_type is int:
         function = IntField(db_index).function
     elif field_type is float:
@@ -36,11 +51,7 @@ def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
     else:
         raise NotImplementedError
 
-    extra_vars[name] = {
-        "function": function,
-        "db_index": db_index,
-        "field_type": field_type
-    }
+    register_extra_var(extra_vars, name, db_index=db_index, field_type=field_type)
 
     return function
 
@@ -78,11 +89,8 @@ def claim_var(
         use_default=False,
         default=lambda: None,
         serialise=lambda x: x,
-        unserialise=lambda x: x,
-        overwrite=False
+        unserialise=lambda x: x
     ):
-    if name in extra_vars and not overwrite:
-        raise ValueError(f"tried to overwrite the variable {name} but overwrite was False")
 
     @property
     def function(self):
@@ -97,9 +105,7 @@ def claim_var(
     def function(self, value):
         setattr(self.var, name, serialise(value))
 
-    extra_vars[name] = {
-        "function": function
-    }
+    register_extra_var(extra_vars, name)
 
     return function
 

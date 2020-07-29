@@ -1,15 +1,13 @@
 # pylint: disable=unused-argument,abstract-method
 
 import random
-import rpdb
-import logging
 import statsmodels.api as sm
 import numpy as np
 
 from numpy import linspace
 from statistics import mean, median
 from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
-
+from ..field import extra_var
 from ..utils import get_logger
 logger = get_logger()
 
@@ -81,6 +79,8 @@ class GibbsTrial(ChainTrial):
     updated_vector : list
         The updated vector after the participant has responded.
     """
+    __mapper_args__ = {"polymorphic_identity": "gibbs_trial"}
+    __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     resample_free_parameter = True
 
@@ -133,18 +133,22 @@ class GibbsTrial(ChainTrial):
         return definition
 
     @property
+    @extra_var(__extra_vars__)
     def initial_vector(self):
         return self.definition["vector"]
 
     @property
+    @extra_var(__extra_vars__)
     def active_index(self):
         return self.definition["active_index"]
 
     @property
+    @extra_var(__extra_vars__)
     def reverse_scale(self):
         return self.definition["reverse_scale"]
 
     @property
+    @extra_var(__extra_vars__)
     def updated_vector(self):
         if self.answer is None:
             return None

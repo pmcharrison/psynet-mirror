@@ -8,7 +8,7 @@ from uuid import uuid4
 from dallinger import db
 
 from ..media import download_from_s3, upload_to_s3, recode_wav, get_s3_url
-from ..field import claim_field, claim_var
+from ..field import claim_field, claim_var, extra_var
 
 from .main import Trial
 from .imitation_chain import (
@@ -43,26 +43,31 @@ class AudioRecordTrial():
             raise KeyError(str(e) + " Did the trial include an AudioRecordControl, as required?")
 
     @property
+    @extra_var(__extra_vars__)
     def has_recording(self):
         return self.recording_info is not None
 
     @property
+    @extra_var(__extra_vars__)
     def audio_url(self):
         if self.has_recording:
             return self.recording_info["url"]
 
     @property
+    @extra_var(__extra_vars__)
     def plot_key(self):
         if self.has_recording:
             base = os.path.splitext(self.recording_info["key"])[0]
             return base + ".png"
 
     @property
+    @extra_var(__extra_vars__)
     def s3_bucket(self):
         if self.has_recording:
             return self.recording_info["s3_bucket"]
 
     @property
+    @extra_var(__extra_vars__)
     def plot_url(self):
         if self.has_recording:
             return get_s3_url(self.s3_bucket, self.plot_key)

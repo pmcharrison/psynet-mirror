@@ -2,6 +2,7 @@ import os
 import pytest
 import logging
 import time
+import re
 
 from collections import Counter
 from psynet.test import bot_class, next_page
@@ -38,6 +39,8 @@ class TestExp():
             assert len(networks) == 3
             assert len(stimuli) == len(networks) * 4
             assert len(stimulus_versions) == len(stimuli) * 3
+
+            assert stimulus_versions[0].__json__()["media_url"] is None
 
             assert sorted([n.block for n in networks]) == ["A", "B", "C"]
 

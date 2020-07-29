@@ -2,7 +2,7 @@
 
 import random
 from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource, ChainNetwork
-import rpdb
+from ..field import extra_var
 
 class MCMCPNetwork(ChainNetwork):
     """
@@ -31,6 +31,7 @@ class MCMCPTrial(ChainTrial):
         of the chain's free parameters.
     """
     __mapper_args__ = {"polymorphic_identity": "mcmcp_trial"}
+    __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     def make_definition(self, experiment, participant):
         """
@@ -70,10 +71,12 @@ class MCMCPTrial(ChainTrial):
         return definition
 
     @property
+    @extra_var(__extra_vars__)
     def first_stimulus(self):
         return self.definition["ordered"][0]["value"]
 
     @property
+    @extra_var(__extra_vars__)
     def second_stimulus(self):
         return self.definition["ordered"][1]["value"]
 

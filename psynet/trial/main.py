@@ -22,7 +22,7 @@ from dallinger.db import redis_conn
 from ..participant import Participant
 
 from .. import field
-from ..field import claim_field, claim_var, VarStore, UndefinedVariableError
+from ..field import claim_field, claim_var, VarStore, UndefinedVariableError, extra_var
 
 from ..timeline import (
     PageMaker,
@@ -259,7 +259,6 @@ class Trial(Info, AsyncProcessOwner):
     def __json__(self):
         x = super().__json__()
         field.json_clean(x, details=True, contents=True)
-        x["definition"] = self.definition
         field.json_add_extra_vars(x, self)
         field.json_format_vars(x)
         return x
@@ -276,6 +275,7 @@ class Trial(Info, AsyncProcessOwner):
 
     # Refactor this bit with claim_field equivalent.
     @property
+    @extra_var(__extra_vars__)
     def definition(self):
         return json.loads(self.contents)
 
@@ -357,6 +357,7 @@ class Trial(Info, AsyncProcessOwner):
         return Response.query.filter_by(id=self.response_id).one()
 
     @property
+    @extra_var(__extra_vars__)
     def trial_maker_id(self):
         return self.network.trial_maker_id
 
