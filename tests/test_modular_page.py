@@ -1,6 +1,5 @@
 import pytest
-
-from psynet.trial.main import Trial
+from pkg_resources import resource_filename
 from psynet.modular_page import ModularPage, Prompt, Control, AudioPrompt
 
 def test_import_templates():
@@ -34,7 +33,7 @@ def test_visualize(trial):
 def test_visualize(trial):
     import psynet.media
     psynet.media.upload_to_local_s3(
-        local_path="static/images/logo.png",
+        local_path=resource_filename('psynet', 'resources/logo.png'),
         bucket_name="s3-bucket",
         key="key.png",
         public_read=True,
