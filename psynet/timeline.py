@@ -967,9 +967,10 @@ class Response(Question):
     """
 
     __mapper_args__ = {"polymorphic_identity": "response"}
+    __extra_vars__ = {}
 
-    page_type = claim_field(1, str)
-    successful_validation = claim_field(2, bool)
+    page_type = claim_field(1, "page_type", __extra_vars__, str)
+    successful_validation = claim_field(2, "successful_validation", __extra_vars__, bool)
 
     @hybrid_property
     def answer(self):

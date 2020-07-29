@@ -84,8 +84,9 @@ class Stimulus(TrialNode):
     """
 
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
+    __extra_vars__ = TrialNode.__extra_vars__.copy()
 
-    target_num_trials = claim_field(1, int)
+    target_num_trials = claim_field(1, "target_num_trials", __extra_vars__, int)
 
     @property
     def definition(self):
@@ -246,12 +247,13 @@ class StimulusVersion(TrialNode):
     """
 
     __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
+    __extra_vars__ = TrialNode.__extra_vars__
 
-    stimulus_id = claim_field(1, int)
-    has_media = claim_field(2, bool)
-    s3_bucket = claim_field(3, str)
-    remote_media_dir = claim_field(4, str)
-    media_file_name = claim_field(5, str)
+    stimulus_id = claim_field(1, "stimulus_id", __extra_vars__, int)
+    has_media = claim_field(2, "has_media", __extra_vars__, bool)
+    s3_bucket = claim_field(3, "s3_bucket", __extra_vars__, str)
+    remote_media_dir = claim_field(4, "remote_media_dir", __extra_vars__, str)
+    media_file_name = claim_field(5, "media_file_name", __extra_vars__, str)
 
     @property
     def definition(self):
@@ -669,8 +671,9 @@ class NonAdaptiveTrial(Trial):
         The block in which the trial is situated.
     """
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
+    __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = claim_field(4, int)
+    stimulus_id = claim_field(4, "stimulus_id", __extra_vars__, int)
 
     def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
         super().__init__(experiment, node, participant, propagate_failure, is_repeat_trial)
@@ -1389,8 +1392,8 @@ class NonAdaptiveNetwork(TrialNetwork):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_group = claim_field(3, str)
-    block = claim_field(4, str)
+    participant_group = claim_field(3, "participant_group", __extra_vars__, str)
+    block = claim_field(4, "block", __extra_vars__, str)
 
     creation_started = claim_var("creation_started", __extra_vars__)
     creation_progress = claim_var("creation_progress", __extra_vars__)

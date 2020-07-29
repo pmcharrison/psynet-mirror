@@ -99,11 +99,11 @@ class Participant(dallinger.models.Participant):
     __mapper_args__ = {"polymorphic_identity": "participant"}
     __extra_vars__ = {}
 
-    event_id = field.claim_field(1, int)
-    page_uuid = field.claim_field(2, str)
-    complete = field.claim_field(3, bool)
-    answer = field.claim_field(4, object)
-    branch_log = field.claim_field(5, list)
+    event_id = field.claim_field(1, "event_id", __extra_vars__, int)
+    page_uuid = field.claim_field(2, "page_uuid", __extra_vars__, str)
+    complete = field.claim_field(3, "complete", __extra_vars__, bool)
+    answer = field.claim_field(4, "answer", __extra_vars__, object)
+    branch_log = field.claim_field(5, "branch_log", __extra_vars__, list)
 
     failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
     last_response_id = claim_var("last_response_id", __extra_vars__)

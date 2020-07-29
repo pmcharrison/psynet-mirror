@@ -120,8 +120,8 @@ class ChainNetwork(TrialNetwork):
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_id = claim_field(3, int)
-    id_within_participant = claim_field(4, int)
+    participant_id = claim_field(3, "participant_id", __extra_vars__, int)
+    id_within_participant = claim_field(4, "id_within_participant", __extra_vars__, int)
 
     chain_type = claim_var("chain_type", __extra_vars__)
     trials_per_node = claim_var("trials_per_node", __extra_vars__)
@@ -461,7 +461,7 @@ class ChainNode(TrialNode):
 
 
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
-    __class_vars__ = {}
+    __extra_vars__ = {}
 
     def __init__(self, seed, degree: int, network, experiment, propagate_failure: bool, participant=None):
         # pylint: disable=unused-argument
@@ -536,10 +536,10 @@ class ChainNode(TrialNode):
         trials = self.completed_and_processed_trials.all()
         return self.summarise_trials(trials, experiment, participant)
 
-    degree = claim_field(1, int)
-    child_id = claim_field(2, int)
-    seed = claim_field(3)
-    definition = claim_field(4)
+    degree = claim_field(1, "degree", __extra_vars__, int)
+    child_id = claim_field(2, "child_id", __extra_vars__, int)
+    seed = claim_field(3, "seed", __extra_vars__)
+    definition = claim_field(4, "definition", __extra_vars__)
 
     propagate_failure = claim_var("propagate_failure")
 
@@ -680,7 +680,7 @@ class ChainSource(TrialSource):
     __extra_vars__ = TrialSource.__extra_vars__.copy()
 
     ready_to_spawn = True
-    seed = claim_field(1)
+    seed = claim_field(1, "seed", __extra_vars__)
 
     degree = 0
 

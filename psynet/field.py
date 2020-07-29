@@ -11,23 +11,38 @@ import json
 from .utils import get_logger
 logger = get_logger()
 
-def claim_field(db_index, field_type=object):
+def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
+    if name in extra_vars:
+        raise ValueError(f"tried to overwrite the variable {name}")
+
+    for var in extra_vars.values():
+        if "db_index" in var.keys() and var["db_index"] == db_index:
+            raise ValueError(f"tried to create duplicate field for db_index {db_index}")
+
     if field_type is int:
-        return IntField(db_index).function
+        function = IntField(db_index).function
     elif field_type is float:
-        return FloatField(db_index).function
+        function = FloatField(db_index).function
     elif field_type is bool:
-        return BoolField(db_index).function
+        function = BoolField(db_index).function
     elif field_type is str:
-        return StrField(db_index).function
+        function = StrField(db_index).function
     elif field_type is dict:
-        return DictField(db_index).function
+        function = DictField(db_index).function
     elif field_type is list:
-        return ListField(db_index).function
+        function = ListField(db_index).function
     elif field_type is object:
-        return ObjectField(db_index).function
+        function = ObjectField(db_index).function
     else:
         raise NotImplementedError
+
+    extra_vars[name] = {
+        "function": function,
+        "db_index": db_index,
+        "field_type": field_type
+    }
+
+    return function
 
 class Field():
     def __init__(self, db_index, from_db, to_db, permitted_python_types, sql_type, null_value=lambda: None):
@@ -384,8 +399,11 @@ def json_add_extra_vars(x, obj):
 
 def json_format_vars(x):
     for key, value in x.items():
-        if not isinstance(value, (int, float, str, bool, datetime)):
-            x[key] = json.dumps(value)
-        elif isinstance(value, datetime):
-            x[key] = value.strftime("%Y-%m-%d %H:%M")
+        if isinstance(value, datetime):
+            new_val = value.strftime("%Y-%m-%d %H:%M")
+        elif not ((value is None) or isinstance(value, (int, float, str, bool, datetime))):
+            new_val = json.dumps(value)
+        else:
+            new_val = value
+        x[key] = new_val
 

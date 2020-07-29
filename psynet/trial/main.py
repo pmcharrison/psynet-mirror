@@ -67,7 +67,7 @@ import rpdb
 class AsyncProcessOwner():
     __extra_vars__ = {}
 
-    awaiting_async_process = claim_field(5, bool)
+    awaiting_async_process = claim_field(5, "awaiting_async_process", __extra_vars__, bool)
     pending_async_processes = claim_var("pending_async_processes", __extra_vars__, use_default=True, default=lambda: {})
     failed_async_processes = claim_var("failed_async_processes", __extra_vars__, use_default=True, default=lambda: {})
 
@@ -241,9 +241,9 @@ class Trial(Info, AsyncProcessOwner):
     __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
 
     # Properties ###
-    participant_id = claim_field(1, int)
-    complete = claim_field(2, bool)
-    is_repeat_trial = claim_field(3, bool)
+    participant_id = claim_field(1, "participant_id", __extra_vars__, int)
+    complete = claim_field(2, "complete", __extra_vars__, bool)
+    is_repeat_trial = claim_field(3, "is_repeat_trial", __extra_vars__, bool)
 
     answer = claim_var("answer", __extra_vars__, use_default=True)
     propagate_failure = claim_var("propagate_failure", __extra_vars__, use_default=True)
@@ -1754,15 +1754,13 @@ class TrialNetwork(Network, AsyncProcessOwner):
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
     __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
 
-    trial_maker_id = claim_field(1, str)
-    target_num_trials = claim_field(2, int)
+    trial_maker_id = claim_field(1, "trial_maker_id", __extra_vars__, str)
+    target_num_trials = claim_field(2, "target_num_trials", __extra_vars__, int)
 
     def __json__(self):
         x = super().__json__()
         field.json_clean(x, details=True)
-        x["phase"] = self.phase
         field.json_add_extra_vars(x, self)
-        del x["role"]
         field.json_format_vars(x)
         return x
 
