@@ -1,15 +1,16 @@
 import pytest
 import os
+import warnings
+import sqlalchemy.exc
+
 from psynet.trial.non_adaptive import StimulusVersion
-# from psynet.experiment import Experiment
-# from psynet.demos.non_adaptive.experiment import Exp as Experiment
 from psynet.participant import Participant
-# from psynet.demos.non_adaptive.experiment import AnimalTrial as Trial
 from dallinger.models import Node, Network
 from dallinger.nodes import Source
-from psynet.trial.main import Trial
 
 ACTIVE_EXPERIMENT = None
+
+warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 @pytest.fixture(scope="class")
 def demo_non_adaptive(root):
