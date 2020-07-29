@@ -3,9 +3,7 @@ from flask import render_template_string, Blueprint, request, render_template, j
 import json
 import os
 import rpdb
-from json import dumps
-from sqlalchemy import exc
-import numpy as np
+from pkg_resources import resource_filename
 from dallinger import (
     db
 )
@@ -245,6 +243,12 @@ class Experiment(dallinger.experiment.Experiment):
             submission="rejected",
             message=message
         )
+
+    @classmethod
+    def extra_files(cls):
+        return [
+            (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png")
+        ]
 
     def extra_routes(self):
         #pylint: disable=unused-variable
