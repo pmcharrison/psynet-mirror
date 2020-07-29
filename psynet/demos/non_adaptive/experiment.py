@@ -7,21 +7,16 @@
 from flask import Markup
 
 import psynet.experiment
-from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page, 
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
-    conditional, 
-    switch
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage
+    InfoPage,
+    SuccessfulEndPage
+)
+from psynet.modular_page import (
+    ModularPage,
+    NAFCControl
 )
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
@@ -33,7 +28,7 @@ from psynet.trial.non_adaptive import (
 
 import logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = logging.getLogger()
 
 import rpdb
 
@@ -41,7 +36,7 @@ import rpdb
 #### Stimuli
 ##########################################################################################
 
-stimulus_set = StimulusSet([
+stimulus_set = StimulusSet("animals", [
     StimulusSpec(
         definition={"animal": animal},
         version_specs=[
@@ -67,10 +62,21 @@ class AnimalTrial(NonAdaptiveTrial):
         animal = self.definition["animal"]
         block = self.block
 
-        page = NAFCPage(
-            "animal_trial", 
-            Markup(f"<h3>Block {block}</h3> <p style='color: {text_color}'>How much do you like {animal}?</p>"),
-            ["Not at all", "A little", "Very much"]
+        header = f"<h4 id='trial-position'>Trial {self.position + 1}</h3>"
+
+        if self.is_repeat_trial:
+            header = header + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+        else:
+            header = header + f"<h4>Block {block}</h3>"
+
+        page = ModularPage(
+            "animal_trial",
+            Markup(
+                f"""
+                {header}
+                <p style='color: {text_color}'>How much do you like {animal}?</p>
+                """),
+            NAFCControl(["Not at all", "A little", "Very much"])
         )
 
         return page
@@ -86,8 +92,36 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
             if trial.answer == "Not at all":
                 score +=1
         passed = score == 0
-        return (score, passed)
+        return {
+            "score": score,
+            "passed": passed
+        }
 
+    give_end_feedback_passed = True
+    def get_end_feedback_passed_page(self, score):
+        return InfoPage(
+            Markup(f"You finished the animal questions! Your score was {score}."),
+            time_estimate=5
+        )
+
+trial_maker = AnimalTrialMaker(
+    id_="animals",
+    trial_class=AnimalTrial,
+    phase="experiment",
+    stimulus_set=stimulus_set,
+    time_estimate_per_trial=3,
+    max_trials_per_block=2,
+    allow_repeated_stimuli=True,
+    max_unique_stimuli_per_block=None,
+    active_balancing_within_participants=True,
+    active_balancing_across_participants=True,
+    check_performance_at_end=True,
+    check_performance_every_trial=True,
+    target_num_participants=1,
+    target_num_trials_per_stimulus=None,
+    recruit_mode="num_participants",
+    num_repeat_trials=3
+)
 
 ##########################################################################################
 #### Experiment
@@ -98,24 +132,7 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        AnimalTrialMaker(
-            trial_class=AnimalTrial, 
-            phase="experiment",
-            stimulus_set=stimulus_set, 
-            time_estimate_per_trial=3,
-            new_participant_group=True,
-            max_trials_per_block=2,
-            allow_repeated_stimuli=True,
-            max_unique_stimuli_per_block=None,
-            active_balancing_within_participants=True,
-            active_balancing_across_participants=True,
-            check_performance_at_end=True,
-            check_performance_every_trial=True,
-            target_num_participants=None,
-            target_num_trials_per_stimulus=3,
-            recruit_mode="num_trials"
-        ),
-        InfoPage("You finished the animal questions!", time_estimate=0),
+        trial_maker,
         SuccessfulEndPage()
     )
 

@@ -1,65 +1,95 @@
 import random
 import operator
+import sys
+
+import os
+import shutil
+import pickle
+
 from statistics import mean
 from typing import Optional
 from collections import Counter
 from functools import reduce
+from progress.bar import Bar
+from pathlib import Path
 
-
+from sqlalchemy import func
 from sqlalchemy.sql.expression import not_
 
 import dallinger.models
 import dallinger.nodes
 
-from ..field import claim_field
-from .main import Trial, TrialNetwork, NetworkTrialMaker
+from dallinger import db
+from dallinger.models import Network
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from ..media import (
+    bucket_exists,
+    create_bucket,
+    make_bucket_public,
+    read_string_from_s3,
+    write_string_to_s3,
+    delete_bucket_dir,
+    upload_to_s3,
+    get_s3_url
+)
+
+from ..field import claim_field, claim_var, extra_var
+from ..utils import DisableLogger, hash_object, import_local_experiment, get_logger
+from .main import Trial, TrialNetwork, NetworkTrialMaker, TrialNode, TrialSource
+from .. import command_line
+
+logger = get_logger()
 
 # pylint: disable=unused-import
 import rpdb
 
-class Stimulus(dallinger.models.Node):
+def filter_for_completed_trials(x):
+    return x.filter_by(failed=False, complete=True, is_repeat_trial=False)
+
+def query_all_completed_trials():
+    return filter_for_completed_trials(NonAdaptiveTrial.query)
+
+class Stimulus(TrialNode):
     """
     A stimulus class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
     of :class:`~psynet.trial.non_adaptive.StimulusSpec`.
-    
+
     Attributes
     ----------
-    
+
     definition : dict
         A dictionary containing the parameter values for the stimulus.
-        This excludes any parameters defined by the 
+        This excludes any parameters defined by the
         :class:`~psynet.trial.non_adaptive.StimulusVersion` class.
-    
+
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
-    
+
     participant_group : str
         The associated participant group.
-    
+
     block : str
         The associated block.
-    
+
     num_completed_trials : int
         The number of completed trials that this stimulus has received,
         exluding failed trials.
-    
+
     num_trials_still_required : int
         The number of trials still required for this stimulus before the experiment
         can complete, if such a quota exists.
     """
-    
-    __mapper_args__ = {"polymorphic_identity": "stimulus"}
 
-    target_num_trials = claim_field(1, int)
+    __mapper_args__ = {"polymorphic_identity": "stimulus"}
+    __extra_vars__ = TrialNode.__extra_vars__.copy()
+
+    target_num_trials = claim_field(1, "target_num_trials", __extra_vars__, int)
 
     @property
+    @extra_var(__extra_vars__)
     def definition(self):
         return self.details.copy()
 
@@ -67,37 +97,35 @@ class Stimulus(dallinger.models.Node):
     def definition(self, definition):
         self.details = definition
 
-    @property 
+    @property
     def phase(self):
         return self.network.phase
 
-    @property 
+    @property
+    @extra_var(__extra_vars__)
     def participant_group(self):
         return self.network.participant_group
 
-    @property 
+    @property
+    @extra_var(__extra_vars__)
     def block(self):
         return self.network.block
 
-    @property 
+    @property
     def _query_completed_trials(self):
-        return (
-            NonAdaptiveTrial
-                .query
-                .filter_by(stimulus_id=self.id, failed=False, complete=True)
-        )
+        return query_all_completed_trials().filter_by(stimulus_id=self.id)
 
     @property
     def num_completed_trials(self):
         return self._query_completed_trials.count()
 
-    @property 
+    @property
     def num_trials_still_required(self):
         if self.target_num_trials is None:
             raise RuntimeError("<num_trials_still_required> is not defined when <target_num_trials> is None.")
         return self.target_num_trials - self.num_completed_trials
 
-    def __init__(self, stimulus_spec, network, source, target_num_trials):
+    def __init__(self, stimulus_spec, network, source, target_num_trials, stimulus_set):
         assert network.phase == stimulus_spec.phase
         assert network.participant_group == stimulus_spec.participant_group
         assert network.block == stimulus_spec.block
@@ -112,32 +140,32 @@ class StimulusSpec():
     Defines a stimulus for a non-adaptive experiment.
     Will be translated to a database-backed
     :class:`~psynet.trial.non_adaptive.Stimulus` instance.
-    
+
     Parameters
     ----------
-    
+
     definition
         A dictionary of parameters defining the stimulus.
-    
+
     phase
-        The associated phase of the experiment, 
+        The associated phase of the experiment,
         e.g. ``"practice"`` or ``"main"``.
-    
+
     version_specs
-        An optional list of 
+        A list of
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects, defining different forms that the stimulus can take.
-    
+
     participant_group
         The associated participant group.
         Defaults to a common participant group for all participants.
-    
+
     block
         The associated block.
         Defaults to a single block for all trials.
     """
     def __init__(
-        self, 
+        self,
         definition: dict,
         phase: str,
         version_specs=None,
@@ -145,10 +173,10 @@ class StimulusSpec():
         block="default"
     ):
         assert isinstance(definition, dict)
-        
+
         if version_specs is None:
             version_specs = [StimulusVersionSpec(definition={})]
-            
+
         assert isinstance(version_specs, list)
         assert len(version_specs) > 0
         for version_spec in version_specs:
@@ -160,53 +188,78 @@ class StimulusSpec():
         self.participant_group = participant_group
         self.block = block
 
-    def add_stimulus_to_network(self, network, source, experiment, target_num_trials):
-        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials)
-        experiment.session.add(stimulus)
-        
-        for version_spec in self.version_specs:
-            version = StimulusVersion(version_spec, stimulus, network)
-            experiment.session.add(version)
+    def add_stimulus_to_network(self, network, source, target_num_trials, stimulus_set):
+        stimulus = Stimulus(self, network=network, source=source, target_num_trials=target_num_trials, stimulus_set=stimulus_set)
+        db.session.add(stimulus)
 
-class StimulusVersion(dallinger.models.Node):
+        for version_spec in self.version_specs:
+            version = StimulusVersion(version_spec, stimulus, network, stimulus_set)
+            db.session.add(version)
+
+    @property
+    def has_media(self):
+        return any([s.has_media for s in self.version_specs])
+
+    @property
+    def hash(self):
+        return hash_object({
+            "definition": self.definition,
+            "versions": [x.hash for x in self.version_specs]
+        })
+
+    def cache_media(self, local_media_cache_dir):
+        for s in self.version_specs:
+            s.cache_media(self.definition, local_media_cache_dir)
+
+    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
+        for s in self.version_specs:
+            s.upload_media(s3_bucket, local_media_cache_dir, remote_media_dir)
+
+class StimulusVersion(TrialNode):
     """
     A stimulus version class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class;
-    intended to be nested within the 
+    intended to be nested within the
     :class:`~psynet.trial.non_adaptive.Stimulus` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
     of :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`.
-    
+
     Attributes
     ----------
-    
+
     definition : dict
         A dictionary containing the parameter values for the stimulus version.
         This excludes any parameters defined by the parent
         :class:`~psynet.trial.non_adaptive.Stimulus` class.
-        
+
     stimulus : Stimulus
         The parent :class:`~psynet.trial.non_adaptive.Stimulus` object.
-        
+
     stimulus_id : int
         The ID of the parent stimulus object. Stored as ``property1`` in the database.
-    
+
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
-    
+
     participant_group : str
         The associated participant group.
-    
+
     block : str
         The associated block.
     """
-    
-    __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
 
-    stimulus_id = claim_field(1, int)
+    __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
+    __extra_vars__ = TrialNode.__extra_vars__
+
+    stimulus_id = claim_field(1, "stimulus_id", __extra_vars__, int)
+    has_media = claim_field(2, "has_media", __extra_vars__, bool)
+    s3_bucket = claim_field(3, "s3_bucket", __extra_vars__, str)
+    remote_media_dir = claim_field(4, "remote_media_dir", __extra_vars__, str)
+    media_file_name = claim_field(5, "media_file_name", __extra_vars__, str)
 
     @property
+    @extra_var(__extra_vars__)
     def definition(self):
         return self.details.copy()
 
@@ -214,26 +267,42 @@ class StimulusVersion(dallinger.models.Node):
     def definition(self, definition):
         self.details = definition
 
-    
-    @property 
+    @property
+    @extra_var(__extra_vars__)
+    def media_url(self):
+        if not self.has_media:
+            return None
+        return get_s3_url(
+            self.s3_bucket,
+            os.path.join(self.remote_media_dir, self.media_file_name)
+        )
+
+    @property
     def stimulus(self):
         return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
     @property
+    @extra_var(__extra_vars__)
     def phase(self):
         return self.stimulus.phase
 
     @property
+    @extra_var(__extra_vars__)
     def participant_group(self):
         return self.stimulus.participant_group
 
     @property
+    @extra_var(__extra_vars__)
     def block(self):
         return self.stimulus.block
 
-    def __init__(self, stimulus_version_spec, stimulus, network):
+    def __init__(self, stimulus_version_spec, stimulus, network, stimulus_set):
         super().__init__(network=network)
         self.stimulus_id = stimulus.id
+        self.has_media = stimulus_version_spec.has_media
+        self.s3_bucket = stimulus_set.s3_bucket
+        self.remote_media_dir = stimulus_set.remote_media_dir
+        self.media_file_name = stimulus_version_spec.media_file_name
         self.definition = stimulus_version_spec.definition
         self.connect_to_parent(stimulus)
 
@@ -245,64 +314,120 @@ class StimulusVersionSpec():
     Defines a stimulus version for a non-adaptive experiment.
     Will be translated to a database-backed
     :class:`~psynet.trial.non_adaptive.StimulusVersion` instance,
-    which will be nested within a 
+    which will be nested within a
     :class:`~psynet.trial.non_adaptive.Stimulus` instance.
-    
+
     Parameters
     ----------
-    
+
     definition
         A dictionary of parameters defining the stimulus version.
-        Should not include any parameters already defined in 
+        Should not include any parameters already defined in
         the parent :class:`~psynet.trial.non_adaptive.StimulusSpec` instance.
     """
     def __init__(self, definition):
         assert isinstance(definition, dict)
         self.definition = definition
 
+    has_media = False
+    media_ext = ""
+
+    @classmethod
+    def generate_media(cls, definition, output_path):
+        pass
+
+    @property
+    def hash(self):
+        return hash_object(self.definition)
+
+    @property
+    def media_file_name(self):
+        if not self.has_media:
+            return None
+        return self.hash + self.media_ext
+
+    def cache_media(self, parent_definition, local_media_cache_dir):
+        if self.has_media:
+            path = os.path.join(local_media_cache_dir, self.media_file_name)
+            definition = {**parent_definition, **self.definition}
+            self.generate_media(definition, path)
+
+    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
+        if self.has_media:
+            local_path = os.path.join(local_media_cache_dir, self.media_file_name)
+            remote_key = os.path.join(remote_media_dir, self.media_file_name)
+            if not os.path.isfile(local_path):
+                raise IOError(
+                    f"Couldn't find local media cache file '{local_path}'. "
+                    "Try deleting your cache and starting again?"
+                )
+            with DisableLogger():
+                upload_to_s3(local_path, s3_bucket, remote_key, public_read=True)
+
+
 class StimulusSet():
     """
     Defines a stimulus set for a non-adaptive experiment.
-    This stimulus set is defined as a collection of 
+    This stimulus set is defined as a collection of
     :class:`~psynet.trial.non_adaptive.StimulusSpec`
     and :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
     objects, which are translated to database-backed
     :class:`~psynet.trial.non_adaptive.Stimulus`
     and :class:`~psynet.trial.non_adaptive.StimulusVersion`
     objects respectively.
-    
+
     Parameters
     ----------
-    
+
     stimulus_specs: list
         A list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
         with these objects potentially containing
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
-        This list may contain stimuli for several experiment phases,
-        as long as these phases are specified in the ``phase`` parameters
-        for the :class:`~psynet.trial.non_adaptive.StimulusSpec` objects.
+        These objects must all correspond to the same experiment phase
+        (se the ``phase`` attribute of the
+        :class:`~psynet.trial.non_adaptive.StimulusSpec` objects).
     """
-    def __init__(self, stimulus_specs):
+    def __init__(
+            self,
+            id_: str,
+            stimulus_specs,
+            version: str = "default",
+            s3_bucket: Optional[str] = None
+        ):
         assert isinstance(stimulus_specs, list)
+        assert isinstance(version, str)
 
         self.stimulus_specs = stimulus_specs
+        self.id = id_
+        self.version = version
+        self.s3_bucket = s3_bucket
+        self.phase = None
 
         network_specs = set()
         blocks = set()
         participant_groups = set()
         self.num_stimuli = dict()
-        
+
         for s in stimulus_specs:
             assert isinstance(s, StimulusSpec)
+
+            if self.phase is None:
+                self.phase = s.phase
+            elif self.phase != s.phase:
+                raise ValueError(
+                    "All stimuli in StimulusSpec must have the same phase "
+                    f"(found both '{self.phase}' and '{s.phase}')."
+                )
+
             network_specs.add((
                 s.phase,
-                s.participant_group, 
+                s.participant_group,
                 s.block
             ))
 
             blocks.add(s.block)
             participant_groups.add(s.participant_group)
-            
+
             # This logic could be refactored by defining a special dictionary class
             if s.participant_group not in self.num_stimuli:
                 self.num_stimuli[s.participant_group] = dict()
@@ -314,7 +439,7 @@ class StimulusSet():
         self.network_specs = [
             NetworkSpec(
                 phase=x[0],
-                participant_group=x[1], 
+                participant_group=x[1],
                 block=x[2],
                 stimulus_set=self
             )
@@ -324,6 +449,158 @@ class StimulusSet():
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
 
+        if "prepare" in command_line.FLAGS:
+            force = "force" in command_line.FLAGS
+            self.prepare_media(force=force)
+
+    @property
+    def hash(self):
+        return hash_object({
+            "version": self.version,
+            "stimulus_specs": [x.hash for x in self.stimulus_specs]
+        })
+
+    local_media_cache_parent_dir = "cache"
+
+    @property
+    def local_media_cache_dir(self):
+        return os.path.join(self.local_media_cache_parent_dir, self.id, self.version)
+
+    @property
+    def remote_media_dir(self):
+        if self.s3_bucket is None:
+            return None
+        return os.path.join(self.id, self.version)
+
+    @property
+    def has_media(self):
+        return any([s.has_media for s in self.stimulus_specs])
+
+    def load(self):
+        return self
+
+    def prepare_media(self, force):
+        if self.has_media:
+            if not force and self.remote_media_is_up_to_date:
+                logger.info("(%s) Remote media seems to be up-to-date, no media preparation necessary.", self.id)
+            else:
+                self.cache_media(force=force)
+                self.upload_media()
+        else:
+            logger.info("(%s) No media found to prepare.", self.id)
+
+    def cache_media(self, force):
+        if os.path.exists(self.local_media_cache_dir):
+            if not force and self.get_local_media_cache_hash() == self.hash:
+                logger.info("(%s) Local media cache appears to be up-to-date.", self.id)
+                return None
+            else:
+                if force:
+                    logger.info("(%s) Forcing removal of local media cache.", self.id)
+                else:
+                    logger.info("(%s) Local media cache appears to be out-of-date, removing.", self.id)
+                shutil.rmtree(self.local_media_cache_dir)
+
+        os.makedirs(self.local_media_cache_dir)
+
+        with Bar("Caching media", max=len(self.stimulus_specs)) as bar:
+            for s in self.stimulus_specs:
+                s.cache_media(self.local_media_cache_dir)
+                bar.next()
+
+        self.write_local_media_cache_hash()
+        logger.info("(%s) Finished caching local media.", self.id)
+
+    def upload_media(self):
+        self.prepare_s3_bucket()
+
+        with Bar("Uploading media", max=len(self.stimulus_specs)) as bar:
+            for s in self.stimulus_specs:
+                s.upload_media(self.s3_bucket, self.local_media_cache_dir, self.remote_media_dir)
+                bar.next()
+
+        self.write_remote_media_hash()
+        logger.info("(%s) Finished uploading media.", self.id)
+
+    def prepare_s3_bucket(self):
+        if not bucket_exists(self.s3_bucket):
+            create_bucket(self.s3_bucket)
+
+        make_bucket_public(self.s3_bucket)
+
+        delete_bucket_dir(self.s3_bucket, self.remote_media_dir)
+
+    @property
+    def path_to_local_cache_hash(self):
+        return os.path.join(self.local_media_cache_dir, "hash")
+
+    def get_local_media_cache_hash(self):
+        if os.path.isfile(self.path_to_local_cache_hash):
+            with open(self.path_to_local_cache_hash, "r") as file:
+                return file.read()
+        else:
+            return None
+
+    def write_local_media_cache_hash(self):
+        os.makedirs(self.local_media_cache_dir, exist_ok=True)
+        with open(self.path_to_local_cache_hash, "w") as file:
+            file.write(self.hash)
+
+    @property
+    def remote_media_is_up_to_date(self):
+        return self.get_remote_media_hash() == self.hash
+
+    @property
+    def path_to_remote_cache_hash(self):
+        return os.path.join(self.remote_media_dir, "hash")
+
+    def get_remote_media_hash(self):
+        # Returns None if the cache doesn't exist
+        if not bucket_exists(self.s3_bucket):
+            return None
+        return read_string_from_s3(self.s3_bucket, self.path_to_remote_cache_hash)
+
+    def write_remote_media_hash(self):
+        write_string_to_s3(self.hash, bucket_name=self.s3_bucket, key=self.path_to_remote_cache_hash)
+
+class VirtualStimulusSet():
+    def __init__(self, id_: str, version: str, construct):
+        self.id = id_
+        self.version = version
+        self.construct = construct
+
+        if "prepare" in command_line.FLAGS or not self.cache_exists:
+            self.build_cache()
+
+        # if len(sys.argv) > 1 and sys.argv[1] == "prepare":
+        #     self.prepare_media()
+
+    def build_cache(self):
+        # logger.info("(%s) Building stimulus set cache...", self.id)
+        stimulus_set = self.construct()
+        self.save_to_cache(stimulus_set)
+
+    @property
+    def cache_dir(self):
+        return os.path.join("_stimulus_sets", self.id)
+
+    @property
+    def cache_path(self):
+        return os.path.join(self.cache_dir, f"{self.version}.pickle")
+
+    @property
+    def cache_exists(self):
+        return os.path.isfile(self.cache_path)
+
+    def save_to_cache(self, stimulus_set):
+        Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
+        with open(self.cache_path, "wb") as f:
+            pickle.dump(stimulus_set, f)
+
+    def load(self):
+        with open(self.cache_path, "rb") as f:
+            return pickle.load(f)
+
 class NetworkSpec():
     def __init__(self, phase, participant_group, block, stimulus_set):
         self.phase = phase
@@ -331,9 +608,9 @@ class NetworkSpec():
         self.block = block
         self.stimulus_set = stimulus_set # note: this includes stimuli outside this network too!
 
-    def create_network(self, trial_type, experiment, target_num_trials_per_stimulus):
+    def create_network(self, trial_maker_id, experiment, target_num_trials_per_stimulus):
         network = NonAdaptiveNetwork(
-            trial_type=trial_type,
+            trial_maker_id=trial_maker_id,
             phase=self.phase,
             participant_group=self.participant_group,
             block=self.block,
@@ -342,14 +619,14 @@ class NetworkSpec():
             target_num_trials_per_stimulus=target_num_trials_per_stimulus
         )
         experiment.session.add(network)
-        
+
 class NonAdaptiveTrial(Trial):
     """
     A Trial class for non-adaptive experiments.
-    
+
     Attributes
     ----------
-    
+
     participant_id : int
         The ID of the associated participant.
         The user should not typically change this directly.
@@ -364,50 +641,58 @@ class NonAdaptiveTrial(Trial):
         The response returned by the participant. This is serialised
         to JSON, so it shouldn't be too big.
         The user should not typically change this directly.
-        Stored in ``property3`` in the database.
+        Stored in ``details`` in the database.
 
-    awaiting_process : bool
+    awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
         The user should not typically change this directly.
-        Stored in ``property4`` in the database.
-        
+
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
+
     definition
         A dictionary of parameters defining the trial.
-        This dictionary combines the dictionaries of the 
+        This dictionary combines the dictionaries of the
         respective
         :class:`~psynet.trial.non_adaptive.StimulusSpec`
         and
         :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
         objects.
-    
+
     stimulus_version
         The corresponding :class:`~psynet.trial.non_adaptive.StimulusVersion`
         object.
-    
+
     stimulus
         The corresponding :class:`~psynet.trial.non_adaptive.Stimulus`
         object.
-    
+
     phase
         The phase of the experiment, e.g. ``"training"`` or ``"main"``.
-    
+
     participant_group
         The associated participant group.
-    
+
     block
         The block in which the trial is situated.
     """
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
+    __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = claim_field(5, int)
+    stimulus_id = claim_field(4, "stimulus_id", __extra_vars__, int)
 
-    def __init__(self, experiment, node, participant, propagate_failure):
-        super().__init__(experiment, node, participant, propagate_failure)
+    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
+        super().__init__(experiment, node, participant, propagate_failure, is_repeat_trial)
         self.stimulus_id = self.stimulus_version.stimulus_id
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
+
+    @property
+    @extra_var(__extra_vars__)
+    def media_url(self):
+        return self.stimulus_version.media_url
 
     @property
     def stimulus_version(self):
@@ -431,119 +716,121 @@ class NonAdaptiveTrial(Trial):
 
     def make_definition(self, experiment, participant):
         """
-        Combines the definitions of the associated 
+        Combines the definitions of the associated
         :class:`~psynet.trial.non_adaptive.Stimulus`
         and :class:`~psynet.trial.non_adaptive.StimulusVersion`
         objects.
         """
         return {
-            **self.stimulus.definition, 
+            **self.stimulus.definition,
             **self.stimulus_version.definition
-        }   
-        
+        }
 
+    def summarise(self):
+        return {
+            "participant_group": self.participant_group,
+            "phase": self.phase,
+            "block": self.block,
+            "definition": self.definition,
+            "media_url": self.media_url,
+            "trial_id": self.id,
+            "stimulus_id": self.stimulus.id,
+            "stimulus_version_id": self.stimulus_version.id
+        }
 
 class NonAdaptiveTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a non-adaptive experiment.
-    The class is intended for use with the 
+    The class is intended for use with the
     :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` helper class.
-    which should be customised to show the relevant stimulus 
+    which should be customised to show the relevant stimulus
     for the experimental paradigm.
-    The user must also define their stimulus set 
+    The user must also define their stimulus set
     using the following built-in classes:
-    
+
     * :class:`~psynet.trial.non_adaptive.StimulusSet`;
-    
+
     * :class:`~psynet.trial.non_adaptive.StimulusSpec`;
-    
+
     * :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`;
-    
+
     In particular, a :class:`~psynet.trial.non_adaptive.StimulusSet`
-    contains a list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects, 
-    which in turn contains a list of 
+    contains a list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
+    which in turn contains a list of
     :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
-    
+
     The user may also override the following methods, if desired:
-    
+
     * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_block_order`;
       chooses the order of blocks in the experiment. By default the blocks
       are ordered randomly.
-      
+
     * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`;
       assigns the participant to a group. By default the participant is assigned
-      to a random group. 
-      
+      to a random group.
+
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
       run once the the sequence of trials is complete.
-    
+
     * :meth:`~psynet.trial.main.TrialMaker.performance_check`,
-      which checks the performance of the participant 
+      which checks the performance of the participant
       with a view to rejecting poor-performing participants.
-    
+
     Further customisable options are available in the constructor's parameter list,
     documented below.
-    
+
     Parameters
     ----------
-    
+
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`).
-        
+
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
-        
+
     stimulus_set
         The stimulus set to be administered.
-        
+
     time_estimate_per_trial
         Time estimated for each trial (seconds).
-        
+
     recruit_mode
-        Selects a recruitment criterion for determining whether to recruit 
+        Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
         and ``"num_trials"``.
-    
+
     target_num_participants
-        Target number of participants to recruit for the experiment. All 
+        Target number of participants to recruit for the experiment. All
         participants must successfully finish the experiment to count
-        towards this quota. This target is only relevant if 
+        towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
-    
+
     target_num_trials_per_stimulus
         Target number of trials to recruit for each stimulus in the experiment
-        (as opposed to for each stimulus version). This target is only relevant if 
+        (as opposed to for each stimulus version). This target is only relevant if
         ``recruit_mode="num_trials"``.
-    
-    new_participant_group
-        If ``True``, :meth:`~psynet.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`
-        is run to assign the participant to a new participant group. 
-        Unless overridden, a given participant's participant group will persist
-        for all phases of the experiment,
-        except if switching to a :class:`~psynet.non_adaptive.NonAdaptiveTrialMaker`
-        where the trial class (:class:`~psynet.non_adaptive.NonAdaptiveTrial`)
-        has a different name.
-    
+
     max_trials_per_block
-        Determines the maximum number of trials that a participant will be allowed to experience in each block.
-    
+        Determines the maximum number of trials that a participant will be allowed to experience in each block,
+        including failed trials.
+
     allow_repeated_stimuli
         Determines whether the participant can be administered the same stimulus more than once.
-    
+
     max_unique_stimuli_per_block
         Determines the maximum number of unique stimuli that a participant will be allowed to experience
         in each block. Once this quota is reached, the participant will be forced to repeat
         previously experienced stimuli.
-    
+
     active_balancing_within_participants
-        If ``True`` (default), active balancing within participants is enabled, meaning that 
+        If ``True`` (default), active balancing within participants is enabled, meaning that
         stimulus selection always favours the stimuli that have been presented fewest times
         to that participant so far.
-    
+
     active_balancing_across_participants
-        If ``True`` (default), active balancing across participants is enabled, meaning that 
+        If ``True`` (default), active balancing across participants is enabled, meaning that
         stimulus selection favours stimuli that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
@@ -552,19 +839,19 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         then the latter criterion is only used for tie breaking.
 
     check_performance_at_end
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated at the end of the series of trials.
         Defaults to ``False``.
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
-        
+
     check_performance_every_trial
-        If ``True``, the participant's performance is 
+        If ``True``, the participant's performance is
         is evaluated after each trial.
         Defaults to ``False``.
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
-    
+
     fail_trials_on_premature_exit
         If ``True``, a participant's trials are marked as failed
         if they leave the experiment prematurely.
@@ -572,41 +859,66 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     fail_trials_on_participant_performance_check
         If ``True``, a participant's trials are marked as failed
-        if the participant fails a performance check.    
+        if the participant fails a performance check.
         Defaults to ``True``.
-        
-    async_post_trial
-        Optional function to be run after a trial is completed by the participant.
-        This should be specified as a fully qualified string, for example
-        ``"psynet.trial.async_example.async_update_trial"``.
-        This function should take one argument, ``trial_id``, corresponding to the
-        ID of the relevant trial to process.
-        ``trial.awaiting_process`` is set to ``True`` when the asynchronous process is
-        initiated; the present method is responsible for setting ``trial.awaiting_process = False``
-        once it is finished. It is also responsible for committing to the database
-        using ``db.session.commit()`` once processing is complete
-        (``db`` can be imported using ``from dallinger import db``).
-        See the source code for ``~psynet.trial.async_example.async_update_trial``
-        for an example.
 
-    Returns
-    -------
-    
-    list
-        A sequence of events suitable for inclusion in a
-        :class:`~psynet.timeline.Timeline`
+    num_repeat_trials
+        Number of repeat trials to present to the participant. These trials
+        are typically used to estimate the reliability of the participant's
+        responses.
+
+    Attributes
+    ----------
+
+    check_timeout_interval : float
+        How often to check for trials that have timed out, in seconds (default = 30).
+        Users are invited to override this.
+
+    response_timeout_sec : float
+        How long until a trial's response times out, in seconds (default = 60)
+        (i.e. how long PsyNet will wait for the participant's response to a trial).
+        This is a lower bound on the actual timeout
+        time, which depends on when the timeout daemon next runs,
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        Users are invited to override this.
+
+    async_timeout_sec : float
+        How long until an async process times out, in seconds (default = 300).
+        This is a lower bound on the actual timeout
+        time, which depends on when the timeout daemon next runs,
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        Users are invited to override this.
+
+    network_query
+        An SQLAlchemy query for retrieving all networks owned by the current trial maker.
+        Can be used for operations such as the following: ``self.network_query.count()``.
+
+    num_networks : int
+        Returns the number of networks owned by the trial maker.
+
+    networks : list
+        Returns the networks owned by the trial maker.
+
+    performance_check_threshold : float
+        Score threshold used by the default performance check method, defaults to 0.0.
+        By default, corresponds to the minimum proportion of non-failed trials that
+        the participant must achieve to pass the performance check.
+
+    end_performance_check_waits : bool
+        If True (default), then the final performance check waits until all trials no
+        longer have any pending asynchronous processes.
     """
     def __init__(
-        self,  
+        self,
         *,
-        trial_class, 
+        id_: str,
+        trial_class,
         phase: str,
         stimulus_set: StimulusSet,
-        recruit_mode: Optional[str],
         time_estimate_per_trial: int,
-        target_num_participants: Optional[int],
-        target_num_trials_per_stimulus: Optional[int],
-        new_participant_group: bool,
+        recruit_mode: Optional[str] = None,
+        target_num_participants: Optional[int] = None,
+        target_num_trials_per_stimulus: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         allow_repeated_stimuli: bool = False,
         max_unique_stimuli_per_block: Optional[int]=None,
@@ -616,29 +928,31 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         check_performance_every_trial: bool = False,
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
-        async_post_trial: Optional[str] = None
+        num_repeat_trials: int = 0
     ):
-        if (target_num_participants is None) and (target_num_trials_per_stimulus is None):
-            raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be None.")
+        if (recruit_mode == "num_participants" and target_num_participants is None):
+            raise ValueError("<target_num_participants> cannot be None if recruit_mode == 'num_participants'.")
+        if (recruit_mode == "num_trials" and target_num_trials_per_stimulus is None):
+            raise ValueError("<target_num_trials_per_stimulus> cannot be None if recruit_mode == 'num_trials'.")
         if (target_num_participants is not None) and (target_num_trials_per_stimulus is not None):
             raise ValueError("<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided.")
 
-        self.stimulus_set = stimulus_set
+        self.stimulus_set = stimulus_set.load()
         self.target_num_participants = target_num_participants
         self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
-        self.new_participant_group = new_participant_group
         self.max_trials_per_block = max_trials_per_block
         self.allow_repeated_stimuli = allow_repeated_stimuli
         self.max_unique_stimuli_per_block = max_unique_stimuli_per_block
         self.active_balancing_within_participants = active_balancing_within_participants
         self.active_balancing_across_participants = active_balancing_across_participants
 
-        expected_num_trials = self.estimate_num_trials()
+        expected_num_trials = self.estimate_num_trials(num_repeat_trials)
         super().__init__(
-            trial_class, 
+            id_=id_,
+            trial_class=trial_class,
             network_class=NonAdaptiveNetwork,
             phase=phase,
-            time_estimate_per_trial=time_estimate_per_trial, 
+            time_estimate_per_trial=time_estimate_per_trial,
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
@@ -647,17 +961,29 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             propagate_failure=False,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            async_post_trial=async_post_trial
+            num_repeat_trials=num_repeat_trials,
+            wait_for_networks=True
         )
 
-    @property 
+    @property
     def num_trials_still_required(self):
-        return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
+        # Old version:
+        # return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
+
+        stimuli = self.stimuli
+        stimulus_actual_counts = self.get_trial_counts(stimuli)
+        stimulus_target_counts = [s.target_num_trials for s in stimuli]
+        stimulus_remaining_trials = [
+            max(0, target - actual)
+            for target, actual in zip(stimulus_target_counts, stimulus_actual_counts)
+        ]
+
+        return sum(stimulus_remaining_trials)
 
     @property
     def stimuli(self):
         return reduce(
-            operator.add, 
+            operator.add,
             [n.stimuli for n in self.networks]
         )
 
@@ -695,15 +1021,15 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             else:
                 return min(num_stimuli_in_block, self.max_trials_per_block)
 
-    def estimate_num_trials(self):
+    def estimate_num_trials(self, num_repeat_trials):
         return mean([
             sum([
                 self.estimate_num_trials_in_block(num_stimuli_in_block)
                 for num_stimuli_in_block in num_stimuli_by_block.values()
             ])
-            for participant_group, num_stimuli_by_block 
+            for participant_group, num_stimuli_by_block
             in self.stimulus_set.num_stimuli.items()
-        ])
+        ]) + num_repeat_trials
 
     def finalise_trial(self, answer, trial, experiment, participant):
         """
@@ -716,18 +1042,15 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
-            participant, 
+            participant,
             self.choose_block_order(experiment=experiment, participant=participant)
         )
 
     def init_participant_group(self, experiment, participant):
-        if self.new_participant_group:
-            self.set_participant_group(
-                participant,
-                self.choose_participant_group(experiment=experiment, participant=participant)
-            )
-        elif not self.has_participant_group(participant):
-            raise ValueError("<new_participant_group> was False but the participant hasn't yet been assigned to a group.")
+        self.set_participant_group(
+            participant,
+            self.choose_participant_group(experiment=experiment, participant=participant)
+        )
 
     @property
     def block_order_var_id(self):
@@ -742,7 +1065,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     @property
     def participant_group_var_id(self):
-        return self.with_namespace("participant_group", shared_between_phases=True)
+        return self.with_namespace("participant_group")
 
     def set_participant_group(self, participant, participant_group):
         participant.var.new(self.participant_group_var_id, participant_group)
@@ -751,7 +1074,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         return participant.var.get(self.participant_group_var_id)
 
     def has_participant_group(self, participant):
-        return participant.has_var(self.participant_group_var_id)
+        return participant.var.has(self.participant_group_var_id)
 
 
     def init_completed_stimuli_in_phase(self, participant):
@@ -800,24 +1123,24 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         # pylint: disable=unused-argument
         """
         Determines the order of blocks for the current participant.
-        By default this function shuffles the blocks randomly for each participant. 
+        By default this function shuffles the blocks randomly for each participant.
         The user is invited to override this function for alternative behaviour.
-        
+
         Parameters
         ----------
-        
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-        
+
         Returns
         -------
-        
-        list   
+
+        list
             A list of blocks in order of presentation,
             where each block is identified by a string label.
         """
@@ -829,23 +1152,23 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         # pylint: disable=unused-argument
         """
         Determines the participant group assigned to the current participant.
-        By default this function randomly chooses from the available participant groups. 
+        By default this function randomly chooses from the available participant groups.
         The user is invited to override this function for alternative behaviour.
-        
+
         Parameters
         ----------
-        
+
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
             corresponding to the current experiment.
-        
+
         participant
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
-            
+
         Returns
         -------
-        
+
         A string label identifying the selected participant group.
         """
         participant_groups = self.stimulus_set.participant_groups
@@ -854,26 +1177,28 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def create_networks(self, experiment):
         for network_spec in self.stimulus_set.network_specs:
             network_spec.create_network(
-                trial_type=self.trial_type, 
-                experiment=experiment, 
+                trial_maker_id=self.id,
+                experiment=experiment,
                 target_num_trials_per_stimulus=self.target_num_trials_per_stimulus
             )
         experiment.save()
-        
-    def find_networks(self, participant, experiment):
+
+    def find_networks(self, participant, experiment, ignore_async_processes=False):
         # pylint: disable=protected-access
         block_order = participant.var.get(self.with_namespace("block_order"))
         networks = (
             NonAdaptiveNetwork.query
                               .filter_by(
-                                  trial_type=self.trial_type,
+                                  trial_maker_id=self.id,
                                   participant_group=self.get_participant_group(participant),
-                                  phase=self.phase,
-                                  awaiting_process=False
+                                  phase=self.phase
                               )
                               .filter(NonAdaptiveNetwork.block.in_(block_order))
-                              .all()
+
         )
+        if not ignore_async_processes:
+            networks = networks.filter_by(awaiting_async_process=False)
+        networks = networks.all()
         networks.sort(key=lambda network: block_order.index(network.block))
         return networks
 
@@ -894,17 +1219,20 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             self.trial_class
                 .query
                 .filter_by(
-                    network_id=network.id, 
+                    network_id=network.id,
                     participant_id=participant.id,
-                    failed=False,
-                    complete=True
+                    complete=True,
+                    is_repeat_trial=False
                 )
                 .count()
         )
-        
+
     def find_stimulus(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
-        if self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block:
+        if (
+            self.max_trials_per_block is not None and
+            self.count_completed_trials_in_network(network, participant) >= self.max_trials_per_block
+        ):
             return None
         completed_stimuli = self.get_completed_stimuli_in_phase_and_block(participant, block=network.block)
         allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
@@ -913,6 +1241,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             candidates = self.filter_out_repeated_stimuli(candidates, completed_stimuli)
         if not allow_new_stimulus:
             candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
+
         candidates = candidates.all()
         if self.active_balancing_within_participants:
             candidates = self.balance_within_participants(candidates, completed_stimuli)
@@ -941,16 +1270,41 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         candidate_counts_within = [completed_stimuli[candidate.id] for candidate in candidates]
         min_count_within = 0 if len(candidate_counts_within) == 0 else min(candidate_counts_within)
         return [
-            candidate for candidate, candidate_count_within in zip(candidates, candidate_counts_within) 
+            candidate for candidate, candidate_count_within in zip(candidates, candidate_counts_within)
             if candidate_count_within == min_count_within
         ]
 
-    @staticmethod
-    def balance_across_participants(candidates):
-        candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
+    def get_trial_counts(self, stimuli, new=True):
+        # Old inefficient version:
+        if not new:
+            return [s.num_completed_trials for s in stimuli]
+
+        # New version:
+        n_trials_all_stimuli = filter_for_completed_trials(
+            db.session
+            .query(NonAdaptiveTrial.stimulus_id, func.count(NonAdaptiveTrial.id))
+            .group_by(NonAdaptiveTrial.stimulus_id)
+        ).all()
+        n_trials_all_stimuli = {x[0]: x[1] for x in n_trials_all_stimuli}
+
+        def get_count(stimulus):
+            try:
+                return n_trials_all_stimuli[stimulus.id]
+            except KeyError:
+                return 0
+
+        return [get_count(stim) for stim in stimuli]
+
+    def balance_across_participants(self, candidates):
+        # candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
+        candidate_counts_across = self.get_trial_counts(candidates)
+        # logger.info("%s", [
+        #     (candidate.id, count) for candidate, count in zip(candidates, candidate_counts_across)
+        # ])
+
         min_count_across = 0 if len(candidate_counts_across) == 0 else min(candidate_counts_across)
         return [
-            candidate for candidate, candidate_count_across in zip(candidates, candidate_counts_across) 
+            candidate for candidate, candidate_count_across in zip(candidates, candidate_counts_across)
             if candidate_count_across == min_count_across
         ]
 
@@ -969,116 +1323,127 @@ class NonAdaptiveNetwork(TrialNetwork):
     """
     A :class:`~psynet.trial.main.TrialNetwork` class for non-adaptive experiments.
     The user should not have to engage with this class directly,
-    except through the network visualisation tool and through 
+    except through the network visualisation tool and through
     analysing the resulting data.
     The networks are organised as follows:
-    
-    1. At the top level of the hierarchy, different networks correspond to different 
+
+    1. At the top level of the hierarchy, different networks correspond to different
        combinations of participant group and block.
-       If the same experiment contains many 
+       If the same experiment contains many
        :class:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker` objects
        with different associated :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`
-       classes, 
-       then networks will also be differentiated by the names of these 
+       classes,
+       then networks will also be differentiated by the names of these
        :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` classes.
-       
-    2. Within a given network, the first level of the hierarchy is the 
+
+    2. Within a given network, the first level of the hierarchy is the
        :class:`~psynet.trial.non_adaptive.Stimulus` class.
        These objects subclass the Dallinger :class:`~dallinger.models.Node` class,
        and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusSpec` instances.
-       
+
     3. Nested within :class:`~psynet.trial.non_adaptive.Stimulus` objects
        are :class:`~psynet.trial.non_adaptive.StimulusVersion` objects.
        These also subclass the Dallinger :class:`~dallinger.models.Node` class,
        and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` instances.
-       
+
     4. Nested within :class:`~psynet.trial.non_adaptive.StimulusVersion` objects
        are :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` objects.
        These objects subclass the Dallinger :class:`~dallinger.models.Info` class.
 
     Attributes
     ----------
-    
-    trial_type : str
-        A string uniquely identifying the type of trial to be administered,
-        typically just the name of the relevant class, 
-        e.g. ``"MelodyTrial"``.
-        The same experiment should not contain multiple TrialMaker objects
-        with the same ``trial_type``, unless they correspond to different
-        phases of the experiment and are marked as such with the 
-        ``phase`` parameter.
-        Stored as the field ``property1`` in the database.
-        
+
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Stored as the field ``property2`` in the database.
-        
-    awaiting_process : bool
+
+    awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
         This should always be ``False`` for non-adaptive experiments.
-        Stored as the field ``property3`` in the database.
-        
+
+    earliest_async_process_start_time : Optional[datetime]
+        Time at which the earliest pending async process was called.
+
     participant_group : bool
         The network's associated participant group.
         Stored as the field ``property4`` in the database.
-        
+
     block : str
         The network's associated block.
         Stored as the field ``property5`` in the database.
-        
+
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
         Set by default in the ``__init__`` function.
         Stored as the field ``role`` in the database.
-        
+
     num_nodes : int
-        Returns the number of non-failed nodes in the network.       
-    
+        Returns the number of non-failed nodes in the network.
+
     num_completed_trials : int
-        Returns the number of completed and non-failed trials in the network
-        (irrespective of asynchronous processes).
-        
+        Returns the number of completed and non-failed trials in the network,
+        irrespective of asynchronous processes,
+        but excluding end-of-phase repeat trials.
+
     stimuli : list
         Returns the stimuli associated with the network.
-        
+
     num_stimuli : int
         Returns the number of stimuli associated with the network.
-        
+
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
     """
     #pylint: disable=abstract-method
-    
-    __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
-    
-    participant_group = claim_field(4, str)
-    block = claim_field(5, str)
 
-    def __init__(self, trial_type, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
+    __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
+    __extra_vars__ = TrialNetwork.__extra_vars__.copy()
+
+    participant_group = claim_field(3, "participant_group", __extra_vars__, str)
+    block = claim_field(4, "block", __extra_vars__, str)
+
+    creation_started = claim_var("creation_started", __extra_vars__)
+    creation_progress = claim_var("creation_progress", __extra_vars__)
+
+    def __init__(self, *, trial_maker_id, phase, participant_group, block, stimulus_set, experiment, target_num_trials_per_stimulus):
         self.participant_group = participant_group
         self.block = block
-        super().__init__(trial_type, phase, experiment)
-        if self.num_nodes == 0:
-            self.populate(stimulus_set, experiment, target_num_trials_per_stimulus)
+        self.creation_started = False
+        self.creation_progress = 0.0
+        super().__init__(trial_maker_id, phase, experiment)
+        db.session.add(self)
+        if not self.creation_started:
+            self.creation_started = True
+            self.queue_async_process(call_network_populate, pickle.dumps(stimulus_set), target_num_trials_per_stimulus)
+        db.session.commit()
 
-    def populate(self, stimulus_set, experiment, target_num_trials_per_stimulus):
-        source = dallinger.nodes.Source(network=self)
-        experiment.session.add(source)
+    def populate(self, stimulus_set, target_num_trials_per_stimulus):
+        source = TrialSource(network=self)
+        db.session.add(source)
         stimulus_specs = [
-            x for x in stimulus_set.stimulus_specs 
+            x for x in stimulus_set.stimulus_specs
             if x.phase == self.phase
             and x.participant_group == self.participant_group
             and x.block == self.block
         ]
-        for stimulus_spec in stimulus_specs:
+        N = len(stimulus_specs)
+        n = 0
+        for i, stimulus_spec in enumerate(stimulus_specs):
             stimulus_spec.add_stimulus_to_network(
-                network=self, 
-                source=source, 
-                experiment=experiment, 
-                target_num_trials=target_num_trials_per_stimulus
+                network=self,
+                source=source,
+                target_num_trials=target_num_trials_per_stimulus,
+                stimulus_set=stimulus_set
             )
-        experiment.save()
+            n = i + 1
+            if n % 100 == 0:
+                logger.info("Populated network %i with %i/%i stimuli...", self.id, n, N)
+                self.creation_progress = (1 + i) / N
+                db.session.commit()
+        logger.info("Finished populating network %i with %i/%i stimuli.", self.id, n, N)
+        self.creation_progress = 1.0
+        db.session.commit()
 
     @property
     def stimulus_query(self):
@@ -1092,3 +1457,66 @@ class NonAdaptiveNetwork(TrialNetwork):
     def num_stimuli(self):
         return self.stimulus_query.count()
 
+def call_network_populate(network_id, process_id, pickled_stimulus_set, target_num_trials_per_stimulus):
+    logger.info("Running populate function for network %i...", network_id)
+    import_local_experiment()
+    stimulus_set = pickle.loads(pickled_stimulus_set)
+    network = Network.query.filter_by(id=network_id).one()
+    try:
+        if process_id in network.pending_async_processes:
+            network.populate(stimulus_set, target_num_trials_per_stimulus)
+            network.pop_async_process(process_id)
+        else:
+            logger.info("Skipping async process %s as it is no longer queued.", process_id)
+    except BaseException as e:
+        network.fail_async_processes(reason=f"exception in network.populate(): {e.__class__.__name__}")
+        raise
+    finally:
+        db.session.commit() # pylint: disable=no-member
+
+class LocalMediaStimulusVersionSpec(StimulusVersionSpec):
+    has_media = True
+
+    def __init__(self, definition, media_ext):
+        super().__init__(definition)
+        self.media_ext = media_ext
+
+    @classmethod
+    def generate_media(cls, definition, output_path):
+        shutil.copyfile(definition["local_media_path"], output_path)
+
+
+def stimulus_set_from_dir(id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str):
+    # example media_ext: .wav
+
+    def construct():
+        return compile_stimulus_set_from_dir(id_, input_dir, media_ext, phase, version, s3_bucket)
+
+    return VirtualStimulusSet(id_, version, construct)
+
+def compile_stimulus_set_from_dir(id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str):
+    # example media_ext: .wav
+    stimuli = []
+    participant_groups = [(f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()]
+    for participant_group, group_path in participant_groups:
+        blocks = [(f.name, f.path) for f in os.scandir(group_path) if f.is_dir()]
+        for block, block_path in blocks:
+            media_files = [(f.name, f.path) for f in os.scandir(block_path) if f.is_file() and f.path.endswith(media_ext)]
+            for media_name, media_path in media_files:
+                stimuli.append(
+                    StimulusSpec(
+                        definition={
+                            "name": media_name,
+                        },
+                        phase=phase,
+                        version_specs=[LocalMediaStimulusVersionSpec(
+                            definition={
+                                "local_media_path": media_path
+                            },
+                            media_ext=media_ext
+                        )],
+                        participant_group=participant_group,
+                        block=block
+                    )
+                )
+    return StimulusSet(id_, stimuli, version=version, s3_bucket=s3_bucket)

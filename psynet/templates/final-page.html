@@ -1,22 +1,17 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-    <h1>{{title}}</h1>
-
     {{content}}
 
-    <p style="padding-top: 40px;">
+    <p class="vspace"></p>
+
+    <p>
         Please click "Finish" to complete the HIT.
     </p>
 
-    <hr>
+    <p class="vspace"></p>
 
-    <div class="row">
-        <div class="col-xs-10"></div>
-        <div class="col-xs-2">
-            <button type="button" id="next_button" class="btn btn-success btn-lg" onClick="dallinger.submitAssignment();">Finish</button>
-        </div>
-    </div>
+    <button type="button" id="next_button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">Finish</button>
 
 {% endblock %}
 

@@ -1,0 +1,110 @@
+{% macro simple(config) %}
+    {% if config.text is not none %}
+        <style>
+            #prompt-text {
+                text-align: {{ config.text_align }};
+            }
+        </style>
+
+        <div id="prompt-text">
+            {{ config.text }}
+        </div>
+    {% endif %}
+{% endmacro %}
+
+{% macro audio(config) %}
+    {{ simple(config) }}
+
+    <script>
+        {% if config.prevent_response %}
+            psynet.response.wait_for("audio_prompt");
+        {% endif %}
+
+        {% if config.prevent_submit %}
+            psynet.submit.wait_for("audio_prompt");
+        {% endif %}
+
+        psynet.media.register_on_loaded_routine(function() {
+            setTimeout(function() {
+                var sound = psynet.audio.prompt.play({
+                    loop: {{ config.loop | lower }}
+                });
+
+                sound.source.addEventListener("ended", function() {
+                    {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
+                    {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
+                });
+
+                {% if config.enable_submit_after is not none %}
+                    setTimeout(
+                        ()=> psynet.submit.ready("audio_prompt"),
+                        1000 * {{ config.enable_submit_after }}
+                    );
+                {% endif %}
+            }, {{config.start_delay}} * 1000)
+        });
+    </script>
+{% endmacro %}
+
+{% macro image(config) %}
+    <style>
+        #prompt_image {
+            width: {{ config.width }};
+            height: {{ config.height }};
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: {{ config.margin_top}};
+            margin-bottom: {{ config.margin_bottom}};
+        }
+    </style>
+
+    <img id="prompt_image" src="{{ config.url }}" alt="Image not found">
+
+    {% if config.hide_after is not none %}
+        <script>
+            var prompt_image = $("#prompt_image").get(0);
+
+            hide_prompt_image = function() {
+                psynet.log.debug("Hiding prompt image.");
+                prompt_image.style.opacity = 0;
+            }
+
+            hide_prompt_image_countdown = function() {
+                psynet.log.debug("Counting down until prompt image hide...");
+                setTimeout(hide_prompt_image, {{ 1000 * config.hide_after }});
+            }
+
+            if (prompt_image.complete) {
+                hide_prompt_image_countdown();
+            } else {
+                prompt_image.addEventListener("load", hide_prompt_image_countdown);
+            }
+        </script>
+    {% endif %}
+
+    {{ simple(config) }}
+{% endmacro %}
+
+{% macro colour(config) %}
+    <style>
+        .colour-box-container {
+            display: flex;
+            justify-content: center;
+        }
+        .colour-box {
+            width: 200px;
+            height: 200px;
+            margin: 0px;
+            border-style: solid;
+            border-color: black;
+            background-color: hsl({{ config.hsl[0] }}, {{ config.hsl[1] }}%, {{ config.hsl[2] }}%);
+        }
+    </style>
+
+    <div class="colour-box-container">
+        <div class="colour-box"></div>
+    </div>
+
+    {{ simple(config) }}
+{% endmacro %}

@@ -1,0 +1,405 @@
+{% macro null(config) %}
+    <script>
+        on_next_button = function() {
+            $(this).prop('disabled', true);
+            if (typeof retrieve_response == "undefined") {
+                psynet.next_page();
+            } else {
+                response = retrieve_response();
+                psynet.next_page(
+                    response.raw_answer,
+                    response.metadata,
+                    response.blobs
+                );
+            }
+        }
+    </script>
+
+    <button type="button" id="next_button" class="btn btn-primary btn-lg submit" onclick="on_next_button();">
+        Next
+    </button>
+{% endmacro %}
+
+{% macro nafc_button(config) %}
+    <style>
+        .nafc_button {
+            margin: {{ config.margin }};
+            display: {{ config.display }};
+        }
+    </style>
+    <button
+        type="button"
+        class="btn nafc_button btn-primary submit"
+        id="{{ config.id }}"
+        onclick="clicked_button('{{ config.id }}');"
+        style="min-width:{{ config.min_width }}"
+    >
+        {{ config.label }}
+    </button>
+{% endmacro %}
+
+{% macro nafc(config) %}
+    <style>
+        .nafc-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
+
+    <div class="nafc-container">
+        {% for button in config.buttons %}
+            {{ nafc_button(button) }}
+        {% endfor %}
+    </div>
+
+    <script>
+        clicked_button = function(id) {
+            psynet.response.disable();
+            psynet.submit.disable();
+            psynet.next_page(id);
+        }
+    </script>
+{% endmacro %}
+
+{% macro slider(config) %}
+    <style type="text/css">
+        .slider-collection {
+            margin: 30px;
+        }
+
+        .slider {
+            margin: 20px;
+        }
+
+        input[type=range] {
+            width: 50%;
+            display: inline-block;
+        }
+
+        .slider-label {
+            font-weight: bold;
+            display: inline-block;
+            min-width: 200px;
+            text-align: right;
+            margin-right: 20px;
+        }
+
+        .slider-value {
+            width: 60px;
+            display: inline-block;
+            margin-left: 20px;
+        }
+
+    </style>
+
+    <script>
+        var init_sliders = function(){
+            var slider = $('.slider'),
+                range = $('.slider-range'),
+                value = $('.slider-value');
+
+            slider.each(function(){
+                value.each(function(){
+                    var value = $(this).prev().attr('value');
+                    $(this).html(value);
+                });
+
+                range.on('input', function(){
+                    $(this).next(value).html(this.value);
+                });
+            });
+        };
+        window.addEventListener("load", init_sliders);
+    </script>
+
+    <div class="slider-collection">
+        {% for s in config.sliders %}
+            <div class="slider">
+                <span class="slider-label" style=>
+                    {{ s.label }}
+                </span>
+                <input id="{{ s.slider_id }}" class="slider-range form-control-range response" type="range"
+                            style="display: inline-block;"
+                            min="{{ s.min_value }}" max="{{ s.max_value + 0.0001 * s.step_size }}"
+                            step="{{ s.step_size }}" value="{{ s.start_value }}">
+                <span class="slider-value">NA</span>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro audio_meter(config) %}
+    <div class="audio_meter_block">
+        <table style="width: 500px; padding: 10px">
+            <tbody>
+                <tr align="left" valign="middle">
+                    <td width="300px">
+                        <div style="background-color: black; width: 300px; height: 50px">
+                            <canvas id="audio_meter" width="300" height="50"></canvas>
+                        </div>
+                    </td>
+                    <td width="20px"></td>
+                    <td align="left">
+                        <p id="audio_meter_text" style="font-weight: bold; margin: 0px; display: none;"></p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        {% if config.calibrate %}
+            {{ audio_meter_calibrate(config) }}
+        {% endif %}
+    </div>
+
+    {% if config.submit_button %}
+        {{ null(config) }}
+    {% endif %}
+
+    <script>
+        psynet.submit.wait_for("audio_meter");
+        setTimeout(
+            ()=> psynet.submit.ready("audio_meter"),
+            1000 * {{ config.min_time }}
+        );
+    </script>
+
+    <script>
+        {% include "macros/control/audio_meter.js" %}
+
+        audio_meter_control.init('{{ config.to_json() }}');
+    </script>
+{% endmacro %}
+
+{% macro audio_meter_calibrate(config) %}
+    <style type="text/css">
+        #audio-meter-documentation {
+            padding-top: 20px;
+        }
+    </style>
+
+    <ul class="nav nav-tabs">
+        <li><a href="#audio-meter-sliders" data-toggle="tab">Sliders</a></li>
+        <li><a href="#audio-meter-documentation" data-toggle="tab">Documentation</a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="audio-meter-sliders" class="tab-pane active">
+            {{ slider(config.sliders) }}
+        </div>
+
+        <div id="audio-meter-documentation" class="tab-pane">
+            <p>
+                The <strong>decay</strong> parameters determine the amount of smoothing
+                that happens to the signal, and have units of seconds. A high decay parameter
+                means that the signal takes a long time to decay (i.e. high smoothing).
+                There are three decay parameters: one for the displayed audio meter,
+                one for the 'too-high' detector, and one for the 'too-low' detector.
+            </p>
+            <p>
+                The <strong>threshold</strong> parameters determine the point at which
+                the volume is determined to be 'too high' or 'too low'.
+            </p>
+            <p>
+                The <strong>grace</strong> parameters determine how long the volume must be
+                outside the respective threshold for a warning message to be triggered.
+            </p>
+            <p>
+                The <strong>message duration</strong> parameters determine how long
+                warning messages are displayed for.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        setInterval(() => audio_meter_control.update_from_sliders(), 50);
+    </script>
+{% endmacro %}
+
+{% macro audio_record(config) %}
+
+    {% if config.show_meter %}
+        {{ audio_meter(config.meter) }}
+    {% endif %}
+
+    <style>
+        #record-status {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    <div id="record-status">
+        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
+            Waiting to record...
+        </div>
+
+        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
+            Recording...
+        </div>
+
+        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
+            Recording finished.
+        </div>
+
+        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
+            Uploading response...
+        </div>
+    </div>
+
+    {{ null(config) }}
+
+    <script>
+
+    </script>
+
+    <script>
+        {% include "macros/control/recorder.js" %}
+
+        var recorder;
+
+        psynet.media.register_on_loaded_routine(function() {
+            $("#next_button").on("click", function() {
+                $(".record-alert").hide();
+                $("#record-upload").show();
+            });
+            navigator.mediaDevices.getUserMedia({
+                audio: {
+                    autoGainControl: false,
+                    echoCancellation: false,
+                    noiseSuppression: false
+                },
+                video: false
+            }).then(function(stream) {
+                psynet.log.debug("Initialising recorder.");
+                var input = psynet.media.audio_context.createMediaStreamSource(stream);
+                recorder = new Recorder(input);
+                psynet.response.ready("recorder_ready")
+            })
+        });
+
+        psynet.response.wait_for("page_load_buffer");
+        psynet.response.wait_for("recorder_ready");
+        psynet.submit.wait_for("finished-recording");
+
+        setTimeout(function() {
+            psynet.response.ready("page_load_buffer");
+        }, 1000)
+
+        start_recording = function() {
+            psynet.log.debug("Starting recording.");
+            $(".record-alert").hide();
+            $("#record-active").show();
+            recorder.clear();
+            recorder.record();
+        }
+
+        end_recording = function() {
+            psynet.log.debug("Ending recording.")
+            recorder.exportWAV(function (blob) {
+                psynet.response.staged.blobs = {recording: blob};
+                psynet.submit.ready("finished-recording");
+            })
+            $(".record-alert").hide();
+            $("#record-finish").show();
+        }
+
+        psynet.response.register_on_ready_routine(function() {
+            start_recording();
+            setTimeout(end_recording, 1000 * {{ config.duration }});
+        });
+    </script>
+{% endmacro %}
+
+{% macro text(config) %}
+    <style>
+        #text_input_container {
+            margin: 15px;
+            margin: 15px;
+            display: flex;
+            justify-content: center;
+        }
+        #text_input {
+            {% if config.width is not none %} width: {{ config.width }}; {% endif %}
+            {% if config.height is not none %} height: {{ config.height }}; {% endif %}
+        }
+    </style>
+
+    <div id="text_input_container">
+        {% if config.one_line %}
+            <input id="text_input" class="form-control response" type="text" value=""/>
+        {% else %}
+            <textarea id="text_input" class="form-control response" type="text"></textarea>
+        {% endif %}
+    </div>
+
+    <script>
+        retrieve_response = function() {
+            return {
+                raw_answer: $("#text_input").get(0).value
+            }
+        }
+    </script>
+
+    {{ null(config) }}
+{% endmacro %}
+
+{% macro video_slider(config) %}
+    <style>
+        #slider_video_container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 25px;
+            min-height: {{ config.height }};
+            min-width: {{ config.width }};
+        }
+        #slider_container {
+            margin: 25px;
+            {% if config.hide_slider == true %} display: none; {% endif %}
+        }
+        #slider {
+            {%if config.reverse_scale %} direction: rtl {% endif %}
+        }
+    </style>
+
+    <div id="slider_video_container">
+        <video id="slider_video" class="loader" width="{{ config.width }}" height="{{ config.height }}">
+            <source src="" type="video/{{ config.file_type }}"
+        </video>
+    </div>
+
+
+    <div id="slider_container">
+        <input  id="slider" class="slider-range form-control-range response" type="range"
+                style="display: inline-block;" min="0" max="1" step="0.001" value="{{ config.starting_value }}">
+    </div>
+
+    {{ null(config) }}
+
+    <script>
+        update_video_from_slider = function() {
+            var slider_value = document.getElementById("slider").value;
+            var video = document.getElementById("slider_video");
+            if (psynet.response.ready_done && !isNaN(video.duration)) {
+                video.currentTime = slider_value * video.duration;
+            };
+            window.requestAnimationFrame(update_video_from_slider);
+        }
+        update_video_from_slider();
+
+        var minimal_time = parseFloat("{{ config.minimal_time }}");
+        psynet.submit.wait_for("slider_minimal_time");
+        psynet.response.register_on_ready_routine(function() {
+            setTimeout(function() {
+                psynet.submit.ready("slider_minimal_time");
+            }, minimal_time * 1000);
+        });
+
+        retrieve_response = function() {
+            return {
+                raw_answer: parseFloat($("#slider").get(0).value)
+            }
+        }
+    </script>
+{% endmacro %}

@@ -1,17 +1,19 @@
 # pylint: disable=attribute-defined-outside-init
 
+from sqlalchemy import desc
+
 import dallinger.models
+import datetime
 from . import field
-from .field import VarStore, claim_var
+from .field import VarStore, claim_var, extra_var
+from .timeline import Response
 import json
 import os
+from .utils import get_logger, serialise_datetime, unserialise_datetime
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+logger = get_logger()
 
 # pylint: disable=unused-import
-import rpdb
 
 class Participant(dallinger.models.Participant):
     """
@@ -20,7 +22,7 @@ class Participant(dallinger.models.Participant):
     object, it should be mirrored in the database.
 
     Users should not have to instantiate these objects directly.
-    
+
     The class extends the ``Participant`` class from base Dallinger
     (:class:`dallinger.models.Participant`) to add some useful features,
     in particular the ability to store arbitrary variables.
@@ -44,13 +46,13 @@ class Participant(dallinger.models.Participant):
         The participant's unique ID.
 
     event_id : int
-        Represents the participant's position in the timeline. 
+        Represents the participant's position in the timeline.
         Should not be modified directly.
         Stored in the database as ``property1``.
 
     page_uuid : str
         A long unique string that is randomly generated when the participant advances
-        to a new page, used as a passphrase to guarantee the security of 
+        to a new page, used as a passphrase to guarantee the security of
         data transmission from front-end to back-end.
         Should not be modified directly.
         Stored in the database as ``property2``.
@@ -68,6 +70,11 @@ class Participant(dallinger.models.Participant):
         Should not be modified directly.
         Stored in the database as ``property4``.
 
+    response : Response
+        An object of class :class:`~psynet.timeline.Response`
+        providing detailed information about the last response submitted
+        by the participant. This is a more detailed version of ``answer``.
+
     branch_log : list
         Stores the conditional branches that the participant has taken
         through the experiment.
@@ -76,7 +83,7 @@ class Participant(dallinger.models.Participant):
 
     failure_tags : list
         Stores tags that identify the reason that the participant has failed
-        the experiment (if any). For example, if a participant fails 
+        the experiment (if any). For example, if a participant fails
         a microphone pre-screening test, one might add "failed_mic_test"
         to this tag list.
         Should be modified using the method :meth:`~psynet.participant.Participant.append_failure_tags`.
@@ -90,15 +97,66 @@ class Participant(dallinger.models.Participant):
     """
 
     __mapper_args__ = {"polymorphic_identity": "participant"}
+    __extra_vars__ = {}
 
-    event_id = field.claim_field(1, int)
-    page_uuid = field.claim_field(2, str)
-    complete = field.claim_field(3, bool)
-    answer = field.claim_field(4, object)
-    branch_log = field.claim_field(5, list)
+    event_id = field.claim_field(1, "event_id", __extra_vars__, int)
+    page_uuid = field.claim_field(2, "page_uuid", __extra_vars__, str)
+    complete = field.claim_field(3, "complete", __extra_vars__, bool)
+    answer = field.claim_field(4, "answer", __extra_vars__, object)
+    branch_log = field.claim_field(5, "branch_log", __extra_vars__, list)
 
-    failure_tags = claim_var("failure_tags", use_default=True, default=lambda: [])
-    last_response_id = claim_var("last_response_id")
+    initialised = claim_var("initialised", __extra_vars__, use_default=True, default=lambda: False)
+    failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
+    last_response_id = claim_var("last_response_id", __extra_vars__)
+    base_payment = claim_var("base_payment", __extra_vars__)
+    performance_bonus = claim_var("performance_bonus", __extra_vars__)
+    modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_clean(x, details=True)
+        field.json_add_extra_vars(x, self)
+        x["started_modules"] = self.started_modules
+        x["finished_modules"] = self.finished_modules
+        del x["modules"]
+        field.json_format_vars(x)
+        return x
+
+    @property
+    @extra_var(__extra_vars__)
+    def started_modules(self):
+        modules = [(key, value) for key, value in self.modules.items() if len(value["time_started"]) > 0]
+        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
+        return [m[0] for m in modules]
+
+    @property
+    @extra_var(__extra_vars__)
+    def finished_modules(self):
+        modules = [(key, value) for key, value in self.modules.items() if len(value["time_finished"]) > 0]
+        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
+        return [m[0] for m in modules]
+
+    def start_module(self, label):
+        modules = self.modules.copy()
+        try:
+            log = modules[label]
+        except KeyError:
+            log = {
+                "time_started": [],
+                "time_finished": []
+            }
+        time_now = serialise_datetime(datetime.datetime.now())
+        log["time_started"] = log["time_started"] + [time_now]
+        modules[label] = log.copy()
+        self.modules = modules.copy()
+
+    def end_module(self, label):
+        modules = self.modules.copy()
+        log = modules[label]
+        time_now = serialise_datetime(datetime.datetime.now())
+        log["time_finished"] = log["time_finished"] + [time_now]
+        modules[label] = log.copy()
+        self.modules = modules.copy()
 
     def set_answer(self, value):
         self.answer = value
@@ -108,10 +166,32 @@ class Participant(dallinger.models.Participant):
         self.event_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
+        self.performance_bonus = 0.0
+        self.base_payment = experiment.base_payment
+        self.initialised = True
+
+    def inc_performance_bonus(self, value):
+        self.performance_bonus = self.performance_bonus + value
 
     @property
+    def response(self):
+        return (
+            Response
+                .query
+                .filter_by(participant_id=self.id)
+                .order_by(desc(Response.id))
+                .first()
+        )
+
+    @property
+    @extra_var(__extra_vars__)
     def progress(self):
         return 1.0 if self.complete else self.time_credit.progress
+
+    @property
+    @extra_var(__extra_vars__)
+    def estimated_bonus(self):
+        return self.time_credit.estimate_bonus()
 
     @property
     def var(self):
@@ -120,10 +200,6 @@ class Participant(dallinger.models.Participant):
     @property
     def time_credit(self):
         return TimeCreditStore(self)
-
-    @property 
-    def initialised(self):
-        return self.event_id is not None
 
     def append_branch_log(self, entry: str):
         # We need to create a new list otherwise the change may not be recognised
@@ -150,7 +226,7 @@ class Participant(dallinger.models.Participant):
         *tags
             Tags to append.
 
-        Returns 
+        Returns
         -------
 
         :class:`psynet.participant.Participant`
@@ -184,9 +260,9 @@ def get_participant(participant_id: int):
 class TimeCreditStore:
     fields = [
         "confirmed_credit",
-        "is_fixed", 
-        "pending_credit", 
-        "max_pending_credit", 
+        "is_fixed",
+        "pending_credit",
+        "max_pending_credit",
         "wage_per_hour",
         "experiment_max_time_credit",
         "experiment_max_bonus"
@@ -219,15 +295,15 @@ class TimeCreditStore:
         self.max_pending_credit = 0.0
         self.wage_per_hour = experiment.wage_per_hour
 
-        experiment_estimated_time_credit = experiment.timeline.estimate_time_credit()
+        experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(mode="time")
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(mode="bonus", wage_per_hour=experiment.wage_per_hour)
         self.export_estimated_payments(experiment_estimated_time_credit, experiment)
-    
+
     def export_estimated_payments(self, experiment_estimated_time_credit, experiment, path="experiment-estimated-payments.json"):
         with open(path, "w+") as file:
             summary = experiment_estimated_time_credit.summarise(
-                mode="all", 
+                mode="all",
                 wage_per_hour=experiment.wage_per_hour
             )
             json.dump(summary, file, indent=4)
@@ -240,7 +316,7 @@ class TimeCreditStore:
                 self.pending_credit = self.max_pending_credit
         else:
             self.confirmed_credit += value
-    
+
     def start_fix_time(self, time_estimate: float):
         assert not self.is_fixed
         self.is_fixed = True
@@ -265,4 +341,7 @@ class TimeCreditStore:
 
     @property
     def progress(self):
-        return self.estimate_time_credit() / self.experiment_max_time_credit
+        if self.participant.initialised:
+            return self.estimate_time_credit() / self.experiment_max_time_credit
+        else:
+            return 0.0

@@ -1,9 +1,15 @@
 from datetime import datetime
-from flask import render_template_string, Blueprint, request, render_template
+from flask import render_template_string, Blueprint, request, render_template, jsonify
 import json
-from json import dumps
+import os
+import rpdb
+from pkg_resources import resource_filename
+from dallinger import (
+    db
+)
 
-from dallinger import db
+from dallinger.config import get_config
+
 import dallinger.experiment
 
 from dallinger.experiment_server.utils import (
@@ -13,25 +19,21 @@ from dallinger.experiment_server.utils import (
 
 from .participant import get_participant, Participant
 from .timeline import (
-    get_template, 
-    Timeline, 
-    FailedValidation, 
-    ExperimentSetupRoutine, 
+    get_template,
+    Timeline,
+    FailedValidation,
+    ExperimentSetupRoutine,
     ParticipantFailRoutine,
     RecruitmentCriterion,
     BackgroundTask
 )
 from .page import (
-    InfoPage, 
-    SuccessfulEndPage    
+    InfoPage,
+    SuccessfulEndPage
 )
-from .utils import get_arg_from_dict, call_function
+from .utils import get_arg_from_dict, call_function, get_logger
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
-
-import rpdb
+logger = get_logger()
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -43,20 +45,30 @@ def json_serial(obj):
 class Experiment(dallinger.experiment.Experiment):
     # pylint: disable=abstract-method
 
+    # Introduced this as a hotfix for a compatibility problem with macOS 10.13:
+    # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
+    os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
+
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5),
         SuccessfulEndPage()
     )
 
     wage_per_hour = 9.0
+    min_browser_version = "80.0"
     # min_working_participants = 5
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
-        
+
+        config = get_config()
+        if not config.ready:
+            config.load()
+
         self._background_tasks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self.base_payment = config.get("base_payment")
 
         # self.register_recruitment_criterion(self.default_recruitment_criterion)
 
@@ -82,6 +94,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
+
+    # @property
+    # def allotted_bonus_dollars(self):
+    #     return self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=self.wage_per_hour)
 
     @property
     def background_tasks(self):
@@ -115,8 +131,8 @@ class Experiment(dallinger.experiment.Experiment):
         participant.time_of_death = datetime.now()
         for i, routine in enumerate(self.participant_fail_routines):
             logger.info(
-                "Executing fail routine %i/%i ('%s')...", 
-                i + 1, 
+                "Executing fail routine %i/%i ('%s')...",
+                i + 1,
                 len(self.participant_fail_routines),
                 routine.label
             )
@@ -127,128 +143,63 @@ class Experiment(dallinger.experiment.Experiment):
         return Participant.query.filter_by(status="working", failed=False).count()
 
     def recruit(self):
-        logger.info("Evaluating recruitment criteria (%i found)...", len(self.recruitment_criteria))
-        complete = True
+        if self.need_more_participants:
+            logger.info("Conclusion: recruiting another participant.")
+            self.recruiter.recruit(n=1)
+        else:
+            logger.info("Conclusion: no recruitment required.")
+            self.recruiter.close_recruitment()
+
+    @property
+    def need_more_participants(self):
+        need_more = False
         for i, criterion in enumerate(self.recruitment_criteria):
             logger.info("Evaluating recruitment criterion %i/%i...", i + 1, len(self.recruitment_criteria))
             res = call_function(criterion.function, {"experiment": self})
             assert isinstance(res, bool)
             logger.info(
-                "Recruitment criterion %i/%i ('%s') %s.", 
-                i + 1, 
+                "Recruitment criterion %i/%i ('%s') %s.",
+                i + 1,
                 len(self.recruitment_criteria),
                 criterion.label,
                 (
-                    "returned True (more participants needed)." if res 
+                    "returned True (more participants needed)." if res
                     else "returned False (no more participants needed)."
                 )
             )
             if res:
-                complete = False
-        if complete:
-            logger.info("Conclusion: no recruitment required.")
-            self.recruiter.close_recruitment()
-        else:
-            logger.info("Conclusion: recruiting another participant.")
-            self.recruiter.recruit(n=1)
+                need_more = True
+        return need_more
+
+    def is_complete(self):
+        return (not self.need_more_participants) and self.num_working_participants == 0
 
     def assignment_abandoned(self, participant):
         participant.append_failure_tags("assignment_abandoned", "premature_exit")
+        super().assignment_abandoned(participant)
 
     def assignment_returned(self, participant):
         participant.append_failure_tags("assignment_returned", "premature_exit")
+        super().assignment_abandoned(participant)
 
     def assignment_reassigned(self, participant):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
+        super().assignment_abandoned(participant)
 
-    def network_structure(self):
-        from dallinger import models
-        from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
-
-        jnodes = [n.__json__() for n in Node.query.all()]
-        jnetworks = [n.__json__() for n in Network.query.all()]
-        jinfos = [n.__json__() for n in Info.query.all()]
-        jparticipants = [n.__json__() for n in Participant.query.all()]
-
-        jvectors = [{
-            "origin_id": v.origin_id,
-            "destination_id": v.destination_id,
-            "id": v.id,
-            "failed": v.failed
-        } for v in Vector.query.all()]
-
-        return {
-            "networks": jnetworks, 
-            "nodes": jnodes,  
-            "vectors": jvectors, 
-            "infos": jinfos, 
-            "participants": jparticipants,
-            "trans": []
-        }
-
-    def network_stats(self):
-        from dallinger import models
-        from dallinger.models import Vector, Network, Node, Info, Transformation, Participant
-
-        networks = Network.query.all()
-        nodes = Node.query.all()
-        infos = Info.query.all()
-        participants = Participant.query.all()
-    
-        experiment_networks = set([net.id for net in networks if (net.role!= "practice")])
-    
-        failed_nodes = [node for node in nodes if node.failed]
-        failed_infos = [info for info in infos if info.failed]
-
-        pct_failed_nodes = round(100.0*len(failed_nodes)/(0.001+len(nodes)))
-        pct_failed_infos = round(100.0*len(failed_infos)/(0.001+len(infos)))
-    
-        msg_networks = f"# networks = {len(networks)} (experiment= {len(experiment_networks)})"
-        msg_nodes = f"# nodes = {len(nodes)} [failed= {len(failed_nodes)} ({pct_failed_nodes} %)]"
-        msg_infos = f"# infos = {len(infos)} [failed= {len(failed_infos)} ({pct_failed_infos} %)]"
-        
-        active_participants = 0
-        relevant_participants = [p for p in participants if (p.status=="working")]
-        for participant in relevant_participants:
-            nets_for_p = len([node for node in nodes if (node.participant_id == participant.id)])
-            if (nets_for_p <= 1): # make sure player played at least one valid nodes
-                continue
-            active_participants = active_participants + 1
-        msg_part = f"# participants = {len(participants)} working: {len(relevant_participants)} active: {active_participants}"
-
-        return {
-            'n_participants': len(participants),
-            'n_networks': len(networks),
-            'n_e_networks': len(experiment_networks),
-            'nodes': len(nodes),
-            'failed_nodes': len(failed_nodes),
-            'infos': len(infos),
-            'failed_infos': len(failed_infos),
-            'msg_networks': msg_networks,
-            'msg_nodes': msg_nodes,
-            'msg_infos': msg_infos,
-            'msg': f"{msg_part}\n{msg_networks}\n{msg_nodes}\n{msg_infos}\n"
-        }
-    
     def bonus(self, participant):
-        return round(participant.time_credit.get_bonus(), ndigits=2)
-
-    def render_monitor_template(self):
-        res = self.network_structure()
-        stat = self.network_stats()
-        data = {"status": "success", "net_structure": res}
-        msg = stat['msg'].replace("\n",'<br>')
-        html = get_template("network-monitor.html")
-        return render_template_string(html, my_data = dumps(data, default = json_serial), my_msg = msg)
+        return round(
+            participant.time_credit.get_bonus() + participant.performance_bonus,
+            ndigits=2
+        )
 
     def init_participant(self, participant_id):
         logger.info("Initialising participant {}...".format(participant_id))
 
         participant = get_participant(participant_id)
         participant.initialise(self)
-        
+
         self.timeline.advance_page(self, participant)
-        
+
         self.save()
         return success_response()
 
@@ -258,7 +209,7 @@ class Experiment(dallinger.experiment.Experiment):
         if page_uuid == participant.page_uuid:
             event = self.timeline.get_current_event(self, participant)
             response = event.process_response(
-                raw_answer=raw_answer, 
+                raw_answer=raw_answer,
                 blobs=blobs,
                 metadata=metadata,
                 experiment=self,
@@ -270,7 +221,7 @@ class Experiment(dallinger.experiment.Experiment):
                 participant=participant
             )
             if isinstance(validation, FailedValidation):
-                return self.response_rejected(message=validation.message)            
+                return self.response_rejected(message=validation.message)
             self.timeline.advance_page(self, participant)
             return self.response_approved()
         else:
@@ -281,17 +232,23 @@ class Experiment(dallinger.experiment.Experiment):
             return error_response()
 
     def response_approved(self):
-        logger.info("The response was approved.")
+        logger.debug("The response was approved.")
         return success_response(
             submission="approved"
         )
 
     def response_rejected(self, message):
-        logger.info("The response was rejected with the following message: '%s'.", message)
+        logger.warning("The response was rejected with the following message: '%s'.", message)
         return success_response(
             submission="rejected",
             message=message
         )
+
+    @classmethod
+    def extra_files(cls):
+        return [
+            (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png")
+        ]
 
     def extra_routes(self):
         #pylint: disable=unused-variable
@@ -299,10 +256,6 @@ class Experiment(dallinger.experiment.Experiment):
         routes = Blueprint(
             "extra_routes", __name__, template_folder="templates", static_folder="static"
         )
-
-        @routes.route("/monitor", methods=["GET"])
-        def route_monitor():
-            return self.render_monitor_template()
 
         @routes.route("/start", methods=["GET"])
         def route_start():
@@ -315,6 +268,31 @@ class Experiment(dallinger.experiment.Experiment):
                 rpdb.set_trace()
                 return success_response()
             return error_response()
+
+        @routes.route("/metadata", methods=["GET"])
+        def get_metadata():
+            exp = self.new(db.session)
+            return jsonify({
+                "duration_seconds": exp.timeline.estimated_time_credit.get_max(mode="time"),
+                "bonus_dollars": exp.timeline.estimated_time_credit.get_max(mode="bonus", wage_per_hour=exp.wage_per_hour),
+                "wage_per_hour": exp.wage_per_hour,
+                "base_payment": exp.base_payment
+            })
+
+        @routes.route("/consent")
+        def consent():
+            config = get_config()
+            exp = self.new(db.session)
+            return render_template(
+                "consent.html",
+                hit_id=request.args["hit_id"],
+                assignment_id=request.args["assignment_id"],
+                worker_id=request.args["worker_id"],
+                mode=config.get("mode"),
+                contact_email_on_error=config.get("contact_email_on_error"),
+                min_browser_version=self.min_browser_version,
+                wage_per_hour=f"{exp.wage_per_hour:.2f}"
+            )
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
@@ -347,21 +325,46 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/response", methods=["POST"])
         def route_response():
             exp = self.new(db.session)
-            
             json_data = json.loads(request.values["json"])
-            
-            # Everything that isn't named 'json' is a blob
-            blobs = {**request.values}
-            del blobs["json"]
-            
+            blobs = request.files.to_dict()
+
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
-            
+
             res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid)
-            
+
             exp.save()
             return res
+
+        @routes.route("/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"])
+        def log(level, participant_id, assignment_id):
+            participant = get_participant(participant_id)
+            message = request.values["message"]
+
+            if participant.assignment_id != assignment_id:
+                logger.warning(
+                    "Received wrong assignment_id for participant %i "
+                    "(expected %s, got %s).",
+                    participant_id,
+                    participant.assignment_id,
+                    assignment_id
+                )
+
+            assert level in ["warning", "info", "error"]
+
+            string = f"[CLIENT {participant_id}]: {message}"
+
+            if level == "info":
+                logger.info(string)
+            elif level == "warning":
+                logger.warning(string)
+            elif level == "error":
+                logger.error(string)
+            else:
+                raise RuntimeError("This shouldn't happen.")
+
+            return success_response()
 
         return routes

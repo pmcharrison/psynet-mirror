@@ -1,13 +1,41 @@
-image: nickgryg/alpine-pandas
+image: python:3.7.0
+
+services:
+  - postgres:12.2-alpine
+
+variables:
+  POSTGRES_DB: dallinger
+  POSTGRES_USER: dallinger
+  POSTGRES_PASSWORD: ""
+  POSTGRES_HOST_AUTH_METHOD: trust
+  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 before_script:
-  - apk add gcc gfortran musl-dev postgresql-dev libc-dev linux-headers
+  - apt-get update
+  - apt-get -f -y install python-enchant
+  - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+  - pip install -r /tmp/dallinger/dev-requirements.txt
+  - pip install -e /tmp/dallinger[data]
+  - pip install -e .[dev]
+
+tests:
+  stage: test
+  script:
+  - apt-get update
+  - curl https://cli-assets.heroku.com/install.sh | sh
+  - apt-get -f -y install curl redis-server
+  - service redis-server start
+  - wget -O chrome-84.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_84.0.4147.89-1_amd64.deb
+  - wget -O chrome-driver-84.zip https://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip
+  - apt-get -f -y install ./chrome-84.deb
+  - apt-get -f -y install -yqq unzip
+  - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
+  - export HEADLESS=TRUE
+  - pytest --chrome tests/
 
 pages:
   stage: deploy
   script:
-  - pip install psycopg2-binary
-  - pip install .
   - pip install -U sphinx
   - pip install sphinx_rtd_theme
   - pip install sphinx-autodoc-typehints

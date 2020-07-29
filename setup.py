@@ -3,12 +3,12 @@ import os
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
-    
+
 with open(os.path.join("psynet", 'VERSION')) as version_file:
     version = version_file.read().strip()
 
 setuptools.setup(
-    name="psynet", # Replace with your own username
+    name="psynet",
     version="0.11.0",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
@@ -22,9 +22,32 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.7.0',
     include_package_data=True,
-    install_requires=["datetime", "flask", "dallinger", "importlib_resources", "pandas", "rpdb"]
+    install_requires=[
+        "dallinger>=6.3.0",
+        "click",
+        "datetime",
+        "dominate",
+        "flask",
+        "importlib_resources",
+        "pandas",
+        "rpdb",
+        "progress",
+        "scipy",
+        "statsmodels"
+    ],
+    extras_require={
+        "dev": [
+            "pytest",
+            "mock"
+        ]
+    },
+    entry_points={
+        "console_scripts": [
+            "psynet = psynet.command_line:psynet"
+        ]
+    }
 )
 
 # python3.7 setup.py sdist bdist_wheel

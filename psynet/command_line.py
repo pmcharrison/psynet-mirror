@@ -1,0 +1,32 @@
+import psynet
+import click
+
+from dallinger.command_line import require_exp_directory
+from dallinger.config import get_config
+
+from .utils import import_local_experiment
+
+FLAGS = set()
+
+@click.group()
+@click.version_option(psynet.__version__, "--version", "-v", message="%(version)s")
+def psynet():
+    pass
+    # 1 + 1
+    # config = get_config()
+    # if not config.ready:
+    #     import pdb; pdb.set_trace()
+    #     config.load()
+
+@psynet.command()
+@click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode.")
+@click.option("--force", is_flag=True, flag_value=True, help="Force override of cache.")
+def prepare(verbose, force):
+    """
+    Prepares all stimulus sets defined in experiment.py,
+    uploading all media files to Amazon S3.
+    """
+    FLAGS.add("prepare")
+    if force:
+        FLAGS.add("force")
+    exp = import_local_experiment()

@@ -1,0 +1,118 @@
+{% extends "timeline-page.html" %}
+
+{% macro slider(min_value, max_value, step_size) %}
+    <input style="width: 250px" class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
+           id="{{ slider_id }}" class="form-control-range"
+           min="{{ min_value }}" max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}">
+{% endmacro %}
+
+{% block main_body %}
+    {{ super() }}
+
+    {{ prompt }}
+
+    <p class="vspace"></p>
+
+    <div>
+        {{ slider(min_value, max_value, step_size) }}
+    </div>
+
+    <p class="vspace"></p>
+
+    <button type="button" id="submit_button" class="btn btn-primary btn-lg submit" onClick="submit();">
+        Submit
+    </button>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+
+    <script>
+        // This is called each time
+        on_slider_event = function (event_type) {
+
+        };
+
+        if (minimal_interactions > 0) {
+            psynet.submit.wait_for("slider_minimal_interactions");
+        }
+
+        psynet.submit.wait_for("slider_minimal_time");
+
+        psynet.response.register_on_ready_routine(function() {
+            setTimeout(function() {
+                psynet.submit.ready("slider_minimal_time");
+            }, minimal_time * 1000);
+        });
+
+        // Metadata collection
+        var slider = document.getElementById('{{ slider_id }}');
+
+        if (slider_continuous_updates) {
+            slider.log = "The slider log is disabled when continuous slider updates are enabled.";
+        } else {
+            slider.log = [];
+        }
+
+        slider.update_log = function() {
+            if (!slider_continuous_updates) {
+                slider.log.push({
+                    'time': new Date(),
+                    'value': slider.value
+                });
+            }
+        }
+
+        slider.interaction_count = 0;
+
+        snap_slider = function () {
+            raw_value = parseFloat(slider.value);
+            if (snap_values == null) {
+                psynet.log.debug("Slider value: " + raw_value + " (no snapping).");
+                return raw_value
+            } else {
+                new_value = psynet.utils.closest(slider.value, snap_values).value;
+                slider.value = new_value;
+                psynet.log.debug("Snapped slider from " + raw_value + " to " + new_value);
+                return new_value;
+            }
+        };
+
+        // Save initial position
+        slider.initialise = function () {
+            psynet.log.debug('Slider page is loaded.');
+            snap_slider();
+            on_slider_event('initialise');
+            slider.update_log();
+        };
+
+        psynet.response.register_on_ready_routine(slider.initialise);
+
+        var slider_listener;
+
+        if (slider_continuous_updates) {
+            slider_listener = "input";
+        } else {
+            slider_listener = "change";
+        }
+
+        slider.addEventListener(slider_listener, function () {
+            snap_slider();
+            slider.interaction_count += 1;
+            if (slider.interaction_count >= minimal_interactions) {
+                psynet.submit.ready("slider_minimal_interactions");
+            }
+            on_slider_event('slider_changed');
+            slider.update_log();
+        }, false);
+
+        submit = function () {
+            psynet.response.disable();
+            psynet.submit.disable();
+            var metadata = {
+                log: slider.log
+            };
+            psynet.next_page(parseFloat(slider.value), metadata);
+        };
+    </script>
+{% endblock %}

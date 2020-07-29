@@ -1,0 +1,17 @@
+{% macro colour_text_area(config) %}
+
+    <textarea id="text_input" type="text" class="form-control" style="background-color: {{ config.colour }};"></textarea>
+
+    <script>
+        get_data = function() {
+            return document.getElementById('text_input').value
+        }
+    </script>
+
+    <p class="vspace"></p>
+
+    <button type="button" id="next_button" class="btn btn-primary btn-lg submit" onClick="psynet.next_page(get_data());">
+        Next
+    </button>
+
+{% endmacro %}

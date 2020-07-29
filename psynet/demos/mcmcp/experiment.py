@@ -13,19 +13,19 @@ import psynet.experiment
 from psynet.field import claim_field
 from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page, 
+    Page,
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
-    conditional, 
+    PageMaker,
+    CodeBlock,
+    while_loop,
+    conditional,
     switch,
     FailedValidation,
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage, 
+    InfoPage,
+    SuccessfulEndPage,
+    NAFCPage,
     NumberInputPage,
     TextInputPage
 )
@@ -33,9 +33,8 @@ from psynet.trial.mcmcp import (
     MCMCPNetwork, MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
 )
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 import rpdb
 
@@ -49,7 +48,7 @@ SAMPLE_RANGE = 5
 
 class CustomNetwork(MCMCPNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
-    
+
     def make_definition(self):
         return {
             "occupation": self.balance_across_networks(OCCUPATIONS)
@@ -62,7 +61,7 @@ class CustomSource(MCMCPSource):
         return {
             "age": random.randint(0, MAX_AGE)
         }
-        
+
 class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
@@ -78,7 +77,7 @@ class CustomTrial(MCMCPTrial):
         return NAFCPage(
             "mcmcp_trial",
             prompt,
-            choices=["0", "1"], 
+            choices=["0", "1"],
             time_estimate=5,
             labels=["Person A", "Person B"],
         )
@@ -103,9 +102,10 @@ class CustomNode(MCMCPNode):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         MCMCPTrialMaker(
+            id_="mcmcp_demo",
             network_class=CustomNetwork,
             trial_class=CustomTrial,
-            node_class=CustomNode, 
+            node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment", # can be whatever you like
             time_estimate_per_trial=5,
@@ -113,7 +113,7 @@ class Exp(psynet.experiment.Experiment):
             num_trials_per_participant=10,
             num_chains_per_participant=1, # set to None if chain_type="across"
             num_chains_per_experiment=None, # set to None if chain_type="within"
-            num_nodes_per_chain=10,
+            num_iterations_per_chain=9,
             trials_per_node=1,
             active_balancing_across_chains=True,
             check_performance_at_end=False,

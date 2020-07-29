@@ -13,19 +13,19 @@ import psynet.experiment
 from psynet.field import claim_field
 from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page, 
+    Page,
     Timeline,
-    PageMaker, 
-    CodeBlock, 
-    while_loop, 
-    conditional, 
+    PageMaker,
+    CodeBlock,
+    while_loop,
+    conditional,
     switch,
     FailedValidation
 )
 from psynet.page import (
-    InfoPage, 
-    SuccessfulEndPage, 
-    NAFCPage, 
+    InfoPage,
+    SuccessfulEndPage,
+    NAFCPage,
     NumberInputPage,
     TextInputPage
 )
@@ -37,9 +37,8 @@ from psynet.trial.imitation_chain import (
     ImitationChainNetwork
 )
 
-import logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__file__)
+from psynet.utils import get_logger
+logger = get_logger()
 
 import rpdb
 
@@ -74,10 +73,10 @@ class CustomTrial(ImitationChainTrial):
         page_2 = FixedDigitInputPage("number", "What was the number?")
 
         return [
-            page_1, 
+            page_1,
             page_2
         ]
-        
+
 class CustomNetwork(ImitationChainNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
@@ -94,8 +93,8 @@ class CustomSource(ImitationChainSource):
         return random.randint(0, 9999999)
 
 class CustomTrialMaker(ImitationChainTrialMaker):
-    trial_timeout_sec = 60
-    trial_timeout_check_interval = 30
+    response_timeout_sec = 60
+    check_timeout_interval = 30
 
 ##########################################################################################
 #### Experiment
@@ -107,6 +106,7 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         CustomTrialMaker(
+            id_="imitation_demo",
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,

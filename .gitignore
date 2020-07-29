@@ -141,3 +141,12 @@ dmypy.json
 # Other
 .DS_Store
 .vscode/settings.json
+psynet/nips/colour/data/colmcmcp-data.zip
+psynet/nips/colour/data/coltest-data.zip
+psynet/nips/ganspace/snapshots/ganspace-code.zip
+psynet/nips/ganspace/.vscode/settings.json
+.Rproj.user
+psynetR/test.R
+test.R
+psynetR/tmp.rds
+psynetR/tmp.R

@@ -1,4 +1,4 @@
-from flask import Markup
+from flask import Markup, escape
 
 from typing import (
     Union,
@@ -6,12 +6,28 @@ from typing import (
     List
 )
 
-from .timeline import(
+from math import ceil
+import itertools
+import json
+
+from .timeline import (
     get_template,
+    join,
     Page,
+    PageMaker,
+    CodeBlock,
+    MediaSpec,
     EndPage,
-    FailedValidation
+    FailedValidation,
+    while_loop
 )
+from .utils import linspace, get_logger
+from .modular_page import (
+    ModularPage,
+    AudioPrompt
+)
+
+logger = get_logger()
 
 class InfoPage(Page):
     """
@@ -28,58 +44,159 @@ class InfoPage(Page):
     time_estimate:
         Time estimated for the page.
 
-    title:
-        Optional title for the page. Use :class:`flask.Markup`
-        to display raw HTML.
-
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
     def __init__(
-        self,
-        content: Union[str, Markup],
-        time_estimate: Optional[float] = None,
-        title: Optional[Union[str, Markup]] = None,
-        **kwargs
+            self,
+            content: Union[str, Markup],
+            time_estimate: Optional[float] = None,
+            **kwargs
     ):
         self.content = content
-        self.title = title
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
             template_arg={
-                "content": "" if content is None else content,
-                "title": "" if title is None else title
+                "content": "" if content is None else content
             },
             **kwargs
         )
 
     def metadata(self, **kwargs):
         return {
-            "title": self.title,
             "content": self.content
         }
+
+class WaitPage(Page):
+    """
+    This page makes the user wait for a specified amount of time
+    before automatically continuing to the next page.
+
+    Parameters
+    ----------
+
+    wait_time:
+        Time that the user should wait.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    content = "Please wait, the experiment should continue shortly..."
+
+    def __init__(
+            self,
+            wait_time: float,
+            **kwargs
+    ):
+        assert wait_time >= 0
+        self.wait_time = wait_time
+        super().__init__(
+            time_estimate=wait_time,
+            template_str=get_template("wait-page.html"),
+            template_arg={
+                "content": self.content,
+                "wait_time": self.wait_time
+            },
+            **kwargs
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "content": self.content,
+            "wait_time": self.wait_time
+        }
+
+def wait_while(
+        condition,
+        expected_wait: float,
+        check_interval: float = 2.0,
+        wait_page=WaitPage,
+        log_message: Optional[str]=None
+    ):
+    """
+    Displays the participant a waiting page while a given condition
+    remains satisfied.
+
+    Parameters
+    ----------
+
+    condition
+        The condition to be checked;
+        the participant will keep waiting while this condition returns True.
+        This argument should be a function receiving the following arguments:
+        ``participant`` (corresponding to the current participant)
+        and ``experiment`` (corresponding to the current experiments).
+        If one of this arguments is not needed, it can be omitted from the
+        argument list.
+
+    expected_wait
+        How long the participant is likely to wait, in seconds.
+
+    check_interval
+        How often should the browser check the condition, in seconds.
+
+    wait_page
+        The wait page that should be displayed to the participant;
+        defaults to :class:`~psynet.page.WaitPage`.
+
+    log_message
+        Optional message to display in the log.
+
+    Returns
+    -------
+
+    list :
+        A list of test events suitable for inclusion in a PsyNet timeline.
+    """
+    assert expected_wait >= 0
+    assert check_interval > 0
+    expected_repetitions = ceil(expected_wait / check_interval)
+
+    _wait_page = wait_page(wait_time=check_interval)
+
+    def log(participant):
+        logger.info(f"Participant {participant.id}: {log_message}")
+
+    if log_message is None:
+        logic = _wait_page
+    else:
+        logic = join(CodeBlock(log), _wait_page)
+
+    return while_loop(
+        "wait_while",
+        condition,
+        logic=logic,
+        expected_repetitions=expected_repetitions
+    )
 
 class SuccessfulEndPage(EndPage):
     """
     Indicates a successful end to the experiment.
     """
+
     def finalise_participant(self, experiment, participant):
         participant.complete = True
+
 
 class UnsuccessfulEndPage(EndPage):
     """
     Indicates an unsuccessful end to the experiment.
     """
-    def __init__(self, content="default", title=None, failure_tags: Optional[List] = None):
-        if content=="default":
-            content = (
-                "Unfortunately you did not meet the criteria to continue in the experiment. "
-                "You will still be paid for the time you spent already. "
-                "Thank you for taking part!"
-            )
-        super().__init__(content=content, title=title)
+
+    def get_content(self, participant):
+        return Markup(
+            "Unfortunately the experiment must end early. "
+            + "However, you will still be paid for the time you spent already. "
+            + self.get_time_bonus_message(participant)
+            + self.get_performance_bonus_message(participant)
+            + " Thank you for taking part."
+        )
+
+    def __init__(self, failure_tags: Optional[List] = None):
+        super().__init__()
         self.failure_tags = failure_tags
 
     def finalise_participant(self, experiment, participant):
@@ -87,6 +204,7 @@ class UnsuccessfulEndPage(EndPage):
             assert isinstance(self.failure_tags, list)
             participant.append_failure_tags(*self.failure_tags)
         experiment.fail_participant(participant)
+
 
 class NAFCPage(Page):
     """
@@ -120,17 +238,21 @@ class NAFCPage(Page):
 
     min_width:
         CSS ``min_width`` parameter for the buttons.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
     def __init__(
-        self,
-        label: str,
-        prompt: Union[str, Markup],
-        choices: List[str],
-        time_estimate: Optional[float] = None,
-        labels: Optional[List[str]] = None,
-        arrange_vertically: bool = False,
-        min_width: str ="100px"
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            choices: List[str],
+            time_estimate: Optional[float] = None,
+            labels: Optional[List[str]] = None,
+            arrange_vertically: bool = False,
+            min_width: str = "100px",
+            **kwargs
     ):
         self.prompt = prompt
         self.choices = choices
@@ -150,7 +272,8 @@ class NAFCPage(Page):
             template_arg={
                 "prompt": prompt,
                 "buttons": buttons
-            }
+            },
+            **kwargs
         )
 
     def metadata(self, **kwargs):
@@ -160,6 +283,7 @@ class NAFCPage(Page):
             "choices": self.choices,
             "labels": self.labels
         }
+
 
 class TextInputPage(Page):
     """
@@ -189,17 +313,21 @@ class TextInputPage(Page):
 
     height:
         Optional CSS height property for the text box.
-    """
-    def __init__(
-        self,
-        label: str,
-        prompt: Union[str, Markup],
-        time_estimate: Optional[float] = None,
-        one_line: bool = True,
-        width: Optional[str] = None, # e.g. "100px"
-        height: Optional[str] = None
-    ):
 
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    def __init__(
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            time_estimate: Optional[float] = None,
+            one_line: bool = True,
+            width: Optional[str] = None,  # e.g. "100px"
+            height: Optional[str] = None,
+            **kwargs
+    ):
         self.prompt = prompt
 
         if one_line and height is not None:
@@ -207,8 +335,8 @@ class TextInputPage(Page):
 
         style = (
             "" if width is None else f"width:{width}"
-            " "
-            "" if height is None else f"height:{height}"
+                                     " "
+                                     "" if height is None else f"height:{height}"
         )
 
         super().__init__(
@@ -219,7 +347,8 @@ class TextInputPage(Page):
                 "prompt": prompt,
                 "one_line": one_line,
                 "style": style
-            }
+            },
+            **kwargs
         )
 
     def metadata(self, **kwargs):
@@ -228,9 +357,212 @@ class TextInputPage(Page):
             "prompt": self.prompt
         }
 
-class SliderInputPage(Page):
+class SliderPage(Page):
     """
     This page solicits a slider response from the user.
+
+    The page logs all interactions from the participants including:
+    - initial location of the slider
+    - subsequent release points along with time stamps
+
+    By default this response is saved in the database as a
+    :class:`psynet.timeline.Response` object,
+    which can be found in the ``Questions`` table.
+
+    Currently the slider does not display any numbers describing the
+    slider's current position. We anticipate adding this feature in
+    a future release, if there is interest.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the page (used to store results).
+
+    prompt:
+        Prompt to display to the user. Use :class:`flask.Markup`
+        to display raw HTML.
+
+    start_value:
+        Position of slider at start.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    num_steps: default: 10000
+        Determines the number of steps that the slider can be dragged through.
+
+    snap_values: default: None
+        Determines the values to which the slider will 'snap' to once it is released.
+        Can take various forms:
+
+        - <None>: no snapping is performed.
+
+        - <int>: indicating number of equidistant steps between `min_value` and `max_value`.
+
+        - <list>: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+
+    input_type: default: "HTML5_range_slider"
+        By default we use the HTML5 slider, however future implementations might also use different slider
+        formats, like 2D sliders or circular sliders.
+
+    minimal_interactions: default: 0
+        Minimal interactions with the slider before the user can go to next trial.
+
+    minimal_time: default: 0
+        Minimum amount of time that the user must spend on the page before they can continue.
+
+    reverse_scale: default: False
+        Flip the scale.
+
+    continuous_updates : default: False
+        If ``True``, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled.
+
+    width:
+        Optional CSS width property for the text box.
+
+    height:
+        Optional CSS height property for the text box.
+
+    time_estimate:
+        Time estimated for the page.
+
+    template_str:
+        Optional different template.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    def __init__(
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            *,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            num_steps: int = 10000,
+            snap_values: Optional[Union[int, list]] = None,
+            input_type: Optional[str] = "HTML5_range_slider",
+            minimal_interactions: Optional[int] = 0,
+            minimal_time: float = 0.0,
+            reverse_scale: Optional[bool] = False,
+            continuous_updates: bool = False,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            width: Optional[str] = None,  # e.g. "100px"
+            height: Optional[str] = None,
+            time_estimate: Optional[float] = None,
+            template_str: Optional[str] = get_template("slider-page.html"),
+            **kwargs
+    ):
+        self.max_value = max_value
+        self.min_value = min_value
+        self.start_value = start_value
+        self.input_type = input_type
+        self.minimal_interactions = minimal_interactions
+        self.minimal_time = minimal_time
+        self.num_steps = num_steps
+
+        self._validate()
+
+        if not 'js_vars' in kwargs:
+            kwargs['js_vars'] = {}
+
+        diff = max_value - min_value
+        step_size = diff / (num_steps - 1)
+
+        snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
+        self.snap_values = snap_values
+
+        styles = []
+        if width is not None:
+            styles.append(f"width:{width}")
+        if height is not None:
+            styles.append(f"height:{height}")
+        style = " ".join(styles)
+
+        new_template_args = {
+            "prompt": prompt,
+            "start_value": start_value,
+            "min_value": min_value,
+            "max_value": max_value,
+            "step_size": step_size,
+            "reverse_scale": reverse_scale,
+            "style": style,
+            "slider_id": slider_id
+        }
+
+        if not 'template_arg' in kwargs:
+            kwargs['template_arg'] = {}
+
+        for key, value in new_template_args.items():
+            kwargs['template_arg'][key] = value
+
+        kwargs['js_vars']["snap_values"] = snap_values
+        kwargs['js_vars']["num_steps"] = num_steps
+        kwargs['js_vars']["start_value"] = start_value
+        kwargs['js_vars']['minimal_interactions'] = minimal_interactions
+        kwargs['js_vars']['minimal_time'] = minimal_time
+        kwargs['js_vars']["reverse_scale"] = reverse_scale
+        kwargs['js_vars']["slider_continuous_updates"] = continuous_updates
+
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=template_str,
+            label=label,
+            **kwargs
+        )
+
+    def _validate(self):
+        if self.input_type != "HTML5_range_slider":
+            raise NotImplementedError('Currently "HTML5_range_slider" is the only supported `input_type`')
+
+        if self.max_value <= self.min_value:
+            raise ValueError("`max_value` must be larger than `min_value`")
+
+        if self.start_value > self.max_value or self.start_value < self.min_value:
+            raise ValueError("`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)" % (
+                self.start_value, self.min_value, self.max_value))
+
+        if self.minimal_interactions < 0:
+            raise ValueError('`minimal_interactions` cannot be negative!')
+
+    def _format_snap_values(self, snap_values, min_value, max_value, num_steps):
+        if snap_values is None:
+            return linspace(min_value, max_value, num_steps)
+        elif isinstance(snap_values, int):
+            return linspace(min_value, max_value, snap_values)
+        else:
+            for x in snap_values:
+                assert isinstance(x, (float, int))
+                assert x >= min_value
+                assert x <= max_value
+            return sorted(snap_values)
+
+    def metadata(self, **kwargs):
+        return {
+            **super().metadata(),
+            'num_steps': self.num_steps,
+            'snap_values': self.snap_values,
+            'min_value': self.min_value,
+            'max_value': self.max_value,
+            'start_value': self.start_value,
+            'input_type': self.input_type,
+            'minimal_interactions': self.minimal_interactions,
+            'minimal_time': self.minimal_time
+        }
+
+
+class AudioSliderPage(SliderPage):
+    """
+    See issue #11
+    This page solicits a slider response from the user that results in playing some audio.
+
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
     which can be found in the ``Questions`` table.
@@ -245,8 +577,11 @@ class SliderInputPage(Page):
         Prompt to display to the user. Use :class:`flask.Markup`
         to display raw HTML.
 
-    time_allotted:
-        Time allotted for the page.
+    sound_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    start_value:
+        Position of slider at start.
 
     min_value:
         Minimal value of the slider.
@@ -254,59 +589,115 @@ class SliderInputPage(Page):
     max_value:
         Maximum value of the slider.
 
-    step_size:
-        The size of each step in the slider.
+    num_steps:
+        - <int> (default = 10000): number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
 
-    width:
-        Optional CSS width property for the text box.
+        - ``"num_sounds"``: sets the number of steps to the number of sounds. This only makes sense
+          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
 
-    height:
-        Optional CSS height property for the text box.
+    snap_values:
+        - ``"sound_locations"`` (default): slider snaps to nearest sound location.
+
+        - <int>: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - <list>: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+    autoplay:
+        Default: False. The sound closest to the current slider position is played once the page is loaded.
+
+    template_arg:
+        By default empty dictionary. Optional template arguments.
+
+    template_str: default: the page template slider-audio-page.html
+        Can be overwritten in classes inheriting from this class.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.SliderPage`.
     """
+
     def __init__(
         self,
         label: str,
         prompt: Union[str, Markup],
-        time_allotted: Optional[float] = None,
-        min_value: Optional[int] = 0,
-        max_value: Optional[int] = 100,
-        step_size: Optional[int] = 1,
-        width: Optional[str] = None, # e.g. "100px"
-        height: Optional[str] = None
+        *,
+        sound_locations: dict,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        num_steps: Union[str, int] = 10000,
+        snap_values: Optional[Union[int, list]] = "sound_locations",
+        autoplay: Optional[bool] = False,
+        time_estimate: Optional[float] = None,
+        template_str: Optional[str] = get_template("slider-audio-page.html"),
+        **kwargs
     ):
+        if not 'media' in kwargs:
+            raise ValueError('You must specify sounds in `media` you later want to play with the slider')
 
-        if max_value <= min_value:
-            raise ValueError("<max_value> must be larger than <min_value>")
+        if isinstance(num_steps, str):
+            if num_steps == "num_sounds":
+                num_steps = len(sound_locations)
+            else:
+                raise ValueError(f"Invalid value of num_steps: {num_steps}")
 
-        if (max_value - min_value) <= step_size*2:
-            raise ValueError("For the given <min_value> and <max_value> values the <step_size> needs to be appropriate, i.e. allow at least 2 steps on the slider.")
+        if isinstance(snap_values, str):
+            if snap_values == "sound_locations":
+                snap_values = list(sound_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
 
-        self.prompt = prompt
+        # Check if all stimuli specified in `sound_locations` are
+        # also preloaded before the participant can start the trial
+        audio = kwargs['media'].audio
+        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media = []
+        for key, value in audio.items():
+            if isinstance(audio[key], dict) and 'ids' in audio[key]:
+                IDs_media.append(audio[key]['ids'])
+            elif isinstance(audio[key], str):
+                IDs_media.append(key)
+            else:
+                raise NotImplementedError('Currently we only support batch files or single files')
+        IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
-        style = (
-            "" if width is None else f"width:{width}"
-            " "
-            "" if height is None else f"height:{height}"
-        )
+        if not any([i in IDs_media for i in IDs_sound_locations]):
+            raise ValueError('All stimulus IDs you specify in `sound_locations` need to be defined in `media` too.')
 
+        # Check if all audio files are also really playable
+        # ticks, step_size, diff = self._get_ticks_step_size_and_diff(snap_values, max_value, min_value)
+        # if not all([location in ticks for _, location in sound_locations.items()]):
+        #     raise ValueError('The slider does not contain all locations for the audio')
+
+        if not 'js_vars' in kwargs:
+            kwargs['js_vars'] = {}
+        kwargs['js_vars']['autoplay'] = autoplay
+        kwargs['js_vars']['sound_locations'] = sound_locations
+
+        self.sound_locations = sound_locations
+        # All range checking is done in the parent class
         super().__init__(
-            time_allotted=time_allotted,
-            template_str=get_template("slider-input-page.html"),
+            prompt=prompt,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            num_steps=num_steps,
+            snap_values=snap_values,
+            time_estimate=time_estimate,
+            template_str=template_str,
             label=label,
-            template_arg={
-                "prompt": prompt,
-                "step_size": step_size,
-                "min_value": min_value,
-                "max_value": max_value,
-                "style": style
-            }
+            **kwargs
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
-            "prompt": self.prompt
+            **super().metadata(),
+            'sound_locations': self.sound_locations
         }
+
 
 class NumberInputPage(TextInputPage):
     """
@@ -326,6 +717,7 @@ class NumberInputPage(TextInputPage):
             return FailedValidation("Please enter a number.")
         return None
 
+
 class Button():
     def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
         self.id = button_id
@@ -333,3 +725,75 @@ class Button():
         self.min_width = min_width
         self.own_line = own_line
         self.start_disabled = start_disabled
+
+
+class DebugResponsePage(PageMaker):
+    """
+    Implements a debugging page for responses.
+    Displays a page to the user with information about the
+    last response received from the participant.
+    """
+
+    def __init__(self):
+        super().__init__(self.summarise_last_response, time_estimate=0)
+
+    @staticmethod
+    def summarise_last_response(participant):
+        response = participant.response
+        if response is None:
+            return InfoPage("No response found to display.")
+        page_type = escape(response.page_type)
+        answer = escape(response.answer)
+        metadata = escape(json.dumps(response.metadata, indent=4))
+        return InfoPage(Markup(
+            f"""
+            <h3>Page type</h3>
+            {page_type}
+            <p class="vspace"></p>
+            <h3>Answer</h3>
+            {answer}
+            <p class="vspace"></p>
+            <h3>Metadata</h3>
+            <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
+            """
+        ))
+
+class VolumeCalibration(ModularPage):
+    def __init__(
+            self,
+            url="https://headphone-check.s3.amazonaws.com/brown_noise.wav",
+            min_time=2.5,
+            time_estimate=5.0,
+        ):
+        self._min_time = min_time
+        self._url = url
+        super().__init__(
+            "volume_calibration",
+            prompt=self._prompt,
+            time_estimate=time_estimate
+        )
+
+    @property
+    def _text (self):
+        return Markup(
+            """
+            <p>
+                Please listen to the following sound and adjust your
+                computer's output volume until it is at a comfortable level.
+            </p>
+            <p>
+                If you can't hear anything, there may be a problem with your
+                playback configuration or your internet connection.
+                You can refresh the page to try loading the audio again.
+            </p>
+            """
+        )
+
+    @property
+    def _prompt(self):
+        return AudioPrompt(
+            self._url,
+            self._text,
+            loop=True,
+            enable_submit_after=self._min_time
+        )
