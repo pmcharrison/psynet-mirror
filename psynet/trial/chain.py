@@ -541,7 +541,7 @@ class ChainNode(TrialNode):
     seed = claim_field(3, "seed", __extra_vars__)
     definition = claim_field(4, "definition", __extra_vars__)
 
-    propagate_failure = claim_var("propagate_failure")
+    propagate_failure = claim_var("propagate_failure", __extra_vars__)
 
     # VarStore occuppies the <details> slot.
     @property

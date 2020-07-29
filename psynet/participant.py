@@ -129,7 +129,7 @@ class Participant(dallinger.models.Participant):
 
     @property
     def finished_modules(self):
-        modules = [(key, value) for key, value in self.modules.items() if len(value["time_started"]) > 0]
+        modules = [(key, value) for key, value in self.modules.items() if len(value["time_finished"]) > 0]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
 

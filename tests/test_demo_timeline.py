@@ -26,7 +26,7 @@ class TestExp(object):
         instance = Exp(db_session)
         yield instance
 
-    def test_exp_selenium(self, bot_recruits):    #two_iterations, bot_recruits):
+    def test_exp_selenium(self, bot_recruits, db_session):    #two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 
@@ -69,6 +69,7 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 4
+            db_session.commit()
             participant = get_participant(1)
             modules = participant.modules
             assert set(list(modules.keys())) == {"chocolate", "introduction"}
@@ -96,6 +97,7 @@ class TestExp(object):
 
             next_page(driver, "No")
 
+            db_session.commit()
             modules = get_participant(1).modules
             assert len(modules["loop"]["time_started"]) == 4
             assert len(modules["loop"]["time_finished"]) == 4
