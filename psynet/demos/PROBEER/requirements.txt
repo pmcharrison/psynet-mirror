@@ -1,5 +1,0 @@
--e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@22-probeer-experiment#egg=psynet
-dallinger==6.2.2
-scipy
-numpy
-praat-parselmouth

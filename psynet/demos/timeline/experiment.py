@@ -1,5 +1,3 @@
-import dallinger.deployment
-
 import psynet.experiment
 from psynet.timeline import (
     Timeline,
@@ -21,9 +19,6 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 from datetime import datetime
-import rpdb
-
-dallinger.deployment.MAX_ATTEMPTS = 1
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
