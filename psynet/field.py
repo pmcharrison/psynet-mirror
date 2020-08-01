@@ -385,8 +385,6 @@ def json_clean(x, details=False, contents=False):
     for i in range(5):
         del x[f"property{i + 1}"]
 
-    del x["object_type"]
-
     if details:
         del x["details"]
 
