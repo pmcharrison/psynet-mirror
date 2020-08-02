@@ -3,7 +3,7 @@
 ![Logo](psynet/resources/logo.svg)
 
 - [Online documentation](https://computational-audition-lab.gitlab.io/psynet/)
-- [Contribution guidelines](https://gitlab.com/computational-audition-lab/computational-audition-lab/-/wikis/Computer-Resources/Tricks-for-git)
+- [Contribution guidelines](https://gitlab.com/computational-audition-lab/computational-audition-lab/-/wikis/Software-and-webservices/git)
 
 # Running tests
 
