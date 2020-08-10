@@ -14,6 +14,7 @@ from collections import Counter
 from .utils import dict_to_js_vars, call_function, check_function_args, merge_dicts, get_logger
 from . import templates
 
+from dallinger import db
 from dallinger.models import Question
 from dallinger.config import get_config
 
@@ -408,13 +409,13 @@ class Page(Event):
             page_type=type(self).__name__,
             metadata=combined_metadata
         )
-        experiment.session.add(resp)
-        experiment.save()
+        db.session.add(resp)
+        db.session.commit()
 
         participant.answer = resp.answer
         participant.last_response_id = resp.id
 
-        experiment.save()
+        db.session.commit()
         return resp
 
     def metadata(self, **kwargs):
@@ -795,6 +796,15 @@ class Timeline():
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
             raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
+
+    def get_trial_maker(self, trial_maker_id):
+        events = self.events
+        try:
+            start = [e for e in events if isinstance(e, StartModule) and e.label == trial_maker_id][0]
+        except IndexError:
+            raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
+        trial_maker = start.module
+        return trial_maker
 
     def add_event_ids(self):
         for i, event in enumerate(self.events):
@@ -1343,15 +1353,16 @@ class Module():
 
     def resolve(self):
         return join(
-            StartModule(self.label),
+            StartModule(self.label, module=self),
             self.events,
             EndModule(self.label)
         )
 
 class StartModule(NullEvent):
-    def __init__(self, label):
+    def __init__(self, label, module):
         super().__init__()
         self.label = label
+        self.module = module
 
     def consume(self, experiment, participant):
         participant.start_module(self.label)

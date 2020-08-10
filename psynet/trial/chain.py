@@ -7,20 +7,13 @@ from sqlalchemy.sql.expression import not_
 from typing import Optional, Union
 
 from dallinger import db
-import dallinger.models
-import dallinger.nodes
-import dallinger.networks
 
 from ..page import wait_while
-from .. import field
 from ..field import claim_field, claim_var, VarStore
 from ..utils import negate
 from .main import Trial, TrialNetwork, NetworkTrialMaker, TrialNode, TrialSource
-
-# pylint: disable=unused-import
-import rpdb
-
 from ..utils import get_logger
+
 logger = get_logger()
 
 class ChainNetwork(TrialNetwork):
@@ -142,8 +135,8 @@ class ChainNetwork(TrialNetwork):
         id_within_participant: Optional[int]=None
     ):
         super().__init__(trial_maker_id, phase, experiment)
-        experiment.session.add(self)
-        experiment.save()
+        db.session.add(self)
+        db.session.commit()
 
         if participant is not None:
             self.id_within_participant = id_within_participant
@@ -323,9 +316,9 @@ class ChainNetwork(TrialNetwork):
 
     def add_source(self, source_class, experiment, participant=None):
         source = source_class(self, experiment, participant)
-        experiment.session.add(source)
+        db.session.add(source)
         self.add_node(source)
-        experiment.save()
+        db.session.commit()
 
     @property
     def num_trials_still_required(self):
@@ -1268,8 +1261,8 @@ class ChainTrialMaker(NetworkTrialMaker):
             participant=participant,
             id_within_participant=id_within_participant
         )
-        experiment.session.add(network)
-        experiment.save()
+        db.session.add(network)
+        db.session.commit()
         self._grow_network(network, participant, experiment)
         return network
 
@@ -1316,8 +1309,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         if head.ready_to_spawn:
             seed = head.create_seed(participant, experiment)
             node = self.node_class(seed, head.degree + 1, network, experiment, self.propagate_failure, participant)
-            experiment.session.add(node)
+            db.session.add(node)
             network.add_node(node)
+            db.session.commit()
             return True
         return False
 

@@ -1529,8 +1529,8 @@ class NetworkTrialMaker(TrialMaker):
             self.propagate_failure,
             is_repeat_trial=False
         )
-        experiment.session.add(trial)
-        experiment.save()
+        db.session.add(trial)
+        db.session.commit()
         return trial
 
     def finalise_trial(self, answer, trial, experiment, participant):

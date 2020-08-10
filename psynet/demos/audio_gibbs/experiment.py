@@ -9,6 +9,7 @@
 from flask import Markup
 
 import psynet.experiment
+import psynet.media
 from psynet.timeline import (
     Timeline
 )
@@ -32,6 +33,7 @@ GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
+psynet.media.LOCAL_S3 = True # set this to False if you deploy online, so that the stimuli will be stored in S3
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -93,9 +95,9 @@ trial_maker = CustomTrialMaker(
     phase="experiment", # can be whatever you like
     time_estimate_per_trial=5,
     chain_type="within", # can be "within" or "across"
-    num_trials_per_participant=12,
-    num_iterations_per_chain=12,
-    num_chains_per_participant=1, # set to None if chain_type="across"
+    num_trials_per_participant=21,
+    num_iterations_per_chain=7,
+    num_chains_per_participant=3, # set to None if chain_type="across"
     num_chains_per_experiment=None, # set to None if chain_type="within"
     trials_per_node=1,
     active_balancing_across_chains=True,

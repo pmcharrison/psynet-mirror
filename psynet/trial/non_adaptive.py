@@ -618,7 +618,8 @@ class NetworkSpec():
             experiment=experiment,
             target_num_trials_per_stimulus=target_num_trials_per_stimulus
         )
-        experiment.session.add(network)
+        db.session.add(network)
+        db.session.commit()
 
 class NonAdaptiveTrial(Trial):
     """

@@ -294,6 +294,39 @@ class Experiment(dallinger.experiment.Experiment):
                 wage_per_hour=f"{exp.wage_per_hour:.2f}"
             )
 
+        @routes.route("/node/<int:node_id>/fail", methods=["GET", "POST"])
+        def fail_node(node_id):
+            from dallinger.models import Node
+            node = Node.query.filter_by(id=node_id).one()
+            node.fail()
+            db.session.commit()
+            return success_response()
+
+        @routes.route("/info/<int:info_id>/fail", methods=["GET", "POST"])
+        def fail_info(info_id):
+            from dallinger.models import Info
+            info = Info.query.filter_by(id=info_id).one()
+            info.fail()
+            db.session.commit()
+            return success_response()
+
+        @routes.route("/network/<int:network_id>/grow", methods=["GET", "POST"])
+        def grow_network(network_id):
+            from .trial.main import TrialNetwork
+            network = TrialNetwork.query.filter_by(id=network_id).one()
+            trial_maker = self.timeline.get_trial_maker(network.trial_maker_id)
+            trial_maker._grow_network(network, participant=None, experiment=self)
+            db.session.commit()
+            return success_response()
+
+        @routes.route("/network/<int:network_id>/call_async_post_grow_network", methods=["GET", "POST"])
+        def call_async_post_grow_network(network_id):
+            from .trial.main import TrialNetwork, call_async_post_grow_network
+            network = TrialNetwork.query.filter_by(id=network_id).one()
+            network.queue_async_process(call_async_post_grow_network)
+            db.session.commit()
+            return success_response()
+
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
             from dallinger.experiment_server.utils import error_page
