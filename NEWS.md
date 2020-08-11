@@ -1,5 +1,7 @@
 # News
 
+## v1.4.0
+
 - Extending extra_vars as displayed in the dashboard.
 
 ## v1.3.0
