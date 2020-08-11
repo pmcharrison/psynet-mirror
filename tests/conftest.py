@@ -34,6 +34,17 @@ def demo_iterated_singing(root):
     os.chdir(root)
     ACTIVE_EXPERIMENT = None
 
+@pytest.fixture(scope="class")
+def demo_mcmcp(root):
+    global ACTIVE_EXPERIMENT
+    ACTIVE_EXPERIMENT = "mcmcp"
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/mcmcp"))
+    import psynet.utils
+    psynet.utils.import_local_experiment()
+    yield
+    os.chdir(root)
+    ACTIVE_EXPERIMENT = None
+
 # @pytest.mark.usefixtures("demo_non_adaptive_dir")
 
 @pytest.fixture
@@ -67,6 +78,9 @@ def node(db_session, network):
     if ACTIVE_EXPERIMENT == "non_adaptive":
         return StimulusVersion.query.all()[0]
     elif ACTIVE_EXPERIMENT == "iterated_singing":
+        nodes = Node.query.all()
+        return [n for n in nodes if not isinstance(n, Source) and n.definition is not None][0]
+    elif ACTIVE_EXPERIMENT == "mcmcp":
         nodes = Node.query.all()
         return [n for n in nodes if not isinstance(n, Source) and n.definition is not None][0]
     else:

@@ -1,6 +1,8 @@
 # pylint: disable=unused-argument,abstract-method
 
 import random
+from collections import Counter
+
 from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource, ChainNetwork
 from ..field import extra_var
 
@@ -146,10 +148,12 @@ class MCMCPNode(ChainNode):
         object
             The derived seed. Should be suitable for serialisation to JSON.
         """
-        values = [trial.answer["value"] for trial in trials]
-        if len(values) == 1:
-            return values[0]
-        raise NotImplementedError
+
+        counts = Counter([t.answer["role"] for t in trials])
+        max_count = max(counts.values())
+        candidates = [item[0] for item in counts.items() if item[1] == max_count]
+        chosen_role = random.sample(candidates, 1)[0]
+        return self.definition[chosen_role]
 
     def create_definition_from_seed(self, seed, experiment, participant):
         return {
