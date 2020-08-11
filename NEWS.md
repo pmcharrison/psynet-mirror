@@ -1,5 +1,9 @@
 # News
 
+## v1.2.1
+
+- Bugfix, now `reverse_scale` works in slider pages.
+
 ## v1.2.0
 
 - Introducing aggregated MCMCP.

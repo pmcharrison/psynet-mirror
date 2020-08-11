@@ -1,9 +1,17 @@
 {% extends "timeline-page.html" %}
 
 {% macro slider(min_value, max_value, step_size) %}
-    <input style="width: 100%" class="wait-for-media-load" {{ 'style=direction:rtl;' if reverse_scale else '' }} type="range"
-           id="{{ slider_id }}" class="form-control-range"
-           min="{{ min_value }}" max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}">
+    <style>
+        #{{ slider_id }} {
+            width: 100%;
+            {% if reverse_scale == true %} direction: rtl; {% endif %}
+        }
+    </style>
+
+    <input class="wait-for-media-load" type="range"
+            id="{{ slider_id }}" class="form-control-range"
+            min="{{ min_value }}" max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}"
+            >
 {% endmacro %}
 
 {% block main_body %}
