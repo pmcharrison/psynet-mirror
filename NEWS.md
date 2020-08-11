@@ -1,5 +1,9 @@
 # News
 
+## v1.3.0
+
+- Added video visualisation.
+
 ## v1.2.1
 
 - Bugfix, now `reverse_scale` works in slider pages.

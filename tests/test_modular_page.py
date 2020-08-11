@@ -1,6 +1,6 @@
 import pytest
 from pkg_resources import resource_filename
-from psynet.modular_page import ModularPage, Prompt, Control, AudioPrompt
+from psynet.modular_page import ModularPage, Prompt, Control, AudioPrompt, VideoSliderControl
 
 def test_import_templates():
     page_1 = ModularPage("test", Prompt("Hi!"))
@@ -47,5 +47,18 @@ def test_visualize(trial):
     }
     assert trial.visualization_html == '<div id="trial-visualization">\n  <h3>Prompt</h3>\n  <div id="prompt-visualization" style="background-color: white; padding: 10px; margin-top: 10px; margin-bottom: 10px; border-style: solid; border-width: 1px;"><p>Please sing back the melody to the syllable \'Ta\'.</p>\n<audio controls="controls" id="visualize-audio-prompt">\n  <source src="target_url">\n</audio></div><br>\n  <h3>Response</h3>\n  <div id="response-visualization" style="background-color: white; padding: 10px; margin-top: 10px; margin-bottom: 10px; border-style: solid; border-width: 1px;"><audio controls="controls" id="visualize-audio-response">\n  <source src="url">\n</audio></div>\n</div><div style="border-style: solid; border-width: 1px;">\n  <img src="/static/s3/s3-bucket/key.png" style="max-width: 100%;">\n</div>'
 
+    trial.answer = 0.5
+    video_slider_page = ModularPage(
+        "video_slider",
+        prompt="This is an example of a video slider page.",
+        control=VideoSliderControl(
+            url="https://psynet.s3.amazonaws.com/video-slider.mp4",
+            file_type="mp4",
+            width="400px",
+            height="400px",
+            reverse_scale=True
+        ),
+        time_estimate=5
+    )
 
-
+    assert video_slider_page.visualize(trial) == '<div id="trial-visualization">\n  <h3>Prompt</h3>\n  <div id="prompt-visualization" style="background-color: white; padding: 10px; margin-top: 10px; margin-bottom: 10px; border-style: solid; border-width: 1px;"><p>This is an example of a video slider page.</p></div><br>\n  <h3>Response</h3>\n  <div id="response-visualization" style="background-color: white; padding: 10px; margin-top: 10px; margin-bottom: 10px; border-style: solid; border-width: 1px;">\n<div>\n  <p>Answer = 0.5</p>\n  <video controls="controls" id="visualize-video-slider" style="max-width: 400px;">\n    <source src="https://psynet.s3.amazonaws.com/video-slider.mp4">\n  </video>\n</div></div>\n</div>'
