@@ -96,7 +96,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             CodeBlock(
                 lambda experiment, participant:
-                participant.var.set("favourite_colour", participant.answer)
+                participant.var.new("favourite_colour", participant.answer)
             ),
             switch(
                 "colour",

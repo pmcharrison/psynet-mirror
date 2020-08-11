@@ -232,6 +232,8 @@ class VarStore:
         owner = self.__dict__["_owner"]
         if name == "_owner":
             return owner
+        if name == "_all":
+            return copy.deepcopy(owner.details)
         try:
             return copy.deepcopy(owner.details[name])
         except KeyError:
@@ -381,6 +383,10 @@ class VarStore:
             raise ValueError(f"There is already a variable called {name}.")
         self.set(name, value)
 
+    def list(self):
+        return list(self._all.keys())
+
+
 def json_clean(x, details=False, contents=False):
     for i in range(5):
         del x[f"property{i + 1}"]
@@ -392,13 +398,22 @@ def json_clean(x, details=False, contents=False):
         del x["contents"]
 
 def json_add_extra_vars(x, obj):
+    def valid_key(key):
+        return not re.search("^_", key)
+
     for key in obj.__extra_vars__.keys():
-        if not re.search("^__", key):
+        if valid_key(key):
             try:
                 val = getattr(obj, key)
             except UndefinedVariableError:
                 val = None
             x[key] = val
+
+    if hasattr(obj, "var") and isinstance(obj.var, VarStore):
+        for key in obj.var.list():
+            if valid_key(key):
+                x[key] = obj.var.get(key)
+
     return x
 
 def json_format_vars(x):

@@ -1,5 +1,7 @@
 # News
 
+- Extending extra_vars as displayed in the dashboard.
+
 ## v1.3.0
 
 - Added video visualisation.
