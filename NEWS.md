@@ -1,5 +1,9 @@
 # News
 
+## v1.4.2
+
+- Fixing recruitment bug in chain experiments.
+
 ## v1.4.0
 
 - Extending extra_vars as displayed in the dashboard.

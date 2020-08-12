@@ -323,7 +323,10 @@ class ChainNetwork(TrialNetwork):
     @property
     def num_trials_still_required(self):
         assert self.target_num_trials is not None
-        return self.target_num_trials - self.num_completed_trials
+        if self.full:
+            return 0
+        else:
+            return self.target_num_trials - self.num_completed_trials
 
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)

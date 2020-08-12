@@ -9,7 +9,7 @@ with open(os.path.join("psynet", 'VERSION')) as version_file:
 
 setuptools.setup(
     name="psynet",
-    version="0.11.0",
+    version=version,
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
