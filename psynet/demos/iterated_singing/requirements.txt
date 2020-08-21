@@ -1,3 +1,4 @@
 -e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@dev#egg=psynet
 -e git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing_extract#egg=singing_extract
+praat-parselmouth
 dallinger
