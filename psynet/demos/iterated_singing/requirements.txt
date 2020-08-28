@@ -1,5 +1,5 @@
 -e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
--e git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing_extract#egg=singing_extract
+-e git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing-extract#egg=singing_extract
 dallinger
 praat-parselmouth==0.3.3
 urllib3==1.23
