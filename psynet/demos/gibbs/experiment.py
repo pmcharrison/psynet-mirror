@@ -162,7 +162,10 @@ class CustomTrialMaker(GibbsTrialMaker):
         )
 
     def compute_bonus(self, score, passed):
-        return max(0.0, score)
+        if score is None:
+            return 0.0
+        else:
+            return max(0.0, score)
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
