@@ -76,7 +76,7 @@ def headphone_trial_maker(
             }
 
     return HeadphoneTrialMaker(
-        id_="headphone_check",
+        id_="headphone_check_trials",
         trial_class=headphone_trial(time_estimate_per_trial),
         phase="experiment",
         stimulus_set=get_stimulus_set(media_url),

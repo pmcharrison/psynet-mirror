@@ -191,14 +191,7 @@ class CustomTrialMaker(GibbsTrialMaker):
     performance_threshold = -1.0
     async_timeout_sec = 5
     check_timeout_interval = 5
-
-    def get_end_feedback_passed_page(self, score):
-        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
-
-        return InfoPage(
-            Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
-            time_estimate=5
-        )
+    give_end_feedback_passed = False
 
 
 trial_maker = CustomTrialMaker(

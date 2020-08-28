@@ -57,7 +57,15 @@ class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
-        text = Markup(f"<pre>{escape(json.dumps(self.summarise(), indent=4))}</pre>")
+        dump = escape(json.dumps(self.summarise(), indent=4))
+        text = Markup(
+            f"""
+            <p>
+                Here is a JSON summary of the trial:
+            </p>
+            <pre>{dump}</pre>
+            """
+        )
 
         return ModularPage(
             "question_page",
