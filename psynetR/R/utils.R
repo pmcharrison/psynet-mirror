@@ -1,6 +1,8 @@
 unpack_json_col <- function(df, col, prefix = "", keep_original = FALSE) {
-  df <- parse_json_col(df, col)
-  unpack_list_col(df, col, prefix, keep_original)
+  tryCatch({
+    df <- parse_json_col(df, col)
+    unpack_list_col(df, col, prefix, keep_original)
+  }, error = function(e) df)
 }
 
 parse_json_col <- function(df, col) {
