@@ -226,7 +226,7 @@ def make_bucket_public(bucket_name):
     config = {
         "CORSRules": [
             {
-                "AllowedMethods": ["GET"],
+                "AllowedMethods": ["GET", "POST", "PUT"],
                 "AllowedOrigins": ["*"]
             }
         ]

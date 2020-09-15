@@ -3,7 +3,11 @@
         on_next_button = function() {
             $(this).prop('disabled', true);
             if (typeof retrieve_response == "undefined") {
-                psynet.next_page();
+                if (typeof uuidv4 != "undefined") {
+                    psynet.next_page(uuidv4);
+                } else {
+                    psynet.next_page();
+                }
             } else {
                 response = retrieve_response();
                 psynet.next_page(
@@ -252,11 +256,19 @@
     <script>
 
     </script>
-
+    <script src="/static/js/lib/aws-sdk-2.2.32.min.js"></script>
+    <script src="/static/js/lib/uuidv4.min.js"></script>
+    <script src="/static/js/streamToS3.js"></script>
+    <script>
+        var wRegion = "us-east-1";
+        var poolId = "us-east-1:7f318717-20a8-49d5-bcbb-ac7547ea5eb6";
+        var s3BucketName = "psynet-audio-streaming-test";
+    </script>
     <script>
         {% include "macros/control/recorder.js" %}
 
-        var recorder;
+        //var recorder;
+        var uuidv4 =  uuidv4()
 
         psynet.media.register_on_loaded_routine(function() {
             $("#next_button").on("click", function() {
@@ -272,8 +284,9 @@
                 video: false
             }).then(function(stream) {
                 psynet.log.debug("Initialising recorder.");
-                var input = psynet.media.audio_context.createMediaStreamSource(stream);
-                recorder = new Recorder(input);
+                //var input = psynet.media.audio_context.createMediaStreamSource(stream);
+                //recorder = new Recorder(input);
+                audioStream = new AudioStream(wRegion, poolId, s3BucketName, uuidv4);
                 psynet.response.ready("recorder_ready")
             })
         });
@@ -290,16 +303,21 @@
             psynet.log.debug("Starting recording.");
             $(".record-alert").hide();
             $("#record-active").show();
-            recorder.clear();
-            recorder.record();
+            //recorder.clear();
+            audioStream.audioStreamInitialize();
+            audioStream.startRecording();
+            //recorder.record();
         }
 
         end_recording = function() {
             psynet.log.debug("Ending recording.")
-            recorder.exportWAV(function (blob) {
+            /*recorder.exportWAV(function (blob) {
                 psynet.response.staged.blobs = {recording: blob};
                 psynet.submit.ready("finished-recording");
-            })
+            })*/
+
+            audioStream.stopRecording()
+            psynet.submit.ready("finished-recording");
             $(".record-alert").hide();
             $("#record-finish").show();
         }
