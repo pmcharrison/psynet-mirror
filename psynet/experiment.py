@@ -206,8 +206,6 @@ class Experiment(dallinger.experiment.Experiment):
     def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
-        logger.info(f"participant id in process_response: {participant.id}")
-        logger.info(f"page_uuid in process_response from participant.page_uuid: {participant.page_uuid}")
         if page_uuid == participant.page_uuid:
             event = self.timeline.get_current_event(self, participant)
             response = event.process_response(
@@ -368,7 +366,6 @@ class Experiment(dallinger.experiment.Experiment):
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
-            logger.info(f"page_uuid in route_response from json_data: {page_uuid}")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
 

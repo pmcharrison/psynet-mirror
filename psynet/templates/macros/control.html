@@ -271,10 +271,6 @@
         var uuidv4 =  uuidv4()
 
         psynet.media.register_on_loaded_routine(function() {
-            $("#next_button").on("click", function() {
-                $(".record-alert").hide();
-                $("#record-upload").show();
-            });
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
@@ -303,10 +299,8 @@
             psynet.log.debug("Starting recording.");
             $(".record-alert").hide();
             $("#record-active").show();
-            //recorder.clear();
             audioStream.audioStreamInitialize();
             audioStream.startRecording();
-            //recorder.record();
         }
 
         end_recording = function() {
@@ -315,11 +309,7 @@
                 psynet.response.staged.blobs = {recording: blob};
                 psynet.submit.ready("finished-recording");
             })*/
-
             audioStream.stopRecording()
-            psynet.submit.ready("finished-recording");
-            $(".record-alert").hide();
-            $("#record-finish").show();
         }
 
         psynet.response.register_on_ready_routine(function() {

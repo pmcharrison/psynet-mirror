@@ -41,21 +41,17 @@ class AudioStream {
 
             To use the microphone. we need to request permission.
             The parameter to getUserMedia() is an object specifying the details and requirements for each type of media you want to access.
-            To use microphone it shud be {audio: true}
+            To use a microphone it should be {audio: true}
 
         */
         navigator.mediaDevices.getUserMedia(self.audioConstraints)
             .then(function(stream) {
                 /*
-                    once we accept the prompt for the audio stream from user's mic we enable the record button.
-                */
-                // $("#record_q1").removeAttr("disabled");
-                /*
                     Creates a new MediaRecorder object, given a MediaStream to record.
                 */
                 self.recorder = new MediaRecorder(stream);
                 self.recorder.start(900000);
-                console.log("new recorder")
+
                 /*
                     Called to handle the dataavailable event, which is periodically triggered each time timeslice milliseconds of media have been recorded
                     (or when the entire media has been recorded, if timeslice wasn't specified).
@@ -63,14 +59,13 @@ class AudioStream {
                     You can then collect and act upon that recorded media data using this event handler.
                 */
                 self.recorder.addEventListener('dataavailable', function(e) {
-                    console.log("dataavailable")
                     var normalArr = [];
                     /*
                         Here we push the stream data to an array for future use.
                     */
                     self.recordedChunks.push(e.data);
                     normalArr.push(e.data);
-                    console.log("push")
+
                     /*
                         here we create a blob from the stream data that we have received.
                     */
@@ -79,40 +74,29 @@ class AudioStream {
                     });
 
                     /*
-                        if the length of recordedChunks is 1 then it means its the 1st part of our data.
+                        If the length of recordedChunks is 1 then it means its the 1st part of our data.
                         So we createMultipartUpload which will return an upload id.
-                        Upload id is used to upload the other parts of the stream
-
-                        else.
-                        It Uploads a part in a multipart upload.
+                        Upload id is used to upload the other parts of the stream.
+                        Otherwise it uploads a part in a multipart upload.
                     */
-                    console.log("self.recordedChunks.length")
+                    $(".record-alert").hide();
+                    $("#record-upload").show();
+                    $("#next_button").prop('disabled', true);
+
                     if (self.recordedChunks.length == 1) {
-                        $(".record-alert").hide();
-                        $("#record-upload").show();
                         console.log("startMultiUpload")
                         self.startMultiUpload(blob, self.filename)
                     } else {
                         /*
                             self.incr is basically a part number.
-                            Part number of part being uploaded. This is a positive integer between 1 and 10,000.
+                            Part number of the part being uploaded. This is a positive integer between 1 and 10,000.
                         */
-                        $(".record-alert").hide();
-                        $("#record-upload").show();
                         console.log("continueMultiUpload")
                         self.incr = self.incr + 1
                         self.continueMultiUpload(blob, self.incr, self.uploadId, self.filename, self.bucketName);
                     }
                 })
             });
-    }
-
-    disableAllButton() {
-        //$("#formdata button[type=button]").attr("disabled", "disabled");
-    }
-
-    enableAllButton() {
-        $("#formdata button[type=button]").removeAttr("disabled");
     }
 
     /*
@@ -124,10 +108,7 @@ class AudioStream {
         while a new Blob is created to record the next slice of the media
     */
     startRecording(id) {
-        console.log("startRecording")
         var self = this;
-        self.enableAllButton();
-        //$("#record_q1").attr("disabled", "disabled");*/
         /*
             1800000 is the number of milliseconds to record into each Blob.
             If this parameter isn't included, the entire media duration is recorded into a single Blob unless the requestData()
@@ -137,10 +118,8 @@ class AudioStream {
         PLEASE NOTE YOU CAN CHANGE THIS PARAM OF 1800000 but the size should be greater then or equal to 5MB.
         As for multipart upload the minimum breakdown of the file should be 5MB
         */
-        //this.recorder.start(1800000);
+        // this.recorder.start(1800000);
         // self.recorder.start(900000);
-        console.log("started")
-        /*console.log(recorder.state)*/
     }
 
     /*
@@ -159,12 +138,10 @@ class AudioStream {
             which means we have completed the recording and now we can
             Completes a multipart upload by assembling previously uploaded parts.
         */
+        // TODO
+        // self.exportWAV(function (blob) { }
         self.booleanStop = true;
-        //disable self
-        //self.disableAllButton()
-        //$("#stop_q1").attr("disabled", "disabled");
-        // add loader
-        self.setLoader();
+        psynet.submit.ready("finished-recording");
     }
 
     /*
@@ -209,8 +186,7 @@ class AudioStream {
         self.s3.uploadPart(params, function(err, data) {
             if (err) {
                 console.log(err, err.stack)
-            } // an error occurred
-            else {
+            } else {
                 /*
                     Once the part of data is uploaded we get an Entity tag for the uploaded object(ETag).
                     which is used later when we complete our multipart upload.
@@ -218,6 +194,9 @@ class AudioStream {
                 self.etag.push(data.ETag);
                 if (self.booleanStop == true) {
                     self.completeMultiUpload();
+                    $(".record-alert").hide();
+                    $("#record-finish").show();
+                    $("#next_button").prop('disabled', false);
                 }
             }
         });
@@ -259,27 +238,7 @@ class AudioStream {
                 self.etag = [], self.recordedChunks = [];
                 self.uploadId = "";
                 self.booleanStop = false;
-                self.disableAllButton();
-                self.removeLoader();
             }
         });
-    }
-
-
-    /*
-        set loader
-    */
-    setLoader() {
-        $("#kc-container").addClass("overlay");
-        $(".preloader-wrapper.big.active.loader").removeClass("hide");
-    }
-
-
-    /*
-        remove loader
-    */
-    removeLoader() {
-        $("#kc-container").removeClass("overlay");
-        $(".preloader-wrapper.big.active.loader").addClass("hide");
     }
 }
