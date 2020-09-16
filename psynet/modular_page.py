@@ -14,7 +14,7 @@ from .timeline import (
     MediaSpec,
     is_list_of
 )
-from .media import upload_to_s3, create_bucket, make_bucket_public, get_s3_url
+from .media import prepare_s3, get_s3_url
 
 class Prompt():
     """
@@ -872,6 +872,9 @@ class AudioRecordControl(Control):
             self.meter = AudioMeterControl(submit_button=False)
         else:
             self.meter = None
+
+        prepare_s3(self.s3_bucket, self.public_read, create_new_bucket=True)
+
 
     @property
     def metadata(self):

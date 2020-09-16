@@ -72,6 +72,19 @@ def empty_s3_bucket(bucket_name: str):
     )
 
 @log_time_taken
+def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = False):
+    # TODO
+    # if LOCAL_S3:
+    #     return upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_bucket)
+    logger.info(f"Creating new bucket '{bucket_name}'")
+    if create_new_bucket:
+        logger.info(f"Creating new bucket '{bucket_name}'")
+        create_bucket(bucket_name)
+
+        if public_read:
+            make_bucket_public(bucket_name)
+
+@log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool, create_new_bucket: bool = False):
     "If create_new_bucket, then a new bucket is created if the bucket doesn't exist."
     if LOCAL_S3:
@@ -226,8 +239,10 @@ def make_bucket_public(bucket_name):
     config = {
         "CORSRules": [
             {
-                "AllowedMethods": ["GET"],
-                "AllowedOrigins": ["*"]
+                "AllowedMethods": ["GET", "POST", "PUT"],
+                "AllowedOrigins": ["*"],
+                "ExposeHeaders": ["ETag"],
+                "AllowedHeaders": ["*"]
             }
         ]
     }
@@ -246,6 +261,25 @@ def make_bucket_public(bucket_name):
             "Resource": f"arn:aws:s3:::{bucket_name}/*"
         }]
     })
+    bucket_policy.put(Policy = new_policy)
+
+    new_policy = json.dumps({
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Action": ["s3:GetObject", "s3:PutObject", "s3:ListMultipartUploadParts"],
+                "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+                "Effect": "Allow",
+                "Principal": "*"
+            },
+            {
+                "Action": "s3:ListBucketMultipartUploads",
+                "Resource": f"arn:aws:s3:::{bucket_name}",
+                "Effect": "Allow",
+                "Principal": "*"
+            }
+          ]
+        })
     bucket_policy.put(Policy = new_policy)
 
 def recode_wav(file_path):
