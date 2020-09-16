@@ -280,10 +280,6 @@
         var filename = uuidv4 + ".wav"
 
         psynet.media.register_on_loaded_routine(function() {
-            $("#next_button").on("click", function() {
-                $(".record-alert").hide();
-                $("#record-upload").show();
-            });
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
@@ -319,10 +315,10 @@
             psynet.log.debug("Ending recording.")
             recorder.exportWAV(function (blob) {
                 psynet.response.staged.blobs = {recording: blob};
-                wavBlob = psynet.response.staged.blobs.recording
+                wavAudioBlob = psynet.response.staged.blobs.recording
                 $(".record-alert").hide();
                 $("#record-upload").show();
-                startMultiUpload(wavBlob, filename);
+                startMultiUpload(wavAudioBlob, filename);
             })
         }
 

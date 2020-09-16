@@ -76,9 +76,7 @@ def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = Fa
     # TODO
     # if LOCAL_S3:
     #     return upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_bucket)
-    logger.info(f"Creating new bucket '{bucket_name}'")
-    if create_new_bucket:
-        logger.info(f"Creating new bucket '{bucket_name}'")
+    if create_new_bucket and not bucket_exists(bucket_name):
         create_bucket(bucket_name)
 
         if public_read:
