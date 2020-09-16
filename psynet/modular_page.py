@@ -880,24 +880,27 @@ class AudioRecordControl(Control):
         }
 
     def format_answer(self, raw_answer, **kwargs):
-        recording = kwargs["blobs"]["recording"]
-        fs, data = wavfile.read(recording)
-        duration_sec = data.shape[0] / fs
+        # recording = kwargs["blobs"]["recording"]
+        # fs, data = wavfile.read(recording)
+        # duration_sec = data.shape[0] / fs
 
-        with tempfile.NamedTemporaryFile() as temp_file:
-            wavfile.write(temp_file.name, fs, data)
-            key = f"{uuid4()}.wav"
+        # with tempfile.NamedTemporaryFile() as temp_file:
+        #     wavfile.write(temp_file.name, fs, data)
+        #     key = f"{uuid4()}.wav"
 
-            upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read, create_new_bucket=True)
-            if self.public_read:
-                make_bucket_public(self.s3_bucket)
+        #     upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read, create_new_bucket=True)
+        #     if self.public_read:
+        #         make_bucket_public(self.s3_bucket)
 
-            return {
-                "s3_bucket": self.s3_bucket,
-                "key": key,
-                "url": get_s3_url(self.s3_bucket, key),
-                "duration_sec": duration_sec
-            }
+        key = f"{raw_answer}.wav"
+
+        return {
+            "s3_bucket": self.s3_bucket,
+            "key": key,
+            "url": get_s3_url(self.s3_bucket, key),
+            #"duration_sec": duration_sec
+        }
+
 
     def visualize_response(self, answer, response, trial):
         if answer is None:

@@ -3,7 +3,11 @@
         on_next_button = function() {
             $(this).prop('disabled', true);
             if (typeof retrieve_response == "undefined") {
-                psynet.next_page();
+                if (typeof uuidv4 != "undefined") {
+                    psynet.next_page(uuidv4);
+                } else {
+                    psynet.next_page();
+                }
             } else {
                 response = retrieve_response();
                 psynet.next_page(
@@ -253,10 +257,27 @@
 
     </script>
 
+    <script src="/static/js/lib/aws-sdk-2.2.32.min.js"></script>
+    <script src="/static/js/lib/uuidv4.min.js"></script>
+
+    <script>
+        var region = "us-east-1";
+        var poolId = "us-east-1:7f318717-20a8-49d5-bcbb-ac7547ea5eb6";
+        var s3BucketName = "{{ config.s3_bucket }}";
+        AWS.config.region = region;
+        AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+            IdentityPoolId: poolId,
+        });
+        var s3 = new AWS.S3();
+        var etag = [];
+        var booleanStop = true;
+    </script>
     <script>
         {% include "macros/control/recorder.js" %}
 
         var recorder;
+        var uuidv4 =  uuidv4()
+        var filename = uuidv4 + ".wav"
 
         psynet.media.register_on_loaded_routine(function() {
             $("#next_button").on("click", function() {
@@ -298,10 +319,97 @@
             psynet.log.debug("Ending recording.")
             recorder.exportWAV(function (blob) {
                 psynet.response.staged.blobs = {recording: blob};
-                psynet.submit.ready("finished-recording");
+                wavBlob = psynet.response.staged.blobs.recording
+                $(".record-alert").hide();
+                $("#record-upload").show();
+                startMultiUpload(wavBlob, filename);
             })
-            $(".record-alert").hide();
-            $("#record-finish").show();
+        }
+
+        startMultiUpload = function(blob, filename) {
+            var audioBlob = blob;
+            var params = {
+                Bucket: s3BucketName,
+                Key: filename,
+                ContentType: 'audio/wav',
+                ACL: 'private',
+            };
+            s3.createMultipartUpload(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack); // an error occurred
+                } else {
+                    var uploadId = data.UploadId
+                    var incr = 1;
+                    continueMultiUpload(audioBlob, incr, uploadId, filename, s3BucketName);
+                }
+            });
+        }
+
+        continueMultiUpload = function(audioBlob, PartNumber, uploadId, key, bucketName) {
+            var params = {
+                Body: audioBlob,
+                Bucket: bucketName,
+                Key: key,
+                PartNumber: PartNumber,
+                UploadId: uploadId
+            };
+
+            s3.uploadPart(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack)
+                } // an error occurred
+                else {
+                    /*
+                        Once the part of data is uploaded we get an Entity tag for the uploaded object(ETag).
+                        which is used later when we complete our multipart upload.
+                    */
+                    etag.push(data.ETag);
+                    if (booleanStop == true) {
+                        completeMultiUpload(uploadId);
+                        psynet.submit.ready("finished-recording");
+                        $(".record-alert").hide();
+                        $("#record-finish").show();
+
+                    }
+                }
+            });
+        }
+
+        completeMultiUpload = function(uploadId) {
+            var outputTag = [];
+            /*
+                here we are constructing the Etag data in the required format.
+            */
+            etag.forEach((data, index) => {
+                const obj = {
+                    ETag: data,
+                    PartNumber: ++index
+                };
+                outputTag.push(obj);
+            });
+
+            var params = {
+                Bucket: s3BucketName, // required
+                Key: filename, // required
+                UploadId: uploadId, // required
+                MultipartUpload: {
+                    Parts: outputTag
+                }
+            };
+
+            s3.completeMultipartUpload(params, function(err, data) {
+                if (err) {
+                    console.log(err, err.stack)
+                } // an error occurred
+                else {
+                    // initialize variable back to normal
+                    etag = [], self.recordedChunks = [];
+                    uploadId = "";
+                    //booleanStop = false;
+                    //self.disableAllButton();
+                    //self.removeLoader();
+                }
+            });
         }
 
         psynet.response.register_on_ready_routine(function() {
