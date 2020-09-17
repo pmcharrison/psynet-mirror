@@ -522,6 +522,7 @@ class StimulusSet():
         self.write_remote_media_hash()
         logger.info("(%s) Finished uploading media.", self.id)
 
+    # TODO refactor for presigned_urls
     def prepare_s3_bucket(self):
         if not bucket_exists(self.s3_bucket):
             create_bucket(self.s3_bucket)

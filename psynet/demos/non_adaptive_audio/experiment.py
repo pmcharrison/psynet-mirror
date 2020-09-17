@@ -23,9 +23,6 @@ from psynet.trial.non_adaptive import (
 )
 from .custom_synth import synth_stimulus
 
-from psynet.utils import get_logger
-logger = get_logger()
-
 ##########################################################################################
 #### Stimuli
 ##########################################################################################
@@ -71,7 +68,7 @@ class CustomTrial(NonAdaptiveTrial):
             AudioPrompt(self.media_url, "Please imitate the spoken word as closely as possible."),
             AudioRecordControl(
                 duration=3.0,
-                s3_bucket="psynet-audio-streaming-test",
+                s3_bucket="aaa-psynet-audio-streaming-test",
                 public_read=True
             ),
             time_estimate=5

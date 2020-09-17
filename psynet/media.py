@@ -6,6 +6,7 @@ import botocore.exceptions
 import botocore.errorfactory
 import tempfile
 import shutil
+from uuid import uuid4
 
 from pathlib import Path
 
@@ -72,15 +73,30 @@ def empty_s3_bucket(bucket_name: str):
     )
 
 @log_time_taken
-def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = False):
-    # TODO
+def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = False, presigned_urls: bool = False):
+    # TODO refactor: this functionality already exists as prepare_s3_bucket in non_adaptive.py
     # if LOCAL_S3:
     #     return upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_bucket)
+    logger.info("Preparing S3...")
     if create_new_bucket and not bucket_exists(bucket_name):
         create_bucket(bucket_name)
 
-        if public_read:
-            make_bucket_public(bucket_name)
+    if presigned_urls:
+        setup_bucket_for_presigned_urls(bucket_name)
+
+    return generate_presigned_url(bucket_name)
+
+@log_time_taken
+def generate_presigned_url(bucket_name: str):
+    return new_s3_client().generate_presigned_url(
+        ClientMethod='put_object',
+        Params={
+            'Bucket': bucket_name,
+            'Key': f"{str(uuid4())}.wav",
+            'ACL': 'public-read'
+        }
+    )
+
 
 @log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool, create_new_bucket: bool = False):
@@ -222,15 +238,14 @@ def bucket_exists(bucket_name):
             return False
     return True
 
-def make_bucket_public(bucket_name):
-    logger.info("Ensuring bucket is publicly accessible...")
+def setup_bucket_for_presigned_urls(bucket_name):
+    logger.info("Setting bucket CORSRules and policies...")
 
     if LOCAL_S3:
         return
 
     s3_resource = new_s3_resource()
     bucket = s3_resource.Bucket(bucket_name)
-    bucket.Acl().put(ACL="public-read")
 
     cors = bucket.Cors()
 
@@ -249,17 +264,6 @@ def make_bucket_public(bucket_name):
     cors.put(CORSConfiguration=config)
 
     bucket_policy = s3_resource.BucketPolicy(bucket_name)
-    new_policy = json.dumps({
-        "Version": "2008-10-17",
-        "Statement": [{
-            "Sid": "AllowPublicRead",
-            "Effect": "Allow",
-            "Principal": "*",
-            "Action": "s3:GetObject",
-            "Resource": f"arn:aws:s3:::{bucket_name}/*"
-        }]
-    })
-    bucket_policy.put(Policy = new_policy)
 
     new_policy = json.dumps({
         "Version": "2012-10-17",
@@ -280,6 +284,43 @@ def make_bucket_public(bucket_name):
         })
     bucket_policy.put(Policy = new_policy)
 
+def make_bucket_public(bucket_name):
+    logger.info("Ensuring bucket is publicly accessible...")
+
+    if LOCAL_S3:
+        return
+
+    s3_resource = new_s3_resource()
+    bucket = s3_resource.Bucket(bucket_name)
+    bucket.Acl().put(ACL="public-read")
+
+    cors = bucket.Cors()
+
+    config = {
+        "CORSRules": [
+            {
+                "AllowedMethods": ["GET"],
+                "AllowedOrigins": ["*"]
+            }
+        ]
+    }
+
+    cors.delete()
+    cors.put(CORSConfiguration=config)
+
+    bucket_policy = s3_resource.BucketPolicy(bucket_name)
+    new_policy = json.dumps({
+        "Version": "2008-10-17",
+        "Statement": [{
+            "Sid": "AllowPublicRead",
+            "Effect": "Allow",
+            "Principal": "*",
+            "Action": "s3:GetObject",
+            "Resource": f"arn:aws:s3:::{bucket_name}/*"
+        }]
+    })
+    bucket_policy.put(Policy = new_policy)
+
 def recode_wav(file_path):
     import parselmouth
     with tempfile.NamedTemporaryFile() as temp_file:
@@ -287,12 +328,14 @@ def recode_wav(file_path):
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
 
-def get_s3_url(bucket, key):
+def get_s3_url(bucket, key, presigned_url=None):
     if LOCAL_S3:
         destination = os.path.join("static", "s3", bucket, key)
         Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
         shutil.copyfile(os.path.join(LOCAL_S3_CLONE, bucket, key), destination)
         return os.path.join("/static/s3", bucket, key)
+    elif presigned_url is not None:
+        return presigned_url
     else:
         return os.path.join(
             "https://s3.amazonaws.com",

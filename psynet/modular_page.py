@@ -873,8 +873,11 @@ class AudioRecordControl(Control):
         else:
             self.meter = None
 
-        prepare_s3(self.s3_bucket, self.public_read, create_new_bucket=True)
-
+        # TODO refactor: this functionality already exists as prepare_s3_bucket in non_adaptive.py
+        self.presigned_url = prepare_s3(self.s3_bucket,
+                                        self.public_read,
+                                        create_new_bucket=True,
+                                        presigned_urls=True)
 
     @property
     def metadata(self):
@@ -886,21 +889,10 @@ class AudioRecordControl(Control):
         # recording = kwargs["blobs"]["recording"]
         # fs, data = wavfile.read(recording)
         # duration_sec = data.shape[0] / fs
-
-        # with tempfile.NamedTemporaryFile() as temp_file:
-        #     wavfile.write(temp_file.name, fs, data)
-        #     key = f"{uuid4()}.wav"
-
-        #     upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read, create_new_bucket=True)
-        #     if self.public_read:
-        #         make_bucket_public(self.s3_bucket)
-
-        key = f"{raw_answer}.wav"
-
         return {
             "s3_bucket": self.s3_bucket,
-            "key": key,
-            "url": get_s3_url(self.s3_bucket, key),
+            "url": raw_answer,
+            # TODO where do we need this?
             #"duration_sec": duration_sec
         }
 
