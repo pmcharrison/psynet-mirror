@@ -330,7 +330,7 @@
             var xhr = new XMLHttpRequest();
             xhr.open('PUT', presigned_url, true);
             xhr.onload = function(e) {
-                console.log("File uploaded successfully to presigned url.");
+                psynet.log.debug("File uploaded successfully to presigned url.");
                 psynet.submit.ready("finished-recording");
                 $(".record-alert").hide();
                 $("#record-finish").show();

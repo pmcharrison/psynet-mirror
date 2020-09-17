@@ -252,9 +252,10 @@ def setup_bucket_for_presigned_urls(bucket_name):
     config = {
         "CORSRules": [
             {
-                "AllowedMethods": ["GET", "POST", "PUT"],
+                "AllowedMethods": ["GET", "PUT"],
                 "AllowedOrigins": ["*"],
-                "ExposeHeaders": ["ETag"],
+                # "ExposeHeaders": ["ETag"],
+                "MaxAgeSeconds": 3000,
                 "AllowedHeaders": ["*"]
             }
         ]
@@ -269,20 +270,32 @@ def setup_bucket_for_presigned_urls(bucket_name):
         "Version": "2012-10-17",
         "Statement": [
             {
-                "Action": ["s3:GetObject", "s3:PutObject", "s3:ListMultipartUploadParts"],
+                "Action": ["s3:GetObject", "s3:PutObject"],
                 "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
                 "Effect": "Allow",
                 "Principal": "*"
-            },
-            {
-                "Action": "s3:ListBucketMultipartUploads",
-                "Resource": f"arn:aws:s3:::{bucket_name}",
-                "Effect": "Allow",
-                "Principal": "*"
-            }
-          ]
+            }]
         })
     bucket_policy.put(Policy = new_policy)
+
+    # new_policy = json.dumps({
+    #     "Version": "2012-10-17",
+    #     "Statement": [
+    #         {
+    #             "Action": ["s3:GetObject", "s3:PutObject", "s3:ListMultipartUploadParts"],
+    #             "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+    #             "Effect": "Allow",
+    #             "Principal": "*"
+    #         },
+    #         {
+    #             "Action": "s3:ListBucketMultipartUploads",
+    #             "Resource": f"arn:aws:s3:::{bucket_name}",
+    #             "Effect": "Allow",
+    #             "Principal": "*"
+    #         }
+    #       ]
+    #     })
+    # bucket_policy.put(Policy = new_policy)
 
 def make_bucket_public(bucket_name):
     logger.info("Ensuring bucket is publicly accessible...")
