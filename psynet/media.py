@@ -84,16 +84,17 @@ def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = Fa
     if presigned_urls:
         setup_bucket_for_presigned_urls(bucket_name)
 
-    return generate_presigned_url(bucket_name)
+    presigned_url = generate_presigned_url(bucket_name)
+    logger.info(presigned_url)
+    return presigned_url
 
 @log_time_taken
 def generate_presigned_url(bucket_name: str):
     return new_s3_client().generate_presigned_url(
-        ClientMethod='put_object',
+        "put_object",
         Params={
-            'Bucket': bucket_name,
-            'Key': f"{str(uuid4())}.wav",
-            'ACL': 'public-read'
+            "Bucket": bucket_name,
+            "Key": f"{str(uuid4())}.wav"
         }
     )
 
@@ -252,11 +253,10 @@ def setup_bucket_for_presigned_urls(bucket_name):
     config = {
         "CORSRules": [
             {
+                "AllowedHeaders": ["*"],
                 "AllowedMethods": ["GET", "PUT"],
                 "AllowedOrigins": ["*"],
-                # "ExposeHeaders": ["ETag"],
-                "MaxAgeSeconds": 3000,
-                "AllowedHeaders": ["*"]
+                "MaxAgeSeconds": 3000
             }
         ]
     }
@@ -264,20 +264,22 @@ def setup_bucket_for_presigned_urls(bucket_name):
     cors.delete()
     cors.put(CORSConfiguration=config)
 
-    bucket_policy = s3_resource.BucketPolicy(bucket_name)
+    # bucket_policy = s3_resource.BucketPolicy(bucket_name)
 
-    new_policy = json.dumps({
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Action": ["s3:GetObject", "s3:PutObject"],
-                "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
-                "Effect": "Allow",
-                "Principal": "*"
-            }]
-        })
-    bucket_policy.put(Policy = new_policy)
+    # Set this later if bucket becomes public
+    # new_policy = json.dumps({
+    #     "Version": "2012-10-17",
+    #     "Statement": [
+    #         {
+    #             "Action": ["s3:GetObject"],
+    #             "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
+    #             "Effect": "Allow",
+    #             "Principal": "*"
+    #         }]
+    #     })
+    # bucket_policy.put(Policy = new_policy)
 
+    # Old policy for MultiPartUpload
     # new_policy = json.dumps({
     #     "Version": "2012-10-17",
     #     "Statement": [
