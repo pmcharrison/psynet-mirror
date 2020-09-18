@@ -1,5 +1,6 @@
 import json
 import tempfile
+from urllib.parse import splitquery
 
 from dominate import tags
 from dominate.util import raw
@@ -891,7 +892,7 @@ class AudioRecordControl(Control):
         # duration_sec = data.shape[0] / fs
         return {
             "s3_bucket": self.s3_bucket,
-            "url": raw_answer,
+            "url": splitquery(raw_answer)[0],
             # TODO where do we need this?
             #"duration_sec": duration_sec
         }

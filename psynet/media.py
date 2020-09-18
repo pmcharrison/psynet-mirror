@@ -338,14 +338,12 @@ def recode_wav(file_path):
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
 
-def get_s3_url(bucket, key, presigned_url=None):
+def get_s3_url(bucket, key):
     if LOCAL_S3:
         destination = os.path.join("static", "s3", bucket, key)
         Path(os.path.dirname(destination)).mkdir(parents=True, exist_ok=True)
         shutil.copyfile(os.path.join(LOCAL_S3_CLONE, bucket, key), destination)
         return os.path.join("/static/s3", bucket, key)
-    elif presigned_url is not None:
-        return presigned_url
     else:
         return os.path.join(
             "https://s3.amazonaws.com",
