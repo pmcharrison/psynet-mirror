@@ -253,13 +253,8 @@
 
     {{ null(config) }}
 
-    <script>
-
-    </script>
-
-    <script src="/static/js/lib/aws-sdk-2.2.32.min.js"></script>
+    <!-- script src="/static/js/lib/aws-sdk-2.2.32.min.js"></script -->
     <!-- script src="/static/js/lib/uuidv4.min.js"></script -->
-
     <script>
         var s3BucketName = "{{ config.s3_bucket }}";
         var presigned_url = "{{ config.presigned_url }}";
@@ -327,10 +322,11 @@
         }
 
         startPresignedUrlUpload = function(wavAudioBlob) {
+            // TODO upload if LOCAL_S3
             var xhr = new XMLHttpRequest();
             presigned_url = presigned_url.replace(/&amp;/g, '&')
             xhr.open('PUT', presigned_url, true);
-            psynet.log.debug(presigned_url);
+            psynet.log.debug("Presigned URL for upload to S3: " + presigned_url);
 
             xhr.onload = function(e) {
                 psynet.log.debug("File uploaded successfully to presigned url.");

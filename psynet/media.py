@@ -74,19 +74,15 @@ def empty_s3_bucket(bucket_name: str):
 
 @log_time_taken
 def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = False, presigned_urls: bool = False):
-    # TODO refactor: this functionality already exists as prepare_s3_bucket in non_adaptive.py
-    # if LOCAL_S3:
-    #     return upload_to_local_s3(local_path, bucket_name, key, public_read, create_new_bucket)
+    # TODO refactor: this functionality partly already exists in prepare_s3_bucket in non_adaptive.py
     logger.info("Preparing S3...")
     if create_new_bucket and not bucket_exists(bucket_name):
         create_bucket(bucket_name)
 
     if presigned_urls:
-        setup_bucket_for_presigned_urls(bucket_name)
+        setup_bucket_for_presigned_urls(bucket_name, public_read)
 
-    presigned_url = generate_presigned_url(bucket_name)
-    logger.info(presigned_url)
-    return presigned_url
+    return generate_presigned_url(bucket_name)
 
 @log_time_taken
 def generate_presigned_url(bucket_name: str):
@@ -97,7 +93,6 @@ def generate_presigned_url(bucket_name: str):
             "Key": f"{str(uuid4())}.wav"
         }
     )
-
 
 @log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool, create_new_bucket: bool = False):
@@ -239,7 +234,8 @@ def bucket_exists(bucket_name):
             return False
     return True
 
-def setup_bucket_for_presigned_urls(bucket_name):
+# TODO refactor this with make_bucket_public function
+def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 
     if LOCAL_S3:
@@ -256,7 +252,6 @@ def setup_bucket_for_presigned_urls(bucket_name):
                 "AllowedHeaders": ["*"],
                 "AllowedMethods": ["GET", "PUT"],
                 "AllowedOrigins": ["*"],
-                "MaxAgeSeconds": 3000
             }
         ]
     }
@@ -264,20 +259,20 @@ def setup_bucket_for_presigned_urls(bucket_name):
     cors.delete()
     cors.put(CORSConfiguration=config)
 
-    # bucket_policy = s3_resource.BucketPolicy(bucket_name)
+    if public_read:
+        bucket_policy = s3_resource.BucketPolicy(bucket_name)
 
-    # Set this later if bucket becomes public
-    # new_policy = json.dumps({
-    #     "Version": "2012-10-17",
-    #     "Statement": [
-    #         {
-    #             "Action": ["s3:GetObject"],
-    #             "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
-    #             "Effect": "Allow",
-    #             "Principal": "*"
-    #         }]
-    #     })
-    # bucket_policy.put(Policy = new_policy)
+        new_policy = json.dumps({
+            "Version": "2008-10-17",
+            "Statement": [{
+                "Sid": "AllowPublicRead",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": f"arn:aws:s3:::{bucket_name}/*"
+            }]
+        })
+        bucket_policy.put(Policy = new_policy)
 
     # Old policy for MultiPartUpload
     # new_policy = json.dumps({
