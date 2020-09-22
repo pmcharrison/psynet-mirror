@@ -68,7 +68,7 @@ class CustomTrial(NonAdaptiveTrial):
             AudioPrompt(self.media_url, "Please imitate the spoken word as closely as possible."),
             AudioRecordControl(
                 duration=3.0,
-                s3_bucket="aaa-psynet-audio-streaming-test",
+                s3_bucket="non-adaptive-audio-demo-stimuli-recordings",
                 public_read=True
             ),
             time_estimate=5

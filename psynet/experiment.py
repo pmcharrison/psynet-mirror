@@ -248,8 +248,6 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_files(cls):
         return [
             (resource_filename("psynet", "resources/logo.png"), "/static/images/logo.png"),
-            # (resource_filename("psynet", "resources/js/lib/aws-sdk-2.2.32.min.js"), "/static/js/lib/aws-sdk-2.2.32.min.js"),
-            # (resource_filename("psynet", "resources/js/lib/uuidv4.min.js"), "/static/js/lib/uuidv4.min.js"),
         ]
 
     def extra_routes(self):

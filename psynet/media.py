@@ -234,7 +234,7 @@ def bucket_exists(bucket_name):
             return False
     return True
 
-# TODO refactor this with make_bucket_public function
+# TODO refactor this with make_bucket_public function?
 def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 
@@ -273,26 +273,6 @@ def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
             }]
         })
         bucket_policy.put(Policy = new_policy)
-
-    # Old policy for MultiPartUpload
-    # new_policy = json.dumps({
-    #     "Version": "2012-10-17",
-    #     "Statement": [
-    #         {
-    #             "Action": ["s3:GetObject", "s3:PutObject", "s3:ListMultipartUploadParts"],
-    #             "Resource": [f"arn:aws:s3:::{bucket_name}/*"],
-    #             "Effect": "Allow",
-    #             "Principal": "*"
-    #         },
-    #         {
-    #             "Action": "s3:ListBucketMultipartUploads",
-    #             "Resource": f"arn:aws:s3:::{bucket_name}",
-    #             "Effect": "Allow",
-    #             "Principal": "*"
-    #         }
-    #       ]
-    #     })
-    # bucket_policy.put(Policy = new_policy)
 
 def make_bucket_public(bucket_name):
     logger.info("Ensuring bucket is publicly accessible...")
