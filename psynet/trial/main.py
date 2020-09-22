@@ -4,6 +4,7 @@ import json
 import random
 import datetime
 
+from dominate import tags
 from flask import Markup
 from statistics import mean
 from math import isnan, nan
@@ -844,6 +845,27 @@ class TrialMaker(Module):
             return PageMaker(f, time_estimate = 5)
         else:
             return []
+
+    def visualize(self):
+        rendered_div = super().visualize()
+
+        div = tags.div()
+        with div:
+            with tags.ul(cls="details"):
+                if hasattr(self, "expected_num_trials") and self.expected_num_trials is not None:
+                    tags.li(f"Expected number of trials: {self.expected_num_trials}")
+                if hasattr(self, "target_num_participants") and self.target_num_participants is not None:
+                    tags.li(f"Target number of participants: {self.target_num_participants}")
+                if hasattr(self, "recruit_mode") and self.recruit_mode is not None:
+                    tags.li(f"Recruitment mode: {self.recruit_mode}")
+
+        return rendered_div + div.render()
+
+    def get_progress_info(self):
+        return super().get_progress_info()
+
+    def visualize_tooltip(self):
+        return super().visualize_tooltip()
 
     @property
     def num_trials_pending(self):
