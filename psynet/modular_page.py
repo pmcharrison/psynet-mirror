@@ -876,9 +876,9 @@ class AudioRecordControl(Control):
 
         # TODO refactor and use prepare_s3_bucket in non_adaptive.py ?
         self.presigned_url = prepare_s3(self.s3_bucket,
-                                            self.public_read,
-                                            create_new_bucket=True,
-                                            presigned_urls=True)
+                                        self.public_read,
+                                        create_new_bucket=True,
+                                        presigned_urls=True)
 
     @property
     def metadata(self):

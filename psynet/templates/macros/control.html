@@ -256,8 +256,10 @@
     <script>
         {% include "macros/control/recorder.js" %}
 
-        var s3BucketName = "{{ config.s3_bucket }}";
+        {% autoescape off %}
         var presigned_url = "{{ config.presigned_url }}";
+        {% endautoescape %}
+        var s3BucketName = "{{ config.s3_bucket }}";
         var recorder;
 
         psynet.media.register_on_loaded_routine(function() {
@@ -306,7 +308,6 @@
         startPresignedUrlUpload = function(wavAudioBlob) {
             // TODO upload if LOCAL_S3
             var xhr = new XMLHttpRequest();
-            presigned_url = presigned_url.replace(/&amp;/g, '&')
             xhr.open('PUT', presigned_url, true);
             psynet.log.debug("Presigned URL for upload to S3: " + presigned_url);
 
