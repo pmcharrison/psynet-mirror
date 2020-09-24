@@ -73,24 +73,19 @@ def empty_s3_bucket(bucket_name: str):
     )
 
 @log_time_taken
-def prepare_s3(bucket_name: str, public_read: bool, create_new_bucket: bool = False, presigned_urls: bool = False):
-    # TODO refactor: this functionality partly already exists in prepare_s3_bucket in non_adaptive.py
+def prepare_s3_bucket(bucket_name: str, public_read: bool, create_new_bucket: bool = False):
     logger.info("Preparing S3...")
     if create_new_bucket and not bucket_exists(bucket_name):
         create_bucket(bucket_name)
-
-    if presigned_urls:
-        setup_bucket_for_presigned_urls(bucket_name, public_read)
-
-    return generate_presigned_url(bucket_name)
+    setup_bucket_for_presigned_urls(bucket_name, public_read)
 
 @log_time_taken
-def generate_presigned_url(bucket_name: str):
+def generate_presigned_url(bucket_name: str, file_extension: str = "wav"):
     return new_s3_client().generate_presigned_url(
         "put_object",
         Params={
             "Bucket": bucket_name,
-            "Key": f"{str(uuid4())}.wav"
+            "Key": f"{str(uuid4())}.{file_extension}"
         }
     )
 
@@ -234,7 +229,6 @@ def bucket_exists(bucket_name):
             return False
     return True
 
-# TODO refactor this with make_bucket_public function?
 def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
     logger.info("Setting bucket CORSRules and policies...")
 

@@ -15,7 +15,7 @@ from .timeline import (
     MediaSpec,
     is_list_of
 )
-from .media import prepare_s3, get_s3_url
+from .media import get_s3_url, generate_presigned_url, prepare_s3_bucket
 
 class Prompt():
     """
@@ -874,11 +874,9 @@ class AudioRecordControl(Control):
         else:
             self.meter = None
 
-        # TODO refactor and use prepare_s3_bucket in non_adaptive.py ?
-        self.presigned_url = prepare_s3(self.s3_bucket,
-                                        self.public_read,
-                                        create_new_bucket=True,
-                                        presigned_urls=True)
+        prepare_s3_bucket(self.s3_bucket, self.public_read, create_new_bucket=True)
+
+        self.presigned_url = generate_presigned_url(self.s3_bucket)
 
     @property
     def metadata(self):
