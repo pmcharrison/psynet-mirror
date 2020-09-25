@@ -815,7 +815,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
-        including failed trials.
+        including failed trials. Note that this number does not include repeat trials.
 
     allow_repeated_stimuli
         Determines whether the participant can be administered the same stimulus more than once.
@@ -866,7 +866,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     num_repeat_trials
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
-        responses.
+        responses. Repeat trials are presented at the end of the trial maker,
+        after all blocks have been completed.
 
     Attributes
     ----------
