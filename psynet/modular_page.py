@@ -16,6 +16,9 @@ from .timeline import (
     is_list_of
 )
 from .media import get_s3_url, generate_presigned_url, prepare_s3_bucket
+from .utils import get_logger
+
+logger = get_logger()
 
 class Prompt():
     """
@@ -87,6 +90,9 @@ class Prompt():
             return str(self.text)
         else:
             return tags.p(self.text).render()
+
+    def pre_render(self):
+        pass
 
 class AudioPrompt(Prompt):
     """
@@ -400,6 +406,9 @@ class Control():
 
     def visualize_response(self, answer, response, trial):
         return ""
+
+    def pre_render(self):
+        pass
 
 class NullControl(Control):
     """
@@ -727,6 +736,16 @@ class ModularPage(Page):
             "control": self.control.metadata
         }
 
+    def pre_render(self):
+        """
+            This method is called immediately prior to rendering the page for
+            the participant. It will be called again each time the participant
+            refreshes the page.
+        """
+        self.prompt.pre_render()
+        self.control.pre_render()
+
+
 class AudioMeterControl(Control):
     macro = "audio_meter"
 
@@ -876,13 +895,9 @@ class AudioRecordControl(Control):
 
         prepare_s3_bucket(self.s3_bucket, self.public_read, create_new_bucket=True)
 
-        self.presigned_url = generate_presigned_url(self.s3_bucket)
-
     @property
     def metadata(self):
-        return {
-
-        }
+        return {}
 
     def format_answer(self, raw_answer, **kwargs):
         recording = kwargs["blobs"]["recording"]
@@ -894,7 +909,6 @@ class AudioRecordControl(Control):
             "duration_sec": duration_sec
         }
 
-
     def visualize_response(self, answer, response, trial):
         if answer is None:
             return tags.p("No audio recorded yet.").render()
@@ -904,6 +918,10 @@ class AudioRecordControl(Control):
                 id="visualize-audio-response",
                 controls=True
             ).render()
+
+    def pre_render(self):
+        self.presigned_url = generate_presigned_url(self.s3_bucket)
+        logger.info(f"Generated presigned url: {self.presigned_url}")
 
 class VideoSliderControl(Control):
     macro = "video_slider"
