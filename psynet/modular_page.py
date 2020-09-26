@@ -15,7 +15,12 @@ from .timeline import (
     MediaSpec,
     is_list_of
 )
-from .media import get_s3_url, generate_presigned_url, prepare_s3_bucket
+from .media import (
+    get_s3_url,
+    generate_presigned_url,
+    prepare_s3_bucket_for_presigned_urls
+)
+
 from .utils import get_logger
 
 logger = get_logger()
@@ -893,8 +898,6 @@ class AudioRecordControl(Control):
         else:
             self.meter = None
 
-        prepare_s3_bucket(self.s3_bucket, self.public_read, create_new_bucket=True)
-
     @property
     def metadata(self):
         return {}
@@ -920,6 +923,9 @@ class AudioRecordControl(Control):
             ).render()
 
     def pre_render(self):
+        prepare_s3_bucket_for_presigned_urls(self.s3_bucket,
+                                             self.public_read,
+                                             create_new_bucket=True)
         self.presigned_url = generate_presigned_url(self.s3_bucket)
         logger.info(f"Generated presigned url: {self.presigned_url}")
 

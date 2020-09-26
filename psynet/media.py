@@ -73,8 +73,8 @@ def empty_s3_bucket(bucket_name: str):
     )
 
 @log_time_taken
-def prepare_s3_bucket(bucket_name: str, public_read: bool, create_new_bucket: bool = False):
-    logger.info("Preparing S3...")
+def prepare_s3_bucket_for_presigned_urls(bucket_name: str, public_read: bool, create_new_bucket: bool = False):
+    logger.info("Preparing S3 bucket for presigned urls...")
     if create_new_bucket and not bucket_exists(bucket_name):
         create_bucket(bucket_name)
     setup_bucket_for_presigned_urls(bucket_name, public_read)
