@@ -1849,11 +1849,14 @@ class TrialNetwork(Network, AsyncProcessOwner):
 def call_async_post_trial(trial_id, process_id):
     logger.info("Running async_post_trial process %s for trial %i...", process_id, trial_id)
     import_local_experiment()
+    experiment = dallinger.experiment.load()
     trial = Trial.query.filter_by(id=trial_id).one()
+    trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
     try:
         if process_id in trial.pending_async_processes:
             trial.async_post_trial()
             trial.pop_async_process(process_id)
+            trial_maker._grow_network(trial.network, trial.participant, experiment)
         else:
             logger.info("Skipping async process %s as it is no longer queued.", process_id)
     except BaseException as e:
