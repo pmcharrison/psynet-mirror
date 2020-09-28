@@ -322,9 +322,27 @@ class Page(Event):
                 font-weight: bold;
             }
 
+    contents:
+        Optional dictionary to store some experiment specific data. For example, in an experiment about melodies, the contents property might look something like this: {”melody”: [1, 5, 2]}.
+
+    Attributes
+    ----------
+
+    attributes : dict
+        A dictionary containing the parameter values for the stimulus.
+
+    contents : dict
+        A dictionary containing experiment specific data.
+
+    Class attributes
+    ----------------
+
+    session_id : str
+        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with Javascript code like window.addEventListener(”page_updated”, ...).
     """
 
     returns_time_credit = True
+    session_id = None
 
     def __init__(
         self,
@@ -336,7 +354,8 @@ class Page(Event):
         js_vars: Optional[Dict] = None,
         media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
-        css: Optional[List] = None
+        css: Optional[List] = None,
+        contents: Optional[Dict] = None,
     ):
         if template_arg is None:
             template_arg = {}
@@ -372,6 +391,14 @@ class Page(Event):
 
         self.css = [] if css is None else [flask.Markup(x) for x in css]
         assert isinstance(self.css, list)
+
+    @property
+    def attributes(self):
+        return dict(self.__dict__, **{"session_id": Page.session_id})
+
+    @property
+    def contents(self):
+        return self.contents
 
     @property
     def initial_download_progress(self):

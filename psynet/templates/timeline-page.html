@@ -182,6 +182,7 @@
 
                 var psynet = {
                     media: {},
+                    page: {},
                     utils: {}
                 };
 
@@ -559,6 +560,9 @@
                     psynet.media.audio_context = context
 
                 };
+
+                psynet.page.attributes = {{ attributes }}
+                psynet.page.contents = {{ contents }}
 
                 psynet.show_resume_modal = function() {
                     document.getElementById("resume_modal").style.display = "block";

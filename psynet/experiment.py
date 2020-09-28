@@ -332,6 +332,7 @@ class Experiment(dallinger.experiment.Experiment):
             from dallinger.experiment_server.utils import error_page
             exp = self.new(db.session)
             participant = get_participant(participant_id)
+            mode = request.args.get('mode')
 
             if participant.assignment_id != assignment_id:
                 logger.error(
@@ -353,7 +354,15 @@ class Experiment(dallinger.experiment.Experiment):
                 if not participant.initialised:
                     exp.init_participant(participant_id)
                 exp.save()
-                return exp.timeline.get_current_event(self, participant).render(exp, participant)
+
+                page = exp.timeline.get_current_event(self, participant)
+                if (mode == 'json'):
+                    return jsonify({
+                        "attributes": page.attributes,
+                        "contents": page.contents,
+                    })
+
+                return page.render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
         def route_response():
