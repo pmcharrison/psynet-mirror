@@ -80,7 +80,7 @@ def prepare_s3_bucket_for_presigned_urls(bucket_name: str, public_read: bool, cr
     setup_bucket_for_presigned_urls(bucket_name, public_read)
 
 @log_time_taken
-def generate_presigned_url(bucket_name: str, file_extension: str = "wav"):
+def generate_presigned_url(bucket_name: str, file_extension: str):
     return new_s3_client().generate_presigned_url(
         "put_object",
         Params={

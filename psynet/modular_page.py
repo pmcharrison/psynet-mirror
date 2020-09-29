@@ -926,7 +926,7 @@ class AudioRecordControl(Control):
         prepare_s3_bucket_for_presigned_urls(self.s3_bucket,
                                              self.public_read,
                                              create_new_bucket=True)
-        self.presigned_url = generate_presigned_url(self.s3_bucket)
+        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
         logger.info(f"Generated presigned url: {self.presigned_url}")
 
 class VideoSliderControl(Control):
