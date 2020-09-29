@@ -22,20 +22,48 @@ from .trial.non_adaptive import (
 
 class ColorBlindnessTest(Module):
     """
-        Color blindness test
+    The color blindness test checks the participant's ability to perceive
+    colours. In each trial an image is presented which contains a number and the
+    participant must enter the number that is shown into a text box. The image
+    disappears after 3 seconds by default, which can be adjusted by providing a different
+    value in the ``hide_after`` parameter.
+
+    Parameters
+    ----------
+
+    label : string, optional
+        The label for the color blindness test, default: "color_blindness_test".
+
+    media : string, optional
+        The url under which the images to be displayed can be referenced, default:
+        "https://s3.amazonaws.com/ishihara-eye-test/jpg"
+
+    time_estimate_per_trial : float, optional
+        The time estimate in seconds per trial, default: 5.0.
+
+    performance_threshold : int, optional
+        The performance threshold, default: 4.
+
+    hide_after : float, optional
+        The time in seconds after which the image disappears, default: 3.0.
+
     """
     def __init__(
-        self,
-        label = "color_blind",
-        media_url: str = "https://s3.amazonaws.com/ishihara-eye-test/jpg",
-        time_estimate_per_trial: float = 5.0,
-        performance_threshold: int = 4,
-        hide_after: float = 3.0,
-    ):
+            self,
+            label = "color_blindness_test",
+            media_url: str = "https://s3.amazonaws.com/ishihara-eye-test/jpg",
+            time_estimate_per_trial: float = 5.0,
+            performance_threshold: int = 4,
+            hide_after: float = 3.0,
+        ):
         self.label = label
         self.events = join(
             self.instruction_page(hide_after),
-            self.trial_maker(media_url, time_estimate_per_trial, performance_threshold, hide_after)
+            self.trial_maker(
+                media_url, time_estimate_per_trial,
+                performance_threshold,
+                hide_after
+            )
         )
         super().__init__(self.label, self.events)
 
@@ -130,20 +158,47 @@ class ColorBlindnessTest(Module):
 
 class ColorVocabularyTest(Module):
     """
-        Color vocabulary test
+    The color vocabulary test checks the participant's ability to name colours. In each trial, a
+    colored box is presented and the participant must choose from a set of colors which color is
+    displayed in the box. The colors which are presented can be freely chosen by providing an
+    optional ``colors`` parameter. See the documentation for further details.
+
+    Parameters
+    ----------
+
+    label : string, optional
+        The label for the color vocabulary test, default: "color_vocabulary_test".
+
+    time_estimate_per_trial : float, optional
+        The time estimate in seconds per trial, default: 5.0.
+
+    performance_threshold : int, optional
+        The performance threshold, default: 4.
+
+    colors : list, optional
+        A list of tuples each representing one color option. The tuples are of
+        the form ("color-name", [R,G,B]) where R, G, and B are numbers in the
+        range of 0 - 255 representing a color in the RGB color system. In each
+        trial the colors are presented in random order. Default: the list of the
+        six colors "turquoise", "magenta", "granite", "ivory", "maroon", and
+        "navy".
     """
     def __init__(
-        self,
-        label = "color_vocabulary_test",
-        time_estimate_per_trial: float = 5.0,
-        performance_threshold: int = 4,
-        colors: list = None
-    ):
+            self,
+            label = "color_vocabulary_test",
+            time_estimate_per_trial: float = 5.0,
+            performance_threshold: int = 4,
+            colors: list = None
+        ):
         self.label = label
         self.colors = self.colors if colors is None else colors
         self.events = join(
             self.instruction_page(),
-            self.color_vocabulary_trial_maker(time_estimate_per_trial, performance_threshold, self.colors)
+            self.trial_maker(
+                time_estimate_per_trial,
+                performance_threshold,
+                self.colors
+            )
         )
         super().__init__(self.label, self.events)
 
@@ -154,24 +209,49 @@ class ColorVocabularyTest(Module):
         ("granite",   [0,   0,   40]),
         ("ivory",     [60,  100, 97]),
         ("maroon",    [0,   100, 25]),
-        ("navy",      [240, 100, 25])
+        ("navy",      [240, 100, 25]),
     ]
 
-    def get_stimulus_set(self, colors: list):
-        stimuli = []
-        words = [x[0] for x in colors]
-        for (correct_answer, hsl) in colors:
-            choices = words.copy()
-            random.shuffle(choices)
-            definition = {
-                "target_hsl": hsl,
-                "choices": choices,
-                "correct_answer": correct_answer
-            }
-            stimuli.append(StimulusSpec(definition=definition, phase="experiment"))
-        return StimulusSet("color_vocabulary", stimuli)
+    def instruction_page(self):
+        return InfoPage(Markup(
+            """
+            <p>We will now perform a quick test to check your ability to name colors.</p>
+            <p>
+                In each trial, you will be presented with a colored box.
+                You must choose which color you see in the box.
+            </p>
+            """
+        ), time_estimate=10)
 
-    def color_vocabulary_trial(self, time_estimate: float):
+    def trial_maker(
+            self,
+            time_estimate_per_trial: float,
+            performance_threshold: int,
+            colors: list
+        ):
+        class ColorVocabularyTrialMaker(NonAdaptiveTrialMaker):
+            def performance_check(self, experiment, participant, participant_trials):
+                """Should return a tuple (score: float, passed: bool)"""
+                score = 0
+                for trial in participant_trials:
+                    if trial.answer == trial.definition["correct_answer"]:
+                        score += 1
+                passed = score >= performance_threshold
+                return {
+                    "score": score,
+                    "passed": passed
+                }
+
+        return ColorVocabularyTrialMaker(
+            id_="color_vocabulary",
+            trial_class=self.trial(time_estimate_per_trial),
+            phase="experiment",
+            stimulus_set=self.get_stimulus_set(colors),
+            time_estimate_per_trial=time_estimate_per_trial,
+            check_performance_at_end=True
+        )
+
+    def trial(self, time_estimate: float):
         class ColorVocabularyTrial(NonAdaptiveTrial):
             __mapper_args__ = {"polymorphic_identity": "color_vocabulary_trial"}
 
@@ -193,64 +273,118 @@ class ColorVocabularyTest(Module):
                 )
         return ColorVocabularyTrial
 
-    def color_vocabulary_trial_maker(
+    def get_stimulus_set(self, colors: list):
+        stimuli = []
+        words = [x[0] for x in colors]
+        for (correct_answer, hsl) in colors:
+            choices = words.copy()
+            random.shuffle(choices)
+            definition = {
+                "target_hsl": hsl,
+                "choices": choices,
+                "correct_answer": correct_answer
+            }
+            stimuli.append(StimulusSpec(definition=definition, phase="experiment"))
+        return StimulusSet("color_vocabulary", stimuli)
+
+
+class HeadphoneCheck(Module):
+    """
+    The headphone check makes sure that the participant is wearing headphones. In each trial,
+    three sounds separated by silences are played and the participent's must judge which sound
+    was the softest (quietest). See the documentation for further details.
+
+    Parameters
+    ----------
+
+    label : string, optional
+        The label for the color headphone check, default: "headphone_check".
+
+    media : string, optional
+        The url under which the images to be displayed can be referenced, default:
+        "https://s3.amazonaws.com/headphone-check"
+
+    time_estimate_per_trial : float, optional
+        The time estimate in seconds per trial, default: 7.5.
+
+    performance_threshold : int, optional
+        The performance threshold, default: 4.
+    """
+    def __init__(
             self,
-            time_estimate_per_trial: float,
-            performance_threshold: int,
-            colors: list
+            label = "headphone_check",
+            media_url: str = "https://s3.amazonaws.com/headphone-check",
+            time_estimate_per_trial: float = 7.5,
+            performance_threshold: int = 4,
         ):
-        class ColorVocabularyTrialMaker(NonAdaptiveTrialMaker):
+        self.label = label
+        self.events = join(
+            self.instruction_page(),
+            self.trial_maker(
+                media_url,
+                time_estimate_per_trial,
+                performance_threshold
+            )
+        )
+        super().__init__(self.label, self.events)
+
+    def instruction_page(self):
+        return InfoPage(Markup(
+            """
+            <p>We will now perform a quick test to check that you are wearing headphones.</p>
+            <p>
+                In each trial, you will hear three sounds separated by silences.
+                Your task will be to judge
+                <strong>which sound was softest (quietest).</strong>
+            </p>
+            """
+        ), time_estimate=10)
+
+    def trial_maker(
+            self,
+            media_url: str,
+            time_estimate_per_trial: float,
+            performance_threshold: int
+        ):
+        class HeadphoneTrialMaker(NonAdaptiveTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a tuple (score: float, passed: bool)"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
-                        score += 1
+                        score +=1
                 passed = score >= performance_threshold
                 return {
                     "score": score,
                     "passed": passed
                 }
 
-        return ColorVocabularyTrialMaker(
-            id_="color_vocabulary",
-            trial_class=self.color_vocabulary_trial(time_estimate_per_trial),
+        return HeadphoneTrialMaker(
+            id_="headphone_check_trials",
+            trial_class=self.trial(time_estimate_per_trial),
             phase="experiment",
-            stimulus_set=self.get_stimulus_set(colors),
+            stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True
         )
 
-    def instruction_page(self):
-        return InfoPage(Markup(
-            """
-            <p>We will now perform a quick test to check your ability to name colors.</p>
-            <p>
-                In each trial, you will be presented with a colored box.
-                You must choose which color you see in the box.
-            </p>
-            """
-        ), time_estimate=10)
+    def trial(self, time_estimate: float):
+        class HeadphoneTrial(NonAdaptiveTrial):
+            __mapper_args__ = {"polymorphic_identity": "headphone_trial"}
 
-
-class HeadphoneCheck(Module):
-    """
-        Headphone check
-    """
-    def __init__(
-        self,
-        label = "headphone_check",
-        media_url: str = "https://s3.amazonaws.com/headphone-check",
-        time_estimate_per_trial: float = 7.5,
-        performance_threshold: int = 4,
-    ):
-        self.label = label
-        self.events = join(
-            self.instruction_page(),
-            self.headphone_trial_maker(media_url, time_estimate_per_trial, performance_threshold)
-        )
-        super().__init__(self.label, self.events)
-
+            def show_trial(self, experiment, participant):
+                return ModularPage(
+                    "headphone_trial",
+                    AudioPrompt(
+                        self.definition["url"],
+                        "Which sound was softest (quietest) -- 1, 2, or 3?"
+                    ),
+                    NAFCControl(
+                        ["1", "2", "3"]
+                    ),
+                    time_estimate=time_estimate
+                )
+        return HeadphoneTrial
 
     def get_stimulus_set(self, media_url: str):
         return StimulusSet("headphone_check", [
@@ -272,61 +406,3 @@ class HeadphoneCheck(Module):
                 ("OIS", "3")
             ]
         ])
-
-    def headphone_trial(self, time_estimate: float):
-        class HeadphoneTrial(NonAdaptiveTrial):
-            __mapper_args__ = {"polymorphic_identity": "headphone_trial"}
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "headphone_trial",
-                    AudioPrompt(
-                        self.definition["url"],
-                        "Which sound was softest (quietest) -- 1, 2, or 3?"
-                    ),
-                    NAFCControl(
-                        ["1", "2", "3"]
-                    ),
-                    time_estimate=time_estimate
-                )
-        return HeadphoneTrial
-
-    def headphone_trial_maker(
-            self,
-            media_url: str,
-            time_estimate_per_trial: float,
-            performance_threshold: int
-        ):
-        class HeadphoneTrialMaker(NonAdaptiveTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == trial.definition["correct_answer"]:
-                        score +=1
-                passed = score >= performance_threshold
-                return {
-                    "score": score,
-                    "passed": passed
-                }
-
-        return HeadphoneTrialMaker(
-            id_="headphone_check_trials",
-            trial_class=self.headphone_trial(time_estimate_per_trial),
-            phase="experiment",
-            stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
-            check_performance_at_end=True
-        )
-
-    def instruction_page(self):
-        return InfoPage(Markup(
-            """
-            <p>We will now perform a quick test to check that you are wearing headphones.</p>
-            <p>
-                In each trial, you will hear three sounds separated by silences.
-                Your task will be to judge
-                <strong>which sound was softest (quietest).</strong>
-            </p>
-            """
-        ), time_estimate=10)
