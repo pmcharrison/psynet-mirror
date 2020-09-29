@@ -223,7 +223,7 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
             self.timeline.advance_page(self, participant)
-            return self.response_approved()
+            return self.response_approved(participant_id)
         else:
             logger.warn(
                 f"Participant {participant_id} tried to submit data with the wrong page_uuid" +
@@ -231,10 +231,12 @@ class Experiment(dallinger.experiment.Experiment):
             )
             return error_response()
 
-    def response_approved(self):
+    def response_approved(self, participant_id):
         logger.debug("The response was approved.")
+        page = self.timeline.get_current_event(self, get_participant(participant_id))
         return success_response(
-            submission="approved"
+            submission="approved",
+            page={"attributes": page.attributes, "contents": page.contents}
         )
 
     def response_rejected(self, message):

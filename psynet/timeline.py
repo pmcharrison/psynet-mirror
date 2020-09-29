@@ -392,9 +392,11 @@ class Page(Event):
         self.css = [] if css is None else [flask.Markup(x) for x in css]
         assert isinstance(self.css, list)
 
+        self.contents = contents
+
     @property
     def attributes(self):
-        return dict(self.__dict__, **{"session_id": Page.session_id})
+        return dict(self.__dict__, **{"session_id": Page.session_id, "type": self.__name__})
 
     @property
     def contents(self):
@@ -572,7 +574,9 @@ class Page(Event):
             "participant_id": participant.id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
-            "css": self.css
+            "css": self.css,
+            "attributes": self.attributes,
+            "contents": self.contents,
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 

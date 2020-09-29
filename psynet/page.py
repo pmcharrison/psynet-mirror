@@ -69,6 +69,68 @@ class InfoPage(Page):
             "content": self.content
         }
 
+class UnityPage(Page):
+    """
+    This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
+
+    Ín order to conclude this page call the ``psynet.next_page`` function which has following parameters:
+
+    * ``raw_answer``: The main answer that the page returns.
+
+    * ``metadata``: Additional information that might be useful for debugging or other exploration, e.g. time taken on the page.
+
+    * ``blobs``: Use this for large binaries, e.g. audio recordings.
+
+    Once the ``psynet.next_page`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``page_updated`` in the ``window`` object.
+
+    Parameters
+    ----------
+
+    resources:
+        The path to the directory containing the Unity files residing inside the "static" directory. The path should include "/static".
+
+    contents:
+        A dictionary containing experiment specific data.
+
+    time_estimate:
+        Time estimated for the page.
+
+    session_id:
+        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with JavaScript code like window.addEventListener(”page_updated”, ...).
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    def __init__(
+            self,
+            resources: str,
+            contents: dict,
+            session_id: str,
+            time_estimate: Optional[float] = None,
+            **kwargs,
+    ):
+        self.content = content
+        super().__init__(
+            resources=resources,
+            contents=contents,
+            session_id=session_id,
+            time_estimate=time_estimate,
+            template_str=get_template("unity-page.html"),
+            template_arg={
+                "resources": {} if resources is None else resources,
+                "contents": {} if contents is None else contents,
+            },
+            **kwargs
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "resources": self.resources,
+            "contents": self.contents,
+            "session_id": self.session_id,
+        }
+
 class WaitPage(Page):
     """
     This page makes the user wait for a specified amount of time

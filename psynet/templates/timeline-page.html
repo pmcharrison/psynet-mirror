@@ -991,6 +991,8 @@
                         psynet.submit.ready("page_load");
                         psynet.page_loaded = true;
                     })
+                    page_updated = new CustomEvent("page_updated");
+                    window.addEventListener("page_updated", on_page_updated)
                 };
 
                 psynet.register_error_handler = function () {
@@ -1018,7 +1020,12 @@
                     response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
-                        dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                        if (response.page.attributes.session_id == psynet.page.attributes.session_id) {
+                            psynet.page = response.page;
+                            window.dispatchEvent(page_updated)
+                        } else {
+                            dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                        }
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
                         alert(response.message);
@@ -1026,6 +1033,11 @@
                     } else {
                         throw Error("Received a malformed response.");
                     }
+                };
+
+                on_page_updated = function(event) {
+                    console.log("Called 'page_updated' event.);
+                    // to be implemented
                 };
 
                 on_error_response = function (request) {
