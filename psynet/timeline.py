@@ -361,6 +361,8 @@ class Page(Event):
             template_arg = {}
         if js_vars is None:
             js_vars = {}
+        if contents is None:
+            contents = {}
 
         if template_path is None and template_str is None:
             raise ValueError("Must provide either template_path or template_str.")
@@ -392,7 +394,7 @@ class Page(Event):
         self.css = [] if css is None else [flask.Markup(x) for x in css]
         assert isinstance(self.css, list)
 
-        self.contents = contents
+        self._contents = contents
 
     @property
     def attributes(self):
@@ -401,6 +403,10 @@ class Page(Event):
     @property
     def contents(self):
         return self.contents
+
+    @contents.setter
+    def contents(self, contents):
+        self._contents = contents
 
     @property
     def initial_download_progress(self):
