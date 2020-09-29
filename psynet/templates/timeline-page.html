@@ -561,8 +561,10 @@
 
                 };
 
+                {% autoescape off %}
                 psynet.page.attributes = {{ attributes }}
                 psynet.page.contents = {{ contents }}
+                {% endautoescape %}
 
                 psynet.show_resume_modal = function() {
                     document.getElementById("resume_modal").style.display = "block";
