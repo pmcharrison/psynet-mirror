@@ -41,9 +41,11 @@
 {% macro nafc(config) %}
     <style>
         .nafc-container {
-            display: flex;
+            display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
+            max-height: 350px;
+            overflow-y: scroll;
         }
     </style>
 
