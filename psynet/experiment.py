@@ -352,9 +352,9 @@ class Experiment(dallinger.experiment.Experiment):
             else:
                 if not participant.initialised:
                     exp.init_participant(participant_id)
-                exp.save()
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
+                exp.save()
                 return page.render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
