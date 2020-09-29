@@ -452,6 +452,7 @@ class NAFCControl(Control):
     ):
         self.choices = choices
         self.labels = choices if labels is None else labels
+        self.arrange_vertically = arrange_vertically
 
         assert isinstance(self.labels, list)
         assert len(self.choices) == len(self.labels)
