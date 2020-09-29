@@ -17,7 +17,7 @@ This can be done by adding the following line:
 
 You can also modify this line to specify a particular version to install,
 and to provide authentication to the repository if required;
-see `this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
+see `this documentation <https://dallinger.readthedocs.io/en/latest/private_repo.html>`_
 for details.
 In particular, to add your GitLab password, you can do something like this:
 
