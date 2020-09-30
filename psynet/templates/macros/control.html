@@ -252,19 +252,14 @@
     {{ null(config) }}
 
     <script>
-
-    </script>
-
-    <script>
         {% include "macros/control/recorder.js" %}
 
+        {% autoescape off %}
+        var presignedUrl = "{{ config.presigned_url }}";
+        {% endautoescape %}
         var recorder;
 
         psynet.media.register_on_loaded_routine(function() {
-            $("#next_button").on("click", function() {
-                $(".record-alert").hide();
-                $("#record-upload").show();
-            });
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
@@ -274,7 +269,7 @@
                 video: false
             }).then(function(stream) {
                 psynet.log.debug("Initialising recorder.");
-                var input = psynet.media.audio_context.createMediaStreamSource(stream);
+                let input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);
                 psynet.response.ready("recorder_ready")
             })
@@ -288,7 +283,7 @@
             psynet.response.ready("page_load_buffer");
         }, 1000)
 
-        start_recording = function() {
+        startRecording = function() {
             psynet.log.debug("Starting recording.");
             $(".record-alert").hide();
             $("#record-active").show();
@@ -296,19 +291,41 @@
             recorder.record();
         }
 
-        end_recording = function() {
+        endRecording = function() {
             psynet.log.debug("Ending recording.")
             recorder.exportWAV(function (blob) {
-                psynet.response.staged.blobs = {recording: blob};
-                psynet.submit.ready("finished-recording");
+                $(".record-alert").hide();
+                $("#record-upload").show();
+                startPresignedUrlUpload(blob);
             })
-            $(".record-alert").hide();
-            $("#record-finish").show();
+        }
+
+        startPresignedUrlUpload = function(wavAudioBlob) {
+            // TODO upload if LOCAL_S3
+            let xhr = new XMLHttpRequest();
+            xhr.open('PUT', presignedUrl, true);
+            psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
+
+            xhr.onload = function(e) {
+                psynet.log.debug("File uploaded successfully to presigned url.");
+                psynet.submit.ready("finished-recording");
+                $(".record-alert").hide();
+                $("#record-finish").show();
+            };
+
+            let wavFile = new File([wavAudioBlob], "s3_upload.wav")
+            xhr.send(wavFile);
+        }
+
+        retrieve_response = function() {
+            return {
+                raw_answer: presignedUrl
+            }
         }
 
         psynet.response.register_on_ready_routine(function() {
-            start_recording();
-            setTimeout(end_recording, 1000 * {{ config.duration }});
+            startRecording();
+            setTimeout(endRecording, 1000 * {{ config.duration }});
         });
     </script>
 {% endmacro %}
