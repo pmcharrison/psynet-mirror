@@ -11,6 +11,10 @@ from dallinger import (
 from dallinger.config import get_config
 
 import dallinger.experiment
+from dallinger.experiment_server.dashboard import (
+    dashboard,
+    dashboard_tabs
+)
 
 from dallinger.experiment_server.utils import (
     success_response,
@@ -31,7 +35,12 @@ from .page import (
     InfoPage,
     SuccessfulEndPage
 )
-from .utils import get_arg_from_dict, call_function, get_logger
+from .utils import (
+    call_function,
+    get_arg_from_dict,
+    get_logger,
+    serialise
+)
 
 logger = get_logger()
 
@@ -120,6 +129,10 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
                 self.register_recruitment_criterion(event)
+
+        tab_title = "Timeline"
+        if all(tab_title != tab.title for tab in dashboard_tabs):
+            dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
 
     def fail_participant(self, participant):
         logger.info(
@@ -247,7 +260,9 @@ class Experiment(dallinger.experiment.Experiment):
     @classmethod
     def extra_files(cls):
         return [
-            (resource_filename("psynet", "resources/logo.png"), "/static/images/logo.png"),
+            (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png"),
+            (resource_filename('psynet', 'resources/scripts/dashboard_timeline.js'), "/static/scripts/dashboard_timeline.js"),
+            (resource_filename('psynet', 'resources/css/dashboard_timeline.css'), "/static/css/dashboard_timeline.css")
         ]
 
     def extra_routes(self):
@@ -256,6 +271,39 @@ class Experiment(dallinger.experiment.Experiment):
         routes = Blueprint(
             "extra_routes", __name__, template_folder="templates", static_folder="static"
         )
+
+        @dashboard.route("/timeline")
+        @login_required
+        def timeline():
+            exp = self.new(db.session)
+            panes = exp.monitoring_panels()
+
+            return render_template(
+                "dashboard_timeline.html",
+                title="Timeline modules",
+                panes=panes,
+                timeline_modules=json.dumps(exp.timeline.modules(), default=serialise)
+            )
+
+        @routes.route("/module/<module_id>", methods=["GET"])
+        def get_module_details_as_rendered_html(module_id):
+            trial_maker = self.timeline.get_trial_maker(module_id)
+            return trial_maker.visualize()
+
+        @routes.route("/module/<module_id>/tooltip", methods=["GET"])
+        def get_module_tooltip_as_rendered_html(module_id):
+            trial_maker = self.timeline.get_trial_maker(module_id)
+            return trial_maker.visualize_tooltip()
+
+        @routes.route("/module/progress_info", methods=["GET"])
+        def get_progress_info():
+            module_ids = request.args.getlist("module_ids[]")
+            progress_info = {}
+            for module_id in module_ids:
+                trial_maker = self.timeline.get_trial_maker(module_id)
+                progress_info.update(trial_maker.get_progress_info())
+
+            return jsonify(progress_info)
 
         @routes.route("/start", methods=["GET"])
         def route_start():

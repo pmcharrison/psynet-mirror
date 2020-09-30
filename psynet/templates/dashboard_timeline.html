@@ -1,0 +1,42 @@
+{% extends "base/dashboard.html" %}
+{% block scripts %}
+  <script src="/static/scripts/dashboard_timeline.js"/></script>
+{% endblock %}
+{% block stylesheets %}
+  <link rel="stylesheet" href="/static/css/dashboard_timeline.css"/>
+{% endblock %}
+{% block body %}
+<h1>{{ title }}</h1>
+<div id="monitor-wrapper" class="d-flex justify-content-between align-items-stretch">
+  <aside id="sidebar">
+    <button id="refresh" onclick="window.location.reload();">Refresh</button>
+    <div id="statistics-pane" class="sidebar-pane">
+      <h2>Statistics</h2>
+      {% for pane in panes %}
+        <div class="sub-pane">
+          <h3>{{ pane }}</h3>
+          {{ panes[pane]|safe }}
+        </div>
+      {% endfor %}
+    </div>
+  </aside>
+  <main class="flex-fill">
+    <section id="timeline-modules">
+      <figure>
+        <div class="chart"></div>
+      </figure>
+    </section>
+    <section id="details-pane">
+      <h2>Details</h2>
+      <div id="element-details">
+      </div>
+    </section>
+  </main>
+  </div>
+  <script>
+    window.timeline_modules = {{ timeline_modules | safe }};
+  </script>
+{% endblock %}
+{% block libs %}
+  {{ super() }}
+{% endblock %}

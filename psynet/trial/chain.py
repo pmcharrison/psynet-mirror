@@ -1305,9 +1305,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
 
     def grow_network(self, network, participant, experiment):
-        assert network.chain_type in ["across", "within"]
-        if network.chain_type == "across":
-            participant = None
+        # We set participant = None because of Dallinger's constraint of not allowing participants
+        # to create nodes after they have finished working.
+        participant = None
         head = network.head
         if head.ready_to_spawn:
             seed = head.create_seed(participant, experiment)

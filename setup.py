@@ -35,7 +35,8 @@ setuptools.setup(
         "rpdb",
         "progress",
         "scipy",
-        "statsmodels"
+        "statsmodels",
+        "yaspin"
     ],
     extras_require={
         "dev": [

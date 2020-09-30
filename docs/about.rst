@@ -2,7 +2,7 @@
 About
 =====
 
-`psynet` is an extension of the `Dallinger platform <http://docs.dallinger.io/en/latest/>`_,
+`psynet` is an extension of the `Dallinger platform <https://dallinger.readthedocs.io/en/latest/>`_,
 a powerful framework for automating online data collection through crowdsourcing 
 platforms such as `Amazon Mechanical Turk <https://www.mturk.com/>`_.
 The `psynet` framework provides an additional level of abstraction above Dallinger,
