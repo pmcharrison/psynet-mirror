@@ -275,7 +275,7 @@ def rgb_to_hex(r, g, b):
 def serialise(obj):
     """Serialise objects not serialisable by default"""
 
-    if isinstance(obj, (datetime.datetime)):
+    if isinstance(obj, (datetime)):
         return serialise_datetime(obj)
     raise TypeError ("Type %s is not serialisable" % type(obj))
 

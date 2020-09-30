@@ -1846,6 +1846,37 @@ class TrialNetwork(Network, AsyncProcessOwner):
         is set to ``True``.
         """
 
+    @property
+    @extra_var(__extra_vars__)
+    def n_nodes(self):
+        return len([node for node in self.all_nodes])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_active_nodes(self):
+        return len([node for node in self.all_nodes if not node.failed])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_failed_nodes(self):
+        return len([node for node in self.all_nodes if node.failed])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_trials(self):
+        return len([info for info in self.all_infos if isinstance(info, Trial)])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_active_trials(self):
+        return len([info for info in self.all_infos if isinstance(info, Trial) and not info.failed])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_failed_trials(self):
+        return len([info for info in self.all_infos if isinstance(info, Trial) and info.failed])
+
+
 def call_async_post_trial(trial_id, process_id):
     logger.info("Running async_post_trial process %s for trial %i...", process_id, trial_id)
     import_local_experiment()
