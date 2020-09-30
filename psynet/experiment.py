@@ -30,8 +30,7 @@ from .timeline import (
     ExperimentSetupRoutine,
     ParticipantFailRoutine,
     RecruitmentCriterion,
-    BackgroundTask,
-    StartModule
+    BackgroundTask
 )
 from .page import (
     InfoPage,
@@ -402,8 +401,10 @@ class Experiment(dallinger.experiment.Experiment):
             else:
                 if not participant.initialised:
                     exp.init_participant(participant_id)
+                page = exp.timeline.get_current_event(self, participant)
+                page.pre_render()
                 exp.save()
-                return exp.timeline.get_current_event(self, participant).render(exp, participant)
+                return page.render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
         def route_response():

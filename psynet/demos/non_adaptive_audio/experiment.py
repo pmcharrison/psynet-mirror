@@ -23,9 +23,6 @@ from psynet.trial.non_adaptive import (
 )
 from .custom_synth import synth_stimulus
 
-from psynet.utils import get_logger
-logger = get_logger()
-
 ##########################################################################################
 #### Stimuli
 ##########################################################################################

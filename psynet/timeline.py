@@ -539,6 +539,14 @@ class Page(Event):
         """
         return None
 
+    def pre_render(self):
+        """
+            This method is called immediately prior to rendering the page for
+            the participant. It will be called again each time the participant
+            refreshes the page.
+        """
+        pass
+
     def render(self, experiment, participant):
         internal_js_vars = {
             "page_uuid": participant.page_uuid
