@@ -1,7 +1,5 @@
-import json
-import tempfile
-from urllib.parse import splitquery
-
+import json, os, tempfile
+from urllib.parse import splitquery, urlparse
 from dominate import tags
 from dominate.util import raw
 
@@ -904,8 +902,10 @@ class AudioRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
+        filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "s3_bucket": self.s3_bucket,
+            "key": filename, # Leave key for backward compatibility
             "url": splitquery(raw_answer)[0],
             "duration_sec": self.duration
         }
