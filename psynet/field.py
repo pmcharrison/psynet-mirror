@@ -420,9 +420,8 @@ def json_format_vars(x):
     for key, value in x.items():
         if isinstance(value, datetime):
             new_val = value.strftime("%Y-%m-%d %H:%M")
-        elif not ((value is None) or isinstance(value, (int, float, str, bool, datetime))):
+        elif not ((value is None) or isinstance(value, (int, float, str, bool, list, datetime))):
             new_val = json.dumps(value)
         else:
             new_val = value
         x[key] = new_val
-
