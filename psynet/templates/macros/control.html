@@ -294,9 +294,7 @@
             recorder.exportWAV(function (blob) {
                 $(".record-alert").hide();
                 $("#record-upload").show();
-                psynet.response.staged.blobs = {recording: blob};
-                let wavAudioBlob = psynet.response.staged.blobs.recording
-                startPresignedUrlUpload(wavAudioBlob);
+                startPresignedUrlUpload(blob);
             })
         }
 

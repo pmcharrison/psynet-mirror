@@ -903,13 +903,10 @@ class AudioRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
-        recording = kwargs["blobs"]["recording"]
-        fs, data = wavfile.read(recording)
-        duration_sec = data.shape[0] / fs
         return {
             "s3_bucket": self.s3_bucket,
             "url": splitquery(raw_answer)[0],
-            "duration_sec": duration_sec
+            "duration_sec": self.duration
         }
 
     def visualize_response(self, answer, response, trial):
