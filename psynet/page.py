@@ -110,11 +110,10 @@ class UnityPage(Page):
             time_estimate: Optional[float] = None,
             **kwargs,
     ):
-        self.content = content
+        self.resources=resources
+        self.session_id=session_id
         super().__init__(
-            resources=resources,
             contents=contents,
-            session_id=session_id,
             time_estimate=time_estimate,
             template_str=get_template("unity-page.html"),
             template_arg={

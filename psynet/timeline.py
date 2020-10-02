@@ -398,7 +398,7 @@ class Page(Event):
 
     @property
     def attributes(self):
-        return dict(self.__dict__, **{"session_id": Page.session_id, "type": type(self).__name__})
+        return json.dumps({"session_id": Page.session_id, "type": type(self).__name__})
 
     @property
     def contents(self):

@@ -1022,7 +1022,8 @@
                     response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
-                        if (response.page.attributes.session_id == psynet.page.attributes.session_id) {
+                        if (response.page.attributes.session_id &&
+                            response.page.attributes.session_id == psynet.page.attributes.session_id) {
                             psynet.page = response.page;
                             window.dispatchEvent(page_updated)
                         } else {
@@ -1038,7 +1039,7 @@
                 };
 
                 on_page_updated = function(event) {
-                    console.log("Called 'page_updated' event.);
+                    console.log("Called 'page_updated' event.");
                     // to be implemented
                 };
 
