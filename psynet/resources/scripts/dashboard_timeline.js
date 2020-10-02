@@ -40,6 +40,10 @@ function updateDetails(module_id) {
 
 function updateTooltip(module_id) {
   $.get('/module/' + module_id + '/tooltip', function(data) {
-    $('.progress.' + module_id).tooltip('dispose').tooltip({title: data}).tooltip('show')
+    if ($('.progress.' + module_id + ':hover').length != 0) {
+      $('.progress.' + module_id).tooltip('dispose').tooltip({title: data}).tooltip('show')
+    } else {
+      $('.progress').tooltip('dispose')
+    }
   });
 }
