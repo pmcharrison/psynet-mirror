@@ -5,18 +5,14 @@ import json
 import os
 import rpdb
 from pkg_resources import resource_filename
-from dallinger import (
-    db
-)
 
+from dallinger import db
 from dallinger.config import get_config
-
 import dallinger.experiment
 from dallinger.experiment_server.dashboard import (
     dashboard,
     dashboard_tabs
 )
-
 from dallinger.experiment_server.utils import (
     success_response,
     error_response
@@ -27,7 +23,7 @@ from .timeline import (
     get_template,
     Timeline,
     FailedValidation,
-    ExperimentSetupRoutine,
+    PostDeployRoutine,
     ParticipantFailRoutine,
     RecruitmentCriterion,
     BackgroundTask
@@ -82,8 +78,18 @@ class Experiment(dallinger.experiment.Experiment):
 
         # self.register_recruitment_criterion(self.default_recruitment_criterion)
 
-        if session:
-            self.setup()
+        for event in self.timeline.events:
+            logger.info(event)
+            if isinstance(event, BackgroundTask):
+                self.register_background_task(event.daemon)
+            if isinstance(event, ParticipantFailRoutine):
+                self.register_participant_fail_routine(event)
+            if isinstance(event, RecruitmentCriterion):
+                self.register_recruitment_criterion(event)
+
+        tab_title = "Timeline"
+        if all(tab_title != tab.title for tab in dashboard_tabs):
+            dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
 
     # @property
     # def default_recruitment_criterion(self):
@@ -114,26 +120,22 @@ class Experiment(dallinger.experiment.Experiment):
         return self._background_tasks
 
     def register_background_task(self, task):
+        logger.info(f"Appending background task '{task}'")
         self._background_tasks.append(task)
 
     @classmethod
     def new(cls, session):
         return cls(session)
 
-    def setup(self):
-        for event in self.timeline.events:
-            if isinstance(event, ExperimentSetupRoutine):
-                event.function(experiment=self)
-            if isinstance(event, BackgroundTask):
-                self.register_background_task(event.daemon)
-            if isinstance(event, ParticipantFailRoutine):
-                self.register_participant_fail_routine(event)
-            if isinstance(event, RecruitmentCriterion):
-                self.register_recruitment_criterion(event)
+    @classmethod
+    def pre_deploy(cls):
+        logger.info("Pre-deploying...")
+        pass
 
-        tab_title = "Timeline"
-        if all(tab_title != tab.title for tab in dashboard_tabs):
-            dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
+    @classmethod
+    def post_deploy(cls):
+        logger.info("Post-deploying...")
+        pass
 
     def fail_participant(self, participant):
         logger.info(

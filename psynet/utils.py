@@ -33,16 +33,24 @@ def sql_sample_one(x):
     return x.order_by(func.random()).first()
 
 def import_local_experiment():
-    # Imports experiment.py and returns it as a module.
-    # Also adds the experiment directory to sys.path,
-    # meaning that any other modules defined there can be imported using ``import``.`
+    # Imports experiment.py and returns a dict consisting of
+    # 'package' which corresponds to the experiment *package*,
+    # 'module' which corresponds to the experiment *module*, and
+    # 'class' which corresponds to the experiment *class*.
+    # It also adds the experiment directory to sys.path, meaning that any other
+    # modules defined there can be imported using ``import``.
     # import pdb; pdb.set_trace()
     config = get_config()
     config.load()
     initialize_experiment_package(os.getcwd())
-    dallinger_experiment = sys.modules.get("dallinger_experiment") # this corresponds to the experiment *package*
+    dallinger_experiment = sys.modules.get("dallinger_experiment")
     sys.path.append(os.getcwd())
-    return dallinger_experiment.experiment # this corresponds to the experiment *module*
+    import dallinger.experiment
+    return {
+        "package": dallinger_experiment,
+        "module": dallinger_experiment.experiment,
+        "class": dallinger.experiment.load()
+    }
 
 # def import_local_experiment():
 #     sys.path.append(os.getcwd())
@@ -281,3 +289,12 @@ def serialise(obj):
 
 def format_datetime_string(datetime_string):
     return datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M:%S')
+
+def class_name_to_snake_case(model_name):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', model_name).lower()
+
+def humanize_class_name(class_name, capitalize_first_letter=False):
+    humanized_class_name = class_name_to_snake_case(class_name).replace("_", " ")
+    if capitalize_first_letter:
+        return humanized_class_name.capitalize()
+    return humanized_class_name

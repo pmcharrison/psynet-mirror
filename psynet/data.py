@@ -15,7 +15,7 @@ from dallinger.models import (
     Vector,
 )
 
-from .utils import serialise
+from .utils import class_name_to_snake_case, serialise
 
 
 def export():
@@ -74,7 +74,7 @@ def export():
 
     # Export the data
     for model_name, json_data in models.items():
-        base_filename = model_name_to_snake_case(model_name)
+        base_filename = class_name_to_snake_case(model_name)
         print(f"Exporting {base_filename} data...")
         with yaspin(text="Exporting 'json'...", color="green") as spinner:
             base_filepath = os.path.join("data", "json", base_filename)
@@ -88,9 +88,6 @@ def export():
                 data_frame = json_to_data_frame(json_data)
                 data_frame.to_csv(outfile, index=False)
             spinner.ok("✔")
-
-def model_name_to_snake_case(model_name):
-    return re.sub(r'(?<!^)(?=[A-Z])', '_', model_name).lower()
 
 def json_to_data_frame(json_data):
     columns = []

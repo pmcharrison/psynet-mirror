@@ -1240,8 +1240,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks.append(network_id)
         participant.var.set(self.with_namespace("participated_networks"), networks)
 
-    def experiment_setup_routine(self, experiment):
-        if self.num_networks == 0 and self.chain_type == "across":
+    def post_deploy_routine(self, experiment):
+        if self.chain_type == "across":
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant):

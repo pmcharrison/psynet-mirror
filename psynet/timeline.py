@@ -20,6 +20,7 @@ from .utils import (
     dict_to_js_vars,
     format_datetime_string,
     get_logger,
+    humanize_class_name,
     merge_dicts
 )
 from . import templates
@@ -1497,20 +1498,11 @@ class EndModule(NullEvent):
     def consume(self, experiment, participant):
         participant.end_module(self.label)
 
-class ExperimentSetupRoutine(NullEvent):
-    def __init__(self, function):
-        self.check_function(function)
-        self.function = function
-
-    def check_function(self, function):
-        if not self._is_function(function) and check_function_args(function, ["experiment"]):
-            raise TypeError("<function> must be a function or method of the form f(experiment).")
-
-    @staticmethod
-    def _is_function(x):
-        return callable(x)
-
 class BackgroundTask(NullEvent):
+    """
+    The background task will be run only once when launching the experiment unless
+    the value of ``interval_sec`` is not ``None``.
+    """
     def __init__(self, label, function, interval_sec, run_on_launch=False):
         check_function_args(function, args=[])
         self.label = label
@@ -1520,21 +1512,40 @@ class BackgroundTask(NullEvent):
 
     def safe_function(self):
         start_time = time.monotonic()
-        logger.info("Executing the background task '%s'...", self.label)
+        humanized_class_name = humanize_class_name(self.__class__.__name__)
+        logger.info("Executing the %s '%s'...", humanized_class_name, self.label)
         try:
             self.function()
             end_time = time.monotonic()
             time_taken = end_time - start_time
-            logger.info("The background task '%s' completed in %s seconds.", self.label, f"{time_taken:.3f}")
+            logger.info("The %s '%s' completed in %s seconds.",
+                        humanized_class_name, self.label, f"{time_taken:.3f}")
         except Exception:
-            logger.info("An exception was thrown in the background task '%s'.", self.label, exc_info=True)
+            logger.info("An exception was thrown in the %s '%s'.",
+                        humanized_class_name, self.label, exc_info=True)
 
     def daemon(self):
         if self.run_on_launch:
             self.safe_function()
-        while True:
-            gevent.sleep(self.interval_sec)
-            self.safe_function()
+        if self.interval_sec is not None:
+            while True:
+                gevent.sleep(self.interval_sec)
+                self.safe_function()
+
+class PostDeployRoutine(BackgroundTask):
+    def __init__(self, function):
+        self.check_function(function)
+        self.function = function
+        self.interval_sec = None
+        self.run_on_launch = True
+
+    def check_function(self, function):
+        if not self._is_function(function) and check_function_args(function, ["experiment"]):
+            raise TypeError("<function> must be a function or method of the form f(experiment).")
+
+    @staticmethod
+    def _is_function(x):
+        return callable(x)
 
 class ParticipantFailRoutine(NullEvent):
     def __init__(self, label, function):
