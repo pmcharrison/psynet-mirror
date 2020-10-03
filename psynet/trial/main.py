@@ -667,8 +667,9 @@ class TrialMaker(Module):
         self.target_num_participants = target_num_participants
         self.num_repeat_trials = num_repeat_trials
 
+        label = self.with_namespace()
         events = join(
-            PostDeployRoutine(self.post_deploy_routine),
+            PostDeployRoutine(self.post_deploy_routine, label),
             ParticipantFailRoutine(self.with_namespace(), self.participant_fail_routine),
             RecruitmentCriterion(self.with_namespace(), self.selected_recruit_criterion),
             self.check_timeout_task,
@@ -678,7 +679,6 @@ class TrialMaker(Module):
             CodeBlock(self.on_complete),
             self._check_performance_logic(type="end") if check_performance_at_end else None
         )
-        label = self.with_namespace()
         super().__init__(label, events)
 
     participant_progress_threshold = 0.1
@@ -729,9 +729,10 @@ class TrialMaker(Module):
         raise NotImplementedError
 
     def post_deploy_routine(self, experiment):
+        # TODO
         """
         Defines a routine for setting up the experiment.
-        Note that this routine is (currently) called every time the Experiment
+        This routine is called once when the Experiment
         class is initialised, so it should be idempotent (calling it
         multiple times should have no effect) and be efficient
         (so that it doesn't incur a repeated costly overhead).

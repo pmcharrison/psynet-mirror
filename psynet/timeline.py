@@ -1499,12 +1499,14 @@ class EndModule(NullEvent):
         participant.end_module(self.label)
 
 class BackgroundTask(NullEvent):
+    # TODO
     """
     The background task will be run only once when launching the experiment unless
     the value of ``interval_sec`` is not ``None``.
     """
     def __init__(self, label, function, interval_sec, run_on_launch=False):
-        check_function_args(function, args=[])
+        # TODO
+        # check_function_args(function, args=[])
         self.label = label
         self.function = function
         self.interval_sec = interval_sec
@@ -1533,11 +1535,18 @@ class BackgroundTask(NullEvent):
                 self.safe_function()
 
 class PostDeployRoutine(BackgroundTask):
-    def __init__(self, function):
+    def __init__(self, function, label):
         self.check_function(function)
+        self.label = label
         self.function = function
         self.interval_sec = None
         self.run_on_launch = True
+        super().__init__(
+            self.label,
+            self.function,
+            self.interval_sec,
+            run_on_launch=self.run_on_launch,
+        )
 
     def check_function(self, function):
         if not self._is_function(function) and check_function_args(function, ["experiment"]):

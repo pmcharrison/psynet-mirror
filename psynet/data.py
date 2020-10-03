@@ -1,4 +1,5 @@
-import errno, json, os, re
+# pylint: disable=no-member
+import errno, json, os
 
 import pandas as pd
 from yaspin import yaspin

@@ -9,6 +9,7 @@ import hashlib
 import importlib.util
 from datetime import datetime
 import logging
+import re
 
 from functools import reduce, wraps
 from sqlalchemy.sql import func

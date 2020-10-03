@@ -79,8 +79,9 @@ class Experiment(dallinger.experiment.Experiment):
         # self.register_recruitment_criterion(self.default_recruitment_criterion)
 
         for event in self.timeline.events:
-            logger.info(event)
-            if isinstance(event, BackgroundTask):
+            if isinstance(event, PostDeployRoutine):
+                self.register_background_task(event.function, self)
+            elif isinstance(event, BackgroundTask):
                 self.register_background_task(event.daemon)
             if isinstance(event, ParticipantFailRoutine):
                 self.register_participant_fail_routine(event)
@@ -119,9 +120,9 @@ class Experiment(dallinger.experiment.Experiment):
     def background_tasks(self):
         return self._background_tasks
 
-    def register_background_task(self, task):
+    def register_background_task(self, task, experiment=None):
         logger.info(f"Appending background task '{task}'")
-        self._background_tasks.append(task)
+        self._background_tasks.append((task, experiment))
 
     @classmethod
     def new(cls, session):
