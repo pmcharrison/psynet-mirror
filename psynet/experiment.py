@@ -20,13 +20,14 @@ from dallinger.experiment_server.utils import (
 
 from .participant import get_participant, Participant
 from .timeline import (
-    get_template,
-    Timeline,
+    BackgroundTask,
     FailedValidation,
-    PostDeployRoutine,
     ParticipantFailRoutine,
+    PostDeployRoutine,
+    PreDeployRoutine,
     RecruitmentCriterion,
-    BackgroundTask
+    Timeline,
+    get_template,
 )
 from .page import (
     InfoPage,
@@ -63,6 +64,7 @@ class Experiment(dallinger.experiment.Experiment):
     wage_per_hour = 9.0
     min_browser_version = "80.0"
     # min_working_participants = 5
+    pre_deploy_routines = []
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -79,6 +81,8 @@ class Experiment(dallinger.experiment.Experiment):
         # self.register_recruitment_criterion(self.default_recruitment_criterion)
 
         for event in self.timeline.events:
+            if isinstance(event, PreDeployRoutine):
+                self.register_pre_deployment_routine(event)
             if isinstance(event, PostDeployRoutine):
                 self.register_background_task(event.function, self)
             elif isinstance(event, BackgroundTask):
@@ -121,8 +125,12 @@ class Experiment(dallinger.experiment.Experiment):
         return self._background_tasks
 
     def register_background_task(self, task, experiment=None):
-        logger.info(f"Appending background task '{task}'")
+        logger.info((f"Registering background task '{task.__name__}' of "
+                     f"'{task.__self__.__class__.__name__}'"))
         self._background_tasks.append((task, experiment))
+
+    def register_pre_deployment_routine(self, routine):
+        self.pre_deploy_routines.append(routine)
 
     @classmethod
     def new(cls, session):
@@ -130,8 +138,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def pre_deploy(cls):
-        logger.info("Pre-deploying...")
-        pass
+        for routine in cls.pre_deploy_routines:
+            logger.info((f"Pre-deploying '{routine.function.__name__}' of "
+                     f"'{routine.__self__.__class__.__name__}'"))
+            call_function(routine.function, {"experiment": self})
 
     @classmethod
     def post_deploy(cls):

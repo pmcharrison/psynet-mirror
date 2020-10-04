@@ -1562,6 +1562,12 @@ class ParticipantFailRoutine(NullEvent):
         self.label = label
         self.function = function
 
+class PreDeployRoutine(NullEvent):
+    def __init__(self, label, function):
+        check_function_args(function, args=["experiment"], need_all=False)
+        self.label = label
+        self.function = function
+
 class RecruitmentCriterion(NullEvent):
     def __init__(self, label, function):
         check_function_args(function, args=["experiment"], need_all=False)
