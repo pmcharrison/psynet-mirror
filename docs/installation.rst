@@ -18,7 +18,7 @@ need to run the demo or edit the source, you can simply install it with `pip`:
 
 Note that you must have set up your GitLab SSH keys already.
 It is also possible to install specific commits, see
-`this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
+`this documentation <https://dallinger.readthedocs.io/en/latest/private_repo.html>`_
 for details.
 
 Developer installation

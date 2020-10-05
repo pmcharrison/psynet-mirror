@@ -1032,6 +1032,7 @@
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
                         alert(response.message);
+                        psynet.response.enable();
                         psynet.submit.enable();
                     } else {
                         throw Error("Received a malformed response.");

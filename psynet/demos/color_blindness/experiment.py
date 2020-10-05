@@ -20,7 +20,7 @@ from psynet.participant import Participant, get_participant
 from psynet.timeline import (
     Timeline
 )
-from psynet.prescreen import HeadphoneCheck
+from psynet.prescreen import ColorBlindnessTest
 from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCalibration
 
 ##########################################################################################
@@ -32,9 +32,8 @@ from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCa
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        VolumeCalibration(),
-        HeadphoneCheck(),
-        InfoPage("You passed the headphone screening task! Congratulations.", time_estimate=3),
+        ColorBlindnessTest(),
+        InfoPage("You passed the color blindness task! Congratulations.", time_estimate=3),
         SuccessfulEndPage()
     )
 

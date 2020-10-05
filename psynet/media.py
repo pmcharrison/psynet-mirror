@@ -6,6 +6,7 @@ import botocore.exceptions
 import botocore.errorfactory
 import tempfile
 import shutil
+from uuid import uuid4
 
 from pathlib import Path
 
@@ -69,6 +70,23 @@ def empty_s3_bucket(bucket_name: str):
     logger.info(
         "Successfully emptied S3 bucket %s (%i objects).",
         bucket_name, old_num_objects
+    )
+
+@log_time_taken
+def prepare_s3_bucket_for_presigned_urls(bucket_name: str, public_read: bool, create_new_bucket: bool = False):
+    logger.info("Preparing S3 bucket for presigned urls...")
+    if create_new_bucket and not bucket_exists(bucket_name):
+        create_bucket(bucket_name)
+    setup_bucket_for_presigned_urls(bucket_name, public_read)
+
+@log_time_taken
+def generate_presigned_url(bucket_name: str, file_extension: str):
+    return new_s3_client().generate_presigned_url(
+        "put_object",
+        Params={
+            "Bucket": bucket_name,
+            "Key": f"{str(uuid4())}.{file_extension}"
+        }
     )
 
 @log_time_taken
@@ -210,6 +228,45 @@ def bucket_exists(bucket_name):
         if error_code == 404:
             return False
     return True
+
+def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
+    logger.info("Setting bucket CORSRules and policies...")
+
+    if LOCAL_S3:
+        return
+
+    s3_resource = new_s3_resource()
+    bucket = s3_resource.Bucket(bucket_name)
+
+    cors = bucket.Cors()
+
+    config = {
+        "CORSRules": [
+            {
+                "AllowedHeaders": ["*"],
+                "AllowedMethods": ["GET", "PUT"],
+                "AllowedOrigins": ["*"],
+            }
+        ]
+    }
+
+    cors.delete()
+    cors.put(CORSConfiguration=config)
+
+    if public_read:
+        bucket_policy = s3_resource.BucketPolicy(bucket_name)
+
+        new_policy = json.dumps({
+            "Version": "2008-10-17",
+            "Statement": [{
+                "Sid": "AllowPublicRead",
+                "Effect": "Allow",
+                "Principal": "*",
+                "Action": "s3:GetObject",
+                "Resource": f"arn:aws:s3:::{bucket_name}/*"
+            }]
+        })
+        bucket_policy.put(Policy = new_policy)
 
 def make_bucket_public(bucket_name):
     logger.info("Ensuring bucket is publicly accessible...")

@@ -1,27 +1,11 @@
-# pylint: disable=unused-import,abstract-method,unused-argument,no-member
-
 ##########################################################################################
 #### Imports
 ##########################################################################################
 
-from flask import Markup
-from statistics import mean
-import random
-import re
-from typing import Union, List
-import time
-from dallinger import db
-
 import psynet.experiment
-
-from psynet.timeline import get_template, join
-from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    Timeline
-)
-from psynet.ishihara import colour_blind_test
-from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCalibration
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.prescreen import ColorVocabularyTest
+from psynet.timeline import Timeline
 
 ##########################################################################################
 #### Experiment
@@ -32,8 +16,8 @@ from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCa
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        colour_blind_test(),
-        InfoPage("You passed the colour blindness task! Congratulations.", time_estimate=3),
+        ColorVocabularyTest(),
+        InfoPage("You passed the color vocabulary task! Congratulations.", time_estimate=3),
         SuccessfulEndPage()
     )
 
