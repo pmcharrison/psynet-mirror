@@ -139,9 +139,8 @@ class Experiment(dallinger.experiment.Experiment):
     @classmethod
     def pre_deploy(cls):
         for routine in cls.pre_deploy_routines:
-            logger.info((f"Pre-deploying '{routine.function.__name__}' of "
-                     f"'{routine.__self__.__class__.__name__}'"))
-            call_function(routine.function, {"experiment": self})
+            logger.info(f"Pre-deploying '{routine.label}'...")
+            call_function(routine.function, routine.args)
 
     @classmethod
     def post_deploy(cls):

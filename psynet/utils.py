@@ -120,6 +120,7 @@ def get_object_from_module(module_name: str, object_name: str):
     return obj
 
 def log_time_taken(fun):
+    @wraps(fun)
     def wrapper(*args, **kwargs):
         start_time = time.monotonic()
         res = fun(*args, **kwargs)
