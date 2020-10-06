@@ -10,7 +10,7 @@ from dallinger import (
 )
 
 from dallinger.config import get_config
-
+from dallinger import data as dallinger_data
 import dallinger.experiment
 from dallinger.experiment_server.dashboard import (
     dashboard,
@@ -42,6 +42,8 @@ from .utils import (
     get_logger,
     serialise
 )
+
+from psynet import data
 
 logger = get_logger()
 
@@ -285,6 +287,13 @@ class Experiment(dallinger.experiment.Experiment):
                 panes=panes,
                 timeline_modules=json.dumps(exp.timeline.modules(), default=serialise)
             )
+
+        @routes.route("/export", methods=["GET"])
+        def export():
+            logger.info("Creating database snapshot...")
+            class_name = request.args.get("class_name")
+            exported_data = data.export(class_name)
+            return json.dumps(exported_data, default=serialise)
 
         @routes.route("/module/<module_id>", methods=["GET"])
         def get_module_details_as_rendered_html(module_id):
