@@ -1,7 +1,7 @@
 import pandas as pd
 import pandas.util.testing as pdt
 
-from psynet.data import json_to_data_frame
+from psynet.utils import json_to_data_frame
 
 
 def test_json_to_data_frame():
