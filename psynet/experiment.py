@@ -290,7 +290,6 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/export", methods=["GET"])
         def export():
-            logger.info("Creating database snapshot...")
             class_name = request.args.get("class_name")
             exported_data = data.export(class_name)
             return json.dumps(exported_data, default=serialise)
