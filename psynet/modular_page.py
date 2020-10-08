@@ -5,7 +5,6 @@ from dominate.util import raw
 
 from flask import Markup
 from typing import Union, Optional, List
-from uuid import uuid4
 from scipy.io import wavfile
 
 from .timeline import (

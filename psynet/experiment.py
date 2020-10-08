@@ -250,6 +250,9 @@ class Experiment(dallinger.experiment.Experiment):
     def response_approved(self, participant_id):
         logger.debug("The response was approved.")
         page = self.timeline.get_current_event(self, get_participant(participant_id))
+        logger.info("+++++++++++++++++++++++++++++++")
+        logger.info(page.attributes)
+        logger.info("+++++++++++++++++++++++++++++++")
         return success_response(
             submission="approved",
             page={"attributes": page.attributes, "contents": page.contents}
@@ -415,9 +418,11 @@ class Experiment(dallinger.experiment.Experiment):
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
-                if (mode == 'json'):
+                attributes = json.loads(page.attributes)
+                if (attributes["type"] == "UnityPage"):
+                #if (mode == "json"):
                     return jsonify({
-                        "attributes": page.attributes,
+                        "attributes": attributes,
                         "contents": page.contents,
                     })
                 return page.render(exp, participant)

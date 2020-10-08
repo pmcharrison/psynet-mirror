@@ -366,6 +366,7 @@ class Page(Event):
         scripts: Optional[List] = None,
         css: Optional[List] = None,
         contents: Optional[Dict] = None,
+        session_id: Optional[str] = None,
     ):
         if template_arg is None:
             template_arg = {}
@@ -405,6 +406,7 @@ class Page(Event):
         assert isinstance(self.css, list)
 
         self._contents = contents
+        self.__class__.session_id = session_id
 
     @property
     def attributes(self):

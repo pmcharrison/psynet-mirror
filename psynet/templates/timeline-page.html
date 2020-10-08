@@ -1024,7 +1024,7 @@
                         psynet.log.debug("Response received successfully.");
                         if (response.page.attributes.session_id &&
                             response.page.attributes.session_id == psynet.page.attributes.session_id) {
-                            psynet.page = response.page;
+                            psynet.page = response.page
                             window.dispatchEvent(page_updated)
                         } else {
                             dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);

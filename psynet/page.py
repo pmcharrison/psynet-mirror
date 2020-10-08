@@ -86,8 +86,24 @@ class UnityPage(Page):
     Parameters
     ----------
 
+    title:
+        The title of the experiment to be rendered in the HTML title-tag of the page.
+
+    game_container_width:
+        The width of the game container, e.g. '960px'.
+
+    game_container_height:
+        The height of the game container, e.g. '600px'.
+
     resources:
-        The path to the directory containing the Unity files residing inside the "static" directory. The path should include "/static".
+        The path to the directory containing the Unity files residing inside the "static" directory. The path should start with "/static" and should comply with following basic structure:
+
+        static/
+        ├── css/
+        └── scripts/
+
+        css: Contains stylesheets
+        scripts: Contains JavaScript files
 
     contents:
         A dictionary containing experiment specific data.
@@ -104,22 +120,34 @@ class UnityPage(Page):
 
     def __init__(
             self,
+            title: str,
             resources: str,
             contents: dict,
             session_id: str,
+            game_container_width: str = "960px",
+            game_container_height: str = "600px",
             time_estimate: Optional[float] = None,
             **kwargs,
     ):
-        self.resources=resources
-        self.session_id=session_id
+        self.title = title
+        self.resources = resources
+        self.game_container_width = game_container_width
+        self.game_container_height = game_container_height
+        self.session_id = session_id,
+
         super().__init__(
-            contents=contents,
-            time_estimate=time_estimate,
-            template_str=get_template("unity-page.html"),
-            template_arg={
-                "resources": {} if resources is None else resources,
+            contents = contents,
+            time_estimate = time_estimate,
+            template_str = get_template("unity-page.html"),
+            template_arg = {
+                "title": self.title,
+                "resources": "" if resources is None else resources,
                 "contents": {} if contents is None else contents,
+                "game_container_width": self.game_container_width,
+                "game_container_height": self.game_container_height,
+                "session_id": self.session_id,
             },
+            session_id = session_id,
             **kwargs
         )
 
