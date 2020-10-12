@@ -1,8 +1,3 @@
-# TODO
-* page_uuid problem
-* Why does it work w/o mode=json?
-* Where to set mode=json?
-
 # Unity integration - Interface description
 
 ## Basic example
