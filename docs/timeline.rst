@@ -78,6 +78,7 @@ See the documentation of individual classes for more guidance, for example:
 * :class:`~psynet.page.TextInputPage`
 * :class:`~psynet.page.NumberInputPage`
 * :class:`~psynet.page.NAFCPage`
+* :class:`~psynet.page.UnityPage`
 * :class:`~psynet.page.SuccessfulEndPage`
 * :class:`~psynet.page.UnsuccessfulEndPage`.
 
@@ -106,6 +107,8 @@ for example,
 inherits from 
 :class:`~psynet.page.TextInputPage`,
 and adds a validation step to make sure that the user has entered a valid number.
+
+:class:`~psynet.page.UnityPage` allows for the integration of Unity and PsyNet. See the special section on :doc:`unity_page` for more detailed information.
 
 We hope to significantly extend the page types available in ``psynet`` in the future.
 When you've found a custom page type useful for your own experiment,

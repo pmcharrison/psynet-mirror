@@ -1,5 +1,5 @@
 PsyNet Documentation
-==============================================
+====================
 
 .. toctree::
    :maxdepth: 1
@@ -13,6 +13,7 @@ PsyNet Documentation
    timeline
    trial_overview
    modular_page
+   unity_page
 
 .. toctree::
    :maxdepth: 2

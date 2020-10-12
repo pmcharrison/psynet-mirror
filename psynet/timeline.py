@@ -344,9 +344,6 @@ class Page(Event):
     contents : dict
         A dictionary containing experiment specific data.
 
-    Class attributes
-    ----------------
-
     session_id : str
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with Javascript code like window.addEventListener(”page_updated”, ...).
     """
