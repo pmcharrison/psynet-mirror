@@ -561,11 +561,6 @@
 
                 };
 
-                {% autoescape off %}
-                psynet.page.attributes = {{ attributes }}
-                psynet.page.contents = {{ contents }}
-                {% endautoescape %}
-
                 psynet.show_resume_modal = function() {
                     document.getElementById("resume_modal").style.display = "block";
                 };
@@ -994,7 +989,11 @@
                         psynet.page_loaded = true;
                     })
                     page_updated = new CustomEvent("page_updated");
-                    window.addEventListener("page_updated", on_page_updated)
+                    /*window.addEventListener("page_updated", function() {
+                        console.log("Event 'page_updated' was dispatched.");
+                        // Respond to the updated page information accessible
+                        // through ``psynet.page.contents``
+                    })*/
                 };
 
                 psynet.register_error_handler = function () {
@@ -1022,7 +1021,7 @@
                     response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
-                        if (response.page.attributes.session_id &&
+                        if (response.page.attributes && psynet.page.attributes &&
                             response.page.attributes.session_id == psynet.page.attributes.session_id) {
                             psynet.page = response.page
                             window.dispatchEvent(page_updated)
@@ -1037,11 +1036,6 @@
                     } else {
                         throw Error("Received a malformed response.");
                     }
-                };
-
-                on_page_updated = function(event) {
-                    console.log("Called 'page_updated' event.");
-                    // to be implemented
                 };
 
                 on_error_response = function (request) {

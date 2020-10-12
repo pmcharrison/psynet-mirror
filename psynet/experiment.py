@@ -222,8 +222,10 @@ class Experiment(dallinger.experiment.Experiment):
     def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
-        if page_uuid == participant.page_uuid:
-            event = self.timeline.get_current_event(self, participant)
+        event = self.timeline.get_current_event(self, participant)
+
+        # TODO: Find a better solution than testing if session_id is None ?
+        if page_uuid == participant.page_uuid or event.session_id is not None:
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -239,7 +241,7 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
             self.timeline.advance_page(self, participant)
-            return self.response_approved(participant_id)
+            return self.response_approved(participant)
         else:
             logger.warn(
                 f"Participant {participant_id} tried to submit data with the wrong page_uuid" +
@@ -247,12 +249,9 @@ class Experiment(dallinger.experiment.Experiment):
             )
             return error_response()
 
-    def response_approved(self, participant_id):
+    def response_approved(self, participant):
         logger.debug("The response was approved.")
-        page = self.timeline.get_current_event(self, get_participant(participant_id))
-        logger.info("+++++++++++++++++++++++++++++++")
-        logger.info(page.attributes)
-        logger.info("+++++++++++++++++++++++++++++++")
+        page = self.timeline.get_current_event(self, participant)
         return success_response(
             submission="approved",
             page={"attributes": page.attributes, "contents": page.contents}
@@ -418,11 +417,10 @@ class Experiment(dallinger.experiment.Experiment):
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
-                attributes = json.loads(page.attributes)
-                if (attributes["type"] == "UnityPage"):
-                #if (mode == "json"):
+                # TODO: correctly set mode
+                if (mode == "json"):
                     return jsonify({
-                        "attributes": attributes,
+                        "attributes": page.attributes,
                         "contents": page.contents,
                     })
                 return page.render(exp, participant)

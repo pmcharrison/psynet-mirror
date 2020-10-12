@@ -352,7 +352,6 @@ class Page(Event):
     """
 
     returns_time_credit = True
-    session_id = None
 
     def __init__(
         self,
@@ -406,11 +405,11 @@ class Page(Event):
         assert isinstance(self.css, list)
 
         self._contents = contents
-        self.__class__.session_id = session_id
+        self.session_id = session_id
 
     @property
     def attributes(self):
-        return json.dumps({"session_id": Page.session_id, "type": type(self).__name__})
+        return {"session_id": self.session_id, "type": type(self).__name__}
 
     @property
     def contents(self):

@@ -133,7 +133,7 @@ class UnityPage(Page):
         self.resources = resources
         self.game_container_width = game_container_width
         self.game_container_height = game_container_height
-        self.session_id = session_id,
+        self.session_id = session_id
 
         super().__init__(
             contents = contents,
