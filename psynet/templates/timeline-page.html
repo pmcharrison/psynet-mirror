@@ -1039,7 +1039,7 @@
                     // Respond to the updated page information accessible
                     // through ``psynet.page.contents``
                     console.log(gameInstance)
-                    gameInstance.SendMessage(gameInstance, 'Spawn', psynet.page.contents);
+                    gameInstance.SendMessage("gameObjectName", 'Spawn', psynet.page.contents);
                 };
 
                 on_error_response = function (request) {
