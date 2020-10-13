@@ -1,17 +1,27 @@
 # pylint: disable=abstract-method
 
+from datetime import datetime
 import importlib_resources
 import flask
 import gevent
 import time
 import json
+from statistics import median
 
+from dominate import tags
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from typing import List, Optional, Dict, Callable
 from collections import Counter
 
-from .utils import dict_to_js_vars, call_function, check_function_args, merge_dicts, get_logger
+from .utils import (
+    call_function,
+    check_function_args,
+    dict_to_js_vars,
+    format_datetime_string,
+    get_logger,
+    merge_dicts
+)
 from . import templates
 
 from dallinger import db
@@ -109,7 +119,7 @@ class GoTo(Event):
 
     def consume(self, experiment, participant):
         # We subtract 1 because event_id will be incremented again when
-        # we return to the startning of the advance page loop.
+        # we return to the start of the advance page loop.
         target_event = self.get_target(experiment, participant)
         target_event_id = target_event.id
         participant.event_id = target_event_id - 1
@@ -529,6 +539,14 @@ class Page(Event):
         """
         return None
 
+    def pre_render(self):
+        """
+            This method is called immediately prior to rendering the page for
+            the participant. It will be called again each time the participant
+            refreshes the page.
+        """
+        pass
+
     def render(self, experiment, participant):
         internal_js_vars = {
             "page_uuid": participant.page_uuid
@@ -762,7 +780,7 @@ class Timeline():
         assert isinstance(self.events, list)
         assert len(self.events) > 0
         if not isinstance(self.events[-1], EndPage):
-            raise ValueError("The final element in the timeline must be a EndPage.")
+            raise ValueError("The final element in the timeline must be an EndPage.")
         self.check_for_time_estimate()
         self.check_start_fix_times()
         self.check_modules()
@@ -796,6 +814,12 @@ class Timeline():
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
             raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
+
+    def modules(self):
+        from .participant import Participant
+        participants = Participant.query.all()
+        return {"modules": [{"id": event.module.id} for event in self.events
+            if isinstance(event, StartModule)]}
 
     def get_trial_maker(self, trial_maker_id):
         events = self.events
@@ -1337,26 +1361,124 @@ class Footer():
         self.text_to_show = [x if escape else flask.Markup(x) for x in text_to_show]
 
 class Module():
-    default_label = None
+    default_id = None
     default_events = None
 
-    def __init__(self, label: str = None, *args):
+    def __init__(self, id_: str = None, *args):
         events = join(*args)
 
-        if self.default_label is None and label is None:
-            raise ValueError("Either one of <default_label> or <label> must not be none.")
+        if self.default_id is None and id_ is None:
+            raise ValueError("Either one of <default_id> or <id_> must not be none.")
         if self.default_events is None and events is None:
             raise ValueError("Either one of <default_events> or <events> must not be none.")
 
-        self.label = label if label is not None else self.default_label
+        self.id = id_ if id_ is not None else self.default_id
         self.events = events if events is not None else self.default_events
+
+    @classmethod
+    def started_and_finished_times(cls, participants, module_id):
+        return [{"time_started": participant.modules[module_id]["time_started"][0],
+                 "time_finished": participant.modules[module_id]["time_finished"][0]}
+                for participant in participants if module_id in participant.finished_modules]
+
+    @classmethod
+    def median_finish_time_in_min(cls, participants, module_id):
+        started_and_finished_times = cls.started_and_finished_times(participants, module_id)
+
+        if not started_and_finished_times:
+            return None
+
+        durations_in_min = []
+        for start_end_times in started_and_finished_times:
+            if not (start_end_times["time_started"] and start_end_times["time_finished"]):
+                continue
+            datetime_format = '%Y-%m-%dT%H:%M:%S.%f'
+            t1 = datetime.strptime(start_end_times["time_started"], datetime_format)
+            t2 = datetime.strptime(start_end_times["time_finished"], datetime_format)
+            durations_in_min.append((t2 - t1).total_seconds() / 60)
+
+        if not durations_in_min:
+            return None
+
+        return median(sorted(durations_in_min))
+
+    @property
+    def started_participants(self):
+        from .participant import Participant
+        participants = Participant.query.all()
+        started_participants = [p for p in participants if self.id in p.started_modules]
+        started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
+        return started_participants
+
+    @property
+    def finished_participants(self):
+        from .participant import Participant
+        participants = Participant.query.all()
+        finished_participants = [p for p in participants if self.id in p.finished_modules]
+        finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
+        return finished_participants
 
     def resolve(self):
         return join(
-            StartModule(self.label, module=self),
+            StartModule(self.id, module=self),
             self.events,
-            EndModule(self.label)
+            EndModule(self.id)
         )
+
+    def visualize(self):
+        phase = self.phase if hasattr(self, "phase") else None
+
+        if self.started_participants:
+            time_started_last = self.started_participants[-1].modules[self.id]["time_started"][0]
+        if self.finished_participants:
+            time_finished_last = self.finished_participants[-1].modules[self.id]["time_finished"][0]
+            median_finish_time_in_min = round(Module.median_finish_time_in_min(self.finished_participants, self.id), 1)
+
+        div = tags.div()
+        with div:
+            with tags.h4("Module"):
+                tags.i(self.id)
+            with tags.ul(cls="details"):
+                if phase is not None:
+                    tags.li(f"Phase: {phase}")
+                tags.li(f"Participants started: {len(self.started_participants)}")
+                tags.li(f"Participants finished: {len(self.finished_participants)}")
+                if self.started_participants:
+                    tags.li(f"Participant started last: {format_datetime_string(time_started_last)}")
+                if self.finished_participants:
+                    tags.li(f"Participant finished last: {format_datetime_string(time_finished_last)}")
+                    tags.li(f"Median time spent: {median_finish_time_in_min} min.")
+
+        return div.render()
+
+    def visualize_tooltip(self):
+        if self.finished_participants:
+            median_finish_time_in_min = Module.median_finish_time_in_min(self.finished_participants, self.id)
+
+        span = tags.span()
+        with span:
+            tags.b(self.id)
+            tags.br()
+            tags.span(f"{len(self.started_participants)} started, {len(self.finished_participants)} finished,")
+            if self.finished_participants:
+                tags.br()
+                tags.span(f"{round(median_finish_time_in_min, 1)} min. (median)")
+
+        return span.render()
+
+    def get_progress_info(self):
+        target_num_participants = (self.target_num_participants
+                                   if hasattr(self, "target_num_participants")
+                                   else None)
+        # TODO a more sophisticated calculation of progress
+        progress = (len(self.finished_participants) / target_num_participants
+                    if target_num_participants is not None and target_num_participants > 0
+                    else 1)
+
+        return { self.id: { "started_num_participants": len(self.started_participants),
+                            "finished_num_participants": len(self.finished_participants),
+                            "target_num_participants": target_num_participants,
+                            "progress": progress } }
 
 class StartModule(NullEvent):
     def __init__(self, label, module):

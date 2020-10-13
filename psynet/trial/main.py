@@ -4,6 +4,7 @@ import json
 import random
 import datetime
 
+from dominate import tags
 from flask import Markup
 from statistics import mean
 from math import isnan, nan
@@ -844,6 +845,27 @@ class TrialMaker(Module):
             return PageMaker(f, time_estimate = 5)
         else:
             return []
+
+    def visualize(self):
+        rendered_div = super().visualize()
+
+        div = tags.div()
+        with div:
+            with tags.ul(cls="details"):
+                if hasattr(self, "expected_num_trials") and self.expected_num_trials is not None:
+                    tags.li(f"Expected number of trials: {self.expected_num_trials}")
+                if hasattr(self, "target_num_participants") and self.target_num_participants is not None:
+                    tags.li(f"Target number of participants: {self.target_num_participants}")
+                if hasattr(self, "recruit_mode") and self.recruit_mode is not None:
+                    tags.li(f"Recruitment mode: {self.recruit_mode}")
+
+        return rendered_div + div.render()
+
+    def get_progress_info(self):
+        return super().get_progress_info()
+
+    def visualize_tooltip(self):
+        return super().visualize_tooltip()
 
     @property
     def num_trials_pending(self):
@@ -1824,14 +1846,48 @@ class TrialNetwork(Network, AsyncProcessOwner):
         is set to ``True``.
         """
 
+    @property
+    @extra_var(__extra_vars__)
+    def n_nodes(self):
+        return len([node for node in self.all_nodes])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_active_nodes(self):
+        return len([node for node in self.all_nodes if not node.failed])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_failed_nodes(self):
+        return len([node for node in self.all_nodes if node.failed])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_trials(self):
+        return len([info for info in self.all_infos if isinstance(info, Trial)])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_active_trials(self):
+        return len([info for info in self.all_infos if isinstance(info, Trial) and not info.failed])
+
+    @property
+    @extra_var(__extra_vars__)
+    def n_failed_trials(self):
+        return len([info for info in self.all_infos if isinstance(info, Trial) and info.failed])
+
+
 def call_async_post_trial(trial_id, process_id):
     logger.info("Running async_post_trial process %s for trial %i...", process_id, trial_id)
     import_local_experiment()
+    experiment = dallinger.experiment.load()
     trial = Trial.query.filter_by(id=trial_id).one()
+    trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
     try:
         if process_id in trial.pending_async_processes:
             trial.async_post_trial()
             trial.pop_async_process(process_id)
+            trial_maker._grow_network(trial.network, trial.participant, experiment)
         else:
             logger.info("Skipping async process %s as it is no longer queued.", process_id)
     except BaseException as e:

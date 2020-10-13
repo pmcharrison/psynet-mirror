@@ -1,6 +1,5 @@
-import json
-import tempfile
-
+import json, os, tempfile
+from urllib.parse import splitquery, urlparse
 from dominate import tags
 from dominate.util import raw
 
@@ -14,7 +13,15 @@ from .timeline import (
     MediaSpec,
     is_list_of
 )
-from .media import upload_to_s3, create_bucket, make_bucket_public, get_s3_url
+from .media import (
+    get_s3_url,
+    generate_presigned_url,
+    prepare_s3_bucket_for_presigned_urls
+)
+
+from .utils import get_logger
+
+logger = get_logger()
 
 class Prompt():
     """
@@ -86,6 +93,9 @@ class Prompt():
             return str(self.text)
         else:
             return tags.p(self.text).render()
+
+    def pre_render(self):
+        pass
 
 class AudioPrompt(Prompt):
     """
@@ -400,6 +410,9 @@ class Control():
     def visualize_response(self, answer, response, trial):
         return ""
 
+    def pre_render(self):
+        pass
+
 class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
@@ -452,6 +465,7 @@ class NAFCControl(Control):
     ):
         self.choices = choices
         self.labels = choices if labels is None else labels
+        self.arrange_vertically = arrange_vertically
 
         assert isinstance(self.labels, list)
         assert len(self.choices) == len(self.labels)
@@ -726,6 +740,16 @@ class ModularPage(Page):
             "control": self.control.metadata
         }
 
+    def pre_render(self):
+        """
+            This method is called immediately prior to rendering the page for
+            the participant. It will be called again each time the participant
+            refreshes the page.
+        """
+        self.prompt.pre_render()
+        self.control.pre_render()
+
+
 class AudioMeterControl(Control):
     macro = "audio_meter"
 
@@ -875,29 +899,16 @@ class AudioRecordControl(Control):
 
     @property
     def metadata(self):
-        return {
-
-        }
+        return {}
 
     def format_answer(self, raw_answer, **kwargs):
-        recording = kwargs["blobs"]["recording"]
-        fs, data = wavfile.read(recording)
-        duration_sec = data.shape[0] / fs
-
-        with tempfile.NamedTemporaryFile() as temp_file:
-            wavfile.write(temp_file.name, fs, data)
-            key = f"{uuid4()}.wav"
-
-            upload_to_s3(temp_file.name, self.s3_bucket, key, self.public_read, create_new_bucket=True)
-            if self.public_read:
-                make_bucket_public(self.s3_bucket)
-
-            return {
-                "s3_bucket": self.s3_bucket,
-                "key": key,
-                "url": get_s3_url(self.s3_bucket, key),
-                "duration_sec": duration_sec
-            }
+        filename = os.path.basename(urlparse(raw_answer).path)
+        return {
+            "s3_bucket": self.s3_bucket,
+            "key": filename, # Leave key for backward compatibility
+            "url": splitquery(raw_answer)[0],
+            "duration_sec": self.duration
+        }
 
     def visualize_response(self, answer, response, trial):
         if answer is None:
@@ -908,6 +919,13 @@ class AudioRecordControl(Control):
                 id="visualize-audio-response",
                 controls=True
             ).render()
+
+    def pre_render(self):
+        prepare_s3_bucket_for_presigned_urls(self.s3_bucket,
+                                             self.public_read,
+                                             create_new_bucket=True)
+        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
+        logger.info(f"Generated presigned url: {self.presigned_url}")
 
 class VideoSliderControl(Control):
     macro = "video_slider"

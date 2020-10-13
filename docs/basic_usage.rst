@@ -17,7 +17,7 @@ This can be done by adding the following line:
 
 You can also modify this line to specify a particular version to install,
 and to provide authentication to the repository if required;
-see `this documentation <http://docs.dallinger.io/en/latest/private_repo.html>`_
+see `this documentation <https://dallinger.readthedocs.io/en/latest/private_repo.html>`_
 for details.
 In particular, to add your GitLab password, you can do something like this:
 
@@ -32,17 +32,23 @@ with read-only permissions and include it as follows:
 
     git+https://<pat>@gitlab.com/computational-audition-lab/psynet#egg=psynet
 
-When deploying an experiment, we recommend specifying a particular Git commit in 
-this line, for example:
+The above line will always deploy the most recent commit in the `master` branch. But there exist also several ways for specifying a different particular version of ``psynet`` when deploying an experiment. This can be e.g. a *version tag*, a *branch name*, or a *commit hash*. We recommend specifying a particular Git commit hash like ``000b14389171a9f0d7d713466b32bc649b0bed8e`` in the case you want to be sure your experiment always deploys with the same version of ``psynet`` even if the package subsequently changes. You can find this ``<commit_hash>`` in GitLab or similar. For example:
 
 ::
 
     git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<commit_hash>#egg=psynet
 
-where ``<commit_hash>`` looks something like ``000b14389171a9f0d7d713466b32bc649b0bed8e``
-(you can find this in GitLab or similar).
-This makes sure your experiment always deploys with the same version of ``psynet``,
-even if the package subsequently changes.
+In the same way you can use a Git version tag ``<tag>`` like ``v1.5.0`` to always deploy a certain tagged commit:
+
+::
+
+    git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<tag>#egg=psynet
+
+Contrary to the above, use a branch name ``<branch_name>`` like ``dev`` in case you want to deploy an experiment always using the most recent commit in a certain Git branch:
+
+::
+
+    git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<branch_name>#egg=psynet
 
 Like any other Dallinger experiment, an experiment implementation requires an `experiment.py` file
 in your main directory, as well as a `static` folder and a `templates` folder. 

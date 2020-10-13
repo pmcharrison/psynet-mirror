@@ -7,7 +7,8 @@ import os
 import pandas as pd
 import hashlib
 import importlib.util
-import datetime
+import re
+from datetime import datetime
 import logging
 
 from functools import reduce, wraps
@@ -264,10 +265,31 @@ def serialise_datetime(x):
 def unserialise_datetime(x):
     if x is None:
         return None
-    return datetime.datetime.fromisoformat(x)
+    return datetime.fromisoformat(x)
 
 def clamp(x):
-  return max(0, min(x, 255))
+    return max(0, min(x, 255))
 
 def rgb_to_hex(r, g, b):
     return "#{0:02x}{1:02x}{2:02x}".format(clamp(round(r)), clamp(round(g)), clamp(round(b)))
+
+def serialise(obj):
+    """Serialise objects not serialisable by default"""
+
+    if isinstance(obj, (datetime)):
+        return serialise_datetime(obj)
+    raise TypeError ("Type %s is not serialisable" % type(obj))
+
+def format_datetime_string(datetime_string):
+    return datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M:%S')
+
+def model_name_to_snake_case(model_name):
+    return re.sub(r'(?<!^)(?=[A-Z])', '_', model_name).lower()
+
+def json_to_data_frame(json_data):
+    columns = []
+    for row in json_data:
+        [columns.append(key) for key in row.keys() if key not in columns]
+
+    data_frame = pd.DataFrame.from_records(json_data, columns=columns)
+    return data_frame
