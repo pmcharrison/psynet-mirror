@@ -989,11 +989,7 @@
                         psynet.page_loaded = true;
                     })
                     page_updated = new CustomEvent("page_updated");
-                    /*window.addEventListener("page_updated", function() {
-                        console.log("Event 'page_updated' was dispatched.");
-                        // Respond to the updated page information accessible
-                        // through ``psynet.page.contents``
-                    })*/
+                    window.addEventListener("page_updated", on_page_updated)
                 };
 
                 psynet.register_error_handler = function () {
@@ -1036,6 +1032,14 @@
                     } else {
                         throw Error("Received a malformed response.");
                     }
+                };
+
+                on_page_updated = function(event) {
+                    console.log("Event 'page_updated' was dispatched.");
+                    // Respond to the updated page information accessible
+                    // through ``psynet.page.contents``
+                    console.log(gameInstance)
+                    gameInstance.SendMessage(gameInstance, 'Spawn', psynet.page.contents);
                 };
 
                 on_error_response = function (request) {
