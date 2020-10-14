@@ -66,7 +66,17 @@ Let's look at an example of an experiment consisting of a timeline which include
 
   extra_routes = UnityExperiment().extra_routes()
 
-By calling the JavaScript function ``psynet.next_page()`` the user can advance to a follow-up page. If this page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``page_updated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. The information on the page is accessible through the attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container for holding the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ``{"melody": [1, 5, 2]}``. Here is a JavaScript code snippet demonstrating how to make use of the ``page_updated`` event:
+By calling the JavaScript function ``psynet.next_page()`` the user can advance to a follow-up page. ``psynet.next_page()`` take the following arguments:
+
+raw_answer
+  The main answer that the page returns.
+metadata
+  Additional information that might be useful for debugging or other exploration, e.g. time taken on the page.
+blobs
+  Use this for large binaries, e.g. audio recordings.
+
+
+If the follow-up page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``page_updated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. The information on the page is accessible through the attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container for holding the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ``{"melody": [1, 5, 2]}``. Here is a JavaScript code snippet demonstrating how to make use of the ``page_updated`` event:
 
 .. code-block:: javascript
   

@@ -417,7 +417,6 @@ class Experiment(dallinger.experiment.Experiment):
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
-                # TODO: correctly set mode
                 if (mode == "json"):
                     return jsonify({
                         "attributes": page.attributes,
@@ -429,6 +428,7 @@ class Experiment(dallinger.experiment.Experiment):
         def route_response():
             exp = self.new(db.session)
             json_data = json.loads(request.values["json"])
+            logger.info(json_data)
             blobs = request.files.to_dict()
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
