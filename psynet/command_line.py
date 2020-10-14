@@ -77,13 +77,14 @@ def export(app, local):
     """
         Export data from an experiment.
 
-        The data is exported in three distinct formats into the 'data' directory
-        of an experiment which has following structure:
+        The data is exported in three distinct formats into the 'data/data-<app>'
+        directory of an experiment which has following structure:
 
         data/
-        ├── csv/
-        ├── db-snapshot/
-        └── json/
+        └── data-<app>/
+            ├── csv/
+            ├── db-snapshot/
+            └── json/
 
         csv:
             Contains the experiment data in CSV format.
@@ -94,11 +95,13 @@ def export(app, local):
     """
     log(header, chevrons=False)
     import_local_experiment()
-    create_export_dirs()
+
+    data_dir_path = os.path.join("data", f"data-{app}")
+    create_export_dirs(data_dir_path)
 
     log("Creating database snapshot.")
     dallinger_data.export(app, local=local)
-    move_snapshot_file(app)
+    move_snapshot_file(data_dir_path, app)
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
 
@@ -127,30 +130,30 @@ def export(app, local):
             base_filename = model_name_to_snake_case(model_name)
             print(f"Exporting {base_filename} data...")
             with yaspin(text="Exporting 'json'...", color="green") as spinner:
-                base_filepath = os.path.join("data", "json", base_filename)
-                with open(f"{base_filepath}.json", "w") as outfile:
+                json_base_filepath = os.path.join(data_dir_path, "json", base_filename)
+                with open(f"{json_base_filepath}.json", "w") as outfile:
                     json.dump(json_data, outfile, indent=2, sort_keys=False, default=serialise)
                 spinner.ok("✔")
             with yaspin(text="Exporting 'csv'...", color="green") as spinner:
-                base_filepath = os.path.join("data", "csv", base_filename)
-                with open(f"{base_filepath}.csv", "w") as outfile:
+                csv_base_filepath = os.path.join(data_dir_path, "csv", base_filename)
+                with open(f"{csv_base_filepath}.csv", "w") as outfile:
                     data_frame = json_to_data_frame(json_data)
                     data_frame.to_csv(outfile, index=False)
                 spinner.ok("✔")
     log("Export completed.")
 
-def create_export_dirs():
+def create_export_dirs(data_dir_path):
     for file_format in ["csv", "db-snapshot", "json"]:
-        export_path = os.path.join("data", file_format)
+        export_path = os.path.join(data_dir_path, file_format)
         try:
             os.makedirs(export_path)
         except OSError as e:
             if e.errno != errno.EEXIST or not os.path.isdir(export_path):
                 raise
 
-def move_snapshot_file(app):
+def move_snapshot_file(data_dir_path, app):
     try:
-        db_snapshot_path = os.path.join("data", "db-snapshot")
+        db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
         filename = f"{app}-data.zip"
         shutil.move(
             os.path.join("data", filename),
