@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.1] Released on 2020-10-14
+
+### Changes
+
+- Improve data export directory structure
+
+
 ## [1.5.0] Released on 2020-10-13
 
 ### New features
