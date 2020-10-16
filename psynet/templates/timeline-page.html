@@ -1035,10 +1035,10 @@
                 };
 
                 on_page_updated = function(event) {
-                    console.log("Event 'page_updated' was dispatched.");
-                    // Respond to the updated page information accessible through ``psynet.page.contents``
-                    console.log("Sending message with page contents data to Unity...")
-                    gameInstance.SendMessage("PsynetObj", "GetData", JSON.stringify(psynet.page.contents));
+                    console.log("Sending message to Unity containing following data:" + psynet.page.contents)
+                    gameInstance.SendMessage("PsynetObj",
+                                             "GetData",
+                                             JSON.stringify(psynet.page.contents));
                 };
 
                 on_error_response = function (request) {

@@ -1,0 +1,29 @@
+{% extends "base/ad.html" %}
+
+{% block no_assignment %}
+<h1>Call for participants</h1>
+<p>
+    The XXX Lab at XXXXX University is looking for online participants
+    for a brief psychology experiment. The only requirements
+    are that you are at least 18 years old and are a fluent English
+    speaker.  The task will take XXXXX minutes and will pay XXXXX.
+</p>
+<p>
+    Please click the "Accept HIT" button on the Amazon site
+    above to begin the task.
+</p>
+{% endblock no_assignment %}
+
+{% block live %}
+<h1>Thanks for accepting this HIT.</h1>
+<p>
+    By clicking the following URL link, you will be taken to the experiment,
+    including complete instructions and an informed consent agreement.
+</p>
+<div class="alert alert-warning">
+    <b>Warning</b>: Please disable pop-up blockers before continuing.
+</div>
+<button type="button" id="begin-button" class="btn btn-primary btn-lg">
+Begin Experiment
+</button>
+{% endblock live %}
