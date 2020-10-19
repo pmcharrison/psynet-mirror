@@ -49,32 +49,32 @@ import rpdb
 #### Stimuli
 ##########################################################################################
 
-class FixedDigitInputPage(TextInputPage):
-    num_digits = 7
+# class FixedDigitInputPage(TextInputPage):
+#     num_digits = 7
 
-    def format_answer(self, raw_answer, **kwargs):
-        try:
-            pattern = re.compile("^[0-9]*$")
-            assert len(raw_answer) == self.num_digits
-            assert pattern.match(raw_answer)
-            return int(raw_answer)
-        except (ValueError, AssertionError):
-            return "INVALID_RESPONSE"
+#     def format_answer(self, raw_answer, **kwargs):
+#         try:
+#             pattern = re.compile("^[0-9]*$")
+#             assert len(raw_answer) == self.num_digits
+#             assert pattern.match(raw_answer)
+#             return int(raw_answer)
+#         except (ValueError, AssertionError):
+#             return "INVALID_RESPONSE"
 
-    def validate(self, response, **kwargs):
-        if response.answer == "INVALID_RESPONSE":
-            return FailedValidation("Please enter a 7-digit number.")
-        return None
+    # def validate(self, response, **kwargs):
+    #     if response.answer == "INVALID_RESPONSE":
+    #         return FailedValidation("Please enter a 7-digit number.")
+    #     return None
 
 class CustomUnityPage(UnityPage):
     def format_answer(self, raw_answer, **kwargs):
-        return json.loads(raw_answer)["Result"]
+        return int(json.loads(raw_answer)["result"])
 
 
 class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    num_pages = 3
+    num_pages = 2
 
     def show_trial(self, experiment, participant):
         session_id = str(uuid4())
@@ -83,25 +83,24 @@ class CustomTrial(ImitationChainTrial):
             title="Unity imitation chain experiment",
             game_container_width="960px",
             game_container_height="600px",
-            contents=20,
+            contents= self.definition,
             resources="/static",
             time_estimate=5,
             session_id = session_id,
         )
-        page_3 = CustomUnityPage(
-            title="Unity imitation chain experiment",
-            game_container_width="960px",
-            game_container_height="600px",
-            contents=99,
-            resources="/static",
-            time_estimate=5,
-            session_id = session_id,
-        )
+        # page_3 = CustomUnityPage(
+        #     title="Unity imitation chain experiment",
+        #     game_container_width="960px",
+        #     game_container_height="600px",
+        #     contents=99,
+        #     resources="/static",
+        #     time_estimate=5,
+        #     session_id = session_id,
+        # )
 
         return [
             page_1,
-            page_2,
-            page_3
+            page_2
         ]
 
 class CustomNetwork(ImitationChainNetwork):
@@ -120,11 +119,32 @@ class CustomSource(ImitationChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_seed(self, network, experiment, participant):
-        return random.randint(0, 9999999)
+        #val=(network.id %90) +10
+        list_of_networks=[0,10,20,50,100]
+        val=list_of_networks[ network.id % len(list_of_networks) ]
+        return val
+        #return val #random.randint(10, 90)
 
 class CustomTrialMaker(ImitationChainTrialMaker):
     response_timeout_sec = 60
     check_timeout_interval = 30
+
+    def compute_bonus(self, score, passed):
+            if score is None:
+                return 0.1 # give base pay
+            else:
+                return max(2.0, score)
+
+    # def performance_check(self, experiment, participant, participant_trials):
+    #     """Should return a tuple (bonus: float, passed: bool)"""
+    #     bonus = 0
+    #     for trial in participant_trials:
+    #         bonus += json.loads(trial.raw_answer)["bonus"]
+    #     passed = bonus == 0
+    #     return {
+    #         "bonus": bonus,
+    #         "passed": passed
+    #     }
 
 ##########################################################################################
 #### Experiment
@@ -142,13 +162,13 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_estimate_per_trial=600,
-            chain_type="within",
+            time_estimate_per_trial=60,
+            chain_type="across",
             num_nodes_per_chain=5,
             num_trials_per_participant=1,
             num_chains_per_participant=1,
             num_chains_per_experiment=None,
-            trials_per_node=1,
+            trials_per_node=10,
             active_balancing_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
