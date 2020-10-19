@@ -8,6 +8,7 @@ from flask import Markup
 from statistics import mean
 import random
 import re
+import json
 from uuid import uuid4
 
 import psynet.experiment
@@ -65,19 +66,33 @@ class FixedDigitInputPage(TextInputPage):
             return FailedValidation("Please enter a 7-digit number.")
         return None
 
+class CustomUnityPage(UnityPage):
+    def format_answer(self, raw_answer, **kwargs):
+        return json.loads(raw_answer)["Result"]
+
+
 class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
-    num_pages = 2
+    num_pages = 3
 
     def show_trial(self, experiment, participant):
         session_id = str(uuid4())
         page_1 = InfoPage("Welcome to the Unity imitation chain experiment")
-        page_2 = UnityPage(
+        page_2 = CustomUnityPage(
             title="Unity imitation chain experiment",
             game_container_width="960px",
             game_container_height="600px",
-            contents={"some_data": 0.8, "some_more_data": 42},
+            contents=20,
+            resources="/static",
+            time_estimate=5,
+            session_id = session_id,
+        )
+        page_3 = CustomUnityPage(
+            title="Unity imitation chain experiment",
+            game_container_width="960px",
+            game_container_height="600px",
+            contents=99,
             resources="/static",
             time_estimate=5,
             session_id = session_id,
@@ -85,7 +100,8 @@ class CustomTrial(ImitationChainTrial):
 
         return [
             page_1,
-            page_2
+            page_2,
+            page_3
         ]
 
 class CustomNetwork(ImitationChainNetwork):
@@ -126,10 +142,10 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_estimate_per_trial=5,
+            time_estimate_per_trial=600,
             chain_type="within",
             num_nodes_per_chain=5,
-            num_trials_per_participant=5,
+            num_trials_per_participant=1,
             num_chains_per_participant=1,
             num_chains_per_experiment=None,
             trials_per_node=1,
