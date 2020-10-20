@@ -1536,6 +1536,13 @@ class BackgroundTask(NullEvent):
             gevent.sleep(self.interval_sec)
             self.safe_function()
 
+class PreDeployRoutine(NullEvent):
+    def __init__(self, label, function, args):
+        check_function_args(function, args=args.keys(), need_all=False)
+        self.label = label
+        self.function = function
+        self.args = args
+
 class ParticipantFailRoutine(NullEvent):
     def __init__(self, label, function):
         check_function_args(function, args=["participant", "experiment"], need_all=False)
