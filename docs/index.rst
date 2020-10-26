@@ -27,3 +27,13 @@ PsyNet Documentation
    :glob:
 
    low_level/*
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer documentation
+   :glob:
+
+   developer/working_with_git
+   developer/basic_setup_and_workflow
+   developer/prescreening_tasks
+   developer/documentation
