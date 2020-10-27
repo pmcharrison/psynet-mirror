@@ -75,10 +75,7 @@ def prepare(verbose, force, command=None):
     if force:
         FLAGS.add("force")
     dallinger_log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
-    experiment_class = import_local_experiment().get("class")
-    if not command == "export":
-        experiment_class.pre_deploy()
-    return experiment_class
+    return import_local_experiment().get("class")
 
 
 ### debug ###
@@ -169,7 +166,7 @@ def export(ctx, verbose, app, local, force_prepare):
             Contains the experiment data in JSON format.
     """
     dallinger_log(header)
-    ctx.invoke(prepare, verbose=verbose, force=force_prepare, command="export")
+    import_local_experiment()
 
     data_dir_path = os.path.join("data", f"data-{app}")
     create_export_dirs(data_dir_path)
