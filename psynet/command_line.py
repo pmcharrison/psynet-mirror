@@ -66,7 +66,7 @@ def psynet():
 @psynet.command()
 @click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode.")
 @click.option("--force", is_flag=True, flag_value=True, help="Force override of cache.")
-def prepare(verbose, force, command=None):
+def prepare(verbose, force):
     """
     Prepares all stimulus sets defined in experiment.py,
     uploading all media files to Amazon S3.
