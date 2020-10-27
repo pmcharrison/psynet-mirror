@@ -75,7 +75,9 @@ def prepare(verbose, force):
     if force:
         FLAGS.add("force")
     dallinger_log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
-    return import_local_experiment().get("class")
+    experiment_class = import_local_experiment().get("class")
+    experiment_class.pre_deploy()
+    return experiment_class
 
 
 ### debug ###
