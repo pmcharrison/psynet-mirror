@@ -34,16 +34,24 @@ def sql_sample_one(x):
     return x.order_by(func.random()).first()
 
 def import_local_experiment():
-    # Imports experiment.py and returns it as a module.
-    # Also adds the experiment directory to sys.path,
-    # meaning that any other modules defined there can be imported using ``import``.`
+    # Imports experiment.py and returns a dict consisting of
+    # 'package' which corresponds to the experiment *package*,
+    # 'module' which corresponds to the experiment *module*, and
+    # 'class' which corresponds to the experiment *class*.
+    # It also adds the experiment directory to sys.path, meaning that any other
+    # modules defined there can be imported using ``import``.
     # import pdb; pdb.set_trace()
     config = get_config()
     config.load()
     initialize_experiment_package(os.getcwd())
-    dallinger_experiment = sys.modules.get("dallinger_experiment") # this corresponds to the experiment *package*
+    dallinger_experiment = sys.modules.get("dallinger_experiment")
     sys.path.append(os.getcwd())
-    return dallinger_experiment.experiment # this corresponds to the experiment *module*
+    import dallinger.experiment
+    return {
+        "package": dallinger_experiment,
+        "module": dallinger_experiment.experiment,
+        "class": dallinger.experiment.load()
+    }
 
 # def import_local_experiment():
 #     sys.path.append(os.getcwd())
@@ -112,6 +120,7 @@ def get_object_from_module(module_name: str, object_name: str):
     return obj
 
 def log_time_taken(fun):
+    @wraps(fun)
     def wrapper(*args, **kwargs):
         start_time = time.monotonic()
         res = fun(*args, **kwargs)
