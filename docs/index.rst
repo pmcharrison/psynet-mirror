@@ -8,6 +8,7 @@ PsyNet Documentation
    about
    how_to_use
    installation
+   command_line
    demo
    basic_usage
    timeline

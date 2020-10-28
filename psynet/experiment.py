@@ -5,10 +5,7 @@ import json
 import os
 import rpdb
 from pkg_resources import resource_filename
-from dallinger import (
-    db
-)
-
+from dallinger import db
 from dallinger.config import get_config
 from dallinger import data as dallinger_data
 import dallinger.experiment
@@ -16,7 +13,6 @@ from dallinger.experiment_server.dashboard import (
     dashboard,
     dashboard_tabs
 )
-
 from dallinger.experiment_server.utils import (
     success_response,
     error_response
@@ -29,6 +25,7 @@ from .timeline import (
     FailedValidation,
     ExperimentSetupRoutine,
     ParticipantFailRoutine,
+    PreDeployRoutine,
     RecruitmentCriterion,
     BackgroundTask
 )
@@ -69,6 +66,7 @@ class Experiment(dallinger.experiment.Experiment):
     wage_per_hour = 9.0
     min_browser_version = "80.0"
     # min_working_participants = 5
+    pre_deploy_routines = []
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -86,6 +84,10 @@ class Experiment(dallinger.experiment.Experiment):
 
         if session:
             self.setup()
+
+        for event in self.timeline.events:
+            if isinstance(event, PreDeployRoutine):
+                self.register_pre_deployment_routine(event)
 
     # @property
     # def default_recruitment_criterion(self):
@@ -118,6 +120,9 @@ class Experiment(dallinger.experiment.Experiment):
     def register_background_task(self, task):
         self._background_tasks.append(task)
 
+    def register_pre_deployment_routine(self, routine):
+        self.pre_deploy_routines.append(routine)
+
     @classmethod
     def new(cls, session):
         return cls(session)
@@ -136,6 +141,12 @@ class Experiment(dallinger.experiment.Experiment):
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):
             dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
+
+    @classmethod
+    def pre_deploy(cls):
+        for routine in cls.pre_deploy_routines:
+            logger.info(f"Pre-deploying '{routine.label}'...")
+            call_function(routine.function, routine.args)
 
     def fail_participant(self, participant):
         logger.info(

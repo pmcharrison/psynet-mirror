@@ -19,7 +19,7 @@ EXPERIMENT = None
 #     os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/non_adaptive"))
 #
 #     import psynet.utils
-#     EXPERIMENT_MODULE = psynet.utils.import_local_experiment()
+#     EXPERIMENT_MODULE = psynet.utils.import_local_experiment().get("module")
 #
 #     yield
 #     os.chdir(root)

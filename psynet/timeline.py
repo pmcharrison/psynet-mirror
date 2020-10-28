@@ -1536,6 +1536,30 @@ class BackgroundTask(NullEvent):
             gevent.sleep(self.interval_sec)
             self.safe_function()
 
+class PreDeployRoutine(NullEvent):
+    """
+    A timeline component that allows for the definition of tasks to be performed
+    before deployment. :class:`PreDeployRoutine`\ s are thought to be added to the
+    beginning of a timeline of an experiment.
+
+    Parameters
+    ----------
+
+    label
+        A label describing the pre-deployment task.
+
+    function
+        The name of a function to be executed.
+
+    args
+        The arguments for the function to be executed.
+    """
+    def __init__(self, label, function, args):
+        check_function_args(function, args=args.keys(), need_all=False)
+        self.label = label
+        self.function = function
+        self.args = args
+
 class ParticipantFailRoutine(NullEvent):
     def __init__(self, label, function):
         check_function_args(function, args=["participant", "experiment"], need_all=False)

@@ -7,6 +7,7 @@ from psynet.page import (
     VolumeCalibration,
     InfoPage
 )
+from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import(
     ModularPage,
     AudioPrompt,
@@ -14,6 +15,7 @@ from psynet.modular_page import(
     NAFCControl,
     AudioMeterControl
 )
+from psynet.timeline import PreDeployRoutine
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
@@ -58,6 +60,7 @@ stimuli = [
 ]
 
 stimulus_set = StimulusSet("non_adaptive_audio", stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
+recordings_s3_bucket = "non-adaptive-audio-demo-stimuli-recordings"
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -68,7 +71,7 @@ class CustomTrial(NonAdaptiveTrial):
             AudioPrompt(self.media_url, "Please imitate the spoken word as closely as possible."),
             AudioRecordControl(
                 duration=3.0,
-                s3_bucket="non-adaptive-audio-demo-stimuli-recordings",
+                s3_bucket=recordings_s3_bucket,
                 public_read=True
             ),
             time_estimate=5
@@ -87,6 +90,11 @@ class CustomTrial(NonAdaptiveTrial):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        PreDeployRoutine(
+            "prepare_s3_bucket_for_presigned_urls",
+            prepare_s3_bucket_for_presigned_urls,
+            {"bucket_name": recordings_s3_bucket, "public_read": True, "create_new_bucket": True}
+        ),
         VolumeCalibration(),
         ModularPage(
             "record_calibrate",
