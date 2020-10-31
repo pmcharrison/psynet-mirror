@@ -2,7 +2,7 @@
 Basic usage
 ===========
 
-Once installed (see :doc:`installation`), you can import ``psynet`` like any other Python package:
+Once installed (see :doc:`../installation`), you can import ``psynet`` like any other Python package:
 
 ::
 
@@ -25,37 +25,56 @@ In particular, to add your GitLab password, you can do something like this:
 
     git+https://<username>:<password>@gitlab.com/computational-audition-lab/psynet#egg=psynet
 
-Alternatively, you can create a personal access token (PAT) for your GitLab account 
-with read-only permissions and include it as follows:
+Alternatively, you can use a *deploy token* by simply copying the already prepared deploy token 
+
+``qgwAvbx7C8J59CtiswKp``
+
+of the user with username *cap* and include it as follows:
 
 ::
 
-    git+https://<pat>@gitlab.com/computational-audition-lab/psynet#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet#egg=psynet
+
+*\*In case you want to use a different deploy token, please consult the section on* :ref:`Deploy tokens` *for how to generate those.*
 
 The above line will always deploy the most recent commit in the `master` branch. But there exist also several ways for specifying a different particular version of ``psynet`` when deploying an experiment. This can be e.g. a *version tag*, a *branch name*, or a *commit hash*. We recommend specifying a particular Git commit hash like ``000b14389171a9f0d7d713466b32bc649b0bed8e`` in the case you want to be sure your experiment always deploys with the same version of ``psynet`` even if the package subsequently changes. You can find this ``<commit_hash>`` in GitLab or similar. For example:
 
 ::
 
-    git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<commit_hash>#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet@<commit_hash>#egg=psynet
 
 In the same way you can use a Git version tag ``<tag>`` like ``v1.5.0`` to always deploy a certain tagged commit:
 
 ::
 
-    git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<tag>#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet@<tag>#egg=psynet
 
 Contrary to the above, use a branch name ``<branch_name>`` like ``dev`` in case you want to deploy an experiment always using the most recent commit in a certain Git branch:
 
 ::
 
-    git+https://<pat>@gitlab.com/computational-audition-lab/psynet@<branch_name>#egg=psynet
+    git+https://cap:qgwAvbx7C8J59CtiswKp@gitlab.com/computational-audition-lab/psynet@<branch_name>#egg=psynet
 
-Like any other Dallinger experiment, an experiment implementation requires an `experiment.py` file
-in your main directory, as well as a `static` folder and a `templates` folder. 
-We plan to release a cookiecutter template to create these files for you, 
-so you can begin by just editing the template.
-The instructions below describe some differences between a traditional experiment 
-and an experiment using ``psynet``.
+Custom packages
+---------------
+
+When using a custom package in a Dallinger/PsyNet experiment, you also need to include it in your experiment’s ``requirements.txt``. You can use a package by including the following in your requirements:  
+
+.. code-block:: console
+
+  -e git+<link_to_repository>@<commit_hash_or_branch_name>#egg=<package_name>
+
+For example,
+
+.. code-block:: console
+
+  -e git+https://gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
+
+If the repository is a private repository, you will need to generate a custom deploy token. Follow the process described in :ref:`Deploy tokens` and based on the above example replace ``username`` and ``deploy_token`` in the line below accordingly.
+
+.. code-block:: console
+
+  -e git+https://<username>:<deploy_token>@gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
 
 The experiment class
 --------------------

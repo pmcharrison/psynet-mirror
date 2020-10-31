@@ -1,9 +1,9 @@
 .. _developer:
 .. highlight:: shell
 
-========================
-Basic setup and workflow
-========================
+==============
+Basic workflow
+==============
 
 Before starting to contribute to PsyNet you need to carry out a developer installation on your local computer. Follow the instructions in :ref:`Developer installation` and come back here once you are done.
 
