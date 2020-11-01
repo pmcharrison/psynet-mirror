@@ -1,15 +1,25 @@
 # Changelog
 
+## [1.6.0] Unreleased
+
+#### Added
+- Command-line functions psynet debug, psynet sandbox, psynet deploy.
+- ``PreDeployRoutine`` for inclusion into a experiment timeline.
+- Limits to participant and experiment payments by introducing ``max_participant_payment`` and ``soft_max_experiment_payment`` including a visualisation in the dashboard and sending out notification emails.
+- Documentation for creating deploy tokens for custom packages and a deploy token for deployment of the ``psynet`` package.
+- Developer documentation.
+
+
 ## [1.5.1] Released on 2020-10-14
 
-### Changes
+#### Changes
 
 - Improve data export directory structure
 
 
 ## [1.5.0] Released on 2020-10-13
 
-### New features
+#### Added
 
 - Add a new tab to the dashboard in order to monitor the progress been made in the individual modules included in a timeline and to provide additional information about a module in a details box and tooltip.
 - Improve upload of audio recordings to S3 by auto-triggering the upload right after the end of recording.
@@ -17,7 +27,7 @@
 - Document existing pre-screening tasks and write a tutorial
 - Update deployment documentation
 
-### Changes
+#### Changes
 
 - Move pre-screening tasks into new prescreen module.
 - Attempt to fix networks not growing after async post trial
