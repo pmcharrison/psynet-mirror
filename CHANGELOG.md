@@ -4,8 +4,8 @@
 
 #### Added
 - Command-line functions psynet debug, psynet sandbox, psynet deploy.
-- ``PreDeployRoutine`` for inclusion into a experiment timeline.
-- Limits to participant and experiment payments by introducing ``max_participant_payment`` and ``soft_max_experiment_payment`` including a visualisation in the dashboard and sending out notification emails.
+- ``PreDeployRoutine`` for inclusion into an experiment timeline.
+- Limits for participant and experiment payments by introducing ``max_participant_payment`` and ``soft_max_experiment_payment`` including a visualisation in the dashboard and sending out notification emails.
 - Documentation for creating deploy tokens for custom packages and a deploy token for deployment of the ``psynet`` package.
 - Developer documentation.
 
