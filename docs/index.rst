@@ -3,24 +3,42 @@ PsyNet Documentation
 
 .. toctree::
    :maxdepth: 1
-   :caption: Vignettes and tutorials
+   :caption: Introduction
 
    about
    how_to_use
    installation
+   command_line
    demo
-   basic_usage
-   timeline
-   trial_overview
-   modular_page
-   unity_page
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Experimenter documentation
+   :glob:
+
+   experimenter/basic_usage
+   experimenter/timeline
+   experimenter/trial_overview
+   experimenter/modular_page
+   experimenter/unity_page
+   experimenter/deploy_tokens
+   
 .. toctree::
    :maxdepth: 2
    :caption: Specific implementations
    :glob:
 
    implementations/*
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Developer documentation
+   :glob:
+
+   developer/working_with_git
+   developer/basic_workflow
+   developer/prescreening_tasks
+   developer/updating_documentation
 
 .. toctree::
    :maxdepth: 2

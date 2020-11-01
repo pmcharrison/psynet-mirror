@@ -23,3 +23,33 @@
 - Attempt to fix networks not growing after async post trial
 - Bugfix: Enable vertical arrangement of buttons in NAFCControl
 
+
+## [1.4.2]
+
+- Fixing recruitment bug in chain experiments.
+
+
+## [1.4.0]
+
+- Extending extra_vars as displayed in the dashboard.
+
+
+## [1.3.0]
+
+- Added video visualisation.
+
+
+## [1.2.1]
+
+- Bugfix, now `reverse_scale` works in slider pages.
+
+
+## [1.2.0]
+
+- Introducing aggregated MCMCP.
+
+
+## [1.0.0]
+
+- Added regression tests.
+- Upgraded to Bootstrap 4 and improved UI elements.

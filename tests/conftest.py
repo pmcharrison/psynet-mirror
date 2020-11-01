@@ -50,7 +50,7 @@ def demo_mcmcp(root):
 @pytest.fixture
 def experiment_module(db_session):
     import psynet.utils
-    return psynet.utils.import_local_experiment()
+    return psynet.utils.import_local_experiment().get("module")
 
 @pytest.fixture
 def experiment_class(experiment_module):
