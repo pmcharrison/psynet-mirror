@@ -1,11 +1,12 @@
 $(document).ready(function() {
+  $('.chart.spending').append('<div class="progress spending" data-html="true">' + '<div class="progress-bar spending" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show spending">···</span></div></div>');
   $.each(timeline_modules["modules"], function() {
-    $('.chart').append('<div class="progress ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' + '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show ' + this['id'] + '">' + this['id'] + '</span></div></div>');
+    $('.chart').append('<div class="progress modules ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' + '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show ' + this['id'] + '">' + this['id'] + '</span></div></div>');
   });
 
-  $('.progress').tooltip();
+  $('.progress.modules').tooltip();
 
-  $('.progress').click(function(data) {
+  $('.progress.modules').click(function(data) {
     updateDetails($(this).data('module-id'))
   });
 
@@ -16,7 +17,21 @@ $(document).ready(function() {
   setInterval(function() {
     $.get('/module/progress_info', get_data)
       .done(function(data) {
+        // update spending
+        let soft_max_experiment_payment = data['spending']['soft_max_experiment_payment'].toFixed(2)
+        let amount_spent = (data['spending']['amount_spent']).toFixed(2)
+        let spending_percentage = Number((amount_spent / data['spending']['soft_max_experiment_payment'] * 100).toFixed(1))
+        $('.show.spending').text('Spent: ' + amount_spent + '$ of ' + soft_max_experiment_payment + '$ (max.) ' + spending_percentage + '%')
+        let status = ''
+        if (spending_percentage >= 80 && spending_percentage < 90) {
+          status = 'scarce'
+        } else if (spending_percentage >= 90) {
+          status = 'very-scarce'
+        }
+        $('.progress-bar.spending').css('width', spending_percentage + '%').addClass(status);
+        $('.progress.spending').addClass(status);
 
+        // update progress
         $.each(module_ids, function(index, module_id) {
           let has_target = data[module_id]['target_num_participants'] ? true : false
           let progress_percentage = Number((data[module_id]['progress'] * 100).toFixed(1))
@@ -29,7 +44,7 @@ $(document).ready(function() {
       });
   }, 2000);
 
-  $('.progress').mouseenter(function(data) {
+  $('.progress.modules').mouseenter(function(data) {
     updateTooltip($(this).data('module-id'))
   });
 });
