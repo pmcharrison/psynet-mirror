@@ -3,11 +3,12 @@
 ## [1.6.0] Unreleased
 
 #### Added
-- Command-line functions psynet debug, psynet sandbox, psynet deploy.
+- Command-line functions ``psynet debug``, ``psynet sandbox``, ``psynet deploy``.
 - ``PreDeployRoutine`` for inclusion into an experiment timeline.
 - Limits for participant and experiment payments by introducing ``max_participant_payment`` and ``soft_max_experiment_payment`` including a visualisation in the dashboard and sending out notification emails.
 - Documentation for creating deploy tokens for custom packages and a deploy token for deployment of the ``psynet`` package.
-- Developer documentation.
+- Ubuntu 20.04 installation documentation (``INSTALL_UBUNTU.md``)
+- Developer documentation 
 
 
 ## [1.5.1] Released on 2020-10-14

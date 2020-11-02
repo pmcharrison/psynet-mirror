@@ -43,8 +43,9 @@ sudo service postgresql reload
 ```bash
 sudo snap install heroku --classic
 ```
-```bash
+
 # Install Python virtualenv
+```bash
 sudo pip3 install virtualenv
 sudo pip3 install virtualenvwrapper
 ```
@@ -65,6 +66,7 @@ echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 ```bash
 cd ~
 git clone https://github.com/Dallinger/Dallinger
+cd Dallinger
 ```
 
 ### IMPORTANT: Modify following files in Dallinger
@@ -85,7 +87,6 @@ git clone https://github.com/Dallinger/Dallinger
 
 ## Continue installation
 ```bash
-cd Dallinger
 pip install -r dev-requirements.txt
 ```
 ## IMPORTANT: Be sure numpy==1.17.4 is installed
