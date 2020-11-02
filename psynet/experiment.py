@@ -300,12 +300,13 @@ class Experiment(dallinger.experiment.Experiment):
     def check_bonus(self, bonus, participant):
         """
         Ensures that a participant receives no more than a bonus of max_participant_payment.
-        Additionally, checks if both soft_max_experiment_payment or max_participant_payment have been reached or exceed, resp. Emails are sent out warning the user if either is true.
+        Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
+        been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
 
-        :param bonus : float
-            The bonus calculated in :func:`~psynet.experiment.Experiment.calculate_bonus()`
+        :param bonus: float
+            The bonus calculated in :func:`~psynet.experiment.Experiment.calculate_bonus()`.
         :type participant:
-            :attr:`~psynet.participant.Participant`
+            :attr: `~psynet.participant.Participant`
         :returns:
             The possibly reduced bonus as a ``float``.
         """
