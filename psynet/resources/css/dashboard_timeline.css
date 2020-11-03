@@ -34,12 +34,39 @@ figure {
     background-color: #007bff;
 }
 
+.progress.spending {
+    height: 25px;
+    margin-bottom: 10px;
+    cursor: default;
+    background-color: #28a745;
+}
+
+.progress.spending.scarce {
+    background-color: #ffc107;
+}
+
+.progress.spending.very-scarce {
+    background-color: #dc3545;
+}
+
 .progress:hover {
     opacity: .65;
 }
 
 .progress-bar {
     background-color: #34487E;
+}
+
+.progress-bar.spending {
+    background-color: #1e7e34;
+}
+
+.progress-bar.spending.scarce {
+    background-color: #d39e00;
+}
+
+.progress-bar.spending.very-scarce {
+    background-color: #bd2130;
 }
 
 ul.details {
