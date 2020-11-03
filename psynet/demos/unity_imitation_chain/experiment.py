@@ -74,19 +74,20 @@ class CustomUnityPage(UnityPage):
 class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    session_id = str(uuid4())
     num_pages = 2
 
     def show_trial(self, experiment, participant):
-        session_id = str(uuid4())
         page_1 = InfoPage("Welcome to the Unity imitation chain experiment")
         page_2 = CustomUnityPage(
             title="Unity imitation chain experiment",
             game_container_width="960px",
             game_container_height="600px",
-            contents= self.definition,
+            contents=self.definition,
+            participant=self.participant,
             resources="/static",
             time_estimate=5,
-            session_id = session_id,
+            session_id=self.session_id,
         )
         # page_3 = CustomUnityPage(
         #     title="Unity imitation chain experiment",
@@ -163,7 +164,7 @@ class Exp(psynet.experiment.Experiment):
             source_class=CustomSource,
             phase="experiment",
             time_estimate_per_trial=60,
-            chain_type="across",
+            chain_type="within",
             num_nodes_per_chain=5,
             num_trials_per_participant=1,
             num_chains_per_participant=1,

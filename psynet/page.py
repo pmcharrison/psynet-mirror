@@ -10,6 +10,7 @@ from math import ceil
 import itertools
 import json
 
+from .participant import Participant
 from .timeline import (
     get_template,
     join,
@@ -114,6 +115,9 @@ class UnityPage(Page):
     session_id:
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with JavaScript code like window.addEventListener(”page_updated”, ...).
 
+    debug:
+        Specifies if we are in debug mode and use `unity-debug-page.html` as template instead of the standard `unity-page.html`.
+
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
@@ -123,26 +127,31 @@ class UnityPage(Page):
             title: str,
             resources: str,
             contents: dict,
+            participant: Participant,
             session_id: str,
             game_container_width: str = "960px",
             game_container_height: str = "600px",
             time_estimate: Optional[float] = None,
+            debug: bool = True, # False,
             **kwargs,
     ):
         self.title = title
         self.resources = resources
+        self.participant = participant
         self.game_container_width = game_container_width
         self.game_container_height = game_container_height
         self.session_id = session_id
 
+        template = "unity-debug-page.html" if debug else "unity-page.html"
         super().__init__(
             contents = contents,
             time_estimate = time_estimate,
-            template_str = get_template("unity-page.html"),
+            template_str = get_template(template),
             template_arg = {
                 "title": self.title,
                 "resources": "" if resources is None else resources,
                 "contents": {} if contents is None else contents,
+                "participant": self.participant,
                 "game_container_width": self.game_container_width,
                 "game_container_height": self.game_container_height,
                 "session_id": self.session_id,
