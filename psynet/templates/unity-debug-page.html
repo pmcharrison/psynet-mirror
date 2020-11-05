@@ -1,0 +1,18 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Unity debug page</title>
+    <meta http-equiv="refresh" content="5">
+  </head>
+  <body>
+    <h1>Unity debug page</h1>
+    <h2>Please go to Unity IDE!</h2>
+    <ul>
+      <li>Session ID: {{ session_id }}</li>
+      <li>Page contents: {{ contents }}</li>
+      <li>Participant: {{ participant.__json__() }}</li>
+    </ul>
+    [Let’s spend some time thinking about other useful debug information we can add here.]
+    [e.g. last answer]
+  </body>
+</html>
