@@ -47,9 +47,15 @@ def import_local_experiment():
     dallinger_experiment = sys.modules.get("dallinger_experiment")
     sys.path.append(os.getcwd())
     import dallinger.experiment
+    try:
+        module = dallinger_experiment.experiment
+    except AttributeError as e:
+        raise Exception(f"Possible ModuleNotFoundError in your experiment's experiment.py file. " \
+                        f"Please check your imports!\nOriginal error was \"AttributeError: {e}\"")
+
     return {
         "package": dallinger_experiment,
-        "module": dallinger_experiment.experiment,
+        "module": module,
         "class": dallinger.experiment.load()
     }
 
