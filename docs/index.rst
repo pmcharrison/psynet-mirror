@@ -21,6 +21,8 @@ PsyNet Documentation
    experimenter/trial_overview
    experimenter/modular_page
    experimenter/unity_page
+   experimenter/pre_deploy_routines
+   experimenter/payment_limits
    experimenter/deploy_tokens
    
 .. toctree::

@@ -139,6 +139,23 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
 
 
+### estimate ###
+@psynet.command()
+@click.option("--mode", default="both", type=click.Choice(['bonus', 'time', 'both']), help="Type of result. Can be either 'bonus', 'time', or 'both'")
+def estimate(mode):
+    """
+    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    """
+    dallinger_log(header)
+    experiment_class = import_local_experiment()["class"]
+    if mode in ["bonus", "both"]:
+        maximum_bonus = experiment_class.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=experiment_class.wage_per_hour)
+        dallinger_log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
+    if mode in ["time", "both"]:
+        completion_time = experiment_class.timeline.estimate_time_credit().get_max("time", wage_per_hour=experiment_class.wage_per_hour)
+        dallinger_log(f"Estimated time to complete experiment: {format_seconds(completion_time)}.")
+
+
 ### export ###
 @psynet.command()
 @click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode")
@@ -147,7 +164,6 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
 @click.option("--force-prepare", is_flag=True, flag_value=False, help="Force override of cache.")
 @click.pass_context
 def export(ctx, verbose, app, local, force_prepare):
-
     """
         Export data from an experiment.
 
@@ -236,3 +252,7 @@ def move_snapshot_file(data_dir_path, app):
     except OSError as e:
         if e.errno != errno.EEXIST or not os.path.isdir(db_snapshot_path):
             raise
+
+def format_seconds(seconds):
+    minutes_and_seconds = divmod(seconds, 60)
+    return f"{round(minutes_and_seconds[0])} min {round(minutes_and_seconds[1])} sec"
