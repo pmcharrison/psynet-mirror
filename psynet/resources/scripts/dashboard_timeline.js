@@ -1,7 +1,7 @@
 $(document).ready(function() {
   $('.chart.spending').append('<div class="progress spending" data-html="true">' + '<div class="progress-bar spending" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show spending">···</span></div></div>');
   $.each(timeline_modules["modules"], function() {
-    $('.chart').append('<div class="progress modules ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' + '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show ' + this['id'] + '">' + this['id'] + '</span></div></div>');
+    $('.chart.modules').append('<div class="progress modules ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' + '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show ' + this['id'] + '">' + this['id'] + '</span></div></div>');
   });
 
   $('.progress.modules').tooltip();
