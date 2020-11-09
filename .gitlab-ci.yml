@@ -1,4 +1,4 @@
-image: python:3.7.0
+image: python:3.7
 
 services:
   - postgres:12.2-alpine
@@ -34,7 +34,7 @@ tests:
   - pytest --chrome tests/
 
 pages:
-  stage: deploy
+  stage: test
   script:
   - pip install -U sphinx
   - pip install sphinx_rtd_theme
