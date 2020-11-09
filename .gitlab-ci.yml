@@ -34,7 +34,7 @@ tests:
   - pytest --chrome tests/
 
 pages:
-  stage: test
+  stage: deploy
   script:
   - pip install -U sphinx
   - pip install sphinx_rtd_theme
@@ -44,5 +44,3 @@ pages:
     paths:
     - public
     - public/low_level
-  only:
-  - master
