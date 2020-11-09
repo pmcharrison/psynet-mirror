@@ -6,8 +6,105 @@ Command-Line Utility
 
 PsyNet is executed from the command line within the experiment directory.
 
-Export data from an experiment
-------------------------------
+Commands:
+
+| :ref:`debug <debug>`
+| :ref:`sandbox <sandbox>`
+| :ref:`deploy <deploy>`
+| :ref:`estimate <estimate>`
+| :ref:`export <export>`
+
+.. _debug:
+
+Run an experiment locally (``debug``)
+-------------------------------------
+
+Start an experiment in debug mode with verbose output on localhost port 5000.
+
+.. code:: bash
+
+  psynet debug --verbose
+
+**Usage**
+
+.. code:: bash
+  
+  psynet debug [OPTIONS]
+
+  Options:
+    --verbose        Verbose mode
+    --bot            Use bot to complete experiment
+    --proxy TEXT     Alternate port when opening browser windows
+    --no-browsers    Skip opening browsers
+    --force-prepare  Force override of cache.
+    --help           Show this message and exit.
+
+.. _sandbox:
+
+Sandbox an experiment (``sandbox``)
+-----------------------------------
+
+Deploy an experiment using Heroku to the MTurk Sandbox.
+
+**Usage**
+
+.. code:: bash
+  
+  psynet sandbox [OPTIONS]
+
+  Options:
+    --verbose        Verbose mode
+    --app TEXT       Experiment id
+    --archive TEXT   Optional path to an experiment archive
+    --force-prepare  Force override of cache.
+    --help           Show this message and exit.
+
+.. _deploy:
+
+Deploy an experiment (``deploy``)
+---------------------------------
+
+Deploy an experiment using Heroku to MTurk.
+
+**Usage**
+
+.. code:: bash
+  
+  psynet deploy [OPTIONS]
+
+  Options:
+    --verbose        Verbose mode
+    --app TEXT       ID of the deployed experiment
+    --archive TEXT   Optional path to an experiment archive
+    --force-prepare  Force override of cache.
+    --help           Show this message and exit.
+
+.. _estimate:
+
+Estimate maximum bonus and completion time (``estimate``)
+---------------------------------------------------------
+
+Estimate a participant's maximum bonus and time to complete the experiment.
+
+.. code:: bash
+
+  psynet estimate
+
+**Usage**
+
+.. code:: bash
+  
+  psynet estimate [OPTIONS]
+
+  Options:
+    --mode [bonus|time|both]  Type of result. Can be either 'bonus', 'time', or 'both'.
+                              Default: 'both'.
+    --help                    Show this message and exit.
+
+.. _export:
+
+Export data from an experiment (``export``)
+-------------------------------------------
 
 The data is exported in three distinct formats into the ``data/data-<APP_ID>``
 directory of an experiment which has following structure:
@@ -31,17 +128,20 @@ Local export
 ************
 
 .. code:: bash
-  
+
   psynet export --local --app APP_ID
 
 .. note::
   Make sure you have an instance of PsyNet runnning on localhost port 5000.
 
+                Show this message and exit.
+
+
 Export from sandbox/production
 ******************************
 
 .. code:: bash
-  
+
   psynet export --app APP_ID
 
 **Usage**
@@ -54,66 +154,5 @@ Export from sandbox/production
     --verbose        Verbose mode
     --app TEXT       Experiment id
     --local          Export local data
-    --force-prepare  Force override of cache.
-    --help           Show this message and exit.
-
-Run an experiment locally
--------------------------
-
-Start an experiment in debug mode with verbose output on localhost port 5000.
-
-.. code:: bash
-
-  psynet debug --verbose
-
-**Usage**
-
-.. code:: bash
-  
-  psynet debug [OPTIONS]
-
-  Options:
-    --verbose        Verbose mode
-    --bot            Use bot to complete experiment
-    --proxy TEXT     Alternate port when opening browser windows
-    --no-browsers    Skip opening browsers
-    --force-prepare  Force override of cache.
-    --help           Show this message and exit.
-
-
-Sandbox an experiment
----------------------
-
-Deploy an experiment using Heroku to the MTurk Sandbox.
-
-**Usage**
-
-.. code:: bash
-  
-  psynet sandbox [OPTIONS]
-
-  Options:
-    --verbose        Verbose mode
-    --app TEXT       Experiment id
-    --archive TEXT   Optional path to an experiment archive
-    --force-prepare  Force override of cache.
-    --help           Show this message and exit.
-
-
-Deploy an experiment 
---------------------
-
-Deploy an experiment using Heroku to MTurk.
-
-**Usage**
-
-.. code:: bash
-  
-  psynet deploy [OPTIONS]
-
-  Options:
-    --verbose        Verbose mode
-    --app TEXT       ID of the deployed experiment
-    --archive TEXT   Optional path to an experiment archive
     --force-prepare  Force override of cache.
     --help           Show this message and exit.
