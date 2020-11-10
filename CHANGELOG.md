@@ -6,7 +6,8 @@
 - Command-line functions ``psynet debug``, ``psynet sandbox``, ``psynet deploy``.
 - ``PreDeployRoutine`` for inclusion into an experiment timeline.
 - Limits for participant and experiment payments by introducing ``max_participant_payment`` and ``soft_max_experiment_payment`` including a visualisation in the dashboard and sending out notification emails.
-- New `psynet estimate` command for estimating a participant's maximum bonus and time to complete the experiment.
+- `psynet estimate` command for estimating a participant's maximum bonus and time to complete the experiment.
+- `client_ip_address` attribute to `Participant`.
 - Reorganisation of documentation menu, incl. new menu items `Experimenter documentation` and `Developer documentation`.
 - Documentation for creating deploy tokens for custom packages and a deploy token for deployment of the ``psynet`` package.
 - Ubuntu 20.04 installation documentation (``INSTALL_UBUNTU.md``)
