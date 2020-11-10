@@ -150,6 +150,14 @@ class Experiment(dallinger.experiment.Experiment):
     def amount_spent(cls):
         return sum([(0.0 if p.base_payment is None else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
 
+    @classmethod
+    def estimated_max_bonus(cls):
+        return cls.timeline.estimated_max_bonus(cls)
+
+    @classmethod
+    def estimated_completion_time(cls):
+        return cls.timeline.estimated_completion_time(cls)
+
     def setup(self):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
