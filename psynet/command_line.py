@@ -29,6 +29,7 @@ from dallinger.models import (
 from dallinger.utils import get_base_url
 
 from psynet import __version__
+from .experiment import ExperimentNetwork
 from .utils import (
     import_local_experiment,
     json_to_data_frame,
@@ -148,11 +149,12 @@ def estimate(mode):
     """
     dallinger_log(header)
     experiment_class = import_local_experiment()["class"]
+    experiment_network = ExperimentNetwork()
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=experiment_class.wage_per_hour)
+        maximum_bonus = experiment_class.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=experiment_network.details[0].get("wage_per_hour"))
         dallinger_log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
-        completion_time = experiment_class.timeline.estimate_time_credit().get_max("time", wage_per_hour=experiment_class.wage_per_hour)
+        completion_time = experiment_class.timeline.estimate_time_credit().get_max("time", wage_per_hour=experiment_network.details[0].get("wage_per_hour"))
         dallinger_log(f"Estimated time to complete experiment: {format_seconds(completion_time)}.")
 
 
