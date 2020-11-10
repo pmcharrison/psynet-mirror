@@ -113,6 +113,7 @@ class Participant(dallinger.models.Participant):
     base_payment = claim_var("base_payment", __extra_vars__)
     performance_bonus = claim_var("performance_bonus", __extra_vars__)
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
+    client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
 
     def __json__(self):
         x = super().__json__()

@@ -150,6 +150,14 @@ class Experiment(dallinger.experiment.Experiment):
     def amount_spent(cls):
         return sum([(0.0 if p.base_payment is None else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
 
+    @classmethod
+    def estimated_max_bonus(cls):
+        return cls.timeline.estimated_max_bonus(cls)
+
+    @classmethod
+    def estimated_completion_time(cls):
+        return cls.timeline.estimated_completion_time(cls)
+
     def setup(self):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
@@ -331,7 +339,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid):
+    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         event = self.timeline.get_current_event(self, participant)
@@ -344,6 +352,7 @@ class Experiment(dallinger.experiment.Experiment):
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
+                client_ip_address=client_ip_address
             )
             validation = event.validate(
                 response,
@@ -547,13 +556,14 @@ class Experiment(dallinger.experiment.Experiment):
             json_data = json.loads(request.values["json"])
             logger.info(json_data)
             blobs = request.files.to_dict()
+            client_ip_address = request.remote_addr
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
 
-            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid)
+            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
 
             exp.save()
             return res

@@ -1,4 +1,4 @@
-image: python:3.7.0
+image: python:3.7
 
 services:
   - postgres:12.2-alpine
@@ -44,5 +44,3 @@ pages:
     paths:
     - public
     - public/low_level
-  only:
-  - master

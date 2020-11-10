@@ -1,7 +1,7 @@
 $(document).ready(function() {
   $('.chart.spending').append('<div class="progress spending" data-html="true">' + '<div class="progress-bar spending" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show spending">···</span></div></div>');
   $.each(timeline_modules["modules"], function() {
-    $('.chart').append('<div class="progress modules ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' + '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show ' + this['id'] + '">' + this['id'] + '</span></div></div>');
+    $('.chart.modules').append('<div class="progress modules ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' + '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"><span class="show ' + this['id'] + '">' + this['id'] + '</span></div></div>');
   });
 
   $('.progress.modules').tooltip();
@@ -21,7 +21,7 @@ $(document).ready(function() {
         let soft_max_experiment_payment = data['spending']['soft_max_experiment_payment'].toFixed(2)
         let amount_spent = (data['spending']['amount_spent']).toFixed(2)
         let spending_percentage = Number((amount_spent / data['spending']['soft_max_experiment_payment'] * 100).toFixed(1))
-        $('.show.spending').text('Spent: ' + amount_spent + '$ of ' + soft_max_experiment_payment + '$ (max.) ' + spending_percentage + '%')
+        $('.show.spending').text('Spent: $' + amount_spent + ' of $' + soft_max_experiment_payment + ' (max.) ' + spending_percentage + '%')
         let status = ''
         if (spending_percentage >= 80 && spending_percentage < 90) {
           status = 'scarce'
