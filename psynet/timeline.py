@@ -32,7 +32,7 @@ from functools import reduce
 
 logger = get_logger()
 
-from .field import claim_field
+from .field import claim_field, claim_var, VarStore
 
 # pylint: disable=unused-import
 import rpdb
@@ -396,7 +396,7 @@ class Page(Event):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
-    def process_response(self, raw_answer, blobs, metadata, experiment, participant):
+    def process_response(self, raw_answer, blobs, metadata, experiment, participant, client_ip_address):
         answer = self.format_answer(
             raw_answer,
             blobs=blobs,
@@ -417,8 +417,10 @@ class Page(Event):
             label=self.label,
             answer=answer,
             page_type=type(self).__name__,
-            metadata=combined_metadata
+            metadata=combined_metadata,
+            client_ip_address=client_ip_address
         )
+        participant.client_ip_address = client_ip_address
         db.session.add(resp)
         db.session.commit()
 
@@ -1006,6 +1008,8 @@ class Response(Question):
     page_type = claim_field(1, "page_type", __extra_vars__, str)
     successful_validation = claim_field(2, "successful_validation", __extra_vars__, bool)
 
+    client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
+
     @hybrid_property
     def answer(self):
         if self.response is None:
@@ -1019,7 +1023,11 @@ class Response(Question):
         # but the response field is non-nullable.
         self.response = json.dumps(answer)
 
-    def __init__(self, participant, label, answer, page_type, metadata):
+    @property
+    def var(self):
+        return VarStore(self)
+
+    def __init__(self, participant, label, answer, page_type, metadata, client_ip_address):
         super().__init__(
             participant=participant,
             question=label,
@@ -1030,6 +1038,7 @@ class Response(Question):
         self.metadata = metadata
         self.page_type = page_type
         self.metadata = metadata
+        self.client_ip_address = client_ip_address
 
     @property
     def metadata(self):
