@@ -16,6 +16,7 @@ from dallinger.experiment_server.utils import (
     success_response,
     error_response
 )
+from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 
 from .participant import get_participant, Participant
@@ -80,9 +81,6 @@ class Experiment(dallinger.experiment.Experiment):
         SuccessfulEndPage()
     )
 
-    max_participant_payment = 25.0
-    soft_max_experiment_payment = 1000.0
-    wage_per_hour = 9.0
     min_browser_version = "80.0"
     # min_working_participants = 5
     pre_deploy_routines = []
@@ -103,6 +101,7 @@ class Experiment(dallinger.experiment.Experiment):
 
         if session:
             self.setup()
+            self.setup_experiment_variables()
 
         for event in self.timeline.events:
             if isinstance(event, PreDeployRoutine):
@@ -164,6 +163,17 @@ class Experiment(dallinger.experiment.Experiment):
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):
             dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
+
+    def setup_experiment_variables(self):
+        if ExperimentNetwork.query.count() == 0:
+            network = ExperimentNetwork()
+            db.session.add(network)
+            db.session.commit()
+
+        experiment_network = ExperimentNetwork.query.one()
+        self.__class__.max_participant_payment = experiment_network.details[0].get("max_participant_payment")
+        self.__class__.soft_max_experiment_payment = experiment_network.details[0].get("soft_max_experiment_payment")
+        self.__class__.wage_per_hour = experiment_network.details[0].get("wage_per_hour")
 
     @classmethod
     def pre_deploy(cls):
@@ -577,3 +587,16 @@ class Experiment(dallinger.experiment.Experiment):
             return success_response()
 
         return routes
+
+
+class ExperimentNetwork(Network):
+    __mapper_args__ = {"polymorphic_identity": "experiment_network"}
+
+    def __init__(self):
+        self.details = {
+            "max_participant_payment": 25.0,
+            "soft_max_experiment_payment": 1000.0,
+            "wage_per_hour": 9.0,
+        },
+        self.role = "config",
+        self.max_size = 0
