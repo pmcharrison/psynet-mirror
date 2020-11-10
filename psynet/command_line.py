@@ -64,9 +64,8 @@ def psynet():
 
 ### prepare ###
 @psynet.command()
-@click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode.")
-@click.option("--force", is_flag=True, flag_value=True, help="Force override of cache.")
-def prepare(verbose, force):
+@click.option("--force", is_flag=True, help="Force override of cache.")
+def prepare(force):
     """
     Prepares all stimulus sets defined in experiment.py,
     uploading all media files to Amazon S3.
@@ -82,9 +81,9 @@ def prepare(verbose, force):
 
 ### debug ###
 @psynet.command()
-@click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode")
+@click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option(
-    "--bot", is_flag=True, flag_value=True, help="Use bot to complete experiment"
+    "--bot", is_flag=True, help="Use bot to complete experiment"
 )
 @click.option(
     "--proxy", default=None, help="Alternate port when opening browser windows"
@@ -92,56 +91,54 @@ def prepare(verbose, force):
 @click.option(
     "--no-browsers",
     is_flag=True,
-    flag_value=True,
-    default=False,
     help="Skip opening browsers",
 )
-@click.option("--force-prepare", is_flag=True, flag_value=False, help="Force override of cache.")
+@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
 def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     """
     Run the experiment locally.
     """
     dallinger_log(header)
-    ctx.invoke(prepare, verbose=verbose, force=force_prepare)
+    ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers)
 
 
 ### deploy ###
 @psynet.command()
-@click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode")
-@click.option("--app", default=None, help="ID of the deployed experiment")
+@click.option("--verbose", is_flag=True, help="Verbose mode")
+@click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option("--force-prepare", is_flag=True, flag_value=False, help="Force override of cache.")
+@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
 def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
     dallinger_log(header)
-    ctx.invoke(prepare, verbose=verbose, force=force_prepare)
+    ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
 
 
 ### sandbox ###
 @psynet.command()
-@click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode")
+@click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
-@click.option("--force-prepare", is_flag=True, flag_value=False, help="Force override of cache.")
+@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.pass_context
 def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
     dallinger_log(header)
-    ctx.invoke(prepare, verbose=verbose, force=force_prepare)
+    ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
 
 
 ### estimate ###
 @psynet.command()
-@click.option("--mode", default="both", type=click.Choice(['bonus', 'time', 'both']), help="Type of result. Can be either 'bonus', 'time', or 'both'")
+@click.option("--mode", default="both", type=click.Choice(['bonus', 'time', 'both']), help="Type of result. Can be either 'bonus', 'time', or 'both'.")
 def estimate(mode):
     """
     Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
@@ -149,21 +146,18 @@ def estimate(mode):
     dallinger_log(header)
     experiment_class = import_local_experiment()["class"]
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=experiment_class.wage_per_hour)
+        maximum_bonus = experiment_class.estimated_max_bonus()
         dallinger_log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
-        completion_time = experiment_class.timeline.estimate_time_credit().get_max("time", wage_per_hour=experiment_class.wage_per_hour)
+        completion_time = experiment_class.estimated_completion_time()
         dallinger_log(f"Estimated time to complete experiment: {format_seconds(completion_time)}.")
 
 
 ### export ###
 @psynet.command()
-@click.option("--verbose", is_flag=True, flag_value=True, help="Verbose mode")
-@click.option("--app", default=None, callback=dallinger_verify_id, help="Experiment id")
-@click.option("--local", is_flag=True, flag_value=True, help="Export local data")
-@click.option("--force-prepare", is_flag=True, flag_value=False, help="Force override of cache.")
-@click.pass_context
-def export(ctx, verbose, app, local, force_prepare):
+@click.option("--app", default=None, required=True, callback=dallinger_verify_id, help="Experiment id")
+@click.option("--local", is_flag=True, help="Export local data")
+def export(app, local):
     """
         Export data from an experiment.
 
@@ -196,7 +190,24 @@ def export(ctx, verbose, app, local, force_prepare):
         spinner.ok("✔")
 
     dallinger_log("Exporting 'json' and 'csv' files.")
-    dallinger_models = [
+    base_url = get_base_url() if local else f"https://dlgr-{app}.herokuapp.com"
+
+    for dallinger_model in dallinger_models():
+        class_name = dallinger_model.__name__
+
+        result = requests.get(f"{base_url}/export",
+                              params={"class_name": class_name})
+        json_data = json.loads(result.content.decode('utf8'))
+
+        for model_name, json_data in json_data.items():
+            base_filename = model_name_to_snake_case(model_name)
+            print(f"Exporting {base_filename} data...")
+            export_data(base_filename, data_dir_path, json_data)
+    dallinger_log("Export completed.")
+
+
+def dallinger_models():
+    return [
         Info,
         Network,
         Node,
@@ -208,29 +219,17 @@ def export(ctx, verbose, app, local, force_prepare):
         Vector,
     ]
 
-    base_url = get_base_url() if local else f"https://dlgr-{app}.herokuapp.com"
-
-    for dallinger_model in dallinger_models:
-        class_name = dallinger_model.__name__
-        result = requests.get(f"{base_url}/export",
-                              params={"class_name": class_name})
-        json_data = json.loads(result.content.decode('utf8'))
-
-        for model_name, json_data in json_data.items():
-            base_filename = model_name_to_snake_case(model_name)
-            print(f"Exporting {base_filename} data...")
-            with yaspin(text="Exporting 'json'...", color="green") as spinner:
-                json_base_filepath = os.path.join(data_dir_path, "json", base_filename)
-                with open(f"{json_base_filepath}.json", "w") as outfile:
+def export_data(base_filename, data_dir_path, json_data):
+    for file_format in ["json", "csv"]:
+        with yaspin(text=f"Exporting '{file_format}'...", color="green") as spinner:
+            base_filepath = os.path.join(data_dir_path, file_format, base_filename)
+            with open(f"{base_filepath}.{file_format}", "w") as outfile:
+                if file_format == "json":
                     json.dump(json_data, outfile, indent=2, sort_keys=False, default=serialise)
-                spinner.ok("✔")
-            with yaspin(text="Exporting 'csv'...", color="green") as spinner:
-                csv_base_filepath = os.path.join(data_dir_path, "csv", base_filename)
-                with open(f"{csv_base_filepath}.csv", "w") as outfile:
+                elif file_format == "csv":
                     data_frame = json_to_data_frame(json_data)
                     data_frame.to_csv(outfile, index=False)
-                spinner.ok("✔")
-    dallinger_log("Export completed.")
+            spinner.ok("✔")
 
 def create_export_dirs(data_dir_path):
     for file_format in ["csv", "db-snapshot", "json"]:
