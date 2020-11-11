@@ -963,11 +963,11 @@ class Timeline():
             if isinstance(new_event, Page) or isinstance(new_event, PageMaker):
                 finished = True
 
-    def estimated_max_bonus(self, wage_per_hour):
-        return self.estimate_time_credit().get_max("bonus", wage_per_hour)
+    def estimated_max_bonus(self, experiment):
+        return self.estimate_time_credit().get_max("bonus", experiment.wage_per_hour)
 
-    def estimated_completion_time(self, wage_per_hour):
-        return self.estimate_time_credit().get_max("time", wage_per_hour)
+    def estimated_completion_time(self, experiment):
+        return self.estimate_time_credit().get_max("time", experiment.wage_per_hour)
 
 def estimate_time_credit(events):
     return sum([
