@@ -19,7 +19,7 @@ from dallinger.experiment_server.utils import (
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 
-from .field import VarStore, claim_var, extra_var
+from .field import VarStore, claim_var
 from .participant import get_participant, Participant
 from .timeline import (
     get_template,
