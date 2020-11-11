@@ -143,11 +143,11 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def estimated_max_bonus(cls):
-        return cls.timeline.estimated_max_bonus()
+        return cls.timeline.estimated_max_bonus(cls)
 
     @classmethod
     def estimated_completion_time(cls):
-        return cls.timeline.estimated_completion_time()
+        return cls.timeline.estimated_completion_time(cls)
 
     @property
     def experiment_initialized(self):
