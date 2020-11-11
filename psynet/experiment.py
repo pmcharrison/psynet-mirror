@@ -181,9 +181,10 @@ class Experiment(dallinger.experiment.Experiment):
             db.session.commit()
 
         experiment_network = ExperimentNetwork.query.one()
+        cls.wage_per_hour = experiment_network.wage_per_hour
         cls.max_participant_payment = experiment_network.max_participant_payment
         cls.soft_max_experiment_payment = experiment_network.soft_max_experiment_payment
-        cls.wage_per_hour = experiment_network.wage_per_hour
+        cls.soft_max_experiment_payment_email_sent = experiment_network.soft_max_experiment_payment_email_sent
 
     @classmethod
     def pre_deploy(cls):
@@ -222,8 +223,8 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def need_more_participants(self):
-        if (self.amount_spent() >= self.soft_max_experiment_payment):
-            self.send_email_max_payment_reached()
+        if self.amount_spent() >= self.soft_max_experiment_payment:
+            self.check_soft_max_experiment_payment_email_sent()
             return False
 
         need_more = False
@@ -244,6 +245,13 @@ class Experiment(dallinger.experiment.Experiment):
             if res:
                 need_more = True
         return need_more
+
+    def check_soft_max_experiment_payment_email_sent(self):
+        if not self.soft_max_experiment_payment_email_sent:
+            self.send_email_max_payment_reached()
+            experiment_network = ExperimentNetwork.query.one()
+            experiment_network.var.soft_max_experiment_payment_email_sent = True
+            self.__class__.soft_max_experiment_payment_email_sent = True
 
     def send_email_max_payment_reached(self):
         config = get_config()
@@ -331,8 +339,8 @@ class Experiment(dallinger.experiment.Experiment):
             The possibly reduced bonus as a ``float``.
         """
         # check soft_max_experiment_payment
-        if (self.amount_spent() + bonus >= self.soft_max_experiment_payment):
-            self.send_email_max_payment_reached()
+        if self.amount_spent() + bonus >= self.soft_max_experiment_payment:
+            self.check_soft_max_experiment_payment_email_sent()
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.max_participant_payment:
             reduced_bonus = round(self.max_participant_payment - participant.amount_paid(), 2)
@@ -439,10 +447,11 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/module/progress_info", methods=["GET"])
         def get_progress_info():
+            experiment_network = ExperimentNetwork.query.one()
             progress_info = {
                 "spending": {
                     "amount_spent": self.amount_spent(),
-                    "soft_max_experiment_payment": self.soft_max_experiment_payment,
+                    "soft_max_experiment_payment": experiment_network.soft_max_experiment_payment,
                 }
             }
             module_ids = request.args.getlist("module_ids[]")
@@ -605,20 +614,18 @@ class ExperimentNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "experiment_network"}
     __extra_vars__ = {}
 
-    max_participant_payment = claim_var("max_participant_payment",
-                                        __extra_vars__,
-                                        use_default=False)
-    soft_max_experiment_payment = claim_var("soft_max_experiment_payment",
-                                            __extra_vars__,
-                                            use_default=False)
-    wage_per_hour = claim_var("wage_per_hour",
-                              __extra_vars__,
-                              use_default=False)
+    wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=False)
+    max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=False)
+    soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=False)
+    soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent",
+                                                       __extra_vars__,
+                                                       use_default=False)
 
     def __init__(self):
-        self.var.max_participant_payment = 25.0
-        self.var.soft_max_experiment_payment = 1000.0
         self.var.wage_per_hour = 9.0
+        self.var.max_participant_payment = 25.0
+        self.var.soft_max_experiment_payment = 1.30 #1000.0
+        self.soft_max_experiment_payment_email_sent = False
         self.role = "config"
         self.max_size = 0
 
