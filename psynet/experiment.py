@@ -87,6 +87,7 @@ class Experiment(dallinger.experiment.Experiment):
     min_browser_version = claim_var("min_browser_version", __extra_vars__, use_default=True, default="80.0")
     max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=True, default=25.0)
     soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
+    soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
     wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
 
     pre_deploy_routines = []
@@ -171,6 +172,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.min_browser_version = "80.0"
         self.max_participant_payment = 25.0
         self.soft_max_experiment_payment = 1000.0
+        self.soft_max_experiment_payment_email_sent = False
         self.wage_per_hour = 9.0
 
     def load_experiment(self):
@@ -265,9 +267,7 @@ class Experiment(dallinger.experiment.Experiment):
     def check_soft_max_experiment_payment_email_sent(self):
         if not self.soft_max_experiment_payment_email_sent:
             self.send_email_max_payment_reached()
-            experiment_network = ExperimentNetwork.query.one()
-            experiment_network.var.soft_max_experiment_payment_email_sent = True
-            self.__class__.soft_max_experiment_payment_email_sent = True
+            self.var.soft_max_experiment_payment_email_sent = True
 
     def send_email_max_payment_reached(self):
         config = get_config()
