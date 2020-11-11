@@ -102,6 +102,8 @@ class Experiment(dallinger.experiment.Experiment):
 
         if session:
             self.setup()
+            if not self.experiment_network_exists():
+                self.one_time_setup()
             self.setup_experiment_variables()
 
         for event in self.timeline.events:
@@ -174,12 +176,22 @@ class Experiment(dallinger.experiment.Experiment):
             dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
 
     @classmethod
-    def setup_experiment_variables(cls):
-        if ExperimentNetwork.query.count() == 0:
-            network = ExperimentNetwork()
-            db.session.add(network)
-            db.session.commit()
+    def experiment_network_exists(cls):
+        return ExperimentNetwork.query.count() > 0
 
+    @classmethod
+    def one_time_setup(cls):
+        cls.setup_network()
+
+    @classmethod
+    def setup_network(cls):
+        logger.info(f"Setting up ExperimentNetwork.")
+        network = ExperimentNetwork()
+        db.session.add(network)
+        db.session.commit()
+
+    @classmethod
+    def setup_experiment_variables(cls):
         experiment_network = ExperimentNetwork.query.one()
         cls.max_participant_payment = experiment_network.max_participant_payment
         cls.soft_max_experiment_payment = experiment_network.soft_max_experiment_payment
