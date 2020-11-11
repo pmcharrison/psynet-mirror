@@ -104,10 +104,9 @@ class Experiment(dallinger.experiment.Experiment):
         self.base_payment = config.get("base_payment")
 
         if session:
-            if not self.experiment_initialized:
-                self.setup_experiment_network()
-                self.initialize_experiment()
-            self.load_experiment()
+            if not self.setup_complete:
+                self.setup()
+            self.load()
 
     @property
     def var(self):
@@ -150,7 +149,7 @@ class Experiment(dallinger.experiment.Experiment):
         return cls.timeline.estimated_completion_time(cls)
 
     @property
-    def experiment_initialized(self):
+    def setup_complete(self):
         return self.experiment_network_exists
 
     @property
@@ -163,17 +162,18 @@ class Experiment(dallinger.experiment.Experiment):
         db.session.add(network)
         db.session.commit()
 
-    def initialize_experiment(self):
-        self.initialize_experiment_variables()
+    def setup(self):
+        self.setup_experiment_network()
+        self.setup_experiment_variables()
 
-    def initialize_experiment_variables(self):
+    def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
         self.min_browser_version = "80.0"
         self.max_participant_payment = 25.0
         self.soft_max_experiment_payment = 1000.0
         self.wage_per_hour = 9.0
 
-    def load_experiment(self):
+    def load(self):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
