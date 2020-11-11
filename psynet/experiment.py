@@ -605,15 +605,9 @@ class ExperimentNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "experiment_network"}
     __extra_vars__ = {}
 
-    max_participant_payment = claim_var("max_participant_payment",
-                                        __extra_vars__,
-                                        use_default=False)
-    soft_max_experiment_payment = claim_var("soft_max_experiment_payment",
-                                            __extra_vars__,
-                                            use_default=False)
-    wage_per_hour = claim_var("wage_per_hour",
-                              __extra_vars__,
-                              use_default=False)
+    max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=False)
+    soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=False)
+    wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=False)
 
     def __init__(self):
         self.var.max_participant_payment = 25.0
