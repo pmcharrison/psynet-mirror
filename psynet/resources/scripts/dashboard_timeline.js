@@ -34,7 +34,7 @@ $(document).ready(function() {
         // update progress
         $.each(module_ids, function(index, module_id) {
           let has_target = data[module_id]['target_num_participants'] ? true : false
-          let progress_percentage = Number((data[module_id]['progress'] * 100).toFixed(1))
+          let progress_percentage = Number((data[module_id]['progress'] * 100).toFixed(3))
           let text = module_id + ': ' + data[module_id]['started_num_participants'] + '/' + data[module_id]['finished_num_participants'] + (has_target ? '/' + data[module_id]['target_num_participants'] : '') + ' (started/finished' + (has_target ? '/target) ' + progress_percentage + '%' : ')')
           $('.show.' + module_id).text(text)
           if (data[module_id]['finished_num_participants'] > 0) {
