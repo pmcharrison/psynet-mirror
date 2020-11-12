@@ -5,22 +5,18 @@ import json
 import os
 import rpdb
 from pkg_resources import resource_filename
-from dallinger import (
-    db
-)
-
+from dallinger import db
 from dallinger.config import get_config
-from dallinger import data as dallinger_data
 import dallinger.experiment
 from dallinger.experiment_server.dashboard import (
     dashboard,
     dashboard_tabs
 )
-
 from dallinger.experiment_server.utils import (
     success_response,
     error_response
 )
+from dallinger.notifications import admin_notifier
 
 from .participant import get_participant, Participant
 from .timeline import (
@@ -29,6 +25,7 @@ from .timeline import (
     FailedValidation,
     ExperimentSetupRoutine,
     ParticipantFailRoutine,
+    PreDeployRoutine,
     RecruitmentCriterion,
     BackgroundTask
 )
@@ -47,6 +44,7 @@ from psynet import data
 
 logger = get_logger()
 
+
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
     if isinstance(obj, datetime):
@@ -54,9 +52,25 @@ def json_serial(obj):
         return serial
     raise TypeError ("Type not serializable")
 
+
 class Experiment(dallinger.experiment.Experiment):
     # pylint: disable=abstract-method
+    """
+    The main experiment class from which to inherit when building experiments.
 
+    max_participant_payment : `float`
+        The maximum payment in US dollars a participant can get. Default: `25.0`.
+
+    soft_max_experiment_payment : `float`
+        The recruiting process stops if the amount of accumulated payments
+        (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
+
+    Parameters
+    ----------
+
+    session:
+        The experiment's connection to the database.
+    """
     # Introduced this as a hotfix for a compatibility problem with macOS 10.13:
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
@@ -66,9 +80,12 @@ class Experiment(dallinger.experiment.Experiment):
         SuccessfulEndPage()
     )
 
+    max_participant_payment = 25.0
+    soft_max_experiment_payment = 1000.0
     wage_per_hour = 9.0
     min_browser_version = "80.0"
     # min_working_participants = 5
+    pre_deploy_routines = []
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -86,6 +103,10 @@ class Experiment(dallinger.experiment.Experiment):
 
         if session:
             self.setup()
+
+        for event in self.timeline.events:
+            if isinstance(event, PreDeployRoutine):
+                self.register_pre_deployment_routine(event)
 
     # @property
     # def default_recruitment_criterion(self):
@@ -118,9 +139,24 @@ class Experiment(dallinger.experiment.Experiment):
     def register_background_task(self, task):
         self._background_tasks.append(task)
 
+    def register_pre_deployment_routine(self, routine):
+        self.pre_deploy_routines.append(routine)
+
     @classmethod
     def new(cls, session):
         return cls(session)
+
+    @classmethod
+    def amount_spent(cls):
+        return sum([(0.0 if p.base_payment is None else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
+
+    @classmethod
+    def estimated_max_bonus(cls):
+        return cls.timeline.estimated_max_bonus(cls)
+
+    @classmethod
+    def estimated_completion_time(cls):
+        return cls.timeline.estimated_completion_time(cls)
 
     def setup(self):
         for event in self.timeline.events:
@@ -136,6 +172,12 @@ class Experiment(dallinger.experiment.Experiment):
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):
             dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
+
+    @classmethod
+    def pre_deploy(cls):
+        for routine in cls.pre_deploy_routines:
+            logger.info(f"Pre-deploying '{routine.label}'...")
+            call_function(routine.function, routine.args)
 
     def fail_participant(self, participant):
         logger.info(
@@ -168,6 +210,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def need_more_participants(self):
+        if (self.amount_spent() >= self.soft_max_experiment_payment):
+            self.send_email_max_payment_reached()
+            return False
+
         need_more = False
         for i, criterion in enumerate(self.recruitment_criteria):
             logger.info("Evaluating recruitment criterion %i/%i...", i + 1, len(self.recruitment_criteria))
@@ -187,6 +233,32 @@ class Experiment(dallinger.experiment.Experiment):
                 need_more = True
         return need_more
 
+    def send_email_max_payment_reached(self):
+        config = get_config()
+        template = """Dear experimenter,
+
+            This is an automated email from PsyNet. You are receiving this email because
+            the total amount spent in the experiment has reached the maximum of {soft_max_experiment_payment}$. Recruitment ended.
+
+            The application id is: {app_id}
+
+            To see the logs, use the command "dallinger logs --app {app_id}"
+            To pause the app, use the command "dallinger hibernate --app {app_id}"
+            To destroy the app, use the command "dallinger destroy --app {app_id}"
+
+            The PsyNet developers.
+            """
+        message = {
+            "subject": "Maximum experiment payment reached.",
+            "body": template.format(
+                soft_max_experiment_payment=self.soft_max_experiment_payment,
+                app_id=config.get("id"),
+            )
+        }
+        logger.info(f"Recruitment ended. Maximum experiment payment "
+                    f"of {self.soft_max_experiment_payment}$ reached!")
+        admin_notifier(config).send(**message)
+
     def is_complete(self):
         return (not self.need_more_participants) and self.num_working_participants == 0
 
@@ -203,10 +275,58 @@ class Experiment(dallinger.experiment.Experiment):
         super().assignment_abandoned(participant)
 
     def bonus(self, participant):
+        """
+        Calculates and returns the bonus payment the given participant gets when
+        completing the experiment. Override :func:`~psynet.experiment.Experiment.calculate_bonus()` if you require another than the default bonus calculation.
+
+        :param participant:
+            The participant.
+        :type participant:
+            :attr:`~psynet.participant.Participant`
+        :returns:
+            The bonus payment as a ``float``.
+        """
+        bonus = self.calculate_bonus(participant)
+        return self.check_bonus(bonus, participant)
+
+    def calculate_bonus(self, participant):
+        """
+        Calculates and returns the bonus for the given participant.
+
+        :param participant:
+            The participant.
+        :type participant:
+            :attr:`~psynet.participant.Participant`
+        :returns:
+            The bonus as a ``float``.
+        """
         return round(
             participant.time_credit.get_bonus() + participant.performance_bonus,
             ndigits=2
         )
+
+    def check_bonus(self, bonus, participant):
+        """
+        Ensures that a participant receives no more than a bonus of max_participant_payment.
+        Additionally, checks if both soft_max_experiment_payment or max_participant_payment have
+        been reached or exceeded, respectively. Emails are sent out warning the user if either is true.
+
+        :param bonus: float
+            The bonus calculated in :func:`~psynet.experiment.Experiment.calculate_bonus()`.
+        :type participant:
+            :attr: `~psynet.participant.Participant`
+        :returns:
+            The possibly reduced bonus as a ``float``.
+        """
+        # check soft_max_experiment_payment
+        if (self.amount_spent() + bonus >= self.soft_max_experiment_payment):
+            self.send_email_max_payment_reached()
+        # check max_participant_payment
+        if participant.amount_paid() + bonus > self.max_participant_payment:
+            reduced_bonus = round(self.max_participant_payment - participant.amount_paid(), 2)
+            participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
+            return reduced_bonus
+        return bonus
 
     def init_participant(self, participant_id):
         logger.info("Initialising participant {}...".format(participant_id))
@@ -219,7 +339,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid):
+    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
@@ -230,6 +350,7 @@ class Experiment(dallinger.experiment.Experiment):
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
+                client_ip_address=client_ip_address
             )
             validation = event.validate(
                 response,
@@ -306,8 +427,13 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/module/progress_info", methods=["GET"])
         def get_progress_info():
+            progress_info = {
+                "spending": {
+                    "amount_spent": self.amount_spent(),
+                    "soft_max_experiment_payment": self.soft_max_experiment_payment,
+                }
+            }
             module_ids = request.args.getlist("module_ids[]")
-            progress_info = {}
             for module_id in module_ids:
                 trial_maker = self.timeline.get_trial_maker(module_id)
                 progress_info.update(trial_maker.get_progress_info())
@@ -419,13 +545,14 @@ class Experiment(dallinger.experiment.Experiment):
             exp = self.new(db.session)
             json_data = json.loads(request.values["json"])
             blobs = request.files.to_dict()
+            client_ip_address = request.remote_addr
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
 
-            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid)
+            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
 
             exp.save()
             return res

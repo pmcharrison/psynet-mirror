@@ -150,3 +150,5 @@ psynetR/test.R
 test.R
 psynetR/tmp.rds
 psynetR/tmp.R
+psynet/demos/*/data
+tmp/*

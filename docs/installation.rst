@@ -22,7 +22,7 @@ It is also possible to install specific commits, see
 for details.
 
 Developer installation
-------------------------------------
+----------------------
 
 If you want to run the `psynet` demo or if you think you 
 might want to edit the source some day, 

@@ -1,15 +1,28 @@
 # Changelog
 
+## [1.6.0] Released on 2020-11-12
+
+#### Added
+- Command-line functions ``psynet debug``, ``psynet sandbox``, ``psynet deploy``.
+- ``PreDeployRoutine`` for inclusion into an experiment timeline.
+- Limits for participant and experiment payments by introducing ``max_participant_payment`` and ``soft_max_experiment_payment`` including a visualisation in the dashboard and sending out notification emails.
+- `psynet estimate` command for estimating a participant's maximum bonus and time to complete the experiment.
+- `client_ip_address` attribute to `Participant`.
+- Reorganisation of documentation menu, incl. new menu items `Experimenter documentation` and `Developer documentation`.
+- Documentation for creating deploy tokens for custom packages and a deploy token for deployment of the ``psynet`` package.
+- Ubuntu 20.04 installation documentation (``INSTALL_UBUNTU.md``)
+
+
 ## [1.5.1] Released on 2020-10-14
 
-### Changes
+#### Changes
 
 - Improve data export directory structure
 
 
 ## [1.5.0] Released on 2020-10-13
 
-### New features
+#### Added
 
 - Add a new tab to the dashboard in order to monitor the progress been made in the individual modules included in a timeline and to provide additional information about a module in a details box and tooltip.
 - Improve upload of audio recordings to S3 by auto-triggering the upload right after the end of recording.
@@ -17,9 +30,39 @@
 - Document existing pre-screening tasks and write a tutorial
 - Update deployment documentation
 
-### Changes
+#### Changes
 
 - Move pre-screening tasks into new prescreen module.
 - Attempt to fix networks not growing after async post trial
 - Bugfix: Enable vertical arrangement of buttons in NAFCControl
 
+
+## [1.4.2]
+
+- Fixing recruitment bug in chain experiments.
+
+
+## [1.4.0]
+
+- Extending extra_vars as displayed in the dashboard.
+
+
+## [1.3.0]
+
+- Added video visualisation.
+
+
+## [1.2.1]
+
+- Bugfix, now `reverse_scale` works in slider pages.
+
+
+## [1.2.0]
+
+- Introducing aggregated MCMCP.
+
+
+## [1.0.0]
+
+- Added regression tests.
+- Upgraded to Bootstrap 4 and improved UI elements.

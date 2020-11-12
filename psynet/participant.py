@@ -2,7 +2,9 @@
 
 from sqlalchemy import desc
 
+from dallinger.config import get_config
 import dallinger.models
+from dallinger.notifications import admin_notifier
 import datetime
 from . import field
 from .field import VarStore, claim_var, extra_var
@@ -111,6 +113,7 @@ class Participant(dallinger.models.Participant):
     base_payment = claim_var("base_payment", __extra_vars__)
     performance_bonus = claim_var("performance_bonus", __extra_vars__)
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
+    client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
 
     def __json__(self):
         x = super().__json__()
@@ -172,6 +175,40 @@ class Participant(dallinger.models.Participant):
 
     def inc_performance_bonus(self, value):
         self.performance_bonus = self.performance_bonus + value
+
+    def amount_paid(self):
+        return (0.0 if self.base_payment is None else self.base_payment) + (0.0 if self.bonus is None else self.bonus)
+
+    def send_email_max_payment_reached(self, experiment_class, requested_bonus, reduced_bonus):
+        config = get_config()
+        template = """Dear experimenter,
+
+            This is an automated email from PsyNet. You are receiving this email because
+            the total amount paid to the participant with assignment_id '{assignment_id}'
+            has reached the maximum of {max_participant_payment}$. The bonus paid was {reduced_bonus}$
+            instead of a requested bonus of {requested_bonus}$.
+
+            The application id is: {app_id}
+
+            To see the logs, use the command "dallinger logs --app {app_id}"
+            To pause the app, use the command "dallinger hibernate --app {app_id}"
+            To destroy the app, use the command "dallinger destroy --app {app_id}"
+
+            The PsyNet developers.
+            """
+        message = {
+            "subject": "Maximum experiment payment reached.",
+            "body": template.format(
+                assignment_id=self.assignment_id,
+                max_participant_payment=experiment_class.max_participant_payment,
+                requested_bonus=requested_bonus,
+                reduced_bonus=reduced_bonus,
+                app_id=config.get("id"),
+            )
+        }
+        logger.info(f"Recruitment ended. Maximum amount paid to participant "
+                    f"with assignment_id '{self.assignment_id}' reached!")
+        admin_notifier(config).send(**message)
 
     @property
     def response(self):

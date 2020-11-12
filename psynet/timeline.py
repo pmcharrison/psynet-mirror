@@ -32,7 +32,7 @@ from functools import reduce
 
 logger = get_logger()
 
-from .field import claim_field
+from .field import claim_field, claim_var, VarStore
 
 # pylint: disable=unused-import
 import rpdb
@@ -396,7 +396,7 @@ class Page(Event):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
-    def process_response(self, raw_answer, blobs, metadata, experiment, participant):
+    def process_response(self, raw_answer, blobs, metadata, experiment, participant, client_ip_address):
         answer = self.format_answer(
             raw_answer,
             blobs=blobs,
@@ -417,8 +417,10 @@ class Page(Event):
             label=self.label,
             answer=answer,
             page_type=type(self).__name__,
-            metadata=combined_metadata
+            metadata=combined_metadata,
+            client_ip_address=client_ip_address
         )
+        participant.client_ip_address = client_ip_address
         db.session.add(resp)
         db.session.commit()
 
@@ -961,6 +963,12 @@ class Timeline():
             if isinstance(new_event, Page) or isinstance(new_event, PageMaker):
                 finished = True
 
+    def estimated_max_bonus(self, experiment):
+        return self.estimate_time_credit().get_max("bonus", wage_per_hour=experiment.wage_per_hour)
+
+    def estimated_completion_time(self, experiment):
+        return self.estimate_time_credit().get_max("time", wage_per_hour=experiment.wage_per_hour)
+
 def estimate_time_credit(events):
     return sum([
         event.time_estimate * event.expected_repetitions
@@ -1006,6 +1014,8 @@ class Response(Question):
     page_type = claim_field(1, "page_type", __extra_vars__, str)
     successful_validation = claim_field(2, "successful_validation", __extra_vars__, bool)
 
+    client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
+
     @hybrid_property
     def answer(self):
         if self.response is None:
@@ -1019,7 +1029,11 @@ class Response(Question):
         # but the response field is non-nullable.
         self.response = json.dumps(answer)
 
-    def __init__(self, participant, label, answer, page_type, metadata):
+    @property
+    def var(self):
+        return VarStore(self)
+
+    def __init__(self, participant, label, answer, page_type, metadata, client_ip_address):
         super().__init__(
             participant=participant,
             question=label,
@@ -1030,6 +1044,7 @@ class Response(Question):
         self.metadata = metadata
         self.page_type = page_type
         self.metadata = metadata
+        self.client_ip_address = client_ip_address
 
     @property
     def metadata(self):
@@ -1535,6 +1550,30 @@ class BackgroundTask(NullEvent):
         while True:
             gevent.sleep(self.interval_sec)
             self.safe_function()
+
+class PreDeployRoutine(NullEvent):
+    """
+    A timeline component that allows for the definition of tasks to be performed
+    before deployment. :class:`PreDeployRoutine`\ s are thought to be added to the
+    beginning of a timeline of an experiment.
+
+    Parameters
+    ----------
+
+    label
+        A label describing the pre-deployment task.
+
+    function
+        The name of a function to be executed.
+
+    args
+        The arguments for the function to be executed.
+    """
+    def __init__(self, label, function, args):
+        check_function_args(function, args=args.keys(), need_all=False)
+        self.label = label
+        self.function = function
+        self.args = args
 
 class ParticipantFailRoutine(NullEvent):
     def __init__(self, label, function):
