@@ -193,18 +193,6 @@ class Experiment(dallinger.experiment.Experiment):
             dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
 
     @classmethod
-    def setup_experiment_variables(cls):
-        if ExperimentNetwork.query.count() == 0:
-            network = ExperimentNetwork()
-            db.session.add(network)
-            db.session.commit()
-
-        experiment_network = ExperimentNetwork.query.one()
-        cls.max_participant_payment = experiment_network.max_participant_payment
-        cls.soft_max_experiment_payment = experiment_network.soft_max_experiment_payment
-        cls.wage_per_hour = experiment_network.wage_per_hour
-
-    @classmethod
     def pre_deploy(cls):
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
