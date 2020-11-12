@@ -132,7 +132,7 @@ class UnityPage(Page):
             game_container_width: str = "960px",
             game_container_height: str = "600px",
             time_estimate: Optional[float] = None,
-            debug: bool = True, # False,
+            debug: bool = False,
             **kwargs,
     ):
         self.title = title
