@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.6.0] Unreleased
+## [1.6.0] Released on 2020-11-12
 
 #### Added
 - Command-line functions ``psynet debug``, ``psynet sandbox``, ``psynet deploy``.
