@@ -87,6 +87,7 @@ class Experiment(dallinger.experiment.Experiment):
     min_browser_version = claim_var("min_browser_version", __extra_vars__, use_default=True, default="80.0")
     max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=True, default=25.0)
     soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
+    soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
     wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
 
     pre_deploy_routines = []
@@ -171,6 +172,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.min_browser_version = "80.0"
         self.max_participant_payment = 25.0
         self.soft_max_experiment_payment = 1000.0
+        self.soft_max_experiment_payment_email_sent = False
         self.wage_per_hour = 9.0
 
     def load(self):
@@ -227,8 +229,8 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def need_more_participants(self):
-        if (self.amount_spent() >= self.soft_max_experiment_payment):
-            self.send_email_max_payment_reached()
+        if self.amount_spent() >= self.soft_max_experiment_payment:
+            self.ensure_soft_max_experiment_payment_email_sent()
             return False
 
         need_more = False
@@ -249,6 +251,11 @@ class Experiment(dallinger.experiment.Experiment):
             if res:
                 need_more = True
         return need_more
+
+    def ensure_soft_max_experiment_payment_email_sent(self):
+        if not self.soft_max_experiment_payment_email_sent:
+            self.send_email_max_payment_reached()
+            self.var.soft_max_experiment_payment_email_sent = True
 
     def send_email_max_payment_reached(self):
         config = get_config()
@@ -336,8 +343,8 @@ class Experiment(dallinger.experiment.Experiment):
             The possibly reduced bonus as a ``float``.
         """
         # check soft_max_experiment_payment
-        if (self.amount_spent() + bonus >= self.soft_max_experiment_payment):
-            self.send_email_max_payment_reached()
+        if self.amount_spent() + bonus >= self.soft_max_experiment_payment:
+            self.ensure_soft_max_experiment_payment_email_sent()
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.max_participant_payment:
             reduced_bonus = round(self.max_participant_payment - participant.amount_paid(), 2)
