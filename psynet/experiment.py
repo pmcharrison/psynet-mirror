@@ -16,8 +16,10 @@ from dallinger.experiment_server.utils import (
     success_response,
     error_response
 )
+from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 
+from .field import VarStore, claim_var
 from .participant import get_participant, Participant
 from .timeline import (
     get_template,
@@ -80,11 +82,13 @@ class Experiment(dallinger.experiment.Experiment):
         SuccessfulEndPage()
     )
 
-    max_participant_payment = 25.0
-    soft_max_experiment_payment = 1000.0
-    wage_per_hour = 9.0
-    min_browser_version = "80.0"
-    # min_working_participants = 5
+    __extra_vars__ = {}
+
+    min_browser_version = claim_var("min_browser_version", __extra_vars__, use_default=True, default="80.0")
+    max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=True, default=25.0)
+    soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
+    wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
+
     pre_deploy_routines = []
 
     def __init__(self, session=None):
@@ -99,38 +103,24 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria = []
         self.base_payment = config.get("base_payment")
 
-        # self.register_recruitment_criterion(self.default_recruitment_criterion)
-
         if session:
-            self.setup()
+            if not self.setup_complete:
+                self.setup()
+            self.load()
 
-        for event in self.timeline.events:
-            if isinstance(event, PreDeployRoutine):
-                self.register_pre_deployment_routine(event)
+    @property
+    def var(self):
+        return self.experiment_network.var
 
-    # @property
-    # def default_recruitment_criterion(self):
-    #     def f():
-    #         logger.info(
-    #             "Number of working participants = %i, versus minimum of %i.",
-    #             self.num_working_participants,
-    #             self.min_working_participants
-    #         )
-    #         return self.num_working_participants < self.min_working_participants
-    #     return RecruitmentCriterion(
-    #         label="min_working_participants",
-    #         function=f
-    #     )
+    @property
+    def experiment_network(self):
+        return ExperimentNetwork.query.one()
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
 
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
-
-    # @property
-    # def allotted_bonus_dollars(self):
-    #     return self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=self.wage_per_hour)
 
     @property
     def background_tasks(self):
@@ -158,7 +148,32 @@ class Experiment(dallinger.experiment.Experiment):
     def estimated_completion_time(cls):
         return cls.timeline.estimated_completion_time(cls)
 
+    @property
+    def setup_complete(self):
+        return self.experiment_network_exists
+
+    @property
+    def experiment_network_exists(self):
+        return ExperimentNetwork.query.count() > 0
+
+    def setup_experiment_network(self):
+        logger.info(f"Setting up ExperimentNetwork.")
+        network = ExperimentNetwork()
+        db.session.add(network)
+        db.session.commit()
+
     def setup(self):
+        self.setup_experiment_network()
+        self.setup_experiment_variables()
+
+    def setup_experiment_variables(self):
+        # Note: the experiment network must be setup first before we can set these variables.
+        self.min_browser_version = "80.0"
+        self.max_participant_payment = 25.0
+        self.soft_max_experiment_payment = 1000.0
+        self.wage_per_hour = 9.0
+
+    def load(self):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
@@ -168,6 +183,8 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
                 self.register_recruitment_criterion(event)
+            if isinstance(event, PreDeployRoutine):
+                self.register_pre_deployment_routine(event)
 
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):
@@ -587,3 +604,22 @@ class Experiment(dallinger.experiment.Experiment):
             return success_response()
 
         return routes
+
+
+class ExperimentNetwork(Network):
+    __mapper_args__ = {"polymorphic_identity": "experiment_network"}
+    __extra_vars__ = {}
+
+    def __init__(self):
+        self.role = "config"
+        self.max_size = 0
+
+    @property
+    def var(self):
+        return VarStore(self)
+
+    def __json__(self):
+        return {
+            "type": "experiment_network",
+            "variables": self.details
+        }
