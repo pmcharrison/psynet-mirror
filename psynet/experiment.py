@@ -230,7 +230,7 @@ class Experiment(dallinger.experiment.Experiment):
     @property
     def need_more_participants(self):
         if self.amount_spent() >= self.soft_max_experiment_payment:
-            self.check_soft_max_experiment_payment_email_sent()
+            self.ensure_soft_max_experiment_payment_email_sent()
             return False
 
         need_more = False
@@ -252,7 +252,7 @@ class Experiment(dallinger.experiment.Experiment):
                 need_more = True
         return need_more
 
-    def check_soft_max_experiment_payment_email_sent(self):
+    def ensure_soft_max_experiment_payment_email_sent(self):
         if not self.soft_max_experiment_payment_email_sent:
             self.send_email_max_payment_reached()
             self.var.soft_max_experiment_payment_email_sent = True
@@ -344,7 +344,7 @@ class Experiment(dallinger.experiment.Experiment):
         """
         # check soft_max_experiment_payment
         if self.amount_spent() + bonus >= self.soft_max_experiment_payment:
-            self.check_soft_max_experiment_payment_email_sent()
+            self.ensure_soft_max_experiment_payment_email_sent()
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.max_participant_payment:
             reduced_bonus = round(self.max_participant_payment - participant.amount_paid(), 2)
