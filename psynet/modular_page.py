@@ -9,6 +9,7 @@ from uuid import uuid4
 from scipy.io import wavfile
 
 from .timeline import (
+    FailedValidation,
     Page,
     MediaSpec,
     is_list_of
@@ -25,7 +26,7 @@ logger = get_logger()
 
 class Prompt():
     """
-    The Prompt class displays some kind of media to the participant,
+    The ``Prompt`` class displays some kind of media to the participant,
     to which they will have to respond.
 
     Currently the prompt must be written as a Jinja2 macro
@@ -291,7 +292,7 @@ class ColourPrompt(Prompt):
 
 class Control():
     """
-    The Control class provides some kind of controls for the participant,
+    The ``Control`` class provides some kind of controls for the participant,
     with which they will provide their response.
 
     Currently the prompt must be written as a Jinja2 macro
@@ -420,17 +421,193 @@ class NullControl(Control):
     macro = "null"
     metadata = {}
 
-class NAFCButton():
-    def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False, margin="10px"):
-        self.id = button_id
-        self.label = label
-        self.min_width = min_width
-        self.own_line = own_line
-        self.start_disabled = start_disabled
-        self.margin = margin
-        self.display = "block" if own_line else "inline"
 
-class NAFCControl(Control):
+class OptionControl(Control):
+    """
+    The OptionControl class provides four kinds of controls for the participant in its subclasses
+    ``CheckboxControl``, ``DropdownControl``, ``PushButtonControl``, and ``RadioButtonControl``.
+    """
+
+    def __init__(
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        style: str = "",
+    ):
+        self.choices = choices
+        self.labels = choices if labels is None else labels
+        self.style = style
+
+        assert isinstance(self.labels, list)
+        assert len(self.choices) == len(self.labels)
+
+    @property
+    def metadata(self):
+        return {
+            "name": self.name,
+            "choices": self.choices,
+            "labels": self.labels,
+            "force_selection": self.force_selection,
+        }
+
+
+class CheckboxControl(OptionControl):
+    """
+    This control interface solicits a multiple-choice response from the participant using chekboxes.
+
+    Parameters
+    ----------
+
+    name:
+        Name of the checkbox group.
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the checkboxes,
+        which the participant will see instead of ``choices``. Default: ``None``.
+
+    arrange_vertically:
+        Whether to arrange the checkboxes vertically. Default: ``True``.
+
+    style:
+        CSS style attributes to apply to the checkboxes. Default: ``""``.
+
+    force_selection:
+        Determines if at least checkbox has to be ticked. Default: False.
+
+    """
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            style: str = "",
+            name: str = "",
+            arrange_vertically: bool = True,
+            force_selection: bool = False,
+    ):
+        super().__init__(choices, labels, style)
+        self.name = name
+        self.arrange_vertically = arrange_vertically
+        self.force_selection = force_selection
+
+        self.checkboxes = [
+            Checkbox(
+                name=self.name,
+                id_=choice,
+                label=label,
+                style=self.style,
+            )
+            for choice, label in zip(self.choices, self.labels)
+        ]
+
+    macro = "checkboxes"
+
+    def visualize_response(self, answer):
+        html = tags.div(id="response-options")
+        with html:
+            for choice, label in zip(self.choices, self.labels):
+                tags.input(
+                    type="checkbox",
+                    id=choice,
+                    name="response-options",
+                    value=choice,
+                    checked=(answer is not None and choice == answer),
+                    disabled=True
+                )
+                tags.span(label)
+                tags.br()
+        return html.render()
+
+    def validate(self, response, **kwargs):
+        if self.force_selection and len(response.answer) == 0:
+            return FailedValidation("You need to check at least one answer!")
+        return None
+
+
+class Checkbox():
+    def __init__(self, id_, *, name, label, start_disabled=False, style=""):
+        self.id = id_
+        self.name = name
+        self.label = label
+        self.start_disabled = start_disabled
+        self.style = style
+
+
+class DropdownControl(OptionControl):
+    """
+    This control interface solicits a multiple-choice response from the participant using a dropdown selectbox.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the radiobuttons,
+        which the participant will see instead of ``choices``.
+
+    style:
+        CSS style attributes to apply to the dropdown. Default: ``""``.
+
+    name:
+        Name of the dropdown selectbox.
+
+    force_selection
+        Determines if an answer has to be selected. Default: True.
+    """
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            style: str = "",
+            name: str = "",
+            force_selection: bool = True,
+    ):
+        super().__init__(choices, labels, style)
+        self.name = name
+        self.force_selection = force_selection
+
+        self.dropdown = [
+            DropdownOption(
+                value=value,
+                text=text
+            )
+            for value, text in zip(self.choices, self.labels)
+        ]
+
+    macro = "dropdown"
+
+    def visualize_response(self):
+        html = tags.div(id="response-options")
+        with html:
+            with tags.select(
+                id=choice,
+                name="response-options",
+                multiple=multiple
+            ):
+                for choice, label in zip(self.choices, self.labels):
+                    with doc.option(value = choice):
+                        text(label)
+        return html.render()
+
+    def validate(self, response, **kwargs):
+        if self.force_selection and response.answer == "":
+            return FailedValidation("You need to select an answer!")
+        return None
+
+
+class DropdownOption():
+    def __init__(self, value, text):
+        self.value = value
+        self.text = text
+
+
+class PushButtonControl(OptionControl):
     """
     This control interface solicits a multiple-choice response from the participant.
 
@@ -442,46 +619,36 @@ class NAFCControl(Control):
 
     labels:
         An optional list of textual labels to apply to the buttons,
-        which the participant will see instead of ``choices``.
+        which the participant will see instead of ``choices``. Default: ``None``.
+
+    style:
+        CSS styles to apply to the buttons. Default: ``"min-width: 100px; margin: 10px"``.
 
     arrange_vertically:
-        Whether to arrange the buttons vertically.
-
-    min_width:
-        CSS ``min_width`` parameter for the buttons.
-
-    margin:
-        CSS margin parameter for the buttons.
-
+        Whether to arrange the buttons vertically. Default: ``True``.
     """
 
     def __init__(
             self,
             choices: List[str],
             labels: Optional[List[str]] = None,
-            arrange_vertically: bool = False,
-            min_width: str = "100px",
-            margin: str = "10px"
+            style: str = "min-width: 100px; margin: 10px",
+            arrange_vertically: bool = True,
     ):
-        self.choices = choices
-        self.labels = choices if labels is None else labels
+        super().__init__(choices, labels, style)
         self.arrange_vertically = arrange_vertically
 
-        assert isinstance(self.labels, list)
-        assert len(self.choices) == len(self.labels)
-
-        self.buttons = [
-            NAFCButton(
+        self.push_buttons = [
+            PushButton(
                 button_id=choice,
                 label=label,
-                min_width=min_width,
-                own_line=arrange_vertically,
-                margin=margin
+                style=self.style,
+                arrange_vertically=self.arrange_vertically
             )
             for choice, label in zip(self.choices, self.labels)
         ]
 
-    macro = "nafc"
+    macro = "push_buttons"
 
     @property
     def metadata(self):
@@ -490,7 +657,7 @@ class NAFCControl(Control):
             "labels": self.labels
         }
 
-    def visualize_response(self, answer, response, trial):
+    def visualize_response(self, answer):
         html = tags.div(id="response-options")
         with html:
             for choice, label in zip(self.choices, self.labels):
@@ -505,6 +672,107 @@ class NAFCControl(Control):
                 tags.span(label)
                 tags.br()
         return html.render()
+
+
+class NAFCControl(PushButtonControl):
+    """
+    [DEPRECATED] This class exists only for retaining backward compatibility. Use ``PushButtonControl``
+    instead.
+    """
+    pass
+
+
+class PushButton():
+    def __init__(self, button_id, *, label, style, arrange_vertically, start_disabled=False):
+        self.id = button_id
+        self.label = label
+        self.style = style
+        self.start_disabled = start_disabled
+        self.display = "block" if arrange_vertically else "inline"
+
+
+class RadioButtonControl(OptionControl):
+    """
+    This control interface solicits a multiple-choice response from the participant using radiobuttons.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the radiobuttons,
+        which the participant will see instead of ``choices``.
+
+    style:
+        CSS style attributes to apply to the radiobuttons. Default: ``""``.
+
+    name:
+        Name of the radiobutton group.
+
+    arrange_vertically:
+        Whether to arrange the radiobuttons vertically.
+
+    force_selection
+        Determines if an answer has to be selected. Default: ``True``.
+    """
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            style: str = "",
+            name: str = "",
+            arrange_vertically: bool = True,
+            force_selection: bool = True,
+    ):
+        super().__init__(choices, labels, style)
+        self.name = name
+        self.arrange_vertically = arrange_vertically
+        self.force_selection = force_selection
+
+        self.radiobuttons = [
+            RadioButton(
+                name=self.name,
+                id_=choice,
+                label=label,
+                style=self.style
+            )
+            for choice, label in zip(self.choices, self.labels)
+        ]
+
+    macro = "radiobuttons"
+
+    def visualize_response(self, answer):
+        html = tags.div(id="response-options")
+        with html:
+            for choice, label in zip(self.choices, self.labels):
+                tags.input(
+                    type="radio",
+                    id=choice,
+                    name="response-options",
+                    value=choice,
+                    checked=(answer is not None and choice == answer),
+                    disabled=True
+                )
+                tags.span(label)
+                tags.br()
+        return html.render()
+
+    def validate(self, response, **kwargs):
+        if self.force_selection and response.answer is None:
+            return FailedValidation("You need to select an answer!")
+        return None
+
+
+class RadioButton():
+    def __init__(self, id_, *, name, label, start_disabled=False, style=""):
+        self.id = id_
+        self.name = name
+        self.label = label
+        self.start_disabled = start_disabled
+        self.style = style
 
 
 class TextControl(Control):

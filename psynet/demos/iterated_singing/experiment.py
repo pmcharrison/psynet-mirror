@@ -16,7 +16,7 @@ from psynet.modular_page import(
     ModularPage,
     AudioPrompt,
     AudioRecordControl,
-    NAFCControl,
+    PushButtonControl,
     AudioMeterControl
 )
 from psynet.trial.audio import (

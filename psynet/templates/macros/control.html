@@ -20,38 +20,32 @@
     </button>
 {% endmacro %}
 
-{% macro nafc_button(config) %}
-    <style>
-        .nafc_button {
-            margin: {{ config.margin }};
-            display: {{ config.display }};
-        }
-    </style>
+{% macro push_button(config) %}
     <button
         type="button"
-        class="btn nafc_button btn-primary submit"
+        class="btn push_button btn-primary submit"
         id="{{ config.id }}"
         onclick="clicked_button('{{ config.id }}');"
-        style="min-width:{{ config.min_width }}"
+        style="{{ config.style }}"
     >
         {{ config.label }}
     </button>
 {% endmacro %}
 
-{% macro nafc(config) %}
+{% macro push_buttons(config) %}
     <style>
-        .nafc-container {
+        .push-button-container {
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
             max-height: 350px;
-            overflow-y: scroll;
+            overflow-y: auto;
         }
     </style>
 
-    <div class="nafc-container">
-        {% for button in config.buttons %}
-            {{ nafc_button(button) }}
+    <div class="push-button-container">
+        {% for button in config.push_buttons %}
+            {{ push_button(button) }}
         {% endfor %}
     </div>
 
@@ -60,6 +54,143 @@
             psynet.response.disable();
             psynet.submit.disable();
             psynet.next_page(id);
+        }
+    </script>
+{% endmacro %}
+
+{% macro checkbox(config) %}
+    <label style="margin-left: 15px;">
+        <input
+            type="checkbox"
+            id="{{ config.id }}"
+            name="{{ config.name }}"
+        />
+        <span>{{ config.label }}</span>
+    </label>
+{% endmacro %}
+
+{% macro checkboxes(config) %}
+    <style>
+        .control-container {
+            display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
+            flex-wrap: wrap;
+            justify-content: center;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+    </style>
+    <div class="control-container">
+        {% for _checkbox in config.checkboxes %}
+            {{ checkbox(_checkbox) }}
+        {% endfor %}
+    </div>
+    <p class="vspace"></p>
+    <div style="justify-content: center; display: flex; margin-top">
+        {{ null(config) }}
+    </div>
+    <script>
+        clicked_button = function(id) {
+            psynet.response.disable();
+            psynet.submit.disable();
+            psynet.next_page(id);
+        }
+
+        retrieve_response = function() {
+            let elements = document.getElementsByName('{{ config.name }}')
+            checked_values = Array.from(elements).map(function(element, i) {
+                if (element.checked) {return element.id}
+            }).filter(function (element) {
+              return element != null;
+            });
+            return {
+                raw_answer: checked_values
+            }
+        }
+    </script>
+{% endmacro %}
+
+{% macro radiobutton(config) %}
+    <label style="margin-left: 15px;">
+        <input
+            type="radio"
+            id="{{ config.id }}"
+            name="{{ config.name }}"
+        />
+        <span>{{ config.label }}</span>
+    </label>
+{% endmacro %}
+
+{% macro radiobuttons(config) %}
+    <style>
+        .control-container {
+            display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
+            flex-wrap: wrap;
+            justify-content: center;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+    </style>
+    <div class="control-container">
+        {% for button in config.radiobuttons %}
+            {{ radiobutton(button) }}
+        {% endfor %}
+    </div>
+    <p class="vspace"></p>
+    <div style="justify-content: center; display: flex; margin-top">
+        {{ null(config) }}
+    </div>
+    <script>
+        clicked_button = function(id) {
+            psynet.response.disable();
+            psynet.submit.disable();
+            psynet.next_page(id);
+        }
+
+        retrieve_response = function() {
+            let element = document.querySelector('input[name="{{ config.name }}"]:checked')
+
+            return {
+                raw_answer: (element != null) ? element.id : null
+            }
+        }
+    </script>
+{% endmacro %}
+
+{% macro dropdown_option(config) %}
+    <option value="{{ config.value }}">{{ config.text }}</option>
+{% endmacro %}
+
+{% macro dropdown(config) %}
+    <style>
+        .dropdown-container {
+            margin: 0 auto;
+            width: fit-content;
+        }
+    </style>
+    <div class="dropdown-container">
+        <select id="{{ config.name }}" class="form-control" name="{{ config.name }}">
+            <option value="">Select an answer</option>
+            {% for option in config.dropdown %}
+                {{ dropdown_option(option) }}
+            {% endfor %}
+        </select>
+    </div>
+    <p class="vspace"></p>
+    <div style="justify-content: center; display: flex; margin-top">
+        {{ null(config) }}
+    </div>
+    <script>
+        clicked_button = function(id) {
+            psynet.response.disable();
+            psynet.submit.disable();
+            psynet.next_page(id);
+        }
+
+        retrieve_response = function() {
+            let element = document.getElementById("{{ config.name }}");
+            return {
+                raw_answer: (element != null) ? element.value : null
+            }
         }
     </script>
 {% endmacro %}
@@ -92,7 +223,6 @@
             display: inline-block;
             margin-left: 20px;
         }
-
     </style>
 
     <script>
@@ -333,7 +463,6 @@
 {% macro text(config) %}
     <style>
         #text_input_container {
-            margin: 15px;
             margin: 15px;
             display: flex;
             justify-content: center;
