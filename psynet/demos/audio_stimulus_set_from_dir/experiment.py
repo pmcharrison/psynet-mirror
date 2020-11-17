@@ -12,7 +12,7 @@ from psynet.page import (
 from psynet.modular_page import(
     ModularPage,
     AudioPrompt,
-    NAFCControl
+    PushButtonControl
 )
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
@@ -70,7 +70,7 @@ class CustomTrial(NonAdaptiveTrial):
         return ModularPage(
             "question_page",
             AudioPrompt(self.media_url, text),
-            NAFCControl(["Yes", "No"]),
+            PushButtonControl(["Yes", "No"]),
             time_estimate=5
         )
 

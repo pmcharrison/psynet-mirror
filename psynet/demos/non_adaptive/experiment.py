@@ -16,7 +16,7 @@ from psynet.page import (
 )
 from psynet.modular_page import (
     ModularPage,
-    NAFCControl
+    PushButtonControl
 )
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrialMaker,
@@ -76,7 +76,7 @@ class AnimalTrial(NonAdaptiveTrial):
                 {header}
                 <p style='color: {text_color}'>How much do you like {animal}?</p>
                 """),
-            NAFCControl(["Not at all", "A little", "Very much"])
+            PushButtonControl(["Not at all", "A little", "Very much"])
         )
 
         return page
