@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.6.1] Released on 2020-11-16
+
+#### Fixed
+- Error when using psynet debug/sandbox/deploy
+
+
 ## [1.6.0] Released on 2020-11-12
 
 #### Added
