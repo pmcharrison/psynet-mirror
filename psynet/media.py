@@ -97,9 +97,6 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool,
 
     logger.info("Uploading %s to bucket %s with key %s...", local_path, bucket_name, key)
 
-    # client = new_s3_client()
-    # client.upload_file(local_path, bucket_name, key)
-
     args = {}
     if public_read:
         args["ACL"] = "public-read"
@@ -107,7 +104,18 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool,
     bucket = get_s3_bucket(bucket_name)
 
     def upload():
-        bucket.upload_file(local_path, key, ExtraArgs=args)
+        if os.path.isfile(local_path):
+            bucket.upload_file(local_path, key, ExtraArgs=args)
+        else:
+            for _dir_path, _dir_names, _file_names in os.walk(local_path):
+                _rel_dir_path = os.path.relpath(_dir_path, local_path)
+                for _file_name in _file_names:
+                    _local_path = os.path.join(_dir_path, _file_name)
+                    if _rel_dir_path == ".":
+                        _file_key = os.path.join(key, _file_name)
+                    else:
+                        _file_key = os.path.join(key, _rel_dir_path, _file_name)
+                    bucket.upload_file(_local_path, _file_key, ExtraArgs=args)
 
     try:
         upload()
