@@ -108,6 +108,8 @@ class Experiment(dallinger.experiment.Experiment):
             if not self.setup_complete:
                 self.setup()
             self.load()
+        else:
+            self.register_pre_deployment_routines()
 
     @property
     def var(self):
@@ -130,8 +132,10 @@ class Experiment(dallinger.experiment.Experiment):
     def register_background_task(self, task):
         self._background_tasks.append(task)
 
-    def register_pre_deployment_routine(self, routine):
-        self.pre_deploy_routines.append(routine)
+    def register_pre_deployment_routines(self):
+        for event in self.timeline.events:
+            if isinstance(event, PreDeployRoutine):
+                self.pre_deploy_routines.append(event)
 
     @classmethod
     def new(cls, session):
@@ -185,8 +189,6 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
                 self.register_recruitment_criterion(event)
-            if isinstance(event, PreDeployRoutine):
-                self.register_pre_deployment_routine(event)
 
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):
