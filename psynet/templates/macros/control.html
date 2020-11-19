@@ -551,3 +551,8 @@
         }
     </script>
 {% endmacro %}
+
+{% from "macros/graphics.html" import graphic_%}
+{% macro graphic(config) %}
+    {{ graphic_(config) }}
+{% endmacro %}

@@ -322,13 +322,16 @@ class Control():
 
     external_template = None
 
+    def __init__(self):
+        pass
+
     @property
     def macro(self):
         raise NotImplementedError
 
     @property
     def metadata(self):
-        raise NotImplementedError
+        return {}
 
     @property
     def media(self):
@@ -1247,3 +1250,4 @@ class VideoSliderControl(Control):
             ).render()
         )
         return html
+

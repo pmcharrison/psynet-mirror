@@ -411,8 +411,10 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_files(cls):
         return [
             (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png"),
+            (resource_filename('psynet', 'resources/logo.svg'), "/static/images/logo.svg"),
             (resource_filename('psynet', 'resources/scripts/dashboard_timeline.js'), "/static/scripts/dashboard_timeline.js"),
-            (resource_filename('psynet', 'resources/css/dashboard_timeline.css'), "/static/css/dashboard_timeline.css")
+            (resource_filename('psynet', 'resources/css/dashboard_timeline.css'), "/static/css/dashboard_timeline.css"),
+            (resource_filename('psynet', 'resources/libraries/raphael-2.3.0/raphael.min.js'), "/static/scripts/raphael-2.3.0.min.js")
         ]
 
     def extra_routes(self):

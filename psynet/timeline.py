@@ -195,24 +195,32 @@ class MediaSpec():
                 }
             }
 
+    image: dict
+        An analogously structured dictionary of image stimuli.
+
     video: dict
         An analogously structured dictionary of video stimuli.
     """
-    modalities = ["audio", "video"]
+    modalities = ["audio", "image", "video"]
 
     def __init__(
             self,
             audio: Optional[dict] = None,
+            image: Optional[dict] = None,
             video: Optional[dict] = None
             ):
         if audio is None:
             audio = {}
+
+        if image is None:
+            image = {}
 
         if video is None:
             video = {}
 
         self.data = {
             "audio": audio,
+            "image": image,
             "video": video
         }
 
@@ -221,6 +229,27 @@ class MediaSpec():
     @property
     def audio(self):
         return self.data["audio"]
+
+    @property
+    def image(self):
+        return self.data["image"]
+
+    @property
+    def video(self):
+        return self.data["video"]
+
+    @property
+    def ids(self):
+        res = {}
+        for media_type, media in self.data.items():
+            res[media_type] = set()
+            for key, value in media.items():
+                if isinstance(value, str):
+                    res[media_type].add(key)
+                else:
+                    assert isinstance(value, dict)
+                    res[media_type].update(value["ids"])
+        return res
 
     @property
     def num_files(self):
@@ -260,12 +289,13 @@ class MediaSpec():
                         raise TypeError(f"Media entry must either be a string URL or a dict (got {file}).")
                     if not ("url" in file and "ids" in file):
                         raise ValueError("Batch specifications must contain both 'url' and 'ids' keys.")
-                    ids = file["ids"]
-                    if not isinstance(ids, list):
+                    batch_ids = file["ids"]
+                    if not isinstance(batch_ids, list):
                         raise TypeError(f"The ids component of the batch specification must be a list (got {ids}).")
-                    for _id in ids:
+                    for _id in batch_ids:
                         if not isinstance(_id, str):
                             raise TypeError(f"Each id in the batch specification must be a string (got {_id}).")
+                        ids.add(_id)
 
     def to_json(self):
         return json.dumps(self.data)

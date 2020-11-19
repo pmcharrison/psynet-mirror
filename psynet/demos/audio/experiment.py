@@ -123,15 +123,14 @@ example_audio_meter = ModularPage(
     "audio_meter",
     "This page shows an audio meter.",
     AudioMeterControl(calibrate=False),
-    time_estimate=5,
-
+    time_estimate=5
 )
 
 example_audio_meter_calibrate = ModularPage(
     "audio_meter",
     "Here you can experiment with different audio meter parameters.",
     AudioMeterControl(calibrate=True),
-    time_estimate=5,
+    time_estimate=5
 )
 
 example_audio_meter_calibrate_with_audio = ModularPage(
@@ -143,7 +142,7 @@ example_audio_meter_calibrate_with_audio = ModularPage(
         enable_submit_after=0
     ),
     AudioMeterControl(calibrate=True),
-    time_estimate=5,
+    time_estimate=5
 )
 
 example_audio_meter_with_audio = ModularPage(
