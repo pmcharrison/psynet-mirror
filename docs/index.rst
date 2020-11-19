@@ -20,6 +20,7 @@ PsyNet Documentation
    experimenter/timeline
    experimenter/trial_overview
    experimenter/modular_page
+   experimenter/graphics
    experimenter/pre_deploy_routines
    experimenter/payment_limits
    experimenter/deploy_tokens
