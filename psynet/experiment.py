@@ -632,5 +632,6 @@ class ExperimentNetwork(Network):
     def __json__(self):
         return {
             "type": "experiment_network",
-            "variables": self.details
+            "variables": self.details,
+            "role": self.role,
         }
