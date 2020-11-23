@@ -16,7 +16,7 @@ from psynet.modular_page import(
     ModularPage,
     AudioPrompt,
     AudioRecordControl,
-    NAFCControl,
+    PushButtonControl,
     AudioMeterControl
 )
 from psynet.trial.audio import (
@@ -143,31 +143,31 @@ class CustomSource(AudioImitationChainSource):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        # VolumeCalibration(),
-        # ModularPage(
-        #     "record_calibrate",
-        #     """
-        #     Please speak into your microphone and check that the sound is registered
-        #     properly. If the sound is too quiet, try moving your microphone
-        #     closer or increasing the input volume on your computer.
-        #     """,
-        #     AudioMeterControl(),
-        #     time_estimate=5
-        # ),
-        # InfoPage(
-        #     Markup("""
-        #     <p>
-        #         In this experiment you will hear some melodies. Your task will be to sing
-        #         them back as accurately as possible.
-        #     </p>
-        #     <p>
-        #         For the recording to work effectively, we need you to sing in a specific way.
-        #         In particular, we want you to sing each note with a short and sharp
-        #         'Ta' sound, so a melody sounds like 'Ta! Ta! Ta!'.
-        #     </p>
-        #     """),
-        #     time_estimate=5
-        # ),
+        VolumeCalibration(),
+        ModularPage(
+            "record_calibrate",
+            """
+            Please speak into your microphone and check that the sound is registered
+            properly. If the sound is too quiet, try moving your microphone
+            closer or increasing the input volume on your computer.
+            """,
+            AudioMeterControl(),
+            time_estimate=5
+        ),
+        InfoPage(
+            Markup("""
+            <p>
+                In this experiment you will hear some melodies. Your task will be to sing
+                them back as accurately as possible.
+            </p>
+            <p>
+                For the recording to work effectively, we need you to sing in a specific way.
+                In particular, we want you to sing each note with a short and sharp
+                'Ta' sound, so a melody sounds like 'Ta! Ta! Ta!'.
+            </p>
+            """),
+            time_estimate=5
+        ),
         AudioImitationChainTrialMaker(
             id_="iterated_singing_demo",
             network_class=CustomNetwork,

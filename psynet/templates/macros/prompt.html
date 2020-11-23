@@ -16,11 +16,11 @@
     {{ simple(config) }}
 
     <script>
-        {% if config.prevent_response %}
+        {% if config.prevent_response is defined and config.prevent_response %}
             psynet.response.wait_for("audio_prompt");
         {% endif %}
 
-        {% if config.prevent_submit %}
+        {% if config.prevent_submit is defined and config.prevent_submit %}
             psynet.submit.wait_for("audio_prompt");
         {% endif %}
 
@@ -107,4 +107,10 @@
     </div>
 
     {{ simple(config) }}
+{% endmacro %}
+
+{% from "macros/graphics.html" import graphic_%}
+{% macro graphic(config) %}
+    {{ simple(config) }}
+    {{ graphic_(config) }}
 {% endmacro %}

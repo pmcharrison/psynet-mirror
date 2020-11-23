@@ -192,13 +192,12 @@ class TestExport():
         dallinger_data_export.assert_called_once_with("app-1", local=True)
         get_base_url.assert_called_once()
 
-    def test_export_remote(self, export, get_base_url):
-        result = CliRunner().invoke(export, ["--app=app-1"])
-        get_base_url.assert_not_called()
-
-    def test_export_no_prepare(self, export, prepare):
+    def test_export_remote(self, export, prepare, move_snapshot_file, dallinger_data_export, get_base_url):
         result = CliRunner().invoke(export, ["--app=app-1"])
         prepare.assert_not_called()
+        move_snapshot_file.assert_called_once_with("data/data-app-1", "app-1")
+        dallinger_data_export.assert_called_once_with("app-1", local=False)
+        get_base_url.assert_not_called()
 
     def test_export(self,
                     export,

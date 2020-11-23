@@ -15,6 +15,8 @@ from psynet.timeline import Timeline
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    consent_audiovisual_recordings = False
+
     timeline = Timeline(
         ColorVocabularyTest(),
         InfoPage("You passed the color vocabulary task! Congratulations.", time_estimate=3),

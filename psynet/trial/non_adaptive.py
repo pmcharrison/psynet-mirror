@@ -256,7 +256,7 @@ class StimulusVersion(TrialNode):
     has_media = claim_field(2, "has_media", __extra_vars__, bool)
     s3_bucket = claim_field(3, "s3_bucket", __extra_vars__, str)
     remote_media_dir = claim_field(4, "remote_media_dir", __extra_vars__, str)
-    media_file_name = claim_field(5, "media_file_name", __extra_vars__, str)
+    media_id = claim_field(5, "media_id", __extra_vars__, str)
 
     @property
     @extra_var(__extra_vars__)
@@ -274,7 +274,7 @@ class StimulusVersion(TrialNode):
             return None
         return get_s3_url(
             self.s3_bucket,
-            os.path.join(self.remote_media_dir, self.media_file_name)
+            os.path.join(self.remote_media_dir, self.media_id)
         )
 
     @property
@@ -302,7 +302,7 @@ class StimulusVersion(TrialNode):
         self.has_media = stimulus_version_spec.has_media
         self.s3_bucket = stimulus_set.s3_bucket
         self.remote_media_dir = stimulus_set.remote_media_dir
-        self.media_file_name = stimulus_version_spec.media_file_name
+        self.media_id = stimulus_version_spec.media_id
         self.definition = stimulus_version_spec.definition
         self.connect_to_parent(stimulus)
 
@@ -341,24 +341,24 @@ class StimulusVersionSpec():
         return hash_object(self.definition)
 
     @property
-    def media_file_name(self):
+    def media_id(self):
         if not self.has_media:
             return None
         return self.hash + self.media_ext
 
     def cache_media(self, parent_definition, local_media_cache_dir):
         if self.has_media:
-            path = os.path.join(local_media_cache_dir, self.media_file_name)
+            path = os.path.join(local_media_cache_dir, self.media_id)
             definition = {**parent_definition, **self.definition}
             self.generate_media(definition, path)
 
     def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
         if self.has_media:
-            local_path = os.path.join(local_media_cache_dir, self.media_file_name)
-            remote_key = os.path.join(remote_media_dir, self.media_file_name)
-            if not os.path.isfile(local_path):
+            local_path = os.path.join(local_media_cache_dir, self.media_id)
+            remote_key = os.path.join(remote_media_dir, self.media_id)
+            if not os.path.exists(local_path):
                 raise IOError(
-                    f"Couldn't find local media cache file '{local_path}'. "
+                    f"Couldn't find local media cache at '{local_path}'. "
                     "Try deleting your cache and starting again?"
                 )
             with DisableLogger():

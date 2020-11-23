@@ -161,7 +161,7 @@ The :meth:`trial` method returns a :class:`~psynet.trial.non_adaptive.NonAdaptiv
                     # Prompt(
                     #     "Choose between 1, 2, and 3!"
                     # ),
-                    # NAFCControl(
+                    # PushButtonControl(
                     #     ["1", "2", "3"]
                     # ),
                     time_estimate=time_estimate

@@ -1,7 +1,7 @@
 import errno, json
 import os
 import shutil
-
+import sys
 import click
 import requests
 from yaspin import yaspin
@@ -37,6 +37,11 @@ from .utils import (
 )
 
 FLAGS = set()
+
+def clean_sys_modules():
+    to_clear = [k for k in sys.modules if k.startswith("dallinger_experiment")]
+    for key in to_clear:
+        del sys.modules[key]
 
 header = r"""
     ____             _   __     __
@@ -76,6 +81,7 @@ def prepare(force):
     dallinger_log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
     experiment_class = import_local_experiment().get("class")
     experiment_class.pre_deploy()
+    clean_sys_modules()
     return experiment_class
 
 
@@ -145,12 +151,19 @@ def estimate(mode):
     """
     dallinger_log(header)
     experiment_class = import_local_experiment()["class"]
+    experiment = setup_experiment_variables(experiment_class)
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus()
+        maximum_bonus = experiment_class.estimated_max_bonus(experiment.wage_per_hour)
         dallinger_log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
-        completion_time = experiment_class.estimated_completion_time()
+        completion_time = experiment_class.estimated_completion_time(experiment.wage_per_hour)
         dallinger_log(f"Estimated time to complete experiment: {format_seconds(completion_time)}.")
+
+
+def setup_experiment_variables(experiment_class):
+    experiment = experiment_class()
+    experiment.setup_experiment_variables()
+    return experiment
 
 
 ### export ###

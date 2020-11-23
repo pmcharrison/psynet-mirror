@@ -27,7 +27,7 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("demo_non_adaptive")
 class TestExp():
 
-    def test_exp(self, bot_recruits, db_session, trial_maker):    #two_iterations, bot_recruits):
+    def test_exp(self, bot_recruits, db_session, trial_maker):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(0.2)

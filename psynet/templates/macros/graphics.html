@@ -1,0 +1,208 @@
+{% macro graphic_(config) %}
+    <style>
+        #graphic-{{ config.id }}-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: {{ config.margin }};
+        }
+        #graphic-{{ config.id }} {
+            border-style: {{ config.border_style }};
+            border-color: {{ config.border_color }};
+            border-width: {{ config.border_width }};
+            height: {{ config.viewport_width * 100}}%;
+            width: {{ config.viewport_width * 100 }}%;
+        }
+    </style>
+
+    <div id="graphic-{{ config.id }}-container">
+        <div id="graphic-{{ config.id }}"> </div>
+    </div>
+
+    <script src="/static/scripts/raphael-2.3.0.min.js"></script>
+
+    <script>
+        let graphic_{{ config.id }} = {
+            id: "{{ config.id }}",
+            paper: new Raphael("graphic-{{ config.id }}"),
+            paper_html: $("#graphic-{{ config.id }}"),
+            objects: {}
+        };
+
+        (function() {
+            let {id, paper, paper_html, objects} = graphic_{{ config.id }};
+            let loop = {% if config.loop %} true {% else %} false {% endif %};
+            let blueprint_dim = [
+                {{ config.dimensions[0] }},
+                {{ config.dimensions[1] }}
+            ];
+            let cursor_location = null;
+
+            {% if config.prevent_control_response %}
+                psynet.response.wait_for("graphic_" + id);
+            {% endif %}
+
+            {% if config.prevent_control_submit %}
+                psynet.submit.wait_for("graphic_" + id);
+            {% endif %}
+
+            paper.setViewBox(0, 0, blueprint_dim[0], blueprint_dim[1], true);
+            paper.setSize("100%", "100%");
+
+            let svg = document.querySelector("svg");
+            svg.removeAttribute("width");
+            svg.removeAttribute("height");
+
+            window.addEventListener("mousemove", function(e) {
+                let mouse_loc = [e.pageX, e.pageY];
+                let paper_loc = [paper_html.offset().left, paper_html.offset().top];
+                let paper_dim = [paper_html.width(), paper_html.height()];
+                cursor_location = [0, 1].map(i => blueprint_dim[i] * (mouse_loc[i] - paper_loc[i]) / paper_dim[i]);
+                // psynet.log.debug("Cursor location: " + cursor_location)
+            });
+
+            function submit_answer(clicked_object, click_coordinates) {
+                psynet.next_page({
+                    clicked_object: clicked_object,
+                    click_coordinates: click_coordinates
+                });
+            }
+
+            let current_frame = 0;
+            let frames = [];
+            {% for frame in config.frames %}
+                frames.push({
+                    duration: {% if frame.duration is not none %} {{ 1000 * frame.duration }} {% else %} null {% endif %},
+                    function: function() {
+
+                        {% if frame.audio_id is not none %}
+                            psynet.audio["{{ frame.audio_id }}"].play();
+                        {% endif %}
+
+                        {% if frame.activate_control_response %}
+                            psynet.response.ready("graphic_" + id);
+                        {% endif %}
+
+                        {% if frame.activate_control_submit %}
+                            psynet.submit.ready("graphic_" + id);
+                        {% endif %}
+
+                        {% for object in frame.objects %}
+                            {
+                                let object = {
+                                    id: "{{ object.id }}",
+                                    active: false,
+                                    persist: {{ object.persist | lower }},
+                                    animations: {{ object.animations_js | tojson }},
+                                    loop_animations: {{ object.loop_animations | lower }},
+                                    raphael: null
+                                };
+
+                                object.draw = function() {
+                                    {% for cmd in object.js_init %} {{ cmd | safe }} {% endfor %}
+                                    {% for cmd in object.js_edit %} {{ cmd | safe }} {% endfor %}
+
+                                    this.raphael.attr({{ object.attributes | tojson }});
+
+                                    {% if object.click_to_answer %}
+                                        this.raphael.click(function () {
+                                            let clicked_object = object.id;
+                                            let click_coordinates = cursor_location;
+                                            submit_answer(clicked_object, cursor_location);
+                                        })
+                                    {% endif %}
+
+                                    this.active = true;
+                                }
+
+                                object.erase = function() {
+                                    this.raphael.remove();
+                                    this.active = false;
+                                }
+
+                                object.queue_animation = function(i) {
+                                    let object = this;
+                                    let num_animations = this.animations.length;
+                                    let animation_spec = this.animations[i];
+                                    function callback() {
+                                        if (!object.active) {
+                                            return
+                                        } else if (i + 1 < num_animations) {
+                                            object.queue_animation(i + 1);
+                                        } else if (object.loop_animations) {
+                                            object.erase();
+                                            object.draw();
+                                            object.queue_animation(0);
+                                        }
+                                    }
+                                    this.raphael.animate(
+                                        animation_spec.final_attributes,
+                                        1000 * animation_spec.duration,
+                                        animation_spec.easing,
+                                        callback
+                                    );
+                                }
+
+                                objects[object.id] = object;
+
+                                object.draw();
+
+                                if (object.animations.length > 0) {
+                                    object.queue_animation(0);
+                                }
+                            }
+                        {% endfor %}
+                    }
+                });
+            {% endfor %}
+
+            let clear_paper = function(remove_persistent_objects) {
+               Object.keys(objects).forEach(function(object_id) {
+                    let object = objects[object_id];
+                    if (remove_persistent_objects || !object.persist) {
+                        object.erase();
+                        delete objects[object_id];
+                    }
+                });
+            };
+
+            let queue_frame = function (i) {
+                psynet.log.debug("Graphic '" + id + "': queuing frame " + i);
+                let remove_persistent_objects = i == 0;
+                clear_paper(remove_persistent_objects);
+                frames[i].function();
+                if (frames[i].duration !== null) {
+                    setTimeout(function() {
+                        let is_last_frame = (!loop) && (i + 1 == frames.length);
+                        if (!is_last_frame) {
+                            let next_frame = (i + 1) % frames.length;
+                            queue_frame(next_frame);
+                        }
+                    }, frames[i].duration)
+                }
+            };
+
+            let start_sequence = function() {
+                queue_frame(0);
+
+                {% if config.auto_advance_after is defined and config.auto_advance_after is not none %}
+                    setTimeout(function() {
+                        let clicked_object = null;
+                        let click_coordinates = null;
+                        submit_answer(clicked_object, click_coordinates);
+                    }, 1000 * {{ config.auto_advance_after }});
+                {% endif %}
+            };
+
+            if (frames.length > 0) {
+                psynet.media.register_on_loaded_routine(start_sequence);
+            }
+        })();
+
+        //retrieve_response = function() {
+        //    return {
+        //        raw_answer: parseFloat($("#slider").get(0).value)
+        //    }
+        //}
+    </script>
+{% endmacro %}
