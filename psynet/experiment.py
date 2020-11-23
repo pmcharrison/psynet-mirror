@@ -147,12 +147,12 @@ class Experiment(dallinger.experiment.Experiment):
         return sum([(0.0 if p.base_payment is None else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
 
     @classmethod
-    def estimated_max_bonus(cls):
-        return cls.timeline.estimated_max_bonus(cls)
+    def estimated_max_bonus(cls, wage_per_hour):
+        return cls.timeline.estimated_max_bonus(wage_per_hour)
 
     @classmethod
-    def estimated_completion_time(cls):
-        return cls.timeline.estimated_completion_time(cls)
+    def estimated_completion_time(cls, wage_per_hour):
+        return cls.timeline.estimated_completion_time(wage_per_hour)
 
     @property
     def setup_complete(self):
