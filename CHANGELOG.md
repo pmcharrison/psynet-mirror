@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.7.0] Unreleased
+
+#### Added
+- Stimulus media extension to allow multiple files.
+- New OptionControl class with subclasses: CheckboxControl, DropdownControl, RadiobuttonControl, and PushButtonControl.
+- New Canvas drawing module and demo 'graphics' based on Raphaël vector graphics library.
+
+#### Changes
+- Optimization of 'estimated_max_bonus' function.
+- Refactor ad and consent pages using new default templates.
+
+#### Fixed
+- Register pre-deployment routines.
+- Missing role attribute for experiment_network in dashboard.
+
 ## [1.6.1] Released on 2020-11-16
 
 #### Fixed
