@@ -89,6 +89,7 @@ class Experiment(dallinger.experiment.Experiment):
     soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
     soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
     wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
+    consent_audiovisual_recordings = claim_var("consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True)
 
     pre_deploy_routines = []
 
@@ -170,6 +171,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup(self):
         self.setup_experiment_network()
         self.setup_experiment_variables()
+        db.session.commit()
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
@@ -178,6 +180,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.soft_max_experiment_payment = 1000.0
         self.soft_max_experiment_payment_email_sent = False
         self.wage_per_hour = 9.0
+        self.consent_audiovisual_recordings = True
 
     def load(self):
         for event in self.timeline.events:
@@ -502,7 +505,8 @@ class Experiment(dallinger.experiment.Experiment):
                 mode=config.get("mode"),
                 contact_email_on_error=config.get("contact_email_on_error"),
                 min_browser_version=self.min_browser_version,
-                wage_per_hour=f"{exp.wage_per_hour:.2f}"
+                wage_per_hour=f"{exp.wage_per_hour:.2f}",
+                consent_audiovisual_recordings=self.consent_audiovisual_recordings
             )
 
         @routes.route("/node/<int:node_id>/fail", methods=["GET", "POST"])
