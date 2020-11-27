@@ -14,6 +14,7 @@
 #### Fixed
 - Register pre-deployment routines.
 - Missing role attribute for experiment_network in dashboard.
+- Make recode_wav compatible with 64-bit audio files.
 
 ## [1.6.1] Released on 2020-11-16
 
