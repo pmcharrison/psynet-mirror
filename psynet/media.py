@@ -6,7 +6,9 @@ import botocore.exceptions
 import botocore.errorfactory
 import tempfile
 import shutil
+import numpy as np
 from uuid import uuid4
+from scipy.io import wavfile
 
 from pathlib import Path
 
@@ -316,7 +318,9 @@ def make_bucket_public(bucket_name):
 def recode_wav(file_path):
     import parselmouth
     with tempfile.NamedTemporaryFile() as temp_file:
-        shutil.copyfile(file_path, temp_file.name)
+        fs, data = wavfile.read(file_path)
+        force_bit_depth = data.astype(np.float32)
+        wavfile.write(temp_file.name, fs, force_bit_depth)
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
 
