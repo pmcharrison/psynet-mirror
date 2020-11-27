@@ -8,12 +8,13 @@
     <h1>Unity debug page</h1>
     <h2>Please go to Unity IDE!</h2>
     <ul>
-      <li style="font-weight: bold">Session ID: {{ session_id }}</li>
-      <li style="font-weight: bold">Page contents: {{ contents }}</li>
+      <li style="font-weight: bold">Title: <span style="font-weight: normal">{{ title }}</span></li>
+      <li style="font-weight: bold">Session ID: <span style="font-weight: normal">{{ session_id }}</span></li>
+      <li style="font-weight: bold">Page contents: <span style="font-weight: normal">{{ contents }}</span></li>
       <li style="font-weight: bold">Participant</li>
         <ul>
         {% for key, value in participant.__json__().items() %}
-          <li>{{ key }}: <i>{{ key }}</i></li>
+          <li>{{ key }}: <i>{{ value }}</i></li>
         {% endfor %}
       </ul>
     </ul>

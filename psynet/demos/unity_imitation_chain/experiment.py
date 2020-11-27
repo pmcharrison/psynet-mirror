@@ -75,12 +75,12 @@ class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     session_id = str(uuid4())
-    num_pages = 5
+    num_pages = 4
 
     def show_trial(self, experiment, participant):
         page_1 = InfoPage("Welcome to the Unity imitation chain experiment")
         page_2 = CustomUnityPage(
-            title="Page 1 – Unity imitation chain experiment",
+            title="Page 1.1– Unity imitation chain experiment",
             game_container_width="960px",
             game_container_height="600px",
             contents=self.definition,
@@ -91,7 +91,7 @@ class CustomTrial(ImitationChainTrial):
             debug=True,
         )
         page_3 = CustomUnityPage(
-            title="Page 1 – Unity imitation chain experiment",
+            title="Page 1.2 – Unity imitation chain experiment",
             game_container_width="960px",
             game_container_height="600px",
             contents=self.definition,
@@ -112,13 +112,11 @@ class CustomTrial(ImitationChainTrial):
             session_id=str(uuid4()),
             debug=True,
         )
-
         return [
             page_1,
             page_2,
             page_3,
             page_4,
-            SuccessfulEndPage()
         ]
 
 class CustomNetwork(ImitationChainNetwork):
@@ -193,7 +191,7 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="num_participants",
             target_num_participants=10
         ),
-        InfoPage("You finished the experiment!", time_estimate=0),
+        InfoPage("Thank you for playing the Unity imitation chain experiment", time_estimate=0),
         SuccessfulEndPage()
     )
 
