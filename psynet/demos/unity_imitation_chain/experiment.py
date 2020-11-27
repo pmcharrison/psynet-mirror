@@ -75,12 +75,12 @@ class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     session_id = str(uuid4())
-    num_pages = 2
+    num_pages = 5
 
     def show_trial(self, experiment, participant):
         page_1 = InfoPage("Welcome to the Unity imitation chain experiment")
         page_2 = CustomUnityPage(
-            title="Unity imitation chain experiment",
+            title="Page 1 – Unity imitation chain experiment",
             game_container_width="960px",
             game_container_height="600px",
             contents=self.definition,
@@ -88,20 +88,37 @@ class CustomTrial(ImitationChainTrial):
             resources="/static",
             time_estimate=5,
             session_id=self.session_id,
+            debug=True,
         )
-        # page_3 = CustomUnityPage(
-        #     title="Unity imitation chain experiment",
-        #     game_container_width="960px",
-        #     game_container_height="600px",
-        #     contents=99,
-        #     resources="/static",
-        #     time_estimate=5,
-        #     session_id = session_id,
-        # )
+        page_3 = CustomUnityPage(
+            title="Page 1 – Unity imitation chain experiment",
+            game_container_width="960px",
+            game_container_height="600px",
+            contents=self.definition,
+            participant=self.participant,
+            resources="/static",
+            time_estimate=5,
+            session_id=self.session_id,
+            debug=True,
+        )
+        page_4 = CustomUnityPage(
+            title="Page 2 – Unity imitation chain experiment",
+            game_container_width="960px",
+            game_container_height="600px",
+            contents=self.definition,
+            participant=self.participant,
+            resources="/static",
+            time_estimate=5,
+            session_id=str(uuid4()),
+            debug=True,
+        )
 
         return [
             page_1,
-            page_2
+            page_2,
+            page_3,
+            page_4,
+            SuccessfulEndPage()
         ]
 
 class CustomNetwork(ImitationChainNetwork):
