@@ -8,11 +8,14 @@
     <h1>Unity debug page</h1>
     <h2>Please go to Unity IDE!</h2>
     <ul>
-      <li>Session ID: {{ session_id }}</li>
-      <li>Page contents: {{ contents }}</li>
-      <li>Participant: {{ participant.__json__() }}</li>
+      <li style="font-weight: bold">Session ID: {{ session_id }}</li>
+      <li style="font-weight: bold">Page contents: {{ contents }}</li>
+      <li style="font-weight: bold">Participant</li>
+        <ul>
+        {% for key, value in participant.__json__().items() %}
+          <li>{{ key }}: <i>{{ key }}</i></li>
+        {% endfor %}
+      </ul>
     </ul>
-    [Let’s spend some time thinking about other useful debug information we can add here.]
-    [e.g. last answer]
   </body>
 </html>
