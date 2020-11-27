@@ -68,7 +68,7 @@ import rpdb
 
 class CustomUnityPage(UnityPage):
     def format_answer(self, raw_answer, **kwargs):
-        return int(json.loads(raw_answer)["result"])
+        return int(raw_answer)
 
 
 class CustomTrial(ImitationChainTrial):

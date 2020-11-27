@@ -600,6 +600,26 @@ class Experiment(dallinger.experiment.Experiment):
             exp.save()
             return res
 
+        @routes.route("/unity_response", methods=["POST"])
+        def route_unity_response():
+            logger.info("Calling response POST")
+            exp = self.new(db.session)
+
+            json_data = dict(request.form)
+            logger.info(json_data)
+            blobs = None
+            client_ip_address = request.remote_addr
+
+            participant_id = get_arg_from_dict(json_data, "participant_id")
+            page_uuid = get_arg_from_dict(json_data, "page_uuid")
+            raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
+            metadata = get_arg_from_dict(json_data, "metadata")
+
+            res = exp.process_response(participant_id, raw_answer, blobs, json.loads(metadata), page_uuid, client_ip_address)
+            exp.save()
+            return res
+
+
         @routes.route("/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"])
         def log(level, participant_id, assignment_id):
             participant = get_participant(participant_id)
