@@ -191,7 +191,6 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="num_participants",
             target_num_participants=10
         ),
-        InfoPage("Thank you for playing the Unity imitation chain experiment", time_estimate=0),
         SuccessfulEndPage()
     )
 
