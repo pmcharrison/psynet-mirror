@@ -67,6 +67,10 @@ class Experiment(dallinger.experiment.Experiment):
         The recruiting process stops if the amount of accumulated payments
         (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
 
+    show_bonus : `bool`
+        If ``True`` (default), then the participant's current estimated bonus is displayed
+        at the bottom of the page.
+
     Parameters
     ----------
 
@@ -90,6 +94,7 @@ class Experiment(dallinger.experiment.Experiment):
     soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
     wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
     consent_audiovisual_recordings = claim_var("consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True)
+    show_bonus = claim_var("show_bonus", __extra_vars__, use_default=True, default=True)
 
     pre_deploy_routines = []
 
@@ -181,6 +186,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.soft_max_experiment_payment_email_sent = False
         self.wage_per_hour = 9.0
         self.consent_audiovisual_recordings = True
+        self.show_bonus = True
 
     def load(self):
         for event in self.timeline.events:

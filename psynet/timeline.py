@@ -608,6 +608,8 @@ class Page(Event):
 
     def create_footer(self, experiment, participant):
         # pylint: disable=unused-argument
+        if not experiment.show_bonus:
+            return Footer([""])
         return Footer([
                 f"Estimated bonus: <strong>&#36;{participant.time_credit.estimate_bonus():.2f}</strong>"
             ],
