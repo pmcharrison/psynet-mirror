@@ -6,6 +6,7 @@
 - Stimulus media extension to allow multiple files.
 - New OptionControl class with subclasses: CheckboxControl, DropdownControl, RadiobuttonControl, and PushButtonControl.
 - New Canvas drawing module and demo 'graphics' based on Raphaël vector graphics library.
+- Ability to disable bonus display by setting `show_bonus = False` in the Experiment class.
 
 #### Changes
 - Optimization of 'estimated_max_bonus' function.
