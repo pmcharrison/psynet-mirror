@@ -78,7 +78,7 @@
         </div>
     {% endblock %}
 
-    <div id="main-body" style="padding: 5% 10% 5% 10%;">
+    <div id="main-body" style="padding: 5% 10% 5% 10%">
         {% block main_body %}
 
         {% endblock %}
@@ -389,7 +389,10 @@
                     }
                     if (psynet.response.waiting_for.length == 0) {
                         if (psynet.response.ready_done) {
-                            psynet.log.warning("Response-ready has already been called.");
+                            // Have now decided that calling response.ready multiple times is fine
+                            // and shouldn't be discouraged.
+                            //
+                            // psynet.log.warning("Response-ready has already been called.");
                         } else {
                             psynet.log.debug("Ready for user to enter response.");
                             psynet.response.on_ready_routines.forEach(function (f) {
@@ -409,7 +412,10 @@
                     }
                     if (psynet.submit.waiting_for.length == 0) {
                         if (psynet.submit.ready_done) {
-                            psynet.log.warning("Submit-ready has already been called.");
+                            // Have now decided that calling response.ready multiple times is fine
+                            // and shouldn't be discouraged.
+                            //
+                            // psynet.log.warning("Submit-ready has already been called.");
                         } else {
                             psynet.log.debug("Ready for user to submit response.");
                             psynet.submit.on_ready_routines.forEach(function (f) {
@@ -420,7 +426,7 @@
                     }
                 };
 
-                psynet.media.types = ["audio", "video"];
+                psynet.media.types = ["audio", "image", "video"];
                 psynet.media.data = {};
 
                 // Can be very dangerous if indexes are not sorted properly!
@@ -669,7 +675,7 @@
 
                     if (media_type == "audio") {
                         request.responseType = "arraybuffer";
-                    } else if (media_type == "video") {
+                    } else if (media_type == "image" || media_type == "video") {
                         request.responseType = "blob";
                     } else {
                         throw Error("Unsupported media type: " + media_type);
@@ -846,6 +852,36 @@
                         psynet.media.check_loaded();
                     });
                 };
+
+                get_image_metadata_from_url = function(url) {
+                    return new Promise((resolve, reject) => {
+                        let img = new Image();
+                        img.onload = () => resolve({
+                            width: img.width,
+                            height: img.height
+                        });
+                        img.onerror = () => reject();
+                        img.src = url;
+                    });
+                };
+
+                create_media_from_buffer.image = async function (data, args) {
+                    var stimulus_id = args['stimulus_id'];
+                    var media_type = args['media_type'];
+                    var file_id = args['file_id'];
+                    var url = URL.createObjectURL(data);
+                    var metadata = await get_image_metadata_from_url(url);
+
+                    var out = psynet.media.data[media_type][stimulus_id];
+                    out.url = url;
+                    out.width = metadata.width;
+                    out.height = metadata.height;
+                    out.aspect_ratio = out.width / out.height;
+                    out.loaded = true;
+
+                    psynet.media.download_progress.set(media_type, file_id, 100);
+                    psynet.media.check_loaded();
+                }
 
                 create_media_from_buffer.video = function (data, args) {
                     var stimulus_id = args['stimulus_id'];
@@ -1099,6 +1135,8 @@
 
                 // Aliases for easy typing
                 psynet.audio = psynet.media.data.audio;
+                psynet.image = psynet.media.data.image;
+                psynet.video = psynet.media.data.video;
 
                 return psynet
             }

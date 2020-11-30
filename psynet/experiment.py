@@ -16,8 +16,10 @@ from dallinger.experiment_server.utils import (
     success_response,
     error_response
 )
+from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 
+from .field import VarStore, claim_var
 from .participant import get_participant, Participant
 from .timeline import (
     get_template,
@@ -65,6 +67,10 @@ class Experiment(dallinger.experiment.Experiment):
         The recruiting process stops if the amount of accumulated payments
         (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
 
+    show_bonus : `bool`
+        If ``True`` (default), then the participant's current estimated bonus is displayed
+        at the bottom of the page.
+
     Parameters
     ----------
 
@@ -80,11 +86,16 @@ class Experiment(dallinger.experiment.Experiment):
         SuccessfulEndPage()
     )
 
-    max_participant_payment = 25.0
-    soft_max_experiment_payment = 1000.0
-    wage_per_hour = 9.0
-    min_browser_version = "80.0"
-    # min_working_participants = 5
+    __extra_vars__ = {}
+
+    min_browser_version = claim_var("min_browser_version", __extra_vars__, use_default=True, default="80.0")
+    max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=True, default=25.0)
+    soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
+    soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
+    wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
+    consent_audiovisual_recordings = claim_var("consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True)
+    show_bonus = claim_var("show_bonus", __extra_vars__, use_default=True, default=True)
+
     pre_deploy_routines = []
 
     def __init__(self, session=None):
@@ -99,38 +110,26 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria = []
         self.base_payment = config.get("base_payment")
 
-        # self.register_recruitment_criterion(self.default_recruitment_criterion)
-
         if session:
-            self.setup()
+            if not self.setup_complete:
+                self.setup()
+            self.load()
+        else:
+            self.register_pre_deployment_routines()
 
-        for event in self.timeline.events:
-            if isinstance(event, PreDeployRoutine):
-                self.register_pre_deployment_routine(event)
+    @property
+    def var(self):
+        return self.experiment_network.var
 
-    # @property
-    # def default_recruitment_criterion(self):
-    #     def f():
-    #         logger.info(
-    #             "Number of working participants = %i, versus minimum of %i.",
-    #             self.num_working_participants,
-    #             self.min_working_participants
-    #         )
-    #         return self.num_working_participants < self.min_working_participants
-    #     return RecruitmentCriterion(
-    #         label="min_working_participants",
-    #         function=f
-    #     )
+    @property
+    def experiment_network(self):
+        return ExperimentNetwork.query.one()
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
 
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
-
-    # @property
-    # def allotted_bonus_dollars(self):
-    #     return self.timeline.estimate_time_credit().get_max("bonus", wage_per_hour=self.wage_per_hour)
 
     @property
     def background_tasks(self):
@@ -139,8 +138,10 @@ class Experiment(dallinger.experiment.Experiment):
     def register_background_task(self, task):
         self._background_tasks.append(task)
 
-    def register_pre_deployment_routine(self, routine):
-        self.pre_deploy_routines.append(routine)
+    def register_pre_deployment_routines(self):
+        for event in self.timeline.events:
+            if isinstance(event, PreDeployRoutine):
+                self.pre_deploy_routines.append(event)
 
     @classmethod
     def new(cls, session):
@@ -148,17 +149,46 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def amount_spent(cls):
-        return sum([(0.0 if p.base_payment is None else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
+        return sum([(0.0 if (not p.initialised or p.base_payment is None) else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
 
     @classmethod
-    def estimated_max_bonus(cls):
-        return cls.timeline.estimated_max_bonus(cls)
+    def estimated_max_bonus(cls, wage_per_hour):
+        return cls.timeline.estimated_max_bonus(wage_per_hour)
 
     @classmethod
-    def estimated_completion_time(cls):
-        return cls.timeline.estimated_completion_time(cls)
+    def estimated_completion_time(cls, wage_per_hour):
+        return cls.timeline.estimated_completion_time(wage_per_hour)
+
+    @property
+    def setup_complete(self):
+        return self.experiment_network_exists
+
+    @property
+    def experiment_network_exists(self):
+        return ExperimentNetwork.query.count() > 0
+
+    def setup_experiment_network(self):
+        logger.info(f"Setting up ExperimentNetwork.")
+        network = ExperimentNetwork()
+        db.session.add(network)
+        db.session.commit()
 
     def setup(self):
+        self.setup_experiment_network()
+        self.setup_experiment_variables()
+        db.session.commit()
+
+    def setup_experiment_variables(self):
+        # Note: the experiment network must be setup first before we can set these variables.
+        self.min_browser_version = "80.0"
+        self.max_participant_payment = 25.0
+        self.soft_max_experiment_payment = 1000.0
+        self.soft_max_experiment_payment_email_sent = False
+        self.wage_per_hour = 9.0
+        self.consent_audiovisual_recordings = True
+        self.show_bonus = True
+
+    def load(self):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
@@ -210,8 +240,8 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def need_more_participants(self):
-        if (self.amount_spent() >= self.soft_max_experiment_payment):
-            self.send_email_max_payment_reached()
+        if self.amount_spent() >= self.soft_max_experiment_payment:
+            self.ensure_soft_max_experiment_payment_email_sent()
             return False
 
         need_more = False
@@ -232,6 +262,11 @@ class Experiment(dallinger.experiment.Experiment):
             if res:
                 need_more = True
         return need_more
+
+    def ensure_soft_max_experiment_payment_email_sent(self):
+        if not self.soft_max_experiment_payment_email_sent:
+            self.send_email_max_payment_reached()
+            self.var.soft_max_experiment_payment_email_sent = True
 
     def send_email_max_payment_reached(self):
         config = get_config()
@@ -319,8 +354,8 @@ class Experiment(dallinger.experiment.Experiment):
             The possibly reduced bonus as a ``float``.
         """
         # check soft_max_experiment_payment
-        if (self.amount_spent() + bonus >= self.soft_max_experiment_payment):
-            self.send_email_max_payment_reached()
+        if self.amount_spent() + bonus >= self.soft_max_experiment_payment:
+            self.ensure_soft_max_experiment_payment_email_sent()
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.max_participant_payment:
             reduced_bonus = round(self.max_participant_payment - participant.amount_paid(), 2)
@@ -385,8 +420,10 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_files(cls):
         return [
             (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png"),
+            (resource_filename('psynet', 'resources/logo.svg'), "/static/images/logo.svg"),
             (resource_filename('psynet', 'resources/scripts/dashboard_timeline.js'), "/static/scripts/dashboard_timeline.js"),
-            (resource_filename('psynet', 'resources/css/dashboard_timeline.css'), "/static/css/dashboard_timeline.css")
+            (resource_filename('psynet', 'resources/css/dashboard_timeline.css'), "/static/css/dashboard_timeline.css"),
+            (resource_filename('psynet', 'resources/libraries/raphael-2.3.0/raphael.min.js'), "/static/scripts/raphael-2.3.0.min.js")
         ]
 
     def extra_routes(self):
@@ -474,7 +511,8 @@ class Experiment(dallinger.experiment.Experiment):
                 mode=config.get("mode"),
                 contact_email_on_error=config.get("contact_email_on_error"),
                 min_browser_version=self.min_browser_version,
-                wage_per_hour=f"{exp.wage_per_hour:.2f}"
+                wage_per_hour=f"{exp.wage_per_hour:.2f}",
+                consent_audiovisual_recordings=self.consent_audiovisual_recordings
             )
 
         @routes.route("/node/<int:node_id>/fail", methods=["GET", "POST"])
@@ -587,3 +625,23 @@ class Experiment(dallinger.experiment.Experiment):
             return success_response()
 
         return routes
+
+
+class ExperimentNetwork(Network):
+    __mapper_args__ = {"polymorphic_identity": "experiment_network"}
+    __extra_vars__ = {}
+
+    def __init__(self):
+        self.role = "config"
+        self.max_size = 0
+
+    @property
+    def var(self):
+        return VarStore(self)
+
+    def __json__(self):
+        return {
+            "type": "experiment_network",
+            "variables": self.details,
+            "role": self.role,
+        }

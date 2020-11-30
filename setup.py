@@ -38,8 +38,10 @@ setuptools.setup(
         "rpdb",
         "progress",
         "scipy",
+        "numpy",
         "statsmodels",
-        "yaspin"
+        "yaspin",
+        "praat-parselmouth"
     ],
     extras_require={
         "dev": [

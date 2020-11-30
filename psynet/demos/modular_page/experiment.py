@@ -26,7 +26,7 @@ from psynet.modular_page import (
     Prompt,
     AudioPrompt,
     Control,
-    NAFCControl,
+    PushButtonControl,
     VideoSliderControl
 )
 
@@ -58,6 +58,8 @@ class ColourText(Control):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    consent_audiovisual_recordings = False
+
     timeline = Timeline(
         ModularPage(
             "text",
@@ -108,9 +110,9 @@ class Exp(psynet.experiment.Experiment):
             "response",
             prompt=AudioPrompt(
                 url="/static/audio/bier.wav",
-                text="Here is an example of an audio prompt combined with an NAFC control."
+                text="Here is an example of an audio prompt combined with a push button control``."
             ),
-            control=NAFCControl(["Response A", "Response B"]),
+            control=PushButtonControl(["Response A", "Response B"]),
             time_estimate=5
         ),
         DebugResponsePage(),

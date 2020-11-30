@@ -195,24 +195,32 @@ class MediaSpec():
                 }
             }
 
+    image: dict
+        An analogously structured dictionary of image stimuli.
+
     video: dict
         An analogously structured dictionary of video stimuli.
     """
-    modalities = ["audio", "video"]
+    modalities = ["audio", "image", "video"]
 
     def __init__(
             self,
             audio: Optional[dict] = None,
+            image: Optional[dict] = None,
             video: Optional[dict] = None
             ):
         if audio is None:
             audio = {}
+
+        if image is None:
+            image = {}
 
         if video is None:
             video = {}
 
         self.data = {
             "audio": audio,
+            "image": image,
             "video": video
         }
 
@@ -221,6 +229,27 @@ class MediaSpec():
     @property
     def audio(self):
         return self.data["audio"]
+
+    @property
+    def image(self):
+        return self.data["image"]
+
+    @property
+    def video(self):
+        return self.data["video"]
+
+    @property
+    def ids(self):
+        res = {}
+        for media_type, media in self.data.items():
+            res[media_type] = set()
+            for key, value in media.items():
+                if isinstance(value, str):
+                    res[media_type].add(key)
+                else:
+                    assert isinstance(value, dict)
+                    res[media_type].update(value["ids"])
+        return res
 
     @property
     def num_files(self):
@@ -260,12 +289,13 @@ class MediaSpec():
                         raise TypeError(f"Media entry must either be a string URL or a dict (got {file}).")
                     if not ("url" in file and "ids" in file):
                         raise ValueError("Batch specifications must contain both 'url' and 'ids' keys.")
-                    ids = file["ids"]
-                    if not isinstance(ids, list):
+                    batch_ids = file["ids"]
+                    if not isinstance(batch_ids, list):
                         raise TypeError(f"The ids component of the batch specification must be a list (got {ids}).")
-                    for _id in ids:
+                    for _id in batch_ids:
                         if not isinstance(_id, str):
                             raise TypeError(f"Each id in the batch specification must be a string (got {_id}).")
+                        ids.add(_id)
 
     def to_json(self):
         return json.dumps(self.data)
@@ -578,6 +608,8 @@ class Page(Event):
 
     def create_footer(self, experiment, participant):
         # pylint: disable=unused-argument
+        if not experiment.show_bonus:
+            return Footer([""])
         return Footer([
                 f"Estimated bonus: <strong>&#36;{participant.time_credit.estimate_bonus():.2f}</strong>"
             ],
@@ -776,7 +808,7 @@ class Timeline():
         self.events = events
         self.check_events()
         self.add_event_ids()
-        self.estimated_time_credit = self.estimate_time_credit()
+        self.estimated_time_credit = CreditEstimate(self.events)
 
     def check_events(self):
         assert isinstance(self.events, list)
@@ -845,91 +877,6 @@ class Timeline():
                     "create a fresh instantiation of each element."
             )
 
-    class Branch():
-        def __init__(self, label: str, children: dict):
-            self.label = label
-            self.children = children
-
-        def summarise(self, mode, wage_per_hour=None):
-            return [
-                self.label,
-                {key: child.summarise(mode, wage_per_hour) for key, child in self.children.items()}
-            ]
-
-        def get_max(self, mode, wage_per_hour=None):
-            if mode == "all":
-                raise ValueError("Can't call get_max with mode == 'all'.")
-            return max([
-                child.get_max(mode, wage_per_hour) for child in self.children.values()
-            ])
-
-    class Leaf():
-        def __init__(self, value: float):
-            self.value = value
-
-        def summarise(self, mode, wage_per_hour=None):
-            if mode == "time":
-                return self.value
-            elif mode == "bonus":
-                assert wage_per_hour is not None
-                return self.value * wage_per_hour / (60 * 60)
-            elif mode == "all":
-                return {
-                    "time_seconds": self.summarise(mode="time"),
-                    "time_minutes": self.summarise(mode="time") / 60,
-                    "time_hours": self.summarise(mode="time") / (60 * 60),
-                    "bonus": self.summarise(mode="bonus", wage_per_hour=wage_per_hour)
-                }
-
-        def get_max(self, mode, wage_per_hour=None):
-            return self.summarise(mode, wage_per_hour)
-
-    def estimate_time_credit(self, starting_event_id=0, starting_credit=0.0, starting_counter=0):
-        event_id = starting_event_id
-        time_credit = starting_credit
-        counter = starting_counter
-
-        while True:
-            counter += 1
-            if counter > 1e6:
-                raise Exception("Got stuck in the estimate_time_credit() while loop, this shouldn't happen.")
-
-            event = self.events[event_id]
-
-            # logger.info(f"event_id = {event_id}, event = {event}")
-
-            if event.returns_time_credit:
-                time_credit += event.time_estimate * event.expected_repetitions
-
-            if isinstance(event, StartFixTime):
-                event_id = event.end_fix_time.id
-
-            elif isinstance(event, EndFixTime):
-                time_credit += event.time_estimate * event.expected_repetitions
-                event_id += 1
-
-            elif isinstance(event, StartSwitch):
-                return self.Branch(
-                    label=event.label,
-                    children={
-                        key: self.estimate_time_credit(
-                            starting_event_id=branch_start_event.id,
-                            starting_credit=time_credit,
-                            starting_counter=counter
-                        )
-                        for key, branch_start_event in event.branch_start_events.items()
-                    }
-                )
-
-            elif isinstance(event, EndSwitchBranch):
-                event_id = event.target.id
-
-            elif isinstance(event, EndPage):
-                return self.Leaf(time_credit)
-
-            else:
-                event_id += 1
-
     def __len__(self):
         return len(self.events)
 
@@ -963,18 +910,68 @@ class Timeline():
             if isinstance(new_event, Page) or isinstance(new_event, PageMaker):
                 finished = True
 
-    def estimated_max_bonus(self, experiment):
-        return self.estimate_time_credit().get_max("bonus", wage_per_hour=experiment.wage_per_hour)
+    def estimated_max_bonus(self, wage_per_hour):
+        return self.estimated_time_credit.get_max("bonus", wage_per_hour=wage_per_hour)
 
-    def estimated_completion_time(self, experiment):
-        return self.estimate_time_credit().get_max("time", wage_per_hour=experiment.wage_per_hour)
+    def estimated_completion_time(self, wage_per_hour):
+        return self.estimated_time_credit.get_max("time", wage_per_hour=wage_per_hour)
 
-def estimate_time_credit(events):
-    return sum([
-        event.time_estimate * event.expected_repetitions
-        for event in events
-        if event.returns_time_credit
-    ])
+class CreditEstimate():
+    def __init__(self, events):
+        self._events = events
+        self._max_time = self._estimate_max_time(events)
+
+    def get_max(self, mode, wage_per_hour=None):
+        if mode == "time":
+            return self._max_time
+        elif mode == "bonus":
+            assert wage_per_hour is not None
+            return self._max_time * wage_per_hour / (60 * 60)
+        elif mode == "all":
+            return {
+                "time_seconds": self._max_time,
+                "time_minutes": self._max_time / 60,
+                "time_hours": self._max_time / (60 * 60),
+                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour)
+            }
+
+    def _estimate_max_time(self, events):
+        pos = 0
+        time_credit = 0.0
+        n_events = len(events)
+
+        while True:
+            if pos == n_events:
+                return time_credit
+
+            event = events[pos]
+
+            if event.returns_time_credit:
+                time_credit += event.time_estimate * event.expected_repetitions
+
+            if isinstance(event, StartFixTime):
+                pos = events.index(event.end_fix_time)
+
+            elif isinstance(event, EndFixTime):
+                time_credit += event.time_estimate * event.expected_repetitions
+                pos += 1
+
+            elif isinstance(event, StartSwitch):
+                time_credit += max([
+                    self._estimate_max_time(events[events.index(branch_start):(1 + events.index(event.end_switch))])
+                    for key, branch_start in event.branch_start_events.items()
+                ])
+                pos = events.index(event.end_switch)
+
+            elif isinstance(event, EndSwitchBranch):
+                pos = events.index(event.target)
+
+            elif isinstance(event, EndPage):
+                return time_credit
+
+            else:
+                pos += 1
+
 
 class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):
@@ -1173,7 +1170,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
     )
 
     if fix_time_credit:
-        time_estimate = estimate_time_credit(logic)
+        time_estimate = CreditEstimate(logic).get_max("time")
         return fix_time(events, time_estimate)
     else:
         return events
@@ -1216,9 +1213,9 @@ def switch(
         to an event (or list of events) that can be selected by ``function``.
 
     fix_time_credit:
-        Whether participants should receive the same time credit irrespective of whether
-        ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
-        receive the same credit.
+        Whether participants should receive the same time credit irrespective of the branch taken.
+        Defaults to ``True``, so that all participants receive the same credit, corresponding to the
+        branch with the maximum time credit.
 
     log_chosen_branch:
         Whether to keep a log of which participants took each branch; defaults to ``True``.
@@ -1235,20 +1232,21 @@ def switch(
 
     all_branch_starts = dict()
     all_events = []
-    final_event = EndSwitch(label)
+    end_switch = EndSwitch(label)
 
     for branch_name, branch_events in branches.items():
         branch_start = StartSwitchBranch(branch_name)
-        branch_end = EndSwitchBranch(branch_name, final_event)
+        branch_end = EndSwitchBranch(branch_name, end_switch)
         all_branch_starts[branch_name] = branch_start
         all_events = all_events + [branch_start] + branch_events + [branch_end]
 
-    start_switch = StartSwitch(label, function, branch_start_events=all_branch_starts, log_chosen_branch=log_chosen_branch)
-    combined_events = [start_switch] + all_events + [final_event]
+    start_switch = StartSwitch(label, function, branch_start_events=all_branch_starts, end_switch=end_switch,
+                               log_chosen_branch=log_chosen_branch)
+    combined_events = [start_switch] + all_events + [end_switch]
 
     if fix_time_credit:
         time_estimate = max([
-            estimate_time_credit(branch_events)
+            CreditEstimate(branch_events).get_max("time")
             for branch_events in branches.values()
         ])
         return fix_time(combined_events, time_estimate)
@@ -1256,7 +1254,7 @@ def switch(
         return combined_events
 
 class StartSwitch(ReactiveGoTo):
-    def __init__(self, label, function, branch_start_events, log_chosen_branch=True):
+    def __init__(self, label, function, branch_start_events, end_switch, log_chosen_branch=True):
         if log_chosen_branch:
             def function_2(experiment, participant):
                 val = function(experiment, participant)
@@ -1268,7 +1266,9 @@ class StartSwitch(ReactiveGoTo):
             super().__init__(function, targets=branch_start_events)
         self.label = label
         self.branch_start_events = branch_start_events
+        self.end_switch = end_switch
         self.log_chosen_branch = log_chosen_branch
+
 
 class EndSwitch(NullEvent):
     def __init__(self, label):

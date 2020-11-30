@@ -7,7 +7,7 @@ from .modular_page import (
     ColourPrompt,
     ImagePrompt,
     ModularPage,
-    NAFCControl,
+    PushButtonControl,
     TextControl,
 )
 from .page import InfoPage
@@ -263,7 +263,7 @@ class ColorVocabularyTest(Module):
                         "Which color is shown in the box?",
                         text_align="center"
                     ),
-                    NAFCControl(
+                    PushButtonControl(
                         self.definition["choices"],
                         arrange_vertically=False,
                         min_width="150px",
@@ -379,7 +379,7 @@ class HeadphoneCheck(Module):
                         self.definition["url"],
                         "Which sound was softest (quietest) -- 1, 2, or 3?"
                     ),
-                    NAFCControl(
+                    PushButtonControl(
                         ["1", "2", "3"]
                     ),
                     time_estimate=time_estimate

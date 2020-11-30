@@ -1,5 +1,5 @@
 import pytest
-from psynet.timeline import MediaSpec, Timeline
+from psynet.timeline import MediaSpec, Timeline, CreditEstimate, switch, while_loop
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.utils import DuplicateKeyError
 
@@ -48,6 +48,7 @@ def test_merge_media_spec():
             "stim-3": "stim-3.wav"
     }).data
 
+
 def new_trial_maker(**kwarg):
     args = dict(
         id_="test_trial_maker",
@@ -72,6 +73,7 @@ def new_trial_maker(**kwarg):
     all_args = {**args, **kwarg}
     return ChainTrialMaker(**all_args)
 
+
 def test_get_trial_maker():
     tm_1 = new_trial_maker(id_="tm-1")
     tm_2 = new_trial_maker(id_="tm-2")
@@ -84,3 +86,75 @@ def test_get_trial_maker():
     assert timeline.get_trial_maker("tm-1") == tm_1
     assert timeline.get_trial_maker("tm-2") == tm_2
     assert tm_1 != tm_2
+
+
+def test_estimate_credit__simple():
+    e = [
+        InfoPage("", time_estimate=5),
+        InfoPage("", time_estimate=2),
+        InfoPage("", time_estimate=1)
+    ]
+    assert CreditEstimate(e).get_max("time") == 8
+
+
+def test_estimate_credit__switch__fix_time_true():
+    e = switch(
+        "test",
+        lambda experiment, participant: participant.var.switch,
+        {
+            "a": InfoPage("", time_estimate=3),
+            "b": InfoPage("", time_estimate=7),
+            "c": InfoPage("", time_estimate=4)
+        }
+    )
+    assert CreditEstimate(e).get_max("time") == 7
+
+
+def test_estimate_credit__switch__fix_time_false():
+    e = switch(
+        "test",
+        lambda experiment, participant: participant.var.switch,
+        {
+            "a": InfoPage("", time_estimate=3),
+            "b": InfoPage("", time_estimate=10),
+            "c": InfoPage("", time_estimate=4)
+        },
+        fix_time_credit=False
+    )
+    assert CreditEstimate(e).get_max("time") == 10
+
+def test_estimate_credit__while_loop__switch__fix_time_true():
+    e = while_loop(
+        "loop",
+        lambda experiment, participant: experiment.var.not_ready,
+        switch(
+            "test",
+            lambda experiment, participant: participant.var.switch,
+            {
+                "a": InfoPage("", time_estimate=3),
+                "b": InfoPage("", time_estimate=7),
+                "c": InfoPage("", time_estimate=4)
+            }
+        ),
+        expected_repetitions=3
+    )
+    assert CreditEstimate(e).get_max("time") == 21
+
+
+def test_estimate_credit__while_loop__switch__fix_time_false():
+    e = while_loop(
+        "loop",
+        lambda experiment, participant: experiment.var.not_ready,
+        switch(
+            "test",
+            lambda experiment, participant: participant.var.switch,
+            {
+                "a": InfoPage("", time_estimate=3),
+                "b": InfoPage("", time_estimate=10),
+                "c": InfoPage("", time_estimate=4)
+            },
+            fix_time_credit=False
+        ),
+        expected_repetitions=5
+    )
+    assert CreditEstimate(e).get_max("time") == 50

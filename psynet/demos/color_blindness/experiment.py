@@ -31,6 +31,8 @@ from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCa
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    consent_audiovisual_recordings = False
+
     timeline = Timeline(
         ColorBlindnessTest(),
         InfoPage("You passed the color blindness task! Congratulations.", time_estimate=3),

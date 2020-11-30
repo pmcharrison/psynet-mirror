@@ -335,16 +335,6 @@ class TimeCreditStore:
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(mode="time")
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(mode="bonus", wage_per_hour=experiment.wage_per_hour)
-        self.export_estimated_payments(experiment_estimated_time_credit, experiment)
-
-    def export_estimated_payments(self, experiment_estimated_time_credit, experiment, path="experiment-estimated-payments.json"):
-        with open(path, "w+") as file:
-            summary = experiment_estimated_time_credit.summarise(
-                mode="all",
-                wage_per_hour=experiment.wage_per_hour
-            )
-            json.dump(summary, file, indent=4)
-        logger.info("Exported estimated payment summary to %s.", os.path.abspath(path))
 
     def increment(self, value: float):
         if self.is_fixed:
