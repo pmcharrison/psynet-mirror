@@ -266,8 +266,7 @@ class ColorVocabularyTest(Module):
                     PushButtonControl(
                         self.definition["choices"],
                         arrange_vertically=False,
-                        min_width="150px",
-                        margin="10px"
+                        style="min-width: 150px; margin: 10px"
                     ),
                     time_estimate=time_estimate
                 )
