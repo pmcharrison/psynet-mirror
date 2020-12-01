@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.7.1] Released on 2020-12-01
+
+- Fix regression in ColorVocabulary Test.
+
 ## [1.7.0] Released on 2020-11-30
 
 #### Added
