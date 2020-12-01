@@ -88,7 +88,7 @@ class CustomTrial(ImitationChainTrial):
             resources="/static",
             time_estimate=5,
             session_id=self.session_id,
-            debug=True,
+            debug=False,
         )
         page_3 = CustomUnityPage(
             title="Page 1.2 – Unity imitation chain experiment",
@@ -99,7 +99,7 @@ class CustomTrial(ImitationChainTrial):
             resources="/static",
             time_estimate=5,
             session_id=self.session_id,
-            debug=True,
+            debug=False,
         )
         page_4 = CustomUnityPage(
             title="Page 2 – Unity imitation chain experiment",
@@ -110,7 +110,7 @@ class CustomTrial(ImitationChainTrial):
             resources="/static",
             time_estimate=5,
             session_id=str(uuid4()),
-            debug=True,
+            debug=False,
         )
         return [
             page_1,
