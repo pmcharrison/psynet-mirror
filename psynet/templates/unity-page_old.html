@@ -1,0 +1,45 @@
+{% extends "timeline-page.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block head %}
+    {{ super() }}
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <link rel="shortcut icon" href="{{ resources }}/scripts/TemplateData/favicon.ico">
+    <link rel="stylesheet" href="{{ resources }}/scripts/TemplateData/style.css">
+    <script src="{{ resources }}/scripts/TemplateData/UnityProgress.js"></script>
+    <script src="{{ resources }}/scripts/Build/UnityLoader.js"></script>
+    <script>
+        var gameInstance = UnityLoader.instantiate("game-container", "{{ resources }}/scripts/Build/WebGL.json", {onProgress: UnityProgress});
+        {% autoescape off %}
+        psynet.page.attributes = {{ attributes }}
+        psynet.page.contents = {{ contents }}
+        {% endautoescape %}
+    </script>
+{% endblock %}
+
+{% block stylesheets %}
+    {{ super() }}
+    <link rel="stylesheet" type="text/css" href="{{ resources }}/css/custom.css">
+{% endblock %}
+
+{% block main_body %}
+    <div class="main_div">
+        <p>
+            <div class="webgl-content">
+                <div id="game-container" style="width: {{ game_container_width }}; height: {{ game_container_height }};"></div>
+                <div class="footer">
+                    <div class="webgl-logo"></div>
+                    <div class="fullscreen" onclick="gameInstance.SetFullscreen(1)"></div>
+                    <div class="title">{{ title }}</div>
+                </div>
+            </div>
+        </p>
+    </div>
+{% endblock %}
+
+{% block libs %}
+    {{ super() }}
+    <script src="{{ resources }}/scripts/markdown.min.js"> </script>
+    <script src="{{ resources }}/scripts/experiment.js"> </script>
+{% endblock %}
