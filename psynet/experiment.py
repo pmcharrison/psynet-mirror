@@ -444,6 +444,21 @@ class Experiment(dallinger.experiment.Experiment):
                 timeline_modules=json.dumps(exp.timeline.modules(), default=serialise)
             )
 
+        @routes.route("/debug_participants", methods=["GET"])
+        def debug_participants():
+            config = get_config()
+            if not config.get("mode") == "debug":
+                return error_response()
+
+            participant = Participant.query.first()
+            json_data = {
+                "id": participant.id,
+                "assignment_id": participant.assignment_id,
+                "page_uuid": participant.page_uuid,
+            }
+            logger.info(f"Returning: {json_data}")
+            return json.dumps(json_data, default=serialise)
+
         @routes.route("/export", methods=["GET"])
         def export():
             class_name = request.args.get("class_name")
