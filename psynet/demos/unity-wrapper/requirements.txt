@@ -1,3 +1,0 @@
-dallinger
-rpdb>=0.1.6
--e git+https://pmcharrison:wR57UPPZ@gitlab.com/computational-audition-lab/dlgr-utils@fb2cd53df5184cf466672e715c54a0bd7b256adc#egg=dlgr_utils
