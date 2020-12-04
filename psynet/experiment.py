@@ -19,6 +19,7 @@ from dallinger.experiment_server.utils import (
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 
+from . import field
 from .field import VarStore, claim_var
 from .participant import get_participant, Participant
 from .timeline import (
@@ -640,8 +641,13 @@ class ExperimentNetwork(Network):
         return VarStore(self)
 
     def __json__(self):
-        return {
+        x = {
+            **super().__json__(),
             "type": "experiment_network",
             "variables": self.details,
             "role": self.role,
         }
+        field.json_clean(x, details=True)
+        field.json_format_vars(x)
+        x["variables"] = json.loads(x["variables"])
+        return x
