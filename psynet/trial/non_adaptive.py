@@ -1011,7 +1011,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         """
         super().init_participant(experiment, participant)
         self.init_block_order(experiment, participant)
-        self.init_participant_group(experiment, participant)
         self.init_completed_stimuli_in_phase(participant)
 
     def estimate_num_trials_in_block(self, num_stimuli_in_block):
@@ -1048,12 +1047,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             self.choose_block_order(experiment=experiment, participant=participant)
         )
 
-    def init_participant_group(self, experiment, participant):
-        self.set_participant_group(
-            participant,
-            self.choose_participant_group(experiment=experiment, participant=participant)
-        )
-
     @property
     def block_order_var_id(self):
         return self.with_namespace("block_order")
@@ -1063,20 +1056,6 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def get_block_order(self, participant):
         return participant.var.get(self.with_namespace("block_order"))
-
-
-    @property
-    def participant_group_var_id(self):
-        return self.with_namespace("participant_group")
-
-    def set_participant_group(self, participant, participant_group):
-        participant.var.new(self.participant_group_var_id, participant_group)
-
-    def get_participant_group(self, participant):
-        return participant.var.get(self.participant_group_var_id)
-
-    def has_participant_group(self, participant):
-        return participant.var.has(self.participant_group_var_id)
 
 
     def init_completed_stimuli_in_phase(self, participant):
@@ -1153,7 +1132,9 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def choose_participant_group(self, experiment, participant):
         # pylint: disable=unused-argument
         """
-        Determines the participant group assigned to the current participant.
+        Determines the participant group assigned to the current participant
+        (ignored if the participant already has been assigned to a participant group for that trial maker
+        using e.g. participant.set_participant_group).
         By default this function randomly chooses from the available participant groups.
         The user is invited to override this function for alternative behaviour.
 
@@ -1192,7 +1173,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             NonAdaptiveNetwork.query
                               .filter_by(
                                   trial_maker_id=self.id,
-                                  participant_group=self.get_participant_group(participant),
+                                  participant_group=participant.get_participant_group(self.id),
                                   phase=self.phase
                               )
                               .filter(NonAdaptiveNetwork.block.in_(block_order))
