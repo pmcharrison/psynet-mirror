@@ -179,6 +179,18 @@ class Participant(dallinger.models.Participant):
     def amount_paid(self):
         return (0.0 if self.base_payment is None else self.base_payment) + (0.0 if self.bonus is None else self.bonus)
 
+    def set_participant_group(self, trial_maker_id: str, participant_group: str):
+        from .trial.main import set_participant_group
+        return set_participant_group(trial_maker_id, self, participant_group)
+
+    def get_participant_group(self, trial_maker_id: str):
+        from .trial.main import get_participant_group
+        return get_participant_group(trial_maker_id, self)
+
+    def has_participant_group(self, trial_maker_id: str):
+        from .trial.main import has_participant_group
+        return has_participant_group(trial_maker_id, self)
+
     def send_email_max_payment_reached(self, experiment_class, requested_bonus, reduced_bonus):
         config = get_config()
         template = """Dear experimenter,
