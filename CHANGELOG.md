@@ -1,5 +1,7 @@
 # Changelog
 
+- Update experiment network __json__ method to improved dashboard display.
+
 ## [1.7.1] Released on 2020-12-01
 
 - Fix regression in ColorVocabulary Test.
