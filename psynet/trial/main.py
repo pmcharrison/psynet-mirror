@@ -1073,7 +1073,13 @@ class TrialMaker(Module):
         return with_trial_maker_namespace(self.id, x=x)
 
     def fail_participant_trials(self, participant):
-        trials_to_fail = Trial.query.filter_by(participant_id=participant.id, failed=False)
+        trials_to_fail = (
+            db.session
+                .query(Trial)
+                .filter_by(participant_id=participant.id, failed=False)
+                .join(TrialNetwork)
+                .filter_by(trial_maker_id=self.id)
+        )
         for trial in trials_to_fail:
             trial.fail()
 
