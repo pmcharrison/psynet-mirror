@@ -96,6 +96,9 @@ class Participant(dallinger.models.Participant):
 
     progress : float [0 <= x <= 1]
         The participant's estimated progress through the experiment.
+
+    client_ip_address : str
+        The participant's IP address as reported by Flask.
     """
 
     __mapper_args__ = {"polymorphic_identity": "participant"}
@@ -165,12 +168,13 @@ class Participant(dallinger.models.Participant):
         self.answer = value
         return self
 
-    def initialise(self, experiment):
+    def initialise(self, experiment, client_ip_address: str):
         self.event_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0
         self.base_payment = experiment.base_payment
+        self.client_ip_address = client_ip_address
         self.initialised = True
 
     def inc_performance_bonus(self, value):

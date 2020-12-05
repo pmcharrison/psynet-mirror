@@ -450,7 +450,7 @@ class Page(Event):
             metadata=combined_metadata,
             client_ip_address=client_ip_address
         )
-        participant.client_ip_address = client_ip_address
+
         db.session.add(resp)
         db.session.commit()
 
@@ -992,17 +992,18 @@ class Response(Question):
 
     answer
         The participant's answer, after formatting.
-        Stored in ``response`` in the database.
 
     page_type: str
         The type of page administered.
-        Stored in ``property1`` in the database.
 
     successful_validation: bool
         Whether the response validation was successful,
         allowing the participant to advance to the next page.
         Stored in ``property2`` in the database.
         (Not yet implemented)
+
+    client_ip_address : str
+        The participant's IP address as reported by Flask.
     """
 
     __mapper_args__ = {"polymorphic_identity": "response"}
