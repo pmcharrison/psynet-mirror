@@ -110,7 +110,8 @@ class ColorBlindnessTest(Module):
             phase="experiment",
             stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
-            check_performance_at_end=True
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False
         )
 
     def trial(self, time_estimate: float, hide_after: float):
@@ -248,7 +249,8 @@ class ColorVocabularyTest(Module):
             phase="experiment",
             stimulus_set=self.get_stimulus_set(colors),
             time_estimate_per_trial=time_estimate_per_trial,
-            check_performance_at_end=True
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False
         )
 
     def trial(self, time_estimate: float):
@@ -364,7 +366,8 @@ class HeadphoneCheck(Module):
             phase="experiment",
             stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
-            check_performance_at_end=True
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False
         )
 
     def trial(self, time_estimate: float):

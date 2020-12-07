@@ -137,8 +137,15 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
             phase="some_prescreening_phase",
             stimulus_set=self.get_stimulus_set(),
             time_estimate_per_trial=time_estimate_per_trial,
-            check_performance_at_end=True
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False
         )
+
+Normally non-adaptive experiments will fail participant trials if they leave the experiment early,
+so that the final dataset only comprises participants who completed the whole experiment.
+However, this logic doesn't apply to pre-screening tasks, where we are not trying to collect
+a specific quota of data. We therefore disable this behavior, setting
+``fail_trials_on_premature_exit=False`` in the above code.
 
 The :meth:`trial` method returns a :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.page.ModularPage` e.g.:
 

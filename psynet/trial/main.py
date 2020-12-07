@@ -65,6 +65,27 @@ logger = get_logger()
 # pylint: disable=unused-import
 import rpdb
 
+def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
+    if x is None:
+        return trial_maker_id
+    return f"__{trial_maker_id}__{x}"
+
+def set_participant_group(trial_maker_id, participant, participant_group):
+    participant.var.new(
+        with_trial_maker_namespace(trial_maker_id, "participant_group"),
+        participant_group
+    )
+
+def get_participant_group(trial_maker_id, participant):
+    return participant.var.get(
+        with_trial_maker_namespace(trial_maker_id, "participant_group")
+    )
+
+def has_participant_group(trial_maker_id, participant):
+    return participant.var.has(
+        with_trial_maker_namespace(trial_maker_id, "participant_group")
+    )
+
 class AsyncProcessOwner():
     __extra_vars__ = {}
 
@@ -699,10 +720,6 @@ class TrialMaker(Module):
     def num_viable_participants(self):
         return
 
-    # def recruitment_criterion(self, experiment):
-    #     """Should return True if more participants are required."""
-    #     raise NotImplementedError
-
     def prepare_trial(self, experiment, participant):
         """
         Prepares and returns a trial to administer the participant.
@@ -937,6 +954,39 @@ class TrialMaker(Module):
         """
         self.init_num_completed_trials_in_phase(participant)
         participant.var.set(self.with_namespace("in_repeat_phase"), False)
+        self.init_participant_group(experiment, participant)
+
+    def init_participant_group(self, experiment, participant):
+        if participant.has_participant_group(self.id):
+            return None
+        participant.set_participant_group(
+            self.id,
+            self.choose_participant_group(experiment=experiment, participant=participant)
+        )
+
+    def choose_participant_group(self, experiment, participant):
+        # pylint: disable=unused-argument
+        """
+        Determines the participant group assigned to the current participant.
+        By default the participant is assigned to the group "default".
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant
+            An instantiation of :class:`psynet.participant.Participant`,
+            corresponding to the current participant.
+
+        Returns
+        -------
+
+        A string label identifying the selected participant group.
+        """
+        return "default"
 
     def on_complete(self, experiment, participant):
         """
@@ -1020,13 +1070,16 @@ class TrialMaker(Module):
         raise NotImplementedError
 
     def with_namespace(self, x=None):
-        prefix = self.id
-        if x is None:
-            return prefix
-        return f"__{prefix}__{x}"
+        return with_trial_maker_namespace(self.id, x=x)
 
     def fail_participant_trials(self, participant):
-        trials_to_fail = Trial.query.filter_by(participant_id=participant.id, failed=False)
+        trials_to_fail = (
+            db.session
+                .query(Trial)
+                .filter_by(participant_id=participant.id, failed=False)
+                .join(TrialNetwork)
+                .filter_by(trial_maker_id=self.id)
+        )
         for trial in trials_to_fail:
             trial.fail()
 
