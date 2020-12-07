@@ -27,10 +27,17 @@ def test_ids():
         'video': {'vid1'}
     }
 
-def test_recode_wav():
+def test_recode_wav_data_type():
     example = "tests/static/64_bit.wav"
     with tempfile.NamedTemporaryFile() as temp_file:
         shutil.copyfile(example, temp_file.name)
         recode_wav(temp_file.name)
         sound = parselmouth.Sound(temp_file.name)
         assert type(sound) == parselmouth.Sound
+
+def test_recode_wav_header():
+    example = "tests/static/bad_signature.wav"
+    with tempfile.NamedTemporaryFile() as temp_file:
+        shutil.copyfile(example, temp_file.name)
+        r = recode_wav(temp_file.name, must_work=False)
+        assert r == False

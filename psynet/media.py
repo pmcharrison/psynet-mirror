@@ -9,6 +9,7 @@ import shutil
 import numpy as np
 from uuid import uuid4
 from scipy.io import wavfile
+from struct import unpack
 
 from pathlib import Path
 
@@ -315,14 +316,26 @@ def make_bucket_public(bucket_name):
     })
     bucket_policy.put(Policy = new_policy)
 
-def recode_wav(file_path):
+def recode_wav(file_path, must_work=True):
     import parselmouth
+    if not must_work:
+        wav_header = "4si4s4sihhiihh4si"
+        with open(file_path, "rb+") as f:
+            header_data = list(unpack(wav_header, f.read(44)))
+            if header_data[0] == b"\x00\x00\x00\x00": # corrupted header
+                return False
+            elif header_data[0] == b"":
+                return False
+            else:
+                pass
+	
     with tempfile.NamedTemporaryFile() as temp_file:
         fs, data = wavfile.read(file_path)
         force_bit_depth = data.astype(np.float32)
         wavfile.write(temp_file.name, fs, force_bit_depth)
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
+    return True
 
 def get_s3_url(bucket, key):
     if LOCAL_S3:
