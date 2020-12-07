@@ -1,14 +1,22 @@
 # Changelog
 
-- Update experiment network `__json__` method to improve dashboard display.
-- Fix problem where wrong assignment_x `super` functions are being called.
-- Update IP address treatment (closes CAP-562).
-- Fix bug in `fail_participant_trials`.
+# [1.8.0] Released on 2020-12-07
+
+#### Added 
+- Participant groups can now be set directly via the participant object, writing
+  for example ``participant.set_participant_group("my_trial_maker", self.answer)``.
 - Chain networks now support participant groups. These are by default read from the
   network's ``definition`` slot, otherwise they can be set by overriding
   ``choose_participant_group``.
-- Participant groups can now be set directly via the participant object, writing
-  for example ``participant.set_participant_group("my_trial_maker", self.answer)``.
+
+#### Changed
+- Update IP address treatment (closes CAP-562).
+- Update experiment network `__json__` method to improve dashboard display.
+
+#### Fixed
+- Fix problem where wrong assignment_x `super` functions are being called.
+- Fix bug in `fail_participant_trials`.
+
 
 ## [1.7.1] Released on 2020-12-01
 
