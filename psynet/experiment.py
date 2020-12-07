@@ -630,7 +630,7 @@ class Experiment(dallinger.experiment.Experiment):
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
 
-            res = exp.process_response(participant_id, raw_answer, blobs, json.loads(metadata), page_uuid, client_ip_address)
+            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
             exp.save()
             return res
 
