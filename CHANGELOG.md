@@ -1,5 +1,9 @@
 # Changelog
 
+#### Fixed
+
+- Fix audio record status text.
+
 # [1.8.0] Released on 2020-12-07
 
 #### Added 
