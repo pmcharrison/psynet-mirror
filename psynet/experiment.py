@@ -593,7 +593,7 @@ class Experiment(dallinger.experiment.Experiment):
                 if (mode == "json"):
                     return jsonify({
                         "attributes": page.attributes,
-                        "contents": page.contents,
+                        "contents": json.loads(page.contents),
                     })
                 return page.render(exp, participant)
 
