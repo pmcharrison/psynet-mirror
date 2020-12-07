@@ -36,7 +36,7 @@ def test_recode_wav_data_type():
         assert type(sound) == parselmouth.Sound
 
 def test_recode_wav_header():
-    example = "tests/static/bad_signature.wav"
+    example = "tests/static/Bad_Signature.wav"
     with tempfile.NamedTemporaryFile() as temp_file:
         shutil.copyfile(example, temp_file.name)
         r = recode_wav(temp_file.name, must_work=False)
