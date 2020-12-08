@@ -142,7 +142,12 @@ class UnityPage(Page):
         self.game_container_height = game_container_height
         self.session_id = session_id
 
-        template = "unity-debug-page.html" if debug else "unity-page.html"
+        if debug:
+            template = "unity-debug-page.html"
+            contents = json.loads(contents)
+        else:
+            template = "unity-page.html"
+
         super().__init__(
             contents = contents,
             time_estimate = time_estimate,

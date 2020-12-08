@@ -1,22 +1,35 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Unity debug page</title>
-    <meta http-equiv="refresh" content="5">
-  </head>
-  <body>
-    <h1>Unity debug page</h1>
-    <h2>Please go to Unity IDE!</h2>
-    <ul>
-      <li style="font-weight: bold">Title: <span style="font-weight: normal">{{ title }}</span></li>
-      <li style="font-weight: bold">Session ID: <span style="font-weight: normal">{{ session_id }}</span></li>
-      <li style="font-weight: bold">Page contents: <span style="font-weight: normal">{{ contents }}</span></li>
-      <li style="font-weight: bold">Participant</li>
+{% extends "layout.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block head %}
+  {{ super() }}
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="refresh" content="5">
+  <link rel="shortcut icon" href="{{ resources }}/scripts/TemplateData/favicon.ico">
+  <link rel="stylesheet" href="{{ resources }}/scripts/TemplateData/style.css">
+{% endblock %}
+
+{% block body %}
+    {{super()}}
+    <h1 style="float: left;" class="d-inline p-2 bg-dark text-white">Unity debug page</h1>
+    <h2 style="float: left; margin: 15px 0px 30px 20px;">Please go to your Unity IDE!</h2>
+    <ul style="clear: both; margin-left: 40px;">
+      <li style="font-weight: bold;">Title: <span style="font-weight: normal">{{ title }}</span></li>
+      <li style="font-weight: bold;">Session ID: <span style="font-weight: normal">{{ session_id }}</span></li>
+      <li style="font-weight: bold;">Contents</li>
+        <ul>
+        {% for key, value in contents.items() %}
+          <li style="font-size: smaller;">{{ key }}: <i>{{ value }}</i></li>
+        {% endfor %}
+        </ul>
+      </li>
+      <li style="font-weight: bold;">Participant data</li>
         <ul>
         {% for key, value in participant.__json__().items() %}
-          <li>{{ key }}: <i>{{ value }}</i></li>
+          <li style="font-size: smaller;">{{ key }}: <i>{{ value }}</i></li>
         {% endfor %}
-      </ul>
+        </ul>
+      </li>
     </ul>
-  </body>
-</html>
+{% endblock %}
