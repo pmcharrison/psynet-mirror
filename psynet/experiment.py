@@ -625,6 +625,9 @@ class Experiment(dallinger.experiment.Experiment):
             blobs = None
             client_ip_address = request.remote_addr
 
+            # temporary bugfix to remove list around values in Ofer's instance
+            json_data = dict(map(lambda x: (x[0], x[1][0]) if isinstance(x[1], list) else (x[0], x[1]), json_data.items()))
+
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
