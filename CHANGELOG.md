@@ -1,11 +1,38 @@
 # Changelog
 
-## [1.7.0] Unreleased
+#### Fixed
+
+- Fix audio record status text.
+
+# [1.8.0] Released on 2020-12-07
+
+#### Added 
+- Participant groups can now be set directly via the participant object, writing
+  for example ``participant.set_participant_group("my_trial_maker", self.answer)``.
+- Chain networks now support participant groups. These are by default read from the
+  network's ``definition`` slot, otherwise they can be set by overriding
+  ``choose_participant_group``.
+
+#### Changed
+- Update IP address treatment (closes CAP-562).
+- Update experiment network `__json__` method to improve dashboard display.
+
+#### Fixed
+- Fix problem where wrong assignment_x `super` functions are being called.
+- Fix bug in `fail_participant_trials`.
+
+
+## [1.7.1] Released on 2020-12-01
+
+- Fix regression in ColorVocabulary Test.
+
+## [1.7.0] Released on 2020-11-30
 
 #### Added
 - Stimulus media extension to allow multiple files.
 - New OptionControl class with subclasses: CheckboxControl, DropdownControl, RadiobuttonControl, and PushButtonControl.
 - New Canvas drawing module and demo 'graphics' based on Raphaël vector graphics library.
+- Ability to disable bonus display by setting `show_bonus = False` in the Experiment class.
 
 #### Changes
 - Optimization of 'estimated_max_bonus' function.
@@ -14,6 +41,8 @@
 #### Fixed
 - Register pre-deployment routines.
 - Missing role attribute for experiment_network in dashboard.
+- Make recode_wav compatible with 64-bit audio files.
+
 
 ## [1.6.1] Released on 2020-11-16
 

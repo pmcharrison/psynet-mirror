@@ -5,44 +5,28 @@
 ##########################################################################################
 
 from flask import Markup
-from statistics import mean
 import random
-import re
 from typing import Union, List
-import time
-from dallinger import db
 
 import psynet.experiment
 
 from psynet.timeline import get_template
-from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
 from psynet.timeline import (
-    Page,
     Timeline,
-    PageMaker,
     CodeBlock,
-    while_loop,
-    conditional,
-    switch,
-    FailedValidation
 )
 from psynet.page import (
     InfoPage,
     SuccessfulEndPage,
     SliderPage,
     NAFCPage,
-    NumberInputPage
 )
-from psynet.trial.chain import ChainNetwork
 from psynet.trial.gibbs import (
     GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
 )
 
 from psynet.utils import get_logger
 logger = get_logger()
-
-# import rpdb
 
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
@@ -117,7 +101,8 @@ class CustomNetwork(GibbsNetwork):
 
     def make_definition(self):
         return {
-            "target": self.balance_across_networks(TARGETS)
+            "target": self.balance_across_networks(TARGETS),
+            "participant_group": self.balance_across_networks(["A", "B"])
         }
 
 class CustomTrial(GibbsTrial):
@@ -130,8 +115,9 @@ class CustomTrial(GibbsTrial):
     def show_trial(self, experiment, participant):
         target = self.network.definition["target"]
         prompt = Markup(
-            "Adjust the slider to match the following word as well as possible: "
-            f"<strong>{target}</strong>"
+            f"<h3 id='participant-group'>Participant group = {participant.get_participant_group('gibbs_demo')}</h3>"
+            "<p>Adjust the slider to match the following word as well as possible: "
+            f"<strong>{target}</strong></p>"
         )
         return ColorSliderPage(
             "color_trial",
@@ -177,9 +163,9 @@ trial_maker = CustomTrialMaker(
     time_estimate_per_trial=5,
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=4,
-    num_iterations_per_chain=5,
+    num_iterations_per_chain=2,
     num_chains_per_participant=None,  # set to None if chain_type="across"
-    num_chains_per_experiment=4,  # set to None if chain_type="within"
+    num_chains_per_experiment=8,  # set to None if chain_type="within"
     trials_per_node=1,
     active_balancing_across_chains=True,
     check_performance_at_end=True,
@@ -201,6 +187,13 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
+        NAFCPage(
+            "choose_network",
+            "What participant group would you like to join?",
+            ["A", "B"],
+            time_estimate=5
+        ),
+        CodeBlock(lambda participant: participant.set_participant_group("gibbs_demo", participant.answer)),
         trial_maker,
         SuccessfulEndPage()
     )

@@ -24,6 +24,17 @@ def demo_non_adaptive(root):
     ACTIVE_EXPERIMENT = None
 
 @pytest.fixture(scope="class")
+def demo_gibbs(root):
+    global ACTIVE_EXPERIMENT
+    ACTIVE_EXPERIMENT = "gibbs"
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/gibbs"))
+    import psynet.utils
+    psynet.utils.import_local_experiment()
+    yield
+    os.chdir(root)
+    ACTIVE_EXPERIMENT = None
+
+@pytest.fixture(scope="class")
 def demo_iterated_singing(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "iterated_singing"

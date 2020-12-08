@@ -116,6 +116,7 @@ class ChainNetwork(TrialNetwork):
     participant_id = claim_field(3, "participant_id", __extra_vars__, int)
     id_within_participant = claim_field(4, "id_within_participant", __extra_vars__, int)
 
+    participant_group = claim_var("participant_group", __extra_vars__)
     chain_type = claim_var("chain_type", __extra_vars__)
     trials_per_node = claim_var("trials_per_node", __extra_vars__)
     definition = claim_var("definition", __extra_vars__)
@@ -148,11 +149,20 @@ class ChainNetwork(TrialNetwork):
         # The last node in the chain doesn't receive any trials
         self.target_num_trials = (target_num_nodes - 1) * trials_per_node
         self.definition = self.make_definition()
+        self.participant_group = self.get_participant_group()
         self.add_source(source_class, experiment, participant)
 
         self.validate()
 
         experiment.save()
+
+    def get_participant_group(self):
+        if isinstance(self.definition, dict):
+            try:
+                return self.definition["participant_group"]
+            except KeyError:
+                pass
+        return ""
 
     def validate(self):
         """
@@ -1288,6 +1298,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks = self.exclude_participated(networks, participant)
 
         networks = networks.all()
+
+        participant_group = participant.get_participant_group(self.id)
+        networks = [n for n in networks if n.participant_group == participant_group]
+
         random.shuffle(networks)
 
         if self.active_balancing_across_chains:

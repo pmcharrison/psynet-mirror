@@ -19,6 +19,7 @@ from dallinger.experiment_server.utils import (
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 
+from . import field
 from .field import VarStore, claim_var
 from .participant import get_participant, Participant
 from .timeline import (
@@ -67,6 +68,10 @@ class Experiment(dallinger.experiment.Experiment):
         The recruiting process stops if the amount of accumulated payments
         (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
 
+    show_bonus : `bool`
+        If ``True`` (default), then the participant's current estimated bonus is displayed
+        at the bottom of the page.
+
     Parameters
     ----------
 
@@ -90,6 +95,7 @@ class Experiment(dallinger.experiment.Experiment):
     soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
     wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
     consent_audiovisual_recordings = claim_var("consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True)
+    show_bonus = claim_var("show_bonus", __extra_vars__, use_default=True, default=True)
 
     pre_deploy_routines = []
 
@@ -144,7 +150,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def amount_spent(cls):
-        return sum([(0.0 if p.base_payment is None else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
+        return sum([(0.0 if (not p.initialised or p.base_payment is None) else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
 
     @classmethod
     def estimated_max_bonus(cls, wage_per_hour):
@@ -181,6 +187,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.soft_max_experiment_payment_email_sent = False
         self.wage_per_hour = 9.0
         self.consent_audiovisual_recordings = True
+        self.show_bonus = True
 
     def load(self):
         for event in self.timeline.events:
@@ -297,11 +304,11 @@ class Experiment(dallinger.experiment.Experiment):
 
     def assignment_returned(self, participant):
         participant.append_failure_tags("assignment_returned", "premature_exit")
-        super().assignment_abandoned(participant)
+        super().assignment_returned(participant)
 
     def assignment_reassigned(self, participant):
         participant.append_failure_tags("assignment_reassigned", "premature_exit")
-        super().assignment_abandoned(participant)
+        super().assignment_reassigned(participant)
 
     def bonus(self, participant):
         """
@@ -357,11 +364,11 @@ class Experiment(dallinger.experiment.Experiment):
             return reduced_bonus
         return bonus
 
-    def init_participant(self, participant_id):
-        logger.info("Initialising participant {}...".format(participant_id))
+    def init_participant(self, participant_id, client_ip_address):
+        logger.info("Initialising participant %i, IP address %s...", participant_id, client_ip_address)
 
         participant = get_participant(participant_id)
-        participant.initialise(self)
+        participant.initialise(self, client_ip_address)
 
         self.timeline.advance_page(self, participant)
 
@@ -562,6 +569,12 @@ class Experiment(dallinger.experiment.Experiment):
             db.session.commit()
             return success_response()
 
+        def get_client_ip_address():
+            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
+                return request.environ['REMOTE_ADDR']
+            else:
+                return request.environ['HTTP_X_FORWARDED_FOR']
+
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
             from dallinger.experiment_server.utils import error_page
@@ -587,7 +600,7 @@ class Experiment(dallinger.experiment.Experiment):
 
             else:
                 if not participant.initialised:
-                    exp.init_participant(participant_id)
+                    exp.init_participant(participant_id, client_ip_address=get_client_ip_address())
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
@@ -604,12 +617,12 @@ class Experiment(dallinger.experiment.Experiment):
             json_data = json.loads(request.values["json"])
             logger.info(json_data)
             blobs = request.files.to_dict()
-            client_ip_address = request.remote_addr
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
             metadata = get_arg_from_dict(json_data, "metadata")
+            client_ip_address = get_client_ip_address()
 
             res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
 
@@ -687,8 +700,13 @@ class ExperimentNetwork(Network):
         return VarStore(self)
 
     def __json__(self):
-        return {
+        x = {
+            **super().__json__(),
             "type": "experiment_network",
             "variables": self.details,
             "role": self.role,
         }
+        field.json_clean(x, details=True)
+        field.json_format_vars(x)
+        x["variables"] = json.loads(x["variables"])
+        return x

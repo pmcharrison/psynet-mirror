@@ -27,7 +27,7 @@ def get_arg_from_dict(x, desired: str, use_default = False, default = None):
         if use_default:
             return default
         else:
-            raise ValueError
+            raise KeyError
     return x[desired]
 
 def sql_sample_one(x):
