@@ -7,6 +7,10 @@ import botocore.errorfactory
 import tempfile
 import shutil
 import numpy as np
+import warnings
+import sys
+import parselmouth
+
 from uuid import uuid4
 from scipy.io import wavfile
 from struct import unpack
@@ -316,26 +320,24 @@ def make_bucket_public(bucket_name):
     })
     bucket_policy.put(Policy = new_policy)
 
-def recode_wav(file_path, must_work=True):
-    import parselmouth
-    if not must_work:
-        wav_header = "4si4s4sihhiihh4si"
-        with open(file_path, "rb+") as f:
-            header_data = list(unpack(wav_header, f.read(44)))
-            if header_data[0] == b"\x00\x00\x00\x00": # corrupted header
-                return False
-            elif header_data[0] == b"":
-                return False
-            else:
-                pass
-	
+def _recode(file_path):
     with tempfile.NamedTemporaryFile() as temp_file:
         fs, data = wavfile.read(file_path)
         force_bit_depth = data.astype(np.float32)
         wavfile.write(temp_file.name, fs, force_bit_depth)
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
-    return True
+
+def recode_wav(file_path, must_work=True):
+    if not must_work:
+        try:
+            _recode(file_path)
+            return True
+        except Exception as exc:
+            logger.warning("Failed to recode wav file.", exc_info=sys.exc_info())
+            return False
+    else:
+        _recode(file_path)
 
 def get_s3_url(bucket, key):
     if LOCAL_S3:

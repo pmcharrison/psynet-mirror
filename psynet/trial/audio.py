@@ -94,6 +94,7 @@ class AudioRecordTrial():
                 recoded = recode_wav(temp_recording.name, must_work=False)
                 if not recoded:
                     self.fail()
+                    db.session.commit()
                 else:
                     target_key = f"{uuid4()}.wav"
                     upload_to_s3(
@@ -103,17 +104,16 @@ class AudioRecordTrial():
                         public_read=True,
                     )
 
-                self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
-                if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
-                    self.upload_plot(temp_plot.name)
-                try:
-                    if self.analysis["failed"]:
-                        self.fail()
-                except KeyError:
-                    raise KeyError("The recording analysis failed to contain a 'failed' attribute.")
-                finally:
-                    db.session.commit()
-
+                    self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
+                    if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
+                        self.upload_plot(temp_plot.name)
+                    try:
+                        if self.analysis["failed"]:
+                            self.fail()
+                    except KeyError:
+                        raise KeyError("The recording analysis failed to contain a 'failed' attribute.")
+                    finally:
+                        db.session.commit()
 
     def download_recording(self, local_path):
         recording_info = self.recording_info
