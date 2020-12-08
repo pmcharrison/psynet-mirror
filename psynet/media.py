@@ -13,7 +13,6 @@ import parselmouth
 
 from uuid import uuid4
 from scipy.io import wavfile
-from struct import unpack
 
 from pathlib import Path
 
