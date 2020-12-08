@@ -23,7 +23,7 @@
 {% macro push_button(config) %}
     <button
         type="button"
-        class="btn push_button btn-primary submit"
+        class="btn push_button btn-primary submit response"
         id="{{ config.id }}"
         onclick="clicked_button('{{ config.id }}');"
         style="{{ config.style }}"
@@ -64,6 +64,7 @@
             type="checkbox"
             id="{{ config.id }}"
             name="{{ config.name }}"
+            class="response"
         />
         <span>{{ config.label }}</span>
     </label>
@@ -115,6 +116,7 @@
             type="radio"
             id="{{ config.id }}"
             name="{{ config.name }}"
+            class="response"
         />
         <span>{{ config.label }}</span>
     </label>
@@ -168,7 +170,7 @@
         }
     </style>
     <div class="dropdown-container">
-        <select id="{{ config.name }}" class="form-control" name="{{ config.name }}">
+        <select id="{{ config.name }}" class="form-control response" name="{{ config.name }}">
             <option value="">Select an answer</option>
             {% for option in config.dropdown %}
                 {{ dropdown_option(option) }}
