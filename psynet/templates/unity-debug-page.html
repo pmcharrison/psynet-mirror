@@ -12,22 +12,23 @@
 
 {% block body %}
     {{super()}}
-    <h1 style="float: left;" class="d-inline p-2 bg-dark text-white">Unity debug page</h1>
-    <h2 style="float: left; margin: 15px 0px 30px 20px;">Please go to your Unity IDE!</h2>
-    <ul style="clear: both; margin-left: 40px;">
-      <li style="font-weight: bold;">Title: <span style="font-weight: normal">{{ title }}</span></li>
+
+    <h1 style="float: left; background-color: black;" class="p-2 text-white"><img src="/static/images/unity_logo.png" style="float: left; height: 54px;"/>unity debug page</h1>
+    <h2 style="float: left;" class="p-3">Please go to your Unity IDE!</h2>
+    <ul style="clear: both; list-style-type: none;">
+      <li><span style="font-size: larger; font-weight: bold; text-decoration: underline;">{{ title }}</span></li>
       <li style="font-weight: bold;">Session ID: <span style="font-weight: normal">{{ session_id }}</span></li>
       <li style="font-weight: bold;">Contents</li>
         <ul>
         {% for key, value in contents.items() %}
-          <li style="font-size: smaller;">{{ key }}: <i>{{ value }}</i></li>
+          <li style="font-size: smaller; list-style-type: disc;">{{ key }}: <i>{{ value }}</i></li>
         {% endfor %}
         </ul>
       </li>
       <li style="font-weight: bold;">Participant data</li>
         <ul>
         {% for key, value in participant.__json__().items() %}
-          <li style="font-size: smaller;">{{ key }}: <i>{{ value }}</i></li>
+          <li style="font-size: smaller; list-style-type: disc;">{{ key }}: <i>{{ value }}</i></li>
         {% endfor %}
         </ul>
       </li>
