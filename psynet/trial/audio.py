@@ -26,7 +26,7 @@ class AudioRecordTrial():
     __extra_vars__ = {}
 
     run_async_post_trial = True
-    analysis = claim_var("analysis", __extra_vars__)
+    analysis = claim_var("analysis", __extra_vars__, use_default=True)
 
     @property
     def recording_info(self):
