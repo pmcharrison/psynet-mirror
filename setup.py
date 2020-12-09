@@ -7,6 +7,8 @@ with open("README.md", "r") as fh:
 with open(os.path.join("psynet", 'VERSION')) as version_file:
     version = version_file.read().strip()
 
+
+
 setuptools.setup(
     name="psynet",
     version=version,
@@ -39,7 +41,7 @@ setuptools.setup(
         "progress",
         "scipy",
         "numpy",
-        "statsmodels",
+        # "statsmodels", # temporarily removed
         "yaspin",
         "praat-parselmouth"
     ],
