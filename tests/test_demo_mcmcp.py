@@ -15,9 +15,8 @@ class TestExp():
             driver = bot.driver
             time.sleep(0.2)
 
-            import rpdb
-            rpdb.set_trace()
+            for i in range(10):
+                next_page(driver, "1")
 
             next_page(driver, "next_button")
-
             next_page(driver, "next_button", finished=True)
