@@ -116,10 +116,6 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool,
     bucket = get_s3_bucket(bucket_name)
 
     def upload():
-        # Enabling bucket versioning does take a little time because it requires a separate AWS API call.
-        # We could consider optimizing this one day.
-        enable_bucket_versioning(bucket_name)
-
         if os.path.isfile(local_path):
             bucket.upload_file(local_path, key, ExtraArgs=args)
         else:
@@ -229,6 +225,7 @@ def create_bucket(bucket_name: str, client=None):
         if client is None:
             client = new_s3_client()
         client.create_bucket(Bucket=bucket_name)
+        enable_bucket_versioning(bucket_name)
 
 def delete_bucket_dir(bucket_name, bucket_dir):
     logger.info("Deleting directory '%s' in bucket '%s' (if it exists).", bucket_dir, bucket_name)
