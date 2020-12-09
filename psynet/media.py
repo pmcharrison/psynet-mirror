@@ -97,6 +97,12 @@ def generate_presigned_url(bucket_name: str, file_extension: str):
     )
 
 @log_time_taken
+def enable_bucket_versioning(bucket_name: str):
+    s3 = new_s3_resource()
+    versioning = s3.BucketVersioning(bucket_name)
+    versioning.enable()
+
+@log_time_taken
 def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool, create_new_bucket: bool = False):
     "If create_new_bucket, then a new bucket is created if the bucket doesn't exist."
     if LOCAL_S3:
@@ -111,6 +117,10 @@ def upload_to_s3(local_path: str, bucket_name: str, key: str, public_read: bool,
     bucket = get_s3_bucket(bucket_name)
 
     def upload():
+        # Enabling bucket versioning does take a little time because it requires a separate AWS API call.
+        # We could consider optimizing this one day.
+        enable_bucket_versioning(bucket_name)
+
         if os.path.isfile(local_path):
             bucket.upload_file(local_path, key, ExtraArgs=args)
         else:
