@@ -96,11 +96,10 @@ class AudioRecordTrial():
                     self.fail()
                     db.session.commit()
                 else:
-                    target_key = f"{uuid4()}.wav"
                     upload_to_s3(
                         recode_wav(temp_recording.name, must_work=True),
                         self.s3_bucket,
-                        key=target_key,
+                        key=self.recording_info["key"],
                         public_read=True,
                     )
 
