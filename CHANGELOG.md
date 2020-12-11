@@ -1,5 +1,10 @@
 # Changelog
 
+# [1.8.1] Pending release
+
+- Fix regression where across-participant chain experiments fail unless the networks
+used participant groups.
+
 # [1.8.0] Released on 2020-12-07
 
 #### Added 
