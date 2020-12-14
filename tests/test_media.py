@@ -39,5 +39,5 @@ def test_recode_wav_header():
     example = "tests/static/Bad_Signature.wav"
     with tempfile.NamedTemporaryFile() as temp_file:
         shutil.copyfile(example, temp_file.name)
-        r = recode_wav(temp_file.name, must_work=False)
-        assert r == False
+        success = recode_wav(temp_file.name, must_work=False)
+        assert success == False
