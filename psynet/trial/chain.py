@@ -162,7 +162,7 @@ class ChainNetwork(TrialNetwork):
                 return self.definition["participant_group"]
             except KeyError:
                 pass
-        return ""
+        return "default"
 
     def validate(self):
         """

@@ -131,6 +131,22 @@ class TestExp(object):
             assert len(modules["loop"]["time_finished"]) == 4
 
             assert driver.find_element_by_id(
+                "main-body").text == "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer.\nNext"
+            next_page(driver, "next_button")
+
+            assert driver.find_element_by_id(
+                "main-body").text == "Participant 1, choose a shape:\nSquare Circle"
+            next_page(driver, "Square")
+
+            assert driver.find_element_by_id(
+                "main-body").text == "Participant 1, choose a chord:\nMajor Minor"
+            next_page(driver, "Minor")
+
+            assert driver.find_element_by_id(
+                "main-body").text == "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor'].\nNext"
+            next_page(driver, "next_button")
+
+            assert driver.find_element_by_id(
                 "main-body").text == "What's your favourite colour?\nRed Green Blue"
             next_page(driver, "Red")
 
@@ -141,7 +157,7 @@ class TestExp(object):
             # Final page
             assert driver.find_element_by_id("main-body").text == (
                 'That\'s the end of the experiment! In addition to your base payment of $0.10, '
-                'you will receive a bonus of $0.13 for the time you spent on the experiment. '
+                'you will receive a bonus of $0.18 for the time you spent on the experiment. '
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 

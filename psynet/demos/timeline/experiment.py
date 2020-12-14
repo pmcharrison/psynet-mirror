@@ -6,7 +6,8 @@ from psynet.timeline import (
     while_loop,
     conditional,
     switch,
-    Module
+    Module,
+    multi_page_maker
 )
 from psynet.page import (
     InfoPage,
@@ -105,6 +106,33 @@ class Exp(psynet.experiment.Experiment):
             ),
             expected_repetitions=3,
             fix_time_credit=True
+        ),
+        Module(
+            "multi_page_maker",
+            InfoPage(
+                """
+                The multi-page-maker allows you to make multiple pages in one function.
+                Each can generate its own answer.
+                """, time_estimate=5
+            ),
+            multi_page_maker(
+                "example_multi_page_maker",
+                lambda participant: [
+                    NAFCPage("mp1", f"Participant {participant.id}, choose a shape:", ["Square", "Circle"], time_estimate=5),
+                    NAFCPage("mp2", f"Participant {participant.id}, choose a chord:", ["Major", "Minor"], time_estimate=5),
+                ],
+                expected_num_pages=2,
+                total_time_estimate=10,
+                accumulate_answers=True
+            ),
+            PageMaker(
+                lambda participant: InfoPage(
+                    (
+                        "If accumulate_answers is True, then the answers are stored in a list, in this case: "
+                        + f"{participant.answer}."
+                    ),
+                    time_estimate=5
+            ), time_estimate=5)
         ),
         Module(
             "colour",

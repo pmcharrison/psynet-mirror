@@ -2,12 +2,22 @@
 
 #### Added
 
+- Added a new ``Trial`` attribute called ``accumulate_answers``.
+If True, then the answers to all pages in the trial are accumulated
+in a single list, as opposed to solely retaining the final answer
+as was traditional. 
 - Improved JS event logging, with events saved in the `event_log` portion of `Response.metadata`.
 - New `Control` class, `TimedPushButtonControl`.
+
+#### Changed
+
+- Renamed ``reactive_seq`` to ``multi_page_maker``.
+- ``show_trial`` now supports returning variable numbers of pages.
 
 #### Fixed
 
 - Fix audio record status text.
+- Fix bug in ``get_participant_group``.
 
 # [1.8.0] Released on 2020-12-07
 
