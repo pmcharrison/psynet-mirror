@@ -68,7 +68,35 @@ class TestExp(object):
             assert driver.find_element_by_id("main-body").text == "Your message: Hello! I am a robot.\nNext"
             next_page(driver, "next_button")
 
+            db_session.commit()
+            participant = Participant.query.filter_by(id=1).one()
+
+            event_log = participant.last_response.metadata["event_log"]
+            event_ids = [e["event_type"] for e in event_log]
+            assert event_ids == ['init_page', 'media_load', 'page_load', 'response_ready', 'submit_ready',
+                                 'submit_response']
+
             # Page 4
+            button = driver.find_element_by_id("A")
+            button.click()
+
+            button = driver.find_element_by_id("C")
+            button.click()
+
+            button = driver.find_element_by_id("A")
+            button.click()
+
+            next_page(driver, "next_button")
+
+            db_session.commit()
+            participant = Participant.query.filter_by(id=1).one()
+            buttons = [e["info"]["button_id"] for e in participant.answer if e["event_type"] == "push_button_clicked"]
+            assert buttons == ["A", "C", "A"]
+
+            event_log = participant.response.metadata["event_log"]
+            assert len([e for e in event_log if e["event_type"] == "push_button_clicked"]) == 3
+
+            # Page 5
             db_session.commit()
             participant = get_participant(1)
             modules = participant.modules
@@ -83,7 +111,7 @@ class TestExp(object):
             assert driver.find_element_by_id("main-body").text == "Do you like chocolate?\nYes\nNo"
             next_page(driver, "Yes")
 
-            # Page 5
+            # Page 6
             assert driver.find_element_by_id("main-body").text == "It's nice to hear that you like chocolate!\nNext"
             next_page(driver, "next_button")
 
@@ -113,7 +141,7 @@ class TestExp(object):
             # Final page
             assert driver.find_element_by_id("main-body").text == (
                 'That\'s the end of the experiment! In addition to your base payment of $0.10, '
-                'you will receive a bonus of $0.12 for the time you spent on the experiment. '
+                'you will receive a bonus of $0.13 for the time you spent on the experiment. '
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 

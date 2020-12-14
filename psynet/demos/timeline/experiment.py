@@ -13,6 +13,11 @@ from psynet.page import (
     SuccessfulEndPage,
     NAFCPage,
     TextInputPage,
+    ModularPage
+)
+from psynet.modular_page import (
+    Prompt,
+    TimedPushButtonControl
 )
 
 from psynet.utils import get_logger
@@ -48,6 +53,19 @@ class Exp(psynet.experiment.Experiment):
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
                 time_estimate=5
             )
+        ),
+        ModularPage(
+            "timed_push_button",
+            Prompt("""
+            This is a TimedPushButtonControl. You can press the buttons 'A', 'B', 'C'
+            in any order, as many times as you like, and the timings will be logged.
+            Press 'Next' when you're ready to continue.
+            """),
+            TimedPushButtonControl(
+                choices=["A", "B", "C"],
+                arrange_vertically=False
+            ),
+            time_estimate=5
         ),
         Module(
             "chocolate",
