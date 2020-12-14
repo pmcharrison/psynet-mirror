@@ -99,6 +99,10 @@ class Participant(dallinger.models.Participant):
 
     client_ip_address : str
         The participant's IP address as reported by Flask.
+
+    answer_is_fresh : bool
+        ``True`` if the current value of ``participant.answer`` (and similarly ``participant.last_response_id`` and
+        ``participant.last_response``) comes from the last page that the participant saw, ``False`` otherwise.
     """
 
     __mapper_args__ = {"polymorphic_identity": "participant"}
@@ -112,11 +116,12 @@ class Participant(dallinger.models.Participant):
 
     initialised = claim_var("initialised", __extra_vars__, use_default=True, default=lambda: False)
     failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
-    last_response_id = claim_var("last_response_id", __extra_vars__)
+    last_response_id = claim_var("last_response_id", __extra_vars__, use_default=True, default=lambda: None)
     base_payment = claim_var("base_payment", __extra_vars__)
     performance_bonus = claim_var("performance_bonus", __extra_vars__)
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
     client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
+    answer_is_fresh = claim_var("answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False)
 
     def __json__(self):
         x = super().__json__()
@@ -127,6 +132,12 @@ class Participant(dallinger.models.Participant):
         del x["modules"]
         field.json_format_vars(x)
         return x
+
+    @property
+    def last_response(self):
+        if self.last_response_id is None:
+            return None
+        return Response.query.filter_by(id=self.last_response_id).one()
 
     @property
     @extra_var(__extra_vars__)

@@ -37,7 +37,7 @@ from ..timeline import (
     conditional,
     switch,
     while_loop,
-    reactive_seq,
+    multi_page_maker,
     join
 )
 
@@ -240,8 +240,8 @@ class Trial(Info, AsyncProcessOwner):
         (for example, subsequent parts of a transmission chain).
 
     num_pages : int
-        The number of pages that this trial comprises.
-        Defaults to 1; override it for trials comprising multiple pages.
+        Class attribute, corresponding to the number of pages that this trial comprises.
+        Defaults to 1; override this for trials comprising multiple pages.
 
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
@@ -257,6 +257,16 @@ class Trial(Info, AsyncProcessOwner):
     run_async_post_trial : bool
         Set this to ``True`` if you want the :meth:`~psynet.trial.main.Trial.async_post_trial`
         method to run after the user responds to the trial.
+
+    wait_for_feedback : bool
+        Set this class attribute to ``False`` if you don't want to wait for asynchronous processes
+        to complete before giving feedback. The default is to wait.
+
+    accumulate_answers : bool
+        Set this class attribute to ``True`` if the trial contains multiple pages and you want
+        the answers to all of these pages to be stored as a list in ``participant.answer``.
+        Otherwise, the default behaviour is to only store the answer from the final page.
+
     """
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
@@ -277,6 +287,7 @@ class Trial(Info, AsyncProcessOwner):
     num_pages = 1
 
     wait_for_feedback = True # determines whether feedback waits for async_post_trial
+    accumulate_answers = False
 
     def __json__(self):
         x = super().__json__()
@@ -1260,11 +1271,12 @@ class TrialMaker(Module):
                 self.with_namespace("trial_loop"),
                 lambda experiment, participant: self._get_current_trial(participant) is not None,
                 logic=join(
-                    reactive_seq(
+                    multi_page_maker(
                         "show_trial",
                         self._show_trial,
-                        num_pages=self.trial_class.num_pages,
-                        time_estimate=self.time_estimate_per_trial
+                        expected_num_pages=self.trial_class.num_pages,
+                        total_time_estimate=self.time_estimate_per_trial,
+                        accumulate_answers=self.trial_class.accumulate_answers
                     ),
                     CodeBlock(self._postprocess_answer),
                     CodeBlock(self._finalise_trial),

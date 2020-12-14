@@ -5,18 +5,9 @@
 ##########################################################################################
 
 from flask import Markup
-from statistics import mean
-import random
-import re
-from typing import Union, List
-import time
-from dallinger import db
 
 import psynet.experiment
 
-from psynet.timeline import get_template
-from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
 from psynet.timeline import (
     Timeline
 )
@@ -27,7 +18,8 @@ from psynet.modular_page import (
     AudioPrompt,
     Control,
     PushButtonControl,
-    VideoSliderControl
+    VideoSliderControl,
+    TimedPushButtonControl
 )
 
 
@@ -72,6 +64,35 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5
         ),
         ModularPage(
+            "response",
+            prompt=AudioPrompt(
+                url="/static/audio/bier.wav",
+                text="Here is an example of an audio prompt combined with a push button control``."
+            ),
+            control=PushButtonControl(["Response A", "Response B"]),
+            time_estimate=5
+        ),
+        DebugResponsePage(),
+        ModularPage(
+            "timed_push_button",
+            AudioPrompt(
+                url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+                text="""
+            This page illustrates the timed push button control combined with an audio prompt.
+            The submit button is enabled after 3.0 seconds.
+            """,
+                prevent_response=False,
+                start_delay=0.5,
+                enable_submit_after=3.0
+            ),
+            TimedPushButtonControl(
+                choices=["A", "B", "C"],
+                arrange_vertically=False
+            ),
+            time_estimate=5
+        ),
+        DebugResponsePage(),
+        ModularPage(
             "video_slider",
             prompt="This is an example of a video slider page.",
             control=VideoSliderControl(
@@ -103,16 +124,6 @@ class Exp(psynet.experiment.Experiment):
                 to 'ColourText'.\
             """),
             control=ColourText("aquamarine"),
-            time_estimate=5
-        ),
-        DebugResponsePage(),
-        ModularPage(
-            "response",
-            prompt=AudioPrompt(
-                url="/static/audio/bier.wav",
-                text="Here is an example of an audio prompt combined with a push button control``."
-            ),
-            control=PushButtonControl(["Response A", "Response B"]),
             time_estimate=5
         ),
         DebugResponsePage(),

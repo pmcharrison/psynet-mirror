@@ -6,13 +6,19 @@ from psynet.timeline import (
     while_loop,
     conditional,
     switch,
-    Module
+    Module,
+    multi_page_maker
 )
 from psynet.page import (
     InfoPage,
     SuccessfulEndPage,
     NAFCPage,
     TextInputPage,
+    ModularPage
+)
+from psynet.modular_page import (
+    Prompt,
+    TimedPushButtonControl
 )
 
 from psynet.utils import get_logger
@@ -48,6 +54,19 @@ class Exp(psynet.experiment.Experiment):
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
                 time_estimate=5
             )
+        ),
+        ModularPage(
+            "timed_push_button",
+            Prompt("""
+            This is a TimedPushButtonControl. You can press the buttons 'A', 'B', 'C'
+            in any order, as many times as you like, and the timings will be logged.
+            Press 'Next' when you're ready to continue.
+            """),
+            TimedPushButtonControl(
+                choices=["A", "B", "C"],
+                arrange_vertically=False
+            ),
+            time_estimate=5
         ),
         Module(
             "chocolate",
@@ -87,6 +106,33 @@ class Exp(psynet.experiment.Experiment):
             ),
             expected_repetitions=3,
             fix_time_credit=True
+        ),
+        Module(
+            "multi_page_maker",
+            InfoPage(
+                """
+                The multi-page-maker allows you to make multiple pages in one function.
+                Each can generate its own answer.
+                """, time_estimate=5
+            ),
+            multi_page_maker(
+                "example_multi_page_maker",
+                lambda participant: [
+                    NAFCPage("mp1", f"Participant {participant.id}, choose a shape:", ["Square", "Circle"], time_estimate=5),
+                    NAFCPage("mp2", f"Participant {participant.id}, choose a chord:", ["Major", "Minor"], time_estimate=5),
+                ],
+                expected_num_pages=2,
+                total_time_estimate=10,
+                accumulate_answers=True
+            ),
+            PageMaker(
+                lambda participant: InfoPage(
+                    (
+                        "If accumulate_answers is True, then the answers are stored in a list, in this case: "
+                        + f"{participant.answer}."
+                    ),
+                    time_estimate=5
+            ), time_estimate=5)
         ),
         Module(
             "colour",

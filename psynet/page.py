@@ -62,6 +62,7 @@ class InfoPage(Page):
             template_arg={
                 "content": "" if content is None else content
             },
+            save_answer=False,
             **kwargs
         )
 
