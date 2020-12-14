@@ -110,10 +110,9 @@ for more details.
    may alternatively return a list of :class:`~psynet.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the final
    page returns the appropriate ``answer``.
-   The user must also set the prespecify the number of pages in the 
+   The user should also specify an estimated number of pages in the
    :attr:`~psynet.trial.NonAdaptiveTrial.num_pages` attribute.
 
 .. automodule:: psynet.trial.non_adaptive
     :show-inheritance:
     :members:
-    

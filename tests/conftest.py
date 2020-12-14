@@ -56,6 +56,17 @@ def demo_mcmcp(root):
     os.chdir(root)
     ACTIVE_EXPERIMENT = None
 
+@pytest.fixture(scope="class")
+def demo_multi_page_maker(root):
+    global ACTIVE_EXPERIMENT
+    ACTIVE_EXPERIMENT = "multi_page_maker"
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/multi_page_maker"))
+    import psynet.utils
+    psynet.utils.import_local_experiment()
+    yield
+    os.chdir(root)
+    ACTIVE_EXPERIMENT = None
+
 # @pytest.mark.usefixtures("demo_non_adaptive_dir")
 
 @pytest.fixture
