@@ -26,10 +26,9 @@
 
         psynet.media.register_on_loaded_routine(function() {
             setTimeout(function() {
+                var options = {{ config.js_play_options | tojson }};
+                var sound = psynet.audio.prompt.play(options);
                 psynet.register_event("audio_play_start");
-                var sound = psynet.audio.prompt.play({
-                    loop: {{ config.loop | lower }}
-                });
 
                 sound.source.addEventListener("ended", function() {
                     psynet.register_event("audio_play_end");
