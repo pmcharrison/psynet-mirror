@@ -112,7 +112,7 @@ class Participant(dallinger.models.Participant):
 
     initialised = claim_var("initialised", __extra_vars__, use_default=True, default=lambda: False)
     failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
-    last_response_id = claim_var("last_response_id", __extra_vars__)
+    last_response_id = claim_var("last_response_id", __extra_vars__, use_default=True, default=lambda: None)
     base_payment = claim_var("base_payment", __extra_vars__)
     performance_bonus = claim_var("performance_bonus", __extra_vars__)
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
@@ -127,6 +127,12 @@ class Participant(dallinger.models.Participant):
         del x["modules"]
         field.json_format_vars(x)
         return x
+
+    @property
+    def last_response(self):
+        if self.last_response_id is None:
+            return None
+        return Response.query.filter_by(id=self.last_response_id).one()
 
     @property
     @extra_var(__extra_vars__)

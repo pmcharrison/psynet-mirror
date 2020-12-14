@@ -646,12 +646,14 @@ class PushButtonControl(OptionControl):
                 button_id=choice,
                 label=label,
                 style=self.style,
-                arrange_vertically=self.arrange_vertically
+                arrange_vertically=self.arrange_vertically,
+                timed=self.timed
             )
             for choice, label in zip(self.choices, self.labels)
         ]
 
     macro = "push_buttons"
+    timed = False
 
     @property
     def metadata(self):
@@ -676,6 +678,38 @@ class PushButtonControl(OptionControl):
                 tags.br()
         return html.render()
 
+class TimedPushButtonControl(PushButtonControl):
+    """
+    This presents a multiple-choice push-button interface to the participant.
+    The participant can press as many buttons as they like,
+    and the timing of each press will be recorded.
+    They advance to the next page by pressing a 'Next' button.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the buttons,
+        which the participant will see instead of ``choices``. Default: ``None``.
+
+    style:
+        CSS styles to apply to the buttons. Default: ``"min-width: 100px; margin: 10px"``.
+
+    arrange_vertically:
+        Whether to arrange the buttons vertically. Default: ``True``.
+    """
+
+    timed = True
+
+    def format_answer(self, raw_answer, **kwargs):
+        event_log = {**kwargs}["metadata"]["event_log"]
+        return event_log
+
+    def visualize_response(self, answer):
+        return "visualize_response not yet implemented for TimedPushButtonControl"
 
 class NAFCControl(PushButtonControl):
     """
@@ -686,12 +720,13 @@ class NAFCControl(PushButtonControl):
 
 
 class PushButton():
-    def __init__(self, button_id, *, label, style, arrange_vertically, start_disabled=False):
+    def __init__(self, button_id, *, label, style, arrange_vertically, start_disabled=False, timed=False):
         self.id = button_id
         self.label = label
         self.style = style
         self.start_disabled = start_disabled
         self.display = "block" if arrange_vertically else "inline"
+        self.timed = timed
 
 
 class RadioButtonControl(OptionControl):

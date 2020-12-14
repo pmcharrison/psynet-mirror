@@ -1,5 +1,10 @@
 # Changelog
 
+#### Added
+
+- Improved JS event logging, with events saved in the `event_log` portion of `Response.metadata`.
+- New `Control` class, `TimedPushButtonControl`.
+
 #### Fixed
 
 - Fix audio record status text.
