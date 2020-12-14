@@ -774,6 +774,18 @@
                             if (!("loop" in options)) {
                                 options.loop = false;
                             }
+                            if (!("start" in options)) {
+                                options.start = null;
+                            }
+                            if (!("end" in options)) {
+                                options.end = null;
+                            }
+
+                            let start = (options.start === null) ? 0.0 : options.start;
+                            let duration = (options.end ===  null || options.loop) ? undefined : options.end - options.start;
+
+                            let loop_start = start;
+                            let loop_end = (options.end === null) ? 0.0 : options.end;
 
                             this.source = psynet.media.audio_context.createBufferSource();
                             this.source.loop = options.loop;
@@ -786,7 +798,10 @@
 
                             this.source.buffer = res;
                             this.start_time = psynet.media.audio_context.currentTime + options.start_delay;
-                            this.source.start(this.start_time);
+                            this.source.loopStart = loop_start;
+                            this.source.loopEnd = loop_end;
+
+                            this.source.start(this.start_time, start, duration);
 
                             this.gain_node.gain.setValueAtTime(
                                 0.001,

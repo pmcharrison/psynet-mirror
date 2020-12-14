@@ -8,6 +8,7 @@ in a single list, as opposed to solely retaining the final answer
 as was traditional. 
 - Improved JS event logging, with events saved in the `event_log` portion of `Response.metadata`.
 - New `Control` class, `TimedPushButtonControl`.
+- Added a new `play_window` argument for `AudioControl`.
 
 #### Changed
 
