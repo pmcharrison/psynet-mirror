@@ -1,5 +1,8 @@
 # Changelog
 
+
+# [1.9.0] Released on 2020-12-15
+
 #### Added
 
 - Added a new ``Trial`` attribute called ``accumulate_answers``.
