@@ -72,7 +72,7 @@ You can define a custom imitation-chain experiment through the following steps:
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/imitation_chain``)
+and the demo (``demos/imitation_chain``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.imitation_chain.ImitationChainTrial.show_trial` method
@@ -85,3 +85,4 @@ for more details.
 .. automodule:: psynet.trial.imitation_chain
     :show-inheritance:
     :members:
+    

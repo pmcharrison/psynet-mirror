@@ -78,7 +78,7 @@ You can define a custom MCMCP experiment through the following steps:
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/mcmcp``)
+and the demo (``demos/mcmcp``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.mcmcp.MCMCPTrial.show_trial` method
@@ -94,3 +94,4 @@ for more details.
 .. automodule:: psynet.trial.mcmcp
     :show-inheritance:
     :members:
+    
