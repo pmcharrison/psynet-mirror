@@ -21,6 +21,13 @@ as was traditional.
 - Fix audio record status text.
 - Fix bug in ``get_participant_group``.
 
+
+# [1.8.1] Released on 2020-12-11
+
+- Fix regression where across-participant chain experiments fail unless the networks
+used participant groups.
+
+
 # [1.8.0] Released on 2020-12-07
 
 #### Added
