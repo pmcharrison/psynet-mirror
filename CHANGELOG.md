@@ -1,5 +1,10 @@
 # Changelog
 
+# [1.9.1] - pending release
+
+#### Fixed
+
+- Fix bug in `active_balancing_within_participants`.
 
 # [1.9.0] Released on 2020-12-15
 

@@ -1069,8 +1069,15 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def get_completed_stimuli_in_phase(self, participant):
         all_counters = participant.var.get(self.with_namespace("completed_stimuli_in_phase"))
+
+        def load_counter(input):
+            return Counter({
+                int(key): value
+                for key, value in input.items()
+            })
+
         return {
-            block: Counter(counter)
+            block: load_counter(counter)
             for block, counter in all_counters.items()
         }
 
