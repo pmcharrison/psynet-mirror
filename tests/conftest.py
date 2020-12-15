@@ -16,7 +16,7 @@ warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 def demo_non_adaptive(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "non_adaptive"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/non_adaptive"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/non_adaptive"))
     import psynet.utils
     psynet.utils.import_local_experiment()
     yield
@@ -27,7 +27,7 @@ def demo_non_adaptive(root):
 def demo_gibbs(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "gibbs"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/gibbs"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/gibbs"))
     import psynet.utils
     psynet.utils.import_local_experiment()
     yield
@@ -38,7 +38,7 @@ def demo_gibbs(root):
 def demo_iterated_singing(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "iterated_singing"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/iterated_singing"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/iterated_singing"))
     import psynet.utils
     psynet.utils.import_local_experiment()
     yield
@@ -49,7 +49,7 @@ def demo_iterated_singing(root):
 def demo_mcmcp(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "mcmcp"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/mcmcp"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/mcmcp"))
     import psynet.utils
     psynet.utils.import_local_experiment()
     yield
@@ -60,7 +60,7 @@ def demo_mcmcp(root):
 def demo_multi_page_maker(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "multi_page_maker"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/multi_page_maker"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/multi_page_maker"))
     import psynet.utils
     psynet.utils.import_local_experiment()
     yield

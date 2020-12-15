@@ -75,7 +75,7 @@ You can define a custom Audio Gibbs sampling experiment through the following st
    and insert it into your experiment's timeline.
 
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/audio_gibbs``)
+and the demo (``demos/audio_gibbs``)
 for more details.
 
 .. automodule:: psynet.trial.audio_gibbs

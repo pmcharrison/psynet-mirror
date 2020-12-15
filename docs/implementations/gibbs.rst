@@ -64,7 +64,7 @@ You can define a custom Gibbs sampling experiment through the following steps:
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/gibbs``)
+and the demo (``demos/gibbs``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.gibbs.GibbsTrial.show_trial` method
@@ -77,3 +77,4 @@ for more details.
 .. automodule:: psynet.trial.gibbs
     :show-inheritance:
     :members:
+    

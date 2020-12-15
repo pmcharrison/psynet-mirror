@@ -12,7 +12,7 @@ PYTEST_BOT_CLASS = bot_class()
 
 @pytest.fixture(scope="class")
 def exp_dir(root):
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/timeline"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/timeline"))
     yield
     os.chdir(root)
 

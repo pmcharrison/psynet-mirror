@@ -12,7 +12,7 @@ def test_ids():
         audio={
             'bier': '/static/audio/bier.wav',
             'batch': {
-                'url': '/static/audio/file_concatenated.mp3',
+                'url': '/static/audio/some_filename.mp3',
                 'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
                 'type': 'batch'
             }
