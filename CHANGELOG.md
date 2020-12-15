@@ -1,10 +1,11 @@
 # Changelog
 
-# [1.9.1] - pending release
+# [1.9.1] - Released on 2020-12-15
 
 #### Fixed
 
 - Fix bug in `active_balancing_within_participants`.
+
 
 # [1.9.0] Released on 2020-12-15
 
@@ -22,12 +23,12 @@ as was traditional.
 
 - Renamed ``reactive_seq`` to ``multi_page_maker``.
 - ``show_trial`` now supports returning variable numbers of pages.
-- Move `demos` directory to project root
+- Moved `demos` directory to project root.
 
 #### Fixed
 
-- Fix audio record status text.
-- Fix bug in ``get_participant_group``.
+- Fixed audio record status text.
+- Fixed bug in ``get_participant_group``.
 
 
 # [1.8.1] Released on 2020-12-11
