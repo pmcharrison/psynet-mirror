@@ -12,7 +12,7 @@ PYTEST_BOT_CLASS = bot_class()
 
 @pytest.fixture(scope="class")
 def exp_dir(root):
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/timeline"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/timeline"))
     yield
     os.chdir(root)
 
@@ -68,7 +68,35 @@ class TestExp(object):
             assert driver.find_element_by_id("main-body").text == "Your message: Hello! I am a robot.\nNext"
             next_page(driver, "next_button")
 
+            db_session.commit()
+            participant = Participant.query.filter_by(id=1).one()
+
+            event_log = participant.last_response.metadata["event_log"]
+            event_ids = [e["event_type"] for e in event_log]
+            assert event_ids == ['init_page', 'media_load', 'page_load', 'response_ready', 'submit_ready',
+                                 'submit_response']
+
             # Page 4
+            button = driver.find_element_by_id("A")
+            button.click()
+
+            button = driver.find_element_by_id("C")
+            button.click()
+
+            button = driver.find_element_by_id("A")
+            button.click()
+
+            next_page(driver, "next_button")
+
+            db_session.commit()
+            participant = Participant.query.filter_by(id=1).one()
+            buttons = [e["info"]["button_id"] for e in participant.answer if e["event_type"] == "push_button_clicked"]
+            assert buttons == ["A", "C", "A"]
+
+            event_log = participant.response.metadata["event_log"]
+            assert len([e for e in event_log if e["event_type"] == "push_button_clicked"]) == 3
+
+            # Page 5
             db_session.commit()
             participant = get_participant(1)
             modules = participant.modules
@@ -83,7 +111,7 @@ class TestExp(object):
             assert driver.find_element_by_id("main-body").text == "Do you like chocolate?\nYes\nNo"
             next_page(driver, "Yes")
 
-            # Page 5
+            # Page 6
             assert driver.find_element_by_id("main-body").text == "It's nice to hear that you like chocolate!\nNext"
             next_page(driver, "next_button")
 
@@ -103,6 +131,22 @@ class TestExp(object):
             assert len(modules["loop"]["time_finished"]) == 4
 
             assert driver.find_element_by_id(
+                "main-body").text == "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer.\nNext"
+            next_page(driver, "next_button")
+
+            assert driver.find_element_by_id(
+                "main-body").text == "Participant 1, choose a shape:\nSquare Circle"
+            next_page(driver, "Square")
+
+            assert driver.find_element_by_id(
+                "main-body").text == "Participant 1, choose a chord:\nMajor Minor"
+            next_page(driver, "Minor")
+
+            assert driver.find_element_by_id(
+                "main-body").text == "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor'].\nNext"
+            next_page(driver, "next_button")
+
+            assert driver.find_element_by_id(
                 "main-body").text == "What's your favourite colour?\nRed Green Blue"
             next_page(driver, "Red")
 
@@ -113,7 +157,7 @@ class TestExp(object):
             # Final page
             assert driver.find_element_by_id("main-body").text == (
                 'That\'s the end of the experiment! In addition to your base payment of $0.10, '
-                'you will receive a bonus of $0.12 for the time you spent on the experiment. '
+                'you will receive a bonus of $0.18 for the time you spent on the experiment. '
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 

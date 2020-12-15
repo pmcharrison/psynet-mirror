@@ -16,7 +16,7 @@ EXPERIMENT = None
 # @pytest.fixture(scope="class")
 # def exp_dir(root):
 #     global EXPERIMENT_MODULE
-#     os.chdir(os.path.join(os.path.dirname(__file__), "..", "psynet/demos/non_adaptive"))
+#     os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/non_adaptive"))
 #
 #     import psynet.utils
 #     EXPERIMENT_MODULE = psynet.utils.import_local_experiment().get("module")

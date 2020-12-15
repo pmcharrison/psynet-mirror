@@ -1,13 +1,39 @@
 # Changelog
 
+
+# [1.9.0] Released on 2020-12-15
+
+#### Added
+
+- Added a new ``Trial`` attribute called ``accumulate_answers``.
+If True, then the answers to all pages in the trial are accumulated
+in a single list, as opposed to solely retaining the final answer
+as was traditional.
+- Improved JS event logging, with events saved in the `event_log` portion of `Response.metadata`.
+- New `Control` class, `TimedPushButtonControl`.
+- Added a new `play_window` argument for `AudioControl`.
+
+#### Changed
+
+- Renamed ``reactive_seq`` to ``multi_page_maker``.
+- ``show_trial`` now supports returning variable numbers of pages.
+- Move `demos` directory to project root
+
+#### Fixed
+
+- Fix audio record status text.
+- Fix bug in ``get_participant_group``.
+
+
 # [1.8.1] Released on 2020-12-11
 
 - Fix regression where across-participant chain experiments fail unless the networks
 used participant groups.
 
+
 # [1.8.0] Released on 2020-12-07
 
-#### Added 
+#### Added
 - Participant groups can now be set directly via the participant object, writing
   for example ``participant.set_participant_group("my_trial_maker", self.answer)``.
 - Chain networks now support participant groups. These are by default read from the

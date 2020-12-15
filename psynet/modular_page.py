@@ -133,6 +133,16 @@ class AudioPrompt(Prompt):
 
     text_align
         CSS alignment of the text.
+
+    play_window
+        An optional two-element list identifying the time window in the audio file that
+        should be played.
+        If the first element is ``None``, then the audio file is played from the beginning;
+        otherwise, the audio file starts playback from this timepoint (in seconds)
+        (note that negative numbers will not be accepted here).
+        If the second element is ``None``, then the audio file is played until the end;
+        otherwise, the audio file finishes playback at this timepoint (in seconds).
+        The behaviour is undefined when the time window extends past the end of the audio file.
     """
     def __init__(
             self,
@@ -143,8 +153,16 @@ class AudioPrompt(Prompt):
             prevent_submit: bool = True,
             enable_submit_after: Optional[float] = None,
             start_delay = 0.0,
-            text_align = "left"
+            text_align = "left",
+            play_window: Optional[List] = None
         ):
+        if play_window is None:
+            play_window = [None, None]
+        assert len(play_window) == 2
+
+        if play_window[0] is not None and play_window[0] < 0:
+            raise ValueError("play_window[0] may not be less than 0")
+
         super().__init__(text=text, text_align=text_align)
         self.url = url
         self.prevent_response = prevent_response
@@ -152,6 +170,13 @@ class AudioPrompt(Prompt):
         self.enable_submit_after = enable_submit_after
         self.loop = loop
         self.start_delay = start_delay
+        self.play_window = play_window
+
+        self.js_play_options = dict(
+            loop=loop,
+            start=play_window[0],
+            end=play_window[1]
+        )
 
     macro = "audio"
 
@@ -159,7 +184,8 @@ class AudioPrompt(Prompt):
     def metadata(self):
         return {
             "text": self.text,
-            "url": self.url
+            "url": self.url,
+            "play_window": self.play_window
         }
 
     @property
@@ -167,11 +193,14 @@ class AudioPrompt(Prompt):
         return MediaSpec(audio={"prompt": self.url})
 
     def visualize(self, trial):
+        start, end = tuple(self.play_window)
+        src = f"{self.url}#t={'' if start is None else start},{'' if end is None else end}"
+
         html = (
             super().visualize(trial) +
             "\n" +
             tags.audio(
-                tags.source(src=self.url),
+                tags.source(src=src),
                 id="visualize-audio-prompt",
                 controls=True
             ).render()
@@ -646,12 +675,14 @@ class PushButtonControl(OptionControl):
                 button_id=choice,
                 label=label,
                 style=self.style,
-                arrange_vertically=self.arrange_vertically
+                arrange_vertically=self.arrange_vertically,
+                timed=self.timed
             )
             for choice, label in zip(self.choices, self.labels)
         ]
 
     macro = "push_buttons"
+    timed = False
 
     @property
     def metadata(self):
@@ -676,6 +707,38 @@ class PushButtonControl(OptionControl):
                 tags.br()
         return html.render()
 
+class TimedPushButtonControl(PushButtonControl):
+    """
+    This presents a multiple-choice push-button interface to the participant.
+    The participant can press as many buttons as they like,
+    and the timing of each press will be recorded.
+    They advance to the next page by pressing a 'Next' button.
+
+    Parameters
+    ----------
+
+    choices:
+        The different options the participant has to choose from.
+
+    labels:
+        An optional list of textual labels to apply to the buttons,
+        which the participant will see instead of ``choices``. Default: ``None``.
+
+    style:
+        CSS styles to apply to the buttons. Default: ``"min-width: 100px; margin: 10px"``.
+
+    arrange_vertically:
+        Whether to arrange the buttons vertically. Default: ``True``.
+    """
+
+    timed = True
+
+    def format_answer(self, raw_answer, **kwargs):
+        event_log = {**kwargs}["metadata"]["event_log"]
+        return event_log
+
+    def visualize_response(self, answer):
+        return "visualize_response not yet implemented for TimedPushButtonControl"
 
 class NAFCControl(PushButtonControl):
     """
@@ -686,12 +749,13 @@ class NAFCControl(PushButtonControl):
 
 
 class PushButton():
-    def __init__(self, button_id, *, label, style, arrange_vertically, start_disabled=False):
+    def __init__(self, button_id, *, label, style, arrange_vertically, start_disabled=False, timed=False):
         self.id = button_id
         self.label = label
         self.style = style
         self.start_disabled = start_disabled
         self.display = "block" if arrange_vertically else "inline"
+        self.timed = timed
 
 
 class RadioButtonControl(OptionControl):

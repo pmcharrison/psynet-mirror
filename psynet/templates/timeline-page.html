@@ -82,6 +82,8 @@
         {% block main_body %}
 
         {% endblock %}
+
+        <span id="psynet-event-listener"></span>
     </div>
 
     {% block modals %}
@@ -395,6 +397,7 @@
                             // psynet.log.warning("Response-ready has already been called.");
                         } else {
                             psynet.log.debug("Ready for user to enter response.");
+                            psynet.register_event("response_ready");
                             psynet.response.on_ready_routines.forEach(function (f) {
                                 f();
                             });
@@ -418,6 +421,7 @@
                             // psynet.log.warning("Submit-ready has already been called.");
                         } else {
                             psynet.log.debug("Ready for user to submit response.");
+                            psynet.register_event("submit_ready");
                             psynet.submit.on_ready_routines.forEach(function (f) {
                                 f();
                             });
@@ -463,6 +467,7 @@
                     psynet.media.on_loaded_routines.forEach(function (f) { f(); });
 
                     $('.wait-for-media-load').removeAttr('disabled');
+                    psynet.register_event("media_load");
                     psynet.response.ready("media_load");
                     psynet.submit.ready("media_load");
                 };
@@ -769,6 +774,18 @@
                             if (!("loop" in options)) {
                                 options.loop = false;
                             }
+                            if (!("start" in options)) {
+                                options.start = null;
+                            }
+                            if (!("end" in options)) {
+                                options.end = null;
+                            }
+
+                            let start = (options.start === null) ? 0.0 : options.start;
+                            let duration = (options.end ===  null || options.loop) ? undefined : options.end - options.start;
+
+                            let loop_start = start;
+                            let loop_end = (options.end === null) ? 0.0 : options.end;
 
                             this.source = psynet.media.audio_context.createBufferSource();
                             this.source.loop = options.loop;
@@ -781,7 +798,10 @@
 
                             this.source.buffer = res;
                             this.start_time = psynet.media.audio_context.currentTime + options.start_delay;
-                            this.source.start(this.start_time);
+                            this.source.loopStart = loop_start;
+                            this.source.loopEnd = loop_end;
+
+                            this.source.start(this.start_time, start, duration);
 
                             this.gain_node.gain.setValueAtTime(
                                 0.001,
@@ -1004,10 +1024,28 @@
 
                 psynet.page_loaded = false;
 
+                psynet.event_log = [];
+
+                psynet.event_listener_registry = document.createElement("span");
+
+                psynet.add_event_listener = function(type, func) {
+                    psynet.event_listener_registry.addEventListener(type, func);
+                }
+
+                psynet.register_event = function(event_type, info) {
+                    let e = new Event(event_type);
+                    psynet.event_listener_registry.dispatchEvent(e)
+                    let time = new Date();
+                    let log_entry = {
+                        event_type: event_type,
+                        local_time: time,
+                        info: (info === undefined) ? null : info};
+                    psynet.event_log.push(log_entry);
+                }
+
                 psynet.init_page = function () {
                     console.log("Initialising page...");
-                    event = new Event("init_page");
-                    window.dispatchEvent(event);
+                    psynet.register_event("init_page");
                     psynet.register_error_handler();
                     psynet.response.disable();
                     psynet.submit.disable();
@@ -1019,6 +1057,7 @@
                     psynet.page_load_time = new Date();
                     psynet.media.init();
                     window.addEventListener("load", function() {
+                        psynet.register_event("page_load");
                         psynet.response.ready("page_load");
                         psynet.submit.ready("page_load");
                         psynet.page_loaded = true;
@@ -1084,7 +1123,8 @@
                     var all_metadata = {
                         "time_taken": (current_time - psynet.page_load_time) / 1000,
                         "platform": platform.toString(),
-                        "download_speed_megabits_per_sec": psynet.estimate_download_speed()
+                        "download_speed_megabits_per_sec": psynet.estimate_download_speed(),
+                        "event_log": psynet.event_log
                     };
 
                     if (metadata !== undefined) {
@@ -1106,6 +1146,7 @@
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
                     $( " .response, .submit " ).prop('disabled', true);
+                    psynet.register_event("submit_response");
 
                     json = prepare_json_submission(raw_answer, metadata);
 

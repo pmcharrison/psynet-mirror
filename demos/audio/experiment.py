@@ -180,6 +180,18 @@ example_audio_page = ModularPage(
     time_estimate=5
 )
 
+example_audio_page_2 = ModularPage(
+    "audio_page",
+    AudioPrompt(
+        "/static/audio/train1.wav",
+        "This page illustrates a play window combined with a loop.",
+        play_window=[5, 9],
+        loop=True,
+        enable_submit_after=2
+    ),
+    time_estimate=5
+)
+
 example_record_page = join(
     ModularPage(
         "record_page",
@@ -235,6 +247,7 @@ example_record_with_audio_prompt = join(
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         example_audio_page,
+        example_audio_page_2,
         example_record_with_audio_prompt,
         example_record_page,
         example_audio_meter,

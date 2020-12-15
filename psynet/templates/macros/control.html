@@ -23,9 +23,9 @@
 {% macro push_button(config) %}
     <button
         type="button"
-        class="btn push_button btn-primary submit"
+        class="btn push_button btn-primary response {% if config.timed == true %} timed {% else %} submit {% endif %}"
         id="{{ config.id }}"
-        onclick="clicked_button('{{ config.id }}');"
+        onclick="clicked_button(this, '{{ config.id }}');"
         style="{{ config.style }}"
     >
         {{ config.label }}
@@ -49,11 +49,20 @@
         {% endfor %}
     </div>
 
+    {% if config.timed == true %}
+        <p class="vspace"></p>
+        {{ null(config) }}
+    {% endif %}
+
     <script>
-        clicked_button = function(id) {
-            psynet.response.disable();
-            psynet.submit.disable();
-            psynet.next_page(id);
+        clicked_button = function(button, id) {
+            let info = {button_id: id};
+            psynet.register_event("push_button_clicked", info);
+            if (!button.classList.contains("timed")) {
+                psynet.response.disable();
+                psynet.submit.disable();
+                psynet.next_page(id);
+            }
         }
     </script>
 {% endmacro %}
@@ -64,6 +73,7 @@
             type="checkbox"
             id="{{ config.id }}"
             name="{{ config.name }}"
+            class="response"
         />
         <span>{{ config.label }}</span>
     </label>
@@ -115,6 +125,7 @@
             type="radio"
             id="{{ config.id }}"
             name="{{ config.name }}"
+            class="response"
         />
         <span>{{ config.label }}</span>
     </label>
@@ -168,7 +179,7 @@
         }
     </style>
     <div class="dropdown-container">
-        <select id="{{ config.name }}" class="form-control" name="{{ config.name }}">
+        <select id="{{ config.name }}" class="form-control response" name="{{ config.name }}">
             <option value="">Select an answer</option>
             {% for option in config.dropdown %}
                 {{ dropdown_option(option) }}
@@ -371,7 +382,7 @@
         </div>
 
         <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
-            Recording finished.
+            Uploading finished.
         </div>
 
         <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
@@ -415,6 +426,7 @@
 
         startRecording = function() {
             psynet.log.debug("Starting recording.");
+            psynet.register_event("audio_record_start");
             $(".record-alert").hide();
             $("#record-active").show();
             recorder.clear();
@@ -423,6 +435,7 @@
 
         endRecording = function() {
             psynet.log.debug("Ending recording.")
+            psynet.register_event("audio_record_end");
             recorder.exportWAV(function (blob) {
                 $(".record-alert").hide();
                 $("#record-upload").show();
@@ -436,8 +449,11 @@
             xhr.open('PUT', presignedUrl, true);
             psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
 
+            psynet.register_event("presigned_url_start_upload", {url: presignedUrl});
+
             xhr.onload = function(e) {
                 psynet.log.debug("File uploaded successfully to presigned url.");
+                psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
                 psynet.submit.ready("finished-recording");
                 $(".record-alert").hide();
                 $("#record-finish").show();

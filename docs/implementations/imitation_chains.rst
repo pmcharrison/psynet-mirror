@@ -72,14 +72,14 @@ You can define a custom imitation-chain experiment through the following steps:
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/imitation_chain``)
+and the demo (``demos/imitation_chain``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.imitation_chain.ImitationChainTrial.show_trial` method
    may alternatively return a list of :class:`~psynet.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the final
    page returns the appropriate ``answer``.
-   The user must also set the prespecify the number of pages in the 
+   The user should also specify an estimated number of pages in the
    :attr:`~psynet.trial.imitation_chain.ImitationChainTrial.num_pages` attribute.
 
 .. automodule:: psynet.trial.imitation_chain

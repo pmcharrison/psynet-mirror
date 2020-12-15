@@ -78,7 +78,7 @@ You can define a custom MCMCP experiment through the following steps:
    and insert it into your experiment's timeline.
    
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/mcmcp``)
+and the demo (``demos/mcmcp``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.mcmcp.MCMCPTrial.show_trial` method
@@ -88,7 +88,7 @@ for more details.
    is set with the appropriate answer during this sequence.
    One way of achieving this is by including a 
    :class:`~psynet.timeline.Page` object in the event sequence.
-   The user must also set the prespecify the number of pages in the 
+   The user should also specify an estimated number of pages in the
    :attr:`~psynet.trial.mcmcp.MCMCPTrial.num_pages` attribute.
 
 .. automodule:: psynet.trial.mcmcp

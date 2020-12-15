@@ -103,14 +103,14 @@ Implementing a non-adaptive experiment in this framework comprises the following
    and insert it into your experiment's timeline.
 
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/non_adaptive``)
+and the demo (``demos/non_adaptive``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrial.show_trial` method
    may alternatively return a list of :class:`~psynet.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the final
    page returns the appropriate ``answer``.
-   The user must also set the prespecify the number of pages in the 
+   The user should also specify an estimated number of pages in the
    :attr:`~psynet.trial.NonAdaptiveTrial.num_pages` attribute.
 
 .. automodule:: psynet.trial.non_adaptive

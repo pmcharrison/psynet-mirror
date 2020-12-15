@@ -26,11 +26,12 @@
 
         psynet.media.register_on_loaded_routine(function() {
             setTimeout(function() {
-                var sound = psynet.audio.prompt.play({
-                    loop: {{ config.loop | lower }}
-                });
+                var options = {{ config.js_play_options | tojson }};
+                var sound = psynet.audio.prompt.play(options);
+                psynet.register_event("audio_play_start");
 
                 sound.source.addEventListener("ended", function() {
+                    psynet.register_event("audio_play_end");
                     {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
                     {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
                 });
