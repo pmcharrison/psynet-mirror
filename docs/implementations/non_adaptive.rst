@@ -103,7 +103,7 @@ Implementing a non-adaptive experiment in this framework comprises the following
    and insert it into your experiment's timeline.
 
 See the low-level documentation (below)
-and the demo (``psynet/psynet/demos/non_adaptive``)
+and the demo (``demos/non_adaptive``)
 for more details.
 
 .. [1] The :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrial.show_trial` method
@@ -116,3 +116,4 @@ for more details.
 .. automodule:: psynet.trial.non_adaptive
     :show-inheritance:
     :members:
+    
