@@ -1110,10 +1110,10 @@
                 };
 
                 on_page_updated = function(event) {
-                    console.log("Sending message to Unity containing following data:" + psynet.page.contents)
-                    gameInstance.SendMessage("PsynetObj",
+                    // console.log("Sending message to Unity containing following data:" + psynet.page.contents)
+                    /*gameInstance.SendMessage("PsynetObj",
                                              "GetData",
-                                             JSON.stringify(psynet.page.contents));
+                                             JSON.stringify(psynet.page.contents));*/
                 };
 
                 on_error_response = function (request) {
