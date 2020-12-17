@@ -60,11 +60,13 @@
       loadingBar.style.display = "block";
 
       var script = document.createElement("script");
+      var unityInstance;
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
+        }).then((ui) => {
+          unityInstance = ui;
           loadingBar.style.display = "none";
           fullscreenButton.onclick = () => {
             unityInstance.SetFullscreen(1);
