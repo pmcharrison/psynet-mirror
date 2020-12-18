@@ -1113,7 +1113,11 @@
                     console.log("Sending message to Unity containing following data:" + psynet.page.contents)
                     unityInstance.SendMessage("PsynetObj",
                                               "GetData",
-                                              psynet.page.contents
+                                              JSON.stringify({
+                                                attributes: psynet.page.attributes,
+                                                contents: psynet.page.contents
+                                              })
+
                     );
                 };
 
