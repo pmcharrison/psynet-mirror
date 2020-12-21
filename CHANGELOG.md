@@ -1,5 +1,9 @@
 # Changelog
 
+#### Added
+
+- Added improved visual feedback to `TimedPushButtonControl`.
+
 # [1.9.1] - Released on 2020-12-15
 
 #### Fixed
