@@ -310,10 +310,10 @@ class TextInputPage(Page):
         Whether the text box should comprise solely one line.
 
     width:
-        Optional CSS width property for the text box.
+        Optional CSS width property for the text box, e.g. ``"400px"``.
 
     height:
-        Optional CSS height property for the text box.
+        Optional CSS height property for the text box, e.g. ``"100px"``.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
