@@ -599,10 +599,12 @@ class DropdownControl(OptionControl):
             style: str = "",
             name: str = "",
             force_selection: bool = True,
+            default_text = "Select an option",
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.force_selection = force_selection
+        self.default_text = default_text
 
         self.dropdown = [
             DropdownOption(
@@ -794,7 +796,7 @@ class RadioButtonControl(OptionControl):
         which the participant will see instead of ``choices``.
 
     style:
-        CSS style attributes to apply to the radiobuttons. Default: ``""``.
+        CSS style attributes to apply to the radiobuttons. Default: ``"cursor: pointer"``.
 
     name:
         Name of the radiobutton group.
@@ -810,7 +812,7 @@ class RadioButtonControl(OptionControl):
             self,
             choices: List[str],
             labels: Optional[List[str]] = None,
-            style: str = "",
+            style: str = "cursor: pointer;",
             name: str = "",
             arrange_vertically: bool = True,
             force_selection: bool = True,
@@ -855,7 +857,7 @@ class RadioButtonControl(OptionControl):
 
 
 class RadioButton():
-    def __init__(self, id_, *, name, label, start_disabled=False, style=""):
+    def __init__(self, id_, *, name, label, start_disabled=False, style="cursor: pointer"):
         self.id = id_
         self.name = name
         self.label = label
