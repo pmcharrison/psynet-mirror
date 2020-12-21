@@ -38,7 +38,7 @@
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
-            max-height: 350px;
+            max-height: 420px;
             overflow-y: auto;
         }
     </style>
@@ -105,7 +105,7 @@
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
-            max-height: 350px;
+            max-height: 420px;
             overflow-y: auto;
         }
     </style>
@@ -146,8 +146,9 @@
             id="{{ config.id }}"
             name="{{ config.name }}"
             class="response"
+            style="{{ config.style }}"
         />
-        <span>{{ config.label }}</span>
+        <span style="{{ config.style }}">{{ config.label }}</span>
     </label>
 {% endmacro %}
 
@@ -157,7 +158,7 @@
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
-            max-height: 350px;
+            max-height: 420px;
             overflow-y: auto;
         }
     </style>
@@ -199,8 +200,8 @@
         }
     </style>
     <div class="dropdown-container">
-        <select id="{{ config.name }}" class="form-control response" name="{{ config.name }}">
-            <option value="">Select an answer</option>
+        <select id="{{ config.name }}" class="form-control response" style="cursor: pointer;" name="{{ config.name }}">
+            <option disabled selected value>{{ config.default_text }}</option>
             {% for option in config.dropdown %}
                 {{ dropdown_option(option) }}
             {% endfor %}
