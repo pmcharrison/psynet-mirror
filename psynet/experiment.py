@@ -413,7 +413,11 @@ class Experiment(dallinger.experiment.Experiment):
         page = self.timeline.get_current_event(self, participant)
         return success_response(
             submission="approved",
-            page={"attributes": page.attributes, "contents": page.contents}
+            page={
+                "attributes": page.attributes,
+                "contents": page.contents,
+                "page_uuid": participant.page_uuid,
+            }
         )
 
     def response_rejected(self, message):
