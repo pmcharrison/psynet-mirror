@@ -55,14 +55,34 @@
     {% endif %}
 
     <script>
+        let button_timers = {};
+
         clicked_button = function(button, id) {
             let info = {button_id: id};
             psynet.register_event("push_button_clicked", info);
-            if (!button.classList.contains("timed")) {
+
+            {% if config.timed == true %}
+                let button_highlight_duration = {{ config.button_highlight_duration }};
+                if (button_timers[id] !== undefined) {
+                    clearTimeout(button_timers[id]);
+                }
+                highlight_button(button);
+                button_timers[id] = setTimeout(unhighlight_button, button_highlight_duration * 1000, button);
+            {% else %}
                 psynet.response.disable();
                 psynet.submit.disable();
                 psynet.next_page(id);
-            }
+            {% endif %}
+        }
+
+        highlight_button = function(button) {
+            button.classList.remove("btn-primary");
+            button.classList.add("btn-success");
+        }
+
+        unhighlight_button = function(button) {
+            button.classList.add("btn-primary");
+            button.classList.remove("btn-success");
         }
     </script>
 {% endmacro %}
