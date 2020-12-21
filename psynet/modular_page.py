@@ -598,10 +598,12 @@ class DropdownControl(OptionControl):
             style: str = "",
             name: str = "",
             force_selection: bool = True,
+            default_text = "Select an option",
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.force_selection = force_selection
+        self.default_text = default_text
 
         self.dropdown = [
             DropdownOption(
@@ -723,14 +725,35 @@ class TimedPushButtonControl(PushButtonControl):
         An optional list of textual labels to apply to the buttons,
         which the participant will see instead of ``choices``. Default: ``None``.
 
+    button_highlight_duration:
+        How long to highlight the button for once it has been clicked (seconds).
+        Defaults to 0.75 s.
+
     style:
         CSS styles to apply to the buttons. Default: ``"min-width: 100px; margin: 10px"``.
 
     arrange_vertically:
         Whether to arrange the buttons vertically. Default: ``True``.
+
+    **kwargs
+        Other arguments to pass to :class:`~psynet.modular_page.PushButtonControl`.
     """
 
     timed = True
+
+    def __init__(
+            self,
+            choices: List[str],
+            labels: Optional[List[str]] = None,
+            button_highlight_duration: float = 0.75,
+            **kwargs
+    ):
+        super().__init__(
+            choices=choices,
+            labels=labels,
+            **kwargs
+        )
+        self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
         event_log = {**kwargs}["metadata"]["event_log"]
@@ -772,7 +795,7 @@ class RadioButtonControl(OptionControl):
         which the participant will see instead of ``choices``.
 
     style:
-        CSS style attributes to apply to the radiobuttons. Default: ``""``.
+        CSS style attributes to apply to the radiobuttons. Default: ``"cursor: pointer"``.
 
     name:
         Name of the radiobutton group.
@@ -788,7 +811,7 @@ class RadioButtonControl(OptionControl):
             self,
             choices: List[str],
             labels: Optional[List[str]] = None,
-            style: str = "",
+            style: str = "cursor: pointer;",
             name: str = "",
             arrange_vertically: bool = True,
             force_selection: bool = True,
@@ -833,7 +856,7 @@ class RadioButtonControl(OptionControl):
 
 
 class RadioButton():
-    def __init__(self, id_, *, name, label, start_disabled=False, style=""):
+    def __init__(self, id_, *, name, label, start_disabled=False, style="cursor: pointer"):
         self.id = id_
         self.name = name
         self.label = label

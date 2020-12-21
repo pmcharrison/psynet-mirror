@@ -43,7 +43,7 @@ from .utils import (
     serialise
 )
 
-from psynet import data
+from psynet import data, __version__
 
 logger = get_logger()
 
@@ -89,6 +89,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     __extra_vars__ = {}
 
+    psynet_version = claim_var("psynet_version", __extra_vars__, use_default=True, default=__version__)
     min_browser_version = claim_var("min_browser_version", __extra_vars__, use_default=True, default="80.0")
     max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=True, default=25.0)
     soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
@@ -181,6 +182,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
+        self.psynet_version = __version__
         self.min_browser_version = "80.0"
         self.max_participant_payment = 25.0
         self.soft_max_experiment_payment = 1000.0

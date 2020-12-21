@@ -1,5 +1,14 @@
 # Changelog
 
+
+# [1.10.0] Released on 2020-12-21
+
+#### Added
+
+- Demographic questionnaires (`general`, `GMSI`, `PEI`).
+- Improved visual feedback to `TimedPushButtonControl`.
+
+
 # [1.9.1] - Released on 2020-12-15
 
 #### Fixed

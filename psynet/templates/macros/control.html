@@ -38,7 +38,7 @@
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
-            max-height: 350px;
+            max-height: 420px;
             overflow-y: auto;
         }
     </style>
@@ -55,14 +55,34 @@
     {% endif %}
 
     <script>
+        let button_timers = {};
+
         clicked_button = function(button, id) {
             let info = {button_id: id};
             psynet.register_event("push_button_clicked", info);
-            if (!button.classList.contains("timed")) {
+
+            {% if config.timed == true %}
+                let button_highlight_duration = {{ config.button_highlight_duration }};
+                if (button_timers[id] !== undefined) {
+                    clearTimeout(button_timers[id]);
+                }
+                highlight_button(button);
+                button_timers[id] = setTimeout(unhighlight_button, button_highlight_duration * 1000, button);
+            {% else %}
                 psynet.response.disable();
                 psynet.submit.disable();
                 psynet.next_page(id);
-            }
+            {% endif %}
+        }
+
+        highlight_button = function(button) {
+            button.classList.remove("btn-primary");
+            button.classList.add("btn-success");
+        }
+
+        unhighlight_button = function(button) {
+            button.classList.add("btn-primary");
+            button.classList.remove("btn-success");
         }
     </script>
 {% endmacro %}
@@ -85,7 +105,7 @@
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
-            max-height: 350px;
+            max-height: 420px;
             overflow-y: auto;
         }
     </style>
@@ -126,8 +146,9 @@
             id="{{ config.id }}"
             name="{{ config.name }}"
             class="response"
+            style="{{ config.style }}"
         />
-        <span>{{ config.label }}</span>
+        <span style="{{ config.style }}">{{ config.label }}</span>
     </label>
 {% endmacro %}
 
@@ -137,7 +158,7 @@
             display: {% if config.arrange_vertically %}grid{% else %}flex{% endif %};
             flex-wrap: wrap;
             justify-content: center;
-            max-height: 350px;
+            max-height: 420px;
             overflow-y: auto;
         }
     </style>
@@ -179,8 +200,8 @@
         }
     </style>
     <div class="dropdown-container">
-        <select id="{{ config.name }}" class="form-control response" name="{{ config.name }}">
-            <option value="">Select an answer</option>
+        <select id="{{ config.name }}" class="form-control response" style="cursor: pointer;" name="{{ config.name }}">
+            <option disabled selected value>{{ config.default_text }}</option>
             {% for option in config.dropdown %}
                 {{ dropdown_option(option) }}
             {% endfor %}
