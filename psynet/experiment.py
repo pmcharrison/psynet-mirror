@@ -414,7 +414,7 @@ class Experiment(dallinger.experiment.Experiment):
         return success_response(
             submission="approved",
             page={
-                "attributes": page.attributes,
+                "attributes": page.attributes(participant),
                 "contents": page.contents,
                 "page_uuid": participant.page_uuid,
             }
@@ -612,7 +612,7 @@ class Experiment(dallinger.experiment.Experiment):
                 exp.save()
                 if (mode == "json"):
                     return jsonify({
-                        "attributes": page.attributes,
+                        "attributes": page.attributes(participant),
                         "contents": page.contents,
                     })
                 return page.render(exp, participant)

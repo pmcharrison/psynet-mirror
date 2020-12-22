@@ -441,9 +441,8 @@ class Page(Event):
         self.session_id = session_id
         self.save_answer = save_answer
 
-    @property
-    def attributes(self):
-        return {"session_id": self.session_id, "type": type(self).__name__, "page_uuid": self.participant.page_uuid}
+    def attributes(self, participant):
+        return {"session_id": self.session_id, "type": type(self).__name__, "page_uuid": participant.page_uuid}
 
     @property
     def contents(self):
@@ -636,6 +635,8 @@ class Page(Event):
             "footer": self.create_footer(experiment, participant),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "app_id": experiment.app_id,
+            "participant": participant,
+            # TODO remove participant_id
             "participant_id": participant.id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,

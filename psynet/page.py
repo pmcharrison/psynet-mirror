@@ -10,7 +10,6 @@ from math import ceil
 import itertools
 import json
 
-from .participant import Participant
 from .timeline import (
     get_template,
     join,
@@ -128,7 +127,6 @@ class UnityPage(Page):
             title: str,
             resources: str,
             contents: dict,
-            participant: Participant,
             session_id: str,
             game_container_width: str = "960px",
             game_container_height: str = "600px",
@@ -138,7 +136,6 @@ class UnityPage(Page):
     ):
         self.title = title
         self.resources = resources
-        self.participant = participant
         self.game_container_width = game_container_width
         self.game_container_height = game_container_height
         self.session_id = session_id
@@ -157,7 +154,6 @@ class UnityPage(Page):
                 "title": self.title,
                 "resources": "" if resources is None else resources,
                 "contents": {} if contents is None else contents,
-                "participant": self.participant,
                 "game_container_width": self.game_container_width,
                 "game_container_height": self.game_container_height,
                 "session_id": self.session_id,
