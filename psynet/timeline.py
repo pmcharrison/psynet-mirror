@@ -443,7 +443,7 @@ class Page(Event):
 
     @property
     def attributes(self):
-        return {"session_id": self.session_id, "type": type(self).__name__}
+        return {"session_id": self.session_id, "type": type(self).__name__, "page_uuid": self.participant.page_uuid}
 
     @property
     def contents(self):
