@@ -441,6 +441,12 @@ class Page(Event):
         self.session_id = session_id
         self.save_answer = save_answer
 
+    def __json__(self, participant):
+        return {
+            "attributes": self.attributes(participant),
+            "contents": self.contents,
+        }
+
     def attributes(self, participant):
         return {"session_id": self.session_id, "type": type(self).__name__, "page_uuid": participant.page_uuid}
 
@@ -636,8 +642,6 @@ class Page(Event):
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "app_id": experiment.app_id,
             "participant": participant,
-            # TODO remove participant_id
-            "participant_id": participant.id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
             "css": self.css,

@@ -413,11 +413,7 @@ class Experiment(dallinger.experiment.Experiment):
         page = self.timeline.get_current_event(self, participant)
         return success_response(
             submission="approved",
-            page={
-                "attributes": page.attributes(participant),
-                "contents": page.contents,
-                "page_uuid": participant.page_uuid,
-            }
+            page=page.__json__(participant)
         )
 
     def response_rejected(self, message):
@@ -611,10 +607,7 @@ class Experiment(dallinger.experiment.Experiment):
                 page.pre_render()
                 exp.save()
                 if (mode == "json"):
-                    return jsonify({
-                        "attributes": page.attributes(participant),
-                        "contents": page.contents,
-                    })
+                    return jsonify(page.__json__(participant))
                 return page.render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
