@@ -1110,7 +1110,7 @@
                 };
 
                 on_page_updated = function(event) {
-                    console.log("Sending message to Unity containing following data:" + psynet.page.contents)
+                    console.log("Dispatched 'on_page_updated' event. Sending data to Unity:\nattributes:" + psynet.page.attributes + "\ncontents:" + psynet.page.contents);
                     unityInstance.SendMessage("PsynetObj",
                                               "GetData",
                                               JSON.stringify({

@@ -373,9 +373,6 @@ class Page(Event):
     Attributes
     ----------
 
-    attributes : dict
-        A dictionary containing the parameter values for the stimulus.
-
     contents : dict
         A dictionary containing experiment specific data.
 
@@ -448,6 +445,9 @@ class Page(Event):
         }
 
     def attributes(self, participant):
+        """
+        Returns a dictionary containing the `session_id`, the page `type`, and the `page_uuid` .
+        """
         return {"session_id": self.session_id, "type": type(self).__name__, "page_uuid": participant.page_uuid}
 
     @property

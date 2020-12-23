@@ -466,7 +466,7 @@ class Experiment(dallinger.experiment.Experiment):
                 "assignment_id": participant.assignment_id,
                 "page_uuid": participant.page_uuid,
             }
-            logger.info(f"Returning: {json_data}")
+            logger.debug(f"Returning from /debug_participants: {json_data}")
             return json.dumps(json_data, default=serialise)
 
         @routes.route("/export", methods=["GET"])
@@ -614,7 +614,6 @@ class Experiment(dallinger.experiment.Experiment):
         def route_response():
             exp = self.new(db.session)
             json_data = json.loads(request.values["json"])
-            logger.info(json_data)
             blobs = request.files.to_dict()
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
@@ -630,11 +629,10 @@ class Experiment(dallinger.experiment.Experiment):
 
         @routes.route("/unity_response", methods=["POST"])
         def route_unity_response():
-            logger.info("Calling response POST")
+            logger.debug("Calling /unity_response POST")
             exp = self.new(db.session)
 
             json_data = dict(request.form)
-            logger.info(json_data)
             blobs = None
             client_ip_address = request.remote_addr
 
@@ -644,9 +642,7 @@ class Experiment(dallinger.experiment.Experiment):
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
             raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
-            logger.info(json_data)
             metadata = get_arg_from_dict(json_data, "metadata")
-            logger.info(metadata)
             metadata = json.loads(metadata)
 
             res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
