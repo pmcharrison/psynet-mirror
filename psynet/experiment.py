@@ -34,7 +34,8 @@ from .timeline import (
 )
 from .page import (
     InfoPage,
-    SuccessfulEndPage
+    SuccessfulEndPage,
+    UnityPage,
 )
 from .utils import (
     call_function,
@@ -377,13 +378,13 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address):
+    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address, request_context=None):
         logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
         participant = get_participant(participant_id)
         event = self.timeline.get_current_event(self, participant)
 
-        # TODO: Find a better solution than testing if session_id is None ?
-        if page_uuid == participant.page_uuid or event.session_id is not None:
+        # TODO Hack when request originates from Unity (needs improvement)
+        if page_uuid == participant.page_uuid or request_context == "unity":
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -645,7 +646,7 @@ class Experiment(dallinger.experiment.Experiment):
             metadata = get_arg_from_dict(json_data, "metadata")
             metadata = json.loads(metadata)
 
-            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
+            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address, request_context="unity")
             exp.save()
             return res
 
