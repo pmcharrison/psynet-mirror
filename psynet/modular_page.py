@@ -1282,6 +1282,50 @@ class AudioRecordControl(Control):
         self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
         logger.info(f"Generated presigned url: {self.presigned_url}")
 
+
+class VideoRecordControl(Control):
+    macro = "video_record"
+
+    def __init__(
+            self,
+            *,
+            duration: float,
+            s3_bucket: str,
+            show_meter: bool = False,
+            public_read: bool = False
+        ):
+        self.duration = duration
+        self.s3_bucket = s3_bucket
+        self.show_meter = show_meter
+        self.public_read = public_read
+
+    @property
+    def metadata(self):
+        return {}
+
+    def format_answer(self, raw_answer, **kwargs):
+        filename = os.path.basename(urlparse(raw_answer).path)
+        return {
+            "s3_bucket": self.s3_bucket,
+            "url": splitquery(raw_answer)[0],
+            "duration_sec": self.duration
+        }
+
+    def visualize_response(self, answer, response, trial):
+        if answer is None:
+            return tags.p("No video recorded yet.").render()
+        else:
+            return tags.video(
+                tags.source(src=answer["url"]),
+                id="visualize-video-response",
+                controls=True
+            ).render()
+
+    def pre_render(self):
+        self.presigned_url = generate_presigned_url(self.s3_bucket, "webm")
+        logger.info(f"Generated presigned url: {self.presigned_url}")
+
+
 class VideoSliderControl(Control):
     macro = "video_slider"
 

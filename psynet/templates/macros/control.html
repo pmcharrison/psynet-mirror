@@ -497,6 +497,156 @@
     </script>
 {% endmacro %}
 
+
+{% macro video_record(config) %}
+
+    {% if config.show_meter %}
+        {{ audio_meter(config.meter) }}
+    {% endif %}
+    Recording length: {{ config.duration }} sec.
+    <style>
+        #record-status {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+    <video id="video-recording" controls autoplay></video>
+    <div id="record-status">
+        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
+            Waiting to record...
+        </div>
+
+        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
+            Recording...
+        </div>
+
+        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
+            Uploading finished.
+        </div>
+
+        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
+            Uploading response...
+        </div>
+    </div>
+
+    {{ null(config) }}
+
+    <script>
+        {% include "macros/control/RecordRTC.js" %}
+        {% include "macros/control/adapter.js" %}
+
+        {% autoescape off %}
+        var presignedUrl = "{{ config.presigned_url }}";
+        {% endautoescape %}
+
+        var video = document.getElementById('video-recording');
+        var recorder;
+
+        psynet.media.register_on_loaded_routine(function() {
+            navigator.mediaDevices.getUserMedia({
+                audio: {
+                    autoGainControl: false,
+                    echoCancellation: false,
+                    noiseSuppression: false
+                },
+                video: true
+            }).then(function(stream) {
+                psynet.log.debug("Initialising recorder.");
+
+                // Display a live preview on the video element of the page
+                setSrcObject(stream, video);
+
+                // Start to display the preview on the video element and mute the video to disable echoing!
+                video.play();
+                video.muted = true;
+
+                // Initialize the recorder
+                recorder = new RecordRTCPromisesHandler(stream, {
+                    mimeType: 'video/webm',
+                });
+
+                // Start recording the video
+                recorder.startRecording().then(function() {
+                    console.info('Recording video ...');
+                }).catch(function(error) {
+                    console.error('Cannot start video recording: ', error);
+                });
+
+                // release stream on stopRecording
+                recorder.stream = stream;
+                psynet.response.ready("recorder_ready")
+            })
+        });
+
+        psynet.response.wait_for("page_load_buffer");
+        psynet.response.wait_for("recorder_ready");
+        psynet.submit.wait_for("finished-recording");
+
+        setTimeout(function() {
+            psynet.response.ready("page_load_buffer");
+        }, 1000);
+
+        function startRecording() {
+            psynet.log.debug("Starting recording.");
+            psynet.register_event("video_record_start");
+            $(".record-alert").hide();
+            $("#record-active").show();
+        }
+
+        function endRecording() {
+            psynet.log.debug("Ending recording.")
+            psynet.register_event("video_record_end");
+            recorder.stopRecording().then(function() {
+                psynet.log.debug("Video recording ended successfully!")
+                var blob = recorder.blob;
+                /*video.src = URL.createObjectURL(blob);
+                video.play();*/
+
+                // Unmute video on preview
+                video.muted = false;
+
+                // Stop the device streaming
+                recorder.stream.stop();
+                $(".record-alert").hide();
+                $("#record-upload").show();
+                startPresignedUrlUpload(blob);
+            }).catch(function(error) {
+                console.error('stopRecording failure', error);
+            });
+        }
+
+        function startPresignedUrlUpload(videoBlob) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('PUT', presignedUrl, true);
+            psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
+
+            psynet.register_event("presigned_url_start_upload", {url: presignedUrl});
+
+            xhr.onload = function(e) {
+                psynet.log.debug("File uploaded successfully to presigned url.");
+                psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
+                psynet.submit.ready("finished-recording");
+                $(".record-alert").hide();
+                $("#record-finish").show();
+            };
+
+            let webmFile = new File([videoBlob], "s3_upload.webm")
+            xhr.send(webmFile);
+        }
+
+        function retrieve_response() {
+            return {
+                raw_answer: presignedUrl
+            }
+        }
+
+        psynet.response.register_on_ready_routine(function() {
+            startRecording();
+            setTimeout(endRecording, 1000 * {{ config.duration }});
+        });
+    </script>
+{% endmacro %}
+
 {% macro text(config) %}
     <style>
         #text_input_container {
