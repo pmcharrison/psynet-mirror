@@ -3,8 +3,8 @@ from datetime import datetime
 import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import ModularPage, VideoPrompt, VideoRecordControl
-from psynet.page import SuccessfulEndPage
-from psynet.timeline import PageMaker, PreDeployRoutine, Timeline, join
+from psynet.page import SuccessfulEndPage, UnsuccessfulEndPage
+from psynet.timeline import PageMaker, PreDeployRoutine, Timeline, conditional, join
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -29,6 +29,11 @@ video_record_page = join(
         ),
         time_estimate=5,
     ),
+    conditional(
+        "video_record_page",
+        lambda experiment, participant: participant.answer["url"] is None,
+        UnsuccessfulEndPage(failure_tags=["video_record_page"])
+    ),
     PageMaker(
         lambda participant: ModularPage(
             "video_playback",
@@ -51,6 +56,11 @@ video_record_page = join(
             public_read=True,
         ),
         time_estimate=5,
+    ),
+    conditional(
+        "screen_record_page",
+        lambda experiment, participant: participant.answer["url"] is None,
+        UnsuccessfulEndPage(failure_tags=["screen_record_page"])
     ),
     PageMaker(
         lambda participant: ModularPage(

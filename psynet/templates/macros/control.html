@@ -510,12 +510,11 @@
     </style>
 
     {% if config.record_screen %}
-        <video id="screen-recording" style="display: none"></video>
+        <video id="screen-recording" style="display: none;"></video>
     {% endif %}
     {% if config.record_video or config.record_audio %}
-        <video id="video-recording" controls"></video>
+        <video id="video-recording" style="width: 560px;"></video>
     {% endif %}
-    Recording length: {{ config.duration }} sec.
 
     <div id="record-status">
         <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
@@ -591,12 +590,15 @@
                     videoRecorder.startRecording().then(function() {
                         console.info('Recording video...');
                     }).catch(function(error) {
-                        console.error('Cannot start video recording: ', error);
+                        console.error('Cannot start video recording: ', error.name + ":", error.message);
                     });
 
                     videoRecorder.stream = stream;
                     psynet.response.ready("recorder_ready")
-                })
+                }).catch(function(error) {
+                    console.error('Cannot start video recording.', error.name + ":", error.message);
+                    psynet.next_page();
+                });
             });
         {% endif %}
 
@@ -649,8 +651,8 @@
             invokeGetDisplayMedia(function(screen) {
                 callback(screen);
             }, function(error) {
-                console.error(error);
-                alert('Unable to capture your screen. Please check console logs.\n' + error);
+                console.error("Unable to capture your screen.", error.name + ":", error.message);
+                psynet.next_page();
             });
         }
         /*** Screen capture functions END ***/

@@ -1422,7 +1422,7 @@ class VideoRecordControl(Control):
         filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "s3_bucket": self.s3_bucket,
-            "url": splitquery(raw_answer)[0],
+            "url": splitquery(raw_answer)[0] if raw_answer is not None else None,
             "duration_sec": self.duration,
             "record_video": str(self.record_video),
             "record_screen": str(self.record_screen),
