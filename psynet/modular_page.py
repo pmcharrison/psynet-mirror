@@ -1289,13 +1289,19 @@ class VideoRecordControl(Control):
     def __init__(
             self,
             *,
-            duration: float,
             s3_bucket: str,
+            duration: float,
+            record_video: bool = True,
+            record_screen: bool = False,
+            record_audio: bool = True,
             show_meter: bool = False,
-            public_read: bool = False
+            public_read: bool = False,
         ):
         self.duration = duration
         self.s3_bucket = s3_bucket
+        self.record_video = record_video
+        self.record_screen = record_screen
+        self.record_audio = record_audio
         self.show_meter = show_meter
         self.public_read = public_read
 
@@ -1308,7 +1314,10 @@ class VideoRecordControl(Control):
         return {
             "s3_bucket": self.s3_bucket,
             "url": splitquery(raw_answer)[0],
-            "duration_sec": self.duration
+            "duration_sec": self.duration,
+            "record_video": str(self.record_video),
+            "record_screen": str(self.record_screen),
+            "record_audio": str(self.record_audio),
         }
 
     def visualize_response(self, answer, response, trial):

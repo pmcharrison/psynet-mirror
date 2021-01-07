@@ -510,7 +510,14 @@
             margin-bottom: 20px;
         }
     </style>
-    <video id="video-recording" controls autoplay></video>
+
+    {% if config.record_screen %}
+        <video id="screen-recording" style="display: none"></video>
+    {% endif %}
+    {% if config.record_video or config.record_audio %}
+        <video id="video-recording" controls"></video>
+    {% endif %}
+
     <div id="record-status">
         <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
             Waiting to record...
@@ -539,44 +546,60 @@
         var presignedUrl = "{{ config.presigned_url }}";
         {% endautoescape %}
 
-        var video = document.getElementById('video-recording');
-        var recorder;
+        var cameraVideo = document.getElementById('video-recording');
+        var screenVideo = document.getElementById('screen-recording');
+        var screenRecorder;
+        var videoRecorder;
 
-        psynet.media.register_on_loaded_routine(function() {
-            navigator.mediaDevices.getUserMedia({
-                audio: {
-                    autoGainControl: false,
-                    echoCancellation: false,
-                    noiseSuppression: false
-                },
-                video: true
-            }).then(function(stream) {
-                psynet.log.debug("Initialising recorder.");
+        /*** Screen recording ***/
+        {% if config.record_screen %}
+            captureScreen(function(screen) {
+                screenVideo.srcObject = screen;
 
-                // Display a live preview on the video element of the page
-                setSrcObject(stream, video);
-
-                // Start to display the preview on the video element and mute the video to disable echoing!
-                video.play();
-                video.muted = true;
-
-                // Initialize the recorder
-                recorder = new RecordRTCPromisesHandler(stream, {
-                    mimeType: 'video/webm',
+                screenRecorder = RecordRTC(screen, {
+                    type: 'video'
                 });
 
-                // Start recording the video
-                recorder.startRecording().then(function() {
-                    console.info('Recording video ...');
-                }).catch(function(error) {
-                    console.error('Cannot start video recording: ', error);
-                });
+                screenRecorder.startRecording()
 
-                // release stream on stopRecording
-                recorder.stream = stream;
+                // release screen on stopRecording
+                screenRecorder.screen = screen;
                 psynet.response.ready("recorder_ready")
-            })
-        });
+            });
+        {% endif %}
+        /*** Screen recording ***/
+
+        /*** Video/Audio recording ***/
+        {% if config.record_video or config.record_audio %}
+            psynet.media.register_on_loaded_routine(function() {
+                navigator.mediaDevices.getUserMedia({
+                    audio: {{ config.record_audio | lower }},
+                    video: {{ config.record_video | lower }},
+                }).then(function(stream) {
+                    psynet.log.debug("Initialising video recorder.");
+
+                    // Display a live preview on the video element of the page
+                    setSrcObject(stream, cameraVideo);
+
+                    // Start to display the preview on the video element and mute the video to disable echoing!
+                    cameraVideo.play();
+                    cameraVideo.muted = true;
+
+                    videoRecorder = new RecordRTCPromisesHandler(stream, {
+                        mimeType: 'video/webm',
+                    });
+
+                    videoRecorder.startRecording().then(function() {
+                        console.info('Recording video...');
+                    }).catch(function(error) {
+                        console.error('Cannot start video recording: ', error);
+                    });
+
+                    videoRecorder.stream = stream;
+                    psynet.response.ready("recorder_ready")
+                })
+            });
+        {% endif %}
 
         psynet.response.wait_for("page_load_buffer");
         psynet.response.wait_for("recorder_ready");
@@ -585,28 +608,70 @@
         setTimeout(function() {
             psynet.response.ready("page_load_buffer");
         }, 1000);
+        /*** Video/Audio recording ***/
 
-        function startRecording() {
-            psynet.log.debug("Starting recording.");
+        /*** Screen capture functions START ***/
+        function startScreenRecording() {
+            psynet.log.debug("Starting screen recording...");
             psynet.register_event("video_record_start");
             $(".record-alert").hide();
             $("#record-active").show();
         }
 
-        function endRecording() {
+        function stopScreenRecording() {
+            psynet.log.debug("Ending screen recording.")
+            psynet.register_event("screen_record_end");
+            screenRecorder.stopRecording(stopRecordingCallback);
+
+            $(".record-alert").hide();
+            $("#record-upload").show();
+        }
+
+        function stopRecordingCallback() {
+            var blob = screenRecorder.getBlob();
+            psynet.log.debug(blob);
+            screenRecorder.screen.stop();
+            screenRecorder.destroy();
+            screenRecorder = null;
+            startPresignedUrlUpload(blob);
+            psynet.log.debug("Screen recording ended successfully!")
+        }
+
+        function invokeGetDisplayMedia(success, error) {
+            if(navigator.mediaDevices.getDisplayMedia) {
+                navigator.mediaDevices.getDisplayMedia({ video: true }).then(success).catch(error);
+            }
+            else {
+                navigator.getDisplayMedia({ video: true }).then(success).catch(error);
+            }
+        }
+
+        function captureScreen(callback) {
+            invokeGetDisplayMedia(function(screen) {
+                callback(screen);
+            }, function(error) {
+                console.error(error);
+                alert('Unable to capture your screen. Please check console logs.\n' + error);
+            });
+        }
+        /*** Screen capture functions END ***/
+
+        /*** Video/Audio recording functions START ***/
+        function startVideoRecording() {
+            psynet.log.debug("Starting video recording...");
+            psynet.register_event("video_record_start");
+            $(".record-alert").hide();
+            $("#record-active").show();
+        }
+
+        function stopVideoRecording() {
             psynet.log.debug("Ending recording.")
             psynet.register_event("video_record_end");
-            recorder.stopRecording().then(function() {
+            videoRecorder.stopRecording().then(function() {
                 psynet.log.debug("Video recording ended successfully!")
-                var blob = recorder.blob;
-                /*video.src = URL.createObjectURL(blob);
-                video.play();*/
+                var blob = videoRecorder.blob;
 
-                // Unmute video on preview
-                video.muted = false;
-
-                // Stop the device streaming
-                recorder.stream.stop();
+                videoRecorder.stream.stop();
                 $(".record-alert").hide();
                 $("#record-upload").show();
                 startPresignedUrlUpload(blob);
@@ -633,17 +698,27 @@
             let webmFile = new File([videoBlob], "s3_upload.webm")
             xhr.send(webmFile);
         }
+        /*** Video/Audio recording functions END ***/
 
         function retrieve_response() {
             return {
-                raw_answer: presignedUrl
+                raw_answer: presignedUrl,
             }
         }
 
-        psynet.response.register_on_ready_routine(function() {
-            startRecording();
-            setTimeout(endRecording, 1000 * {{ config.duration }});
-        });
+        if ({{ config.record_screen | lower }}) {
+            psynet.response.register_on_ready_routine(function() {
+                startScreenRecording();
+                setTimeout(stopScreenRecording, 1000 * {{ config.duration }});
+            });
+        }
+
+        if ({{ config.record_video | lower }}) {
+            psynet.response.register_on_ready_routine(function() {
+                startVideoRecording();
+                setTimeout(stopVideoRecording, 1000 * {{ config.duration }});
+            });
+        }
     </script>
 {% endmacro %}
 
