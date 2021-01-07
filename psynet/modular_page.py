@@ -207,6 +207,115 @@ class AudioPrompt(Prompt):
         )
         return html
 
+class VideoPrompt(Prompt):
+    """
+    Plays a video file to the participant.
+
+    Parameters
+    ----------
+
+    url
+        URL of the video file to play.
+
+    text
+        Text to display to the participant. This can either be a string
+        for plain text, or an HTML specification from ``flask.Markup``.
+
+    loop
+        Whether the video should loop back to the beginning after finishing.
+
+    prevent_response
+        Whether the participant should be prevented from interacting with the
+        response controls until the video is finished.
+
+    prevent_submit
+        Whether the participant should be prevented from submitting their final
+        response until the video is finished.
+
+    enable_submit_after
+        If not ``None``, sets a time interval in seconds after which the response
+        options will be enabled.
+
+    start_delay
+        Delay in seconds before the video should start playing, counting from
+        the media load event.
+
+    text_align
+        CSS alignment of the text.
+
+    play_window
+        An optional two-element list identifying the time window in the video file that
+        should be played.
+        If the first element is ``None``, then the video file is played from the beginning;
+        otherwise, the video file starts playback from this timepoint (in seconds)
+        (note that negative numbers will not be accepted here).
+        If the second element is ``None``, then the video file is played until the end;
+        otherwise, the video file finishes playback at this timepoint (in seconds).
+        The behaviour is undefined when the time window extends past the end of the video file.
+    """
+    def __init__(
+            self,
+            url: str,
+            text: Union[str, Markup],
+            loop: bool = False,
+            prevent_response: bool = True,
+            prevent_submit: bool = True,
+            enable_submit_after: Optional[float] = None,
+            start_delay = 0.0,
+            text_align = "left",
+            play_window: Optional[List] = None
+        ):
+        if play_window is None:
+            play_window = [None, None]
+        assert len(play_window) == 2
+
+        if play_window[0] is not None and play_window[0] < 0:
+            raise ValueError("play_window[0] may not be less than 0")
+
+        super().__init__(text=text, text_align=text_align)
+        self.url = url
+        self.prevent_response = prevent_response
+        self.prevent_submit = prevent_submit
+        self.enable_submit_after = enable_submit_after
+        self.loop = loop
+        self.start_delay = start_delay
+        self.play_window = play_window
+
+        self.js_play_options = dict(
+            loop=loop,
+            start=play_window[0],
+            end=play_window[1]
+        )
+
+    macro = "video"
+
+    @property
+    def metadata(self):
+        return {
+            "text": self.text,
+            "url": self.url,
+            "play_window": self.play_window
+        }
+
+    @property
+    def media(self):
+        return MediaSpec(video={"prompt": self.url})
+
+    def visualize(self, trial):
+        start, end = tuple(self.play_window)
+        src = f"{self.url}#t={'' if start is None else start},{'' if end is None else end}"
+
+        html = (
+            super().visualize(trial) +
+            "\n" +
+            tags.video(
+                tags.source(src=src),
+                id="visualize-video-prompt",
+                controls=True
+            ).render()
+        )
+        return html
+
 class ImagePrompt(Prompt):
     """
     Displays an image to the participant.

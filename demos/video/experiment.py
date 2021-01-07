@@ -20,7 +20,7 @@ video_record_page = join(
     ),
     ModularPage(
         "video_record_page",
-        "This page lets you record from your camera.",
+        "This page lets you record video and sound from camera and microphone.",
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=10.0,
@@ -29,15 +29,15 @@ video_record_page = join(
         ),
         time_estimate=5,
     ),
-    # PageMaker(
-    #     lambda participant: ModularPage(
-    #         "video_playback",
-    #         VideoPrompt(
-    #             participant.answer["url"], "Here's the video recording you just made. Press the play button to start it!"
-    #         ),
-    #     ),
-    #     time_estimate=5,
-    # ),
+    PageMaker(
+        lambda participant: ModularPage(
+            "video_playback",
+            VideoPrompt(
+                participant.answer["url"], "Here's the video recording you just made."
+            ),
+        ),
+        time_estimate=5,
+    ),
     ModularPage(
         "screen_record_page",
         "This page lets you record video of your screen.",
@@ -52,15 +52,15 @@ video_record_page = join(
         ),
         time_estimate=5,
     ),
-    # PageMaker(
-    #     lambda participant: ModularPage(
-    #         "screen_playback",
-    #         VideoPrompt(
-    #             participant.answer["url"], "Here's the screen recording you just made."
-    #         ),
-    #     ),
-    #     time_estimate=5,
-    # ),
+    PageMaker(
+        lambda participant: ModularPage(
+            "screen_playback",
+            VideoPrompt(
+                participant.answer["url"], "Here's the screen recording you just made."
+            ),
+        ),
+        time_estimate=5,
+    ),
 )
 
 

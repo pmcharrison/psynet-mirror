@@ -465,7 +465,6 @@
         }
 
         startPresignedUrlUpload = function(wavAudioBlob) {
-            // TODO upload if LOCAL_S3
             let xhr = new XMLHttpRequest();
             xhr.open('PUT', presignedUrl, true);
             psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
@@ -503,7 +502,6 @@
     {% if config.show_meter %}
         {{ audio_meter(config.meter) }}
     {% endif %}
-    Recording length: {{ config.duration }} sec.
     <style>
         #record-status {
             margin-top: 20px;
@@ -517,6 +515,7 @@
     {% if config.record_video or config.record_audio %}
         <video id="video-recording" controls"></video>
     {% endif %}
+    Recording length: {{ config.duration }} sec.
 
     <div id="record-status">
         <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
