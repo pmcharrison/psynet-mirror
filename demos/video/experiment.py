@@ -10,7 +10,7 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-bucket_name = "video-recording-test3"
+bucket_name = "video-screen-recording-dev"
 
 video_record_page = join(
     PreDeployRoutine(
@@ -23,7 +23,7 @@ video_record_page = join(
         "This page lets you record video and sound from camera and microphone.",
         VideoRecordControl(
             s3_bucket=bucket_name,
-            duration=10.0,
+            duration=5.0,
             show_meter=False,
             public_read=True,
         ),
@@ -48,7 +48,7 @@ video_record_page = join(
         "This page lets you record video of your screen.",
         VideoRecordControl(
             s3_bucket=bucket_name,
-            duration=10.0,
+            duration=5.0,
             record_video=False,
             record_screen=True,
             record_audio=False,
