@@ -20,12 +20,13 @@ video_record_page = join(
     ),
     ModularPage(
         "video_record_page",
-        "This page lets you record video and sound from camera and microphone.",
+        "This page lets you record video and sound from camera and microphone with a preview video frame width of 400px",
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
             show_meter=False,
             public_read=True,
+            width="400px",
         ),
         time_estimate=5,
     ),
@@ -38,7 +39,8 @@ video_record_page = join(
         lambda participant: ModularPage(
             "video_playback",
             VideoPrompt(
-                participant.answer["url"], "Here's the video recording you just made."
+                participant.answer["url"],
+                "Here's the video recording you just made displayed with the default video frame width of 560px.",
             ),
         ),
         time_estimate=5,
@@ -66,7 +68,9 @@ video_record_page = join(
         lambda participant: ModularPage(
             "screen_playback",
             VideoPrompt(
-                participant.answer["url"], "Here's the screen recording you just made."
+                participant.answer["url"],
+                "Here's the screen recording you just made displayed with a video frame width of 400px.",
+                width="400px",
             ),
         ),
         time_estimate=5,

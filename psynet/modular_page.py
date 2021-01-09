@@ -243,6 +243,9 @@ class VideoPrompt(Prompt):
     text_align
         CSS alignment of the text.
 
+    width
+        Width of the video frame to be displayed. Default: "560px".
+
     play_window
         An optional two-element list identifying the time window in the video file that
         should be played.
@@ -263,7 +266,8 @@ class VideoPrompt(Prompt):
             enable_submit_after: Optional[float] = None,
             start_delay = 0.0,
             text_align = "left",
-            play_window: Optional[List] = None
+            width: str = "560px",
+            play_window: Optional[List] = None,
         ):
         if play_window is None:
             play_window = [None, None]
@@ -279,6 +283,7 @@ class VideoPrompt(Prompt):
         self.enable_submit_after = enable_submit_after
         self.loop = loop
         self.start_delay = start_delay
+        self.width = width
         self.play_window = play_window
 
         self.js_play_options = dict(
@@ -1404,6 +1409,7 @@ class VideoRecordControl(Control):
             record_screen: bool = False,
             record_audio: bool = True,
             show_meter: bool = False,
+            width: str = "560px",
             public_read: bool = False,
         ):
         self.duration = duration
@@ -1412,6 +1418,7 @@ class VideoRecordControl(Control):
         self.record_screen = record_screen
         self.record_audio = record_audio
         self.show_meter = show_meter
+        self.width = width
         self.public_read = public_read
 
     @property

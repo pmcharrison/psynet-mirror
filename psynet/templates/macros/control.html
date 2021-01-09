@@ -468,7 +468,7 @@
         <video id="screen-recording" style="display: none;"></video>
     {% endif %}
     {% if config.record_video or config.record_audio %}
-        <video id="video-recording" style="width: 560px;"></video>
+        <video id="video-recording" style="width: {{ config.width }}"></video>
     {% endif %}
 
     <div id="record-status">
