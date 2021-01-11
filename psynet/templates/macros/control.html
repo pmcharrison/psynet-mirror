@@ -457,6 +457,7 @@
     {% if config.show_meter %}
         {{ audio_meter(config.meter) }}
     {% endif %}
+
     <style>
         #record-status {
             margin-top: 20px;
@@ -465,12 +466,13 @@
     </style>
 
     {% if config.record_screen %}
-        <video id="screen-recording" style="display: none;"></video>
+        <video id="screen-recording" style="display: none;" controls></video>
     {% endif %}
     {% if config.record_video or config.record_audio %}
-        <video id="video-recording" style="width: {{ config.width }}"></video>
+        <video id="video-recording" style="width: {{ config.width }}" controls></video>
     {% endif %}
 
+    <div id="countdown-container" style="display: none;">Recording starts in <span id="countdown">{{ config.start_delay | int }}</span> seconds!</div>
     <div id="record-status">
         <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
             Waiting to record...
@@ -490,7 +492,6 @@
     </div>
 
     {{ null(config) }}
-
     <script>
         {% include "macros/control/RecordRTC.js" %}
         {% include "macros/control/adapter.js" %}
@@ -542,12 +543,11 @@
                     });
 
                     psynet.response.ready("recorder_ready")
-
-                    videoRecorder.startRecording().then(function() {
-                        console.info('Recording video...');
-                    }).catch(function(error) {
-                        console.error('Cannot start video recording:', error.name + ":", error.message);
-                    });
+                    let startDelay = {{ config.start_delay }};
+                    if (startDelay > 0) {
+                        $('#countdown-container').show();
+                        startTimer(startDelay, $('#countdown-container'), $('#countdown'));
+                    }
                     videoRecorder.stream = stream;
                 }).catch(function(error) {
                     console.error('Cannot start video recording:', error.name + ":", error.message);
@@ -573,8 +573,8 @@
 
         if ({{ config.record_video | lower }}) {
             psynet.response.register_on_ready_routine(function() {
-                startVideoRecording();
-                setTimeout(stopVideoRecording, 1000 * {{ config.duration }});
+                setTimeout(startVideoRecording, 1000 * {{ config.start_delay }});
+                setTimeout(stopVideoRecording, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
             });
         }
     </script>

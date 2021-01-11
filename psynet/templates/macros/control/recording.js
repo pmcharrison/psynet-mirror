@@ -69,6 +69,11 @@ function startVideoRecording() {
     psynet.register_event("video_record_start");
     $(".record-alert").hide();
     $("#record-active").show();
+    videoRecorder.startRecording(videoRecorder.stream).then(function() {
+        console.info('Recording video...');
+    }).catch(function(error) {
+        console.error('Cannot start video recording:', error.name + ":", error.message);
+    });
 }
 
 function stopVideoRecording() {
@@ -111,4 +116,17 @@ function retrieve_response() {
     return {
         raw_answer: presignedUrl,
     }
+}
+
+function startTimer(startDelay, countdownContainer, countdown) {
+    startDelay -= 1;
+    var videoStartCountdown = setInterval(function () {
+        if (startDelay <= 0) {
+        clearInterval(videoStartCountdown);
+            countdownContainer.hide();
+        } else {
+            countdown.text(startDelay);
+        }
+        startDelay -= 1;
+    }, 1000);
 }

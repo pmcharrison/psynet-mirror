@@ -1410,6 +1410,7 @@ class VideoRecordControl(Control):
             record_audio: bool = True,
             show_meter: bool = False,
             width: str = "560px",
+            start_delay = 0.0,
             public_read: bool = False,
         ):
         self.duration = duration
@@ -1419,6 +1420,7 @@ class VideoRecordControl(Control):
         self.record_audio = record_audio
         self.show_meter = show_meter
         self.width = width
+        self.start_delay = start_delay
         self.public_read = public_read
 
     @property
