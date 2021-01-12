@@ -14,14 +14,14 @@ function endAudioRecording() {
     recorder.exportWAV(function (blob) {
         $(".record-alert").hide();
         $("#record-upload").show();
-        startPresignedUrlUpload(blob);
+        startPresignedUrlUpload(blob, presignedUrl);
     })
 }
 
 /*** Screen capture functions ***/
 function startScreenRecording() {
     psynet.log.debug("Starting screen recording...");
-    psynet.register_event("video_record_start");
+    psynet.register_event("screen_record_start");
     $(".record-alert").hide();
     $("#record-active").show();
 }
@@ -29,19 +29,21 @@ function startScreenRecording() {
 function stopScreenRecording() {
     psynet.log.debug("Ending screen recording.")
     psynet.register_event("screen_record_end");
-    screenRecorder.stopRecording(stopscreenCaptureCallback);
+    screenRecorder.stopRecording(function () {
+        stopScreenCaptureCallback(presignedUrlScreen);
+    });
 
     $(".record-alert").hide();
     $("#record-upload").show();
 }
 
-function stopscreenCaptureCallback() {
-    var blob = screenRecorder.getBlob();
-    psynet.log.debug(blob);
+function stopScreenCaptureCallback(presignedUrl) {
+    let screenBlob = screenRecorder.getBlob();
     screenRecorder.screen.stop();
     screenRecorder.destroy();
     screenRecorder = null;
-    startPresignedUrlUpload(blob);
+
+    startPresignedUrlUpload(screenBlob, presignedUrl);
     psynet.log.debug("Screen recording ended successfully!")
 }
 
@@ -64,36 +66,40 @@ function captureScreen(callback) {
 }
 
 /*** Video/Screen recording functions ***/
-function startVideoRecording() {
-    psynet.log.debug("Starting video recording...");
-    psynet.register_event("video_record_start");
+function startCameraRecording() {
+    psynet.log.debug("Starting video recording using camera...");
+    psynet.register_event("camera_record_start");
+
     $(".record-alert").hide();
     $("#record-active").show();
+
     videoRecorder.startRecording(videoRecorder.stream).then(function() {
-        console.info('Recording video...');
+        console.info('Recording video using camera...');
     }).catch(function(error) {
-        console.error('Cannot start video recording:', error.name + ":", error.message);
+        console.error('Cannot start video recording using camera:', error.name + ":", error.message);
     });
 }
 
-function stopVideoRecording() {
+function stopCameraRecording(presignedUrl) {
     psynet.log.debug("Ending recording.")
-    psynet.register_event("video_record_end");
-    videoRecorder.stopRecording().then(function() {
-        psynet.log.debug("Video recording ended successfully!")
-        var blob = videoRecorder.blob;
+    psynet.register_event("camera_record_end");
 
+    videoRecorder.stopRecording().then(function() {
+        let videoBlob = videoRecorder.blob;
         videoRecorder.stream.stop();
+
         $(".record-alert").hide();
         $("#record-upload").show();
-        startPresignedUrlUpload(blob);
+
+        startPresignedUrlUpload(videoBlob, presignedUrl);
+        psynet.log.debug("Video recording ended successfully!")
     }).catch(function(error) {
         console.error('stopRecording failure', error);
     });
 }
 
 /*** General functions start ***/
-function startPresignedUrlUpload(wavAudioBlob) {
+function startPresignedUrlUpload(wavAudioBlob, presignedUrl) {
     let xhr = new XMLHttpRequest();
     xhr.open('PUT', presignedUrl, true);
     psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
@@ -110,12 +116,6 @@ function startPresignedUrlUpload(wavAudioBlob) {
 
     let wavFile = new File([wavAudioBlob], "s3_upload.wav")
     xhr.send(wavFile);
-}
-
-function retrieve_response() {
-    return {
-        raw_answer: presignedUrl,
-    }
 }
 
 function startTimer(startDelay, countdownContainer, countdown) {

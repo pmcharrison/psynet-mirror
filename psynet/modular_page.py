@@ -1398,6 +1398,38 @@ class AudioRecordControl(Control):
 
 
 class VideoRecordControl(Control):
+    """
+    Records a video either by using the the camera or by capturing from the screen.
+
+    Parameters
+    ----------
+
+    s3_bucket
+        Name of the AWS S3 bucket to save the resulting file into.
+
+    duration
+        Duration of the video file in seconds.
+
+    recording_source
+        Specifies whether to record by using the camera and/or by capturing from the screen. Possible values are 'camera', 'screen' and 'both'.
+
+    record_audio
+        Whether to record audio using the microphone. This settings only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
+
+    show_meter
+        Whether an `AudioMeterControl` should be displayed. Default: `False`.
+
+    width
+        Width of the video frame to be displayed. Default: "560px".
+
+    start_delay
+        Delay in seconds before the video should start recording, counting from
+        the media load event. A countdown is displayed if `start_delay` > 0. Default: 0.0.
+
+    public_read
+        Whether the AWS S3 bucket's access permission is set to 'Public'. For reference see https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access.html
+
+    """
     macro = "video_record"
 
     def __init__(
@@ -1405,36 +1437,40 @@ class VideoRecordControl(Control):
             *,
             s3_bucket: str,
             duration: float,
-            record_video: bool = True,
-            record_screen: bool = False,
+            recording_source: str,
             record_audio: bool = True,
             show_meter: bool = False,
             width: str = "560px",
-            start_delay = 0.0,
+            start_delay: float = 0.0,
             public_read: bool = False,
         ):
         self.duration = duration
         self.s3_bucket = s3_bucket
-        self.record_video = record_video
-        self.record_screen = record_screen
+        self.recording_source = recording_source
         self.record_audio = record_audio
         self.show_meter = show_meter
         self.width = width
         self.start_delay = start_delay
         self.public_read = public_read
 
+        if show_meter:
+            self.meter = AudioMeterControl(submit_button=False)
+        else:
+            self.meter = None
+
+        assert self.recording_source in ["camera", "screen", "both"]
+
     @property
     def metadata(self):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
-        filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "s3_bucket": self.s3_bucket,
-            "url": splitquery(raw_answer)[0] if raw_answer is not None else None,
+            "cameraUrl": splitquery(raw_answer["camera"])[0] if raw_answer is not None else None,
+            "screenUrl": splitquery(raw_answer["screen"])[0] if raw_answer is not None else None,
             "duration_sec": self.duration,
-            "record_video": str(self.record_video),
-            "record_screen": str(self.record_screen),
+            "recording_source": self.recording_source,
             "record_audio": str(self.record_audio),
         }
 
@@ -1449,8 +1485,12 @@ class VideoRecordControl(Control):
             ).render()
 
     def pre_render(self):
-        self.presigned_url = generate_presigned_url(self.s3_bucket, "webm")
-        logger.info(f"Generated presigned url: {self.presigned_url}")
+        if self.recording_source in ["camera", "both"]:
+            self.presigned_url_camera = generate_presigned_url(self.s3_bucket, "webm")
+            logger.info(f"Generated presigned url: {self.presigned_url_camera}")
+        if self.recording_source in ["screen", "both"]:
+            self.presigned_url_screen = generate_presigned_url(self.s3_bucket, "webm")
+            logger.info(f"Generated presigned url: {self.presigned_url_screen}")
 
 
 class VideoSliderControl(Control):

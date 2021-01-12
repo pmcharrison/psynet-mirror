@@ -1,4 +1,6 @@
 from datetime import datetime
+import flask
+from urllib.parse import splitquery
 
 import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
@@ -24,36 +26,37 @@ video_record_page = join(
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
+            recording_source='both',
             show_meter=False,
             public_read=True,
             start_delay=5.0,
         ),
         time_estimate=5,
     ),
-    conditional(
-        "video_record_page",
-        lambda experiment, participant: participant.answer["url"] is None,
-        UnsuccessfulEndPage(failure_tags=["video_record_page"])
-    ),
     PageMaker(
         lambda participant: ModularPage(
             "video_playback",
             VideoPrompt(
-                participant.answer["url"],
-                "Here's the video recording you just made.",
-                start_delay=2.0,
+                participant.answer["cameraUrl"],
+                flask.Markup(
+                    f"""
+                        Here's the camera recording you just made.
+                        <br>
+                        Click <a href="{participant.answer["screenUrl"]}">this link</a> to download the corresponding screen recording.
+                    """
+                ),
+                width="400px",
             ),
         ),
         time_estimate=5,
     ),
     ModularPage(
         "screen_record_page",
-        "This page lets you record video of your screen.",
+        "This page lets you record a video of your screen.",
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
-            record_video=False,
-            record_screen=True,
+            recording_source='screen',
             record_audio=False,
             show_meter=False,
             public_read=True,
@@ -73,7 +76,6 @@ video_record_page = join(
                 participant.answer["url"],
                 "Here's the screen recording you just made.",
                 width="400px",
-                start_delay=2.0,
             ),
         ),
         time_estimate=5,

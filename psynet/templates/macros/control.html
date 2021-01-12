@@ -444,6 +444,12 @@
             psynet.response.ready("page_load_buffer");
         }, 1000)
 
+        retrieve_response = function() {
+            return {
+                raw_answer: presignedUrl
+            }
+        }
+
         psynet.response.register_on_ready_routine(function() {
             startAudioRecording();
             setTimeout(endAudioRecording, 1000 * {{ config.duration }});
@@ -465,11 +471,11 @@
         }
     </style>
 
-    {% if config.record_screen %}
-        <video id="screen-recording" style="display: none;" controls></video>
+    {% if config.recording_source == "camera" or config.recording_source == "both" %}
+        <video id="camera-recording" style="width: {{ config.width }}"></video>
     {% endif %}
-    {% if config.record_video or config.record_audio %}
-        <video id="video-recording" style="width: {{ config.width }}" controls></video>
+    {% if config.recording_source == "screen" or config.recording_source == "both" %}
+        <video id="screen-recording" style="display: none;"></video>
     {% endif %}
 
     <div id="countdown-container" style="display: none;">Recording starts in <span id="countdown">{{ config.start_delay | int }}</span> seconds!</div>
@@ -498,37 +504,22 @@
         {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
-        var presignedUrl = "{{ config.presigned_url }}";
+        var presignedUrlCamera = "{{ config.presigned_url_camera }}";
+        var presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        var cameraVideo = document.getElementById('video-recording');
+        var cameraVideo = document.getElementById('camera-recording');
         var screenVideo = document.getElementById('screen-recording');
         var screenRecorder;
         var videoRecorder;
 
-        /*** Screen recording ***/
-        {% if config.record_screen %}
-            captureScreen(function(screen) {
-                screenVideo.srcObject = screen;
-
-                screenRecorder = RecordRTC(screen, {
-                    type: 'video'
-                });
-
-                screenRecorder.startRecording()
-                screenRecorder.screen = screen;
-
-                psynet.response.ready("recorder_ready")
-            });
-        {% endif %}
-
         /*** Video/Audio recording ***/
-        {% if config.record_video or config.record_audio %}
-            psynet.media.register_on_loaded_routine(function() {
+        {% if config.recording_source == "camera" or config.recording_source == "both" %}
+            psynet.media.register_on_loaded_routine(function () {
                 navigator.mediaDevices.getUserMedia({
                     audio: {{ config.record_audio | lower }},
-                    video: {{ config.record_video | lower }},
-                }).then(function(stream) {
+                    video: true,
+                }).then(function (stream) {
                     psynet.log.debug("Initialising video recorder.");
 
                     // Display a live preview on the video element of the page
@@ -542,40 +533,69 @@
                         mimeType: 'video/webm',
                     });
 
-                    psynet.response.ready("recorder_ready")
                     let startDelay = {{ config.start_delay }};
                     if (startDelay > 0) {
                         $('#countdown-container').show();
                         startTimer(startDelay, $('#countdown-container'), $('#countdown'));
                     }
                     videoRecorder.stream = stream;
-                }).catch(function(error) {
+                    psynet.response.ready("camera_recorder_ready")
+                }).catch(function (error) {
                     console.error('Cannot start video recording:', error.name + ":", error.message);
                     psynet.next_page();
                 });
             });
         {% endif %}
 
+        /*** Screen recording ***/
+        {% if config.recording_source == "screen" or config.recording_source == "both" %}
+            captureScreen(function (screen) {
+                screenVideo.srcObject = screen;
+                screenRecorder = RecordRTC(screen, {
+                    type: 'video'
+                });
+
+                psynet.response.wait_for("camera_recorder_ready");
+                screenRecorder.startRecording()
+                screenRecorder.screen = screen;
+
+                psynet.response.ready("screen_recorder_ready")
+            });
+        {% endif %}
+
         psynet.response.wait_for("page_load_buffer");
-        psynet.response.wait_for("recorder_ready");
+        psynet.response.wait_for("camera_recorder_ready");
         psynet.submit.wait_for("finished-recording");
 
-        setTimeout(function() {
+        setTimeout(function () {
             psynet.response.ready("page_load_buffer");
         }, 1000);
 
-        if ({{ config.record_screen | lower }}) {
-            psynet.response.register_on_ready_routine(function() {
-                startScreenRecording();
-                setTimeout(stopScreenRecording, 1000 * {{ config.duration }});
+        {% if config.recording_source == "camera" or config.recording_source == "both" %}
+            psynet.response.register_on_ready_routine(function () {
+                setTimeout(startCameraRecording, 1000 * {{ config.start_delay }});
+                setTimeout(function () {
+                    stopCameraRecording(presignedUrlCamera);
+                }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
             });
-        }
+        {% endif %}
 
-        if ({{ config.record_video | lower }}) {
-            psynet.response.register_on_ready_routine(function() {
-                setTimeout(startVideoRecording, 1000 * {{ config.start_delay }});
-                setTimeout(stopVideoRecording, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
+        {% if config.recording_source == "screen" or config.recording_source == "both" %}
+            psynet.response.register_on_ready_routine(function () {
+                setTimeout(startScreenRecording, 1000 * {{ config.start_delay }});
+                setTimeout(function () {
+                    stopScreenRecording(presignedUrlScreen);
+                }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
             });
+        {% endif %}
+
+        function retrieve_response() {
+            return {
+                raw_answer: {
+                    'camera': presignedUrlCamera,
+                    'screen': presignedUrlScreen,
+                }
+            }
         }
     </script>
 {% endmacro %}
