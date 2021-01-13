@@ -264,6 +264,7 @@ class NAFCPage(ModularPage):
         self.prompt = prompt
         self.choices = choices
         self.labels = choices if labels is None else labels
+        self.arrange_vertically = arrange_vertically
         self.time_estimate = time_estimate
 
         assert isinstance(self.labels, List)

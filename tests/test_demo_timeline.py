@@ -60,9 +60,9 @@ class TestExp(object):
             assert driver.find_element_by_id("main-body").text == "Write me a message!\nNext"
             text_input = driver.find_element_by_id("text_input")
             text_input.send_keys("Hello! I am a robot.")
-            button = driver.find_element_by_id("submit_button")
-            assert button.text == "Submit"
-            next_page(driver, "submit_button")
+            button = driver.find_element_by_id("next_button")
+            assert button.text == "Next"
+            next_page(driver, "next_button")
 
             # Page 3
             assert driver.find_element_by_id("main-body").text == "Your message: Hello! I am a robot.\nNext"
@@ -116,12 +116,12 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Loop
-            assert driver.find_element_by_id("main-body").text == "Would you like to stay in this loop?\nYes No"
+            assert driver.find_element_by_id("main-body").text == "Would you like to stay in this loop?\nYes\nNo"
 
             for _ in range(3):
                 next_page(driver, "Yes")
                 assert driver.find_element_by_id(
-                    "main-body").text == "Would you like to stay in this loop?\nYes No"
+                    "main-body").text == "Would you like to stay in this loop?\nYes\nNo"
 
             next_page(driver, "No")
 
@@ -135,11 +135,11 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             assert driver.find_element_by_id(
-                "main-body").text == "Participant 1, choose a shape:\nSquare Circle"
+                "main-body").text == "Participant 1, choose a shape:\nSquare\nCircle"
             next_page(driver, "Square")
 
             assert driver.find_element_by_id(
-                "main-body").text == "Participant 1, choose a chord:\nMajor Minor"
+                "main-body").text == "Participant 1, choose a chord:\nMajor\nMinor"
             next_page(driver, "Minor")
 
             assert driver.find_element_by_id(
@@ -147,7 +147,7 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             assert driver.find_element_by_id(
-                "main-body").text == "What's your favourite colour?\nRed Green Blue"
+                "main-body").text == "What's your favourite colour?\nRed\nGreen\nBlue"
             next_page(driver, "Red")
 
             assert driver.find_element_by_id(
