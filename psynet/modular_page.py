@@ -1423,7 +1423,7 @@ class VideoRecordControl(Control):
         Width of the video frame to be displayed. Default: "560px".
 
     start_delay
-        Delay in seconds before the video should start recording, counting from
+        Delay in seconds before the video starts recording, counting from
         the media load event. A countdown is displayed if `start_delay` > 0. Default: 0.0.
 
     public_read
