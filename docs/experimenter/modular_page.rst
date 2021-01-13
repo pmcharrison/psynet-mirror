@@ -51,6 +51,21 @@ Audio/Video controls
 
 * :class:`~psynet.modular_page.TappingAudioMeterControl`
 
+* :class:`~psynet.modular_page.VideoRecordControl`
+
+.. image:: ../_static/images/video_record_control_waiting.png
+  :width: 600
+  :alt: VideoRecordControl (waiting)
+
+.. image:: ../_static/images/video_record_control_recording.png
+  :width: 600
+  :alt: VideoRecordControl (recording)
+
+.. image:: ../_static/images/video_record_control_finished.png
+  :width: 580
+  :alt: VideoRecordControl (finished)
+
+
 * :class:`~psynet.modular_page.VideoSliderControl`
 
 .. image:: ../_static/images/video_slider_control.png
