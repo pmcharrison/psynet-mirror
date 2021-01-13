@@ -24,7 +24,8 @@ from .timeline import (
 from .utils import linspace, get_logger
 from .modular_page import (
     ModularPage,
-    AudioPrompt
+    AudioPrompt,
+    PushButtonControl,
 )
 
 logger = get_logger()
@@ -207,8 +208,11 @@ class UnsuccessfulEndPage(EndPage):
         experiment.fail_participant(participant)
 
 
-class NAFCPage(Page):
+class NAFCPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl` instead.
+
     This page solicits a multiple-choice response from the participant.
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
@@ -258,31 +262,26 @@ class NAFCPage(Page):
         self.prompt = prompt
         self.choices = choices
         self.labels = choices if labels is None else labels
+        self.time_estimate = time_estimate
 
         assert isinstance(self.labels, List)
         assert len(self.choices) == len(self.labels)
 
-        buttons = [
-            Button(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
-            for choice, label in zip(self.choices, self.labels)
-        ]
         super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("nafc-page.html"),
-            label=label,
-            template_arg={
-                "prompt": prompt,
-                "buttons": buttons
-            },
-            **kwargs
+            label,
+            prompt=self.prompt,
+            control=PushButtonControl(
+                self.choices,
+                arrange_vertically=arrange_vertically,
+            ),
+            time_estimate=self.time_estimate,
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
-            "prompt": self.prompt,
-            "choices": self.choices,
-            "labels": self.labels
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
         }
 
 
