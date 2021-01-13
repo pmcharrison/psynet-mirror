@@ -57,7 +57,7 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 2
-            assert driver.find_element_by_id("main-body").text == "Write me a message!\nSubmit"
+            assert driver.find_element_by_id("main-body").text == "Write me a message!\nNext"
             text_input = driver.find_element_by_id("text_input")
             text_input.send_keys("Hello! I am a robot.")
             button = driver.find_element_by_id("submit_button")
