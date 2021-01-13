@@ -24,8 +24,10 @@ from .timeline import (
 from .utils import linspace, get_logger
 from .modular_page import (
     ModularPage,
+    Prompt,
     AudioPrompt,
     PushButtonControl,
+    TextControl,
 )
 
 logger = get_logger()
@@ -285,8 +287,11 @@ class NAFCPage(ModularPage):
         }
 
 
-class TextInputPage(Page):
+class TextInputPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.
+
     This page solicits a text response from the user.
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
@@ -329,32 +334,27 @@ class TextInputPage(Page):
             **kwargs
     ):
         self.prompt = prompt
+        self.time_estimate = time_estimate
 
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
 
-        style = (
-            "" if width is None else f"width:{width}"
-                                     " "
-                                     "" if height is None else f"height:{height}"
-        )
-
         super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("text-input-page.html"),
-            label=label,
-            template_arg={
-                "prompt": prompt,
-                "one_line": one_line,
-                "style": style
-            },
-            **kwargs
+            label,
+            prompt=Prompt(self.prompt),
+            control=TextControl(
+                one_line=one_line,
+                width=width,
+                height=height,
+            ),
+            time_estimate=self.time_estimate,
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
-            "prompt": self.prompt
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
         }
 
 class SliderPage(Page):

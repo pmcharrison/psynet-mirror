@@ -500,7 +500,8 @@
 {% macro text(config) %}
     <style>
         #text_input_container {
-            margin: 15px;
+            padding-top:20px;
+            padding-bottom:20px;
             display: flex;
             justify-content: center;
         }
@@ -517,6 +518,7 @@
             <textarea id="text_input" class="form-control response" type="text"></textarea>
         {% endif %}
     </div>
+    <p class="vspace"></p>
 
     <script>
         retrieve_response = function() {
