@@ -765,8 +765,8 @@ class TimedPushButtonControl(PushButtonControl):
 
 class NAFCControl(PushButtonControl):
     """
-    [DEPRECATED] This class exists only for retaining backward compatibility. Use ``PushButtonControl``
-    instead.
+    .. deprecated:: 1.7.0
+        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
     """
     pass
 
@@ -863,6 +863,46 @@ class RadioButton():
         self.label = label
         self.start_disabled = start_disabled
         self.style = style
+
+
+class NumberControl(Control):
+    """
+    This control interface solicits number input from the participant.
+
+    Parameters
+    ----------
+
+    width:
+        Optional CSS width property for the text box. Default: "120px".
+
+    align:
+        Alignment for the number input. Default: "right".
+
+    """
+
+    def __init__(
+            self,
+            width: Optional[str] = "120px",
+            text_align: str = "right"
+    ):
+        self.width = width
+        self.text_align = text_align
+
+    macro = "number"
+
+    @property
+    def metadata(self):
+        return {
+            "width": self.width,
+            "text_align": self.text_align
+        }
+
+    def validate(self, response, **kwargs):
+        try:
+            float(response.answer)
+        except ValueError:
+            return FailedValidation("You need to provide a number!")
+        return None
 
 
 class TextControl(Control):

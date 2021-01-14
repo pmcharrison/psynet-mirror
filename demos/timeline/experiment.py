@@ -17,6 +17,7 @@ from psynet.page import (
     ModularPage
 )
 from psynet.modular_page import (
+    NumberControl,
     Prompt,
     TimedPushButtonControl
 )
@@ -54,6 +55,19 @@ class Exp(psynet.experiment.Experiment):
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
                 time_estimate=5
             )
+        ),
+        Module(
+            "weight",
+            ModularPage(
+                "weight",
+                Prompt("What is your weight in kg?"),
+                NumberControl(),
+                time_estimate=5
+            ),
+            PageMaker(
+                lambda participant: InfoPage(f"Your weight is {participant.answer} kg."),
+                time_estimate=5
+            ),
         ),
         ModularPage(
             "timed_push_button",

@@ -500,8 +500,8 @@
 {% macro text(config) %}
     <style>
         #text_input_container {
-            padding-top:20px;
-            padding-bottom:20px;
+            padding-top: 20px;
+            padding-bottom: 20px;
             display: flex;
             justify-content: center;
         }
@@ -524,6 +524,36 @@
         retrieve_response = function() {
             return {
                 raw_answer: $("#text_input").get(0).value
+            }
+        }
+    </script>
+
+    {{ null(config) }}
+{% endmacro %}
+
+{% macro number(config) %}
+    <style>
+        #number_input_container {
+            padding-top: 20px;
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: left;
+        }
+        #number_input {
+            text-align: {{config.text_align}};
+            {% if config.width is not none %}width: {{ config.width }};{% endif %}
+        }
+    </style>
+
+    <div id="number_input_container">
+        <input id="number_input" class="form-control response" type="text" value=""/>
+    </div>
+    <p class="vspace"></p>
+
+    <script>
+        retrieve_response = function() {
+            return {
+                raw_answer: $("#number_input").get(0).value
             }
         }
     </script>

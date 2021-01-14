@@ -26,6 +26,7 @@ from .modular_page import (
     ModularPage,
     Prompt,
     AudioPrompt,
+    NumberControl,
     PushButtonControl,
     TextControl,
 )
@@ -700,23 +701,41 @@ class AudioSliderPage(SliderPage):
         }
 
 
-class NumberInputPage(TextInputPage):
+class NumberInputPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.
+
     This page is like :class:`psynet.timeline.TextInputPage`,
     except it forces the user to input a number.
     See :class:`psynet.timeline.TextInputPage` for argument documentation.
     """
 
-    def format_answer(self, raw_answer, **kwargs):
-        try:
-            return float(raw_answer)
-        except ValueError:
-            return "INVALID_RESPONSE"
+    def __init__(
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            width: Optional[str] = None,  # e.g. "100px"
+            time_estimate: Optional[float] = None,
+            **kwargs
+    ):
+        self.prompt = prompt
+        self.width = width
+        self.time_estimate = time_estimate
 
-    def validate(self, response, **kwargs):
-        if response.answer == "INVALID_RESPONSE":
-            return FailedValidation("Please enter a number.")
-        return None
+        super().__init__(
+            label,
+            prompt=Prompt(self.prompt),
+            control=NumberControl(width=self.width),
+            time_estimate=self.time_estimate,
+        )
+
+    def metadata(self, **kwargs):
+        # pylint: disable=unused-argument
+        return {
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
+        }
 
 
 class Button():
