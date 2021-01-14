@@ -77,6 +77,26 @@ class TestExp(object):
                                  'submit_response']
 
             # Page 4
+            assert driver.find_element_by_id("main-body").text == "What is your weight in kg?\nNext"
+            text_input = driver.find_element_by_id("number_input")
+            text_input.send_keys("78.5")
+            button = driver.find_element_by_id("next_button")
+            assert button.text == "Next"
+            next_page(driver, "next_button")
+
+            # Page 5
+            assert driver.find_element_by_id("main-body").text == "Your weight is 78.5 kg.\nNext"
+            next_page(driver, "next_button")
+
+            db_session.commit()
+            participant = Participant.query.filter_by(id=1).one()
+
+            event_log = participant.last_response.metadata["event_log"]
+            event_ids = [e["event_type"] for e in event_log]
+            assert event_ids == ['init_page', 'media_load', 'page_load', 'response_ready', 'submit_ready',
+                                 'submit_response']
+
+            # Page 6
             button = driver.find_element_by_id("A")
             button.click()
 
@@ -96,22 +116,22 @@ class TestExp(object):
             event_log = participant.response.metadata["event_log"]
             assert len([e for e in event_log if e["event_type"] == "push_button_clicked"]) == 3
 
-            # Page 5
+            # Page 7
             db_session.commit()
             participant = get_participant(1)
             modules = participant.modules
-            assert set(list(modules.keys())) == {"chocolate", "introduction"}
+            assert set(list(modules.keys())) == {"chocolate", "weight", "introduction"}
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 1
             assert len(modules["chocolate"]["time_started"]) == 1
             assert len(modules["chocolate"]["time_finished"]) == 0
-            assert participant.started_modules == ["introduction", "chocolate"]
-            assert participant.finished_modules == ["introduction"]
+            assert participant.started_modules == ["introduction", "weight", "chocolate"]
+            assert participant.finished_modules == ["introduction", "weight"]
 
             assert driver.find_element_by_id("main-body").text == "Do you like chocolate?\nYes\nNo"
             next_page(driver, "Yes")
 
-            # Page 6
+            # Page 8
             assert driver.find_element_by_id("main-body").text == "It's nice to hear that you like chocolate!\nNext"
             next_page(driver, "next_button")
 
@@ -157,7 +177,7 @@ class TestExp(object):
             # Final page
             assert driver.find_element_by_id("main-body").text == (
                 'That\'s the end of the experiment! In addition to your base payment of $0.10, '
-                'you will receive a bonus of $0.18 for the time you spent on the experiment. '
+                'you will receive a bonus of $0.20 for the time you spent on the experiment. '
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 
