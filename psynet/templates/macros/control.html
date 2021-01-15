@@ -460,6 +460,9 @@
             recorder.exportWAV(function (blob) {
                 $(".record-alert").hide();
                 $("#record-upload").show();
+
+                psynet.media.blob_to_array_buffer(blob).then(buffer => psynet.media.add_extra_audio_stimulus(array, "recording"))
+
                 startPresignedUrlUpload(blob);
             })
         }

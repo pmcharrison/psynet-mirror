@@ -734,22 +734,13 @@
                     Object.keys(requests).forEach(log);
                 };
 
-                create_media_from_buffer = {};
-
-                create_media_from_buffer.audio = function (data, args) {
-                    var stimulus_id = args['stimulus_id'];
-                    var media_type = args['media_type'];
-                    var file_id = args['file_id'];
-                    var last_in_batch = args['last_in_batch'];
-
+                create_audio_stimulus = function(data, stimulus_id, handler) {
                     psynet.log.debug('Decoding sound ' + stimulus_id + '...');
-
-                    psynet.media.download_progress.set(media_type, file_id, 100);
 
                     psynet.media.audio_context.decodeAudioData(data, function (res) {
                         psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
 
-                        out = psynet.media.data[media_type][stimulus_id];
+                        out = psynet.media.data.audio[stimulus_id];
 
                         out.buffer = res;
                         out.source = null;
@@ -757,14 +748,14 @@
                         out.stimulus_id = stimulus_id;
                         out.playing = false;
 
-                        out.on_end = function() {
+                        out.on_end = function () {
 
                         };
 
                         // Add play function to buffer
                         out.play = function (options) {
                             if (out.playing) {
-                                let on_stopped = function() {
+                                let on_stopped = function () {
                                     out.play(options);
                                 }
                                 return out.stop(options, on_stopped);
@@ -793,9 +784,9 @@
                             }
 
                             let start = (options.start === null) ? 0.0 : options.start;
-                            let duration = (options.end ===  null) ? undefined : options.end - options.start;
+                            let duration = (options.end === null) ? undefined : options.end - options.start;
 
-                            this.on_end = function() {
+                            this.on_end = function () {
                                 if (options.loop) {
                                     psynet.log.debug("Looping sound with ID = " + out.stimulus_id);
                                     out.play(options);
@@ -831,7 +822,7 @@
                             }
 
                             var this_audio = this;
-                            this.source.addEventListener("ended", function() {
+                            this.source.addEventListener("ended", function () {
                                 psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
                                 this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
                                 this_audio.start_time = null;
@@ -854,7 +845,7 @@
                             if (on_stopped) {
                                 this.on_end = on_stopped
                             } else {
-                                this.on_end = function() {
+                                this.on_end = function () {
                                     psynet.log.debug("Stopped audio " + this.stimulus_id + ".");
                                 };
                             }
@@ -875,7 +866,7 @@
                                     }
                                     var this_audio = this;
                                     var this_source = this.source;
-                                    setTimeout(function() {
+                                    setTimeout(function () {
                                         this.playing = false;
                                         this_source.stop();
                                     }, options.fade_out * 1000);
@@ -893,7 +884,7 @@
                             throw Error("Not implemented yet");
                         };
 
-                        out.get_current_time = function() {
+                        out.get_current_time = function () {
                             if (!out.playing) {
                                 return 0.0;
                             } else {
@@ -901,6 +892,28 @@
                             }
                         };
 
+                        if (handler) {
+                            handler();
+                        }
+                    })
+                };
+
+                psynet.media.blob_to_array_buffer = async function(blob) {
+                    let buffer = await new Response(blob).arrayBuffer();
+                    return buffer;
+                }
+
+                // Used to add extra stimuli that aren't loaded as part of the initial media load
+                // (needs refactoring in a general cross-media way)
+                psynet.media.add_extra_audio_stimulus = async function(buffer, stimulus_id) {
+                    init_stimulus(stimulus_id, "audio");
+                    await create_audio_stimulus(buffer, stimulus_id, () => Promise.resolve());
+                }
+
+                create_media_from_buffer = {};
+                create_media_from_buffer.audio = function (data, args) {
+                    psynet.media.download_progress.set(args.media_type, args.file_id, 100);
+                    create_audio_stimulus(data, args.stimulus_id, function() {
                         out.loaded = true;
                         psynet.media.check_loaded();
                     });
@@ -940,7 +953,6 @@
                     var stimulus_id = args['stimulus_id'];
                     var media_type = args['media_type'];
                     var file_id = args['file_id'];
-                    var last_in_batch = args['last_in_batch'];
 
                     var player = document.getElementById(stimulus_id);
                     if (player != null) {
@@ -1000,7 +1012,6 @@
                         args = {
                             stimulus_id: stimulus_id,
                             media_type: media_type,
-                            last_in_batch: num_files === stimulus_ids.length,
                             file_id: file_id
                         };
 
