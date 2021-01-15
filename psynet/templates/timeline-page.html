@@ -795,11 +795,13 @@
                             let start = (options.start === null) ? 0.0 : options.start;
                             let duration = (options.end ===  null) ? undefined : options.end - options.start;
 
-                            if (options.loop) {
-                                this.on_end = function() {
-                                    psynet.log.debug("Restarting sound with ID = " + this_audio.stimulus_id);
-                                    this_audio.play(options);
-                                };
+                            this.on_end = function() {
+                                if (options.loop) {
+                                    psynet.log.debug("Looping sound with ID = " + out.stimulus_id);
+                                    out.play(options);
+                                } else {
+                                    psynet.log.debug("Sound with ID = " + out.stimulus_id + " finished.");
+                                }
                             }
 
                             this.source = psynet.media.audio_context.createBufferSource();
@@ -893,7 +895,7 @@
 
                         out.get_current_time = function() {
                             if (!out.playing) {
-                                return null
+                                return 0.0;
                             } else {
                                 return psynet.media.audio_context.currentTime - out.start_time;
                             }

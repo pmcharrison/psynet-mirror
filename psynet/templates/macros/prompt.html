@@ -63,8 +63,13 @@
             #audio-prompt-controls {
                 display: flex;
                 justify-content: center;
+                align-items: center;
             }
             .audio-prompt-button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+            #audio-prompt-loop {
                 margin-left: 10px;
                 margin-right: 10px;
             }
@@ -77,6 +82,12 @@
             <button id="audio-prompt-stop" type="button" class="btn audio-prompt-button btn-secondary btn-sm" disabled>
                 Stop
             </button>
+            <div id="audio-prompt-loop">
+              <input id="audio-prompt-loop-input" type="checkbox" value="" id="flexCheckChecked" {% if config.loop %} checked {% endif %}>
+              <label id="audio-prompt-loop-label" for="flexCheckChecked">
+                Loop
+              </label>
+            </div>
         </div>
 
         <script>
@@ -89,6 +100,9 @@
                     if (psynet.audio.prompt.playing) {
                         psynet.audio.prompt.stop(audio_prompt_player_options);
                     }
+                });
+                $("#audio-prompt-loop-input").on("change", function(event) {
+                    audio_prompt_player_options.loop = event.target.checked;
                 });
             })
         </script>
