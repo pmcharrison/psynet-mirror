@@ -756,10 +756,20 @@
                         out.start_time = null;
                         out.stimulus_id = stimulus_id;
                         out.playing = false;
-                        out.stopping = false;
+
+                        out.on_end = function() {
+
+                        };
 
                         // Add play function to buffer
                         out.play = function (options) {
+                            if (out.playing) {
+                                let on_stopped = function() {
+                                    out.play(options);
+                                }
+                                return out.stop(options, on_stopped);
+                            }
+
                             if (options == undefined) {
                                 options = {};
                             }
@@ -785,6 +795,12 @@
                             let start = (options.start === null) ? 0.0 : options.start;
                             let duration = (options.end ===  null) ? undefined : options.end - options.start;
 
+                            if (options.loop) {
+                                this.on_end = function() {
+                                    psynet.log.debug("Restarting sound with ID = " + this_audio.stimulus_id);
+                                    this_audio.play(options);
+                                };
+                            }
 
                             this.source = psynet.media.audio_context.createBufferSource();
                             this.gain_node = psynet.media.audio_context.createGain();
@@ -792,7 +808,6 @@
                             this.gain_node.connect(psynet.media.audio_context.destination);
 
                             this.playing = true;
-                            this.stopping = false;
                             this.fading_out = false;
 
                             this.source.buffer = res;
@@ -819,25 +834,27 @@
                                 this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
                                 this_audio.start_time = null;
                                 this_audio.source = null;
-
-                                if (options.loop && !this_audio.stopping) {
-                                    psynet.log.debug("Restarting sound with ID = " + this_audio.stimulus_id);
-                                    this_audio.play(options);
-                                }
+                                this_audio.on_end();
                             });
 
                             return this
                         };
 
                         // stop the sound
-                        out.stop = function (options) {
-                            out.stopping = true;
-
+                        out.stop = function (options, on_stopped) {
                             if (options == undefined) {
                                 options = {};
                             }
                             if (!("fade_out" in options)) {
                                 options.fade_out = 0.05;
+                            }
+
+                            if (on_stopped) {
+                                this.on_end = on_stopped
+                            } else {
+                                this.on_end = function() {
+                                    psynet.log.debug("Stopped audio " + this.stimulus_id + ".");
+                                };
                             }
 
                             if (!this.fading_out) {
@@ -854,10 +871,11 @@
                                         this.gain_node.gain.setValueAtTime(current_gain, psynet.media.audio_context.currentTime);
                                         this.gain_node.gain.exponentialRampToValueAtTime(0.001, psynet.media.audio_context.currentTime + options.fade_out);
                                     }
-
-                                    var audio = this;
+                                    var this_audio = this;
+                                    var this_source = this.source;
                                     setTimeout(function() {
-                                        audio.source.stop();
+                                        this.playing = false;
+                                        this_source.stop();
                                     }, options.fade_out * 1000);
                                 }
                             }

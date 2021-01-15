@@ -15,6 +15,10 @@
 {% macro audio(config) %}
     {{ simple(config) }}
 
+    <script>
+        var audio_prompt_player_options = {{ config.js_play_options | tojson }};
+    </script>
+
     {% if config.progress_bar %}
         <style>
             #audio-prompt-progress {
@@ -54,6 +58,42 @@
         </script>
     {% endif %}
 
+    {% if config.playback_controls %}
+        <style>
+            #audio-prompt-controls {
+                display: flex;
+                justify-content: center;
+            }
+            .audio-prompt-button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        </style>
+
+        <div id="audio-prompt-controls">
+            <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
+                Play from start
+            </button>
+            <button id="audio-prompt-stop" type="button" class="btn audio-prompt-button btn-secondary btn-sm" disabled>
+                Stop
+            </button>
+        </div>
+
+        <script>
+            psynet.media.register_on_loaded_routine(function() {
+                $(".audio-prompt-button").prop("disabled", false)
+                $("#audio-prompt-play").on("click", function() {
+                    psynet.audio.prompt.play(audio_prompt_player_options);
+                });
+                $("#audio-prompt-stop").on("click", function() {
+                    if (psynet.audio.prompt.playing) {
+                        psynet.audio.prompt.stop(audio_prompt_player_options);
+                    }
+                });
+            })
+        </script>
+    {% endif %}
+
     <script>
         {% if config.prevent_response is defined and config.prevent_response %}
             psynet.response.wait_for("audio_prompt");
@@ -65,8 +105,7 @@
 
         psynet.media.register_on_loaded_routine(function() {
             setTimeout(function() {
-                var options = {{ config.js_play_options | tojson }};
-                var sound = psynet.audio.prompt.play(options);
+                var sound = psynet.audio.prompt.play(audio_prompt_player_options);
                 psynet.register_event("audio_play_start");
 
                 sound.source.addEventListener("ended", function() {
