@@ -756,6 +756,7 @@
                         out.start_time = null;
                         out.stimulus_id = stimulus_id;
                         out.playing = false;
+                        out.stopping = false;
 
                         // Add play function to buffer
                         out.play = function (options) {
@@ -784,11 +785,8 @@
                             let start = (options.start === null) ? 0.0 : options.start;
                             let duration = (options.end ===  null) ? undefined : options.end - options.start;
 
-                            let loop_start = start;
-                            let loop_end = (options.end === null) ? 0.0 : options.end;
 
                             this.source = psynet.media.audio_context.createBufferSource();
-                            this.source.loop = options.loop;
                             this.gain_node = psynet.media.audio_context.createGain();
                             this.source.connect(this.gain_node);
                             this.gain_node.connect(psynet.media.audio_context.destination);
@@ -799,8 +797,7 @@
 
                             this.source.buffer = res;
                             this.start_time = psynet.media.audio_context.currentTime + options.start_delay;
-                            this.source.loopStart = loop_start;
-                            this.source.loopEnd = loop_end;
+                            this.duration = duration;
 
                             this.source.start(this.start_time, start, duration);
 
@@ -820,6 +817,8 @@
                             this.source.addEventListener("ended", function() {
                                 psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
                                 this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
+                                this_audio.start_time = null;
+                                this_audio.source = null;
 
                                 if (options.loop && !this_audio.stopping) {
                                     psynet.log.debug("Restarting sound with ID = " + this_audio.stimulus_id);
@@ -859,8 +858,6 @@
                                     var audio = this;
                                     setTimeout(function() {
                                         audio.source.stop();
-                                        audio.source = null;
-                                        audio.start_time = null;
                                     }, options.fade_out * 1000);
                                 }
                             }
@@ -874,6 +871,14 @@
                         out.continue = function () {
                             // TODO
                             throw Error("Not implemented yet");
+                        };
+
+                        out.get_current_time = function() {
+                            if (!out.playing) {
+                                return null
+                            } else {
+                                return psynet.media.audio_context.currentTime - out.start_time;
+                            }
                         };
 
                         out.loaded = true;

@@ -143,6 +143,9 @@ class AudioPrompt(Prompt):
         If the second element is ``None``, then the audio file is played until the end;
         otherwise, the audio file finishes playback at this timepoint (in seconds).
         The behaviour is undefined when the time window extends past the end of the audio file.
+
+    progress_bar
+        Whether to display a progress bar for the audio playback (default = ``False``).
     """
     def __init__(
             self,
@@ -154,7 +157,8 @@ class AudioPrompt(Prompt):
             enable_submit_after: Optional[float] = None,
             start_delay = 0.0,
             text_align = "left",
-            play_window: Optional[List] = None
+            play_window: Optional[List] = None,
+            progress_bar: bool = False
         ):
         if play_window is None:
             play_window = [None, None]
@@ -171,6 +175,7 @@ class AudioPrompt(Prompt):
         self.loop = loop
         self.start_delay = start_delay
         self.play_window = play_window
+        self.progress_bar = progress_bar
 
         self.js_play_options = dict(
             loop=loop,

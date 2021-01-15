@@ -15,6 +15,45 @@
 {% macro audio(config) %}
     {{ simple(config) }}
 
+    {% if config.progress_bar %}
+        <style>
+            #audio-prompt-progress {
+                margin: 50px
+            }
+            #audio-prompt-progress-bar {
+                -webkit-transition: none;
+                -moz-transition: none;
+                -ms-transition: none;
+                -o-transition: none;
+                transition: none;
+            }
+        </style>
+
+        <div id="audio-prompt-progress" class="progress">
+            <div id="audio-prompt-progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <script>
+            psynet.media.register_on_loaded_routine(function() {
+                let bar = $("#audio-prompt-progress-bar");
+
+                let update_bar = function() {
+                    let time = psynet.audio.prompt.get_current_time();
+                    let duration = psynet.audio.prompt.duration;
+                    if (time !== null) {
+                        let percent = 100 * time / duration;
+                        bar.css("width", percent + "%");
+                        bar.attr("aria-valuenow", percent);
+
+                    }
+                }
+
+                update_bar();
+                setInterval(update_bar, 1);
+            });
+        </script>
+    {% endif %}
+
     <script>
         {% if config.prevent_response is defined and config.prevent_response %}
             psynet.response.wait_for("audio_prompt");
