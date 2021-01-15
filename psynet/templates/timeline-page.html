@@ -782,7 +782,7 @@
                             }
 
                             let start = (options.start === null) ? 0.0 : options.start;
-                            let duration = (options.end ===  null || options.loop) ? undefined : options.end - options.start;
+                            let duration = (options.end ===  null) ? undefined : options.end - options.start;
 
                             let loop_start = start;
                             let loop_end = (options.end === null) ? 0.0 : options.end;
@@ -794,6 +794,7 @@
                             this.gain_node.connect(psynet.media.audio_context.destination);
 
                             this.playing = true;
+                            this.stopping = false;
                             this.fading_out = false;
 
                             this.source.buffer = res;
@@ -819,6 +820,11 @@
                             this.source.addEventListener("ended", function() {
                                 psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
                                 this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
+
+                                if (options.loop && !this_audio.stopping) {
+                                    psynet.log.debug("Restarting sound with ID = " + this_audio.stimulus_id);
+                                    this_audio.play(options);
+                                }
                             });
 
                             return this
@@ -826,6 +832,8 @@
 
                         // stop the sound
                         out.stop = function (options) {
+                            out.stopping = true;
+
                             if (options == undefined) {
                                 options = {};
                             }
