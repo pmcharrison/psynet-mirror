@@ -190,7 +190,8 @@ example_audio_page_2 = ModularPage(
         play_window=[5, 9],
         loop=True,
         enable_submit_after=2,
-        progress_bar=True
+        progress_bar=True,
+        playback_controls=True
     ),
     time_estimate=5
 )
@@ -231,7 +232,8 @@ example_record_with_audio_prompt = join(
             duration=5.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
-            public_read=True
+            public_read=True,
+            progress_bar=True
         ),
         time_estimate=5
     ),
@@ -249,7 +251,7 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        # example_audio_page,
+        example_audio_page,
         example_audio_page_2,
         example_record_with_audio_prompt,
         example_record_page,

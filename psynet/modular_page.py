@@ -1253,12 +1253,14 @@ class AudioRecordControl(Control):
             duration: float,
             s3_bucket: str,
             show_meter: bool = False,
-            public_read: bool = False
+            public_read: bool = False,
+            progress_bar: bool = False
         ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.show_meter = show_meter
         self.public_read = public_read
+        self.progress_bar = progress_bar
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
