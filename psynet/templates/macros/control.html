@@ -455,15 +455,21 @@
                 Stop
             </button>
             <div id="audio-record-loop">
-              <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" disabled {% if config.loop_playback %} checked {% endif %}>
-              <label id="audio-record-loop-label" for="flexCheckChecked">
-                Loop
-              </label>
+                <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" disabled {% if config.loop_playback %} checked {% endif %}>
+                <label>Loop</label>
+            </div>
+            <div id="audio-record-sync-with-prompt">
+                <input id="audio-record-sync-with-prompt-input" class="audio-record-control" type="checkbox" value="" disabled>
+                <label>Sync playback</label>
             </div>
         </div>
 
         <script>
             $(document).ready(function() {
+                let sync_with_prompt = function() {
+                    return $("#audio-record-sync-with-prompt-input").prop("checked");
+                }
+
                 psynet.add_event_listener("audio_recording_finished", function() {
                     $(".audio-record-control").attr("disabled", false);
                 });
@@ -472,9 +478,15 @@
                 };
 
                 $("#audio-record-play").on("click", function() {
+                    if (sync_with_prompt()) {
+                        $("#audio-prompt-play").click();
+                    }
                     psynet.audio.recording.play(audio_record_player_options);
                 });
                 $("#audio-record-stop").on("click", function() {
+                    if (sync_with_prompt()) {
+                        $("#audio-prompt-stop").click();
+                    }
                     if (psynet.audio.recording.playing) {
                         psynet.audio.recording.stop(audio_record_player_options);
                     }
