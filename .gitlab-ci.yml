@@ -14,7 +14,7 @@ before_script:
   - apt-get update
   - apt-get -f -y install python-enchant
   - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
-  - WD=pwd
+  - WD=`pwd`
   - cd /tmp/dallinger
   - git reset --hard 70e980bdc94a0be41eb73d9751cb72d6c140a26d
   - cd $WD
