@@ -448,8 +448,11 @@
         </style>
 
         <div id="audio-record-controls">
+            <button id="audio-record-record" type="button" class="btn btn-danger audio-record-button audio-record-control btn-primary btn-sm" disabled>
+                Record from start
+            </button>
             <button id="audio-record-play" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
-                Play from start
+                Listen from start
             </button>
             <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm" disabled>
                 Stop
@@ -460,7 +463,7 @@
             </div>
             <div id="audio-record-sync-with-prompt">
                 <input id="audio-record-sync-with-prompt-input" class="audio-record-control" type="checkbox" value="" disabled>
-                <label>Sync playback</label>
+                <label>Sync with stimulus</label>
             </div>
         </div>
 
@@ -477,6 +480,9 @@
                     loop: {{ config.loop_playback | lower }}
                 };
 
+                $("#audio-record-record").on("click", function() {
+                    record_segment({{ config.duration }});
+                });
                 $("#audio-record-play").on("click", function() {
                     if (sync_with_prompt()) {
                         $("#audio-prompt-play").click();
@@ -512,6 +518,8 @@
         var recorder_start_time = null;
         var is_recording = false;
         var has_recorded = false;
+
+        let recorder_timer;
 
         let init_progress_bar = function() {
             let bar = $("#audio-record-progress-bar");
@@ -574,6 +582,15 @@
             psynet.response.ready("page_load_buffer");
         }, 1000)
 
+        record_segment = function(duration) {
+            has_recorded = false;
+            startRecording();
+            if (recorder_timer) {
+                clearTimeout(recorder_timer);
+            }
+            recorder_timer = setTimeout(endRecording, duration * 1000);
+        }
+
         startRecording = function() {
             psynet.log.debug("Starting recording.");
             psynet.register_event("audio_record_start");
@@ -630,8 +647,7 @@
         }
 
         psynet.response.register_on_ready_routine(function() {
-            startRecording();
-            setTimeout(endRecording, 1000 * {{ config.duration }});
+            record_segment({{ config.duration }});
         });
     </script>
 {% endmacro %}
