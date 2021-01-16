@@ -1279,7 +1279,7 @@ class SliderControl(Control):
             "min_value": self.min_value,
             "max_value": self.max_value,
             "step_size": self.step_size,
-            "template_arg": template_arg,
+            "template_arg": self.template_arg,
             "js_vars": self.js_vars,
         }
 

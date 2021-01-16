@@ -380,8 +380,9 @@
             }
         }
     </script>
-
-    {% include config.template_filename %}
+    {% if config.template_filename %}
+        {% include config.template_filename %}
+    {% endif %}
 {% endmacro %}
 
 {% macro multi_slider(config) %}
