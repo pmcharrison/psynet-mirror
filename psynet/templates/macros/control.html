@@ -411,6 +411,81 @@
         </div>
     </div>
 
+    {% if config.progress_bar %}
+        <style>
+            #audio-record-progress {
+                margin: 50px
+            }
+            #audio-record-progress-bar {
+                -webkit-transition: none;
+                -moz-transition: none;
+                -ms-transition: none;
+                -o-transition: none;
+                transition: none;
+            }
+        </style>
+
+        <div id="audio-record-progress" class="progress">
+            <div id="audio-record-progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    {% endif %}
+
+    {% if config.controls %}
+        <style>
+            #audio-record-controls {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+            .audio-record-button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+            #audio-record-loop {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        </style>
+
+        <div id="audio-record-controls">
+            <button id="audio-record-play" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+                Play from start
+            </button>
+            <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm" disabled>
+                Stop
+            </button>
+            <div id="audio-record-loop">
+              <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" disabled {% if config.loop_playback %} checked {% endif %}>
+              <label id="audio-record-loop-label" for="flexCheckChecked">
+                Loop
+              </label>
+            </div>
+        </div>
+
+        <script>
+            $(document).ready(function() {
+                psynet.add_event_listener("audio_recording_finished", function() {
+                    $(".audio-record-control").attr("disabled", false);
+                });
+                let audio_record_player_options = {
+                    loop: {{ config.loop_playback | lower }}
+                };
+
+                $("#audio-record-play").on("click", function() {
+                    psynet.audio.recording.play(audio_record_player_options);
+                });
+                $("#audio-record-stop").on("click", function() {
+                    if (psynet.audio.recording.playing) {
+                        psynet.audio.recording.stop(audio_record_player_options);
+                    }
+                });
+                $("#audio-record-loop-input").on("change", function(event) {
+                    audio_record_player_options.loop = event.target.checked;
+                });
+            });
+        </script>
+    {% endif %}
+
     {{ null(config) }}
 
     <script>
@@ -419,7 +494,48 @@
         {% autoescape off %}
         var presignedUrl = "{{ config.presigned_url }}";
         {% endautoescape %}
+
         var recorder;
+
+        let recorder_start_time = null;
+        let is_recording = false;
+        let has_recorded = false;
+
+        let init_progress_bar = function() {
+            let bar = $("#audio-record-progress-bar");
+            let update_bar = function() {
+                let percent = get_bar_percent()
+
+                bar.css("width", percent + "%");
+                bar.attr("aria-valuenow", percent);
+
+                if (is_recording) {
+                    bar.addClass("bg-danger");
+                } else {
+                    bar.removeClass("bg-danger");
+                }
+            }
+            setInterval(update_bar, 5);
+        };
+
+        let get_bar_percent = function() {
+            let time;
+            let duration = {{ config.duration }};
+            let playing = (psynet.audio.recording === undefined) ? false : psynet.audio.recording.playing;
+
+            if (has_recorded) {
+                if (playing) {
+                    time = psynet.audio.recording.get_current_time()
+                } else {
+                    time = duration;
+                }
+            } else if (!is_recording) {
+                time = 0.0;
+            } else {
+                time = psynet.media.audio_context.currentTime - recorder_start_time;
+            }
+            return 100.0 * time / duration;
+        }
 
         psynet.media.register_on_loaded_routine(function() {
             navigator.mediaDevices.getUserMedia({
@@ -434,6 +550,7 @@
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);
                 psynet.response.ready("recorder_ready")
+                {% if config.progress_bar %} init_progress_bar() {% endif %}
             })
         });
 
@@ -448,6 +565,8 @@
         startRecording = function() {
             psynet.log.debug("Starting recording.");
             psynet.register_event("audio_record_start");
+            is_recording = true;
+            recorder_start_time = psynet.media.audio_context.currentTime;
             $(".record-alert").hide();
             $("#record-active").show();
             recorder.clear();
@@ -457,11 +576,16 @@
         endRecording = function() {
             psynet.log.debug("Ending recording.")
             psynet.register_event("audio_record_end");
+            is_recording = false;
+            has_recorded = true;
             recorder.exportWAV(function (blob) {
                 $(".record-alert").hide();
                 $("#record-upload").show();
 
-                psynet.media.blob_to_array_buffer(blob).then(buffer => psynet.media.add_extra_audio_stimulus(array, "recording"))
+                psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
+                    psynet.media.add_extra_audio_stimulus(buffer, "recording");
+                    psynet.register_event("audio_recording_finished");
+                });
 
                 startPresignedUrlUpload(blob);
             })

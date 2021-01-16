@@ -1245,6 +1245,19 @@ class Slider():
         self.slider_id = slider_id
 
 class AudioRecordControl(Control):
+    """
+    Records audio from a participant.
+
+    Parameters
+    ----------
+
+    controls
+        Whether to give the user controls for the recorder (default = ``False``).
+
+    loop_playback
+        Whether in-browser playback of the recording should have looping enabled by default
+        (default = ``False``). Ignored if ``controls`` is ``False``.
+    """
     macro = "audio_record"
 
     def __init__(
@@ -1254,13 +1267,17 @@ class AudioRecordControl(Control):
             s3_bucket: str,
             show_meter: bool = False,
             public_read: bool = False,
-            progress_bar: bool = False
+            progress_bar: bool = False,
+            controls: bool = False,
+            loop_playback: bool = False
         ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.show_meter = show_meter
         self.public_read = public_read
         self.progress_bar = progress_bar
+        self.controls = controls
+        self.loop_playback = loop_playback
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
