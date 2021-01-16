@@ -147,7 +147,7 @@ class AudioPrompt(Prompt):
     progress_bar
         Whether to display a progress bar for the audio playback (default = ``False``).
 
-    playback_controls
+    controls
         Whether to give the user playback controls (default = ``False``).
     """
     def __init__(
@@ -162,7 +162,7 @@ class AudioPrompt(Prompt):
             text_align = "left",
             play_window: Optional[List] = None,
             progress_bar: bool = False,
-            playback_controls: bool = False
+            controls: bool = False
         ):
         if play_window is None:
             play_window = [None, None]
@@ -180,7 +180,7 @@ class AudioPrompt(Prompt):
         self.start_delay = start_delay
         self.play_window = play_window
         self.progress_bar = progress_bar
-        self.playback_controls = playback_controls
+        self.controls = controls
 
         self.js_play_options = dict(
             loop=loop,

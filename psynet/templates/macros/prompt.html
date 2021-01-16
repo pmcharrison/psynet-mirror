@@ -48,7 +48,6 @@
                         let percent = 100 * time / duration;
                         bar.css("width", percent + "%");
                         bar.attr("aria-valuenow", percent);
-
                     }
                 }
 
@@ -58,7 +57,7 @@
         </script>
     {% endif %}
 
-    {% if config.playback_controls %}
+    {% if config.controls %}
         <style>
             #audio-prompt-controls {
                 display: flex;
