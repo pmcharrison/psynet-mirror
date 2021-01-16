@@ -481,6 +481,9 @@
                 };
 
                 $("#audio-record-record").on("click", function() {
+                    if (sync_with_prompt()) {
+                        $("#audio-prompt-play").click();
+                    }
                     record_segment({{ config.duration }});
                 });
                 $("#audio-record-play").on("click", function() {
