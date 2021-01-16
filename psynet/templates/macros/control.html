@@ -448,7 +448,7 @@
         </style>
 
         <div id="audio-record-controls">
-            <button id="audio-record-record" type="button" class="btn btn-danger audio-record-button audio-record-control btn-primary btn-sm" disabled>
+            <button id="audio-record-record" type="button" class="btn audio-record-button audio-record-control btn-danger btn-sm" disabled>
                 Record from start
             </button>
             <button id="audio-record-play" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
@@ -456,6 +456,9 @@
             </button>
             <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm" disabled>
                 Stop
+            </button>
+            <button id="audio-record-upload" type="button" class="btn audio-record-button audio-record-control btn-success btn-sm" disabled>
+                Upload
             </button>
             <div id="audio-record-loop">
                 <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" disabled {% if config.loop_playback %} checked {% endif %}>
@@ -499,9 +502,15 @@
                     if (psynet.audio.recording.playing) {
                         psynet.audio.recording.stop(audio_record_player_options);
                     }
+                    if (is_recording) {
+                        cancelRecording();
+                    }
                 });
                 $("#audio-record-loop-input").on("change", function(event) {
                     audio_record_player_options.loop = event.target.checked;
+                });
+                $("#audio-record-upload").on("click", function() {
+                    startPresignedUrlUpload(recording_blob);
                 });
             });
         </script>
@@ -523,6 +532,8 @@
         var has_recorded = false;
 
         let recorder_timer;
+        let recorder_controls = {{ config.controls | lower }};
+        let recording_blob;
 
         let init_progress_bar = function() {
             let bar = $("#audio-record-progress-bar");
@@ -546,17 +557,14 @@
             let duration = {{ config.duration }};
             let playing = (psynet.audio.recording === undefined) ? false : psynet.audio.recording.playing;
 
-            if (has_recorded) {
-                if (playing) {
-                    time = psynet.audio.recording.get_current_time()
-                } else {
-                    time = duration;
-                }
-            } else if (!is_recording) {
-                time = 0.0;
-            } else {
+            if (playing) {
+                time = psynet.audio.recording.get_current_time()
+            } else if (is_recording) {
                 time = psynet.media.audio_context.currentTime - recorder_start_time;
+            } else {
+                time = 0.0;
             }
+
             return 100.0 * time / duration;
         }
 
@@ -586,7 +594,6 @@
         }, 1000)
 
         record_segment = function(duration) {
-            has_recorded = false;
             startRecording();
             if (recorder_timer) {
                 clearTimeout(recorder_timer);
@@ -605,21 +612,40 @@
             recorder.record();
         }
 
+        cancelRecording = function() {
+            psynet.log.debug("Cancelling recording.")
+            psynet.register_event("audio_record_cancel");
+            is_recording = false;
+            recorder.stop();
+            clearTimeout(recorder_timer);
+        }
+
         endRecording = function() {
+            if (!is_recording) {
+                psynet.log.warn("endRecording was called, but no recording seems to be ongoing.")
+                return;
+            }
             psynet.log.debug("Ending recording.")
             psynet.register_event("audio_record_end");
             is_recording = false;
             has_recorded = true;
+
             recorder.exportWAV(function (blob) {
                 $(".record-alert").hide();
                 $("#record-upload").show();
+
+                recording_blob = blob;
 
                 psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
                     psynet.media.add_extra_audio_stimulus(buffer, "recording");
                     psynet.register_event("audio_recording_finished");
                 });
 
-                startPresignedUrlUpload(blob);
+                if (recorder_controls) {
+                    $("#audio-record-upload").prop("disabled", false);
+                } else {
+                    startPresignedUrlUpload(recording_blob);
+                }
             })
         }
 
