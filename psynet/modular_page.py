@@ -1162,7 +1162,7 @@ class AudioMeterControl(Control):
         self.calibrate = calibrate
         self.submit_button = submit_button
         if calibrate:
-            self.sliders = SliderControl([
+            self.sliders = MultiSliderControl([
                 Slider("decay_display", "Decay (display)", self.decay["display"], 0, 3, 0.001),
                 Slider("decay_high", "Decay (too high)", self.decay["high"], 0, 3, 0.001),
                 Slider("decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
@@ -1246,6 +1246,79 @@ class TappingAudioMeterControl(AudioMeterControl):
     }
 
 class SliderControl(Control):
+    def __init__(
+            self,
+            label,
+            slider_id,
+            start_value,
+            min_value,
+            max_value,
+            step_size,
+            template_filename,
+            template_arg,
+            js_vars,
+        ):
+        self.label = label
+        self.slider_id = slider_id
+        self.start_value = start_value
+        self.min_value = min_value
+        self.max_value = max_value
+        self.step_size = step_size
+        self.template_filename = template_filename
+        self.template_arg = template_arg
+        self.js_vars = js_vars
+
+    macro = "slider"
+
+    @property
+    def metadata(self):
+        return {
+            "label": self.label,
+            "slider_id": self.slider_id,
+            "start_value": self.start_value,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+            "step_size": self.step_size,
+            "template_arg": template_arg,
+            "js_vars": self.js_vars,
+        }
+
+
+class ColorSliderControl(SliderControl):
+    def __init__(
+            self,
+            label,
+            slider_id,
+            start_value,
+            min_value,
+            max_value,
+            step_size,
+            hidden_inputs,
+            js_vars,
+        ):
+        super().__init__(
+            label=label,
+            slider_id=slider_id,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            step_size=step_size,
+            hidden_inputs=hidden_inputs,
+            js_vars=js_vars,
+        )
+        self.template_arg = template_arg
+
+    macro = "color_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata(),
+            "hidden_inputs": self.hidden_inputs,
+        }
+
+
+class MultiSliderControl(Control):
     def __init__(
             self,
             sliders,

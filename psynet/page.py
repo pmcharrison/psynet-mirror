@@ -28,6 +28,7 @@ from .modular_page import (
     AudioPrompt,
     NumberControl,
     PushButtonControl,
+    SliderControl,
     TextControl,
 )
 
@@ -359,8 +360,11 @@ class TextInputPage(ModularPage):
             "control": self.control.metadata,
         }
 
-class SliderPage(Page):
+class SliderPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.
+
     This page solicits a slider response from the user.
 
     The page logs all interactions from the participants including:
@@ -424,17 +428,11 @@ class SliderPage(Page):
         If ``True``, then the slider continuously calls slider-update events when it is dragged,
         rather than just when it is released. In this case the log is disabled.
 
-    width:
-        Optional CSS width property for the text box.
-
-    height:
-        Optional CSS height property for the text box.
-
     time_estimate:
         Time estimated for the page.
 
-    template_str:
-        Optional different template.
+    template_filename:
+        Filename of an optional different template.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
@@ -456,68 +454,62 @@ class SliderPage(Page):
             reverse_scale: Optional[bool] = False,
             continuous_updates: bool = False,
             slider_id: Optional[str] = 'sliderpage_slider',
-            width: Optional[str] = None,  # e.g. "100px"
-            height: Optional[str] = None,
             time_estimate: Optional[float] = None,
-            template_str: Optional[str] = get_template("slider-page.html"),
+            template_filename: Optional[str] = None,
             **kwargs
     ):
+        self.label = label
         self.max_value = max_value
         self.min_value = min_value
+        self.prompt = prompt
         self.start_value = start_value
         self.input_type = input_type
         self.minimal_interactions = minimal_interactions
         self.minimal_time = minimal_time
         self.num_steps = num_steps
+        self.reverse_scale = reverse_scale
+        self.continuous_updates = continuous_updates
+        self.slider_id = slider_id
+        self.time_estimate = time_estimate
 
         self._validate()
 
-        if not 'js_vars' in kwargs:
-            kwargs['js_vars'] = {}
-
-        diff = max_value - min_value
-        step_size = diff / (num_steps - 1)
-
-        snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
-        self.snap_values = snap_values
-
-        styles = []
-        if width is not None:
-            styles.append(f"width:{width}")
-        if height is not None:
-            styles.append(f"height:{height}")
-        style = " ".join(styles)
-
-        new_template_args = {
-            "prompt": prompt,
-            "start_value": start_value,
-            "min_value": min_value,
-            "max_value": max_value,
-            "step_size": step_size,
-            "reverse_scale": reverse_scale,
-            "style": style,
-            "slider_id": slider_id
-        }
+        self.step_size = (max_value - min_value) / (num_steps - 1)
+        self.snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
+        self.template_filename = template_filename
 
         if not 'template_arg' in kwargs:
-            kwargs['template_arg'] = {}
+            self.template_arg = {}
+        else:
+            self.template_arg = kwargs["template_arg"]
 
-        for key, value in new_template_args.items():
-            kwargs['template_arg'][key] = value
+        if not 'js_vars' in kwargs:
+            js_vars = {}
 
-        kwargs['js_vars']["snap_values"] = snap_values
-        kwargs['js_vars']["num_steps"] = num_steps
-        kwargs['js_vars']["start_value"] = start_value
-        kwargs['js_vars']['minimal_interactions'] = minimal_interactions
-        kwargs['js_vars']['minimal_time'] = minimal_time
-        kwargs['js_vars']["reverse_scale"] = reverse_scale
-        kwargs['js_vars']["slider_continuous_updates"] = continuous_updates
+        js_vars["snap_values"] = self.snap_values
+        js_vars["num_steps"] = self.num_steps
+        js_vars["start_value"] = self.start_value
+        js_vars['minimal_interactions'] = self.minimal_interactions
+        js_vars['minimal_time'] = self.minimal_time
+        js_vars["reverse_scale"] = self.reverse_scale
+        js_vars["slider_continuous_updates"] = self.continuous_updates
+        js_vars["slider_id"] = self.slider_id
 
         super().__init__(
-            time_estimate=time_estimate,
-            template_str=template_str,
-            label=label,
-            **kwargs
+            self.label,
+            prompt=Prompt(self.prompt),
+            control=SliderControl(
+                label=self.label,
+                slider_id=self.slider_id,
+                start_value=self.start_value,
+                min_value=self.min_value,
+                max_value=self.max_value,
+                step_size=self.step_size,
+                template_filename=self.template_filename,
+                template_arg=self.template_arg,
+                js_vars=js_vars,
+            ),
+            time_estimate=self.time_estimate,
         )
 
     def _validate(self):
@@ -549,6 +541,8 @@ class SliderPage(Page):
     def metadata(self, **kwargs):
         return {
             **super().metadata(),
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
             'num_steps': self.num_steps,
             'snap_values': self.snap_values,
             'min_value': self.min_value,
@@ -562,7 +556,6 @@ class SliderPage(Page):
 
 class AudioSliderPage(SliderPage):
     """
-    See issue #11
     This page solicits a slider response from the user that results in playing some audio.
 
     By default this response is saved in the database as a
