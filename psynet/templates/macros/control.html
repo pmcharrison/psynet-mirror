@@ -454,8 +454,11 @@
             <button id="audio-record-record" type="button" class="btn audio-record-button audio-record-control btn-danger btn-sm" disabled>
                 Record from start
             </button>
-            <button id="audio-record-play" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
-                Listen from start
+            <button id="audio-record-play-all" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+                Play all
+            </button>
+            <button id="audio-record-play-recording" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+                Play recording
             </button>
             <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm" disabled>
                 Stop
@@ -466,10 +469,6 @@
             <div id="audio-record-loop">
                 <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" disabled {% if config.loop_playback %} checked {% endif %}>
                 <label>Loop</label>
-            </div>
-            <div id="audio-record-sync-with-prompt">
-                <input id="audio-record-sync-with-prompt-input" class="audio-record-control" type="checkbox" value="" disabled>
-                <label>Sync with stimulus</label>
             </div>
         </div>
     {% endif %}
@@ -526,10 +525,6 @@
         });
 
         $(document).ready(function() {
-            let sync_with_prompt = function() {
-                return $("#audio-record-sync-with-prompt-input").prop("checked");
-            }
-
             psynet.add_event_listener("audio_recording_finished", function() {
                 $(".audio-record-control").attr("disabled", false);
             });
@@ -540,18 +535,17 @@
             })
 
             $("#audio-record-record").on("click", function() {
-                if (sync_with_prompt()) {
-                    $("#audio-prompt-play").click();
-                }
                 replayMode = false;
                 psynet.trial.start();
             });
-            $("#audio-record-play").on("click", function() {
-                if (sync_with_prompt()) {
-                    $("#audio-prompt-play").click();
-                }
+            $("#audio-record-play-all").on("click", function() {
                 replayMode = true;
                 psynet.trial.start();
+            });
+            $("#audio-record-play-recording").on("click", function() {
+                replayMode = true;
+                psynet.trial.cancel();
+                psynet.audio.recording.play();
             });
             $("#audio-record-stop").on("click", function() {
                 psynet.trial.cancel();

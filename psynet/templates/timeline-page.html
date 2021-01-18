@@ -988,7 +988,8 @@
                                     psynet.log.debug("Stopped audio " + this.stimulus_id + ".");
                                 };
                             }
-
+                            psynet.log.debug("this.fading_out: " + this.fading_out)
+                            psynet.log.debug("this.source: " + this.source)
                             if (!this.fading_out) {
                                 if (this.playing && this.source !== null) {
                                     psynet.log.debug("Stopping audio " + this.stimulus_id + ".");
