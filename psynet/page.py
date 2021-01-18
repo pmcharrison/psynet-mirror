@@ -1,4 +1,5 @@
 from flask import Markup, escape
+import warnings
 
 from typing import (
     Union,
@@ -34,6 +35,8 @@ from .modular_page import (
 )
 
 logger = get_logger()
+warnings.simplefilter('always', DeprecationWarning)
+
 
 class InfoPage(Page):
     """
@@ -264,6 +267,8 @@ class NAFCPage(ModularPage):
             min_width: str = "100px",
             **kwargs
     ):
+        warnings.warn("psynet.page.NAFCPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl instead.", DeprecationWarning)
+
         self.prompt = prompt
         self.choices = choices
         self.labels = choices if labels is None else labels
@@ -337,6 +342,8 @@ class TextInputPage(ModularPage):
             height: Optional[str] = None,
             **kwargs
     ):
+        warnings.warn("psynet.page.TextInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.", DeprecationWarning)
+
         self.prompt = prompt
         self.time_estimate = time_estimate
 
@@ -459,6 +466,8 @@ class SliderPage(ModularPage):
             template_filename: Optional[str] = None,
             **kwargs
     ):
+        warnings.warn("psynet.page.SliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.", DeprecationWarning)
+
         self.label = label
         self.max_value = max_value
         self.min_value = min_value
@@ -633,6 +642,8 @@ class AudioSliderPage(ModularPage):
         continuous_updates: bool = False,
         **kwargs
     ):
+        warnings.warn("psynet.page.AudioSliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.AudioSliderControl` instead.", DeprecationWarning)
+
         if not 'media' in kwargs:
             raise ValueError('You must specify sounds in `media` you later want to play with the slider')
 
@@ -730,6 +741,8 @@ class NumberInputPage(ModularPage):
             time_estimate: Optional[float] = None,
             **kwargs
     ):
+        warnings.warn("psynet.page.NumberInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.", DeprecationWarning)
+
         self.prompt = prompt
         self.width = width
         self.time_estimate = time_estimate
