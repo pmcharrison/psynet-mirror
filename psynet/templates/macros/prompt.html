@@ -116,25 +116,28 @@
             psynet.submit.wait_for("audio_prompt");
         {% endif %}
 
-        psynet.media.register_on_loaded_routine(function() {
-            setTimeout(function() {
-                var sound = psynet.audio.prompt.play(audio_prompt_player_options);
-                psynet.register_event("audio_play_start");
+        psynet.trial.delay = {{config.start_delay}};
 
-                sound.source.addEventListener("ended", function() {
-                    psynet.register_event("audio_play_end");
-                    {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
-                    {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
-                });
+        psynet.trial.addEvent("audioPlay", 0.0, function() {
+            var sound = psynet.audio.prompt.play(audio_prompt_player_options);
+            psynet.register_event("audio_play_start");
 
-                {% if config.enable_submit_after is not none %}
-                    setTimeout(
-                        ()=> psynet.submit.ready("audio_prompt"),
-                        1000 * {{ config.enable_submit_after }}
-                    );
-                {% endif %}
-            }, {{config.start_delay}} * 1000)
+            sound.source.addEventListener("ended", function() {
+                psynet.register_event("audio_play_end");
+                {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
+                {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
+            });
+
         });
+
+        {% if config.enable_submit_after is not none %}
+            psynet.trial.addEvent(
+                "audioPromptSubmitReady",
+                {{ config.enable_submit_after }},
+                ()=> psynet.submit.ready("audio_prompt")
+            );
+        {% endif %}
+
     </script>
 {% endmacro %}
 

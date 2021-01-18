@@ -505,7 +505,7 @@
                     if (psynet.audio.recording.playing) {
                         psynet.audio.recording.stop(audio_record_player_options);
                     }
-                    psynet.trial.end();
+                    psynet.trial.cancel();
                 });
                 $("#audio-record-loop-input").on("change", function(event) {
                     audio_record_player_options.loop = event.target.checked;

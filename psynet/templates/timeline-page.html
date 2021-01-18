@@ -433,17 +433,21 @@
                 let Trial = function(duration) {
                     let obj = {
                         duration: null,
+                        delay: 0.0,
                         state: null,
                         inProgress: false,
                         startTime: null,
                         events: {},
-                        cleanupRoutines: [],
+                        routines: {
+                            cleanup: [],
+                            finish: []
+                        },
 
                         start: function() {
                             if (this.duration === null) {
                                 throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
                             } else {
-                                obj.addEvent("trialEnd", this.duration, () => obj.end());
+                                obj.addEvent("trialFinish", this.duration, () => this.finish());
                             }
                             psynet.register_event("trialStart");
                             this.inProgress = true;
@@ -452,14 +456,25 @@
                             this.queueEvents();
                         },
 
-                        end: function() {
+                        cancel: function() {
                             if (this.inProgress) {
-                                psynet.register_event("trialEnd");
-                                this.state = "trialEnd";
-                                this.clearEventQueue();
-                                this.runCleanupRoutines();
-                                this.inProgress = false;
+                                psynet.register_event("trialCancel");
+                                this.state = "trialCancel";
+                                this.stop();
                             }
+                        },
+
+                        finish: function() {
+                            if (this.inProgress) {
+                                this.stop()
+                                this.runRoutines("finish");
+                            }
+                        },
+
+                        stop: function() {
+                            this.clearEventQueue();
+                            this.runRoutines("cleanup");
+                            this.inProgress = false;
                         },
 
                         setDuration: function(duration) {
@@ -490,16 +505,32 @@
                              Object.values(this.events).forEach(e => e.queue());
                         },
 
-                        addCleanupRoutine(id, handler) {
-                            this.cleanupRoutines.push({
+                        routineTypes: ["cleanup", "finish"],
+
+                        initRoutines: function() {
+                            this.routineTypes.forEach(function(type) {
+                                this.routines[type] = [];
+                            });
+                        },
+
+                        addRoutine: function(type, id, handler) {
+                            this.routines[type].push({
                                 id: id,
                                 handler: handler
                             })
                         },
 
-                        runCleanupRoutines() {
-                            this.cleanupRoutines.forEach(function(routine) {
-                                psynet.log.debug("Running trial clean-up routine: " + routine.id);
+                        addCleanupRoutine: function(id, handler) {
+                            this.addRoutine("cleanup", id, handler);
+                        },
+
+                        addFinishRoutine: function(id, handler) {
+                            this.addRoutine("finish", id, handler);
+                        },
+
+                        runRoutines(type) {
+                            this.routines[type].forEach(function(routine) {
+                                psynet.log.debug("Running trial " + type + "routine: " + routine.id);
                                 routine.handler()
                             });
                         },
@@ -522,7 +553,12 @@
 
                 psynet.trial = Trial();
 
-                psynet.response.register_on_ready_routine(() => psynet.trial.start());
+                psynet.response.register_on_ready_routine(function() {
+                    setTimeout(
+                        () => psynet.trial.start(),
+                        psynet.trial.delay * 1000
+                    );
+                });
 
                 psynet.media.types = ["audio", "image", "video"];
                 psynet.media.data = {};
