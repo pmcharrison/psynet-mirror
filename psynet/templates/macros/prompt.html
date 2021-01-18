@@ -121,7 +121,6 @@
         psynet.trial.addEvent("audioPlay", 0.0, function() {
             var sound = psynet.audio.prompt.play(audio_prompt_player_options);
             psynet.register_event("audio_play_start");
-
             sound.source.addEventListener("ended", function() {
                 psynet.register_event("audio_play_end");
                 {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}

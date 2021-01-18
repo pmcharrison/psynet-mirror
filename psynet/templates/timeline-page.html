@@ -256,7 +256,8 @@
                         throw new Error("Invalid log level: " + level);
                     }
 
-                    console.log("LOG (" + level.toUpperCase() + "): " + msg);
+                    let time = new Date();
+                    console.log("LOG (" + level.toUpperCase() + ") at " + time.toLocaleTimeString()  + ": " + msg);
 
                     if (level != "debug" && psynet.log.counter < psynet.log.max) {
                         psynet.log.counter += 1;
@@ -434,6 +435,7 @@
                     let obj = {
                         duration: null,
                         delay: 0.0,
+                        iteration: -1,
                         state: null,
                         inProgress: false,
                         startTime: null,
@@ -446,13 +448,18 @@
                         start: function() {
                             if (this.duration === null) {
                                 throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
-                            } else {
-                                obj.addEvent("trialFinish", this.duration, () => this.finish());
                             }
+                            if (this.inProgress) {
+                                this.cancel();
+                            }
+                            this.iteration += 1;
+                            psynet.log.debug("*** Starting new trial, iteration " + this.iteration);
                             psynet.register_event("trialStart");
+                            this.addEvent("trialFinish", this.duration, () => this.finish());
                             this.inProgress = true;
                             this.startTime = getGlobalTime();
                             this.state = "trialStart";
+                            this.clearEventQueue();
                             this.queueEvents();
                         },
 
@@ -489,11 +496,13 @@
                                 id: id,
                                 time: time,
                                 timer: null,
-                                handler: handler
+                                handler: handler,
+                                trial: this
                             };
                             e.queue = function() {
                                 e.timer = setTimeout(function() {
                                     psynet.register_event(id);
+                                    psynet.log.debug("Iteration = " + e.trial.iteration + ", event = " + id);
                                     e.handler();
                                     this.state = id;
                                 }, e.time * 1000);
@@ -510,7 +519,7 @@
                         initRoutines: function() {
                             this.routineTypes.forEach(function(type) {
                                 this.routines[type] = [];
-                            });
+                            }, this);
                         },
 
                         addRoutine: function(type, id, handler) {
@@ -530,9 +539,9 @@
 
                         runRoutines(type) {
                             this.routines[type].forEach(function(routine) {
-                                psynet.log.debug("Running trial " + type + "routine: " + routine.id);
+                                psynet.log.debug("Running trial (" + this.iteration + ") " + type + " routine: " + routine.id);
                                 routine.handler()
-                            });
+                            }, this);
                         },
 
                         clearEventQueue: function() {
@@ -997,11 +1006,12 @@
                                     var this_audio = this;
                                     var this_source = this.source;
                                     setTimeout(function () {
-                                        this.playing = false;
+                                        this_audio.playing = false;
                                         this_source.stop();
                                     }, options.fade_out * 1000);
                                 }
                             }
+                            return this
                         };
 
                         out.pause = function () {
@@ -1216,6 +1226,7 @@
                         local_time: time,
                         info: (info === undefined) ? null : info};
                     psynet.event_log.push(log_entry);
+                    psynet.log.debug(event_type);
                 }
 
                 psynet.init_page = function () {

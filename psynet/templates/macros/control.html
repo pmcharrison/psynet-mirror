@@ -472,49 +472,6 @@
                 <label>Sync with stimulus</label>
             </div>
         </div>
-
-        <script>
-            $(document).ready(function() {
-                let sync_with_prompt = function() {
-                    return $("#audio-record-sync-with-prompt-input").prop("checked");
-                }
-
-                psynet.add_event_listener("audio_recording_finished", function() {
-                    $(".audio-record-control").attr("disabled", false);
-                });
-                let audio_record_player_options = {
-                    loop: {{ config.loop_playback | lower }}
-                };
-
-                $("#audio-record-record").on("click", function() {
-                    if (sync_with_prompt()) {
-                        $("#audio-prompt-play").click();
-                    }
-                    psynet.trial.start();
-                });
-                $("#audio-record-play").on("click", function() {
-                    if (sync_with_prompt()) {
-                        $("#audio-prompt-play").click();
-                    }
-                    psynet.audio.recording.play(audio_record_player_options);
-                });
-                $("#audio-record-stop").on("click", function() {
-                    if (sync_with_prompt()) {
-                        $("#audio-prompt-stop").click();
-                    }
-                    if (psynet.audio.recording.playing) {
-                        psynet.audio.recording.stop(audio_record_player_options);
-                    }
-                    psynet.trial.cancel();
-                });
-                $("#audio-record-loop-input").on("change", function(event) {
-                    audio_record_player_options.loop = event.target.checked;
-                });
-                $("#audio-record-upload").on("click", function() {
-                    startPresignedUrlUpload(recording_blob);
-                });
-            });
-        </script>
     {% endif %}
 
     {{ null(config) }}
@@ -534,22 +491,78 @@
         let recorderControls = {{ config.controls | lower }};
         let recordWindow = {{ config.record_window | tojson }};
 
+        let replayMode = false;
+
+        let loop = {{ config.loop_playback | tojson }};
+
         psynet.trial.setDuration({{ config.duration }});
 
         psynet.trial.addEvent("startRecording", recordWindow[0], function () {
-            $(".record-alert").hide();
-            $("#record-active").show();
-            recorder.clear();
-            recorder.record();
+            if (replayMode) {
+                psynet.audio.recording.play();
+            } else {
+                $(".record-alert").hide();
+                $("#record-active").show();
+                recorder.clear();
+                recorder.record();
+            }
         });
 
         psynet.trial.addEvent("endRecording", recordWindow[1], function() {
-            recorder.stop();
-            hasRecorded = true;
-            exportRecording();
+            if (!replayMode) {
+                recorder.stop();
+                hasRecorded = true;
+                exportRecording();
+            }
         });
 
         psynet.trial.addCleanupRoutine("stopRecorder",  () => recorder.stop());
+        psynet.trial.addCleanupRoutine("stopRecordingPlayback", () => psynet.media.stop_all_audio());
+
+        psynet.trial.addFinishRoutine("restart", function() {
+            if (loop) {
+                psynet.trial.start();
+            }
+        });
+
+        $(document).ready(function() {
+            let sync_with_prompt = function() {
+                return $("#audio-record-sync-with-prompt-input").prop("checked");
+            }
+
+            psynet.add_event_listener("audio_recording_finished", function() {
+                $(".audio-record-control").attr("disabled", false);
+            });
+
+            $(".audio-record-button").on("click", function() {
+                this.disabled = true;
+                setTimeout(() => this.disabled = false, 500);
+            })
+
+            $("#audio-record-record").on("click", function() {
+                if (sync_with_prompt()) {
+                    $("#audio-prompt-play").click();
+                }
+                replayMode = false;
+                psynet.trial.start();
+            });
+            $("#audio-record-play").on("click", function() {
+                if (sync_with_prompt()) {
+                    $("#audio-prompt-play").click();
+                }
+                replayMode = true;
+                psynet.trial.start();
+            });
+            $("#audio-record-stop").on("click", function() {
+                psynet.trial.cancel();
+            });
+            $("#audio-record-loop-input").on("change", function(event) {
+                loop = event.target.checked;
+            });
+            $("#audio-record-upload").on("click", function() {
+                startPresignedUrlUpload(recording_blob);
+            });
+        });
 
         let exportRecording = function() {
             recorder.exportWAV(function (blob) {
