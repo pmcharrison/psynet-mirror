@@ -537,17 +537,16 @@ class CheckboxControl(OptionControl):
 
     macro = "checkboxes"
 
-    def visualize_response(self, answer):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                tags.input(
+                tags.input_(
                     type="checkbox",
                     id=choice,
-                    name="response-options",
+                    name=self.name,
                     value=choice,
-                    checked=(answer is not None and choice == answer),
-                    disabled=True
+                    checked=(True if answer is not None and choice in answer else False),
                 )
                 tags.span(label)
                 tags.br()
@@ -579,7 +578,7 @@ class DropdownControl(OptionControl):
         The different options the participant has to choose from.
 
     labels:
-        An optional list of textual labels to apply to the radiobuttons,
+        An optional list of textual labels to apply to the dropdown options,
         which the participant will see instead of ``choices``.
 
     style:
@@ -616,17 +615,21 @@ class DropdownControl(OptionControl):
 
     macro = "dropdown"
 
-    def visualize_response(self):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div(_class="dropdown-container")
         with html:
+            tags.style(".dropdown-container { margin: 0 auto; width: fit-content; }")
             with tags.select(
-                id=choice,
-                name="response-options",
-                multiple=multiple
+                id=self.name,
+                _class="form-control response",
+                name=self.name,
+                style="cursor: pointer;",
             ):
                 for choice, label in zip(self.choices, self.labels):
-                    with doc.option(value = choice):
-                        text(label)
+                    if answer == choice:
+                        tags.option(value=choice, selected=True).add(label)
+                    else:
+                        tags.option(value=choice).add(label)
         return html.render()
 
     def validate(self, response, **kwargs):
@@ -693,19 +696,19 @@ class PushButtonControl(OptionControl):
             "labels": self.labels
         }
 
-    def visualize_response(self, answer):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                tags.input(
-                    type="radio",
+                response_string = response.response.replace('"', '')
+                _class =f"btn push_button btn-primary response submit"
+                _class = _class.replace("btn-primary", "btn-success") if response_string == choice else _class
+                tags.button(
+                    type="button",
                     id=choice,
-                    name="response-options",
-                    value=choice,
-                    checked=(answer is not None and choice == answer),
-                    disabled=True
-                )
-                tags.span(label)
+                    _class=_class,
+                    style=self.style,
+                ).add(label)
                 tags.br()
         return html.render()
 
@@ -760,8 +763,21 @@ class TimedPushButtonControl(PushButtonControl):
         event_log = {**kwargs}["metadata"]["event_log"]
         return event_log
 
-    def visualize_response(self, answer):
-        return "visualize_response not yet implemented for TimedPushButtonControl"
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
+        with html:
+            for choice, label in zip(self.choices, self.labels):
+                response_string = response.response.replace('"', '')
+                _class = f"btn push_button btn-primary response timed"
+                _class = _class.replace("btn-primary", "btn-success") if response_string == choice else _class
+                tags.button(
+                    type="button",
+                    id=choice,
+                    _class=_class,
+                    style=self.style,
+                ).add(label)
+                tags.br()
+        return html.render()
 
 class NAFCControl(PushButtonControl):
     """
@@ -834,17 +850,16 @@ class RadioButtonControl(OptionControl):
 
     macro = "radiobuttons"
 
-    def visualize_response(self, answer):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                tags.input(
+                tags.input_(
                     type="radio",
                     id=choice,
-                    name="response-options",
+                    name=self.name,
                     value=choice,
-                    checked=(answer is not None and choice == answer),
-                    disabled=True
+                    checked=(True if choice == answer else False),
                 )
                 tags.span(label)
                 tags.br()
