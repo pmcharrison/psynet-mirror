@@ -26,6 +26,7 @@ from .modular_page import (
     ModularPage,
     Prompt,
     AudioPrompt,
+    AudioSliderControl,
     NumberControl,
     PushButtonControl,
     SliderControl,
@@ -432,7 +433,7 @@ class SliderPage(ModularPage):
         Time estimated for the page.
 
     template_filename:
-        Filename of an optional different template.
+        Filename of an optional additional template.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
@@ -483,16 +484,14 @@ class SliderPage(ModularPage):
         else:
             self.template_arg = kwargs["template_arg"]
 
-        if not 'js_vars' in kwargs:
-            js_vars = {}
-
+        js_vars = {}
         js_vars["snap_values"] = self.snap_values
         js_vars["num_steps"] = self.num_steps
         js_vars["start_value"] = self.start_value
         js_vars['minimal_interactions'] = self.minimal_interactions
         js_vars['minimal_time'] = self.minimal_time
         js_vars["reverse_scale"] = self.reverse_scale
-        js_vars["slider_continuous_updates"] = self.continuous_updates
+        js_vars["continuous_updates"] = self.continuous_updates
         js_vars["slider_id"] = self.slider_id
 
         super().__init__(
@@ -554,8 +553,11 @@ class SliderPage(ModularPage):
         }
 
 
-class AudioSliderPage(SliderPage):
+class AudioSliderPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.
+
     This page solicits a slider response from the user that results in playing some audio.
 
     By default this response is saved in the database as a
@@ -606,8 +608,8 @@ class AudioSliderPage(SliderPage):
     template_arg:
         By default empty dictionary. Optional template arguments.
 
-    template_str: default: the page template slider-audio-page.html
-        Can be overwritten in classes inheriting from this class.
+    template_filename:
+        Filename of an optional additional template.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.SliderPage`.
@@ -625,8 +627,10 @@ class AudioSliderPage(SliderPage):
         num_steps: Union[str, int] = 10000,
         snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
-        time_estimate: Optional[float] = None,
-        template_str: Optional[str] = get_template("slider-audio-page.html"),
+        slider_id: Optional[str] = 'sliderpage_slider',
+        minimal_interactions: Optional[int] = 0,
+        minimal_time: Optional[float] = None,
+        continuous_updates: bool = False,
         **kwargs
     ):
         if not 'media' in kwargs:
@@ -666,30 +670,44 @@ class AudioSliderPage(SliderPage):
         # if not all([location in ticks for _, location in sound_locations.items()]):
         #     raise ValueError('The slider does not contain all locations for the audio')
 
-        if not 'js_vars' in kwargs:
-            kwargs['js_vars'] = {}
-        kwargs['js_vars']['autoplay'] = autoplay
-        kwargs['js_vars']['sound_locations'] = sound_locations
+        js_vars = {}
+        js_vars["autoplay"] = autoplay
+        js_vars["sound_locations"] = sound_locations
+        js_vars["slider_id"] = slider_id
+        js_vars["snap_values"] = snap_values
+        js_vars["minimal_interactions"] = minimal_interactions
+        js_vars["continuous_updates"] = continuous_updates
+        js_vars["minimal_time"] = minimal_time
+        js_vars["audio"] = audio
 
         self.sound_locations = sound_locations
         # All range checking is done in the parent class
+        self.step_size = (max_value - min_value) / (num_steps - 1)
+
         super().__init__(
-            prompt=prompt,
-            start_value=start_value,
-            min_value=min_value,
-            max_value=max_value,
-            num_steps=num_steps,
-            snap_values=snap_values,
-            time_estimate=time_estimate,
-            template_str=template_str,
-            label=label,
-            **kwargs
+            label,
+            prompt=Prompt(prompt),
+            control=AudioSliderControl(
+                label=label,
+                sound_locations=sound_locations,
+                slider_id=slider_id,
+                start_value=start_value,
+                num_steps=num_steps,
+                step_size=self.step_size,
+                min_value=min_value,
+                max_value=max_value,
+                js_vars=js_vars,
+            ),
+            media=kwargs['media'],
+            time_estimate=kwargs['time_estimate'],
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             **super().metadata(),
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
             'sound_locations': self.sound_locations
         }
 

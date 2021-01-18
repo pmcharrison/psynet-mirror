@@ -4,7 +4,7 @@ from dominate import tags
 from dominate.util import raw
 
 from flask import Markup
-from typing import Union, Optional, List
+from typing import Dict, Union, Optional, List
 from uuid import uuid4
 from scipy.io import wavfile
 
@@ -1249,14 +1249,14 @@ class SliderControl(Control):
     def __init__(
             self,
             label,
-            slider_id,
             start_value,
             min_value,
             max_value,
-            step_size,
             template_filename,
             template_arg,
-            js_vars,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            step_size: Optional[float] = None,
+            js_vars: Optional[Dict] = None,
         ):
         self.label = label
         self.slider_id = slider_id
@@ -1284,6 +1284,55 @@ class SliderControl(Control):
         }
 
 
+class AudioSliderControl(SliderControl):
+    def __init__(
+            self,
+            label,
+            sound_locations: dict,
+            slider_id: str,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            step_size: float,
+            audio: Optional[Dict] = None,
+            num_steps: Union[str, int] = 10000,
+            snap_values: Optional[Union[int, list]] = "sound_locations",
+            autoplay: Optional[bool] = False,
+            time_estimate: Optional[float] = None,
+            template_filename: Optional[str] = None,
+            template_arg: Optional[Dict] = None,
+            js_vars: Optional[Dict] = None,
+             **kwargs
+        ):
+        super().__init__(
+            label=label,
+            start_value=start_value,
+            slider_id=slider_id,
+            step_size=step_size,
+            min_value=min_value,
+            max_value=max_value,
+            template_filename=template_filename,
+            template_arg=template_arg,
+            js_vars=js_vars,
+        )
+        self.sound_locations = sound_locations
+        self.num_steps = num_steps
+        self.snap_values = snap_values
+        self.autoplay = autoplay
+        self.audio = audio
+
+    macro = "audio_slider"
+
+    @property
+    def metadata(self):
+        return {
+            "sound_locations": self.sound_locations,
+            "num_steps": self.num_steps,
+            "snap_values": self.snap_values,
+            "autoplay": self.autoplay,
+        }
+
+
 class ColorSliderControl(SliderControl):
     def __init__(
             self,
@@ -1306,7 +1355,6 @@ class ColorSliderControl(SliderControl):
             hidden_inputs=hidden_inputs,
             js_vars=js_vars,
         )
-        self.template_arg = template_arg
 
     macro = "color_slider"
 

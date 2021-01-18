@@ -228,6 +228,56 @@
 {% endmacro %}
 
 
+{% macro audio_slider(config) %}
+    {{ slider(config) }}
+
+    <script>
+        {% autoescape off %}
+        var sound_locations = {{ config.js_vars.sound_locations }};
+        var autoplay = {{ config.js_vars.autoplay | lower }};
+        {% endautoescape %}
+
+        // Overwrites corresponding method in slider-page.html
+        slider.update_log = function() {
+            slider.log.push({
+                'time': new Date(),
+                'value': slider.value,
+                'audio': slider.audio
+            })
+        }
+
+        find_closest_audio = function (slider) {
+            var locations = Object.values(sound_locations);
+            var nearest = psynet.utils.closest(parseFloat(slider.value), locations);
+            var selected_audio = Object.keys(sound_locations)[nearest.index];
+            return selected_audio
+        };
+
+        play_sound = function () {
+            var id = slider.audio;
+            var sound = psynet.audio[id];
+
+            if (!sound.playing) {
+                psynet.media.stop_all_audio();
+                psynet.log.debug('Playing sound with ID = ' + id);
+                sound.play();
+            }
+        };
+
+        on_slider_event = function (event_type) {
+            slider.audio = find_closest_audio(slider);
+            if (event_type == "initialise") {
+                if (autoplay) {
+                    play_sound();
+                }
+            } else if (event_type == "slider_changed") {
+                play_sound();
+            }
+        };
+    </script>
+{% endmacro %}
+
+
 {% macro color_slider(config) %}
     <style>
         .main-body {
@@ -277,13 +327,13 @@
     <p class="vspace"></p>
 
     {{ null(config) }}
-
+    {{ config.js_vars }}
     <script>
         {% autoescape off %}
-        var snap_values = {{ config.js_vars.snap_values }};
-        var minimal_interactions = {{ config.js_vars.minimal_interactions }};
-        var minimal_time = {{ config.js_vars.minimal_time }};
-        var slider_continuous_updates = {{ config.js_vars.slider_continuous_updates | lower }};
+        var snap_values = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
+        var minimal_interactions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
+        var minimal_time = {% if config.js_vars.minimal_time is none %}null{% else %}{{ config.js_vars.minimal_time }}{% endif %} ;
+        var continuous_updates = {% if config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %}
         var slider_id = '{{ config.js_vars.slider_id }}';
         {% endautoescape %}
 
@@ -307,14 +357,14 @@
         // Metadata collection
         var slider = document.getElementById(slider_id);
 
-        if (slider_continuous_updates) {
+        if (continuous_updates) {
             slider.log = "The slider log is disabled when continuous slider updates are enabled.";
         } else {
             slider.log = [];
         }
 
         slider.update_log = function() {
-            if (!slider_continuous_updates) {
+            if (!continuous_updates) {
                 slider.log.push({
                     'time': new Date(),
                     'value': slider.value
@@ -349,7 +399,7 @@
 
         var slider_listener;
 
-        if (slider_continuous_updates) {
+        if (continuous_updates) {
             slider_listener = "input";
         } else {
             slider_listener = "change";
