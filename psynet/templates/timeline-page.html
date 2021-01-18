@@ -430,6 +430,100 @@
                     }
                 };
 
+                let Trial = function(duration) {
+                    let obj = {
+                        duration: null,
+                        state: null,
+                        inProgress: false,
+                        startTime: null,
+                        events: {},
+                        cleanupRoutines: [],
+
+                        start: function() {
+                            if (this.duration === null) {
+                                throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
+                            } else {
+                                obj.addEvent("trialEnd", this.duration, () => obj.end());
+                            }
+                            psynet.register_event("trialStart");
+                            this.inProgress = true;
+                            this.startTime = getGlobalTime();
+                            this.state = "trialStart";
+                            this.queueEvents();
+                        },
+
+                        end: function() {
+                            if (this.inProgress) {
+                                psynet.register_event("trialEnd");
+                                this.state = "trialEnd";
+                                this.clearEventQueue();
+                                this.runCleanupRoutines();
+                                this.inProgress = false;
+                            }
+                        },
+
+                        setDuration: function(duration) {
+                            this.duration = duration;
+                        },
+
+                        addEvent: function(id, time, handler) {
+                            if (typeof id !== 'string') {
+                                throw Error("id must be a string");
+                            }
+                            let e = {
+                                id: id,
+                                time: time,
+                                timer: null,
+                                handler: handler
+                            };
+                            e.queue = function() {
+                                e.timer = setTimeout(function() {
+                                    psynet.register_event(id);
+                                    e.handler();
+                                    this.state = id;
+                                }, e.time * 1000);
+                            };
+                            this.events[id] = e;
+                        },
+
+                        queueEvents: function() {
+                             Object.values(this.events).forEach(e => e.queue());
+                        },
+
+                        addCleanupRoutine(id, handler) {
+                            this.cleanupRoutines.push({
+                                id: id,
+                                handler: handler
+                            })
+                        },
+
+                        runCleanupRoutines() {
+                            this.cleanupRoutines.forEach(function(routine) {
+                                psynet.log.debug("Running trial clean-up routine: " + routine.id);
+                                routine.handler()
+                            });
+                        },
+
+                        clearEventQueue: function() {
+                            Object.values(this.events).forEach(e => clearTimeout(e.timer));
+                        },
+
+                        get time() {
+                            if (this.inProgress) {
+                                return getGlobalTime() - this.startTime;
+                            } else {
+                                return null;
+                            }
+                        }
+                    }
+
+                    return obj
+                }
+
+                psynet.trial = Trial();
+
+                psynet.response.register_on_ready_routine(() => psynet.trial.start());
+
                 psynet.media.types = ["audio", "image", "video"];
                 psynet.media.data = {};
 
