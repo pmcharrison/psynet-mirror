@@ -416,7 +416,7 @@
             #audio-record-progress {
                 margin: 50px
             }
-            #audio-record-progress-bar {
+            .audio-record-progress-bar {
                 -webkit-transition: none;
                 -moz-transition: none;
                 -ms-transition: none;
@@ -426,7 +426,10 @@
         </style>
 
         <div id="audio-record-progress" class="progress">
-            <div id="audio-record-progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="audio-record-progress-bar-0" class="progress-bar audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 1" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="audio-record-progress-bar-1" class="progress-bar audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="audio-record-progress-bar-2" class="progress-bar bg-danger audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 0.25" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="audio-record-progress-bar-3" class="progress-bar audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     {% endif %}
 
@@ -487,7 +490,7 @@
                     if (sync_with_prompt()) {
                         $("#audio-prompt-play").click();
                     }
-                    record_segment({{ config.duration }});
+                    trial.start();
                 });
                 $("#audio-record-play").on("click", function() {
                     if (sync_with_prompt()) {
@@ -502,9 +505,7 @@
                     if (psynet.audio.recording.playing) {
                         psynet.audio.recording.stop(audio_record_player_options);
                     }
-                    if (is_recording) {
-                        cancelRecording();
-                    }
+                    trial.end();
                 });
                 $("#audio-record-loop-input").on("change", function(event) {
                     audio_record_player_options.loop = event.target.checked;
@@ -527,46 +528,170 @@
 
         var recorder;
 
-        var recorder_start_time = null;
-        var is_recording = false;
-        var has_recorded = false;
-
-        let recorder_timer;
-        let recorder_controls = {{ config.controls | lower }};
+        var hasRecorded = false;
         let recording_blob;
 
-        let init_progress_bar = function() {
-            let bar = $("#audio-record-progress-bar");
-            let update_bar = function() {
-                let percent = get_bar_percent()
+        let recorderControls = {{ config.controls | lower }};
+        let recordWindow = {{ config.record_window | tojson }};
 
-                bar.css("width", percent + "%");
-                bar.attr("aria-valuenow", percent);
+        var Trial = function(duration) {
+            let obj = {
+                duration: duration,
+                state: null,
+                inProgress: false,
+                startTime: null,
+                events: [],
+                cleanupRoutines: [],
 
-                if (is_recording) {
-                    bar.addClass("bg-danger");
-                } else {
-                    bar.removeClass("bg-danger");
+                start: function() {
+                    psynet.register_event("trialStart");
+                    this.inProgress = true;
+                    this.startTime = getGlobalTime();
+                    this.state = "trialStart";
+                    this.queueEvents();
+                },
+
+                end: function() {
+                    if (this.inProgress) {
+                        psynet.register_event("trialEnd");
+                        this.state = "trialEnd";
+                        this.clearEventQueue();
+                        this.runCleanupRoutines();
+                        this.inProgress = false;
+                    }
+                },
+
+                addEvent: function(id, time, handler) {
+                    if (typeof id !== 'string') {
+                        throw Error("id must be a string");
+                    }
+                    let e = {
+                        id: id,
+                        time: time,
+                        timer: null,
+                        handler: handler
+                    };
+                    e.queue = function() {
+                        e.timer = setTimeout(function() {
+                            psynet.register_event(id);
+                            e.handler();
+                            this.state = id;
+                        }, e.time * 1000);
+                    };
+                    this.events.push(e);
+                },
+
+                queueEvents: function() {
+                    this.events.forEach(e => e.queue());
+                },
+
+                addCleanupRoutine(id, handler) {
+                    this.cleanupRoutines.push({
+                        id: id,
+                        handler: handler
+                    })
+                },
+
+                runCleanupRoutines() {
+                    this.cleanupRoutines.forEach(function(routine) {
+                        psynet.log.debug("Running trial clean-up routine: " + routine.id);
+                        routine.handler()
+                    });
+                },
+
+                clearEventQueue: function() {
+                    this.events.forEach(e => clearTimeout(e.timer));
+                },
+
+                get time() {
+                    if (this.inProgress) {
+                        return getGlobalTime() - this.startTime;
+                    } else {
+                        return null;
+                    }
                 }
             }
-            setInterval(update_bar, 5);
-        };
 
-        let get_bar_percent = function() {
-            let time;
-            let duration = {{ config.duration }};
-            let playing = (psynet.audio.recording === undefined) ? false : psynet.audio.recording.playing;
+            obj.addEvent("trialEnd", duration, () => obj.end())
 
-            if (playing) {
-                time = psynet.audio.recording.get_current_time()
-            } else if (is_recording) {
-                time = psynet.media.audio_context.currentTime - recorder_start_time;
-            } else {
-                time = 0.0;
+            return obj
+        }
+
+        let trial = Trial({{ config.duration }});
+        psynet.response.register_on_ready_routine(() => trial.start());
+
+        trial.addEvent("startRecording", recordWindow[0], function () {
+            $(".record-alert").hide();
+            $("#record-active").show();
+            recorder.clear();
+            recorder.record();
+        });
+
+        trial.addEvent("endRecording", recordWindow[1], function() {
+            recorder.stop();
+            hasRecorded = true;
+            exportRecording();
+        });
+
+        trial.addCleanupRoutine("stopRecorder",  () => recorder.stop());
+
+        let exportRecording = function() {
+            recorder.exportWAV(function (blob) {
+                $(".record-alert").hide();
+                $("#record-upload").show();
+
+                recording_blob = blob;
+
+                psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
+                    psynet.media.add_extra_audio_stimulus(buffer, "recording");
+                    psynet.register_event("audio_recording_finished");
+                });
+
+                if (recorderControls) {
+                    $("#audio-record-upload").prop("disabled", false);
+                } else {
+                    startPresignedUrlUpload(recording_blob);
+                }
+            })
+        }
+
+        let getGlobalTime = function() {
+            return psynet.media.audio_context.currentTime;
+        }
+
+        let initProgressBar = function() {
+            let bars = [
+                $("#audio-record-progress-bar-0"),
+                $("#audio-record-progress-bar-1"),
+                $("#audio-record-progress-bar-2"),
+                $("#audio-record-progress-bar-3")
+            ];
+
+            let updateBars = function() {
+                let duration = trial.duration;
+                let time = trial.time;
+
+                updateBar(bars[0], 100 * time / duration, recorder.recording, {});
+                updateBar(bars[1], 100 * Math.max(0, recordWindow[0] - time) / duration, false, {});
+                updateBar(bars[2], 100 * Math.max(0, recordWindow[1] - Math.max(time, recordWindow[0])) / duration, true, {});
+                updateBar(bars[3], 100 * Math.max(0, duration - Math.max(recordWindow[1], time)) / duration, false, {});
             }
 
-            return 100.0 * time / duration;
+            setInterval(updateBars, 5);
         }
+
+        let updateBar = function(bar, percent, red, css) {
+            bar.css("width", percent + "%");
+            bar.attr("aria-valuenow", percent);
+
+            bar.css(css);
+
+            if (red) {
+                bar.addClass("bg-danger");
+            } else {
+                bar.removeClass("bg-danger");
+            }
+        };
 
         psynet.media.register_on_loaded_routine(function() {
             navigator.mediaDevices.getUserMedia({
@@ -581,7 +706,7 @@
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);
                 psynet.response.ready("recorder_ready")
-                {% if config.progress_bar %} init_progress_bar() {% endif %}
+                {% if config.progress_bar %} initProgressBar() {% endif %}
             })
         });
 
@@ -592,62 +717,6 @@
         setTimeout(function() {
             psynet.response.ready("page_load_buffer");
         }, 1000)
-
-        record_segment = function(duration) {
-            startRecording();
-            if (recorder_timer) {
-                clearTimeout(recorder_timer);
-            }
-            recorder_timer = setTimeout(endRecording, duration * 1000);
-        }
-
-        startRecording = function() {
-            psynet.log.debug("Starting recording.");
-            psynet.register_event("audio_record_start");
-            is_recording = true;
-            recorder_start_time = psynet.media.audio_context.currentTime;
-            $(".record-alert").hide();
-            $("#record-active").show();
-            recorder.clear();
-            recorder.record();
-        }
-
-        cancelRecording = function() {
-            psynet.log.debug("Cancelling recording.")
-            psynet.register_event("audio_record_cancel");
-            is_recording = false;
-            recorder.stop();
-            clearTimeout(recorder_timer);
-        }
-
-        endRecording = function() {
-            if (!is_recording) {
-                psynet.log.warn("endRecording was called, but no recording seems to be ongoing.")
-                return;
-            }
-            psynet.log.debug("Ending recording.")
-            psynet.register_event("audio_record_end");
-            is_recording = false;
-            has_recorded = true;
-
-            recorder.exportWAV(function (blob) {
-                $(".record-alert").hide();
-                $("#record-upload").show();
-
-                recording_blob = blob;
-
-                psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
-                    psynet.media.add_extra_audio_stimulus(buffer, "recording");
-                    psynet.register_event("audio_recording_finished");
-                });
-
-                if (recorder_controls) {
-                    $("#audio-record-upload").prop("disabled", false);
-                } else {
-                    startPresignedUrlUpload(recording_blob);
-                }
-            })
-        }
 
         startPresignedUrlUpload = function(wavAudioBlob) {
             // TODO upload if LOCAL_S3
@@ -674,10 +743,6 @@
                 raw_answer: presignedUrl
             }
         }
-
-        psynet.response.register_on_ready_routine(function() {
-            record_segment({{ config.duration }});
-        });
     </script>
 {% endmacro %}
 
