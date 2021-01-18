@@ -191,7 +191,7 @@ example_audio_page_2 = ModularPage(
         loop=True,
         enable_submit_after=2,
         progress_bar=True,
-        playback_controls=True
+        controls=True
     ),
     time_estimate=5
 )
@@ -204,7 +204,9 @@ example_record_page = join(
             duration=3.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
-            public_read=True
+            public_read=True,
+            progress_bar=True,
+            controls=True
         ),
         time_estimate=5
     ),
@@ -223,17 +225,21 @@ example_record_with_audio_prompt = join(
         AudioPrompt(
             # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
-            text="This page enables the recorder and plays the audio 0.5 seconds later.",
+            text="This page enables the recorder and immediately plays the audio.",
             prevent_response=False,
-            start_delay=0.5,
-            enable_submit_after=5.5
+            start_delay=0.0,
+            enable_submit_after=5.5,
+            progress_bar=False,
+            play_window=[0, 5]
         ),
         AudioRecordControl(
             duration=5.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
-            progress_bar=True
+            progress_bar=True,
+            controls=True,
+            record_window=[1, 4]
         ),
         time_estimate=5
     ),
@@ -251,8 +257,8 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        example_audio_page,
-        example_audio_page_2,
+        # example_audio_page,
+        # example_audio_page_2,
         example_record_with_audio_prompt,
         example_record_page,
         example_audio_meter,

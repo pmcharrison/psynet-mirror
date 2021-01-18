@@ -449,39 +449,42 @@
                             if (this.duration === null) {
                                 throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
                             }
-                            if (this.inProgress) {
-                                this.cancel();
-                            }
-                            this.iteration += 1;
-                            psynet.log.debug("*** Starting new trial, iteration " + this.iteration);
-                            psynet.register_event("trialStart");
-                            this.addEvent("trialFinish", this.duration, () => this.finish());
-                            this.inProgress = true;
-                            this.startTime = getGlobalTime();
-                            this.state = "trialStart";
-                            this.clearEventQueue();
-                            this.queueEvents();
-                        },
+                            let trial = this;
+                            trial.cancel().then(function() {
+                                trial.iteration += 1;
+                                psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
+                                psynet.register_event("trialStart");
+                                trial.addEvent("trialFinish", trial.duration, () => trial.finish());
+                                trial.inProgress = true;
+                                trial.startTime = getGlobalTime();
+                                trial.state = "trialStart";
+                                trial.clearEventQueue();
+                                trial.queueEvents();
+                            })
+                         },
 
-                        cancel: function() {
+                        cancel: async function() {
                             if (this.inProgress) {
                                 psynet.register_event("trialCancel");
                                 this.state = "trialCancel";
-                                this.stop();
+                                return await this.stop();
+                            } else {
+                                return await Promise.resolve(true);
                             }
                         },
 
-                        finish: function() {
+                        finish: async function() {
                             if (this.inProgress) {
-                                this.stop()
-                                this.runRoutines("finish");
+                                return await this.stop().then(() => this.runRoutines("finish"));
+                            } else {
+                                return await Promise.resolve(true);
                             }
                         },
 
-                        stop: function() {
+                        stop: async function() {
                             this.clearEventQueue();
-                            this.runRoutines("cleanup");
                             this.inProgress = false;
+                            await this.runRoutines("cleanup");
                         },
 
                         setDuration: function(duration) {
@@ -537,11 +540,12 @@
                             this.addRoutine("finish", id, handler);
                         },
 
-                        runRoutines(type) {
+                        runRoutines: function(type) {
                             this.routines[type].forEach(function(routine) {
                                 psynet.log.debug("Running trial (" + this.iteration + ") " + type + " routine: " + routine.id);
                                 routine.handler()
                             }, this);
+                            return new Promise(resolve => setTimeout(() => resolve("true"), 10)); // gruesome hack to be fixed later
                         },
 
                         clearEventQueue: function() {
