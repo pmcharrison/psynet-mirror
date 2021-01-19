@@ -44,12 +44,29 @@ Audio/Video controls
   :width: 600
   :alt: AudioRecordControl (recording)
 
+.. image:: ../_static/images/audio_record_control_uploading.png
+  :width: 600
+  :alt: AudioRecordControl (uploading)
+
 .. image:: ../_static/images/audio_record_control_finished.png
-  :width: 580
+  :width: 600
   :alt: AudioRecordControl (finished)
 
-
 * :class:`~psynet.modular_page.TappingAudioMeterControl`
+
+.. image:: ../_static/images/tapping_audio_meter_control.png
+  :width: 560
+  :alt: TappingAudioMeterControl
+
+* :class:`~psynet.modular_page.SliderControl`
+
+.. image:: ../_static/images/slider_control.png
+  :width: 580
+  :alt: SliderControl
+
+* :class:`~psynet.modular_page.ColorSliderControl`
+
+* :class:`~psynet.modular_page.AudioSliderControl`
 
 * :class:`~psynet.modular_page.VideoSliderControl`
 
@@ -80,6 +97,12 @@ These classes inherit from :class:`~psynet.modular_page.OptionControl`.
   :width: 800
   :alt: PushButtonControl
 
+* :class:`~psynet.modular_page.TimedPushButtonControl`
+
+.. image:: ../_static/images/timed_push_button_control.png
+  :width: 800
+  :alt: TimedPushButtonControl
+
 * :class:`~psynet.modular_page.RadioButtonControl`
 
 .. image:: ../_static/images/radiobutton_control.png
@@ -90,6 +113,12 @@ Other controls
 ~~~~~~~~~~~~~~
 
 * :class:`~psynet.modular_page.NullControl`
+
+* :class:`~psynet.modular_page.NumberControl`
+
+.. image:: ../_static/images/number_control.png
+  :width: 800
+  :alt: NumberControl
 
 * :class:`~psynet.modular_page.SliderControl`
 
