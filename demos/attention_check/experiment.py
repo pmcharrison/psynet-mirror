@@ -1,0 +1,41 @@
+##########################################################################################
+#### Imports
+##########################################################################################
+
+import psynet.experiment
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.prescreen import AttentionCheck
+from psynet.timeline import Timeline
+
+from psynet.demography.general import (
+    BasicDemography,
+    Language,
+    BasicMusic,
+    HearingLoss,
+    Dance,
+    SpeechDisorders,
+    Income,
+    ExperimentFeedback,
+)
+
+##########################################################################################
+#### Experiment
+##########################################################################################
+
+# Weird bug: if you instead import Experiment from psynet.experiment,
+# Dallinger won't allow you to override the bonus method
+# (or at least you can override it but it won't work).
+class Exp(psynet.experiment.Experiment):
+    consent_audiovisual_recordings = False
+
+    timeline = Timeline(
+    	BasicDemography(),
+        Language(),
+        BasicMusic(),
+        AttentionCheck(), # it is good practice to add the AttentionCheck in the middle of demographic questions, so its presentation is not too obvious
+        HearingLoss(),
+        Dance(),
+        SuccessfulEndPage()
+    )
+
+extra_routes = Exp().extra_routes()
