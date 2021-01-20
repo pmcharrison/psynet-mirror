@@ -489,33 +489,28 @@ class SliderPage(ModularPage):
         self.template_filename = template_filename
 
         if not 'template_arg' in kwargs:
-            self.template_arg = {}
+            self.template_args = {}
         else:
-            self.template_arg = kwargs["template_arg"]
-
-        js_vars = {}
-        js_vars["snap_values"] = self.snap_values
-        js_vars["num_steps"] = self.num_steps
-        js_vars["start_value"] = self.start_value
-        js_vars['minimal_interactions'] = self.minimal_interactions
-        js_vars['minimal_time'] = self.minimal_time
-        js_vars["reverse_scale"] = self.reverse_scale
-        js_vars["continuous_updates"] = self.continuous_updates
-        js_vars["slider_id"] = self.slider_id
+            self.template_args = kwargs["template_arg"]
 
         super().__init__(
             self.label,
             prompt=Prompt(self.prompt),
             control=SliderControl(
                 label=self.label,
-                slider_id=self.slider_id,
                 start_value=self.start_value,
                 min_value=self.min_value,
                 max_value=self.max_value,
+                num_steps=self.num_steps,
                 step_size=self.step_size,
+                reverse_scale=self.reverse_scale,
+                slider_id=self.slider_id,
+                snap_values=self.snap_values,
+                minimal_interactions=self.minimal_interactions,
+                minimal_time=self.minimal_time,
+                continuous_updates=self.continuous_updates,
                 template_filename=self.template_filename,
-                template_arg=self.template_arg,
-                js_vars=js_vars,
+                template_args=self.template_args,
             ),
             time_estimate=self.time_estimate,
         )
@@ -681,36 +676,31 @@ class AudioSliderPage(ModularPage):
         # if not all([location in ticks for _, location in sound_locations.items()]):
         #     raise ValueError('The slider does not contain all locations for the audio')
 
-        js_vars = {}
-        js_vars["autoplay"] = autoplay
-        js_vars["sound_locations"] = sound_locations
-        js_vars["slider_id"] = slider_id
-        js_vars["snap_values"] = snap_values
-        js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["continuous_updates"] = continuous_updates
-        js_vars["minimal_time"] = minimal_time
-        js_vars["audio"] = audio
-
         self.sound_locations = sound_locations
         # All range checking is done in the parent class
-        self.step_size = (max_value - min_value) / (num_steps - 1)
+        step_size = (max_value - min_value) / (num_steps - 1)
 
         super().__init__(
             label,
             prompt=Prompt(prompt),
             control=AudioSliderControl(
                 label=label,
-                sound_locations=sound_locations,
-                slider_id=slider_id,
                 start_value=start_value,
-                num_steps=num_steps,
-                step_size=self.step_size,
                 min_value=min_value,
                 max_value=max_value,
-                js_vars=js_vars,
+                audio=audio,
+                sound_locations=self.sound_locations,
+                autoplay=autoplay,
+                num_steps=num_steps,
+                step_size=step_size,
+                slider_id=slider_id,
+                reverse_scale=kwargs.get('reverse_scale'),
+                snap_values=snap_values,
+                minimal_interactions=minimal_interactions,
+                minimal_time=minimal_time,
             ),
-            media=kwargs['media'],
-            time_estimate=kwargs['time_estimate'],
+            media=kwargs.get('media'),
+            time_estimate=kwargs.get('time_estimate'),
         )
 
     def metadata(self, **kwargs):
@@ -719,7 +709,6 @@ class AudioSliderPage(ModularPage):
             **super().metadata(),
             "prompt": self.prompt.metadata,
             "control": self.control.metadata,
-            'sound_locations': self.sound_locations
         }
 
 

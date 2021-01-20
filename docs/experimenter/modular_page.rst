@@ -58,13 +58,6 @@ Audio/Video controls
   :width: 560
   :alt: TappingAudioMeterControl
 
-* :class:`~psynet.modular_page.SliderControl`
-
-.. image:: ../_static/images/slider_control.png
-  :width: 580
-  :alt: SliderControl
-
-* :class:`~psynet.modular_page.ColorSliderControl`
 
 * :class:`~psynet.modular_page.AudioSliderControl`
 
@@ -109,10 +102,15 @@ These classes inherit from :class:`~psynet.modular_page.OptionControl`.
   :width: 800
   :alt: RadioButtonControl
 
+
 Other controls
 ~~~~~~~~~~~~~~
 
 * :class:`~psynet.modular_page.NullControl`
+
+.. image:: ../_static/images/null_control.png
+  :width: 800
+  :alt: NullControl
 
 * :class:`~psynet.modular_page.NumberControl`
 
@@ -121,6 +119,10 @@ Other controls
   :alt: NumberControl
 
 * :class:`~psynet.modular_page.SliderControl`
+
+.. image:: ../_static/images/slider_control.png
+  :width: 800
+  :alt: SliderControl
 
 * :class:`~psynet.modular_page.TextControl`
 

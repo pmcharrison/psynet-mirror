@@ -888,17 +888,16 @@ class NumberControl(Control):
     ----------
 
     width:
-        Optional CSS width property for the text box. Default: "120px".
+        CSS width property for the text box. Default: `"120px"`.
 
-    align:
-        Alignment for the number input. Default: "right".
-
+    text_align:
+        CSS width property for the alignment of the text inside the number input field. Default: `"right"`.
     """
 
     def __init__(
             self,
             width: Optional[str] = "120px",
-            text_align: str = "right"
+            text_align: Optional[str] = "right"
     ):
         self.width = width
         self.text_align = text_align
@@ -931,14 +930,13 @@ class TextControl(Control):
         Whether the text box should comprise solely one line.
 
     width:
-        Optional CSS width property for the text box.
+        CSS width property for the text box.
 
     height:
-        Optional CSS height property for the text box.
+        CSS height property for the text box.
 
-    align:
-        Alignment for the text.
-
+    text_align:
+        CSS width property for the alignment of the text inside the text input field. Default: `"left"`.
     """
 
     def __init__(
@@ -1261,26 +1259,110 @@ class TappingAudioMeterControl(AudioMeterControl):
     }
 
 class SliderControl(Control):
+    """
+    This control interface displays a horizontal slider to the participant.
+
+    The control logs all interactions from the participant including:
+    - initial location of the slider
+    - subsequent release points along with time stamps
+
+    Currently the slider does not display any numbers describing the
+    slider's current position. We anticipate adding this feature in
+    a future release, if there is interest.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the control (used to store results).
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    num_steps:
+        Determines the number of steps that the slider can be dragged through. Default: `10000`.
+
+    step_size:
+        Step size of the slider. Default: `1`.
+
+    snap_values:
+        Optional. Determines the values to which the slider will 'snap' to once it is released.
+        Can take various forms:
+
+        - ``<None>``: no snapping is performed.
+
+        - ``<int>``: indicating number of equidistant steps between `min_value` and `max_value`.
+
+        - ``<list>``: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type :
+        By default we use the HTML5 slider, however future implementations might also use different slider
+        formats, like 2D sliders or circular sliders. Default: `"HTML5_range_slider"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+
+    template_filename:
+        Filename of an optional additional template. Default: `None`.
+
+    template_args:
+        Arguments for the  optional additional template. Default: `None`.
+    """
+
     def __init__(
             self,
-            label,
-            start_value,
-            min_value,
-            max_value,
-            template_filename,
-            template_arg,
+            label: str,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            num_steps: int = 10000,
+            step_size: Optional[float] = 1,
+            reverse_scale: Optional[bool] = False,
             slider_id: Optional[str] = 'sliderpage_slider',
-            step_size: Optional[float] = None,
-            js_vars: Optional[Dict] = None,
+            input_type: Optional[str] = "HTML5_range_slider",
+            snap_values: Optional[Union[int, list]] = None,
+            minimal_interactions: Optional[int] = 0,
+            minimal_time: Optional[int] = 0,
+            continuous_updates: Optional[bool] = False,
+            template_filename: Optional[str] = None,
+            template_args: Optional[Dict] = None,
         ):
         self.label = label
-        self.slider_id = slider_id
         self.start_value = start_value
         self.min_value = min_value
         self.max_value = max_value
+        self.num_steps = num_steps
         self.step_size = step_size
+        self.reverse_scale = reverse_scale
+        self.slider_id = slider_id
+        self.input_type = input_type
         self.template_filename = template_filename
-        self.template_arg = template_arg
+        self.template_args = template_args
+
+        js_vars = {}
+        js_vars["snap_values"] = snap_values
+        js_vars['minimal_interactions'] = minimal_interactions
+        js_vars['minimal_time'] = minimal_time
+        js_vars["continuous_updates"] = continuous_updates
         self.js_vars = js_vars
 
     macro = "slider"
@@ -1289,65 +1371,153 @@ class SliderControl(Control):
     def metadata(self):
         return {
             "label": self.label,
-            "slider_id": self.slider_id,
             "start_value": self.start_value,
             "min_value": self.min_value,
             "max_value": self.max_value,
+            "num_steps": self.num_steps,
             "step_size": self.step_size,
-            "template_arg": self.template_arg,
+            "reverse_scale": self.reverse_scale,
+            "slider_id": self.slider_id,
+            "input_type": self.input_type,
+            "template_filename": self.template_filename,
+            "template_args": self.template_args,
             "js_vars": self.js_vars,
         }
 
 
 class AudioSliderControl(SliderControl):
+    """
+    This control solicits a slider response from the user that results in playing some audio.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the page (used to store results).
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    audio:
+        A dictionary of audio assets.
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid audio argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.wav',
+                'my_batch': {
+                    'url': '/static/file_concatenated.mp3',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    sound_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The sound closest to the current slider position is played once the page is loaded. Default: `False`.
+
+    num_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"num_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
+          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    step_size:
+        Step size of the slider. Default: `1`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    snap_values:
+        - ``"sound_locations"``: slider snaps to nearest sound location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"sound_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+    """
     def __init__(
             self,
             label,
-            sound_locations: dict,
-            slider_id: str,
             start_value: float,
             min_value: float,
             max_value: float,
-            step_size: float,
-            audio: Optional[Dict] = None,
-            num_steps: Union[str, int] = 10000,
-            snap_values: Optional[Union[int, list]] = "sound_locations",
+            audio: dict,
+            sound_locations: dict,
             autoplay: Optional[bool] = False,
-            time_estimate: Optional[float] = None,
-            template_filename: Optional[str] = None,
-            template_arg: Optional[Dict] = None,
-            js_vars: Optional[Dict] = None,
-             **kwargs
+            num_steps: Optional[int] = 10000,
+            step_size: Optional[float] = 1,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            reverse_scale: Optional[bool] = False,
+            snap_values: Optional[Union[int, list]] = "sound_locations",
+            minimal_interactions: Optional[int] = 0,
+            minimal_time: Optional[int] = 0,
         ):
         super().__init__(
             label=label,
             start_value=start_value,
-            slider_id=slider_id,
-            step_size=step_size,
             min_value=min_value,
             max_value=max_value,
-            template_filename=template_filename,
-            template_arg=template_arg,
-            js_vars=js_vars,
+            num_steps = num_steps,
+            step_size=step_size,
+            slider_id=slider_id,
+            reverse_scale=reverse_scale,
         )
         self.sound_locations = sound_locations
-        self.num_steps = num_steps
-        self.snap_values = snap_values
         self.autoplay = autoplay
+        self.snap_values = snap_values
         self.audio = audio
+
+        js_vars = {}
+        js_vars["sound_locations"] = self.sound_locations
+        js_vars["autoplay"] = self.autoplay
+        js_vars["snap_values"] = self.snap_values
+        js_vars['minimal_interactions'] = minimal_interactions
+        js_vars['minimal_time'] = minimal_time
+
+        self.js_vars = js_vars
 
     macro = "audio_slider"
 
     @property
     def metadata(self):
         return {
+            **super().metadata,
             "sound_locations": self.sound_locations,
-            "num_steps": self.num_steps,
-            "snap_values": self.snap_values,
             "autoplay": self.autoplay,
         }
 
 
+# WIP
 class ColorSliderControl(SliderControl):
     def __init__(
             self,
@@ -1376,11 +1546,11 @@ class ColorSliderControl(SliderControl):
     @property
     def metadata(self):
         return {
-            **super().metadata(),
+            **super().metadata,
             "hidden_inputs": self.hidden_inputs,
         }
 
-
+# WIP
 class MultiSliderControl(Control):
     def __init__(
             self,
@@ -1391,7 +1561,6 @@ class MultiSliderControl(Control):
         self.sliders = sliders
         self.next_button = next_button
 
-    # WIP
 
 class Slider():
     def __init__(

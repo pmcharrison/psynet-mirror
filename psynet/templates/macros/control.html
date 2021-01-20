@@ -327,14 +327,14 @@
     <p class="vspace"></p>
 
     {{ null(config) }}
-    {{ config.js_vars }}
+
     <script>
         {% autoescape off %}
         var snap_values = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
         var minimal_interactions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
         var minimal_time = {% if config.js_vars.minimal_time is none %}null{% else %}{{ config.js_vars.minimal_time }}{% endif %} ;
-        var continuous_updates = {% if config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %}
-        var slider_id = '{{ config.js_vars.slider_id }}';
+        var continuous_updates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
+        var slider_id = '{{ config.slider_id }}';
         {% endautoescape %}
 
         // This is called each time
@@ -488,13 +488,13 @@
     <div class="slider-collection">
         {% for s in config.sliders %}
             <div class="slider">
-                <span class="slider-label" style=>
+                <span class="slider-label">
                     {{ s.label }}
                 </span>
-                <input id="{{ s.slider_id }}" class="slider-range form-control-range response" type="range"
-                            style="display: inline-block;"
-                            min="{{ s.min_value }}" max="{{ s.max_value + 0.0001 * s.step_size }}"
-                            step="{{ s.step_size }}" value="{{ s.start_value }}">
+                <input type="range" id="{{ s.slider_id }}" class="slider-range form-control-range response"
+                       style="display: inline-block;" min="{{ s.min_value }}"
+                       max="{{ s.max_value + 0.0001 * s.step_size }}" step="{{ s.step_size }}"
+                       value="{{ s.start_value }}">
                 <span class="slider-value">NA</span>
             </div>
         {% endfor %}
@@ -615,7 +615,7 @@
         </div>
 
         <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading response...
+            Uploading...
         </div>
     </div>
 
@@ -745,7 +745,7 @@
             padding-top: 20px;
             padding-bottom: 20px;
             display: flex;
-            justify-content: left;
+            justify-content: center;
         }
         #number_input {
             text-align: {{config.text_align}};
