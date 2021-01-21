@@ -136,6 +136,7 @@ class UnityPage(Page):
     ):
         self.title = title
         self.resources = resources
+        self.contents = json.loads(contents)
         self.game_container_width = game_container_width
         self.game_container_height = game_container_height
         self.session_id = session_id
@@ -143,13 +144,13 @@ class UnityPage(Page):
         template = "unity-debug-page.html" if debug else "unity-page.html"
 
         super().__init__(
-            contents = contents,
+            contents = self.contents,
             time_estimate = time_estimate,
             template_str = get_template(template),
             template_arg = {
                 "title": self.title,
-                "resources": "" if resources is None else resources,
-                "contents": {} if contents is None else contents,
+                "resources": "" if self.resources is None else self.resources,
+                "contents": {} if self.contents is None else self.contents,
                 "game_container_width": self.game_container_width,
                 "game_container_height": self.game_container_height,
                 "session_id": self.session_id,

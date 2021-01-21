@@ -7,7 +7,7 @@ There exist two main ways for Unity to interact with PsyNet's user interface:
 1. Defining an experiment timeline using ``UnityPage`` elements
 2. Calling ``psynet.next_page()`` and then listening to the JavaScript event ``page_updated``
 
-Let's look at an example of an experiment consisting of a experiment timeline which includes three ``UnityPage`` elements. The first two elements share the same ``session_id`` while the third has a different one. A ``session_id`` corresponds to a Unity session and allows for joining a sequence of ``UnityPage`` elements into a single unit.
+Let's look at an example of an experiment consisting of an experiment timeline which includes three ``UnityPage`` elements. The first two elements share the same ``session_id`` while the third has a different one. A ``session_id`` corresponds to a Unity session and allows for joining a sequence of ``UnityPage`` elements into a single unit.
 
 ```python
 from uuid import uuid4
