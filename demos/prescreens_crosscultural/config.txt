@@ -15,7 +15,7 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
-description = This app demos two pre-screening tasks to be used with cross cultural research: lextale tot for English proficient and a basic vocabulary test implemented in five langauges.
+description = This app demos two pre-screening tasks to be used with cross cultural research: lextale test for English proficient and a basic vocabulary test implemented in five languages.
 keywords = non_adaptive
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics

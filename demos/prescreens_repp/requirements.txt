@@ -4,5 +4,4 @@ praat-parselmouth==0.3.3
 urllib3==1.23
 docopt==0.6.2
 matplotlib==3.3.1
-aubio==0.4.9
 scipy==1.5.3

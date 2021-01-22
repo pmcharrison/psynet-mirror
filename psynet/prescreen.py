@@ -11,7 +11,6 @@ from .modular_page import (
     TextControl,
     NAFCControl,
     AudioMeterControl,
-    TappingAudioMeterControl,
     AudioRecordControl
 )
 from .page import InfoPage, NAFCPage, UnsuccessfulEndPage, TextInputPage
@@ -56,20 +55,20 @@ class VolumeTestControl(AudioMeterControl):
 
 class REPPVolumeCalibration(Module):
     """
-    This is a volume calibration test to be used when implementing SMS experiemnts with REPP. It contains
+    This is a volume calibration test to be used when implementing SMS experiments with REPP. It contains
     a page with general technical requirements of REPP and a volume calibration test with a visual sound meter
-    and stimulus customized to help particiaptns find the right volume to use REPP.
+    and stimulus customized to help participants find the right volume to use REPP.
     
     Parameters
     ----------
     label : string, optional
-        The label for the AttentionCheck test, default: "repp_volume_calibration".
+        The label for the REPPVolumeCalibration test, default: "repp_volume_calibration".
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 10.0.
         
     min_time_before_submitting : float, optional
-        Minimum time to wait (in seconds) while the music plays and particiapnt cannot submit a response, default: 5.0.
+        Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 5.0.
 
     """
 
@@ -89,7 +88,7 @@ class REPPVolumeCalibration(Module):
             f"""
             <h3>Attention</h3>
             <hr>
-            <b>Throughout the experiment, is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment. 
+            <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment. 
             <br><br>
             <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
             <hr>
@@ -142,19 +141,19 @@ class TappingTestAudioMeter(AudioMeterControl):
 
 class REPPTappingCalibration(Module):
     """
-    This is a tapping calibration test to be used when implementing SMS experiemnts with REPP. It also containg the
-    main instruction about how to tap using this technology.
+    This is a tapping calibration test to be used when implementing SMS experiments with REPP. 
+    It is also containing the main instructions about how to tap using this technology.
     
     Parameters
     ----------
     label : string, optional
-        The label for the AttentionCheck test, default: "repp_tapping_calibration".
+        The label for the REPPTappingCalibration test, default: "repp_tapping_calibration".
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 10.0.
 
     min_time_before_submitting : float, optional
-        Minimum time to wait (in seconds) while the music plays and particiapnt cannot submit a response, default: 5.0.
+        Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 5.0.
     """
 
     def __init__(
@@ -173,7 +172,7 @@ class REPPTappingCalibration(Module):
             <h3>You will now practice how to tap on your laptop</h3>
             <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
             <ul><li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
-                <li><i style="color:red;">Do not on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
+                <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
                 <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
             </ul>
             <img style="width:70%" src="{media_url}/{name_image}"  alt="image_rules">
@@ -200,14 +199,14 @@ class MyEncoder(json.JSONEncoder):
 class REPPMarkersCheck(Module):
     """
     This markers check is used to determine whether participants are using hardware
-    and software that meets the technical requirements of REPP, such as
+    and software that is incompatible with REPP, such as
     malfunctioning speakers or microphones, or the use of strong noise-cancellation
     technologies. To make the most out of it, the markers check should be used at the 
     beginning of the experiment, after providing general instructions
     with the technical requirements of the experiment. In each trial, the markers check plays
-    a test stimulus with six marker sounds. The mstimulus is then recorded
+    a test stimulus with six marker sounds. The stimulus is then recorded
     with the laptop’s microphone and analyzed using the REPP's signal processing pipeline.
-    During the marker playback time, participants are supposed to remain silent
+    During the marker playback time, participants are supposed to remain in silent.
     (not respond). 
 
     Parameters
@@ -258,7 +257,7 @@ class REPPMarkersCheck(Module):
             <h3>Recording test</h3>
             <hr>
             Now we will test the recording quality of your laptop. In {num_trials} trials, you will be 
-            asked to remain in silent while we play and record a sound.
+            asked to remain in silence while we play and record a sound.
             <br><br>
             <img style="width:50%" src="{media_url}/{name_image}"  alt="image_rules">
             <br><br>
@@ -275,12 +274,12 @@ class REPPMarkersCheck(Module):
             performance_threshold: int,
             num_trials: float
         ):
-        class MarkerMarkerTrialMaker(NonAdaptiveTrialMaker): 
+        class MarkerTrialMaker(NonAdaptiveTrialMaker): 
             give_end_feedback_passed = False
             performance_check_type= "performance"
             performance_check_threshold = performance_threshold
         
-        return MarkerMarkerTrialMaker(
+        return MarkerTrialMaker(
             id_="marker_trial_maker",
             trial_class=self.trial(time_estimate_per_trial), 
             phase="experiment",
@@ -372,7 +371,7 @@ class LanguageVocabularyTest(Module):
     """
     This is basic lanaguge vocaublary test supported in five languages: English_US (American version), German, Hindi, 
     Portuguese_BR (Brazilian version), and Spanish_SP (Spanish version).In each trial, a spoken word is played in the target 
-    language (determined by ``language``) and the particiapnt must decide which of the given images in the choice set match 
+    language (determined by ``language``) and the participant must decide which of the given images in the choice set match 
     the spoked word, from a total of four possible images. The materials are the same for all languages. 
     There trials are randomly selected from a total pool of 14 trials.
     
@@ -528,7 +527,7 @@ class LexTaleTest(Module):
     This is an adapted version (shorter) of the  original LexTale test, which checks participants' English proficiency
     in a lexical decision task: "Lemhöfer, K., & Broersma, M. (2012). Introducing LexTALE: A quick and valid lexical test
     for advanced learners of English. Behavior research methods, 44(2), 325-343". In each trial, a word is presented 
-    for a short period of time (determined by ``hide_after``) and the particiapnt must decide wehether the word is an existing word in English or
+    for a short period of time (determined by ``hide_after``) and the participant must decide wehether the word is an existing word in English or
     it does not exist. The words are chosen from the original study, which used and validated highly unfrequent 
     words in English to make the task very difficult for non-native English speakers. See the documentation for further details.
 
@@ -686,7 +685,7 @@ class AttentionCheck(Module):
     """
     # Note for better implementation: I would liek that researchers can choose whether to display the two pages or onle 1 (attention_check1 and attention_check2)
     # I would also like that researcher can choose whether to exclude based on the first, the second, or the both attention_check pages
-    # ALSO: ideally, in the first attention_check1, the particiapnt should be indicated to NOT select any of the option, but simply click NEXT. Then only particiapnts
+    # ALSO: ideally, in the first attention_check1, the participant should be indicated to NOT select any of the option, but simply click NEXT. Then only participants
     # who clicked 'next' pass the attention  check
     def __init__(
             self,

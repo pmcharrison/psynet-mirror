@@ -12,10 +12,7 @@ from psynet.demography.general import (
     Language,
     BasicMusic,
     HearingLoss,
-    Dance,
-    SpeechDisorders,
-    Income,
-    ExperimentFeedback,
+    Dance
 )
 
 ##########################################################################################
