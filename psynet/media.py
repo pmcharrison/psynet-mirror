@@ -315,14 +315,21 @@ def make_bucket_public(bucket_name):
     })
     bucket_policy.put(Policy = new_policy)
 
-def recode_wav(file_path):
+def recode_wav(file_path, must_work=True):
     import parselmouth
     with tempfile.NamedTemporaryFile() as temp_file:
-        fs, data = wavfile.read(file_path)
-        force_bit_depth = data.astype(np.float32)
-        wavfile.write(temp_file.name, fs, force_bit_depth)
-        s = parselmouth.Sound(temp_file.name)
-        s.save(file_path, "WAV")
+        shutil.copyfile(file_path, temp_file.name)
+        if not must_work:
+            try:
+                s = parselmouth.Sound(temp_file.name)
+                s.save(file_path, "WAV")
+                return True
+            except parselmouth.PraatError:
+                return False
+        else:
+            s = parselmouth.Sound(temp_file.name)
+            s.save(file_path, "WAV")
+            return True
 
 def get_s3_url(bucket, key):
     if LOCAL_S3:
