@@ -92,6 +92,7 @@ class AudioRecordTrial():
                 self.download_recording(temp_recording.name)
                 recoded = recode_wav(temp_recording.name, must_work=False)
                 if not recoded:
+                    logger.info("FAILED RECODE!!!")
                     self.fail()
                 self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
                 if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
