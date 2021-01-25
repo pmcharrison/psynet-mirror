@@ -472,7 +472,7 @@
     </style>
 
     {% if config.recording_source == "camera" or config.recording_source == "both" %}
-        <video id="camera-recording" style="width: {{ config.width }}"></video>
+        <video id="camera-recording" style="display: {% if config.show_preview %}block{% else %}none{% endif %}; width: {{ config.width }}"></video>
     {% endif %}
     {% if config.recording_source == "screen" or config.recording_source == "both" %}
         <video id="screen-recording" style="display: none;"></video>

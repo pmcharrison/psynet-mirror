@@ -1429,6 +1429,8 @@ class VideoRecordControl(Control):
     public_read
         Whether the AWS S3 bucket's access permission is set to 'Public'. For reference see https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access.html
 
+    show_preview
+        Whether to show a preview of the video on the page. Default: `False`.
     """
     macro = "video_record"
 
@@ -1443,6 +1445,7 @@ class VideoRecordControl(Control):
             width: str = "560px",
             start_delay: float = 0.0,
             public_read: bool = False,
+            show_preview: bool = False,
         ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1452,6 +1455,7 @@ class VideoRecordControl(Control):
         self.width = width
         self.start_delay = start_delay
         self.public_read = public_read
+        self.show_preview = show_preview
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)

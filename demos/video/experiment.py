@@ -63,7 +63,6 @@ video_record_page = join(
             recording_source='screen',
             record_audio=False,
             public_read=True,
-            start_delay=5.0,
         ),
         time_estimate=5,
     ),
