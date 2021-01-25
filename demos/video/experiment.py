@@ -32,6 +32,11 @@ video_record_page = join(
         ),
         time_estimate=5,
     ),
+    conditional(
+        "video_record_page",
+        lambda experiment, participant: (participant.answer["cameraUrl"] is None and participant.answer["screenUrl"] is None),
+        UnsuccessfulEndPage(failure_tags=["video_record_page"])
+    ),
     PageMaker(
         lambda participant: ModularPage(
             "video_playback",
@@ -64,14 +69,14 @@ video_record_page = join(
     ),
     conditional(
         "screen_record_page",
-        lambda experiment, participant: participant.answer["url"] is None,
+        lambda experiment, participant: participant.answer["screenUrl"] is None,
         UnsuccessfulEndPage(failure_tags=["screen_record_page"])
     ),
     PageMaker(
         lambda participant: ModularPage(
             "screen_playback",
             VideoPrompt(
-                participant.answer["url"],
+                participant.answer["screenUrl"],
                 "Here's the screen recording you just made.",
                 width="400px",
             ),

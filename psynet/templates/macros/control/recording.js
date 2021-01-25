@@ -65,7 +65,7 @@ function captureScreen(callback) {
     });
 }
 
-/*** Video/Screen recording functions ***/
+/*** Camera recording functions ***/
 function startCameraRecording() {
     psynet.log.debug("Starting video recording using camera...");
     psynet.register_event("camera_record_start");

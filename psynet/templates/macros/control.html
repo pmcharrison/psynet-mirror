@@ -513,7 +513,7 @@
         var screenRecorder;
         var videoRecorder;
 
-        /*** Video/Audio recording ***/
+        /*** Camera recording start***/
         {% if config.recording_source == "camera" or config.recording_source == "both" %}
             psynet.media.register_on_loaded_routine(function () {
                 navigator.mediaDevices.getUserMedia({
@@ -545,9 +545,12 @@
                     psynet.next_page();
                 });
             });
-        {% endif %}
 
-        /*** Screen recording ***/
+            psynet.response.wait_for("camera_recorder_ready");
+        {% endif %}
+        /*** Camera recording end ***/
+
+        /*** Screen recording start ***/
         {% if config.recording_source == "screen" or config.recording_source == "both" %}
             captureScreen(function (screen) {
                 screenVideo.srcObject = screen;
@@ -555,16 +558,20 @@
                     type: 'video'
                 });
 
+                {% if config.recording_source == "both" %}
                 psynet.response.wait_for("camera_recorder_ready");
+                {% endif %}
                 screenRecorder.startRecording()
                 screenRecorder.screen = screen;
 
                 psynet.response.ready("screen_recorder_ready")
             });
+
+            psynet.response.wait_for("screen_recorder_ready");
         {% endif %}
+        /*** Screen recording end ***/
 
         psynet.response.wait_for("page_load_buffer");
-        psynet.response.wait_for("camera_recorder_ready");
         psynet.submit.wait_for("finished-recording");
 
         setTimeout(function () {
