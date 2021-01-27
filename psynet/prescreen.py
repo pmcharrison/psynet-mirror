@@ -690,8 +690,8 @@ class AttentionCheck(Module):
             pages: list = ["attention_check1", "attention_check2"],
             time_estimate_per_trial: float = 5.0,
         ):
-        self.label = label,
-        self.pages = pages,
+        self.label = label
+        self.pages = pages
         self.events = join(
             conditional(
                 "attention_conditional1",
@@ -722,13 +722,11 @@ class AttentionCheck(Module):
                         arrange_vertically=True,
                         force_selection=False
                     ),
-                    time_estimate=time_estimate_per_trial),
-                fix_time_credit=False
-                ),
+                    time_estimate=time_estimate_per_trial)                ),
             conditional(
                 "exclude_check1",
                 lambda experiment, participant: participant.answer is not None,
-                UnsuccessfulEndPage(failure_tags=["attention_check"]), fix_time_credit=False
+                UnsuccessfulEndPage(failure_tags=["attention_check"])
                 ),
             conditional(
                 "attention_conditional2",
@@ -737,8 +735,7 @@ class AttentionCheck(Module):
                     label = "attention_check2",
                     prompt = "What is your favourite color?",
                     control = TextControl(width="300px"),
-                    time_estimate=time_estimate_per_trial),
-                fix_time_credit=False
+                    time_estimate=time_estimate_per_trial)
                 )
             )
         super().__init__(self.label, self.events)
