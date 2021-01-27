@@ -183,7 +183,7 @@ class REPPTappingCalibration(Module):
         )
         super().__init__(self.label, self.events)
 
-class MakeJsonSerializable(json.JSONEncoder):
+class JSONSerializer(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -192,9 +192,9 @@ class MakeJsonSerializable(json.JSONEncoder):
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.bool_):
-            return super(MakeJsonSerializable, self).encode(bool(obj))
+            return super(JSONSerializer, self).encode(bool(obj))
         else:
-            return super(MakeJsonSerializable, self).default(obj)
+            return super(JSONSerializer, self).default(obj)
 
 
 class REPPMarkersCheck(Module):
@@ -315,7 +315,7 @@ class REPPMarkersCheck(Module):
 
             def analyse_recording(self, audio_file: str, output_plot: str):
 
-                params=tapping.params_tech_music  # IMPORTANT - NEW PARAMETERS for TAPPING TECHNLOGY
+                params=tapping.params_tech_music  # TODO: change tapping_extract to new parameters
 
                 marker_onsets = self.definition["marker_onsets"]
                 shifted_onsets = self.definition["shifted_onsets"]
@@ -333,8 +333,8 @@ class REPPMarkersCheck(Module):
                     title_in_graph = title_in_graph,
                     output_plot = output_plot,
                     params = params)
-                new_tcontent = json.dumps(tcontent, cls=MakeJsonSerializable)
-                new_tstats = json.dumps(tstats, cls=MakeJsonSerializable)
+                new_tcontent = json.dumps(tcontent, cls=JSONSerializer)
+                new_tstats = json.dumps(tstats, cls=JSONSerializer)
                 output_results = {
                     "tstats": new_tstats,
                     "tcontent": new_tcontent
@@ -367,7 +367,7 @@ class REPPMarkersCheck(Module):
 
 class LanguageVocabularyTest(Module):
     """
-    This is a basic lanaguge vocaublary test supported in five languages (determined by ``language_code``): American English (en-US), German (de-DE), Hindi (hi-IN),
+    This is a basic language vocabulary test supported in five languages (determined by ``language_code``): American English (en-US), German (de-DE), Hindi (hi-IN),
     Brazilian Portuguese (pt-BR), and Spanish (es-ES). In each trial, a spoken word is played in the target
     language and the participant must decide which of the given images in the choice set match
     the spoked word, from a total of four possible images. The materials are the same for all languages.
@@ -405,7 +405,7 @@ class LanguageVocabularyTest(Module):
         ):
         self.label = label
         self.events = join(
-            self.instruction_page(language_code),
+            self.instruction_page(),
             self.trial_maker(
                 media_url,
                 language_code,
@@ -420,7 +420,7 @@ class LanguageVocabularyTest(Module):
     words = ["bell", "bird", "bow", "chair", "dog", "eye", "flower",
              "frog", "key", "knife", "moon", "star", "sun", "turtle"]
 
-    def instruction_page(self, language_code):
+    def instruction_page(self):
         return InfoPage(Markup(
             f"""
             <h3>Vocabulary test</h3>
@@ -630,7 +630,7 @@ class LexTaleTest(Module):
                         text_align="center"
                     ),
                     NAFCControl(["Yes", "No"],
-                        ["Yes", "No"]
+                        ["yes", "no"]
                     ),
                     time_estimate=time_estimate
                 )
@@ -648,18 +648,18 @@ class LexTaleTest(Module):
             )
             for label, correct_answer in
             [
-                ("1", "Yes"),
-                ("2", "Yes"),
-                ("3", "Yes"),
-                ("4", "Yes"),
-                ("5", "Yes"),
-                ("6", "Yes"),
-                ("7", "Yes"),
-                ("8", "No"),
-                ("9", "No"),
-                ("10", "No"),
-                ("11", "No"),
-                ("12", "No")
+                ("1", "yes"),
+                ("2", "yes"),
+                ("3", "yes"),
+                ("4", "yes"),
+                ("5", "yes"),
+                ("6", "yes"),
+                ("7", "yes"),
+                ("8", "no"),
+                ("9", "no"),
+                ("10", "no"),
+                ("11", "no"),
+                ("12", "no")
             ]
         ])
 
