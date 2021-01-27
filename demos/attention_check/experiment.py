@@ -29,7 +29,7 @@ class Exp(psynet.experiment.Experiment):
     	BasicDemography(),
         Language(),
         BasicMusic(),
-        AttentionCheck(), # it is good practice to add the AttentionCheck in the middle of demographic questions, so its presentation is not too obvious
+        AttentionCheck(), # it is good practice to add the AttentionCheck in the middle of demographic questions, so its presence is not too obvious
         HearingLoss(),
         Dance(),
         SuccessfulEndPage()
