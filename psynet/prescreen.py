@@ -10,15 +10,15 @@ from .modular_page import (
     PushButtonControl,
     TextControl,
 )
-from .page import InfoPage
-from .timeline import Module, join
+from .page import InfoPage, UnsuccessfulEndPage
+from .timeline import Module, join, conditional, CodeBlock
 from .trial.non_adaptive import (
     NonAdaptiveTrial,
     NonAdaptiveTrialMaker,
     StimulusSet,
     StimulusSpec,
 )
-
+from .demography.general import CountryOfResidence
 
 class ColorBlindnessTest(Module):
     """
@@ -408,3 +408,41 @@ class HeadphoneCheck(Module):
                 ("OIS", "3")
             ]
         ])
+
+class Geolocate(Module):
+    def __init__(
+            self,
+            label="geolocation",
+            ipinfo_token=None,
+            fail_if_not_matched=False,
+	    time_estimate_per_trial = 5.0
+        ):
+        self.label = label
+        self.ipinfo_token = ipinfo_token
+        self.fail_if_not_matched = fail_if_not_matched
+
+        self.events = join(
+            CountryOfResidence(),
+            CodeBlock(lambda experiment, participant: participant.var.set("cor_reported", participant.answer)), 
+            CodeBlock(lambda experiment, participant: participant.var.set("country", self.geolocate_details(client_ip=participant.client_ip))),
+            conditional(
+                label="fail_if_not_matched",
+                condition=lambda experiment, participant: self.fail_if_not_matched == True, 
+                fix_time_credit=True,
+                logic_if_true = conditional(
+                    label="cross_reference", 
+                    condition = lambda experiment, participant: participant.var.cor_reported != participant.var.country,
+                    logic_if_true = UnsuccessfulEndPage(),
+                    fix_time_credit=False
+                )
+            )
+        ) 
+        super().__init__(self.label, self.events)
+
+    def geolocate_details(self, client_ip):
+        handler = ipinfo.getHandler(self.ipinfo_token)
+        details = handler.getDetails(ip)
+
+        return details.country
+
+
