@@ -92,7 +92,7 @@ class AudioRecordTrial():
                 self.download_recording(temp_recording.name)
                 recoded = recode_wav(temp_recording.name, must_work=False)
                 if not recoded:
-                    logger.info("FAILED RECODE!!!")
+                    logger.info("Could not recode.")
                     self.fail()
                 self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
                 if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
@@ -166,7 +166,9 @@ class AudioImitationChainNetwork(ImitationChainNetwork):
         else:
             with tempfile.NamedTemporaryFile() as temp_file:
                 node.synthesise_target(temp_file.name)
-                recode_wav(temp_file.name)
+                #recoded = recode_wav(temp_file.name, must_work=False)
+                #if not recoded:
+                    #node.fail()
                 target_key = f"{uuid4()}.wav"
                 node.target_url = upload_to_s3(
                     temp_file.name,

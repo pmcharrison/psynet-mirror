@@ -11,14 +11,20 @@ from .modular_page import (
     TextControl,
 )
 from .page import InfoPage
-from .timeline import Module, join
+from .timeline import (
+    Module, 
+    join, 
+    CodeBlock
+)
 from .trial.non_adaptive import (
     NonAdaptiveTrial,
     NonAdaptiveTrialMaker,
     StimulusSet,
     StimulusSpec,
 )
-
+from .demography.general import (
+    CountryOfResidence
+)
 
 class ColorBlindnessTest(Module):
     """
@@ -408,3 +414,57 @@ class HeadphoneCheck(Module):
                 ("OIS", "3")
             ]
         ])
+
+
+#class GeolocationCheck(Module):
+#    """
+#    The GeolocationCheck prescreen queries the participant for their country of reference and 
+#    cross-references it with their their detected country using the ipinfo API. 
+#
+#    Parameters
+#    ----------
+#
+#    label : string, optional
+#        The label for the color headphone check, default: "headphone_check".
+#    
+#    ipinfo_token : string, required
+#        The token provided by the ipinfo API for geolocation. If nothing is provided, this prescreen will not function.
+#    
+#    fail_if_not_matched : bool, required
+#        Whether or not to fail the participant if their reported location does not match their geolocation. 
+#    """
+#    def __init__(
+#            self, 
+#            label="geolocation",
+#            ipinfo_token=None,
+#            fail_if_not_matched=False
+#        ):
+#        self.label = label
+#        self.ipinfo_token = ipinfo_token
+#        self.fail_if_not_matched = fail_if_not_matched
+#    
+#        self.events = join(
+#            self.geolocation_check(self.fail_if_not_matched),
+#            CodeBlock(lambda experiment, participant: logger.info("Hi"))
+#            # conditional! 
+#        )  
+#        super().__init__(self.label, self.events)
+#
+#    def geolocate_details(self):
+#	    handler = ipinfo.getHandler(self.ipinfo_token)
+#	    details = handler.getDetails(ip)
+#	    
+#        return details
+#    
+#    def cross_reference(self, participant):
+#        details = self.geolocate_details()
+#        if participant.answer == details.country_name:
+#            return True
+#        else:
+#            return False
+#        
+#    def geolocation_check(self, fail_if_not_matched):
+#        return Module(
+#            CountryOfResidence,
+#            CodeBlock(lambda participant: self.cross_reference(participant))
+#        )
