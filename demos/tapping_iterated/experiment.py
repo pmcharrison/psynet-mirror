@@ -30,10 +30,10 @@ logger = get_logger()
 import tapping_extract as tapping
 
 ##########################################################################################
-#### parameters
+#### Global parameters
 ##########################################################################################
 BUCKET_NAME = "iterated-tapping-demo"
-PARAMS=tapping.params_tech_iter  # parameters for iterated tapping
+PARAMS=tapping.params_tech_iter  # Choose paramaters for this demo (iterated tapping)
 FS=44100
 
 TIME_ESTIMATE_PER_TRIAL = PARAMS['REPEATS']*3

@@ -1,4 +1,4 @@
-# Iterated tapping from meory
+# Iterated tapping from memory, adapted from Jacoby & McDermott (2017)
 
 ##########################################################################################
 #### Imports
@@ -30,10 +30,10 @@ logger = get_logger()
 import tapping_extract as tapping
 
 ##########################################################################################
-#### parameters
+#### Global parameters
 ##########################################################################################
 BUCKET_NAME = "iterated-tapping-demo"
-PARAMS=tapping.params_replication_2int_free_tempo  # parameters for iterated memory with 2-interval rhythm
+PARAMS=tapping.params_replication_2int_free_tempo  # Choose paramaters for this demo (iterated tapping from memory with 2-interval rhythm)
 FS=44100
 
 TIME_ESTIMATE_PER_TRIAL = PARAMS['REPEATS']*3
@@ -42,7 +42,7 @@ CLICK = tapping.load_resample_file(FS,PARAMS['CLICK_FILENAME'], renormalize=1) #
 #failing criteria
 MIN_RESPONSES_PLAYED = 5
 # within chains
-NUM_CHAINS_PER_PARTICIPANT=2 # normally 4
+NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for a real experiment
 NUM_ITERATION_CHAIN= 5
 NUM_TRIALS_PARTICIPANT = 20
 TOTAL_NUM_PARTICIPANTS= 50
@@ -151,7 +151,7 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-        # REPPVolumeCalibration(), # calibrate volume
+        REPPVolumeCalibration(), # calibrate volume
         REPPTappingCalibration(), # calibrate tapping
         InfoPage(Markup(f"""
             <h3>Instructions</h3>
