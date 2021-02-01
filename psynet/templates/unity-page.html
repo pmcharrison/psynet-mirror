@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="{{ resources }}/scripts/TemplateData/style.css">
     <script>
       {% autoescape off %}
-        psynet.page.attributes = {{ attributes }}
+        psynet.page.attributes = {{ attributes.__dict__ }}
         psynet.page.contents = {{ contents }}
       {% endautoescape %}
     </script>

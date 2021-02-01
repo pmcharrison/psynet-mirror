@@ -448,7 +448,13 @@ class Page(Event):
         """
         Returns a dictionary containing the `session_id`, the page `type`, and the `page_uuid` .
         """
-        return {"session_id": self.session_id, "type": type(self).__name__, "page_uuid": participant.page_uuid}
+        from psynet.page import UnityPage
+        return {
+            "session_id": self.session_id,
+            "type": type(self).__name__,
+            "page_uuid": participant.page_uuid,
+            "is_unity_page": isinstance(self, UnityPage),
+        }
 
     @property
     def contents(self):
