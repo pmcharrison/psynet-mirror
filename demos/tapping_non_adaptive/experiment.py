@@ -1,4 +1,4 @@
-"non_adapting tapping demo with isochronus tapping and beat synchronization to music"
+# non_adapting tapping demo with isochronus tapping and beat synchronization to music
 
 ##########################################################################################
 #### Imports
@@ -28,10 +28,10 @@ from psynet.prescreen import REPPVolumeCalibration, REPPTappingCalibration, REPP
 import tapping_extract as tapping
 
 ##########################################################################################
-#### Global params
+#### Global parameters
 ##########################################################################################
 BUCKET_NAME = "sms-technology"
-PARAMS=tapping.params_tech_music  # IMPORTANT - NEW PARAMETERS for TAPPING TECHNLOGY
+PARAMS=tapping.params_tech_music  # Parameters for isochronus and beat synchronization tasks
 FS=44100
 
 NUM_PARTICIPANTS = 20
