@@ -15,7 +15,7 @@ from .modular_page import (
     RadioButtonControl
 )
 from .page import InfoPage, UnsuccessfulEndPage
-from .timeline import Module, join, conditional
+from .timeline import CodeBlock, Module, join, conditional
 from .trial.non_adaptive import (
     NonAdaptiveTrial,
     NonAdaptiveTrialMaker,
@@ -668,77 +668,118 @@ class AttentionCheck(Module):
     """
     This is an attention check aimed to identify and remove participants who are not paying attention or following
     the instructions. The attention check has 2 pages and researchers can choose whether to display the two pages or not.
-    The main attention check is performed in the first page (attention_check1). If participants fail, they are excluded from the experiment.
-    The second page (attention_check2) can be used as a complementary attention check to perform quality checks a posteriori.
+    The main attention check is performed in the first page (attention_check_1). If participants fail, they are excluded from the experiment.
+    The second page (attention_check_2) can be used as a complementary attention check to perform quality checks a posteriori.
 
     Parameters
     ----------
     label : string, optional
         The label of the AttentionCheck check, default: "attention_check".
 
-    pages : string, optional
-        The pages to display in the AttentionCheck check, default: ["attention_check1", "attention_check2"].
+    pages : int, optional
+        Whether to display only the first or both pages. Possible values: 1 and 2. Default: 2.
+
+    exclude_on: str, optional
+        The condition for the AttentionCheck check to fail.
+        Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue and "both" means one of two checks can fail and the participant can still continue. Default: "any".
+
+    prompt_1_explanation: str, optional
+        The text (including HTML code) to display in the first part of the first paragraph of the first page. Default: "Research on personality has identified characteristic sets of behaviours and cognitive patterns that evolve from biological and enviromental factors. To show that you are paying attention to the experiment, please ignore the question below and select the 'Next' button instead."
+
+    prompt_1_main: str, optional
+        The text (including HTML code) to display in the last paragraph of the first page. Default: "As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient."
+
+    prompt_2: str, optional
+        The text to display on the second page. Default: "What is your favourite color?".
+
+    attention_check_2_word: str, optional
+        The word that the user has to enter on the second page. Default: "attention".
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 5.0.
 
     """
-
     def __init__(
             self,
             label: str = "attention_check",
-            pages: list = ["attention_check1", "attention_check2"],
+            pages: int = 2,
+            exclude_on: str = "any",
+            prompt_1_explanation: str = """
+        Research on personality has identified characteristic sets of behaviours and cognitive patterns that
+        evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
+        please ignore the question below and select the 'Next' button instead.""",
+            prompt_1_main: str = "As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient.",
+            prompt_2 = "What is your favourite color?",
+            attention_check_2_word = "attention",
             time_estimate_per_trial: float = 5.0,
         ):
+        assert(pages in [1, 2])
+        assert(not(pages == 1 and exclude_on in ["attention_check_2", "both"]))
+        assert(exclude_on in ["attention_check_1", "attention_check_2", "any", "both", None])
+
         self.label = label
         self.pages = pages
+        self.exclude_on = exclude_on
+        self.attention_check_2_word = attention_check_2_word
+
+        prompt_1_next_page = f""" Also, you must ignore
+        the question asked in the next page, and type "{attention_check_2_word}" in the box.
+        <br><br>
+        {prompt_1_main}"""
+        self.prompt_1_text = f'{prompt_1_explanation}{prompt_1_next_page if self.pages == 2 else ""}'
+        self.prompt_2 = prompt_2
         self.events = join(
-            conditional(
-                "attention_conditional1",
-                lambda experiment, participant: "attention_check1" in self.pages,
-                ModularPage(
-                    label= "attention_check1",
-                    prompt= Markup(f"""
-                        Research on personality has identified characteristic sets of behaviours and cognitive patterns that
-                        evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
-                        please ignore the question below and select the Next button instead. Also, you must ignore
-                        the question asked in the next page, and type "attention" in the box.
-                        <br><br>
-                        <b>As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient</b>
-                        """),
-                    control = RadioButtonControl(
-                        [1,2,3,4,5,6,7,0],
-                        [
-                            Markup("Completely disagree"),
-                            Markup("Strongly disagree"),
-                            Markup("Disagree"),
-                            Markup("Neutral"),
-                            Markup("Agree"),
-                            Markup("Strongly agree"),
-                            Markup("Completely agree"),
-                            Markup("Other")
-                        ],
-                        name=self.label,
-                        arrange_vertically=True,
-                        force_selection=False
-                    ),
-                    time_estimate=time_estimate_per_trial)                ),
-            conditional(
-                "exclude_check1",
-                lambda experiment, participant: participant.answer is not None,
-                UnsuccessfulEndPage(failure_tags=["attention_check"])
+            ModularPage(
+                label="attention_check_1",
+                prompt=Markup(f"""{self.prompt_1_text}"""),
+                control = RadioButtonControl(
+                    [1,2,3,4,5,6,7,0],
+                    [
+                        Markup("Completely disagree"),
+                        Markup("Strongly disagree"),
+                        Markup("Disagree"),
+                        Markup("Neutral"),
+                        Markup("Agree"),
+                        Markup("Strongly agree"),
+                        Markup("Completely agree"),
+                        Markup("Other"),
+                    ],
+                    name=self.label,
+                    arrange_vertically=True,
+                    force_selection=False,
                 ),
+                time_estimate=time_estimate_per_trial,
+            ),
             conditional(
-                "attention_conditional2",
-                lambda experiment, participant: "attention_check2" in self.pages,
+                "exclude_check_1",
+                lambda experiment, participant: (participant.answer is not None and self.exclude_on in ["attention_check_1", "any"]),
+                UnsuccessfulEndPage(failure_tags=["attention_check_1"]),
+            ),
+            CodeBlock(
+                lambda experiment, participant:
+                participant.var.new("first_check_passed", participant.answer is None)
+            ),
+            conditional(
+                "attention_check_2",
+                lambda experiment, participant: self.pages == 2,
                 ModularPage(
-                    label = "attention_check2",
-                    prompt = "What is your favourite color?",
+                    label = "attention_check_2",
+                    prompt = self.prompt_2,
                     control = TextControl(width="300px"),
-                    time_estimate=time_estimate_per_trial)
-                )
-            )
+                    time_estimate=time_estimate_per_trial,
+                ),
+            ),
+            conditional(
+                "exclude_check_2",
+                lambda experiment, participant: (
+                            self.pages == 2 and participant.answer.lower() != self.attention_check_2_word and (
+                                self.exclude_on in ["attention_check_2",
+                                                    "any"] or not participant.var.first_check_passed)),
+                UnsuccessfulEndPage(failure_tags=["attention_check_2"]),
+            ),
+        )
         super().__init__(self.label, self.events)
+
 
 class ColorBlindnessTest(Module):
     """
