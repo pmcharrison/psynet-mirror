@@ -30,7 +30,7 @@ logger = get_logger()
 import tapping_extract as tapping
 
 ##########################################################################################
-#### parameters
+#### Global parameters
 ##########################################################################################
 BUCKET_NAME = "iterated-tapping-demo"
 PARAMS=tapping.params_replication_2int_free_tempo  # parameters for iterated memory with 2-interval rhythm
@@ -42,7 +42,7 @@ CLICK = tapping.load_resample_file(FS,PARAMS['CLICK_FILENAME'], renormalize=1) #
 #failing criteria
 MIN_RESPONSES_PLAYED = 5
 # within chains
-NUM_CHAINS_PER_PARTICIPANT=2 # normally 4
+NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for real experiments
 NUM_ITERATION_CHAIN= 5
 NUM_TRIALS_PARTICIPANT = 20
 TOTAL_NUM_PARTICIPANTS= 50
