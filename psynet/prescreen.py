@@ -681,7 +681,7 @@ class AttentionCheck(Module):
 
     exclude_on: str, optional
         The condition for the AttentionCheck check to fail.
-        Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue and "both" means one of two checks can fail and the participant can still continue. Default: "any".
+        Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "any".
 
     prompt_1_explanation: str, optional
         The text (including HTML code) to display in the first part of the first paragraph of the first page. Default: "Research on personality has identified characteristic sets of behaviours and cognitive patterns that evolve from biological and enviromental factors. To show that you are paying attention to the experiment, please ignore the question below and select the 'Next' button instead."
@@ -772,9 +772,9 @@ class AttentionCheck(Module):
             conditional(
                 "exclude_check_2",
                 lambda experiment, participant: (
-                            self.pages == 2 and participant.answer.lower() != self.attention_check_2_word and (
-                                self.exclude_on in ["attention_check_2",
-                                                    "any"] or not participant.var.first_check_passed)),
+                        self.pages == 2 and exclude_on is not None and participant.answer.lower() != self.attention_check_2_word and (
+                        self.exclude_on in ["attention_check_2",
+                                            "any"] or not participant.var.first_check_passed)),
                 UnsuccessfulEndPage(failure_tags=["attention_check_2"]),
             ),
         )
