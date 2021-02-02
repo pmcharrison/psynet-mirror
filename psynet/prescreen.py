@@ -668,8 +668,7 @@ class AttentionCheck(Module):
     """
     This is an attention check aimed to identify and remove participants who are not paying attention or following
     the instructions. The attention check has 2 pages and researchers can choose whether to display the two pages or not.
-    The main attention check is performed in the first page (attention_check_1). If participants fail, they are excluded from the experiment.
-    The second page (attention_check_2) can be used as a complementary attention check to perform quality checks a posteriori.
+    Researchers can also choose when to exclude particiapnts (determined by ``exclude_on``).
 
     Parameters
     ----------
@@ -681,7 +680,7 @@ class AttentionCheck(Module):
 
     exclude_on: str, optional
         The condition for the AttentionCheck check to fail.
-        Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "any".
+        Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "attention_check_1".
 
     prompt_1_explanation: str, optional
         The text (including HTML code) to display in the first part of the first paragraph of the first page. Default: "Research on personality has identified characteristic sets of behaviours and cognitive patterns that evolve from biological and enviromental factors. To show that you are paying attention to the experiment, please ignore the question below and select the 'Next' button instead."
@@ -703,7 +702,7 @@ class AttentionCheck(Module):
             self,
             label: str = "attention_check",
             pages: int = 2,
-            exclude_on: str = "any",
+            exclude_on: str = "attention_check_1",
             prompt_1_explanation: str = """
         Research on personality has identified characteristic sets of behaviours and cognitive patterns that
         evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
