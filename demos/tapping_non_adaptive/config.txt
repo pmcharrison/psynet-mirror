@@ -16,7 +16,7 @@ browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
 description = This is a demo of a non adaptive tapping experiment.
-keywords = singing
+keywords = tapping
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

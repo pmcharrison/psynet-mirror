@@ -16,7 +16,7 @@ browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
 description = This is a demo of a tapping task from memory , adapted from a control experiment reported in Jacoby & McDermott (2017).
-keywords = singing
+keywords = tapping
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

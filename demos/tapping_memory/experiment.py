@@ -22,7 +22,7 @@ from psynet.trial.audio import (
     AudioImitationChainTrialMaker,
     AudioImitationChainNetwork
 )
-from psynet.prescreen import REPPVolumeCalibration, REPPTappingCalibration, REPPMarkersCheck, JSONSerializer
+from psynet.prescreen import REPPVolumeCalibration, REPPTappingCalibration, JSONSerializer
 from psynet.page import SuccessfulEndPage, InfoPage
 from psynet.utils import get_logger
 logger = get_logger()
@@ -43,6 +43,7 @@ CLICK = tapping.load_resample_file(FS,PARAMS['CLICK_FILENAME'], renormalize=1) #
 MIN_RESPONSES_PLAYED = 5
 # within chains
 NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for a real experiment
+NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for real experiments
 NUM_ITERATION_CHAIN= 5
 NUM_TRIALS_PARTICIPANT = 20
 TOTAL_NUM_PARTICIPANTS= 50
@@ -62,15 +63,15 @@ class CustomTrial(AudioImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
-        info_stim = self.origin.var.info_stim
-        duration_rec_s = info_stim["duration_rec"]
+        info_stimulus = self.origin.var.info_stimulus
+        duration_rec_sec = info_stimulus["duration_rec_sec"]
         position = self.position + 1
 
         return ModularPage(
             "tapping_page",
             AudioPrompt(self.origin.target_url, "Reproduce back the rhythm by tapping on the laptop", start_delay= 0.5),
             AudioRecordControl(
-                duration=duration_rec_s,
+                duration=duration_rec_sec,
                 s3_bucket=BUCKET_NAME,
                 public_read=False
             ),
@@ -78,12 +79,12 @@ class CustomTrial(AudioImitationChainTrial):
         )
 
     def analyse_recording(self, audio_file: str, output_plot: str):
-        info_stim = self.origin.var.info_stim
+        info_stimulus = self.origin.var.info_stimulus
         title_in_graph='tapping extraction'
 
         tstats, tcontent, titer= tapping.do_all_and_plot_iterative_replication(audio_file,
                                                                            title_in_graph,output_plot,
-                                                                           info_stim["random_seed"],
+                                                                           info_stimulus["random_seed"],
                                                                            PARAMS)
 
         new_seed=titer['new_seed']
@@ -124,8 +125,8 @@ class CustomNode(AudioImitationChainNode):
         stim_onsets=tapping.make_stimulus_onsets_from_seed(random_seed,repeats=PARAMS['REPEATS'])
         stim=tapping.make_stimulus_from_onsets(FS,stim_onsets,CLICK)
 
-        self.var.info_stim = {
-            "duration_rec": (1.5*(1.0+ len(stim)/FS)),
+        self.var.info_stimulus = {
+            "duration_rec_sec": (1.5*(1.0+ len(stim)/FS)),
             "random_seed": random_seed
             }
 

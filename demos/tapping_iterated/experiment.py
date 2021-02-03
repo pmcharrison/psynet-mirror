@@ -45,7 +45,7 @@ PERCENT_BAD_TAPS = 50
 MIN_RAW_TAPS = 50
 MAX_RAW_TAPS = 200
 # within chains
-NUM_CHAINS_PER_PARTICIPANT=2 # normally 4
+NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for real experiments
 NUM_ITERATION_CHAIN= 5
 NUM_TRIALS_PARTICIPANT = 20
 TOTAL_NUM_PARTICIPANTS= 50
@@ -65,9 +65,9 @@ class CustomTrial(AudioImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
-        info_stim = self.origin.var.info_stim
-        duration_rec_s = info_stim["duration_rec"]
-        duration_last_JS = (duration_rec_s*1000) - (PARAMS["MARKER_END_SLACK"] - 500) #markers end slack - start delay (0.5s)
+        info_stimulus = self.origin.var.info_stimulus
+        duration_rec_sec = info_stimulus["duration_rec_sec"]
+        time_last_JS_text_ms = (duration_rec_sec*1000) - (PARAMS["MARKER_END_SLACK"] - 500) #markers end slack - start delay (0.5s)
         position = self.position + 1
 
         return ModularPage(
@@ -77,20 +77,20 @@ class CustomTrial(AudioImitationChainTrial):
                             <h3>Tap in time with the rhythm</h3>
                             Trial number {position} out of {NUM_TRIALS_PARTICIPANT}  trials.
                             <script>
-                            show_message = function(my_message, my_color) {{
-                            document.getElementById("record-active").textContent=my_message
-                            document.getElementById("record-active").style.backgroundColor = my_color
+                            show_message = function(message, color_box) {{
+                            document.getElementById("record-active").textContent=message
+                            document.getElementById("record-active").style.backgroundColor = color_box
                             }}
                             psynet.response.register_on_ready_routine(function() {{
-                            todo=[{{"msg":"WAIT IN SILENCE", "time":10, "color": "pink"}},{{"msg":">>>>>>>> START TAPPING! >>>>>>>>", "time":3150,  "color": "lightgreen"}},{{"msg":"STOP TAPPING!", "time":{duration_last_JS}, "color": "pink"}}]
-                            for (let i=0;i<todo.length;i++) {{
-                            setTimeout(function(){{ show_message(todo[i].msg, todo[i].color) }}, todo[i].time); }}   }})
+                            message_to_display=[{{"msg":"WAIT IN SILENCE", "time":10, "color": "pink"}},{{"msg":">>>>>>>> START TAPPING! >>>>>>>>", "time":3150,  "color": "lightgreen"}},{{"msg":"STOP TAPPING!", "time":{time_last_JS_text_ms}, "color": "pink"}}]
+                            for (let i=0;i<message_to_display.length;i++) {{
+                            setTimeout(function(){{ show_message(message_to_display[i].msg, message_to_display[i].color) }}, message_to_display[i].time); }}   }})
                             </script>
                             """),
             prevent_response= False,
             start_delay= 0.5),
             AudioRecordControl(
-                duration=duration_rec_s,
+                duration=duration_rec_sec,
                 s3_bucket=BUCKET_NAME,
                 public_read=False
             ),
@@ -98,15 +98,15 @@ class CustomTrial(AudioImitationChainTrial):
         )
 
     def analyse_recording(self, audio_file: str, output_plot: str):
-        info_stim = self.origin.var.info_stim
+        info_stimulus = self.origin.var.info_stimulus
 
         title_in_graph='tapping extraction'
         tstats, tcontent, titer= tapping.do_all_and_plot_iterative(audio_file,
-                                                                           info_stim["marker_onsets"],
-                                                                           info_stim["shifted_onsets"],
-                                                                           info_stim["shifted_onsets_is_played"],
+                                                                           info_stimulus["marker_onsets"],
+                                                                           info_stimulus["shifted_onsets"],
+                                                                           info_stimulus["shifted_onsets_is_played"],
                                                                            title_in_graph,output_plot,
-                                                                           info_stim["random_seed"],
+                                                                           info_stimulus["random_seed"],
                                                                            PARAMS)
 
         new_seed=titer['new_seed']
@@ -121,7 +121,7 @@ class CustomTrial(AudioImitationChainTrial):
             "titer": new_titer,
             }
 
-        markers_detected = tstats['marker_onsets']==tstats['marker_detected']
+        markers_detected = tstats['marker_onsets']==tstats['marker_detected'] # TO DO: make marker plural in new tapping script version
         markers_time_error = tstats["markers_OK"]
         bad_taps = tstats["percent_of_bad_taps"]<PERCENT_BAD_TAPS
         min_raw_taps = tstats['ratio_taps_to_metronomes']>MIN_RAW_TAPS
@@ -164,15 +164,15 @@ class CustomNode(AudioImitationChainNode):
 
         procecssed_audio, tt, shifted_onsets, marker_onsets=tapping.add_markers_to_audio_onsets(stim, stim_onsets, FS, PARAMS)
         shifted_onsets_is_played= (np.array(shifted_onsets) > -999) # everything!
-        info_stim = {
-            "duration_rec": len(procecssed_audio)/FS,
+        info_stimulus = {
+            "duration_rec_sec": len(procecssed_audio)/FS,
             "marker_onsets": [as_native_type(value) for value in marker_onsets],
             "shifted_onsets": [as_native_type(value) for value in shifted_onsets],
             "shifted_onsets_is_played": [as_native_type(value) for value in shifted_onsets_is_played],
             "random_seed": random_seed
             }
 
-        self.var.info_stim = info_stim
+        self.var.info_stimulus = info_stimulus
         save_samples_to_file(procecssed_audio, output_file, FS)
 
 class CustomSource(AudioImitationChainSource):
