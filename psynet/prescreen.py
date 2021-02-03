@@ -667,8 +667,8 @@ class LexTaleTest(Module):
 class AttentionCheck(Module):
     """
     This is an attention check aimed to identify and remove participants who are not paying attention or following
-    the instructions. The attention check has 2 pages and researchers can choose whether to display the two pages or not.
-    Researchers can also choose when to exclude particiapnts (determined by ``exclude_on``).
+    the instructions. The attention check has 2 pages and researchers can choose whether to display the two pages or not,
+    and which information to display in each page. Researchers can also choose the conditions to exclude particiapnts (determined by ``exclude_on``).
 
     Parameters
     ----------
