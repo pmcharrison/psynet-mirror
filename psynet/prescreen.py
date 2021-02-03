@@ -697,7 +697,6 @@ class AttentionCheck(Module):
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 5.0.
-
     """
     def __init__(
             self,
