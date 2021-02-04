@@ -407,7 +407,7 @@
         </div>
 
         <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading response...
+            Ready to upload response.
         </div>
     </div>
 
@@ -439,6 +439,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                padding-bottom: 50px;
             }
             .audio-record-button {
                 margin-left: 10px;
@@ -456,6 +457,9 @@
             </button>
             <button id="audio-record-play-all" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
                 Play all
+            </button>
+            <button id="audio-record-play-prompt" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+                Play prompt
             </button>
             <button id="audio-record-play-recording" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
                 Play recording
@@ -542,6 +546,10 @@
                 replayMode = true;
                 psynet.trial.start();
             });
+            $("#audio-record-play-prompt").on("click", function() {
+                psynet.trial.cancel();
+                psynet.audio.prompt.play(audio_prompt_player_options);
+            });
             $("#audio-record-play-recording").on("click", function() {
                 replayMode = true;
                 psynet.trial.cancel();
@@ -576,10 +584,6 @@
                     startPresignedUrlUpload(recording_blob);
                 }
             })
-        }
-
-        let getGlobalTime = function() {
-            return psynet.media.audio_context.currentTime;
         }
 
         let initProgressBar = function() {
@@ -642,6 +646,7 @@
         }, 1000)
 
         startPresignedUrlUpload = function(wavAudioBlob) {
+            $("#record-upload").html("Uploading response...");
             // TODO upload if LOCAL_S3
             let xhr = new XMLHttpRequest();
             xhr.open('PUT', presignedUrl, true);
@@ -654,6 +659,7 @@
                 psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
                 psynet.submit.ready("finished-recording");
                 $(".record-alert").hide();
+                $("#record-upload").html("Ready to upload response.");
                 $("#record-finish").show();
             };
 

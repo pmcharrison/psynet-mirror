@@ -456,7 +456,7 @@
                                 psynet.register_event("trialStart");
                                 trial.addEvent("trialFinish", trial.duration, () => trial.finish());
                                 trial.inProgress = true;
-                                trial.startTime = getGlobalTime();
+                                trial.startTime = trial.getGlobalTime();
                                 trial.state = "trialStart";
                                 trial.clearEventQueue();
                                 trial.queueEvents();
@@ -552,9 +552,13 @@
                             Object.values(this.events).forEach(e => clearTimeout(e.timer));
                         },
 
+                        getGlobalTime: function() {
+                            return psynet.media.audio_context.currentTime;
+                        },
+
                         get time() {
                             if (this.inProgress) {
-                                return getGlobalTime() - this.startTime;
+                                return this.getGlobalTime() - this.startTime;
                             } else {
                                 return null;
                             }

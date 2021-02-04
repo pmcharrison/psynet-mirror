@@ -230,10 +230,10 @@ example_record_with_audio_prompt = join(
             start_delay=0.0,
             enable_submit_after=5.5,
             progress_bar=False,
-            play_window=[0, 5]
+            play_window=[0, 4.6]
         ),
         AudioRecordControl(
-            duration=5.0,
+            duration=4.6,
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
