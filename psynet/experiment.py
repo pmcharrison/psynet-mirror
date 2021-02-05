@@ -104,13 +104,11 @@ class Experiment(dallinger.experiment.Experiment):
         super(Experiment, self).__init__(session)
 
         config = get_config()
-        if not config.ready:
-            config.load()
-
-        self._background_tasks = []
-        self.participant_fail_routines = []
-        self.recruitment_criteria = []
-        self.base_payment = config.get("base_payment")
+        if config.ready:
+            self._background_tasks = []
+            self.participant_fail_routines = []
+            self.recruitment_criteria = []
+            self.base_payment = config.get("base_payment")
 
         if session:
             if not self.setup_complete:
