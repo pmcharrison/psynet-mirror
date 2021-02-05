@@ -32,7 +32,6 @@ from scipy.io.wavfile import write
 from math import nan
 import numpy as np
 
-
 class VolumeTestControl(AudioMeterControl):
     decay = {
         "display": 0.1,
@@ -696,7 +695,6 @@ class AttentionCheck(Module):
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 5.0.
-
     """
     def __init__(
             self,
