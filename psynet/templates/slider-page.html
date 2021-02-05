@@ -6,12 +6,37 @@
             width: 100%;
             {% if reverse_scale == true %} direction: rtl; {% endif %}
         }
+        .slider-range {
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: 1px solid #000000;
+            height: 36px;
+            background-color: #efefef;
+            border: 11px solid #b2b2b2;
+            border-radius: 5px;
+            {% if directional == false %}
+            margin-top: -8px;
+            {% endif %}
+            cursor: pointer;
+        }
+        {% if directional == false %}
+        input[type=range]::-webkit-slider-runnable-track {
+              background: #000000;
+              border: 1px solid #b2b2b2;
+              background-color: #efefef;
+              border-radius: 5px;
+              width: 100%;
+              height: 8px;
+            }
+        {% endif %}
+
     </style>
 
-    <input class="wait-for-media-load" type="range"
-            id="{{ slider_id }}" class="form-control-range"
-            min="{{ min_value }}" max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}"
-            >
+    <input class="wait-for-media-load slider-range form-control-range{% if not directional %} slider-non-directional{% endif %}"
+        type="range" id="{{ slider_id }}" min="{{ min_value }}"
+        max="{{ max_value + 0.0001 * step_size }}" step="{{ step_size }}" value="{{ start_value }}">
 {% endmacro %}
 
 {% block main_body %}

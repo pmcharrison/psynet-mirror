@@ -1310,6 +1310,7 @@ class VideoSliderControl(Control):
             starting_value: float = 0.5,
             minimal_time: float = 2.0,
             reverse_scale: bool = False,
+            directional: bool = True,
             hide_slider: bool = False
         ):
         assert 0 <= starting_value and starting_value <= 1
@@ -1321,6 +1322,7 @@ class VideoSliderControl(Control):
         self.starting_value = starting_value
         self.minimal_time = minimal_time
         self.reverse_scale = reverse_scale
+        self.directional = directional
         self.hide_slider = hide_slider
 
     @property
