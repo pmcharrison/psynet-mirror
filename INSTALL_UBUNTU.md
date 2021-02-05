@@ -1,4 +1,4 @@
-# Install PsyNet/Dallinger on Ubuntu 20.04
+# Installation of PsyNet/Dallinger on Ubuntu 20.04
 
 ## Optionally install Ubuntu 20.04.1 inside Virtual Machine Manager / QEMU/KVM
 
@@ -44,13 +44,13 @@ sudo service postgresql reload
 sudo snap install heroku --classic
 ```
 
-# Install Python virtualenv
+## Install Python virtualenv
 ```bash
 sudo pip3 install virtualenv
 sudo pip3 install virtualenvwrapper
 ```
 
-### Setup system environment
+### Setup virtual environment
 ```bash
 export WORKON_HOME=$HOME/.virtualenvs
 mkdir -p $WORKON_HOME
@@ -62,7 +62,7 @@ echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3" >> ~/.bashrc
 echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 ```
 
-### Git clone Dallinger (in your home directory)
+## Install Dallinger (in your home directory)
 ```bash
 cd ~
 git clone https://github.com/Dallinger/Dallinger
@@ -85,11 +85,11 @@ cd Dallinger
 'virtualenv==20.1.0'
 ```
 
-## Continue installation
+### Continue installation
 ```bash
 pip install -r dev-requirements.txt
 ```
-## IMPORTANT: Be sure numpy==1.17.4 is installed
+### IMPORTANT: Be sure numpy==1.17.4 is installed
 ```bash
 pip3 install numpy==1.17.4
 ```
@@ -97,20 +97,21 @@ pip3 install numpy==1.17.4
 pip install --editable .[data]
 ```
 
-## Verify successful installation
+#### Verify successful installation
 ```bash
 dallinger --version
 ```
 
-# Install PsyNet (in your home directory) using your GitLab username and password
+## Install PsyNet (in your home directory)
+First make sure you have an SSH Public key added under your GitLab profile 
 ```bash
 cd ~
-git clone https://gitlab.com/computational-audition-lab/psynet
+git clone git@gitlab.com:computational-audition-lab/psynet
 cd psynet
 pip3 install -e .
 ```
 
-## Verify successful installation
+#### Verify successful installation
 ```bash
 psynet --version
 ```
