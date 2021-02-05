@@ -419,9 +419,6 @@ class SliderPage(Page):
     reverse_scale: default: False
         Flip the scale.
 
-    directional: default: True
-        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
-
     continuous_updates : default: False
         If ``True``, then the slider continuously calls slider-update events when it is dragged,
         rather than just when it is released. In this case the log is disabled.
@@ -456,7 +453,6 @@ class SliderPage(Page):
             minimal_interactions: Optional[int] = 0,
             minimal_time: float = 0.0,
             reverse_scale: Optional[bool] = False,
-            directional: Optional[bool] = True,
             continuous_updates: bool = False,
             slider_id: Optional[str] = 'sliderpage_slider',
             width: Optional[str] = None,  # e.g. "100px"
@@ -498,7 +494,6 @@ class SliderPage(Page):
             "max_value": max_value,
             "step_size": step_size,
             "reverse_scale": reverse_scale,
-            "directional": directional,
             "style": style,
             "slider_id": slider_id
         }
@@ -515,7 +510,6 @@ class SliderPage(Page):
         kwargs['js_vars']['minimal_interactions'] = minimal_interactions
         kwargs['js_vars']['minimal_time'] = minimal_time
         kwargs['js_vars']["reverse_scale"] = reverse_scale
-        kwargs['js_vars']["directional"] = directional
         kwargs['js_vars']["slider_continuous_updates"] = continuous_updates
 
         super().__init__(

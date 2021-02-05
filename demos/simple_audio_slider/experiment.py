@@ -136,18 +136,7 @@ class CustomExp(psynet.experiment.Experiment):
             time_estimate=5
         ),
         new_example(
-            "Same example with non-directional slider.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
-            start_value=200,
-            min_value=0,
-            max_value=471,
-            autoplay=True,
-            minimal_interactions=1,
-            time_estimate=5,
-            directional=False,
-        ),
-        new_example(
-            "Same example with slider reversed.",
+            "Same example but with slider reversed.",
             sound_locations=dict(zip(ids, [i for i in range(472)])),
             start_value=200,
             min_value=0,
@@ -156,18 +145,6 @@ class CustomExp(psynet.experiment.Experiment):
             minimal_interactions=1,
             time_estimate=5,
             reverse_scale=True,
-        ),
-        new_example(
-            "Same example with reversed non-directional slider.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
-            start_value=200,
-            min_value=0,
-            max_value=471,
-            autoplay=True,
-            minimal_interactions=1,
-            time_estimate=5,
-            reverse_scale=True,
-            directional=False,
         ),
         new_example(
             "Without reversal, with non-integer sound locations.",
