@@ -667,7 +667,7 @@ class AttentionCheck(Module):
     """
     This is an attention check aimed to identify and remove participants who are not paying attention or following
     the instructions. The attention check has 2 pages and researchers can choose whether to display the two pages or not,
-    and which information to display in each page. Researchers can also choose the conditions to exclude particiapnts (determined by ``exclude_on``).
+    and which information to display in each page. Researchers can also choose the conditions to exclude particiapnts (determined by ``fail_on``).
 
     Parameters
     ----------
@@ -677,7 +677,7 @@ class AttentionCheck(Module):
     pages : int, optional
         Whether to display only the first or both pages. Possible values: 1 and 2. Default: 2.
 
-    exclude_on: str, optional
+    fail_on: str, optional
         The condition for the AttentionCheck check to fail.
         Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "attention_check_1".
 
@@ -700,7 +700,7 @@ class AttentionCheck(Module):
             self,
             label: str = "attention_check",
             pages: int = 2,
-            exclude_on: str = "attention_check_1",
+            fail_on: str = "attention_check_1",
             prompt_1_explanation: str = """
         Research on personality has identified characteristic sets of behaviours and cognitive patterns that
         evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
@@ -711,12 +711,12 @@ class AttentionCheck(Module):
             time_estimate_per_trial: float = 5.0,
         ):
         assert(pages in [1, 2])
-        assert(not(pages == 1 and exclude_on in ["attention_check_2", "both"]))
-        assert(exclude_on in ["attention_check_1", "attention_check_2", "any", "both", None])
+        assert(not(pages == 1 and fail_on in ["attention_check_2", "both"]))
+        assert(fail_on in ["attention_check_1", "attention_check_2", "any", "both", None])
 
         self.label = label
         self.pages = pages
-        self.exclude_on = exclude_on
+        self.fail_on = fail_on
         self.attention_check_2_word = attention_check_2_word
 
         prompt_1_next_page = f""" Also, you must ignore
@@ -749,7 +749,7 @@ class AttentionCheck(Module):
             ),
             conditional(
                 "exclude_check_1",
-                lambda experiment, participant: (participant.answer is not None and self.exclude_on in ["attention_check_1", "any"]),
+                lambda experiment, participant: (participant.answer is not None and self.fail_on in ["attention_check_1", "any"]),
                 UnsuccessfulEndPage(failure_tags=["attention_check_1"]),
             ),
             CodeBlock(
@@ -769,8 +769,8 @@ class AttentionCheck(Module):
             conditional(
                 "exclude_check_2",
                 lambda experiment, participant: (
-                        self.pages == 2 and exclude_on is not None and participant.answer.lower() != self.attention_check_2_word and (
-                        self.exclude_on in ["attention_check_2",
+                        self.pages == 2 and fail_on is not None and participant.answer.lower() != self.attention_check_2_word and (
+                        self.fail_on in ["attention_check_2",
                                             "any"] or not participant.var.first_check_passed)),
                 UnsuccessfulEndPage(failure_tags=["attention_check_2"]),
             ),
