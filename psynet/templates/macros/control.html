@@ -23,19 +23,24 @@
 {% macro reset_button(input_type) %}
     <script>
         on_reset_button = function(input_type) {
-            $('input[type={{ input_type }}]').attr('checked',false);
-            $("#reset_button").css({"display": "none"});
+            $('input[type={{ input_type }}]').attr('checked', false);
+            $("#reset_button").prop('disabled', true);
         }
 
         $('input[type={{ input_type }}]').click(function() {
-            $("#reset_button").css({"display": "block"});
+            if (!$('input[type={{ input_type }}]').is(':checked'))
+            {
+                $("#reset_button").prop('disabled', true);
+            } else {
+                $("#reset_button").prop('disabled', false);
+            }
         });
     </script>
 
-    <button type="button" id="reset_button" class="btn btn-primary btn-lg submit" style="display: none; margin-right: 30px;" onclick="on_reset_button();">
+    <button type="button" id="reset_button" class="btn btn-primary btn-lg" style="margin-right: 30px;" onclick="on_reset_button();" disabled>
         Reset
     </button>
-{% endmacro %}
+    {% endmacro %}
 
 {% macro push_button(config) %}
     <button
@@ -105,12 +110,13 @@
 {% endmacro %}
 
 {% macro checkbox(config) %}
-    <label style="margin-left: 15px;">
+    <label style="margin-left: 15px; cursor: pointer;">
         <input
             type="checkbox"
             id="{{ config.id }}"
             name="{{ config.name }}"
             class="response"
+            style="cursor: pointer;"
         />
         <span>{{ config.label }}</span>
     </label>
