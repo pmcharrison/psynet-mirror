@@ -509,6 +509,8 @@ class CheckboxControl(OptionControl):
     force_selection:
         Determines if at least checkbox has to be ticked. Default: False.
 
+    show_reset_button
+        Whether to display a 'Reset' button to allow for unsetting ticked checkboxes. Default: ``False``.
     """
 
     def __init__(
@@ -519,11 +521,13 @@ class CheckboxControl(OptionControl):
             name: str = "",
             arrange_vertically: bool = True,
             force_selection: bool = False,
+            show_reset_button: bool = False,
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
+        self.show_reset_button = show_reset_button
 
         self.checkboxes = [
             Checkbox(
@@ -822,6 +826,9 @@ class RadioButtonControl(OptionControl):
 
     force_selection
         Determines if an answer has to be selected. Default: ``True``.
+
+    show_reset_button
+        Whether to display a 'Reset' button to allow for unsetting a ticked radiobutton. Default: ``False``.
     """
 
     def __init__(
@@ -832,11 +839,13 @@ class RadioButtonControl(OptionControl):
             name: str = "",
             arrange_vertically: bool = True,
             force_selection: bool = True,
+            show_reset_button: bool = False,
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
+        self.show_reset_button = show_reset_button
 
         self.radiobuttons = [
             RadioButton(

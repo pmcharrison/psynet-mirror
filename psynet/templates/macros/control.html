@@ -20,6 +20,23 @@
     </button>
 {% endmacro %}
 
+{% macro reset_button(input_type) %}
+    <script>
+        on_reset_button = function(input_type) {
+            $('input[type={{ input_type }}]').attr('checked',false);
+            $("#reset_button").css({"display": "none"});
+        }
+
+        $('input[type={{ input_type }}]').click(function() {
+            $("#reset_button").css({"display": "block"});
+        });
+    </script>
+
+    <button type="button" id="reset_button" class="btn btn-primary btn-lg submit" style="display: none; margin-right: 30px;" onclick="on_reset_button();">
+        Reset
+    </button>
+{% endmacro %}
+
 {% macro push_button(config) %}
     <button
         type="button"
@@ -116,6 +133,9 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
+        {% if config.show_reset_button %}
+        {{ reset_button("checkbox") }}
+        {% endif %}
         {{ null(config) }}
     </div>
     <script>
@@ -169,6 +189,9 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
+        {% if config.show_reset_button %}
+        {{ reset_button("radio") }}
+        {% endif %}
         {{ null(config) }}
     </div>
     <script>

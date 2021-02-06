@@ -74,6 +74,7 @@ class Exp(psynet.experiment.Experiment):
                 name="shoes",
                 arrange_vertically=False,
                 force_selection=True,
+                show_reset_button=True,
             ),
             time_estimate=5
         ),
@@ -85,6 +86,7 @@ class Exp(psynet.experiment.Experiment):
                 ["Maple", "Cottonwood", "Alder"],
                 name="trees",
                 arrange_vertically=True,
+                show_reset_button=True,
             ),
             time_estimate=5
         ),
