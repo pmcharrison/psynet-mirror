@@ -744,6 +744,7 @@ class AttentionCheck(Module):
                     name=self.label,
                     arrange_vertically=True,
                     force_selection=False,
+                    show_reset_button="on_selection",
                 ),
                 time_estimate=time_estimate_per_trial,
             ),
