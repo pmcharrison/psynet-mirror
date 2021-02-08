@@ -1288,9 +1288,6 @@ class SliderControl(Control):
     num_steps:
         Determines the number of steps that the slider can be dragged through. Default: `10000`.
 
-    step_size:
-        Step size of the slider. Default: `1`.
-
     snap_values:
         Optional. Determines the values to which the slider will 'snap' to once it is released.
         Can take various forms:
@@ -1335,7 +1332,6 @@ class SliderControl(Control):
             min_value: float,
             max_value: float,
             num_steps: int = 10000,
-            step_size: Optional[float] = 1,
             reverse_scale: Optional[bool] = False,
             slider_id: Optional[str] = 'sliderpage_slider',
             input_type: Optional[str] = "HTML5_range_slider",
@@ -1351,7 +1347,7 @@ class SliderControl(Control):
         self.min_value = min_value
         self.max_value = max_value
         self.num_steps = num_steps
-        self.step_size = step_size
+        self.step_size = (max_value - min_value) / (num_steps - 1)
         self.reverse_scale = reverse_scale
         self.slider_id = slider_id
         self.input_type = input_type
@@ -1439,9 +1435,6 @@ class AudioSliderControl(SliderControl):
 
         Default: `10000`.
 
-    step_size:
-        Step size of the slider. Default: `1`.
-
     slider_id:
         The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
 
@@ -1475,7 +1468,6 @@ class AudioSliderControl(SliderControl):
             sound_locations: dict,
             autoplay: Optional[bool] = False,
             num_steps: Optional[int] = 10000,
-            step_size: Optional[float] = 1,
             slider_id: Optional[str] = 'sliderpage_slider',
             reverse_scale: Optional[bool] = False,
             snap_values: Optional[Union[int, list]] = "sound_locations",
@@ -1488,7 +1480,6 @@ class AudioSliderControl(SliderControl):
             min_value=min_value,
             max_value=max_value,
             num_steps = num_steps,
-            step_size=step_size,
             slider_id=slider_id,
             reverse_scale=reverse_scale,
         )
@@ -1522,23 +1513,19 @@ class ColorSliderControl(SliderControl):
     def __init__(
             self,
             label,
-            slider_id,
-            start_value,
-            min_value,
-            max_value,
-            step_size,
-            hidden_inputs,
-            js_vars,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            hidden_inputs: Optional[dict] = {},
         ):
         super().__init__(
             label=label,
-            slider_id=slider_id,
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
-            step_size=step_size,
+            slider_id=slider_id,
             hidden_inputs=hidden_inputs,
-            js_vars=js_vars,
         )
 
     macro = "color_slider"

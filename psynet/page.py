@@ -477,7 +477,6 @@ class SliderPage(ModularPage):
 
         self._validate()
 
-        self.step_size = (max_value - min_value) / (num_steps - 1)
         self.snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
         self.template_filename = template_filename
 
@@ -495,7 +494,6 @@ class SliderPage(ModularPage):
                 min_value=self.min_value,
                 max_value=self.max_value,
                 num_steps=self.num_steps,
-                step_size=self.step_size,
                 reverse_scale=self.reverse_scale,
                 slider_id=self.slider_id,
                 snap_values=self.snap_values,
@@ -668,7 +666,6 @@ class AudioSliderPage(ModularPage):
 
         self.sound_locations = sound_locations
         # All range checking is done in the parent class
-        step_size = (max_value - min_value) / (num_steps - 1)
 
         super().__init__(
             label,
@@ -682,7 +679,6 @@ class AudioSliderPage(ModularPage):
                 sound_locations=self.sound_locations,
                 autoplay=autoplay,
                 num_steps=num_steps,
-                step_size=step_size,
                 slider_id=slider_id,
                 reverse_scale=kwargs.get('reverse_scale'),
                 snap_values=snap_values,
