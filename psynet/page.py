@@ -1,4 +1,5 @@
 from flask import Markup, escape
+import warnings
 
 from typing import (
     Union,
@@ -24,10 +25,18 @@ from .timeline import (
 from .utils import linspace, get_logger
 from .modular_page import (
     ModularPage,
-    AudioPrompt
+    Prompt,
+    AudioPrompt,
+    AudioSliderControl,
+    NumberControl,
+    PushButtonControl,
+    SliderControl,
+    TextControl,
 )
 
 logger = get_logger()
+warnings.simplefilter('always', DeprecationWarning)
+
 
 class InfoPage(Page):
     """
@@ -207,8 +216,11 @@ class UnsuccessfulEndPage(EndPage):
         experiment.fail_participant(participant)
 
 
-class NAFCPage(Page):
+class NAFCPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl` instead.
+
     This page solicits a multiple-choice response from the participant.
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
@@ -255,39 +267,37 @@ class NAFCPage(Page):
             min_width: str = "100px",
             **kwargs
     ):
-        self.prompt = prompt
-        self.choices = choices
-        self.labels = choices if labels is None else labels
+        warnings.warn("psynet.page.NAFCPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl instead.", DeprecationWarning)
 
-        assert isinstance(self.labels, List)
-        assert len(self.choices) == len(self.labels)
+        labels = choices if labels is None else labels
 
-        buttons = [
-            Button(button_id=choice, label=label, min_width=min_width, own_line=arrange_vertically)
-            for choice, label in zip(self.choices, self.labels)
-        ]
+        assert isinstance(labels, List)
+        assert len(choices) == len(labels)
+
         super().__init__(
+            label,
+            prompt=prompt,
+            control=PushButtonControl(
+                choices,
+                labels=labels,
+                arrange_vertically=arrange_vertically,
+            ),
             time_estimate=time_estimate,
-            template_str=get_template("nafc-page.html"),
-            label=label,
-            template_arg={
-                "prompt": prompt,
-                "buttons": buttons
-            },
-            **kwargs
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
-            "prompt": self.prompt,
-            "choices": self.choices,
-            "labels": self.labels
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
         }
 
 
-class TextInputPage(Page):
+class TextInputPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.
+
     This page solicits a text response from the user.
     By default this response is saved in the database as a
     :class:`psynet.timeline.Response` object,
@@ -329,37 +339,34 @@ class TextInputPage(Page):
             height: Optional[str] = None,
             **kwargs
     ):
-        self.prompt = prompt
+        warnings.warn("psynet.page.TextInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.", DeprecationWarning)
 
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
 
-        style = (
-            "" if width is None else f"width:{width}"
-                                     " "
-                                     "" if height is None else f"height:{height}"
-        )
-
         super().__init__(
+            label,
+            prompt=Prompt(prompt),
+            control=TextControl(
+                one_line=one_line,
+                width=width,
+                height=height,
+            ),
             time_estimate=time_estimate,
-            template_str=get_template("text-input-page.html"),
-            label=label,
-            template_arg={
-                "prompt": prompt,
-                "one_line": one_line,
-                "style": style
-            },
-            **kwargs
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
-            "prompt": self.prompt
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
         }
 
-class SliderPage(Page):
+class SliderPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.
+
     This page solicits a slider response from the user.
 
     The page logs all interactions from the participants including:
@@ -423,17 +430,11 @@ class SliderPage(Page):
         If ``True``, then the slider continuously calls slider-update events when it is dragged,
         rather than just when it is released. In this case the log is disabled.
 
-    width:
-        Optional CSS width property for the text box.
-
-    height:
-        Optional CSS height property for the text box.
-
     time_estimate:
         Time estimated for the page.
 
-    template_str:
-        Optional different template.
+    template_filename:
+        Filename of an optional additional template.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
@@ -455,68 +456,54 @@ class SliderPage(Page):
             reverse_scale: Optional[bool] = False,
             continuous_updates: bool = False,
             slider_id: Optional[str] = 'sliderpage_slider',
-            width: Optional[str] = None,  # e.g. "100px"
-            height: Optional[str] = None,
             time_estimate: Optional[float] = None,
-            template_str: Optional[str] = get_template("slider-page.html"),
+            template_filename: Optional[str] = None,
             **kwargs
     ):
+        warnings.warn("psynet.page.SliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.", DeprecationWarning)
+
         self.max_value = max_value
         self.min_value = min_value
+        self.prompt = prompt
         self.start_value = start_value
         self.input_type = input_type
         self.minimal_interactions = minimal_interactions
         self.minimal_time = minimal_time
         self.num_steps = num_steps
+        self.reverse_scale = reverse_scale
+        self.continuous_updates = continuous_updates
+        self.slider_id = slider_id
+        self.time_estimate = time_estimate
 
         self._validate()
 
-        if not 'js_vars' in kwargs:
-            kwargs['js_vars'] = {}
-
-        diff = max_value - min_value
-        step_size = diff / (num_steps - 1)
-
-        snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
-        self.snap_values = snap_values
-
-        styles = []
-        if width is not None:
-            styles.append(f"width:{width}")
-        if height is not None:
-            styles.append(f"height:{height}")
-        style = " ".join(styles)
-
-        new_template_args = {
-            "prompt": prompt,
-            "start_value": start_value,
-            "min_value": min_value,
-            "max_value": max_value,
-            "step_size": step_size,
-            "reverse_scale": reverse_scale,
-            "style": style,
-            "slider_id": slider_id
-        }
+        self.snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
+        self.template_filename = template_filename
 
         if not 'template_arg' in kwargs:
-            kwargs['template_arg'] = {}
-
-        for key, value in new_template_args.items():
-            kwargs['template_arg'][key] = value
-
-        kwargs['js_vars']["snap_values"] = snap_values
-        kwargs['js_vars']["num_steps"] = num_steps
-        kwargs['js_vars']["start_value"] = start_value
-        kwargs['js_vars']['minimal_interactions'] = minimal_interactions
-        kwargs['js_vars']['minimal_time'] = minimal_time
-        kwargs['js_vars']["reverse_scale"] = reverse_scale
-        kwargs['js_vars']["slider_continuous_updates"] = continuous_updates
+            self.template_args = {}
+        else:
+            self.template_args = kwargs["template_arg"]
 
         super().__init__(
-            time_estimate=time_estimate,
-            template_str=template_str,
-            label=label,
-            **kwargs
+            label,
+            prompt=Prompt(self.prompt),
+            control=SliderControl(
+                label=label,
+                start_value=self.start_value,
+                min_value=self.min_value,
+                max_value=self.max_value,
+                num_steps=self.num_steps,
+                reverse_scale=self.reverse_scale,
+                slider_id=self.slider_id,
+                snap_values=self.snap_values,
+                minimal_interactions=self.minimal_interactions,
+                minimal_time=self.minimal_time,
+                continuous_updates=self.continuous_updates,
+                template_filename=self.template_filename,
+                template_args=self.template_args,
+            ),
+            time_estimate=self.time_estimate,
         )
 
     def _validate(self):
@@ -548,6 +535,8 @@ class SliderPage(Page):
     def metadata(self, **kwargs):
         return {
             **super().metadata(),
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
             'num_steps': self.num_steps,
             'snap_values': self.snap_values,
             'min_value': self.min_value,
@@ -559,9 +548,11 @@ class SliderPage(Page):
         }
 
 
-class AudioSliderPage(SliderPage):
+class AudioSliderPage(ModularPage):
     """
-    See issue #11
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.
+
     This page solicits a slider response from the user that results in playing some audio.
 
     By default this response is saved in the database as a
@@ -612,9 +603,6 @@ class AudioSliderPage(SliderPage):
     template_arg:
         By default empty dictionary. Optional template arguments.
 
-    template_str: default: the page template slider-audio-page.html
-        Can be overwritten in classes inheriting from this class.
-
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.SliderPage`.
     """
@@ -631,10 +619,14 @@ class AudioSliderPage(SliderPage):
         num_steps: Union[str, int] = 10000,
         snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
-        time_estimate: Optional[float] = None,
-        template_str: Optional[str] = get_template("slider-audio-page.html"),
+        slider_id: Optional[str] = 'sliderpage_slider',
+        minimal_interactions: Optional[int] = 0,
+        minimal_time: Optional[float] = None,
+        continuous_updates: bool = False,
         **kwargs
     ):
+        warnings.warn("psynet.page.AudioSliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.AudioSliderControl` instead.", DeprecationWarning)
+
         if not 'media' in kwargs:
             raise ValueError('You must specify sounds in `media` you later want to play with the slider')
 
@@ -672,51 +664,73 @@ class AudioSliderPage(SliderPage):
         # if not all([location in ticks for _, location in sound_locations.items()]):
         #     raise ValueError('The slider does not contain all locations for the audio')
 
-        if not 'js_vars' in kwargs:
-            kwargs['js_vars'] = {}
-        kwargs['js_vars']['autoplay'] = autoplay
-        kwargs['js_vars']['sound_locations'] = sound_locations
-
         self.sound_locations = sound_locations
         # All range checking is done in the parent class
+
         super().__init__(
-            prompt=prompt,
-            start_value=start_value,
-            min_value=min_value,
-            max_value=max_value,
-            num_steps=num_steps,
-            snap_values=snap_values,
-            time_estimate=time_estimate,
-            template_str=template_str,
-            label=label,
-            **kwargs
+            label,
+            prompt=Prompt(prompt),
+            control=AudioSliderControl(
+                label=label,
+                start_value=start_value,
+                min_value=min_value,
+                max_value=max_value,
+                audio=audio,
+                sound_locations=self.sound_locations,
+                autoplay=autoplay,
+                num_steps=num_steps,
+                slider_id=slider_id,
+                reverse_scale=kwargs.get('reverse_scale'),
+                snap_values=snap_values,
+                minimal_interactions=minimal_interactions,
+                minimal_time=minimal_time,
+            ),
+            media=kwargs.get('media'),
+            time_estimate=kwargs.get('time_estimate'),
         )
 
     def metadata(self, **kwargs):
         # pylint: disable=unused-argument
         return {
             **super().metadata(),
-            'sound_locations': self.sound_locations
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
         }
 
 
-class NumberInputPage(TextInputPage):
+class NumberInputPage(ModularPage):
     """
+    .. deprecated:: 1.11.0
+        Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.
+
     This page is like :class:`psynet.timeline.TextInputPage`,
     except it forces the user to input a number.
     See :class:`psynet.timeline.TextInputPage` for argument documentation.
     """
 
-    def format_answer(self, raw_answer, **kwargs):
-        try:
-            return float(raw_answer)
-        except ValueError:
-            return "INVALID_RESPONSE"
+    def __init__(
+            self,
+            label: str,
+            prompt: Union[str, Markup],
+            width: Optional[str] = None,  # e.g. "100px"
+            time_estimate: Optional[float] = None,
+            **kwargs
+    ):
+        warnings.warn("psynet.page.NumberInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.", DeprecationWarning)
 
-    def validate(self, response, **kwargs):
-        if response.answer == "INVALID_RESPONSE":
-            return FailedValidation("Please enter a number.")
-        return None
+        super().__init__(
+            label,
+            prompt=Prompt(self.prompt),
+            control=NumberControl(width=self.width),
+            time_estimate=self.time_estimate,
+        )
+
+    def metadata(self, **kwargs):
+        # pylint: disable=unused-argument
+        return {
+            "prompt": self.prompt.metadata,
+            "control": self.control.metadata,
+        }
 
 
 class Button():
