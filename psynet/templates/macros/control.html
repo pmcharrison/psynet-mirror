@@ -20,6 +20,37 @@
     </button>
 {% endmacro %}
 
+{% macro reset_button(config, input_type) %}
+    <script>
+        {% if config.show_reset_button == "on_selection" %}
+        $("#reset_button").css({"display": "block"});
+        {% endif %}
+        on_reset_button = function(input_type) {
+            $('input[type={{ input_type }}]').attr('checked', false);
+            {% if config.show_reset_button == "on_selection" %}
+            $("#reset_button").css({"display": "none"});
+            {% endif %}
+            $("#reset_button").prop('disabled', true);
+        }
+
+        $('input[type={{ input_type }}]').click(function() {
+            {% if config.show_reset_button == "on_selection" %}
+            $("#reset_button").css({"display": "block"});
+            {% endif %}
+            if (!$('input[type={{ input_type }}]').is(':checked'))
+            {
+                $("#reset_button").prop('disabled', true);
+            } else {
+                $("#reset_button").prop('disabled', false);
+            }
+        });
+    </script>
+
+    <button type="button" id="reset_button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="on_reset_button();" disabled>
+        Reset
+    </button>
+    {% endmacro %}
+
 {% macro push_button(config) %}
     <button
         type="button"
@@ -88,12 +119,13 @@
 {% endmacro %}
 
 {% macro checkbox(config) %}
-    <label style="margin-left: 15px;">
+    <label style="margin-left: 15px; cursor: pointer;">
         <input
             type="checkbox"
             id="{{ config.id }}"
             name="{{ config.name }}"
             class="response"
+            style="cursor: pointer;"
         />
         <span>{{ config.label }}</span>
     </label>
@@ -116,6 +148,9 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
+        {% if config.show_reset_button != "never" %}
+        {{ reset_button(config, "checkbox") }}
+        {% endif %}
         {{ null(config) }}
     </div>
     <script>
@@ -169,6 +204,9 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
+        {% if config.show_reset_button != "never" %}
+        {{ reset_button(config, "radio") }}
+        {% endif %}
         {{ null(config) }}
     </div>
     <script>
