@@ -269,23 +269,20 @@ class NAFCPage(ModularPage):
     ):
         warnings.warn("psynet.page.NAFCPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl instead.", DeprecationWarning)
 
-        self.prompt = prompt
-        self.choices = choices
-        self.labels = choices if labels is None else labels
-        self.arrange_vertically = arrange_vertically
-        self.time_estimate = time_estimate
+        labels = choices if labels is None else labels
 
-        assert isinstance(self.labels, List)
-        assert len(self.choices) == len(self.labels)
+        assert isinstance(labels, List)
+        assert len(choices) == len(labels)
 
         super().__init__(
             label,
-            prompt=self.prompt,
+            prompt=prompt,
             control=PushButtonControl(
-                self.choices,
+                choices,
+                labels=labels,
                 arrange_vertically=arrange_vertically,
             ),
-            time_estimate=self.time_estimate,
+            time_estimate=time_estimate,
         )
 
     def metadata(self, **kwargs):
@@ -344,21 +341,18 @@ class TextInputPage(ModularPage):
     ):
         warnings.warn("psynet.page.TextInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.", DeprecationWarning)
 
-        self.prompt = prompt
-        self.time_estimate = time_estimate
-
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
 
         super().__init__(
             label,
-            prompt=Prompt(self.prompt),
+            prompt=Prompt(prompt),
             control=TextControl(
                 one_line=one_line,
                 width=width,
                 height=height,
             ),
-            time_estimate=self.time_estimate,
+            time_estimate=time_estimate,
         )
 
     def metadata(self, **kwargs):
@@ -468,7 +462,6 @@ class SliderPage(ModularPage):
     ):
         warnings.warn("psynet.page.SliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.", DeprecationWarning)
 
-        self.label = label
         self.max_value = max_value
         self.min_value = min_value
         self.prompt = prompt
@@ -494,10 +487,10 @@ class SliderPage(ModularPage):
             self.template_args = kwargs["template_arg"]
 
         super().__init__(
-            self.label,
+            label,
             prompt=Prompt(self.prompt),
             control=SliderControl(
-                label=self.label,
+                label=label,
                 start_value=self.start_value,
                 min_value=self.min_value,
                 max_value=self.max_value,
@@ -611,9 +604,6 @@ class AudioSliderPage(ModularPage):
 
     template_arg:
         By default empty dictionary. Optional template arguments.
-
-    template_filename:
-        Filename of an optional additional template.
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.SliderPage`.
@@ -731,10 +721,6 @@ class NumberInputPage(ModularPage):
             **kwargs
     ):
         warnings.warn("psynet.page.NumberInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.", DeprecationWarning)
-
-        self.prompt = prompt
-        self.width = width
-        self.time_estimate = time_estimate
 
         super().__init__(
             label,

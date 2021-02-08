@@ -71,11 +71,13 @@ class Exp(psynet.experiment.Experiment):
         ),
         ModularPage(
             "timed_push_button",
-            Prompt("""
-            This is a TimedPushButtonControl. You can press the buttons 'A', 'B', 'C'
-            in any order, as many times as you like, and the timings will be logged.
-            Press 'Next' when you're ready to continue.
-            """),
+            Prompt(
+                """
+                This is a TimedPushButtonControl. You can press the buttons 'A', 'B', 'C'
+                in any order, as many times as you like, and the timings will be logged.
+                Press 'Next' when you're ready to continue.
+                """
+            ),
             TimedPushButtonControl(
                 choices=["A", "B", "C"],
                 arrange_vertically=False
