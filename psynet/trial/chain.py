@@ -1149,6 +1149,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             raise ValueError("num_nodes_per_chain and num_iterations_per_chain cannot both be provided")
         elif num_nodes_per_chain is not None:
             num_iterations_per_chain = num_nodes_per_chain - 1
+            warnings.simplefilter('always', DeprecationWarning)
             warnings.warn("num_nodes_per_chain is deprecated, use num_iterations_per_chain instead", DeprecationWarning)
         elif num_iterations_per_chain is not None:
             pass

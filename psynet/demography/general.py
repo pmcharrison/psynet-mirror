@@ -1,11 +1,12 @@
 from psynet.modular_page import (
     DropdownControl,
     ModularPage,
+    NumberControl,
     PushButtonControl,
     RadioButtonControl,
+    TextControl,
 )
 
-from psynet.page import TextInputPage
 from psynet.timeline import (
     FailedValidation,
     Module,
@@ -142,7 +143,7 @@ class Gender(ModularPage):
         super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
 
 
-class Age(TextInputPage):
+class Age(ModularPage):
     def __init__(
         self,
         label = "age",
@@ -151,15 +152,14 @@ class Age(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=NumberControl(), time_estimate=self.time_estimate)
 
     @staticmethod
     def validate(response, **kwargs):
-        if not (response.answer != "" and
-                response.answer.isdigit() and
+        if not (response.answer.isdigit() and
                 int(response.answer) > 0 and
                 int(response.answer) < 120):
-            return FailedValidation("You need to provide your age as a number!")
+            return FailedValidation("You need to provide your age as an integer between 0 and 120!")
         return None
 
 
@@ -272,7 +272,7 @@ class MoreThanOneLanguage(ModularPage):
         super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
 
 
-class LanguagesInOrderOfProficiency(TextInputPage):
+class LanguagesInOrderOfProficiency(ModularPage):
     def __init__(
         self,
         label="languages_in_order_of_proficiency",
@@ -281,7 +281,7 @@ class LanguagesInOrderOfProficiency(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=TextControl(), time_estimate=self.time_estimate)
 
     @staticmethod
     def validate(response, **kwargs):
@@ -291,7 +291,7 @@ class LanguagesInOrderOfProficiency(TextInputPage):
 
 
 ### Basic music ###
-class YearsOfFormalTraining(TextInputPage):
+class YearsOfFormalTraining(ModularPage):
     def __init__(
         self,
         label="years_of_formal_training",
@@ -300,10 +300,10 @@ class YearsOfFormalTraining(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=NumberControl(), time_estimate=self.time_estimate)
 
 
-class HoursOfDailyMusicListening(TextInputPage):
+class HoursOfDailyMusicListening(ModularPage):
     def __init__(
         self,
         label="hours_of_daily_music_listening",
@@ -312,7 +312,7 @@ class HoursOfDailyMusicListening(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=NumberControl(), time_estimate=self.time_estimate)
 
 
 class MoneyFromPlayingMusic(ModularPage):
@@ -450,7 +450,7 @@ class HouseholdIncomePerYear(ModularPage):
 
 
 ### ExperimentFeedback ###
-class LikedExperiment(TextInputPage):
+class LikedExperiment(ModularPage):
     def __init__(
         self,
         label="liked_experiment",
@@ -459,10 +459,10 @@ class LikedExperiment(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=TextControl(), time_estimate=self.time_estimate)
 
 
-class FoundExperimentDifficult(TextInputPage):
+class FoundExperimentDifficult(ModularPage):
     def __init__(
         self,
         label="find_experiment_difficult",
@@ -471,10 +471,10 @@ class FoundExperimentDifficult(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=TextControl(), time_estimate=self.time_estimate)
 
 
-class EncounteredTechnicalProblems(TextInputPage):
+class EncounteredTechnicalProblems(ModularPage):
     def __init__(
         self,
         label="encountered_technical_problems",
@@ -483,7 +483,7 @@ class EncounteredTechnicalProblems(TextInputPage):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
-        super().__init__(self.label, self.prompt, time_estimate=self.time_estimate)
+        super().__init__(self.label, self.prompt, control=TextControl(), time_estimate=self.time_estimate)
 
 
 def countries():

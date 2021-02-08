@@ -227,7 +227,215 @@
     </script>
 {% endmacro %}
 
+
+{% macro audio_slider(config) %}
+    {{ slider(config) }}
+
+    <script>
+        {% autoescape off %}
+        var sound_locations = {{ config.js_vars.sound_locations }};
+        var autoplay = {{ config.js_vars.autoplay | lower }};
+        {% endautoescape %}
+
+        // Overwrites corresponding method in slider-page.html
+        slider.update_log = function() {
+            slider.log.push({
+                'time': new Date(),
+                'value': slider.value,
+                'audio': slider.audio
+            })
+        }
+
+        find_closest_audio = function (slider) {
+            var locations = Object.values(sound_locations);
+            var nearest = psynet.utils.closest(parseFloat(slider.value), locations);
+            var selected_audio = Object.keys(sound_locations)[nearest.index];
+            return selected_audio
+        };
+
+        play_sound = function () {
+            var id = slider.audio;
+            var sound = psynet.audio[id];
+
+            if (!sound.playing) {
+                psynet.media.stop_all_audio();
+                psynet.log.debug('Playing sound with ID = ' + id);
+                sound.play();
+            }
+        };
+
+        on_slider_event = function (event_type) {
+            slider.audio = find_closest_audio(slider);
+            if (event_type == "initialise") {
+                if (autoplay) {
+                    play_sound();
+                }
+            } else if (event_type == "slider_changed") {
+                play_sound();
+            }
+        };
+    </script>
+{% endmacro %}
+
+
+{% macro color_slider(config) %}
+    <style>
+        .main-body {
+            background-color: white;
+            padding: 30px;
+        }
+    </style>
+
+    {{ slider(config) }}
+
+    {% for color, value in config.hidden_inputs.items() %}
+        <input type="hidden" value="{{ value }}" id="{{ color }}">
+    {% endfor %}
+
+    <script>
+        function pad(n) {
+            return (n.length < 2) ? "0" + n : n;
+        }
+
+        // Set the color
+        on_slider_event = function (event_type) {
+            psynet.log.debug("Updating slider background");
+            var r_hex = parseInt(document.getElementById('red').value, 10).toString(16),
+                g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
+                b_hex = parseInt(document.getElementById('blue').value, 10).toString(16),
+                hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
+            document.body.style.backgroundColor = hex;
+        };
+
+        document.addEventListener("load", on_slider_event);
+    </script>
+{% endmacro %}
+
+
 {% macro slider(config) %}
+    <style>
+        #{{ config.slider_id }} {
+            width: 100%;
+            {% if config.reverse_scale == true %} direction: rtl; {% endif %}
+        }
+    </style>
+
+    <input class="wait-for-media-load" type="range"
+            id="{{ config.slider_id }}" class="form-control-range"
+            min="{{ config.min_value }}" max="{{ config.max_value + 0.0001 * config.step_size }}" step="{{ config.step_size }}" value="{{ config.start_value }}"
+            >
+    <p class="vspace"></p>
+
+    {{ null(config) }}
+
+    <script>
+        {% autoescape off %}
+        var snap_values = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
+        var minimal_interactions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
+        var minimal_time = {% if config.js_vars.minimal_time is none %}null{% else %}{{ config.js_vars.minimal_time }}{% endif %} ;
+        var continuous_updates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
+        var slider_id = '{{ config.slider_id }}';
+        {% endautoescape %}
+
+        // This is called each time
+        on_slider_event = function (event_type) {
+
+        };
+
+        if (minimal_interactions > 0) {
+            psynet.submit.wait_for("slider_minimal_interactions");
+        }
+
+        psynet.submit.wait_for("slider_minimal_time");
+
+        psynet.response.register_on_ready_routine(function() {
+            setTimeout(function() {
+                psynet.submit.ready("slider_minimal_time");
+            }, minimal_time * 1000);
+        });
+
+        // Metadata collection
+        var slider = document.getElementById(slider_id);
+
+        if (continuous_updates) {
+            slider.log = "The slider log is disabled when continuous slider updates are enabled.";
+        } else {
+            slider.log = [];
+        }
+
+        slider.update_log = function() {
+            if (!continuous_updates) {
+                slider.log.push({
+                    'time': new Date(),
+                    'value': slider.value
+                });
+            }
+        }
+
+        slider.interaction_count = 0;
+
+        snap_slider = function () {
+            raw_value = parseFloat(slider.value);
+            if (snap_values == null) {
+                psynet.log.debug("Slider value: " + raw_value + " (no snapping).");
+                return raw_value
+            } else {
+                new_value = psynet.utils.closest(slider.value, snap_values).value;
+                slider.value = new_value;
+                psynet.log.debug("Snapped slider from " + raw_value + " to " + new_value);
+                return new_value;
+            }
+        };
+
+        // Save initial position
+        slider.initialise = function () {
+            psynet.log.debug('Slider page is loaded.');
+            snap_slider();
+            on_slider_event('initialise');
+            slider.update_log();
+        };
+
+        psynet.response.register_on_ready_routine(slider.initialise);
+
+        var slider_listener;
+
+        if (continuous_updates) {
+            slider_listener = "input";
+        } else {
+            slider_listener = "change";
+        }
+
+        slider.addEventListener(slider_listener, function () {
+            snap_slider();
+            slider.interaction_count += 1;
+            if (slider.interaction_count >= minimal_interactions) {
+                psynet.submit.ready("slider_minimal_interactions");
+            }
+            on_slider_event('slider_changed');
+            slider.update_log();
+        }, false);
+
+        submit = function () {
+            psynet.response.disable();
+            psynet.submit.disable();
+            var metadata = {
+                log: slider.log
+            };
+            psynet.next_page(parseFloat(slider.value), metadata);
+        };
+
+        retrieve_response = function() {
+            return {
+                raw_answer: parseFloat(slider.value)
+            }
+        }
+    </script>
+    {% if config.template_filename %}
+        {% include config.template_filename %}
+    {% endif %}
+{% endmacro %}
+
+{% macro multi_slider(config) %}
     <style type="text/css">
         .slider-collection {
             margin: 30px;
@@ -280,13 +488,13 @@
     <div class="slider-collection">
         {% for s in config.sliders %}
             <div class="slider">
-                <span class="slider-label" style=>
+                <span class="slider-label">
                     {{ s.label }}
                 </span>
-                <input id="{{ s.slider_id }}" class="slider-range form-control-range response" type="range"
-                            style="display: inline-block;"
-                            min="{{ s.min_value }}" max="{{ s.max_value + 0.0001 * s.step_size }}"
-                            step="{{ s.step_size }}" value="{{ s.start_value }}">
+                <input type="range" id="{{ s.slider_id }}" class="slider-range form-control-range response"
+                       style="display: inline-block;" min="{{ s.min_value }}"
+                       max="{{ s.max_value + 0.0001 * s.step_size }}" step="{{ s.step_size }}"
+                       value="{{ s.start_value }}">
                 <span class="slider-value">NA</span>
             </div>
         {% endfor %}
@@ -343,13 +551,17 @@
     </style>
 
     <ul class="nav nav-tabs">
-        <li><a href="#audio-meter-sliders" data-toggle="tab">Sliders</a></li>
-        <li><a href="#audio-meter-documentation" data-toggle="tab">Documentation</a></li>
+        <li class="nav-item">
+            <a href="#audio-meter-sliders" class="nav-link" data-toggle="tab">Sliders</a>
+        </li>
+        <li class="nav-item">
+            <a href="#audio-meter-documentation" class="nav-link" data-toggle="tab">Documentation</a>
+        </li>
     </ul>
 
     <div class="tab-content">
         <div id="audio-meter-sliders" class="tab-pane active">
-            {{ slider(config.sliders) }}
+            {{ multi_slider(config.sliders) }}
         </div>
 
         <div id="audio-meter-documentation" class="tab-pane">
@@ -407,7 +619,7 @@
         </div>
 
         <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading response...
+            Uploading...
         </div>
     </div>
 
@@ -500,7 +712,8 @@
 {% macro text(config) %}
     <style>
         #text_input_container {
-            margin: 15px;
+            padding-top: 20px;
+            padding-bottom: 20px;
             display: flex;
             justify-content: center;
         }
@@ -517,11 +730,42 @@
             <textarea id="text_input" class="form-control response" type="text"></textarea>
         {% endif %}
     </div>
+    <p class="vspace"></p>
 
     <script>
         retrieve_response = function() {
             return {
                 raw_answer: $("#text_input").get(0).value
+            }
+        }
+    </script>
+
+    {{ null(config) }}
+{% endmacro %}
+
+{% macro number(config) %}
+    <style>
+        #number_input_container {
+            padding-top: 20px;
+            padding-bottom: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        #number_input {
+            text-align: {{config.text_align}};
+            {% if config.width is not none %}width: {{ config.width }};{% endif %}
+        }
+    </style>
+
+    <div id="number_input_container">
+        <input id="number_input" class="form-control response" type="text" value=""/>
+    </div>
+    <p class="vspace"></p>
+
+    <script>
+        retrieve_response = function() {
+            return {
+                raw_answer: $("#number_input").get(0).value
             }
         }
     </script>
