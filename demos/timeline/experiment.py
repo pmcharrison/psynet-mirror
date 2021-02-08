@@ -17,6 +17,7 @@ from psynet.page import (
     ModularPage
 )
 from psynet.modular_page import (
+    NumberControl,
     Prompt,
     TimedPushButtonControl
 )
@@ -55,13 +56,28 @@ class Exp(psynet.experiment.Experiment):
                 time_estimate=5
             )
         ),
+        Module(
+            "weight",
+            ModularPage(
+                "weight",
+                Prompt("What is your weight in kg?"),
+                NumberControl(),
+                time_estimate=5
+            ),
+            PageMaker(
+                lambda participant: InfoPage(f"Your weight is {participant.answer} kg."),
+                time_estimate=5
+            ),
+        ),
         ModularPage(
             "timed_push_button",
-            Prompt("""
-            This is a TimedPushButtonControl. You can press the buttons 'A', 'B', 'C'
-            in any order, as many times as you like, and the timings will be logged.
-            Press 'Next' when you're ready to continue.
-            """),
+            Prompt(
+                """
+                This is a TimedPushButtonControl. You can press the buttons 'A', 'B', 'C'
+                in any order, as many times as you like, and the timings will be logged.
+                Press 'Next' when you're ready to continue.
+                """
+            ),
             TimedPushButtonControl(
                 choices=["A", "B", "C"],
                 arrange_vertically=False

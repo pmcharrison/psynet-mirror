@@ -22,7 +22,7 @@ class TestExp():
             assert driver.find_element_by_id("participant-group").text == f"Participant group = {participant_group}"
 
             for i in range(7):
-                next_page(driver, "submit_button")
+                next_page(driver, "next_button")
 
             next_page(driver, "next_button")
 
