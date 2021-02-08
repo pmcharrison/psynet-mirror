@@ -20,14 +20,23 @@
     </button>
 {% endmacro %}
 
-{% macro reset_button(input_type) %}
+{% macro reset_button(config, input_type) %}
     <script>
+        {% if config.show_reset_button == "on_selection" %}
+        $("#reset_button").css({"display": "block"});
+        {% endif %}
         on_reset_button = function(input_type) {
             $('input[type={{ input_type }}]').attr('checked', false);
+            {% if config.show_reset_button == "on_selection" %}
+            $("#reset_button").css({"display": "none"});
+            {% endif %}
             $("#reset_button").prop('disabled', true);
         }
 
         $('input[type={{ input_type }}]').click(function() {
+            {% if config.show_reset_button == "on_selection" %}
+            $("#reset_button").css({"display": "block"});
+            {% endif %}
             if (!$('input[type={{ input_type }}]').is(':checked'))
             {
                 $("#reset_button").prop('disabled', true);
@@ -37,7 +46,7 @@
         });
     </script>
 
-    <button type="button" id="reset_button" class="btn btn-primary btn-lg" style="margin-right: 30px;" onclick="on_reset_button();" disabled>
+    <button type="button" id="reset_button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="on_reset_button();" disabled>
         Reset
     </button>
     {% endmacro %}
@@ -139,8 +148,8 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
-        {% if config.show_reset_button %}
-        {{ reset_button("checkbox") }}
+        {% if config.show_reset_button != "never" %}
+        {{ reset_button(config, "checkbox") }}
         {% endif %}
         {{ null(config) }}
     </div>
@@ -195,8 +204,8 @@
     </div>
     <p class="vspace"></p>
     <div style="justify-content: center; display: flex; margin-top">
-        {% if config.show_reset_button %}
-        {{ reset_button("radio") }}
+        {% if config.show_reset_button != "never" %}
+        {{ reset_button(config, "radio") }}
         {% endif %}
         {{ null(config) }}
     </div>
