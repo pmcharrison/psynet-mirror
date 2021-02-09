@@ -1310,6 +1310,9 @@ class SliderControl(Control):
     reverse_scale:
         Flip the scale. Default: `False`.
 
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
     slider_id:
         The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
 
@@ -1342,6 +1345,7 @@ class SliderControl(Control):
             max_value: float,
             num_steps: int = 10000,
             reverse_scale: Optional[bool] = False,
+            directional: Optional[bool] = True,
             slider_id: Optional[str] = 'sliderpage_slider',
             input_type: Optional[str] = "HTML5_range_slider",
             snap_values: Optional[Union[int, list]] = None,
@@ -1358,6 +1362,7 @@ class SliderControl(Control):
         self.num_steps = num_steps
         self.step_size = (max_value - min_value) / (num_steps - 1)
         self.reverse_scale = reverse_scale
+        self.directional = directional
         self.slider_id = slider_id
         self.input_type = input_type
         self.template_filename = template_filename
@@ -1382,6 +1387,7 @@ class SliderControl(Control):
             "num_steps": self.num_steps,
             "step_size": self.step_size,
             "reverse_scale": self.reverse_scale,
+            "directional": self.directional,
             "slider_id": self.slider_id,
             "input_type": self.input_type,
             "template_filename": self.template_filename,
@@ -1450,6 +1456,9 @@ class AudioSliderControl(SliderControl):
     reverse_scale:
         Flip the scale. Default: `False`.
 
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
     snap_values:
         - ``"sound_locations"``: slider snaps to nearest sound location.
 
@@ -1479,6 +1488,7 @@ class AudioSliderControl(SliderControl):
             num_steps: Optional[int] = 10000,
             slider_id: Optional[str] = 'sliderpage_slider',
             reverse_scale: Optional[bool] = False,
+            directional: bool = True,
             snap_values: Optional[Union[int, list]] = "sound_locations",
             minimal_interactions: Optional[int] = 0,
             minimal_time: Optional[int] = 0,
@@ -1491,6 +1501,7 @@ class AudioSliderControl(SliderControl):
             num_steps = num_steps,
             slider_id=slider_id,
             reverse_scale=reverse_scale,
+            directional = directional,
         )
         self.sound_locations = sound_locations
         self.autoplay = autoplay
@@ -1636,6 +1647,7 @@ class VideoSliderControl(Control):
             starting_value: float = 0.5,
             minimal_time: float = 2.0,
             reverse_scale: bool = False,
+            directional: bool = True,
             hide_slider: bool = False
         ):
         assert 0 <= starting_value and starting_value <= 1
@@ -1647,6 +1659,7 @@ class VideoSliderControl(Control):
         self.starting_value = starting_value
         self.minimal_time = minimal_time
         self.reverse_scale = reverse_scale
+        self.directional = directional
         self.hide_slider = hide_slider
 
     @property
@@ -1656,6 +1669,7 @@ class VideoSliderControl(Control):
             "starting_value": self.starting_value,
             "minimal_time": self.minimal_time,
             "reverse_scale": self.reverse_scale,
+            "directional": self.directional,
             "hide_slider": self.hide_slider
         }
 

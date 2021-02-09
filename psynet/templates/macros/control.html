@@ -356,12 +356,41 @@
             width: 100%;
             {% if config.reverse_scale == true %} direction: rtl; {% endif %}
         }
+        .slider-range {
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: 1px solid #000000;
+            height: 36px;
+            background-color: #efefef;
+            border: 11px solid #b2b2b2;
+            border-radius: 5px;
+            {% if config.directional == false %}
+            margin-top: -8px;
+            {% endif %}
+            cursor: pointer;
+        }
+        {% if config.directional == false %}
+        input[type=range]::-webkit-slider-runnable-track {
+              background: #000000;
+              border: 1px solid #b2b2b2;
+              background-color: #efefef;
+              border-radius: 5px;
+              width: 100%;
+              height: 8px;
+            }
+        {% endif %}
     </style>
 
-    <input class="wait-for-media-load" type="range"
-            id="{{ config.slider_id }}" class="form-control-range"
-            min="{{ config.min_value }}" max="{{ config.max_value + 0.0001 * config.step_size }}" step="{{ config.step_size }}" value="{{ config.start_value }}"
-            >
+    <input
+        type="range"
+        id="{{ config.slider_id }}"
+        class="wait-for-media-load slider-range form-control-range{% if not config.directional %} slider-non-directional{% endif %}"
+        min="{{ config.min_value }}"
+        max="{{ config.max_value + 0.0001 * config.step_size }}"
+        step="{{ config.step_size }}"
+        value="{{ config.start_value }}">
     <p class="vspace"></p>
 
     {{ null(config) }}
@@ -529,10 +558,15 @@
                 <span class="slider-label">
                     {{ s.label }}
                 </span>
-                <input type="range" id="{{ s.slider_id }}" class="slider-range form-control-range response"
-                       style="display: inline-block;" min="{{ s.min_value }}"
-                       max="{{ s.max_value + 0.0001 * s.step_size }}" step="{{ s.step_size }}"
-                       value="{{ s.start_value }}">
+                <input
+                    type="range"
+                    id="{{ s.slider_id }}"
+                    class="form-control-range response slider-range{% if not s.directional %} slider-non-directional{% endif %}"
+                    style="display: inline-block;"
+                    min="{{ s.min_value }}"
+                    max="{{ s.max_value + 0.0001 * s.step_size }}"
+                    step="{{ s.step_size }}"
+                    value="{{ s.start_value }}">
                 <span class="slider-value">NA</span>
             </div>
         {% endfor %}
@@ -828,6 +862,31 @@
         #slider {
             {%if config.reverse_scale %} direction: rtl {% endif %}
         }
+        .slider-range {
+            cursor: pointer;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            border: 1px solid #000000;
+            height: 36px;
+            background-color: #efefef;
+            border: 11px solid #b2b2b2;
+            border-radius: 5px;
+            {% if config.directional == false %}
+            margin-top: -8px;
+            {% endif %}
+            cursor: pointer;
+        }
+        {% if config.directional == false %}
+        input[type=range]::-webkit-slider-runnable-track {
+              background: #000000;
+              border: 1px solid #b2b2b2;
+              background-color: #efefef;
+              border-radius: 5px;
+              width: 100%;
+              height: 8px;
+            }
+        {% endif %}
     </style>
 
     <div id="slider_video_container">
@@ -836,10 +895,17 @@
         </video>
     </div>
 
-
+    {{config.__dict__}}
     <div id="slider_container">
-        <input  id="slider" class="slider-range form-control-range response" type="range"
-                style="display: inline-block;" min="0" max="1" step="0.001" value="{{ config.starting_value }}">
+        <input
+            type="range"
+            id="slider"
+            class="form-control-range response slider-range{% if not config.directional %} slider-non-directional{% endif %}"
+            style="display: inline-block;"
+            min="0"
+            max="1"
+            step="0.001"
+            value="{{ config.starting_value }}">
     </div>
 
     {{ null(config) }}

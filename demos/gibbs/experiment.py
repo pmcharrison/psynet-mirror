@@ -41,6 +41,7 @@ class ColorSliderPage(SliderPage):
             selected_idx: int,
             starting_values: List[int],
             reverse_scale: bool,
+            directional: bool,
             time_estimate=None,
             **kwargs
     ):
@@ -67,6 +68,7 @@ class ColorSliderPage(SliderPage):
             max_value=255,
             slider_id=COLORS[selected_idx],
             reverse_scale=reverse_scale,
+            directional=directional,
             template_arg={
                 'hidden_inputs': hidden_inputs,
             },
@@ -75,6 +77,7 @@ class ColorSliderPage(SliderPage):
 
     def metadata(self, **kwargs):
         return {
+            "prompt": self.prompt.metadata,
             "selected_idx": self.selected_idx,
             "starting_values": self.starting_values
         }
@@ -114,6 +117,7 @@ class CustomTrial(GibbsTrial):
             starting_values=self.initial_vector,
             selected_idx=self.active_index,
             reverse_scale=self.reverse_scale,
+            directional=False,
             time_estimate=5
         )
 
