@@ -409,40 +409,128 @@ class HeadphoneCheck(Module):
             ]
         ])
 
-class Geolocate(Module):
-    def __init__(
-            self,
-            label="geolocation",
-            ipinfo_token=None,
-            fail_if_not_matched=False,
-	    time_estimate_per_trial = 5.0
-        ):
-        self.label = label
-        self.ipinfo_token = ipinfo_token
-        self.fail_if_not_matched = fail_if_not_matched
+def USstates():
+    """
+    List compiled using the pycountry package v20.7.3 with
+    ``
+    sorted([(lang.alpha_2, lang.name) for lang in pycountry.countries
+        if hasattr(lang, 'alpha_2')], key=lambda country: country[1])
+    ``
+    """
+    return [
+       ("AL", "Alabama"),
+       ("AK", "Alaska"),
+       ("AZ", "Arizona"),
+       ("AR", "Arkansas"),
+       ("CA", "California"),
+       ("CO", "Colorado"),
+       ("CT", "Connecticut"),
+       ("DE", "Delaware"),
+       ("FL", "Florida"),
+       ("GA", "Georgia"),
+       ("HI", "Hawaii"),
+       ("ID", "Idaho"),
+       ("IL", "Illinois"),
+       ("IN", "Indiana"),
+       ("IA", "Iowa"),
+       ("KS", "Kansas"),
+       ("KY", "Kentucky"),
+       ("LA", "Louisiana"),
+       ("ME", "Maine"),
+       ("MD", "Maryland"),
+       ("MA", "Massachusetts"),
+       ("MI", "Michigan"),
+       ("MN", "Minnesota"),
+       ("MS", "Mississippi"),
+       ("MO", "Missouri"),
+       ("MT", "Montana"),
+       ("NE", "Nebraska"),
+       ("NV", "Nevada"),
+       ("NH", "New Hampshire"),
+       ("NJ", "New Jersey"),
+       ("NM", "New Mexico"),
+       ("NY", "New York"),
+       ("NC", "North Carolina"),
+       ("ND", "North Dakota"),
+       ("OH", "Ohio"),
+       ("OK", "Oklahoma"),
+       ("OR", "Oregon"),
+       ("PA", "Pennsylvania"),
+       ("RI", "Rhode Island"),
+       ("SC", "South Carolina"),
+       ("SD", "South Dakota"),
+       ("TN", "Tennessee"),
+       ("TX", "Texas"),
+       ("UT", "Utah"),
+       ("VT", "Vermont"),
+       ("VA", "Virginia"),
+       ("WA", "Washington"),
+       ("WV", "West Virginia"),
+       ("WI", "Wisconsin"),
+       ("WY", "Wyoming"),
+       ("DC", "District of Columbia"),
+       ("AS", "American Samoa"),
+       ("GU", "Guam"),
+       ("MP", "Northern Mariana Islands"),
+       ("PR", "Puerto Rico"),
+       ("UM", "United States Minor Outlying Islands"),
+       ("VI", "U.S.Virgin Islands")]
 
-        self.events = join(
-            CountryOfResidence(),
-            CodeBlock(lambda experiment, participant: participant.var.set("cor_reported", participant.answer)), 
-            CodeBlock(lambda experiment, participant: participant.var.set("country", self.geolocate_details(client_ip=participant.client_ip))),
-            conditional(
-                label="fail_if_not_matched",
-                condition=lambda experiment, participant: self.fail_if_not_matched == True, 
-                fix_time_credit=True,
-                logic_if_true = conditional(
-                    label="cross_reference", 
-                    condition = lambda experiment, participant: participant.var.cor_reported != participant.var.country,
-                    logic_if_true = UnsuccessfulEndPage(),
-                    fix_time_credit=False
-                )
-            )
-        ) 
-        super().__init__(self.label, self.events)
+# class USRegionOfResidence(ModularPage):
+#     def __init__(
+#         self,
+#         label="US_region",
+#         prompt="Which state are you joining this experiment from?"
+#     ):
+#         self.label = label
+#         self.prompt = prompt
+#         self.time_estimate = 5
+#         control = DropdownControl(
+#             choices=[country[0] for country in USstates()],
+#             labels=[country[1] for country in USstates()],
+#             default_text = "Select a state",
+#             name = self.label,
+#         )
+#         super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
 
-    def geolocate_details(self, client_ip):
-        handler = ipinfo.getHandler(self.ipinfo_token)
-        details = handler.getDetails(ip)
+# class Geolocate(Module):
+#     def __init__(
+#             self,
+#             label="geolocation",
+#             ipinfo_token=None,
+#             iphub_token=None,
+#             fail_if_not_matched=False,
+# 	    time_estimate_per_trial = 5.0
+#         ):
+#         self.label = label
+#         self.ipinfo_token = ipinfo_token
+#         self.fail_if_not_matched = fail_if_not_matched
 
-        return details.country
+#         self.events = join(
+#             CountryOfResidence(),
+#             CodeBlock(lambda experiment, participant: participant.var.set("cor_reported", participant.answer)), 
+#             CodeBlock(lambda experiment, participant: participant.var.set("country", self.geolocate_details(client_ip=participant.client_ip))),
+#             conditional(
+#                 label="fail_if_not_matched",
+#                 condition=lambda experiment, participant: self.fail_if_not_matched == True, 
+#                 fix_time_credit=True,
+#                 logic_if_true = conditional(
+#                     label="cross_reference", 
+#                     condition = lambda experiment, participant: participant.var.cor_reported != participant.var.country,
+#                     logic_if_true = UnsuccessfulEndPage(),
+#                     fix_time_credit=False
+#                 )
+#             )
+#         ) 
+#         super().__init__(self.label, self.events)
+
+#     def geolocate_details(self, client_ip):
+#         handler = ipinfo.getHandler(self.ipinfo_token)
+#         details = handler.getDetails(ip)
+
+#         return details.country
+
+#     def vpn_details(self, client_ip):
+#         pass
 
 
