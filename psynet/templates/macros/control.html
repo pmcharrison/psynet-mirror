@@ -59,7 +59,9 @@
         onclick="clicked_button(this, '{{ config.id }}');"
         style="{{ config.style }}"
     >
+        {% autoescape off %}
         {{ config.label }}
+        {% endautoescape %}
     </button>
 {% endmacro %}
 
