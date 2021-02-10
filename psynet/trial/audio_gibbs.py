@@ -245,6 +245,7 @@ class AudioGibbsTrial(GibbsTrial):
             snap_values="sound_locations" if self.snap_slider else None,
             autoplay=self.autoplay,
             reverse_scale=self.reverse_scale,
+            directional=False,
             time_estimate=5,
             media=self.media,
             minimal_interactions=self.minimal_interactions,

@@ -426,6 +426,9 @@ class SliderPage(ModularPage):
     reverse_scale: default: False
         Flip the scale.
 
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
     continuous_updates : default: False
         If ``True``, then the slider continuously calls slider-update events when it is dragged,
         rather than just when it is released. In this case the log is disabled.
@@ -454,6 +457,7 @@ class SliderPage(ModularPage):
             minimal_interactions: Optional[int] = 0,
             minimal_time: float = 0.0,
             reverse_scale: Optional[bool] = False,
+            directional: Optional[bool] = True,
             continuous_updates: bool = False,
             slider_id: Optional[str] = 'sliderpage_slider',
             time_estimate: Optional[float] = None,
@@ -471,6 +475,7 @@ class SliderPage(ModularPage):
         self.minimal_time = minimal_time
         self.num_steps = num_steps
         self.reverse_scale = reverse_scale
+        self.directional = directional
         self.continuous_updates = continuous_updates
         self.slider_id = slider_id
         self.time_estimate = time_estimate
@@ -495,6 +500,7 @@ class SliderPage(ModularPage):
                 max_value=self.max_value,
                 num_steps=self.num_steps,
                 reverse_scale=self.reverse_scale,
+                directional=self.directional,
                 slider_id=self.slider_id,
                 snap_values=self.snap_values,
                 minimal_interactions=self.minimal_interactions,
@@ -681,6 +687,7 @@ class AudioSliderPage(ModularPage):
                 num_steps=num_steps,
                 slider_id=slider_id,
                 reverse_scale=kwargs.get('reverse_scale'),
+                directional=kwargs.get('directional'),
                 snap_values=snap_values,
                 minimal_interactions=minimal_interactions,
                 minimal_time=minimal_time,
