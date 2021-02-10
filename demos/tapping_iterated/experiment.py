@@ -22,7 +22,7 @@ from psynet.trial.audio import (
     AudioImitationChainTrialMaker,
     AudioImitationChainNetwork
 )
-from psynet.prescreen import REPPVolumeCalibration, REPPTappingCalibration, REPPMarkersCheck, JSONSerializer
+from psynet.prescreen import REPPTappingCalibration, REPPMarkersCheck, JSONSerializer
 from psynet.page import SuccessfulEndPage, InfoPage
 from psynet.utils import get_logger
 logger = get_logger()
@@ -38,7 +38,6 @@ FS=44100
 
 TIME_ESTIMATE_PER_TRIAL = PARAMS['REPEATS']*3
 CLICK = tapping.load_click(PARAMS,FS)
-#CLICK = tapping.load_resample_file(FS,PARAMS['CLICK_FILENAME'], renormalize=1) # to load from file
 
 #failing criteria
 PERCENT_BAD_TAPS = 50
@@ -196,7 +195,6 @@ class Exp(psynet.experiment.Experiment):
             prepare_s3_bucket_for_presigned_urls,
             {"bucket_name": "markers-check-recordings", "public_read": True, "create_new_bucket": True} # s3 bucket to store markers check recordings
         ),
-        REPPVolumeCalibration(), # calibrate volume
         REPPTappingCalibration(), # calibrate tapping
         # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
         InfoPage(Markup(f"""

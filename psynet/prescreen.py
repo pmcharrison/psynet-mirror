@@ -32,7 +32,7 @@ from scipy.io.wavfile import write
 from math import nan
 import numpy as np
 
-class VolumeTestControl(AudioMeterControl):
+class VolumeTestControlMusic(AudioMeterControl):
     decay = {
         "display": 0.1,
         "high": 0.1,
@@ -53,16 +53,16 @@ class VolumeTestControl(AudioMeterControl):
     }
 
 
-class REPPVolumeCalibration(Module):
+class REPPVolumeCalibrationMusic(Module):
     """
-    This is a volume calibration test to be used when implementing SMS experiments with REPP. It contains
+    This is a volume calibration test to be used when implementing SMS experiments with music stimuli and REPP. It contains
     a page with general technical requirements of REPP and a volume calibration test with a visual sound meter
     and stimulus customized to help participants find the right volume to use REPP.
 
     Parameters
     ----------
     label : string, optional
-        The label for the REPPVolumeCalibration test, default: "repp_volume_calibration".
+        The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_music".
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 10.0.
@@ -74,7 +74,7 @@ class REPPVolumeCalibration(Module):
 
     def __init__(
             self,
-            label = "repp_volume_calibration",
+            label = "repp_volume_calibration_music",
             time_estimate_per_trial: float = 10.0,
             min_time_before_submitting: float = 5.0,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
@@ -114,7 +114,7 @@ class REPPVolumeCalibration(Module):
                 """),
             loop=True,
             enable_submit_after=min_time_before_submitting),
-            VolumeTestControl(min_time=min_time_before_submitting, calibrate=False),
+            VolumeTestControlMusic(min_time=min_time_before_submitting, calibrate=False),
             time_estimate=time_estimate_per_trial)
         )
         super().__init__(self.label, self.events)

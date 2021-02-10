@@ -28,7 +28,7 @@ class Exp(psynet.experiment.Experiment):
         LanguageVocabularyTest( # Prescreen2: Basic Language Vocabulary: select target language
         	language_code = "es-ES", #languages available: en-US, es-ES, de-DE, in-HI, pt-BR
         	num_trials = 7,
-        	performance_threshold=5),
+        	performance_threshold=4), # the particiapnt needs 5 correct answers to pass
         InfoPage("You passed the language vocabulary test! Congratulations.", time_estimate=3),
         SuccessfulEndPage()
     )

@@ -22,7 +22,7 @@ from psynet.trial.audio import (
     AudioImitationChainTrialMaker,
     AudioImitationChainNetwork
 )
-from psynet.prescreen import REPPVolumeCalibration, REPPTappingCalibration, JSONSerializer
+from psynet.prescreen import REPPTappingCalibration, JSONSerializer
 from psynet.page import SuccessfulEndPage, InfoPage
 from psynet.utils import get_logger
 logger = get_logger()
@@ -152,7 +152,6 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-        REPPVolumeCalibration(), # calibrate volume
         REPPTappingCalibration(), # calibrate tapping
         InfoPage(Markup(f"""
             <h3>Instructions</h3>

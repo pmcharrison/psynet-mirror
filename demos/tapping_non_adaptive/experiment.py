@@ -23,7 +23,7 @@ from psynet.trial.non_adaptive import (
 )
 from psynet.trial.audio import AudioRecordTrial
 from psynet.media import prepare_s3_bucket_for_presigned_urls, download_from_s3
-from psynet.prescreen import REPPVolumeCalibration, REPPTappingCalibration, REPPMarkersCheck, JSONSerializer
+from psynet.prescreen import REPPVolumeCalibrationMusic, REPPTappingCalibration, REPPMarkersCheck, JSONSerializer
 
 import tapping_extract as tapping
 
@@ -355,10 +355,10 @@ class Exp(psynet.experiment.Experiment):
             prepare_s3_bucket_for_presigned_urls,
             {"bucket_name": "markers-check-recordings", "public_read": True, "create_new_bucket": True} # s3 bucket to store markers check recordings
         ),
-        REPPVolumeCalibration(), # calibrate volume
-        #REPPTappingCalibration(), # calibrate tapping
+        REPPVolumeCalibrationMusic(), # calibrate volume
+        REPPTappingCalibration(), # calibrate tapping
         # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
-        #ISO_tapping,
+        ISO_tapping,
         music_tapping,
         SuccessfulEndPage()
     )
