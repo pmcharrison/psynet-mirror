@@ -26,10 +26,12 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-    	BasicDemography(),
+        BasicDemography(),
         Language(),
         BasicMusic(),
-        AttentionCheck(), # it is good practice to add the AttentionCheck in the middle of demographic questions, so its presence is not too obvious
+        # It is a good practice to add the AttentionCheck in the middle of demographic questions, so its presence is
+        # not too obvious
+        AttentionCheck(),
         HearingLoss(),
         Dance(),
         SuccessfulEndPage()

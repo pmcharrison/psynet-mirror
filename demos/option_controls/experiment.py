@@ -67,24 +67,26 @@ class Exp(psynet.experiment.Experiment):
         ),
         ModularPage(
             "response",
-            prompt="This is an example of a checkbox page with horizontally arranged checkboxes and forced selection.",
+            prompt="This is an example of a checkbox page with horizontally arranged checkboxes forcing an answer and a 'Reset' button.",
             control=CheckboxControl(
                 ["sneakers", "sandals", "clogs"],
                 ["Sneakers", "Sandals", "Clogs"],
                 name="shoes",
                 arrange_vertically=False,
                 force_selection=True,
+                show_reset_button='always',
             ),
             time_estimate=5
         ),
         ModularPage(
             "response",
-            prompt="This is an example of a radiobutton page with vertically arranged radiobuttons.",
+            prompt="This is an example of a radiobutton page with vertically arranged radiobuttons and a 'Reset' button displayed only on selection.",
             control=RadioButtonControl(
                 ["maple", "cottonwood", "alder"],
                 ["Maple", "Cottonwood", "Alder"],
                 name="trees",
                 arrange_vertically=True,
+                show_reset_button='on_selection',
             ),
             time_estimate=5
         ),
