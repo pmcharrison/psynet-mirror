@@ -180,10 +180,10 @@ class TestExport():
             yield mocḱ_requests_get
 
     def test_export_missing_app_param(self, export):
-        output = CliRunner().invoke(export)
-        assert b"Usage: export [OPTIONS]" in output.output_bytes
-        assert b'Error: Missing option "--app".' in output.output_bytes
-        assert output.exit_code == 2
+        result = CliRunner().invoke(export)
+        assert b"Usage: export [OPTIONS]" in result.stdout_bytes
+        assert b"Error: Missing option '--app'." in result.stdout_bytes
+        assert result.exit_code == 2
 
     def test_export_local(self, export, prepare, move_snapshot_file, dallinger_data_export, get_base_url):
         result = CliRunner().invoke(export, ["--local", "--app=app-1"])
