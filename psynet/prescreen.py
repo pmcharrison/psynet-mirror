@@ -476,61 +476,63 @@ def USstates():
        ("UM", "United States Minor Outlying Islands"),
        ("VI", "U.S.Virgin Islands")]
 
-# class USRegionOfResidence(ModularPage):
-#     def __init__(
-#         self,
-#         label="US_region",
-#         prompt="Which state are you joining this experiment from?"
-#     ):
-#         self.label = label
-#         self.prompt = prompt
-#         self.time_estimate = 5
-#         control = DropdownControl(
-#             choices=[country[0] for country in USstates()],
-#             labels=[country[1] for country in USstates()],
-#             default_text = "Select a state",
-#             name = self.label,
-#         )
-#         super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+class USRegionOfResidence(ModularPage):
+    def __init__(
+        self,
+        label="US_region",
+        prompt="Which state are you joining this experiment from?"
+    ):
+        self.label = label
+        self.prompt = prompt
+        self.time_estimate = 5
+        control = DropdownControl(
+            choices=[country[0] for country in USstates()],
+            labels=[country[1] for country in USstates()],
+            default_text = "Select a state",
+            name = self.label,
+        )
+        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
 
-# class Geolocate(Module):
-#     def __init__(
-#             self,
-#             label="geolocation",
-#             ipinfo_token=None,
-#             iphub_token=None,
-#             fail_if_not_matched=False,
-# 	    time_estimate_per_trial = 5.0
-#         ):
-#         self.label = label
-#         self.ipinfo_token = ipinfo_token
-#         self.fail_if_not_matched = fail_if_not_matched
+class Geolocate(Module):
+    def __init__(
+            self,
+            label="geolocation",
+            ipinfo_token=None,
+            iphub_token=None,
+            fail_if_not_matched=False,
+	    time_estimate_per_trial = 5.0
+        ):
+        self.label = label
+        self.ipinfo_token = ipinfo_token
+        self.iphub_token = iphub_token
+        self.fail_if_not_matched = fail_if_not_matched
 
-#         self.events = join(
-#             CountryOfResidence(),
-#             CodeBlock(lambda experiment, participant: participant.var.set("cor_reported", participant.answer)), 
-#             CodeBlock(lambda experiment, participant: participant.var.set("country", self.geolocate_details(client_ip=participant.client_ip))),
-#             conditional(
-#                 label="fail_if_not_matched",
-#                 condition=lambda experiment, participant: self.fail_if_not_matched == True, 
-#                 fix_time_credit=True,
-#                 logic_if_true = conditional(
-#                     label="cross_reference", 
-#                     condition = lambda experiment, participant: participant.var.cor_reported != participant.var.country,
-#                     logic_if_true = UnsuccessfulEndPage(),
-#                     fix_time_credit=False
-#                 )
-#             )
-#         ) 
-#         super().__init__(self.label, self.events)
+        self.events = join(
+            CountryOfResidence(),
+            USRegionOfResidence(), 
+            CodeBlock(lambda experiment, participant: participant.var.set("cor_reported", participant.answer)), 
+            CodeBlock(lambda experiment, participant: participant.var.set("country", self.geolocate_details(client_ip=participant.client_ip))),
+            # conditional(
+            #     label="fail_if_not_matched",
+            #     condition=lambda experiment, participant: self.fail_if_not_matched == True, 
+            #     fix_time_credit=True,
+            #     logic_if_true = conditional(
+            #         label="cross_reference", 
+            #         condition = lambda experiment, participant: participant.var.cor_reported != participant.var.country,
+            #         logic_if_true = UnsuccessfulEndPage(),
+            #         fix_time_credit=False
+            #     )
+            # )
+        ) 
+        super().__init__(self.label, self.events)
 
-#     def geolocate_details(self, client_ip):
-#         handler = ipinfo.getHandler(self.ipinfo_token)
-#         details = handler.getDetails(ip)
+    def geolocate_details(self, client_ip):
+        handler = ipinfo.getHandler(self.ipinfo_token)
+        details = handler.getDetails(ip)
 
-#         return details.country
+        return details.country
 
-#     def vpn_details(self, client_ip):
-#         pass
+    def vpn_details(self, client_ip):
+        pass
 
 
