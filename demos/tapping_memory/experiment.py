@@ -43,9 +43,8 @@ CLICK = tapping.load_resample_file(FS,PARAMS['CLICK_FILENAME'], renormalize=1) #
 MIN_RESPONSES_PLAYED = 5
 # within chains
 NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for a real experiment
-NUM_CHAINS_PER_PARTICIPANT=2 # set to 4 for real experiments
-NUM_ITERATION_CHAIN= 5
-NUM_TRIALS_PARTICIPANT = 20
+NUM_ITERATION_CHAIN= 2 # set to 5 for a real experiment
+NUM_TRIALS_PARTICIPANT = 4 # set to 20 for a real experiment
 TOTAL_NUM_PARTICIPANTS= 50
 
 ##########################################################################################

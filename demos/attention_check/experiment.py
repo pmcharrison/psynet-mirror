@@ -9,8 +9,6 @@ from psynet.timeline import Timeline
 
 from psynet.demography.general import (
     BasicDemography,
-    Language,
-    BasicMusic,
     HearingLoss,
     Dance
 )
@@ -27,8 +25,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         BasicDemography(),
-        Language(),
-        BasicMusic(),
         # It is a good practice to add the AttentionCheck in the middle of demographic questions, so its presence is
         # not too obvious
         AttentionCheck(),
