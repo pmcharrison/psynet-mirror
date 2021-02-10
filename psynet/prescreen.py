@@ -1,4 +1,7 @@
 import random
+import ipinfo
+import json
+import urllib.request
 
 from flask import Markup
 
@@ -9,6 +12,7 @@ from .modular_page import (
     ModularPage,
     PushButtonControl,
     TextControl,
+    DropdownControl
 )
 from .page import InfoPage, UnsuccessfulEndPage
 from .timeline import Module, join, conditional, CodeBlock
@@ -450,6 +454,7 @@ def USstates():
        ("NJ", "New Jersey"),
        ("NM", "New Mexico"),
        ("NY", "New York"),
+       ("NYC", "New York City"), # **** SPECIAL CASE ****
        ("NC", "North Carolina"),
        ("ND", "North Dakota"),
        ("OH", "Ohio"),
@@ -499,40 +504,66 @@ class Geolocate(Module):
             label="geolocation",
             ipinfo_token=None,
             iphub_token=None,
-            fail_if_not_matched=False,
+            fail_if_using_VPN=False,
+            fail_if_region_not_matched=False,
 	    time_estimate_per_trial = 5.0
         ):
         self.label = label
         self.ipinfo_token = ipinfo_token
         self.iphub_token = iphub_token
-        self.fail_if_not_matched = fail_if_not_matched
+        self.fail_if_using_VPN = fail_if_using_VPN
+        self.fail_if_region_not_matched = fail_if_region_not_matched
 
         self.events = join(
             CountryOfResidence(),
-            USRegionOfResidence(), 
             CodeBlock(lambda experiment, participant: participant.var.set("cor_reported", participant.answer)), 
-            CodeBlock(lambda experiment, participant: participant.var.set("country", self.geolocate_details(client_ip=participant.client_ip))),
-            # conditional(
-            #     label="fail_if_not_matched",
-            #     condition=lambda experiment, participant: self.fail_if_not_matched == True, 
-            #     fix_time_credit=True,
-            #     logic_if_true = conditional(
-            #         label="cross_reference", 
-            #         condition = lambda experiment, participant: participant.var.cor_reported != participant.var.country,
-            #         logic_if_true = UnsuccessfulEndPage(),
-            #         fix_time_credit=False
-            #     )
-            # )
-        ) 
+            USRegionOfResidence(), 
+            CodeBlock(lambda experiment, participant: participant.var.set("ror_reported", participant.answer)), 
+            CodeBlock(lambda experiment, participant: participant.var.set("geolocate_country", self.geolocate_details(client_ip=participant.client_ip_address)["country"])),
+            CodeBlock(lambda experiment, participant: participant.var.set("geolocate_region", self.geolocate_details(client_ip=participant.client_ip_address)["region"])),
+            CodeBlock(lambda experiment, participant: participant.var.set("VPN_Used", self.using_vpn(client_ip=participant.client_ip_address))),
+            conditional(
+                label="vpn_fail", 
+                condition=lambda experiment, participant: self.fail_if_using_VPN == True and participant.var.VPN_Used == True,
+                logic_if_true = UnsuccessfulEndPage()
+            ),
+            conditional(
+                label="region_match",
+                condition=lambda experiment, participant: self.fail_if_region_not_matched == True and participant.var.ror_reported != participant.var.geolocate_region,
+                logic_if_true = UnsuccessfulEndPage()
+            )
+        )
         super().__init__(self.label, self.events)
 
     def geolocate_details(self, client_ip):
+        if client_ip == "127.0.0.1": # running localhost
+            return {
+            "country": "US",
+            "region": "NYC" # arbitrary
+        }
+        
         handler = ipinfo.getHandler(self.ipinfo_token)
-        details = handler.getDetails(ip)
+        details = handler.getDetails(client_ip)
 
-        return details.country
+        return {
+            "country": details.country,
+            "region": details.region
+        }
 
-    def vpn_details(self, client_ip):
-        pass
+    def using_vpn(self, client_ip):
+        if client_ip == "127.0.0.1": # running localhost
+            return False
+
+        response = urllib.request.Request("http://v2.api.iphub.info/ip/{}".format(client_ip))
+        response.add_header("X-Key", self.iphub_token)
+        try:
+            response = json.loads(urllib.request.urlopen(response).read().decode())
+        except:
+            return False
+
+        if response.get("block") == 1:
+            return True
+        else:
+            return False
 
 
