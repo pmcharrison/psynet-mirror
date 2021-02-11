@@ -454,7 +454,7 @@ def USstates():
        ("NJ", "New Jersey"),
        ("NM", "New Mexico"),
        ("NY", "New York"),
-       ("NYC", "New York City"), # **** SPECIAL CASE ****
+       ("NY", "New York City"), # **** SPECIAL CASE ****
        ("NC", "North Carolina"),
        ("ND", "North Dakota"),
        ("OH", "Ohio"),
