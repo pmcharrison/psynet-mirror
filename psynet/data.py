@@ -19,10 +19,6 @@ def export(class_name):
 
     Collects instance data for class_name, including inheriting models.
     """
-    config = get_config()
-    if not config.ready:
-        config.load()
-
     models = {}
     instances = getattr(sys.modules[__name__], class_name).query.all()
     for instance in instances:
