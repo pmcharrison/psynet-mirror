@@ -1,5 +1,10 @@
 # Changelog
 
+# [1.10.1] - Released on 2021-02-11
+
+#### Fixed
+-  Fixed compatibility with new Dallinger route registration.
+
 
 # [1.10.0] Released on 2020-12-21
 
