@@ -294,7 +294,7 @@ class REPPMarkersCheck(Module):
     ----------
 
     label : string, optional
-        The label for the markers check, default: "markers_test".
+        The label for the markers check, default: "repp_markers_test".
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 15.0.
@@ -310,7 +310,7 @@ class REPPMarkersCheck(Module):
 
     def __init__(
             self,
-            label = "markers_test",
+            label = "repp_markers_test",
             time_estimate_per_trial: float = 15.0,
             performance_threshold: int = 0.6,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
@@ -371,11 +371,11 @@ class REPPMarkersCheck(Module):
 
     def trial(self, time_estimate: float):
         class RecordMarkersTrial(AudioRecordTrial, NonAdaptiveTrial):
-            __mapper_args__ = {"polymorphic_identity": "markers_check_trial"}
+            __mapper_args__ = {"polymorphic_identity": "markers_test_trial"}
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
-                            "recording_page",
+                            "markers_test_trial",
                             AudioPrompt(
                                     self.definition["url_audio"],
                                     Markup(f"""
@@ -565,7 +565,7 @@ class LanguageVocabularyTest(Module):
                 }
 
         return LanguageVocabularyTrialMaker(
-            id_="language_vocabulary_test",
+            id_="language_vocabulary",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, language_code, words),
@@ -614,7 +614,7 @@ class LanguageVocabularyTest(Module):
         return LanguageVocabularyTrial
 
     def get_stimulus_set(self,media_url: str, language_code: str, words: list):
-        return StimulusSet("language_vocabulary_test", [
+        return StimulusSet("language_vocabulary", [
             StimulusSpec(
                 definition={
                     "name": name,
@@ -714,7 +714,7 @@ class LexTaleTest(Module):
                 }
 
         return LextaleTrialMaker(
-            id_="lextale_test",
+            id_="lextale",
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
@@ -747,7 +747,7 @@ class LexTaleTest(Module):
         return LextaleTrial
 
     def get_stimulus_set(self,media_url: str):
-        return StimulusSet("lextale_test", [
+        return StimulusSet("lextale", [
             StimulusSpec(
                 definition={
                     "label": label,
