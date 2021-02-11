@@ -2,6 +2,7 @@ import random
 import json
 from flask import Markup
 import numpy as np
+from math import nan
 
 from .modular_page import (
     AudioPrompt,
@@ -156,9 +157,9 @@ class REPPVolumeCalibrationMarkers(Module):
             self,
             label = "repp_volume_calibration_markers",
             time_estimate_per_trial: float = 10.0,
-            min_time_before_submitting: float = 10.0,
-            media_url: str = "https://s3.amazonaws.com/repp-materials/",
-            name_audio: str ="only_markers.wav",
+            min_time_before_submitting: float = 5.0,
+            media_url: str = "https://s3.amazonaws.com/repp-materials",
+            name_audio: str ="/only_markers.wav",
             name_image: str = "REPP-image_rules.png"
 
         ):
@@ -172,7 +173,7 @@ class REPPVolumeCalibrationMarkers(Module):
             <br><br>
             <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
             <hr>
-            <img style="width:70%" src="{media_url}{name_image}"  alt="image_rules">
+            <img style="width:70%" src="{media_url}/{name_image}"  alt="image_rules">
             """),
             time_estimate=5
             ),
@@ -276,7 +277,6 @@ class JSONSerializer(json.JSONEncoder):
         else:
             return super(JSONSerializer, self).default(obj)
 
-
 class REPPMarkersCheck(Module):
     """
     This markers check is used to determine whether participants are using hardware
@@ -294,7 +294,7 @@ class REPPMarkersCheck(Module):
     ----------
 
     label : string, optional
-        The label for the markers check, default: "repp_markers_test".
+        The label for the markers check, default: "markers_test".
 
     time_estimate_per_trial : float, optional
         The time estimate in seconds per trial, default: 15.0.
@@ -310,7 +310,7 @@ class REPPMarkersCheck(Module):
 
     def __init__(
             self,
-            label = "repp_markers_test",
+            label = "markers_test",
             time_estimate_per_trial: float = 15.0,
             performance_threshold: int = 0.6,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
@@ -363,7 +363,7 @@ class REPPMarkersCheck(Module):
         return MarkersTrialMaker(
             id_="markers_test",
             trial_class=self.trial(time_estimate_per_trial),
-            phase="markers_test",
+            phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, audio_names),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True
@@ -470,7 +470,7 @@ class REPPMarkersCheck(Module):
                     "url_audio": f"{media_url}/{name}",
                     "correct_answer": 6
                 },
-                phase="markers_test"
+                phase="screening"
             )
             for name in audio_names
         ])
@@ -565,9 +565,9 @@ class LanguageVocabularyTest(Module):
                 }
 
         return LanguageVocabularyTrialMaker(
-            id_="language_vocabulary",
+            id_="language_vocabulary_test",
             trial_class=self.trial(time_estimate_per_trial),
-            phase="language_vocabulary",
+            phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, language_code, words),
             time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block = num_trials,
@@ -614,7 +614,7 @@ class LanguageVocabularyTest(Module):
         return LanguageVocabularyTrial
 
     def get_stimulus_set(self,media_url: str, language_code: str, words: list):
-        return StimulusSet("language_vocabulary", [
+        return StimulusSet("language_vocabulary_test", [
             StimulusSpec(
                 definition={
                     "name": name,
@@ -623,7 +623,7 @@ class LanguageVocabularyTest(Module):
                     "media_url": f"{media_url}"
 
                 },
-                phase="language_vocabulary"
+                phase="screening"
             )
             for name in words
         ])
@@ -714,9 +714,9 @@ class LexTaleTest(Module):
                 }
 
         return LextaleTrialMaker(
-            id_="lextale",
+            id_="lextale_test",
             trial_class=self.trial(time_estimate_per_trial, hide_after),
-            phase="lextale",
+            phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block = num_trials,
@@ -747,14 +747,14 @@ class LexTaleTest(Module):
         return LextaleTrial
 
     def get_stimulus_set(self,media_url: str):
-        return StimulusSet("lextale", [
+        return StimulusSet("lextale_test", [
             StimulusSpec(
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
                     "url": f"{media_url}/lextale-{label}.png"
                 },
-                phase="lextale"
+                phase="screening"
             )
             for label, correct_answer in
             [
