@@ -1,6 +1,7 @@
 import random
 import json
 from flask import Markup
+import numpy as np
 
 from .modular_page import (
     AudioPrompt,
@@ -24,13 +25,6 @@ from .trial.non_adaptive import (
 )
 
 from .trial.audio import AudioRecordTrial
-
-# for REPP to work in MarkersCheck
-import tapping_extract as tapping
-from scipy.io import wavfile
-from scipy.io.wavfile import write
-from math import nan
-import numpy as np
 
 class VolumeTestControlMusic(AudioMeterControl):
     decay = {
@@ -97,7 +91,7 @@ class REPPVolumeCalibrationMusic(Module):
             time_estimate=5
             ),
         ModularPage(
-            "volume_test",
+            "volume_test_music",
             AudioPrompt(
                 media_url + name_audio,
                 Markup("""
@@ -115,6 +109,93 @@ class REPPVolumeCalibrationMusic(Module):
             loop=True,
             enable_submit_after=min_time_before_submitting),
             VolumeTestControlMusic(min_time=min_time_before_submitting, calibrate=False),
+            time_estimate=time_estimate_per_trial)
+        )
+        super().__init__(self.label, self.events)
+
+
+class VolumeTestControlMarkers(AudioMeterControl):
+    decay = {
+        "display": 0.1,
+        "high": 0.1,
+        "low": 0
+    }
+    threshold = {
+        "high": -5,
+        "low": -10
+    }
+    grace = {
+        "high": 0.2,
+        "low": 1.5
+    }
+    warn_on_clip = False
+    msg_duration = {
+        "high": 0.25,
+        "low": 0.25
+    }
+
+class REPPVolumeCalibrationMarkers(Module):
+    """
+    This is a volume calibration test to be used when implementing SMS experiments with metronome sounds and REPP. It contains
+    a page with general technical requirements of REPP and it then plays a metronome sound to help participants find the right volume to use REPP.
+
+    Parameters
+    ----------
+    label : string, optional
+        The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_markers".
+
+    time_estimate_per_trial : float, optional
+        The time estimate in seconds per trial, default: 10.0.
+
+    min_time_before_submitting : float, optional
+        Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 10.0.
+
+    """
+
+    def __init__(
+            self,
+            label = "repp_volume_calibration_markers",
+            time_estimate_per_trial: float = 10.0,
+            min_time_before_submitting: float = 10.0,
+            media_url: str = "https://s3.amazonaws.com/repp-materials/",
+            name_audio: str ="only_markers.wav",
+            name_image: str = "REPP-image_rules.png"
+
+        ):
+        self.label = label
+        self.events = join(
+        InfoPage(Markup(
+            f"""
+            <h3>Attention</h3>
+            <hr>
+            <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment.
+            <br><br>
+            <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
+            <hr>
+            <img style="width:70%" src="{media_url}{name_image}"  alt="image_rules">
+            """),
+            time_estimate=5
+            ),
+        ModularPage(
+            "volume_test",
+            AudioPrompt(
+                media_url + name_audio,
+                Markup("""
+                <h3>Volume test</h3>
+                <hr>
+                <h4>We will begin by calibrating your audio volume:</h4>
+                <ol><li>We are playing a sound similar to the ones you will hear during the experiment.</li>
+                    <li>Set the volume in your laptop to approximately 90% of the maximum.</li>
+                    <li><strong>The sound meter</strong> below indicates whether the audio volume is at the right level.</li>
+                    <li>If necessairy, turn up the volume on your laptop until the sound meter consistently indicates that
+                    the volume is <strong style="color:green;">"just right"</strong>.</li>
+                </ol>
+                <b><b>If the sound cannot be properly detected by the sound meter, you will not be able to complete this experiemnt.</b></b>
+                <hr>
+                """),
+            loop=True,
+            enable_submit_after=min_time_before_submitting),
+            VolumeTestControlMarkers(min_time=min_time_before_submitting, calibrate=False),
             time_estimate=time_estimate_per_trial)
         )
         super().__init__(self.label, self.events)
@@ -199,57 +280,57 @@ class JSONSerializer(json.JSONEncoder):
 class REPPMarkersCheck(Module):
     """
     This markers check is used to determine whether participants are using hardware
-    and software that is incompatible with REPP, such as
+    and software that meets the technical requirements of REPP, such as
     malfunctioning speakers or microphones, or the use of strong noise-cancellation
     technologies. To make the most out of it, the markers check should be used at the
     beginning of the experiment, after providing general instructions
     with the technical requirements of the experiment. In each trial, the markers check plays
-    a test stimulus with six marker sounds. The stimulus is then recorded
+    a test stimulus with six marker sounds. The mstimulus is then recorded
     with the laptop’s microphone and analyzed using the REPP's signal processing pipeline.
-    During the marker playback time, participants are supposed to remain in silent.
+    During the marker playback time, participants are supposed to remain silent
     (not respond).
 
     Parameters
     ----------
 
     label : string, optional
-        The label for the markers check, default: "markers_check".
+        The label for the markers check, default: "repp_markers_test".
 
     time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 20.0.
+        The time estimate in seconds per trial, default: 15.0.
 
     performance_threshold : int, optional
         The performance threshold, default: 1.
 
     num_trials : int, optional
-        The total number of trials to display, default: 2.
+        The total number of trials to display, default: 3.
 
 
     """
 
     def __init__(
             self,
-            label = "lextale_test",
-            time_estimate_per_trial: float = 20.0,
-            performance_threshold: int = 1,
+            label = "repp_markers_test",
+            time_estimate_per_trial: float = 15.0,
+            performance_threshold: int = 0.6,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
-            name_audio: str ="audio.wav",
             name_image: str = "REPP-image_rules.png",
-            num_trials: int = 2
+            num_trials: int = 3
         ):
         self.label = label
         self.events = join(
             self.instruction_page(num_trials,media_url,name_image),
             self.trial_maker(
                 media_url,
-                name_audio,
                 time_estimate_per_trial,
                 performance_threshold,
-                num_trials
+                num_trials,
+                self.audio_names
             )
         )
         super().__init__(self.label, self.events)
 
+    audio_names = ["audio1.wav", "audio2.wav", "audio3.wav"]
 
     def instruction_page(self, num_trials, media_url,name_image):
         return InfoPage(Markup(
@@ -257,7 +338,7 @@ class REPPMarkersCheck(Module):
             <h3>Recording test</h3>
             <hr>
             Now we will test the recording quality of your laptop. In {num_trials} trials, you will be
-            asked to remain in silence while we play and record a sound.
+            asked to remain in silent while we play and record a sound.
             <br><br>
             <img style="width:50%" src="{media_url}/{name_image}"  alt="image_rules">
             <br><br>
@@ -269,22 +350,21 @@ class REPPMarkersCheck(Module):
     def trial_maker(
             self,
             media_url: str,
-            name_audio: str,
             time_estimate_per_trial: float,
             performance_threshold: int,
-            num_trials: float
+            num_trials: float,
+            audio_names: list
         ):
-        class MarkerTrialMaker(NonAdaptiveTrialMaker):
+        class MarkersTrialMaker(NonAdaptiveTrialMaker):
             give_end_feedback_passed = False
             performance_check_type= "performance"
             performance_check_threshold = performance_threshold
 
-        return MarkerTrialMaker(
-            id_="marker_trial_maker",
+        return MarkersTrialMaker(
+            id_="markers_test",
             trial_class=self.trial(time_estimate_per_trial),
-            phase="experiment",
-            stimulus_set=self.get_stimulus_set(media_url, name_audio),
-            num_repeat_trials=num_trials,
+            phase="markers_test",
+            stimulus_set=self.get_stimulus_set(media_url, audio_names),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True
         )
@@ -312,9 +392,36 @@ class REPPMarkersCheck(Module):
                             time_estimate=time_estimate
                             )
 
-            def analyse_recording(self, audio_file: str, output_plot: str):
+            def show_feedback(self, experiment, participant):
+                if self.failed == True:
+                    return InfoPage(
+                            Markup(f"""
+                                <h4>The recording quality of your laptop is not good</h4>
+                                This may have many resons. Please try to do one or more of the following:
+                                <ol><li>Increase the volumne of your laptop.</li>
+                                    <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
+                                    <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                                    <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
+                                </ol>
+                                We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                                """),
+                            time_estimate=5)
+                else:
+                    return InfoPage(
+                            Markup(f"""
+                                <h4>The recording quality of your laptop is good</h4>
+                                We will try some more trials.
+                                To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
+                                """),
+                            time_estimate=5)
 
-                params=tapping.params_tech_music  # TODO: change tapping_extract to new parameters
+            def gives_feedback(self, experiment, participant):
+                return self.position == 0
+
+            def analyse_recording(self, audio_file: str, output_plot: str):
+                import tapping_extract as tapping
+
+                params=tapping.params_tech_music  # IMPORTANT - NEW PARAMETERS for TAPPING TECHNLOGY
 
                 marker_onsets = self.definition["marker_onsets"]
                 shifted_onsets = self.definition["shifted_onsets"]
@@ -341,27 +448,31 @@ class REPPMarkersCheck(Module):
                 num_detected_markers = int(tstats['marker_detected'])
                 correct_answer = self.definition["correct_answer"]
 
+                is_fail=correct_answer==num_detected_markers
+                failed= not is_fail
+
                 return {
-                    "failed": correct_answer != num_detected_markers,
+                    "failed": failed,
                     "num_detected_markers": num_detected_markers,
                     "output_results": output_results
-                }
+                    }
         return RecordMarkersTrial
 
-    def get_stimulus_set(self,media_url: str, name_audio: str):
-        return StimulusSet("markers_check", [
+    def get_stimulus_set(self,media_url: str, audio_names: list):
+        return StimulusSet("markers_test", [
             StimulusSpec(
                 definition={
-                    "stim_name": "markers",
+                    "stim_name": name,
                     "marker_onsets": [2000.0, 2280.0, 2510.0, 8550.022675736962, 8830.022675736962, 9060.022675736962],
                     "shifted_onsets": [4500.0, 5000.0, 5500.0],
                     "onsets_played": [True, True, True],
                     "duration_sec": 12,
-                    "url_audio": f"{media_url}/{name_audio}",
+                    "url_audio": f"{media_url}/{name}",
                     "correct_answer": 6
                 },
-                phase="experiment"
+                phase="markers_test"
             )
+            for name in audio_names
         ])
 
 class LanguageVocabularyTest(Module):
@@ -454,9 +565,9 @@ class LanguageVocabularyTest(Module):
                 }
 
         return LanguageVocabularyTrialMaker(
-            id_="language_vocabulary_trial_maker",
+            id_="language_vocabulary",
             trial_class=self.trial(time_estimate_per_trial),
-            phase="experiment",
+            phase="language_vocabulary",
             stimulus_set=self.get_stimulus_set(media_url, language_code, words),
             time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block = num_trials,
@@ -512,7 +623,7 @@ class LanguageVocabularyTest(Module):
                     "media_url": f"{media_url}"
 
                 },
-                phase="experiment"
+                phase="language_vocabulary"
             )
             for name in words
         ])
@@ -603,9 +714,9 @@ class LexTaleTest(Module):
                 }
 
         return LextaleTrialMaker(
-            id_="lextale_trial_maker",
+            id_="lextale",
             trial_class=self.trial(time_estimate_per_trial, hide_after),
-            phase="experiment",
+            phase="lextale",
             stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block = num_trials,
@@ -636,14 +747,14 @@ class LexTaleTest(Module):
         return LextaleTrial
 
     def get_stimulus_set(self,media_url: str):
-        return StimulusSet("lextale_test", [
+        return StimulusSet("lextale", [
             StimulusSpec(
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
                     "url": f"{media_url}/lextale-{label}.png"
                 },
-                phase="experiment"
+                phase="lextale"
             )
             for label, correct_answer in
             [

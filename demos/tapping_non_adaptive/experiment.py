@@ -355,9 +355,9 @@ class Exp(psynet.experiment.Experiment):
             prepare_s3_bucket_for_presigned_urls,
             {"bucket_name": "markers-check-recordings", "public_read": True, "create_new_bucket": True} # s3 bucket to store markers check recordings
         ),
-        REPPVolumeCalibrationMusic(), # calibrate volume
-        REPPTappingCalibration(), # calibrate tapping
+        REPPVolumeCalibrationMusic(), # calibrate volume with music
         # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
+        REPPTappingCalibration(), # calibrate tapping
         ISO_tapping,
         music_tapping,
         SuccessfulEndPage()

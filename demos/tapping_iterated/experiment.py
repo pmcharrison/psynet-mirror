@@ -22,7 +22,7 @@ from psynet.trial.audio import (
     AudioImitationChainTrialMaker,
     AudioImitationChainNetwork
 )
-from psynet.prescreen import REPPTappingCalibration, REPPMarkersCheck, JSONSerializer
+from psynet.prescreen import REPPVolumeCalibrationMarkers, REPPTappingCalibration, REPPMarkersCheck
 from psynet.page import SuccessfulEndPage, InfoPage
 from psynet.utils import get_logger
 logger = get_logger()
@@ -195,6 +195,7 @@ class Exp(psynet.experiment.Experiment):
             prepare_s3_bucket_for_presigned_urls,
             {"bucket_name": "markers-check-recordings", "public_read": True, "create_new_bucket": True} # s3 bucket to store markers check recordings
         ),
+        REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
         REPPTappingCalibration(), # calibrate tapping
         # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
         InfoPage(Markup(f"""
