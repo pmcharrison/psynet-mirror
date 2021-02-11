@@ -291,146 +291,6 @@
                     psynet.log.generic(msg, "debug")
                 }
 
-                psynet.submit = {};
-                psynet.response = {};
-
-                psynet.response.staged = {
-                    raw_answer: null,
-                    metadata: undefined,
-                    blobs: undefined
-                };
-
-                // psynet.response.stage = function(raw_answer, metadata, blobs) {
-                //     psynet.response.staged = {
-                //         raw_answer: raw_answer,
-                //         metadata: metadata,
-                //         blobs: blobs
-                //     };
-                // }
-
-                psynet.response.enable = function() {
-                    $('.response').removeAttr('disabled');
-                }
-
-                psynet.response.disable = function() {
-                    $('.response').attr('disabled', 'disabled');
-                }
-
-                psynet.submit.enable = function() {
-                    $('.submit').removeAttr('disabled');
-                }
-
-                psynet.submit.disable = function() {
-                    $('.submit').attr('disabled', 'disabled');
-                }
-
-                psynet.response.on_ready_routines = [];
-                psynet.submit.on_ready_routines = [];
-
-                psynet.response.register_on_ready_routine = function (f) {
-                    // Registers a function to be called when psynet.response.ready() is called.
-                    if (psynet.response.ready_done) {
-                        psynet.log.warn(
-                            "Tried to register a response.register_on_ready_routine, " +
-                            "but the response-ready event has already occurred."
-                        );
-                    }
-                    if (!psynet.utils.is_function(f)) {
-                        throw Error("f was not a function.");
-                    }
-                    psynet.response.on_ready_routines.push(f);
-                };
-
-                psynet.submit.register_on_ready_routine = function (f) {
-                    // Registers a function to be called when psynet.submit.ready() is called.
-                    if (psynet.submit.ready_done) {
-                        psynet.log.warn(
-                            "Tried to register a submit.register_on_ready_routine, " +
-                            "but the submit-ready event has already occurred."
-                        );
-                    }
-                    if (!psynet.utils.is_function(f)) {
-                        throw Error("f was not a function.");
-                    }
-                    psynet.submit.on_ready_routines.push(f);
-                };
-
-                psynet.response.register_on_ready_routine(function () {
-                    // When psynet.response.ready() is called, we want to enable all controls
-                    // that were waiting for the response-ready event.
-                    psynet.response.enable();
-                });
-
-                psynet.submit.register_on_ready_routine(function () {
-                    // When psynet.submit.ready() is called, we want to enable all controls
-                    // that were waiting for the submit-ready event.
-                    psynet.submit.enable();
-                });
-
-                psynet.response.waiting_for = [];
-                psynet.submit.waiting_for = [];
-
-                psynet.response.ready_done = false;
-                psynet.submit.ready_done = false;
-
-                psynet.response.wait_for = function(event) {
-                    psynet.log.debug("Waiting for response-ready event: " + event);
-                    psynet.response.waiting_for.push(event);
-                }
-
-                psynet.submit.wait_for = function(event) {
-                    psynet.log.debug("Waiting for submit-ready event: " + event);
-                    psynet.submit.waiting_for.push(event);
-                }
-
-                psynet.response.ready = function (event) {
-                    psynet.log.debug("A response-ready event occurred: " + event);
-                    if (event != undefined) {
-                        psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
-                            return elt != event
-                        })
-                    }
-                    if (psynet.response.waiting_for.length == 0) {
-                        if (psynet.response.ready_done) {
-                            // Have now decided that calling response.ready multiple times is fine
-                            // and shouldn't be discouraged.
-                            //
-                            // psynet.log.warning("Response-ready has already been called.");
-                        } else {
-                            psynet.log.debug("Ready for user to enter response.");
-                            psynet.register_event("response_ready");
-                            psynet.response.on_ready_routines.forEach(function (f) {
-                                f();
-                            });
-                            psynet.response.ready_done = true;
-                        }
-                    }
-                };
-
-                psynet.submit.ready = function (event) {
-                    psynet.log.debug("A submit-ready event occurred: " + event);
-                    if (event != undefined) {
-                        psynet.submit.waiting_for = psynet.submit.waiting_for.filter(function(elt) {
-                            return elt != event
-                        })
-                    }
-                    if (psynet.submit.waiting_for.length == 0) {
-                        if (psynet.submit.ready_done) {
-                            // Have now decided that calling response.ready multiple times is fine
-                            // and shouldn't be discouraged.
-                            //
-                            // psynet.log.warning("Submit-ready has already been called.");
-                        } else {
-                            psynet.log.debug("Ready for user to submit response.");
-                            psynet.register_event("submit_ready");
-                            psynet.submit.on_ready_routines.forEach(function (f) {
-                                f();
-                            });
-                            psynet.submit.ready_done = true;
-                        }
-                    }
-                };
-
                 let Trial = function(duration) {
                     let obj = {
                         duration: null,
@@ -570,12 +430,177 @@
 
                 psynet.trial = Trial();
 
-                psynet.response.register_on_ready_routine(function() {
-                    setTimeout(
-                        () => psynet.trial.start(),
-                        psynet.trial.delay * 1000
-                    );
+                psynet.submit = {};
+                psynet.response = {};
+
+                psynet.response.staged = {
+                    raw_answer: null,
+                    metadata: undefined,
+                    blobs: undefined
+                };
+
+                // psynet.response.stage = function(raw_answer, metadata, blobs) {
+                //     psynet.response.staged = {
+                //         raw_answer: raw_answer,
+                //         metadata: metadata,
+                //         blobs: blobs
+                //     };
+                // }
+
+                psynet.response.enable = function() {
+                    $('.response').removeAttr('disabled');
+                }
+
+                psynet.response.disable = function() {
+                    $('.response').attr('disabled', 'disabled');
+                }
+
+                psynet.submit.enable = function() {
+                    $('.submit').removeAttr('disabled');
+                }
+
+                psynet.submit.disable = function() {
+                    $('.submit').attr('disabled', 'disabled');
+                }
+
+                psynet.response.on_ready_routines = [];
+                psynet.submit.on_ready_routines = [];
+
+                psynet.response.register_on_ready_routine = function (f) {
+                    // Registers a function to be called when psynet.response.ready() is called.
+                    if (psynet.response.ready_done) {
+                        psynet.log.warn(
+                            "Tried to register a response.register_on_ready_routine, " +
+                            "but the response-ready event has already occurred."
+                        );
+                    }
+                    if (!psynet.utils.is_function(f)) {
+                        throw Error("f was not a function.");
+                    }
+                    psynet.response.on_ready_routines.push(f);
+                };
+
+                psynet.submit.register_on_ready_routine = function (f) {
+                    // Registers a function to be called when psynet.submit.ready() is called.
+                    if (psynet.submit.ready_done) {
+                        psynet.log.warn(
+                            "Tried to register a submit.register_on_ready_routine, " +
+                            "but the submit-ready event has already occurred."
+                        );
+                    }
+                    if (!psynet.utils.is_function(f)) {
+                        throw Error("f was not a function.");
+                    }
+                    psynet.submit.on_ready_routines.push(f);
+                };
+
+                psynet.response.register_on_ready_routine(function () {
+                    // When psynet.response.ready() is called, we want to enable all controls
+                    // that were waiting for the response-ready event.
+                    psynet.response.enable();
                 });
+
+                psynet.submit.register_on_ready_routine(function () {
+                    // When psynet.submit.ready() is called, we want to enable all controls
+                    // that were waiting for the submit-ready event.
+                    psynet.submit.enable();
+                });
+
+                psynet.response.waiting_for = [];
+                psynet.submit.waiting_for = [];
+                psynet.trial.waiting_for = [];
+
+                psynet.response.ready_done = false;
+                psynet.submit.ready_done = false;
+                psynet.trial.ready_done = false;
+
+                psynet.response.wait_for = function(event) {
+                    psynet.log.debug("Waiting for response-ready event: " + event);
+                    psynet.response.waiting_for.push(event);
+                }
+
+                psynet.submit.wait_for = function(event) {
+                    psynet.log.debug("Waiting for submit-ready event: " + event);
+                    psynet.submit.waiting_for.push(event);
+                }
+
+                psynet.trial.wait_for = function(event) {
+                    psynet.log.debug("Waiting for trial-ready event: " + event);
+                    psynet.trial.waiting_for.push(event);
+                }
+
+                psynet.response.ready = function (event) {
+                    psynet.log.debug("A response-ready event occurred: " + event);
+                    if (event != undefined) {
+                        psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
+                            return elt != event
+                        })
+                    }
+                    if (psynet.response.waiting_for.length == 0) {
+                        if (psynet.response.ready_done) {
+                            // Have now decided that calling response.ready multiple times is fine
+                            // and shouldn't be discouraged.
+                            //
+                            // psynet.log.warning("Response-ready has already been called.");
+                        } else {
+                            psynet.log.debug("Ready for user to enter response.");
+                            psynet.register_event("response_ready");
+                            psynet.response.on_ready_routines.forEach(function (f) {
+                                f();
+                            });
+                            psynet.response.ready_done = true;
+                        }
+                    }
+                };
+
+                psynet.submit.ready = function (event) {
+                    psynet.log.debug("A submit-ready event occurred: " + event);
+                    if (event != undefined) {
+                        psynet.submit.waiting_for = psynet.submit.waiting_for.filter(function(elt) {
+                            return elt != event
+                        })
+                    }
+                    if (psynet.submit.waiting_for.length == 0) {
+                        if (psynet.submit.ready_done) {
+                            // Have now decided that calling response.ready multiple times is fine
+                            // and shouldn't be discouraged.
+                            //
+                            // psynet.log.warning("Submit-ready has already been called.");
+                        } else {
+                            psynet.log.debug("Ready for user to submit response.");
+                            psynet.register_event("submit_ready");
+                            psynet.submit.on_ready_routines.forEach(function (f) {
+                                f();
+                            });
+                            psynet.submit.ready_done = true;
+                        }
+                    }
+                };
+
+                psynet.trial.ready = function (event) {
+                    psynet.log.debug("A trial-ready event occurred: " + event);
+                    if (event != undefined) {
+                        psynet.trial.waiting_for = psynet.trial.waiting_for.filter(function(elt) {
+                            return elt != event
+                        })
+                    }
+                    if (psynet.trial.waiting_for.length == 0) {
+                        if (psynet.trial.ready_done) {
+                            // Have now decided that calling response.ready multiple times is fine
+                            // and shouldn't be discouraged.
+                            //
+                            // psynet.log.warning("Submit-ready has already been called.");
+                        } else {
+                            psynet.log.debug("Ready for trial to begin.");
+                            psynet.register_event("trial_ready");
+                            setTimeout(
+                                () => psynet.trial.start(),
+                                psynet.trial.delay * 1000
+                            );
+                            psynet.trial.ready_done = true;
+                        }
+                    }
+                };
 
                 psynet.media.types = ["audio", "image", "video"];
                 psynet.media.data = {};
@@ -617,6 +642,7 @@
                     psynet.register_event("media_load");
                     psynet.response.ready("media_load");
                     psynet.submit.ready("media_load");
+                    psynet.trial.ready("media_load");
                 };
                 psynet.media.loaded = false;
 
@@ -1246,6 +1272,7 @@
                     psynet.submit.disable();
                     psynet.response.wait_for("page_load");
                     psynet.submit.wait_for("page_load");
+                    psynet.trial.wait_for("page_load");
                     $('.wait-for-media-load').attr('disabled', 'disabled');
                     check_participant_id();
                     init_modal();
@@ -1255,6 +1282,7 @@
                         psynet.register_event("page_load");
                         psynet.response.ready("page_load");
                         psynet.submit.ready("page_load");
+                        psynet.trial.ready("page_load");
                         psynet.page_loaded = true;
                     })
                 };

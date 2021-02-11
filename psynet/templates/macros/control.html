@@ -620,6 +620,8 @@
             }
         };
 
+        psynet.trial.wait_for("recorder_ready");
+
         psynet.media.register_on_loaded_routine(function() {
             navigator.mediaDevices.getUserMedia({
                 audio: {
@@ -632,7 +634,8 @@
                 psynet.log.debug("Initialising recorder.");
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);
-                psynet.response.ready("recorder_ready")
+                psynet.response.ready("recorder_ready");
+                psynet.trial.ready("recorder_ready");
                 {% if config.progress_bar %} initProgressBar() {% endif %}
             })
         });
