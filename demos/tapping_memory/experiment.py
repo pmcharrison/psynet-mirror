@@ -22,7 +22,7 @@ from psynet.trial.audio import (
     AudioImitationChainTrialMaker,
     AudioImitationChainNetwork
 )
-from psynet.prescreen import REPPTappingCalibration, JSONSerializer
+from psynet.prescreen import REPPTappingCalibration
 from psynet.page import SuccessfulEndPage, InfoPage
 from psynet.utils import get_logger
 logger = get_logger()
