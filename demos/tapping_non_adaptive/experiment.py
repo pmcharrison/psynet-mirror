@@ -358,7 +358,7 @@ class Exp(psynet.experiment.Experiment):
         REPPVolumeCalibrationMusic(), # calibrate volume with music
         # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(), # calibrate tapping
-        #ISO_tapping,
+        ISO_tapping,
         music_tapping,
         SuccessfulEndPage()
     )
