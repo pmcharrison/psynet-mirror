@@ -94,7 +94,7 @@ class REPPVolumeCalibrationMusic(Module):
         ModularPage(
             "volume_test_music",
             AudioPrompt(
-                f"{filename_audio}/{filename_image}",
+                f"{media_url}/{filename_audio}",
                 Markup("""
                 <h3>Volume test</h3>
                 <hr>
@@ -180,7 +180,7 @@ class REPPVolumeCalibrationMarkers(Module):
         ModularPage(
             "volume_test",
             AudioPrompt(
-                f"{media_url}/{filename_audio}"
+                f"{media_url}/{filename_audio}",
                 Markup("""
                 <h3>Volume test</h3>
                 <hr>
