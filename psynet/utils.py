@@ -42,11 +42,13 @@ def import_local_experiment():
     # modules defined there can be imported using ``import``.
     # import pdb; pdb.set_trace()
     config = get_config()
-    config.load()
-    initialize_experiment_package(os.getcwd())
+
+    import dallinger.experiment
+    dallinger.experiment.load()
+
     dallinger_experiment = sys.modules.get("dallinger_experiment")
     sys.path.append(os.getcwd())
-    import dallinger.experiment
+
     try:
         module = dallinger_experiment.experiment
     except AttributeError as e:
