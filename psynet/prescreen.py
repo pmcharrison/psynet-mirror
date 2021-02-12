@@ -73,8 +73,8 @@ class REPPVolumeCalibrationMusic(Module):
             time_estimate_per_trial: float = 10.0,
             min_time_before_submitting: float = 5.0,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
-            name_audio: str = "/calibrate.prepared.wav",
-            name_image: str = "REPP-image_rules.png"
+            filename_audio: str = "calibrate.prepared.wav",
+            filename_image: str = "REPP-image_rules.png"
 
         ):
         self.label = label
@@ -87,14 +87,14 @@ class REPPVolumeCalibrationMusic(Module):
             <br><br>
             <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
             <hr>
-            <img style="width:70%" src="{media_url}/{name_image}"  alt="image_rules">
+            <img style="width:70%" src="{media_url}/{filename_image}"  alt="image_rules">
             """),
             time_estimate=5
             ),
         ModularPage(
             "volume_test_music",
             AudioPrompt(
-                media_url + name_audio,
+                f"{filename_audio}/{filename_image}",
                 Markup("""
                 <h3>Volume test</h3>
                 <hr>
@@ -159,8 +159,8 @@ class REPPVolumeCalibrationMarkers(Module):
             time_estimate_per_trial: float = 10.0,
             min_time_before_submitting: float = 5.0,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
-            name_audio: str ="/only_markers.wav",
-            name_image: str = "REPP-image_rules.png"
+            filename_audio: str ="only_markers.wav",
+            filename_image: str = "REPP-image_rules.png"
 
         ):
         self.label = label
@@ -173,14 +173,14 @@ class REPPVolumeCalibrationMarkers(Module):
             <br><br>
             <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
             <hr>
-            <img style="width:70%" src="{media_url}/{name_image}"  alt="image_rules">
+            <img style="width:70%" src="{media_url}/{filename_image}"  alt="image_rules">
             """),
             time_estimate=5
             ),
         ModularPage(
             "volume_test",
             AudioPrompt(
-                media_url + name_audio,
+                f"{media_url}/{filename_audio}"
                 Markup("""
                 <h3>Volume test</h3>
                 <hr>
@@ -188,10 +188,10 @@ class REPPVolumeCalibrationMarkers(Module):
                 <ol><li>We are playing a sound similar to the ones you will hear during the experiment.</li>
                     <li>Set the volume in your laptop to approximately 90% of the maximum.</li>
                     <li><strong>The sound meter</strong> below indicates whether the audio volume is at the right level.</li>
-                    <li>If necessairy, turn up the volume on your laptop until the sound meter consistently indicates that
+                    <li>If necessary, turn up the volume on your laptop until the sound meter consistently indicates that
                     the volume is <strong style="color:green;">"just right"</strong>.</li>
                 </ol>
-                <b><b>If the sound cannot be properly detected by the sound meter, you will not be able to complete this experiemnt.</b></b>
+                <b><b>If the sound cannot be properly detected by the sound meter, you will not be able to complete this experiment.</b></b>
                 <hr>
                 """),
             loop=True,
@@ -244,7 +244,7 @@ class REPPTappingCalibration(Module):
             time_estimate_per_trial: float = 10.0,
             min_time_before_submitting: float = 5.0,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
-            name_image: str = "tapping_instructions.jpg"
+            filename_image: str = "tapping_instructions.jpg"
         ):
         self.label = label
         self.events = ModularPage(
@@ -257,7 +257,7 @@ class REPPTappingCalibration(Module):
                 <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
                 <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
             </ul>
-            <img style="width:70%" src="{media_url}/{name_image}"  alt="image_rules">
+            <img style="width:70%" src="{media_url}/{filename_image}"  alt="image_rules">
             """),
             TappingTestAudioMeter(min_time=min_time_before_submitting, calibrate=False),
             time_estimate=time_estimate_per_trial
@@ -285,7 +285,7 @@ class REPPMarkersCheck(Module):
     technologies. To make the most out of it, the markers check should be used at the
     beginning of the experiment, after providing general instructions
     with the technical requirements of the experiment. In each trial, the markers check plays
-    a test stimulus with six marker sounds. The mstimulus is then recorded
+    a test stimulus with six marker sounds. The stimulus is then recorded
     with the laptop’s microphone and analyzed using the REPP's signal processing pipeline.
     During the marker playback time, participants are supposed to remain silent
     (not respond).
@@ -314,33 +314,33 @@ class REPPMarkersCheck(Module):
             time_estimate_per_trial: float = 15.0,
             performance_threshold: int = 0.6,
             media_url: str = "https://s3.amazonaws.com/repp-materials",
-            name_image: str = "REPP-image_rules.png",
+            filename_image: str = "REPP-image_rules.png",
             num_trials: int = 3
         ):
         self.label = label
         self.events = join(
-            self.instruction_page(num_trials,media_url,name_image),
+            self.instruction_page(num_trials,media_url,filename_image),
             self.trial_maker(
                 media_url,
                 time_estimate_per_trial,
                 performance_threshold,
                 num_trials,
-                self.audio_names
+                self.audio_filenames
             )
         )
         super().__init__(self.label, self.events)
 
-    audio_names = ["audio1.wav", "audio2.wav", "audio3.wav"]
+    audio_filenames = ["audio1.wav", "audio2.wav", "audio3.wav"]
 
-    def instruction_page(self, num_trials, media_url,name_image):
+    def instruction_page(self, num_trials, media_url,filename_image):
         return InfoPage(Markup(
             f"""
             <h3>Recording test</h3>
             <hr>
             Now we will test the recording quality of your laptop. In {num_trials} trials, you will be
-            asked to remain in silent while we play and record a sound.
+            asked to remain silent while we play and record a sound.
             <br><br>
-            <img style="width:50%" src="{media_url}/{name_image}"  alt="image_rules">
+            <img style="width:50%" src="{media_url}/{filename_image}"  alt="image_rules">
             <br><br>
             When ready, click <b>next</b> for the recording test and please wait in silence.
             <hr>
@@ -353,7 +353,7 @@ class REPPMarkersCheck(Module):
             time_estimate_per_trial: float,
             performance_threshold: int,
             num_trials: float,
-            audio_names: list
+            audio_filenames: list
         ):
         class MarkersTrialMaker(NonAdaptiveTrialMaker):
             give_end_feedback_passed = False
@@ -364,7 +364,7 @@ class REPPMarkersCheck(Module):
             id_="markers_test",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(media_url, audio_names),
+            stimulus_set=self.get_stimulus_set(media_url, audio_filenames),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True
         )
@@ -393,11 +393,11 @@ class REPPMarkersCheck(Module):
                             )
 
             def show_feedback(self, experiment, participant):
-                if self.failed == True:
+                if self.failed:
                     return InfoPage(
                             Markup(f"""
                                 <h4>The recording quality of your laptop is not good</h4>
-                                This may have many resons. Please try to do one or more of the following:
+                                This may have many reasons. Please try to do one or more of the following:
                                 <ol><li>Increase the volumne of your laptop.</li>
                                     <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
                                     <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
@@ -448,17 +448,14 @@ class REPPMarkersCheck(Module):
                 num_detected_markers = int(tstats['marker_detected'])
                 correct_answer = self.definition["correct_answer"]
 
-                is_fail=correct_answer==num_detected_markers
-                failed= not is_fail
-
                 return {
-                    "failed": failed,
+                    "failed": correct_answer != num_detected_markers,
                     "num_detected_markers": num_detected_markers,
                     "output_results": output_results
                     }
         return RecordMarkersTrial
 
-    def get_stimulus_set(self,media_url: str, audio_names: list):
+    def get_stimulus_set(self,media_url: str, audio_filenames: list):
         return StimulusSet("markers_test", [
             StimulusSpec(
                 definition={
@@ -472,7 +469,7 @@ class REPPMarkersCheck(Module):
                 },
                 phase="screening"
             )
-            for name in audio_names
+            for name in audio_filenames
         ])
 
 class LanguageVocabularyTest(Module):
@@ -977,7 +974,7 @@ class ColorBlindnessTest(Module):
         return ColorBlindnessTrialMaker(
             id_="color_blindness",
             trial_class=self.trial(time_estimate_per_trial, hide_after),
-            phase="experiment",
+            phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
@@ -1013,7 +1010,7 @@ class ColorBlindnessTest(Module):
                     "correct_answer": answer,
                     "url": f"{media_url}/ishihara-{label}.jpg"
                 },
-                phase="experiment"
+                phase="screening"
             )
             for label, answer in
             [
@@ -1116,7 +1113,7 @@ class ColorVocabularyTest(Module):
         return ColorVocabularyTrialMaker(
             id_="color_vocabulary",
             trial_class=self.trial(time_estimate_per_trial),
-            phase="experiment",
+            phase="screening",
             stimulus_set=self.get_stimulus_set(colors),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
@@ -1155,7 +1152,7 @@ class ColorVocabularyTest(Module):
                 "choices": choices,
                 "correct_answer": correct_answer
             }
-            stimuli.append(StimulusSpec(definition=definition, phase="experiment"))
+            stimuli.append(StimulusSpec(definition=definition, phase="screening"))
         return StimulusSet("color_vocabulary", stimuli)
 
 
@@ -1233,7 +1230,7 @@ class HeadphoneCheck(Module):
         return HeadphoneTrialMaker(
             id_="headphone_check_trials",
             trial_class=self.trial(time_estimate_per_trial),
-            phase="experiment",
+            phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
             time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
@@ -1266,7 +1263,7 @@ class HeadphoneCheck(Module):
                     "correct_answer": answer,
                     "url": f"{media_url}/antiphase_HC_{label}.wav"
                 },
-                phase="experiment"
+                phase="screening"
             )
             for label, answer in
             [
