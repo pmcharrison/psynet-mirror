@@ -23,7 +23,6 @@ from dallinger import db
 
 import psynet.experiment
 
-from psynet.timeline import get_template
 from psynet.field import claim_field
 from psynet.participant import Participant, get_participant
 from psynet.timeline import (
@@ -59,14 +58,6 @@ COLORS = ["red", "green", "blue"]
 import os
 
 
-def get_template(name):
-    assert isinstance(name, str)
-    data_path = os.path.join('templates', name)
-    with open(data_path, encoding='utf-8') as fp:
-        template_str = fp.read()
-    return template_str
-
-
 class ColorSliderPage(SliderPage):
     def __init__(
             self,
@@ -75,6 +66,7 @@ class ColorSliderPage(SliderPage):
             selected_idx: int,
             starting_values: List[int],
             reverse_scale: bool,
+            directional: bool,
             time_estimate=None,
             **kwargs
     ):
@@ -93,8 +85,7 @@ class ColorSliderPage(SliderPage):
         }
         super().__init__(
             time_estimate=time_estimate,
-            # template_path="templates/color-slider.html",
-            template_str=get_template("color-slider.html"),
+            template_filename="color-slider.html",
             label=label,
             prompt=prompt,
             start_value=starting_values[selected_idx],
@@ -102,6 +93,7 @@ class ColorSliderPage(SliderPage):
             max_value=255,
             slider_id=COLORS[selected_idx],
             reverse_scale=reverse_scale,
+            directional=directional,
             template_arg={
                 'hidden_inputs': hidden_inputs,
             }
@@ -109,7 +101,7 @@ class ColorSliderPage(SliderPage):
 
     def metadata(self, **kwargs):
         return {
-            "prompt": self.prompt,
+            "prompt": self.prompt.metadata,
             "selected_idx": self.selected_idx,
             "starting_values": self.starting_values
         }
@@ -158,6 +150,7 @@ class CustomTrial(GibbsTrial):
             starting_values=self.initial_vector,
             selected_idx=self.active_index,
             reverse_scale=self.reverse_scale,
+            directional=False,
             time_estimate=5
         )
 

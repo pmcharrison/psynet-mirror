@@ -422,6 +422,7 @@ class Experiment(dallinger.experiment.Experiment):
     @classmethod
     def extra_files(cls):
         return [
+            (resource_filename('psynet', 'resources/favicon.ico'), "/static/favicon.ico"),
             (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png"),
             (resource_filename('psynet', 'resources/logo.svg'), "/static/images/logo.svg"),
             (resource_filename('psynet', 'resources/scripts/dashboard_timeline.js'), "/static/scripts/dashboard_timeline.js"),

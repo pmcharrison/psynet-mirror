@@ -4,7 +4,7 @@ from dominate import tags
 from dominate.util import raw
 
 from flask import Markup
-from typing import Union, Optional, List
+from typing import Dict, Union, Optional, List
 from uuid import uuid4
 from scipy.io import wavfile
 
@@ -509,6 +509,8 @@ class CheckboxControl(OptionControl):
     force_selection:
         Determines if at least checkbox has to be ticked. Default: False.
 
+    show_reset_button
+        Whether to display a 'Reset' button to allow for unsetting ticked checkboxes. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when at least one checkbox is ticked. Default: ``never``.
     """
 
     def __init__(
@@ -519,11 +521,13 @@ class CheckboxControl(OptionControl):
             name: str = "",
             arrange_vertically: bool = True,
             force_selection: bool = False,
+            show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
+        self.show_reset_button = show_reset_button
 
         self.checkboxes = [
             Checkbox(
@@ -537,17 +541,16 @@ class CheckboxControl(OptionControl):
 
     macro = "checkboxes"
 
-    def visualize_response(self, answer):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                tags.input(
+                tags.input_(
                     type="checkbox",
                     id=choice,
-                    name="response-options",
+                    name=self.name,
                     value=choice,
-                    checked=(answer is not None and choice == answer),
-                    disabled=True
+                    checked=(True if answer is not None and choice in answer else False),
                 )
                 tags.span(label)
                 tags.br()
@@ -579,7 +582,7 @@ class DropdownControl(OptionControl):
         The different options the participant has to choose from.
 
     labels:
-        An optional list of textual labels to apply to the radiobuttons,
+        An optional list of textual labels to apply to the dropdown options,
         which the participant will see instead of ``choices``.
 
     style:
@@ -616,17 +619,21 @@ class DropdownControl(OptionControl):
 
     macro = "dropdown"
 
-    def visualize_response(self):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div(_class="dropdown-container")
         with html:
+            tags.style(".dropdown-container { margin: 0 auto; width: fit-content; }")
             with tags.select(
-                id=choice,
-                name="response-options",
-                multiple=multiple
+                id=self.name,
+                _class="form-control response",
+                name=self.name,
+                style="cursor: pointer;",
             ):
                 for choice, label in zip(self.choices, self.labels):
-                    with doc.option(value = choice):
-                        text(label)
+                    if answer == choice:
+                        tags.option(value=choice, selected=True).add(label)
+                    else:
+                        tags.option(value=choice).add(label)
         return html.render()
 
     def validate(self, response, **kwargs):
@@ -693,19 +700,19 @@ class PushButtonControl(OptionControl):
             "labels": self.labels
         }
 
-    def visualize_response(self, answer):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                tags.input(
-                    type="radio",
+                response_string = response.response.replace('"', '')
+                _class =f"btn push_button btn-primary response submit"
+                _class = _class.replace("btn-primary", "btn-success") if response_string == choice else _class
+                tags.button(
+                    type="button",
                     id=choice,
-                    name="response-options",
-                    value=choice,
-                    checked=(answer is not None and choice == answer),
-                    disabled=True
-                )
-                tags.span(label)
+                    _class=_class,
+                    style=self.style,
+                ).add(label)
                 tags.br()
         return html.render()
 
@@ -760,13 +767,26 @@ class TimedPushButtonControl(PushButtonControl):
         event_log = {**kwargs}["metadata"]["event_log"]
         return event_log
 
-    def visualize_response(self, answer):
-        return "visualize_response not yet implemented for TimedPushButtonControl"
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
+        with html:
+            for choice, label in zip(self.choices, self.labels):
+                response_string = response.response.replace('"', '')
+                _class = f"btn push_button btn-primary response timed"
+                _class = _class.replace("btn-primary", "btn-success") if response_string == choice else _class
+                tags.button(
+                    type="button",
+                    id=choice,
+                    _class=_class,
+                    style=self.style,
+                ).add(label)
+                tags.br()
+        return html.render()
 
 class NAFCControl(PushButtonControl):
     """
-    [DEPRECATED] This class exists only for retaining backward compatibility. Use ``PushButtonControl``
-    instead.
+    .. deprecated:: 1.7.0
+        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
     """
     pass
 
@@ -806,6 +826,9 @@ class RadioButtonControl(OptionControl):
 
     force_selection
         Determines if an answer has to be selected. Default: ``True``.
+
+    show_reset_button
+        Whether to display a 'Reset' button to allow for unsetting a ticked radiobutton. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when a radiobutton is ticked. Default: ``never``.
     """
 
     def __init__(
@@ -816,11 +839,13 @@ class RadioButtonControl(OptionControl):
             name: str = "",
             arrange_vertically: bool = True,
             force_selection: bool = True,
+            show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
+        self.show_reset_button = show_reset_button
 
         self.radiobuttons = [
             RadioButton(
@@ -834,17 +859,16 @@ class RadioButtonControl(OptionControl):
 
     macro = "radiobuttons"
 
-    def visualize_response(self, answer):
-        html = tags.div(id="response-options")
+    def visualize_response(self, answer, response, trial):
+        html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                tags.input(
+                tags.input_(
                     type="radio",
                     id=choice,
-                    name="response-options",
+                    name=self.name,
                     value=choice,
-                    checked=(answer is not None and choice == answer),
-                    disabled=True
+                    checked=(True if choice == answer else False),
                 )
                 tags.span(label)
                 tags.br()
@@ -865,6 +889,45 @@ class RadioButton():
         self.style = style
 
 
+class NumberControl(Control):
+    """
+    This control interface solicits number input from the participant.
+
+    Parameters
+    ----------
+
+    width:
+        CSS width property for the text box. Default: `"120px"`.
+
+    text_align:
+        CSS width property for the alignment of the text inside the number input field. Default: `"right"`.
+    """
+
+    def __init__(
+            self,
+            width: Optional[str] = "120px",
+            text_align: Optional[str] = "right"
+    ):
+        self.width = width
+        self.text_align = text_align
+
+    macro = "number"
+
+    @property
+    def metadata(self):
+        return {
+            "width": self.width,
+            "text_align": self.text_align
+        }
+
+    def validate(self, response, **kwargs):
+        try:
+            float(response.answer)
+        except ValueError:
+            return FailedValidation("You need to provide a number!")
+        return None
+
+
 class TextControl(Control):
     """
     This control interface solicits free text from the participant.
@@ -876,14 +939,13 @@ class TextControl(Control):
         Whether the text box should comprise solely one line.
 
     width:
-        Optional CSS width property for the text box.
+        CSS width property for the text box.
 
     height:
-        Optional CSS height property for the text box.
+        CSS height property for the text box.
 
-    align:
-        Alignment for the text.
-
+    text_align:
+        CSS width property for the alignment of the text inside the text input field. Default: `"left"`.
     """
 
     def __init__(
@@ -1122,7 +1184,7 @@ class AudioMeterControl(Control):
         self.calibrate = calibrate
         self.submit_button = submit_button
         if calibrate:
-            self.sliders = SliderControl([
+            self.sliders = MultiSliderControl([
                 Slider("decay_display", "Decay (display)", self.decay["display"], 0, 3, 0.001),
                 Slider("decay_high", "Decay (too high)", self.decay["high"], 0, 3, 0.001),
                 Slider("decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
@@ -1206,6 +1268,297 @@ class TappingAudioMeterControl(AudioMeterControl):
     }
 
 class SliderControl(Control):
+    """
+    This control interface displays a horizontal slider to the participant.
+
+    The control logs all interactions from the participant including:
+    - initial location of the slider
+    - subsequent release points along with time stamps
+
+    Currently the slider does not display any numbers describing the
+    slider's current position. We anticipate adding this feature in
+    a future release, if there is interest.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the control (used to store results).
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    num_steps:
+        Determines the number of steps that the slider can be dragged through. Default: `10000`.
+
+    snap_values:
+        Optional. Determines the values to which the slider will 'snap' to once it is released.
+        Can take various forms:
+
+        - ``<None>``: no snapping is performed.
+
+        - ``<int>``: indicating number of equidistant steps between `min_value` and `max_value`.
+
+        - ``<list>``: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type :
+        By default we use the HTML5 slider, however future implementations might also use different slider
+        formats, like 2D sliders or circular sliders. Default: `"HTML5_range_slider"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+
+    template_filename:
+        Filename of an optional additional template. Default: `None`.
+
+    template_args:
+        Arguments for the  optional additional template. Default: `None`.
+    """
+
+    def __init__(
+            self,
+            label: str,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            num_steps: int = 10000,
+            reverse_scale: Optional[bool] = False,
+            directional: Optional[bool] = True,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            input_type: Optional[str] = "HTML5_range_slider",
+            snap_values: Optional[Union[int, list]] = None,
+            minimal_interactions: Optional[int] = 0,
+            minimal_time: Optional[int] = 0,
+            continuous_updates: Optional[bool] = False,
+            template_filename: Optional[str] = None,
+            template_args: Optional[Dict] = None,
+        ):
+        self.label = label
+        self.start_value = start_value
+        self.min_value = min_value
+        self.max_value = max_value
+        self.num_steps = num_steps
+        self.step_size = (max_value - min_value) / (num_steps - 1)
+        self.reverse_scale = reverse_scale
+        self.directional = directional
+        self.slider_id = slider_id
+        self.input_type = input_type
+        self.template_filename = template_filename
+        self.template_args = template_args
+
+        js_vars = {}
+        js_vars["snap_values"] = snap_values
+        js_vars['minimal_interactions'] = minimal_interactions
+        js_vars['minimal_time'] = minimal_time
+        js_vars["continuous_updates"] = continuous_updates
+        self.js_vars = js_vars
+
+    macro = "slider"
+
+    @property
+    def metadata(self):
+        return {
+            "label": self.label,
+            "start_value": self.start_value,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+            "num_steps": self.num_steps,
+            "step_size": self.step_size,
+            "reverse_scale": self.reverse_scale,
+            "directional": self.directional,
+            "slider_id": self.slider_id,
+            "input_type": self.input_type,
+            "template_filename": self.template_filename,
+            "template_args": self.template_args,
+            "js_vars": self.js_vars,
+        }
+
+
+class AudioSliderControl(SliderControl):
+    """
+    This control solicits a slider response from the user that results in playing some audio.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the page (used to store results).
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    audio:
+        A dictionary of audio assets.
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid audio argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.wav',
+                'my_batch': {
+                    'url': '/static/file_concatenated.mp3',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    sound_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The sound closest to the current slider position is played once the page is loaded. Default: `False`.
+
+    num_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"num_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
+          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"sound_locations"``: slider snaps to nearest sound location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"sound_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+    """
+    def __init__(
+            self,
+            label,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            audio: dict,
+            sound_locations: dict,
+            autoplay: Optional[bool] = False,
+            num_steps: Optional[int] = 10000,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            reverse_scale: Optional[bool] = False,
+            directional: bool = True,
+            snap_values: Optional[Union[int, list]] = "sound_locations",
+            minimal_interactions: Optional[int] = 0,
+            minimal_time: Optional[int] = 0,
+        ):
+        super().__init__(
+            label=label,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            num_steps = num_steps,
+            slider_id=slider_id,
+            reverse_scale=reverse_scale,
+            directional = directional,
+        )
+        self.sound_locations = sound_locations
+        self.autoplay = autoplay
+        self.snap_values = snap_values
+        self.audio = audio
+
+        js_vars = {}
+        js_vars["sound_locations"] = self.sound_locations
+        js_vars["autoplay"] = self.autoplay
+        js_vars["snap_values"] = self.snap_values
+        js_vars['minimal_interactions'] = minimal_interactions
+        js_vars['minimal_time'] = minimal_time
+
+        self.js_vars = js_vars
+
+    macro = "audio_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "sound_locations": self.sound_locations,
+            "autoplay": self.autoplay,
+        }
+
+
+# WIP
+class ColorSliderControl(SliderControl):
+    def __init__(
+            self,
+            label,
+            start_value: float,
+            min_value: float,
+            max_value: float,
+            slider_id: Optional[str] = 'sliderpage_slider',
+            hidden_inputs: Optional[dict] = {},
+        ):
+        super().__init__(
+            label=label,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_id=slider_id,
+            hidden_inputs=hidden_inputs,
+        )
+
+    macro = "color_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "hidden_inputs": self.hidden_inputs,
+        }
+
+# WIP
+class MultiSliderControl(Control):
     def __init__(
             self,
             sliders,
@@ -1215,7 +1568,6 @@ class SliderControl(Control):
         self.sliders = sliders
         self.next_button = next_button
 
-    # WIP
 
 class Slider():
     def __init__(
@@ -1295,6 +1647,7 @@ class VideoSliderControl(Control):
             starting_value: float = 0.5,
             minimal_time: float = 2.0,
             reverse_scale: bool = False,
+            directional: bool = True,
             hide_slider: bool = False
         ):
         assert 0 <= starting_value and starting_value <= 1
@@ -1306,6 +1659,7 @@ class VideoSliderControl(Control):
         self.starting_value = starting_value
         self.minimal_time = minimal_time
         self.reverse_scale = reverse_scale
+        self.directional = directional
         self.hide_slider = hide_slider
 
     @property
@@ -1315,6 +1669,7 @@ class VideoSliderControl(Control):
             "starting_value": self.starting_value,
             "minimal_time": self.minimal_time,
             "reverse_scale": self.reverse_scale,
+            "directional": self.directional,
             "hide_slider": self.hide_slider
         }
 
