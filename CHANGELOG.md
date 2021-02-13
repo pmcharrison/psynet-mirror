@@ -1,5 +1,27 @@
 # Changelog
 
+# [1.11.0] Released on 2021-02-13
+
+#### Added
+- Added `NumberControl`, `SliderControl`, `AudioSliderControl` controls.
+- Added new `directional` attribute to `Slider`.
+- Added optional reset button to `CheckboxControl` and `RadioButtonControl`.
+- Added new pre-screenings `AttentionCheck`, `LanguageVocabularyTest`, `LexTaleTest`, `REPPMarkersCheck`, `REPPTappingCalibration`, `REPPVolumeCalibrationMarkers`, and `REPPVolumeCalibrationMusic`.
+- Added demos for new pre-screenings.
+- Added favicon.ico.
+
+#### Fixed
+- Fixed `visualize_response` methods for `checkboxes`, `dropdown`, `radiobuttons`, and `push_buttons` macros.
+- Fixed erroneous display of reverse slider due to changes in Bootstrap 4.
+- Fixed compatibility with new Dallinger route registration.
+
+#### Deprecated
+- Deprecated `NAFCPage`, `TextInputPage`, `SliderPage`, `AudioSliderPage`, and `NumberInputPage` and refactored them into `ModularPage`s using controls.
+
+#### Removed
+- Deleted obsolete `psychTestR` directory.
+
+
 # [1.10.1] - Released on 2021-02-11
 
 #### Fixed
