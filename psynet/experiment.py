@@ -103,14 +103,9 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        config = get_config()
-        if not config.ready:
-            config.load()
-
         self._background_tasks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.base_payment = config.get("base_payment")
 
         if session:
             if not self.setup_complete:
@@ -118,6 +113,11 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         else:
             self.register_pre_deployment_routines()
+
+    @property
+    def base_payment(self):
+        config = get_config()
+        return config.get("base_payment")
 
     @property
     def var(self):
@@ -422,6 +422,7 @@ class Experiment(dallinger.experiment.Experiment):
     @classmethod
     def extra_files(cls):
         return [
+            (resource_filename('psynet', 'resources/favicon.ico'), "/static/favicon.ico"),
             (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png"),
             (resource_filename('psynet', 'resources/logo.svg'), "/static/images/logo.svg"),
             (resource_filename('psynet', 'resources/scripts/dashboard_timeline.js'), "/static/scripts/dashboard_timeline.js"),
@@ -436,18 +437,21 @@ class Experiment(dallinger.experiment.Experiment):
             "extra_routes", __name__, template_folder="templates", static_folder="static"
         )
 
-        @dashboard.route("/timeline")
-        @login_required
-        def timeline():
-            exp = self.new(db.session)
-            panes = exp.monitoring_panels()
+        if not hasattr(dashboard, "timeline"):
+            dashboard.timeline = True
 
-            return render_template(
-                "dashboard_timeline.html",
-                title="Timeline modules",
-                panes=panes,
-                timeline_modules=json.dumps(exp.timeline.modules(), default=serialise)
-            )
+            @dashboard.route("/timeline")
+            @login_required
+            def timeline():
+                exp = self.new(db.session)
+                panes = exp.monitoring_panels()
+
+                return render_template(
+                    "dashboard_timeline.html",
+                    title="Timeline modules",
+                    panes=panes,
+                    timeline_modules=json.dumps(exp.timeline.modules(), default=serialise)
+                )
 
         @routes.route("/export", methods=["GET"])
         def export():

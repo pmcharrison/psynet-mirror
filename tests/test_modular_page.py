@@ -56,7 +56,8 @@ def test_visualize(trial):
             file_type="mp4",
             width="400px",
             height="400px",
-            reverse_scale=True
+            reverse_scale=True,
+            directional=False,
         ),
         time_estimate=5
     )
