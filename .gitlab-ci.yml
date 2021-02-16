@@ -14,6 +14,10 @@ before_script:
   - apt-get update
   - apt-get -f -y install python-enchant
   - git clone https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+  - WD=`pwd`
+  - cd /tmp/dallinger
+  - git checkout v7.0.0
+  - cd $WD
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
   - pip install -e .[dev]
