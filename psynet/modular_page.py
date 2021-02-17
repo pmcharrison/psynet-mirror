@@ -1286,6 +1286,9 @@ class AudioRecordControl(Control):
         self.loop_playback = loop_playback
         self.record_window = record_window
 
+        if self.record_window is None:
+            self.record_window = [0.0, self.duration]
+
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
         else:
@@ -1298,12 +1301,11 @@ class AudioRecordControl(Control):
         return {}
 
     def check_attr(self):
-        if self.record_window is not None:
-            assert isinstance(self.record_window, list)
-            assert len(self.record_window) == 2
-            assert self.record_window[0] >= 0
-            assert self.record_window[1] <= self.duration
-            assert self.record_window[1] >= self.record_window[0]
+        assert isinstance(self.record_window, list)
+        assert len(self.record_window) == 2
+        assert self.record_window[0] >= 0
+        assert self.record_window[1] <= self.duration
+        assert self.record_window[1] >= self.record_window[0]
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
