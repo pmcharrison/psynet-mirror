@@ -28,7 +28,7 @@ setuptools.setup(
         'psynet': ["VERSION"]
     },
     install_requires=[
-        "dallinger>=6.3.0",
+        "dallinger>=7.0.0",
         "click",
         "datetime",
         "dominate",
