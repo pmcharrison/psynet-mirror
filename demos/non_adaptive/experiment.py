@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import logging
@@ -23,10 +23,9 @@ from psynet.trial.non_adaptive import (
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-import rpdb
 
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
 
 stimulus_set = StimulusSet(
@@ -123,8 +122,9 @@ trial_maker = AnimalTrialMaker(
 )
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

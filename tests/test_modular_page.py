@@ -29,17 +29,17 @@ def test_import_templates():
     )
 
 
-@pytest.mark.usefixtures("demo_non_adaptive")
-def test_visualize(trial):
-    prompt = AudioPrompt("test.url", "This is the prompt.")
+@pytest.mark.usefixtures("demo_iterated_singing")
+def test_visualize_audio_prompt(trial):
+    prompt = AudioPrompt("test.url", "This is the prompt.", play_window=[1, 10])
     assert (
         prompt.visualize(trial)
-        == '<p>This is the prompt.</p>\n<audio id="visualize-audio-prompt">\n  <source src="test.url" type="audio">\n</audio>'
+        == '<p>This is the prompt.</p>\n<audio controls="controls" id="visualize-audio-prompt">\n  <source src="test.url#t=1,10">\n</audio>'
     )
 
 
 @pytest.mark.usefixtures("demo_iterated_singing")
-def test_visualize(trial):
+def test_visualize_trial(trial):
     import psynet.media
 
     psynet.media.upload_to_local_s3(

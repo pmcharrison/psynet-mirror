@@ -9,15 +9,11 @@ from psynet.timeline import Timeline
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrial,
     NonAdaptiveTrialMaker,
-    StimulusSpec,
-    StimulusVersionSpec,
     stimulus_set_from_dir,
 )
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-from psynet.trial.non_adaptive import stimulus_set_from_dir
 
 version = "v1"
 

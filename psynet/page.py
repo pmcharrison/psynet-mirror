@@ -19,8 +19,6 @@ from .modular_page import (
 from .timeline import (
     CodeBlock,
     EndPage,
-    FailedValidation,
-    MediaSpec,
     Page,
     PageMaker,
     get_template,
@@ -478,7 +476,7 @@ class SliderPage(ModularPage):
         )
         self.template_filename = template_filename
 
-        if not "template_arg" in kwargs:
+        if "template_arg" not in kwargs:
             self.template_args = {}
         else:
             self.template_args = kwargs["template_arg"]
@@ -633,7 +631,7 @@ class AudioSliderPage(ModularPage):
             DeprecationWarning,
         )
 
-        if not "media" in kwargs:
+        if "media" not in kwargs:
             raise ValueError(
                 "You must specify sounds in `media` you later want to play with the slider"
             )

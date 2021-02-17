@@ -1,6 +1,5 @@
 import psynet.experiment
 from psynet.modular_page import (
-    AudioPrompt,
     CheckboxControl,
     DropdownControl,
     ModularPage,
@@ -8,12 +7,10 @@ from psynet.modular_page import (
     RadioButtonControl,
 )
 from psynet.page import SuccessfulEndPage
-from psynet.timeline import Module, Timeline
+from psynet.timeline import Timeline
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-from datetime import datetime
 
 
 # Weird bug: if you instead import Experiment from psynet.experiment,

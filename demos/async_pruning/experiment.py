@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### About
+# About
 ##########################################################################################
 
 # This is a version of the Gibbs demo that introduces failing of asynchronous
@@ -10,39 +10,17 @@
 # as a few participants then inspecting the monitor route.
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import random
-import re
-import time
-from statistics import mean
 from typing import List, Union
 
-from dallinger import db
 from flask import Markup
 
 import psynet.experiment
-from psynet.field import claim_field
-from psynet.page import (
-    InfoPage,
-    NAFCPage,
-    NumberInputPage,
-    SliderPage,
-    SuccessfulEndPage,
-)
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    CodeBlock,
-    FailedValidation,
-    Page,
-    PageMaker,
-    Timeline,
-    conditional,
-    switch,
-    while_loop,
-)
-from psynet.trial.chain import ChainNetwork
+from psynet.page import InfoPage, SliderPage, SuccessfulEndPage
+from psynet.timeline import Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
     GibbsNode,
@@ -54,12 +32,9 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-# import rpdb
 
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
-
-import os
 
 
 class ColorSliderPage(SliderPage):
@@ -221,8 +196,9 @@ trial_maker = CustomTrialMaker(
 )
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

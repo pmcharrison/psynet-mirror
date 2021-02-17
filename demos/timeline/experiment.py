@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import psynet.experiment
 from psynet.modular_page import NumberControl, Prompt, TimedPushButtonControl
 from psynet.page import (
@@ -20,8 +22,6 @@ from psynet.timeline import (
 from psynet.utils import get_logger
 
 logger = get_logger()
-
-from datetime import datetime
 
 
 # Weird bug: if you instead import Experiment from psynet.experiment,

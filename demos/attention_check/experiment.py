@@ -1,16 +1,17 @@
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import psynet.experiment
 from psynet.demography.general import BasicDemography, Dance, HearingLoss
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import SuccessfulEndPage
 from psynet.prescreen import AttentionCheck
 from psynet.timeline import Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

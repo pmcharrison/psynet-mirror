@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import random
@@ -24,7 +24,7 @@ logger = get_logger()
 
 
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
 
 
@@ -88,8 +88,9 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -100,7 +101,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         InfoPage(
             """
-            We will demonstrate a particular form of the imitation chain experiment where each 
+            We will demonstrate a particular form of the imitation chain experiment where each
             'show_trial' comprises multiple pages. This allows you to ask the participant the same
             question multiple times in a row. This is occasionally useful in production experiments.
             """,

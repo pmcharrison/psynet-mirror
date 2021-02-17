@@ -2,7 +2,6 @@ import shutil
 import tempfile
 
 import parselmouth
-import pytest
 
 from psynet.media import recode_wav
 from psynet.timeline import MediaSpec

@@ -30,7 +30,7 @@ def test_text():
 
 def test_validate_object_ids():
     with pytest.raises(ValueError) as e:
-        prompt = GraphicPrompt(
+        GraphicPrompt(
             dimensions=[300, 300],
             frames=[
                 Frame(
@@ -44,7 +44,7 @@ def test_validate_object_ids():
     assert str(e.value) == "in Graphic prompt, Frame 0, duplicate object ID 'text'"
 
     with pytest.raises(ValueError) as e:
-        prompt = GraphicPrompt(
+        GraphicPrompt(
             dimensions=[300, 300],
             frames=[
                 Frame(
@@ -69,13 +69,13 @@ def test_validate_object_ids():
 
 def test_validate_media():
     with pytest.raises(ValueError) as e:
-        prompt = GraphicPrompt(
+        GraphicPrompt(
             dimensions=[300, 300], frames=[Frame([Image("image", "img", 5, 5, 10, 10)])]
         )
     assert str(e.value) == "image 'img' was missing from the media collection"
 
     with pytest.raises(ValueError) as e:
-        prompt = GraphicPrompt(
+        GraphicPrompt(
             dimensions=[300, 300],
             frames=[Frame([Image("image", "img", 5, 5, 10, 10)], audio_id="sound")],
             media=MediaSpec(image={"img": "img.png"}),

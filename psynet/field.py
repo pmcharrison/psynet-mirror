@@ -2,7 +2,6 @@ import copy
 import json
 import re
 from datetime import datetime
-from functools import wraps
 
 from sqlalchemy import Boolean, Float, Integer, String
 from sqlalchemy.ext.hybrid import hybrid_property

@@ -3,7 +3,7 @@
 # Note: parselmouth must be installed with pip install praat-parselmouth
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 from flask import Markup
@@ -23,7 +23,6 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-import rpdb
 
 # Custom parameters, change these as you like!
 TARGETS = ["critical", "suggestive", "angry"]
@@ -116,8 +115,9 @@ trial_maker = CustomTrialMaker(
 )
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

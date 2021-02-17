@@ -1,11 +1,8 @@
 import logging
-import os
-import re
 import time
 
 import pytest
 
-from psynet.participant import Participant, get_participant
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)

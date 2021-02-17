@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 from flask import Markup
@@ -16,11 +16,11 @@ from psynet.modular_page import (
     TimedPushButtonControl,
     VideoSliderControl,
 )
-from psynet.page import DebugResponsePage, InfoPage, SuccessfulEndPage
+from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
 
 

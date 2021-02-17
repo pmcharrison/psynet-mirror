@@ -7,7 +7,6 @@ from dallinger.models import Network, Node
 from dallinger.nodes import Source
 
 from psynet.participant import Participant
-from psynet.trial.non_adaptive import StimulusVersion
 
 ACTIVE_EXPERIMENT = None
 
@@ -113,9 +112,7 @@ def participant(db_session):
 
 @pytest.fixture
 def node(db_session, network):
-    if ACTIVE_EXPERIMENT == "non_adaptive":
-        return StimulusVersion.query.all()[0]
-    elif ACTIVE_EXPERIMENT == "iterated_singing":
+    if ACTIVE_EXPERIMENT == "iterated_singing":
         nodes = Node.query.all()
         return [
             n for n in nodes if not isinstance(n, Source) and n.definition is not None

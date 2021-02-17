@@ -18,7 +18,7 @@ def test_merge_media_spec():
     z = MediaSpec(audio={"stim-1": "stim-1.wav", "stim-2": "stim-2b.wav"})
     q = MediaSpec(audio={"stim-3": "stim-3.wav"})
 
-    with pytest.raises(DuplicateKeyError) as e:
+    with pytest.raises(DuplicateKeyError):
         MediaSpec.merge(x, y, z).data == MediaSpec(
             audio={
                 "stim-0": "stim-0.wav",

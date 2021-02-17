@@ -6,25 +6,16 @@ import random
 import tempfile
 from uuid import uuid4
 
-from dallinger import db
 from flask import Markup, escape
 
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
 from ..page import AudioSliderPage
 from ..timeline import MediaSpec
-from ..utils import (
-    get_logger,
-    get_object_from_module,
-    import_local_experiment,
-    linspace,
-)
+from ..utils import get_logger, get_object_from_module, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsSource, GibbsTrial, GibbsTrialMaker
 
 logger = get_logger()
-
-# pylint: disable=unused-import
-import rpdb
 
 
 class AudioGibbsNetwork(GibbsNetwork):

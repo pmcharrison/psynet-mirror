@@ -7,7 +7,7 @@ from uuid import uuid4
 import dominate.tags as tags
 from dallinger import db
 
-from ..field import claim_field, claim_var, extra_var
+from ..field import claim_var, extra_var
 from ..media import download_from_s3, get_s3_url, recode_wav, upload_to_s3
 from ..utils import get_logger
 from .imitation_chain import (
@@ -17,7 +17,6 @@ from .imitation_chain import (
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
-from .main import Trial
 
 logger = get_logger()
 

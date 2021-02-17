@@ -1252,7 +1252,9 @@ class ChainTrialMaker(NetworkTrialMaker):
     #     if not node.failed:
     #         node.fail()
 
-    #### Participated networks
+    #########################
+    # Participated networks #
+    #########################
     def init_participated_networks(self, participant):
         participant.var.set(self.with_namespace("participated_networks"), [])
 

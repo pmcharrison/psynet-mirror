@@ -1,23 +1,22 @@
 # Iterated tapping experiment, adapted from Jacoby & McDermott (2017)
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 import json
-from math import nan
 from statistics import mean
 
 import numpy as np
+import tapping_extract as tapping
 from flask import Markup
 from scipy.io import wavfile
-from scipy.io.wavfile import write
 
 import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import (
-    REPPMarkersCheck,
+from psynet.prescreen import (  # REPPMarkersCheck,
+    JSONSerializer,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
 )
@@ -33,10 +32,9 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-import tapping_extract as tapping
 
 ##########################################################################################
-#### Global parameters
+# Global parameters
 ##########################################################################################
 BUCKET_NAME = "iterated-tapping-demo"
 PARAMS = tapping.params_tech_iter  # Choose paramaters for this demo (iterated tapping)
@@ -55,8 +53,9 @@ NUM_ITERATION_CHAIN = 5
 NUM_TRIALS_PARTICIPANT = 20
 TOTAL_NUM_PARTICIPANTS = 50
 
+
 ##########################################################################################
-#### Experiment parts
+# Experiment parts
 ##########################################################################################
 def save_samples_to_file(samples, filename, fs):
     wavfile.write(filename, rate=fs, data=samples.astype(np.float32))
@@ -234,7 +233,7 @@ class CustomSource(AudioImitationChainSource):
 
 
 ##########################################################################################
-#### Timeline
+# Timeline
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False

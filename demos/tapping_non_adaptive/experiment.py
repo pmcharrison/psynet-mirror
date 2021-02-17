@@ -1,7 +1,7 @@
 # non_adapting tapping demo with isochronus tapping and beat synchronization to music
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 import json
 import os
@@ -10,15 +10,13 @@ import numpy as np
 import tapping_extract as tapping
 from flask import Markup
 from scipy.io import wavfile
-from scipy.io.wavfile import write
 
 import psynet.experiment
 from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
-from psynet.page import InfoPage, SuccessfulEndPage, UnsuccessfulEndPage
-from psynet.prescreen import (
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.prescreen import (  # REPPMarkersCheck,
     JSONSerializer,
-    REPPMarkersCheck,
     REPPTappingCalibration,
     REPPVolumeCalibrationMusic,
 )
@@ -33,7 +31,7 @@ from psynet.trial.non_adaptive import (
 )
 
 ##########################################################################################
-#### Global parameters
+# Global parameters
 ##########################################################################################
 BUCKET_NAME = "sms-technology"
 PARAMS = (
@@ -48,8 +46,9 @@ DURATION_ESTIMATED_TRIAL = 40
 MIN_RAW_TAPS = 50
 MAX_RAW_TAPS = 200
 
+
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
 def as_native_type(x):
     if type(x).__module__ == np.__name__:
@@ -116,11 +115,11 @@ def save_json_to_file(info, filename):
 
 
 # Isochronus stimuli
-## ISO 800ms
+# ISO 800ms
 tempo_800_ms = np.repeat(800, 25)  # 30s
 tempo_800_ms = [as_native_type(value) for value in tempo_800_ms]
 
-## ISO 600ms
+# ISO 600ms
 tempo_600_ms = np.repeat(600, 33)  # 30s
 tempo_600_ms = [as_native_type(value) for value in tempo_600_ms]
 
@@ -206,8 +205,9 @@ stimulus_music_set = StimulusSet(
     "music_tapping", stimulus_music, version="v1", s3_bucket=BUCKET_NAME
 )
 
+
 ##########################################################################################
-#### Experiment parts
+# Experiment parts
 ##########################################################################################
 class TapTrialAnalysis(AudioRecordTrial, NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "analysis_trial_metronome"}
@@ -341,12 +341,12 @@ class TapTrialMusic(TapTrial):
 
 
 ##########################################################################################
-#### Tapping tasks
+# Tapping tasks
 ##########################################################################################
 ISO_tapping = join(
     InfoPage(
         Markup(
-            f"""
+            """
             <h3>Tapping to rhythm</h3>
             <hr>
             In each trial, you will hear a metronome sound playing at a constant pace.
@@ -406,8 +406,9 @@ music_tapping = join(
     ),
 )
 
+
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(

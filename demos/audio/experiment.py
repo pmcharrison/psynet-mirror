@@ -1,10 +1,4 @@
-from datetime import datetime
-
-import dallinger.deployment
 import flask
-from dallinger.models import Info, Node, Transformation
-from dallinger.networks import Chain
-from dallinger.nodes import Source
 
 import psynet.experiment
 from psynet.modular_page import (
@@ -14,29 +8,15 @@ from psynet.modular_page import (
     ModularPage,
     TappingAudioMeterControl,
 )
-from psynet.page import (
-    DebugResponsePage,
-    InfoPage,
-    NAFCPage,
-    SuccessfulEndPage,
-    TextInputPage,
-)
-from psynet.timeline import (
-    CodeBlock,
-    MediaSpec,
-    PageMaker,
-    Timeline,
-    conditional,
-    join,
-    while_loop,
-)
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.timeline import MediaSpec, PageMaker, Timeline, join
 from psynet.utils import get_logger
 
 logger = get_logger()
 
 example_preloading = InfoPage(
     flask.Markup(
-        f"""
+        """
         <p>
             This page demonstrates audio preloading.
             A progress bar fills up on the bottom of the screen
@@ -244,6 +224,7 @@ example_record_with_audio_prompt = join(
         time_estimate=5,
     ),
 )
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

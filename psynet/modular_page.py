@@ -1,20 +1,13 @@
 import json
 import os
-import tempfile
 from typing import Dict, List, Optional, Union
 from urllib.parse import splitquery, urlparse
-from uuid import uuid4
 
 from dominate import tags
 from dominate.util import raw
 from flask import Markup
-from scipy.io import wavfile
 
-from .media import (
-    generate_presigned_url,
-    get_s3_url,
-    prepare_s3_bucket_for_presigned_urls,
-)
+from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
 from .utils import get_logger
 
@@ -684,7 +677,7 @@ class PushButtonControl(OptionControl):
         with html:
             for choice, label in zip(self.choices, self.labels):
                 response_string = response.response.replace('"', "")
-                _class = f"btn push_button btn-primary response submit"
+                _class = "btn push_button btn-primary response submit"
                 _class = (
                     _class.replace("btn-primary", "btn-success")
                     if response_string == choice
@@ -752,7 +745,7 @@ class TimedPushButtonControl(PushButtonControl):
         with html:
             for choice, label in zip(self.choices, self.labels):
                 response_string = response.response.replace('"', "")
-                _class = f"btn push_button btn-primary response timed"
+                _class = "btn push_button btn-primary response timed"
                 _class = (
                     _class.replace("btn-primary", "btn-success")
                     if response_string == choice
