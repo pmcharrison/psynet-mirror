@@ -29,11 +29,11 @@ tests:
   - curl https://cli-assets.heroku.com/install.sh | sh
   - apt-get -f -y install curl redis-server
   - service redis-server start
-  - wget -O chrome-84.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_84.0.4147.89-1_amd64.deb
-  - wget -O chrome-driver-84.zip https://chromedriver.storage.googleapis.com/84.0.4147.30/chromedriver_linux64.zip
-  - apt-get -f -y install ./chrome-84.deb
+  - wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_88.0.4324.150-1_amd64.deb
+  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_linux64.zip
+  - apt-get -f -y install ./chrome.deb
   - apt-get -f -y install -yqq unzip
-  - unzip chrome-driver-84.zip chromedriver -d /usr/local/bin/
+  - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
   - export HEADLESS=TRUE
   - pytest --chrome tests/
 
