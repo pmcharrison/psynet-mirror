@@ -1,33 +1,19 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
-import random
-import re
-import time
-from statistics import mean
-from typing import List, Union
-
-from dallinger import db
-from flask import Markup
 
 import psynet.experiment
-from psynet.field import claim_field
-from psynet.page import (
-    DebugResponsePage,
-    InfoPage,
-    SuccessfulEndPage,
-    VolumeCalibration,
-)
-from psynet.participant import Participant, get_participant
+from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.prescreen import HeadphoneCheck
-from psynet.timeline import Timeline, get_template, join
+from psynet.timeline import Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

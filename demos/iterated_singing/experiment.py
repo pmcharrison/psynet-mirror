@@ -4,12 +4,12 @@ import numpy as np
 from flask import Markup
 
 import psynet.experiment
+import psynet.media
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
-    PushButtonControl,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import Timeline
@@ -24,13 +24,7 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-import rpdb
-
-import psynet.media
-
-psynet.media.LOCAL_S3 = (
-    True  # set this to False if you want to actually use S3 instead of a local version
-)
+psynet.media.LOCAL_S3 = True  # Set this to `False` if you want to actually use S3 instead of a local version
 
 NOTE_DURATION = 0.25
 NOTE_IOI = 1.0
@@ -141,8 +135,9 @@ class CustomSource(AudioImitationChainSource):
 
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

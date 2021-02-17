@@ -94,10 +94,10 @@ def synth_batch(
     if len(BPFs) != len(filenames):
         raise ValueError("Need to be of same length!")
 
-    if append_path != None and not os.path.exists(append_path):
+    if append_path is not None and not os.path.exists(append_path):
         raise FileNotFoundError("Specified `append_path` not found on this system")
 
-    if prepend_path != None and not os.path.exists(prepend_path):
+    if prepend_path is not None and not os.path.exists(prepend_path):
         raise FileNotFoundError("Specified `prepend_path` not found on this system")
 
     if not os.path.exists(baseline_audio_path):
@@ -113,10 +113,10 @@ def synth_batch(
 
     # Load the sound
     sound = Sound(baseline_audio_path)
-    if prepend_path != None:
+    if prepend_path is not None:
         pre_sound = Sound(prepend_path)
 
-    if append_path != None:
+    if append_path is not None:
         app_sound = Sound(append_path)
 
     # Create a manipulation object
@@ -156,12 +156,12 @@ def synth_batch(
                     )
 
         # Concatenate it
-        if prepend_path != None or append_path != None:
+        if prepend_path is not None or append_path is not None:
             sounds = []
-            if prepend_path != None:
+            if prepend_path is not None:
                 sounds.append(pre_sound)
             sounds.append(synth_main)
-            if append_path != None:
+            if append_path is not None:
                 sounds.append(app_sound)
             synth_main = call(sounds, "Concatenate")
 

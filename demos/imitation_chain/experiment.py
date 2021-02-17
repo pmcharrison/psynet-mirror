@@ -1,35 +1,16 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import random
 import re
 from statistics import mean
 
-from flask import Markup
-
 import psynet.experiment
-from psynet.field import claim_field
-from psynet.page import (
-    InfoPage,
-    NAFCPage,
-    NumberInputPage,
-    SuccessfulEndPage,
-    TextInputPage,
-)
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    CodeBlock,
-    FailedValidation,
-    Page,
-    PageMaker,
-    Timeline,
-    conditional,
-    switch,
-    while_loop,
-)
+from psynet.page import InfoPage, SuccessfulEndPage, TextInputPage
+from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNetwork,
     ImitationChainNode,
@@ -41,10 +22,9 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-import rpdb
 
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
 
 
@@ -102,8 +82,9 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

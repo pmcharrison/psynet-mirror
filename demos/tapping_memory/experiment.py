@@ -1,23 +1,21 @@
 # Iterated tapping from memory, adapted from Jacoby & McDermott (2017)
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 import json
-from math import nan
 from statistics import mean
 
 import numpy as np
+import tapping_extract as tapping
 from flask import Markup
 from scipy.io import wavfile
-from scipy.io.wavfile import write
 
 import psynet.experiment
-from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import REPPTappingCalibration
-from psynet.timeline import PreDeployRoutine, Timeline
+from psynet.prescreen import JSONSerializer, REPPTappingCalibration
+from psynet.timeline import Timeline
 from psynet.trial.audio import (
     AudioImitationChainNetwork,
     AudioImitationChainNode,
@@ -29,10 +27,9 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-import tapping_extract as tapping
 
 ##########################################################################################
-#### Global parameters
+# Global parameters
 ##########################################################################################
 BUCKET_NAME = "iterated-tapping-demo"
 PARAMS = (
@@ -53,8 +50,9 @@ NUM_ITERATION_CHAIN = 2  # set to 5 for a real experiment
 NUM_TRIALS_PARTICIPANT = 4  # set to 20 for a real experiment
 TOTAL_NUM_PARTICIPANTS = 50
 
+
 ##########################################################################################
-#### Experiment parts
+# Experiment parts
 ##########################################################################################
 def save_samples_to_file(samples, filename, fs):
     wavfile.write(filename, rate=fs, data=samples.astype(np.float32))
@@ -72,7 +70,8 @@ class CustomTrial(AudioImitationChainTrial):
     def show_trial(self, experiment, participant):
         info_stimulus = self.origin.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec_sec"]
-        position = self.position + 1
+        # TODO
+        # position = self.position + 1
 
         return ModularPage(
             "tapping_page",
@@ -103,6 +102,7 @@ class CustomTrial(AudioImitationChainTrial):
         old_seed = titer["old_seed"]
         number_of_responses_played = tstats["number_of_responses_played"]
         new_titer = json.dumps(titer, cls=JSONSerializer)
+
         list_new_seed = [as_native_type(value) for value in new_seed]
         list_old_seed = [as_native_type(value) for value in old_seed]
 
@@ -170,7 +170,7 @@ class CustomSource(AudioImitationChainSource):
 
 
 ##########################################################################################
-#### Timeline
+# Timeline
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False

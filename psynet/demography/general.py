@@ -118,7 +118,7 @@ class ExperimentFeedback(Module):
         super().__init__(self.label, self.events)
 
 
-### Basic demography ###
+# Basic demography #
 class Gender(ModularPage):
     def __init__(
         self,
@@ -248,7 +248,7 @@ class FormalEducation(ModularPage):
         )
 
 
-### Language ###
+# Language #
 class MotherTongue(ModularPage):
     def __init__(
         self,
@@ -318,7 +318,7 @@ class LanguagesInOrderOfProficiency(ModularPage):
         return None
 
 
-### Basic music ###
+# Basic music #
 class YearsOfFormalTraining(ModularPage):
     def __init__(
         self,
@@ -373,7 +373,7 @@ class MoneyFromPlayingMusic(ModularPage):
         )
 
 
-### Hearing loss ###
+# Hearing loss #
 class HearingLoss(ModularPage):
     def __init__(
         self,
@@ -394,7 +394,7 @@ class HearingLoss(ModularPage):
         )
 
 
-### Dance ###
+# Dance #
 class DanceSociallyOrProfessionally(ModularPage):
     def __init__(
         self,
@@ -449,7 +449,7 @@ class LastTimeDanced(ModularPage):
         )
 
 
-### Speech disorders ###
+# Speech disorders #
 class SpeechLanguageTherapy(ModularPage):
     def __init__(
         self,
@@ -490,7 +490,7 @@ class DiagnosedWithDyslexia(ModularPage):
         )
 
 
-### Income ###
+# Income #
 class HouseholdIncomePerYear(ModularPage):
     def __init__(
         self,
@@ -537,7 +537,7 @@ class HouseholdIncomePerYear(ModularPage):
         )
 
 
-### ExperimentFeedback ###
+# ExperimentFeedback #
 class LikedExperiment(ModularPage):
     def __init__(
         self,

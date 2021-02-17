@@ -5,7 +5,6 @@ from psynet.modular_page import (
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
-    PushButtonControl,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import PreDeployRoutine, Timeline
@@ -20,7 +19,7 @@ from psynet.trial.non_adaptive import (
 from .custom_synth import synth_stimulus
 
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
 
 # Prepare the audio stimuli by running the following command:

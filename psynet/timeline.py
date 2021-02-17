@@ -18,6 +18,7 @@ from dominate import tags
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from . import templates
+from .field import VarStore, claim_field, claim_var
 from .utils import (
     call_function,
     check_function_args,
@@ -28,11 +29,6 @@ from .utils import (
 )
 
 logger = get_logger()
-
-# pylint: disable=unused-import
-import rpdb
-
-from .field import VarStore, claim_field, claim_var
 
 
 def get_template(name):
@@ -155,7 +151,7 @@ class ReactiveGoTo(GoTo):
             assert isinstance(self.targets, dict)
             for target in self.targets.values():
                 assert isinstance(target, Event)
-        except:
+        except AssertionError:
             raise TypeError("<targets> must be a dictionary of Event objects.")
 
     def get_target(self, experiment, participant):
@@ -691,7 +687,7 @@ class PageMaker(Event):
             logger.warning(
                 f"Observed a mismatch between a page maker's time_estimate slot ({self.time_estimate}) "
                 + f"and the time_estimate slot of the generated page ({page.time_estimate}). "
-                + f"The former will take precedent."
+                + "The former will take precedent."
             )
         if not isinstance(page, Page):
             raise TypeError(
@@ -814,7 +810,9 @@ def multi_page_maker(
     show_event = PageMaker(
         new_function, time_estimate=total_time_estimate / expected_num_pages
     )
-    condition = lambda participant: not participant.var.get(with_namespace("complete"))
+
+    def condition(participant):
+        return not participant.var.get(with_namespace("complete"))
 
     def wrapup(participant):
         if accumulate_answers:
@@ -944,9 +942,6 @@ class Timeline:
             raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
 
     def modules(self):
-        from .participant import Participant
-
-        participants = Participant.query.all()
         return {
             "modules": [
                 {"id": event.module.id}
@@ -974,7 +969,7 @@ class Timeline:
         for i, event in enumerate(self.events):
             if event.id != i:
                 raise ValueError(
-                    f"Failed to set unique IDs for each element in the timeline "
+                    "Failed to set unique IDs for each element in the timeline "
                     + f"(the element at 0-indexed position {i} ended up with the ID {event.id}). "
                     + "This usually means that the same Python object instantiation is reused multiple times "
                     + "in the same timeline. This kind of reusing is not permitted, instead you should "
@@ -1766,7 +1761,7 @@ class BackgroundTask(NullEvent):
 class PreDeployRoutine(NullEvent):
     """
     A timeline component that allows for the definition of tasks to be performed
-    before deployment. :class:`PreDeployRoutine`\ s are thought to be added to the
+    before deployment. :class:`PreDeployRoutine`s are thought to be added to the
     beginning of a timeline of an experiment.
 
     Parameters

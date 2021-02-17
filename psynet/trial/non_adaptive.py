@@ -3,15 +3,12 @@ import os
 import pickle
 import random
 import shutil
-import sys
 from collections import Counter
 from functools import reduce
 from pathlib import Path
 from statistics import mean
 from typing import Optional
 
-import dallinger.models
-import dallinger.nodes
 from dallinger import db
 from dallinger.models import Network
 from progress.bar import Bar
@@ -34,9 +31,6 @@ from ..utils import DisableLogger, get_logger, hash_object, import_local_experim
 from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode, TrialSource
 
 logger = get_logger()
-
-# pylint: disable=unused-import
-import rpdb
 
 
 def filter_for_completed_trials(x):

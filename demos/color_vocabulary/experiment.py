@@ -1,5 +1,5 @@
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import psynet.experiment
@@ -8,8 +8,9 @@ from psynet.prescreen import ColorVocabularyTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

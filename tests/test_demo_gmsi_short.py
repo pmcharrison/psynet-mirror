@@ -1,11 +1,8 @@
-import logging
 import os
-import re
-import time
 
 import pytest
 
-from psynet.participant import Participant, get_participant
+from psynet.participant import get_participant
 from psynet.test import bot_class, next_page
 
 PYTEST_BOT_CLASS = bot_class()

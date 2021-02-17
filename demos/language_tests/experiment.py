@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import psynet.experiment
@@ -10,7 +10,7 @@ from psynet.prescreen import LanguageVocabularyTest, LexTaleTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
 
 

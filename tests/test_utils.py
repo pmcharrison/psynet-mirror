@@ -25,7 +25,7 @@ def test_merge_dicts():
         "e": 5,
     }
 
-    with pytest.raises(DuplicateKeyError) as e:
+    with pytest.raises(DuplicateKeyError):
         merge_dicts(x, y, z, overwrite=False)
 
 
@@ -69,7 +69,7 @@ def test_median_finish_time_in_min_incomplete_none(mock_started_and_finished_tim
         {"time_started": "2020-08-26T22:34:58.333641", "time_finished": None}
     ]
     mock_started_and_finished_times.return_value = started_and_finished_times
-    assert Module.median_finish_time_in_min("participants", "module_id") == None
+    assert Module.median_finish_time_in_min("participants", "module_id") is None
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
@@ -78,7 +78,7 @@ def test_median_finish_time_in_min_incomplete_blank(mock_started_and_finished_ti
         {"time_started": "2020-08-26T22:34:58.333641", "time_finished": ""}
     ]
     mock_started_and_finished_times.return_value = started_and_finished_times
-    assert Module.median_finish_time_in_min("participants", "module_id") == None
+    assert Module.median_finish_time_in_min("participants", "module_id") is None
 
 
 @patch("psynet.timeline.Module.started_and_finished_times")
@@ -86,5 +86,5 @@ def test_median_finish_time_in_min_incomplete_empty(mock_started_and_finished_ti
     mock_started_and_finished_times.return_value = []
     assert (
         Module.median_finish_time_in_min("started_and_finished_times", "module_id")
-        == None
+        is None
     )

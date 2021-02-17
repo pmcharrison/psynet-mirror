@@ -1,10 +1,9 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
-from flask import Markup
 
 import psynet.experiment
 from psynet.graphics import (
@@ -23,15 +22,15 @@ from psynet.modular_page import (
     AudioMeterControl,
     AudioRecordControl,
     ModularPage,
-    NullControl,
     Prompt,
 )
 from psynet.page import DebugResponsePage, InfoPage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method

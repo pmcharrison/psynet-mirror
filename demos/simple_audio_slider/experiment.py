@@ -1,14 +1,13 @@
 import json
 
-import rpdb
 from flask import Markup, escape
 
 import psynet.experiment
-from psynet.page import AudioSliderPage, DebugResponsePage, InfoPage, SuccessfulEndPage
-from psynet.timeline import MediaSpec, PageMaker, Timeline, join
+from psynet.page import AudioSliderPage, DebugResponsePage, SuccessfulEndPage
+from psynet.timeline import MediaSpec, Timeline, join
 
 
-def print_dict(x):
+def print_dict(x, **kwargs):
     return (
         "<pre style='overflow: scroll; max-height: 200px'>"
         + json.dumps(x, indent=4)

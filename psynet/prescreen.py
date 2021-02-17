@@ -1,6 +1,5 @@
 import json
 import random
-from math import nan
 
 import numpy as np
 from flask import Markup
@@ -364,11 +363,11 @@ class REPPMarkersCheck(Module):
                     AudioPrompt(
                         self.definition["url_audio"],
                         Markup(
-                            f"""
-                                    <h3>Recording test</h3>
-                                    <hr>
-                                    <h4>Please remain silent while we play a sound and record it</h4>
-                                    """
+                            """
+                            <h3>Recording test</h3>
+                            <hr>
+                            <h4>Please remain silent while we play a sound and record it</h4>
+                            """
                         ),
                         prevent_response=False,
                         start_delay=0.5,
@@ -385,27 +384,27 @@ class REPPMarkersCheck(Module):
                 if self.failed:
                     return InfoPage(
                         Markup(
-                            f"""
-                                <h4>The recording quality of your laptop is not good</h4>
-                                This may have many reasons. Please try to do one or more of the following:
-                                <ol><li>Increase the volumne of your laptop.</li>
-                                    <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
-                                    <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
-                                    <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
-                                </ol>
-                                We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
-                                """
+                            """
+                            <h4>The recording quality of your laptop is not good</h4>
+                            This may have many reasons. Please try to do one or more of the following:
+                            <ol><li>Increase the volumne of your laptop.</li>
+                                <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
+                                <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                                <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
+                            </ol>
+                            We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                            """
                         ),
                         time_estimate=5,
                     )
                 else:
                     return InfoPage(
                         Markup(
-                            f"""
-                                <h4>The recording quality of your laptop is good</h4>
-                                We will try some more trials.
-                                To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
-                                """
+                            """
+                            <h4>The recording quality of your laptop is good</h4>
+                            We will try some more trials.
+                            To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
+                            """
                         ),
                         time_estimate=5,
                     )
@@ -423,7 +422,8 @@ class REPPMarkersCheck(Module):
                 marker_onsets = self.definition["marker_onsets"]
                 shifted_onsets = self.definition["shifted_onsets"]
                 onsets_played = self.definition["onsets_played"]
-                duration_sec = self.definition["duration_sec"]
+                # TODO
+                # duration_sec = self.definition["duration_sec"]
 
                 # analysis
                 title_in_graph = "Participant {}".format(self.participant_id)
@@ -551,14 +551,14 @@ class LanguageVocabularyTest(Module):
     def instruction_page(self):
         return InfoPage(
             Markup(
-                f"""
-            <h3>Vocabulary test</h3>
-            <p>You will now perform a quick vocabulary test.</p>
-            <p>
-                In each trial, you will hear one word and see 4 pictures.
-                Your task is to match each word with the correct picture.
-            </p>
-            """
+                """
+                <h3>Vocabulary test</h3>
+                <p>You will now perform a quick vocabulary test.</p>
+                <p>
+                    In each trial, you will hear one word and see 4 pictures.
+                    Your task is to match each word with the correct picture.
+                </p>
+                """
             ),
             time_estimate=5,
         )

@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
@@ -15,7 +15,7 @@ from psynet.prescreen import (
 from psynet.timeline import PreDeployRoutine, Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
 
 

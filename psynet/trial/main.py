@@ -51,9 +51,6 @@ from ..utils import (
 
 logger = get_logger()
 
-# pylint: disable=unused-import
-import rpdb
-
 
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     if x is None:
@@ -1605,8 +1602,8 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
-    #### The following methods are overwritten from TrialMaker.
-    #### Returns None if no trials could be found (this may not yet be supported by TrialMaker)
+    # The following methods are overwritten from TrialMaker.
+    # Returns None if no trials could be found (this may not yet be supported by TrialMaker)
     def prepare_trial(self, experiment, participant):
         logger.info("Preparing trial for participant %i.", participant.id)
         networks = self.find_networks(participant=participant, experiment=experiment)

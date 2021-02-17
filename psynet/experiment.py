@@ -10,7 +10,7 @@ from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
-from flask import Blueprint, jsonify, render_template, render_template_string, request
+from flask import Blueprint, jsonify, render_template, request
 from flask_login import login_required
 from pkg_resources import resource_filename
 
@@ -28,7 +28,6 @@ from .timeline import (
     PreDeployRoutine,
     RecruitmentCriterion,
     Timeline,
-    get_template,
 )
 from .utils import call_function, get_arg_from_dict, get_logger, serialise
 
@@ -183,7 +182,7 @@ class Experiment(dallinger.experiment.Experiment):
         return ExperimentNetwork.query.count() > 0
 
     def setup_experiment_network(self):
-        logger.info(f"Setting up ExperimentNetwork.")
+        logger.info("Setting up ExperimentNetwork.")
         network = ExperimentNetwork()
         db.session.add(network)
         db.session.commit()
@@ -545,7 +544,7 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/debugger/<password>", methods=["GET"])
         def route_debugger(password):
             if password == "my-secure-password-195762":
-                exp = self.new(db.session)
+                self.new(db.session)
                 rpdb.set_trace()
                 return success_response()
             return error_response()

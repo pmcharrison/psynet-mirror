@@ -64,14 +64,11 @@ header = r"""
 @click.version_option(__version__, "--version", "-v", message="%(version)s")
 def psynet():
     pass
-    # 1 + 1
-    # config = get_config()
-    # if not config.ready:
-    #     import pdb; pdb.set_trace()
-    #     config.load()
 
 
-### prepare ###
+###########
+# prepare #
+###########
 @psynet.command()
 @click.option("--force", is_flag=True, help="Force override of cache.")
 def prepare(force):
@@ -89,7 +86,9 @@ def prepare(force):
     return experiment_class
 
 
-### debug ###
+#########
+# debug #
+#########
 @psynet.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--bot", is_flag=True, help="Use bot to complete experiment")
@@ -114,7 +113,9 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     )
 
 
-### deploy ###
+##########
+# deploy #
+##########
 @psynet.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
@@ -130,7 +131,9 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
 
 
-### sandbox ###
+###########
+# sandbox #
+###########
 @psynet.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
@@ -146,7 +149,9 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
 
 
-### estimate ###
+############
+# estimate #
+############
 @psynet.command()
 @click.option(
     "--mode",
@@ -181,7 +186,9 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
-### export ###
+##########
+# export #
+##########
 @psynet.command()
 @click.option(
     "--app",

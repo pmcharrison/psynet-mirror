@@ -2,7 +2,6 @@
 
 import datetime
 import json
-import os
 
 import dallinger.models
 from dallinger.config import get_config

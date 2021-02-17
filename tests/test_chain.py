@@ -43,4 +43,4 @@ def test_num_iterations():
     assert tm2.num_nodes_per_chain == 11
 
     with pytest.raises(ValueError):
-        tm3 = new_trial_maker(num_nodes_per_chain=10, num_iterations_per_chain=5)
+        new_trial_maker(num_nodes_per_chain=10, num_iterations_per_chain=5)

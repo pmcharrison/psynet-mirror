@@ -12,7 +12,7 @@ from datetime import datetime
 from functools import reduce, wraps
 
 import pandas as pd
-from dallinger.config import get_config, initialize_experiment_package
+from dallinger.config import get_config
 from sqlalchemy.sql import func
 
 
@@ -45,7 +45,7 @@ def import_local_experiment():
     # It also adds the experiment directory to sys.path, meaning that any other
     # modules defined there can be imported using ``import``.
     # import pdb; pdb.set_trace()
-    config = get_config()
+    get_config()
 
     import dallinger.experiment
 
