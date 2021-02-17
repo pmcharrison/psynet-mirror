@@ -3,17 +3,20 @@
 import random
 from collections import Counter
 
-from .chain import ChainTrialMaker, ChainTrial, ChainNode, ChainSource, ChainNetwork
 from ..field import extra_var
+from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+
 
 class MCMCPNetwork(ChainNetwork):
     """
     A Network class for MCMCP chains.
     """
+
     __mapper_args__ = {"polymorphic_identity": "mcmcp_network"}
 
     def make_definition(self):
         return {}
+
 
 class MCMCPTrial(ChainTrial):
     """
@@ -32,6 +35,7 @@ class MCMCPTrial(ChainTrial):
         This definition corresponds to a setting
         of the chain's free parameters.
     """
+
     __mapper_args__ = {"polymorphic_identity": "mcmcp_trial"}
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
@@ -64,12 +68,11 @@ class MCMCPTrial(ChainTrial):
         random.shuffle(order)
         definition = {
             "current_state": self.node.definition["current_state"],
-            "proposal": self.node.definition["proposal"]
+            "proposal": self.node.definition["proposal"],
         }
-        definition["ordered"] = [{
-            "role": role,
-            "value": definition[role]
-        } for role in order]
+        definition["ordered"] = [
+            {"role": role, "value": definition[role]} for role in order
+        ]
         return definition
 
     @property
@@ -81,6 +84,7 @@ class MCMCPTrial(ChainTrial):
     @extra_var(__extra_vars__)
     def second_stimulus(self):
         return self.definition["ordered"][1]["value"]
+
 
 class MCMCPNode(ChainNode):
     """
@@ -158,8 +162,9 @@ class MCMCPNode(ChainNode):
     def create_definition_from_seed(self, seed, experiment, participant):
         return {
             "current_state": seed,
-            "proposal": self.get_proposal(seed, experiment, participant)
+            "proposal": self.get_proposal(seed, experiment, participant),
         }
+
 
 class MCMCPSource(ChainSource):
     """
@@ -170,6 +175,7 @@ class MCMCPSource(ChainSource):
 
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
+
 
 class MCMCPTrialMaker(ChainTrialMaker):
     """
@@ -192,7 +198,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
         answer = {
             "position": position,
             "role": trial.definition["ordered"][position]["role"],
-            "value": trial.definition["ordered"][position]["value"]
+            "value": trial.definition["ordered"][position]["value"],
         }
         super().finalise_trial(answer, trial, experiment, participant)
 

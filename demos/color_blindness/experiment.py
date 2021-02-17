@@ -4,24 +4,26 @@
 #### Imports
 ##########################################################################################
 
-from flask import Markup
-from statistics import mean
 import random
 import re
-from typing import Union, List
 import time
+from statistics import mean
+from typing import List, Union
+
 from dallinger import db
+from flask import Markup
 
 import psynet.experiment
-
-from psynet.timeline import get_template, join
 from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    Timeline
+from psynet.page import (
+    DebugResponsePage,
+    InfoPage,
+    SuccessfulEndPage,
+    VolumeCalibration,
 )
+from psynet.participant import Participant, get_participant
 from psynet.prescreen import ColorBlindnessTest
-from psynet.page import SuccessfulEndPage, InfoPage, DebugResponsePage, VolumeCalibration
+from psynet.timeline import Timeline, get_template, join
 
 ##########################################################################################
 #### Experiment
@@ -35,8 +37,11 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         ColorBlindnessTest(),
-        InfoPage("You passed the color blindness task! Congratulations.", time_estimate=3),
-        SuccessfulEndPage()
+        InfoPage(
+            "You passed the color blindness task! Congratulations.", time_estimate=3
+        ),
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

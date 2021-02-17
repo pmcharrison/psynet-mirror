@@ -1,20 +1,19 @@
-import random
 import datetime
+import random
 import warnings
-from sqlalchemy import func
-from sqlalchemy.sql.expression import not_
-
 from typing import Optional, Union
 
 from dallinger import db
+from sqlalchemy import func
+from sqlalchemy.sql.expression import not_
 
+from ..field import VarStore, claim_field, claim_var
 from ..page import wait_while
-from ..field import claim_field, claim_var, VarStore
-from ..utils import negate
-from .main import Trial, TrialNetwork, NetworkTrialMaker, TrialNode, TrialSource
-from ..utils import get_logger
+from ..utils import get_logger, negate
+from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode, TrialSource
 
 logger = get_logger()
+
 
 class ChainNetwork(TrialNetwork):
     """
@@ -109,6 +108,7 @@ class ChainNetwork(TrialNetwork):
         Most paradigms have this equal to 1.
         Set by default in the ``__init__`` function.
     """
+
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
@@ -133,7 +133,7 @@ class ChainNetwork(TrialNetwork):
         trials_per_node: int,
         target_num_nodes: int,
         participant=None,
-        id_within_participant: Optional[int]=None
+        id_within_participant: Optional[int] = None,
     ):
         super().__init__(trial_maker_id, phase, experiment)
         db.session.add(self)
@@ -252,7 +252,7 @@ class ChainNetwork(TrialNetwork):
             An object from the provided list.
         """
         if self.chain_type == "across":
-            id_to_use  = self.id
+            id_to_use = self.id
         elif self.chain_type == "within":
             id_to_use = self.id_within_participant
         else:
@@ -279,10 +279,9 @@ class ChainNetwork(TrialNetwork):
             return 0
         return (
             # pylint: disable=no-member
-            db.session
-                .query(func.max(ChainNode.degree))
-                .filter_by(network_id=self.id, failed=False)
-                .scalar()
+            db.session.query(func.max(ChainNode.degree))
+            .filter_by(network_id=self.id, failed=False)
+            .scalar()
         )
 
     @property
@@ -302,11 +301,9 @@ class ChainNetwork(TrialNetwork):
         if degree == 0:
             return self.source
         nodes = (
-            ChainNode
-                .query
-                .filter_by(degree=degree, network_id=self.id, failed=False)
-                .order_by(ChainNode.id)
-                .all()
+            ChainNode.query.filter_by(degree=degree, network_id=self.id, failed=False)
+            .order_by(ChainNode.id)
+            .all()
         )
         # This deals with the case where somehow we've ended up with multiple
         # nodes at the same degree.
@@ -341,6 +338,7 @@ class ChainNetwork(TrialNetwork):
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
         self.head.fail()
+
 
 class ChainNode(TrialNode):
     """
@@ -464,17 +462,25 @@ class ChainNode(TrialNode):
         i.e. all trials that have not failed.
     """
 
-
-
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
     __extra_vars__ = {}
 
-    def __init__(self, seed, degree: int, network, experiment, propagate_failure: bool, participant=None):
+    def __init__(
+        self,
+        seed,
+        degree: int,
+        network,
+        experiment,
+        propagate_failure: bool,
+        participant=None,
+    ):
         # pylint: disable=unused-argument
         super().__init__(network=network, participant=participant)
         self.seed = seed
         self.degree = degree
-        self.definition = self.create_definition_from_seed(seed, experiment, participant)
+        self.definition = self.create_definition_from_seed(
+            seed, experiment, participant
+        )
         self.propagate_failure = propagate_failure
 
     def create_definition_from_seed(self, seed, experiment, participant):
@@ -587,16 +593,13 @@ class ChainNode(TrialNode):
             failed=False,
             complete=True,
             awaiting_async_process=False,
-            is_repeat_trial=False
+            is_repeat_trial=False,
         )
 
     @property
     def _query_completed_trials(self):
         return Trial.query.filter_by(
-            origin_id=self.id,
-            failed=False,
-            complete=True,
-            is_repeat_trial=False
+            origin_id=self.id, failed=False, complete=True, is_repeat_trial=False
         )
 
     @property
@@ -609,7 +612,9 @@ class ChainNode(TrialNode):
 
     @property
     def num_viable_trials(self):
-        return Trial.query.filter_by(origin_id=self.id, failed=False, is_repeat_trial=False).count()
+        return Trial.query.filter_by(
+            origin_id=self.id, failed=False, is_repeat_trial=False
+        ).count()
 
     def fail(self):
         """
@@ -627,6 +632,7 @@ class ChainNode(TrialNode):
                     i.fail()
                 if self.child:
                     self.child.fail()
+
 
 class ChainSource(TrialSource):
     """
@@ -681,6 +687,7 @@ class ChainSource(TrialSource):
     ready_to_spawn
         Always returns ``True`` for :class:`~psynet.trial.chain.ChainSource` objects.
     """
+
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
     __extra_vars__ = TrialSource.__extra_vars__.copy()
@@ -695,7 +702,7 @@ class ChainSource(TrialSource):
         return self.network.phase
 
     @property
-    def var(self): # occupies the <details> attribute
+    def var(self):  # occupies the <details> attribute
         return VarStore(self)
 
     def __init__(self, network, experiment, participant):
@@ -856,6 +863,7 @@ class ChainTrial(Trial):
         :meth:`~psynet.trial.main.Trial.make_definition`.
 
     """
+
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_trial"}
 
@@ -904,6 +912,7 @@ class ChainTrial(Trial):
         child_node = node.child
         if child_node is not None:
             child_node.fail()
+
 
 class ChainTrialMaker(NetworkTrialMaker):
     """
@@ -1099,6 +1108,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         If True (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
     """
+
     def __init__(
         self,
         *,
@@ -1131,7 +1141,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         assert chain_type in ["within", "across"]
 
         if (
-            chain_type == "across" and num_trials_per_participant > num_chains_per_experiment
+            chain_type == "across"
+            and num_trials_per_participant > num_chains_per_experiment
             and not allow_revisiting_networks_in_across_chains
         ):
             raise ValueError(
@@ -1143,18 +1154,25 @@ class ChainTrialMaker(NetworkTrialMaker):
         if chain_type == "within" and recruit_mode == "num_trials":
             raise ValueError(
                 "In within-chain experiments the 'num_trials' recruit method is not available."
-        )
+            )
 
         if (num_nodes_per_chain is not None) and (num_iterations_per_chain is not None):
-            raise ValueError("num_nodes_per_chain and num_iterations_per_chain cannot both be provided")
+            raise ValueError(
+                "num_nodes_per_chain and num_iterations_per_chain cannot both be provided"
+            )
         elif num_nodes_per_chain is not None:
             num_iterations_per_chain = num_nodes_per_chain - 1
-            warnings.simplefilter('always', DeprecationWarning)
-            warnings.warn("num_nodes_per_chain is deprecated, use num_iterations_per_chain instead", DeprecationWarning)
+            warnings.simplefilter("always", DeprecationWarning)
+            warnings.warn(
+                "num_nodes_per_chain is deprecated, use num_iterations_per_chain instead",
+                DeprecationWarning,
+            )
         elif num_iterations_per_chain is not None:
             pass
         elif (num_nodes_per_chain is None) and (num_iterations_per_chain is None):
-            raise ValueError("one of num_nodes_per_chain and num_iterations_per_chain must be provided")
+            raise ValueError(
+                "one of num_nodes_per_chain and num_iterations_per_chain must be provided"
+            )
 
         self.node_class = node_class
         self.source_class = source_class
@@ -1172,7 +1190,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
-        self.allow_revisiting_networks_in_across_chains = allow_revisiting_networks_in_across_chains
+        self.allow_revisiting_networks_in_across_chains = (
+            allow_revisiting_networks_in_across_chains
+        )
 
         super().__init__(
             id_=id_,
@@ -1189,7 +1209,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
             num_repeat_trials=num_repeat_trials,
-            wait_for_networks=wait_for_networks
+            wait_for_networks=wait_for_networks,
         )
 
     def init_participant(self, experiment, participant):
@@ -1204,21 +1224,14 @@ class ChainTrialMaker(NetworkTrialMaker):
             return wait_while(
                 negate(self.all_participant_networks_ready),
                 expected_wait=5.0,
-                log_message="Waiting for participant networks to be ready."
+                log_message="Waiting for participant networks to be ready.",
             )
         return None
 
     def all_participant_networks_ready(self, participant):
-        networks = (
-            self.network_class
-                .query
-                .filter_by(
-                    participant_id=participant.id,
-                    phase=self.phase,
-                    trial_maker_id=self.id
-                )
-                .all()
-        )
+        networks = self.network_class.query.filter_by(
+            participant_id=participant.id, phase=self.phase, trial_maker_id=self.id
+        ).all()
         return all([not x.awaiting_async_process for x in networks])
 
     @property
@@ -1273,7 +1286,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             trials_per_node=self.trials_per_node,
             target_num_nodes=self.num_nodes_per_chain,
             participant=participant,
-            id_within_participant=id_within_participant
+            id_within_participant=id_within_participant,
         )
         db.session.add(network)
         db.session.commit()
@@ -1281,13 +1294,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         return network
 
     def find_networks(self, participant, experiment, ignore_async_processes=False):
-        if self.get_num_completed_trials_in_phase(participant) >= self.num_trials_per_participant:
+        if (
+            self.get_num_completed_trials_in_phase(participant)
+            >= self.num_trials_per_participant
+        ):
             return []
 
         networks = self.network_class.query.filter_by(
-            trial_maker_id=self.id,
-            phase=self.phase,
-            full=False
+            trial_maker_id=self.id, phase=self.phase, full=False
         )
 
         if not ignore_async_processes:
@@ -1295,7 +1309,10 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)
-        elif self.chain_type == "across" and not self.allow_revisiting_networks_in_across_chains:
+        elif (
+            self.chain_type == "across"
+            and not self.allow_revisiting_networks_in_across_chains
+        ):
             networks = self.exclude_participated(networks, participant)
 
         networks = networks.all()
@@ -1326,7 +1343,14 @@ class ChainTrialMaker(NetworkTrialMaker):
         head = network.head
         if head.ready_to_spawn:
             seed = head.create_seed(participant, experiment)
-            node = self.node_class(seed, head.degree + 1, network, experiment, self.propagate_failure, participant)
+            node = self.node_class(
+                seed,
+                head.degree + 1,
+                network,
+                experiment,
+                self.propagate_failure,
+                participant,
+            )
             db.session.add(node)
             network.add_node(node)
             db.session.commit()
@@ -1335,7 +1359,9 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def find_node(self, network, participant, experiment):
         head = network.head
-        if network.awaiting_async_process or (head.num_viable_trials >= self.trials_per_node):
+        if network.awaiting_async_process or (
+            head.num_viable_trials >= self.trials_per_node
+        ):
             return None
         return head
 

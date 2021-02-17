@@ -1,15 +1,17 @@
-import pytest
 import logging
 import time
+
+import pytest
+
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
-@pytest.mark.usefixtures("demo_mcmcp")
-class TestExp():
 
+@pytest.mark.usefixtures("demo_mcmcp")
+class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver

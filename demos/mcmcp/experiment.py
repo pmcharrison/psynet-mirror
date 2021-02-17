@@ -4,36 +4,41 @@
 #### Imports
 ##########################################################################################
 
-from flask import Markup
-from statistics import mean
 import random
 import re
+from statistics import mean
+
+from flask import Markup
 
 import psynet.experiment
 from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    Page,
-    Timeline,
-    PageMaker,
-    CodeBlock,
-    while_loop,
-    conditional,
-    switch,
-    FailedValidation,
-)
 from psynet.page import (
     InfoPage,
-    SuccessfulEndPage,
     NAFCPage,
     NumberInputPage,
-    TextInputPage
+    SuccessfulEndPage,
+    TextInputPage,
+)
+from psynet.participant import Participant, get_participant
+from psynet.timeline import (
+    CodeBlock,
+    FailedValidation,
+    Page,
+    PageMaker,
+    Timeline,
+    conditional,
+    switch,
+    while_loop,
 )
 from psynet.trial.mcmcp import (
-    MCMCPNetwork, MCMCPTrial, MCMCPNode, MCMCPSource, MCMCPTrialMaker
+    MCMCPNetwork,
+    MCMCPNode,
+    MCMCPSource,
+    MCMCPTrial,
+    MCMCPTrialMaker,
 )
-
 from psynet.utils import get_logger
+
 logger = get_logger()
 
 import rpdb
@@ -46,21 +51,20 @@ MAX_AGE = 100
 OCCUPATIONS = ["doctor", "babysitter", "teacher"]
 SAMPLE_RANGE = 5
 
+
 class CustomNetwork(MCMCPNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
     def make_definition(self):
-        return {
-            "occupation": self.balance_across_networks(OCCUPATIONS)
-        }
+        return {"occupation": self.balance_across_networks(OCCUPATIONS)}
+
 
 class CustomSource(MCMCPSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_seed(self, network, experiment, participant):
-        return {
-            "age": random.randint(0, MAX_AGE)
-        }
+        return {"age": random.randint(0, MAX_AGE)}
+
 
 class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -82,15 +86,15 @@ class CustomTrial(MCMCPTrial):
             labels=["Person A", "Person B"],
         )
 
+
 class CustomNode(MCMCPNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
     def get_proposal(self, state, experiment, participant):
-        age = state["age"] + random.randint(- SAMPLE_RANGE, SAMPLE_RANGE)
+        age = state["age"] + random.randint(-SAMPLE_RANGE, SAMPLE_RANGE)
         age = age % (MAX_AGE + 1)
-        return {
-            "age": age
-        }
+        return {"age": age}
+
 
 ##########################################################################################
 #### Experiment
@@ -109,12 +113,12 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
-            phase="experiment", # can be whatever you like
+            phase="experiment",  # can be whatever you like
             time_estimate_per_trial=5,
-            chain_type="across", # can be "within" or "across"
+            chain_type="across",  # can be "within" or "across"
             num_trials_per_participant=10,
-            num_chains_per_participant=None, # set to None if chain_type="across"
-            num_chains_per_experiment=10, # set to None if chain_type="within"
+            num_chains_per_participant=None,  # set to None if chain_type="across"
+            num_chains_per_experiment=10,  # set to None if chain_type="within"
             num_iterations_per_chain=2,
             trials_per_node=1,
             active_balancing_across_chains=True,
@@ -122,15 +126,18 @@ class Exp(psynet.experiment.Experiment):
             check_performance_every_trial=False,
             fail_trials_on_participant_performance_check=True,
             recruit_mode="num_trials",
-            target_num_participants=None
+            target_num_participants=None,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         # CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 1 # increase to simulate multiple participants at once
+        self.initial_recruitment_size = (
+            1  # increase to simulate multiple participants at once
+        )
+
 
 extra_routes = Exp().extra_routes()

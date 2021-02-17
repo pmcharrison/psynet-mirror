@@ -19,8 +19,11 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         ColorVocabularyTest(),
-        InfoPage("You passed the color vocabulary task! Congratulations.", time_estimate=3),
-        SuccessfulEndPage()
+        InfoPage(
+            "You passed the color vocabulary task! Congratulations.", time_estimate=3
+        ),
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

@@ -1,15 +1,18 @@
 # pylint: disable=unused-argument,abstract-method
 
 import random
-import statsmodels.api as sm
-import numpy as np
-
-from numpy import linspace
 from statistics import mean, median
-from .chain import ChainNetwork, ChainTrialMaker, ChainTrial, ChainNode, ChainSource
+
+import numpy as np
+import statsmodels.api as sm
+from numpy import linspace
+
 from ..field import extra_var
 from ..utils import get_logger
+from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+
 logger = get_logger()
+
 
 class GibbsNetwork(ChainNetwork):
     """
@@ -22,6 +25,7 @@ class GibbsNetwork(ChainNetwork):
         Must be overridden with the length of the free parameter vector
         that is manipulated during the Gibbs sampling procedure.
     """
+
     __mapper_args__ = {"polymorphic_identity": "gibbs_network"}
 
     vector_length = None
@@ -49,6 +53,7 @@ class GibbsNetwork(ChainNetwork):
             The new parameter value.
         """
         raise NotImplementedError
+
 
 class GibbsTrial(ChainTrial):
     """
@@ -79,6 +84,7 @@ class GibbsTrial(ChainTrial):
     updated_vector : list
         The updated vector after the participant has responded.
     """
+
     __mapper_args__ = {"polymorphic_identity": "gibbs_trial"}
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
@@ -127,7 +133,7 @@ class GibbsTrial(ChainTrial):
         definition = {
             "vector": vector,
             "active_index": active_index,
-            "reverse_scale": reverse_scale
+            "reverse_scale": reverse_scale,
         }
 
         return definition
@@ -166,13 +172,15 @@ class GibbsTrial(ChainTrial):
             "active_index": self.active_index,
             "reverse_scale": self.reverse_scale,
             "answer": self.answer,
-            "updated_vector": self.updated_vector
+            "updated_vector": self.updated_vector,
         }
+
 
 class GibbsNode(ChainNode):
     """
     A Node class for Gibbs sampler chains.
     """
+
     __mapper_args__ = {"polymorphic_identity": "gibbs_node"}
 
     @property
@@ -221,9 +229,7 @@ class GibbsNode(ChainNode):
             kernel_width = [kernel_width]
 
         density = sm.nonparametric.KDEMultivariate(
-            data=observations,
-            var_type="c",
-            bw=kernel_width
+            data=observations, var_type="c", bw=kernel_width
         )
         points_to_evaluate = linspace(min(observations), max(observations), num=501)
         pdf = density.pdf(points_to_evaluate)
@@ -238,7 +244,7 @@ class GibbsNode(ChainNode):
                 "mode": float(mode),
                 "observations": observations,
                 "pdf_locations": points_to_evaluate.tolist(),
-                "pdf_values": pdf.tolist()
+                "pdf_values": pdf.tolist(),
             }
             return mode
         else:
@@ -292,10 +298,7 @@ class GibbsNode(ChainNode):
         vector = trials[0].updated_vector.copy()
         vector[active_index] = summary
 
-        return {
-            "vector": vector,
-            "active_index": active_index
-        }
+        return {"vector": vector, "active_index": active_index}
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -328,15 +331,14 @@ class GibbsNode(ChainNode):
         dimension = len(vector)
         original_index = seed["active_index"]
         new_index = (original_index + 1) % dimension
-        return {
-            "vector": vector,
-            "active_index": new_index
-        }
+        return {"vector": vector, "active_index": new_index}
+
 
 class GibbsSource(ChainSource):
     """
     A Source class for Gibbs sampler chains.
     """
+
     __mapper_args__ = {"polymorphic_identity": "gibbs_source"}
 
     def generate_seed(self, network, experiment, participant):
@@ -383,7 +385,9 @@ class GibbsSource(ChainSource):
             and ``active_index`` identifies the position of the free parameter.
         """
         if network.vector_length is None:
-            raise ValueError("network.vector_length must not be None. Did you forget to set it?")
+            raise ValueError(
+                "network.vector_length must not be None. Did you forget to set it?"
+            )
         return {
             "vector": [network.random_sample(i) for i in range(network.vector_length)],
             "active_index": random.randint(0, network.vector_length),

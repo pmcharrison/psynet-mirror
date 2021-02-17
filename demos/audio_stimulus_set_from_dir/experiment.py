@@ -1,33 +1,23 @@
-from flask import Markup, escape
 import json
 
+from flask import Markup, escape
+
 import psynet.experiment
-from psynet.timeline import (
-    Timeline,
-)
-from psynet.page import (
-    SuccessfulEndPage,
-    InfoPage
-)
-from psynet.modular_page import(
-    ModularPage,
-    AudioPrompt,
-    PushButtonControl
-)
+from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.timeline import Timeline
 from psynet.trial.non_adaptive import (
-    NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
+    NonAdaptiveTrialMaker,
     StimulusSpec,
     StimulusVersionSpec,
-    stimulus_set_from_dir
+    stimulus_set_from_dir,
 )
-
 from psynet.utils import get_logger
+
 logger = get_logger()
 
-from psynet.trial.non_adaptive import (
-    stimulus_set_from_dir
-)
+from psynet.trial.non_adaptive import stimulus_set_from_dir
 
 version = "v1"
 
@@ -37,7 +27,7 @@ practice_stimuli = stimulus_set_from_dir(
     media_ext=".wav",
     phase="practice",
     version=version,
-    s3_bucket="audio-stimulus-set-from-dir-demo"
+    s3_bucket="audio-stimulus-set-from-dir-demo",
 )
 experiment_stimuli = stimulus_set_from_dir(
     id_="experiment_stimuli",
@@ -45,13 +35,14 @@ experiment_stimuli = stimulus_set_from_dir(
     media_ext=".wav",
     phase="experiment",
     version=version,
-    s3_bucket="audio-stimulus-set-from-dir-demo"
+    s3_bucket="audio-stimulus-set-from-dir-demo",
 )
 
 # Run ``psynet prepare`` (or ``psynet prepare --force``) to prepare the stimulus sets.
 # Note: you can .gitignore the input/ directory, where you store your
 # stimuli. However, don't .gitignore the automatically generated
 # _stimulus_sets directory - this needs to be accessible by Heroku.
+
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -71,8 +62,9 @@ class CustomTrial(NonAdaptiveTrial):
             "question_page",
             AudioPrompt(self.media_url, text),
             PushButtonControl(["Yes", "No"]),
-            time_estimate=5
+            time_estimate=5,
         )
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -87,7 +79,7 @@ class Exp(psynet.experiment.Experiment):
             stimulus_set=practice_stimuli,
             time_estimate_per_trial=5,
             target_num_participants=3,
-            recruit_mode="num_participants"
+            recruit_mode="num_participants",
         ),
         InfoPage("We continue with the experiment trials.", time_estimate=5),
         NonAdaptiveTrialMaker(
@@ -97,9 +89,10 @@ class Exp(psynet.experiment.Experiment):
             stimulus_set=experiment_stimuli,
             time_estimate_per_trial=5,
             target_num_participants=10,
-            recruit_mode="num_participants"
+            recruit_mode="num_participants",
         ),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

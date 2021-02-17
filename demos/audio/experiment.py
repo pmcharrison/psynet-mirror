@@ -1,36 +1,36 @@
-import flask
+from datetime import datetime
 
 import dallinger.deployment
+import flask
 from dallinger.models import Info, Node, Transformation
 from dallinger.networks import Chain
 from dallinger.nodes import Source
 
 import psynet.experiment
-from psynet.timeline import (
-    Timeline,
-    PageMaker,
-    CodeBlock,
-    while_loop,
-    conditional,
-    MediaSpec,
-    join
+from psynet.modular_page import (
+    AudioMeterControl,
+    AudioPrompt,
+    AudioRecordControl,
+    ModularPage,
+    TappingAudioMeterControl,
 )
 from psynet.page import (
+    DebugResponsePage,
     InfoPage,
-    SuccessfulEndPage,
     NAFCPage,
+    SuccessfulEndPage,
     TextInputPage,
-    DebugResponsePage
 )
-from psynet.modular_page import(
-    ModularPage,
-    AudioMeterControl,
-    TappingAudioMeterControl,
-    AudioPrompt,
-    AudioRecordControl
+from psynet.timeline import (
+    CodeBlock,
+    MediaSpec,
+    PageMaker,
+    Timeline,
+    conditional,
+    join,
+    while_loop,
 )
 from psynet.utils import get_logger
-from datetime import datetime
 
 logger = get_logger()
 
@@ -71,12 +71,12 @@ example_preloading = InfoPage(
     time_estimate=5,
     media=MediaSpec(
         audio={
-            'bier': '/static/audio/bier.wav',
-            'batch': {
-                'url': '/static/audio/file_concatenated.mp3',
-                'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
-                'type': 'batch'
-            }
+            "bier": "/static/audio/bier.wav",
+            "batch": {
+                "url": "/static/audio/file_concatenated.mp3",
+                "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
+                "type": "batch",
+            },
         }
     ),
     css=[
@@ -85,7 +85,7 @@ example_preloading = InfoPage(
             margin: 2px
         }
         """
-    ]
+    ],
 )
 
 example_on_loaded = InfoPage(
@@ -102,12 +102,12 @@ example_on_loaded = InfoPage(
     time_estimate=5,
     media=MediaSpec(
         audio={
-            'bier': '/static/audio/bier.wav',
-            'batch': {
-                'url': '/static/audio/file_concatenated.mp3',
-                'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
-                'type': 'batch'
-            }
+            "bier": "/static/audio/bier.wav",
+            "batch": {
+                "url": "/static/audio/file_concatenated.mp3",
+                "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
+                "type": "batch",
+            },
         }
     ),
     scripts=[
@@ -116,21 +116,21 @@ example_on_loaded = InfoPage(
             alert("Media has finished loading!");
         });
         """
-    ]
+    ],
 )
 
 example_audio_meter = ModularPage(
     "audio_meter",
     "This page shows an audio meter.",
     AudioMeterControl(calibrate=False),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_audio_meter_calibrate = ModularPage(
     "audio_meter",
     "Here you can experiment with different audio meter parameters.",
     AudioMeterControl(calibrate=True),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_audio_meter_calibrate_with_audio = ModularPage(
@@ -139,10 +139,10 @@ example_audio_meter_calibrate_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "The default meter parameters are designed to work well for music playback.",
         loop=True,
-        enable_submit_after=0
+        enable_submit_after=0,
     ),
     AudioMeterControl(calibrate=True),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_audio_meter_with_audio = ModularPage(
@@ -151,10 +151,10 @@ example_audio_meter_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "This page shows an audio meter alongside an audio stimulus.",
         loop=True,
-        enable_submit_after=2.5
+        enable_submit_after=2.5,
     ),
     AudioMeterControl(min_time=2.5, calibrate=True),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_audio_meter_calibrate_with_tapping = ModularPage(
@@ -168,16 +168,16 @@ example_audio_meter_calibrate_with_tapping = ModularPage(
     a warning message.
     """,
     TappingAudioMeterControl(calibrate=True),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_audio_page = ModularPage(
     "audio_page",
     AudioPrompt(
         "/static/audio/bier.wav",
-        "This page illustrates a simple audio page with one stimulus."
+        "This page illustrates a simple audio page with one stimulus.",
     ),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_audio_page_2 = ModularPage(
@@ -187,9 +187,9 @@ example_audio_page_2 = ModularPage(
         "This page illustrates a play window combined with a loop.",
         play_window=[5, 9],
         loop=True,
-        enable_submit_after=2
+        enable_submit_after=2,
     ),
-    time_estimate=5
+    time_estimate=5,
 )
 
 example_record_page = join(
@@ -200,17 +200,19 @@ example_record_page = join(
             duration=3.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
-            public_read=True
+            public_read=True,
         ),
-        time_estimate=5
+        time_estimate=5,
     ),
     PageMaker(
         lambda participant: ModularPage(
             "playback",
-            AudioPrompt(participant.answer["url"], "Here's the recording you just made.")
+            AudioPrompt(
+                participant.answer["url"], "Here's the recording you just made."
+            ),
         ),
-        time_estimate=5
-    )
+        time_estimate=5,
+    ),
 )
 
 example_record_with_audio_prompt = join(
@@ -222,23 +224,25 @@ example_record_with_audio_prompt = join(
             text="This page enables the recorder and plays the audio 0.5 seconds later.",
             prevent_response=False,
             start_delay=0.5,
-            enable_submit_after=5.5
+            enable_submit_after=5.5,
         ),
         AudioRecordControl(
             duration=5.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
-            public_read=True
+            public_read=True,
         ),
-        time_estimate=5
+        time_estimate=5,
     ),
     PageMaker(
         lambda participant: ModularPage(
             "playback",
-            AudioPrompt(participant.answer["url"], "Here's the recording you just made.")
+            AudioPrompt(
+                participant.answer["url"], "Here's the recording you just made."
+            ),
         ),
-        time_estimate=5
-    )
+        time_estimate=5,
+    ),
 )
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
@@ -255,7 +259,8 @@ class Exp(psynet.experiment.Experiment):
         example_audio_meter_calibrate_with_tapping,
         example_preloading,
         example_on_loaded,
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

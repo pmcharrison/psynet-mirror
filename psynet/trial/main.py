@@ -1,101 +1,106 @@
 # pylint: disable=unused-argument
 
+import datetime
 import json
 import random
-import datetime
-
-from dominate import tags
-from flask import Markup
-from statistics import mean
 from math import isnan, nan
-from typing import Union, Optional
+from statistics import mean
+from typing import Optional, Union
 from uuid import uuid4
 
 import dallinger.experiment
-from dallinger import db
 import dallinger.models
-from dallinger.models import Info, Network, Node
 import dallinger.nodes
-
-from rq import Queue
+from dallinger import db
 from dallinger.db import redis_conn
-
-from ..participant import Participant
-
-from .. import field
-from ..field import claim_field, claim_var, VarStore, UndefinedVariableError, extra_var
-
-from ..timeline import (
-    PageMaker,
-    CodeBlock,
-    ExperimentSetupRoutine,
-    ParticipantFailRoutine,
-    RecruitmentCriterion,
-    BackgroundTask,
-    Response,
-    Module,
-    conditional,
-    switch,
-    while_loop,
-    multi_page_maker,
-    join
-)
-
-from ..page import (
-    InfoPage,
-    UnsuccessfulEndPage,
-    wait_while
-)
-
-from ..utils import (
-    call_function,
-    corr,
-    import_local_experiment,
-    serialise_datetime,
-    unserialise_datetime
-)
-
+from dallinger.models import Info, Network, Node
+from dominate import tags
+from flask import Markup
+from rq import Queue
 from sqlalchemy import String
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
-from ..utils import get_logger
+from .. import field
+from ..field import UndefinedVariableError, VarStore, claim_field, claim_var, extra_var
+from ..page import InfoPage, UnsuccessfulEndPage, wait_while
+from ..participant import Participant
+from ..timeline import (
+    BackgroundTask,
+    CodeBlock,
+    ExperimentSetupRoutine,
+    Module,
+    PageMaker,
+    ParticipantFailRoutine,
+    RecruitmentCriterion,
+    Response,
+    conditional,
+    join,
+    multi_page_maker,
+    switch,
+    while_loop,
+)
+from ..utils import (
+    call_function,
+    corr,
+    get_logger,
+    import_local_experiment,
+    serialise_datetime,
+    unserialise_datetime,
+)
+
 logger = get_logger()
 
 # pylint: disable=unused-import
 import rpdb
+
 
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     if x is None:
         return trial_maker_id
     return f"__{trial_maker_id}__{x}"
 
+
 def set_participant_group(trial_maker_id, participant, participant_group):
     participant.var.new(
         with_trial_maker_namespace(trial_maker_id, "participant_group"),
-        participant_group
+        participant_group,
     )
+
 
 def get_participant_group(trial_maker_id, participant):
     return participant.var.get(
         with_trial_maker_namespace(trial_maker_id, "participant_group")
     )
 
+
 def has_participant_group(trial_maker_id, participant):
     return participant.var.has(
         with_trial_maker_namespace(trial_maker_id, "participant_group")
     )
 
-class AsyncProcessOwner():
+
+class AsyncProcessOwner:
     __extra_vars__ = {}
 
-    awaiting_async_process = claim_field(5, "awaiting_async_process", __extra_vars__, bool)
-    pending_async_processes = claim_var("pending_async_processes", __extra_vars__, use_default=True, default=lambda: {})
-    failed_async_processes = claim_var("failed_async_processes", __extra_vars__, use_default=True, default=lambda: {})
+    awaiting_async_process = claim_field(
+        5, "awaiting_async_process", __extra_vars__, bool
+    )
+    pending_async_processes = claim_var(
+        "pending_async_processes", __extra_vars__, use_default=True, default=lambda: {}
+    )
+    failed_async_processes = claim_var(
+        "failed_async_processes", __extra_vars__, use_default=True, default=lambda: {}
+    )
 
     @property
     def earliest_async_process_start_time(self):
-        return min([unserialise_datetime(x["start_time"]) for x in self.pending_async_processes.values()])
+        return min(
+            [
+                unserialise_datetime(x["start_time"])
+                for x in self.pending_async_processes.values()
+            ]
+        )
 
     def queue_async_process(self, function, *args):
         """
@@ -108,12 +113,12 @@ class AsyncProcessOwner():
         process_id = str(uuid4())
         self.push_async_process(process_id)
         db.session.commit()
-        q = Queue("default", connection = redis_conn)
+        q = Queue("default", connection=redis_conn)
         q.enqueue_call(
             func=function,
             args=(self.id, process_id, *args),
-            timeout=1e10 # PsyNet deals with timeouts itself
-        ) # pylint: disable=no-member
+            timeout=1e10,  # PsyNet deals with timeouts itself
+        )  # pylint: disable=no-member
 
     def push_async_process(self, process_id):
         pending_processes = self.pending_async_processes.copy()
@@ -144,9 +149,10 @@ class AsyncProcessOwner():
         failed_async_processes = self.failed_async_processes.copy()
         failed_async_processes[process_id] = {
             "time": serialise_datetime(datetime.datetime.now()),
-            "reason": reason
+            "reason": reason,
         }
         self.failed_async_processes = failed_async_processes
+
 
 class Trial(Info, AsyncProcessOwner):
     """
@@ -268,6 +274,7 @@ class Trial(Info, AsyncProcessOwner):
         Otherwise, the default behaviour is to only store the answer from the final page.
 
     """
+
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
     __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
@@ -286,7 +293,7 @@ class Trial(Info, AsyncProcessOwner):
     # Override this if you intend to return multiple pages
     num_pages = 1
 
-    wait_for_feedback = True # determines whether feedback waits for async_post_trial
+    wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
 
     def __json__(self):
@@ -295,7 +302,6 @@ class Trial(Info, AsyncProcessOwner):
         field.json_add_extra_vars(x, self)
         field.json_format_vars(x)
         return x
-
 
     # @property
     # def num_pages(self):
@@ -326,7 +332,9 @@ class Trial(Info, AsyncProcessOwner):
         Returns the position of the current trial within that participant's current trial maker (0-indexed).
         This can be used, for example, to display how many trials the participant has taken so far.
         """
-        trials = self.get_for_participant(self.participant_id, self.network.trial_maker_id)
+        trials = self.get_for_participant(
+            self.participant_id, self.network.trial_maker_id
+        )
         trial_ids = [t.id for t in trials]
         return trial_ids.index(self.id)
 
@@ -335,28 +343,20 @@ class Trial(Info, AsyncProcessOwner):
         """
         Returns all trials for a given participant.
         """
-        query =  (
-            db.session
-            .query(cls)
+        query = (
+            db.session.query(cls)
             .join(TrialNetwork)
             .filter(Trial.participant_id == participant_id)
         )
         if trial_maker_id is not None:
             query = query.filter(TrialNetwork.trial_maker_id == trial_maker_id)
-        return (
-            query
-            .order_by(Trial.id)
-            .all()
-        )
+        return query.order_by(Trial.id).all()
 
     @property
     def visualization_html(self):
         experiment = dallinger.experiment.load()
         participant = self.participant
-        page = self.show_trial(
-            experiment=experiment,
-            participant=participant
-        )
+        page = self.show_trial(experiment=experiment, participant=participant)
         return page.visualize(trial=self)
 
     def fail(self):
@@ -381,7 +381,9 @@ class Trial(Info, AsyncProcessOwner):
         """
         Determines whether a trial is ready to give feedback to the participant.
         """
-        return self.complete and ((not self.wait_for_feedback) or (not self.awaiting_async_process))
+        return self.complete and (
+            (not self.wait_for_feedback) or (not self.awaiting_async_process)
+        )
 
     @property
     def response(self):
@@ -396,7 +398,9 @@ class Trial(Info, AsyncProcessOwner):
 
     #################
 
-    def __init__(self, experiment, node, participant, propagate_failure, is_repeat_trial):
+    def __init__(
+        self, experiment, node, participant, propagate_failure, is_repeat_trial
+    ):
         super().__init__(origin=node)
         self.complete = False
         self.awaiting_async_process = False
@@ -471,7 +475,10 @@ class Trial(Info, AsyncProcessOwner):
         return None
 
     def gives_feedback(self, experiment, participant):
-        return self.show_feedback(experiment=experiment, participant=participant) is not None
+        return (
+            self.show_feedback(experiment=experiment, participant=participant)
+            is not None
+        )
 
     run_async_post_trial = False
 
@@ -497,11 +504,12 @@ class Trial(Info, AsyncProcessOwner):
             node=self.origin,
             participant=self.participant,
             propagate_failure=False,
-            is_repeat_trial=True
+            is_repeat_trial=True,
         )
         repeat_trial.repeat_trial_index = repeat_trial_index
         repeat_trial.num_repeat_trials = num_repeat_trials
         return repeat_trial
+
 
 class TrialMaker(Module):
     """
@@ -677,13 +685,17 @@ class TrialMaker(Module):
         propagate_failure: bool,
         recruit_mode: str,
         target_num_participants: Optional[int],
-        num_repeat_trials: int
+        num_repeat_trials: int,
     ):
         if recruit_mode == "num_participants" and target_num_participants is None:
-            raise ValueError("If <recruit_mode> == 'num_participants', then <target_num_participants> must be provided.")
+            raise ValueError(
+                "If <recruit_mode> == 'num_participants', then <target_num_participants> must be provided."
+            )
 
         if recruit_mode == "num_trials" and target_num_participants is not None:
-            raise ValueError("If <recruit_mode> == 'num_trials', then <target_num_participants> must be None.")
+            raise ValueError(
+                "If <recruit_mode> == 'num_trials', then <target_num_participants> must be None."
+            )
 
         self.trial_class = trial_class
         self.id = id_
@@ -693,7 +705,9 @@ class TrialMaker(Module):
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.fail_trials_on_premature_exit = fail_trials_on_premature_exit
-        self.fail_trials_on_participant_performance_check = fail_trials_on_participant_performance_check
+        self.fail_trials_on_participant_performance_check = (
+            fail_trials_on_participant_performance_check
+        )
         self.propagate_failure = propagate_failure
         self.recruit_mode = recruit_mode
         self.target_num_participants = target_num_participants
@@ -701,14 +715,20 @@ class TrialMaker(Module):
 
         events = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
-            ParticipantFailRoutine(self.with_namespace(), self.participant_fail_routine),
-            RecruitmentCriterion(self.with_namespace(), self.selected_recruit_criterion),
+            ParticipantFailRoutine(
+                self.with_namespace(), self.participant_fail_routine
+            ),
+            RecruitmentCriterion(
+                self.with_namespace(), self.selected_recruit_criterion
+            ),
             self.check_timeout_task,
             CodeBlock(self.init_participant),
             self.introduction,
             self._trial_loop(),
             CodeBlock(self.on_complete),
-            self._check_performance_logic(type="end") if check_performance_at_end else None
+            self._check_performance_logic(type="end")
+            if check_performance_at_end
+            else None,
         )
         label = self.with_namespace()
         super().__init__(label, events)
@@ -781,11 +801,11 @@ class TrialMaker(Module):
 
     def participant_fail_routine(self, participant, experiment):
         if (
-            self.fail_trials_on_participant_performance_check and
-            "performance_check" in participant.failure_tags
+            self.fail_trials_on_participant_performance_check
+            and "performance_check" in participant.failure_tags
         ) or (
-            self.fail_trials_on_premature_exit and
-            "premature_exit" in participant.failure_tags
+            self.fail_trials_on_premature_exit
+            and "premature_exit" in participant.failure_tags
         ):
             self.fail_participant_trials(participant)
 
@@ -794,7 +814,7 @@ class TrialMaker(Module):
         return BackgroundTask(
             self.with_namespace("check_timeout"),
             self.check_timeout,
-            interval_sec=self.check_timeout_interval
+            interval_sec=self.check_timeout_interval,
         )
 
     def check_timeout(self):
@@ -818,9 +838,11 @@ class TrialMaker(Module):
             "Target number of participants = %i, number of completed participants = %i, number of working participants = %i.",
             self.target_num_participants,
             self.num_complete_participants,
-            self.num_working_participants
+            self.num_working_participants,
         )
-        return (self.num_complete_participants + self.num_working_participants) < self.target_num_participants
+        return (
+            self.num_complete_participants + self.num_working_participants
+        ) < self.target_num_participants
 
     def num_trials_criterion(self, experiment):
         num_trials_still_required = self.num_trials_still_required
@@ -828,14 +850,14 @@ class TrialMaker(Module):
         logger.info(
             "Number of trials still required = %i, number of pending trials = %i.",
             num_trials_still_required,
-            num_trials_pending
+            num_trials_pending,
         )
         return num_trials_still_required > num_trials_pending
 
     recruit_criteria = {
         None: null_criterion,
         "num_participants": num_participants_criterion,
-        "num_trials": num_trials_criterion
+        "num_trials": num_trials_criterion,
     }
 
     give_end_feedback_passed = False
@@ -861,16 +883,22 @@ class TrialMaker(Module):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
 
         return InfoPage(
-            Markup(f"Your performance score was <strong>{score_to_display}&#37;</strong>."),
-            time_estimate=5
+            Markup(
+                f"Your performance score was <strong>{score_to_display}&#37;</strong>."
+            ),
+            time_estimate=5,
         )
 
     def _get_end_feedback_passed_logic(self):
         if self.give_end_feedback_passed:
+
             def f(participant):
-                score = participant.var.get(self.with_namespace("performance_check"))["score"]
+                score = participant.var.get(self.with_namespace("performance_check"))[
+                    "score"
+                ]
                 return self.get_end_feedback_passed_page(score)
-            return PageMaker(f, time_estimate = 5)
+
+            return PageMaker(f, time_estimate=5)
         else:
             return []
 
@@ -880,10 +908,18 @@ class TrialMaker(Module):
         div = tags.div()
         with div:
             with tags.ul(cls="details"):
-                if hasattr(self, "expected_num_trials") and self.expected_num_trials is not None:
+                if (
+                    hasattr(self, "expected_num_trials")
+                    and self.expected_num_trials is not None
+                ):
                     tags.li(f"Expected number of trials: {self.expected_num_trials}")
-                if hasattr(self, "target_num_participants") and self.target_num_participants is not None:
-                    tags.li(f"Target number of participants: {self.target_num_participants}")
+                if (
+                    hasattr(self, "target_num_participants")
+                    and self.target_num_participants is not None
+                ):
+                    tags.li(
+                        f"Target number of participants: {self.target_num_participants}"
+                    )
                 if hasattr(self, "recruit_mode") and self.recruit_mode is not None:
                     tags.li(f"Recruitment mode: {self.recruit_mode}")
 
@@ -897,51 +933,63 @@ class TrialMaker(Module):
 
     @property
     def num_trials_pending(self):
-        return sum([self.estimate_num_pending_trials(p) for p in self.established_working_participants])
+        return sum(
+            [
+                self.estimate_num_pending_trials(p)
+                for p in self.established_working_participants
+            ]
+        )
 
     @property
     def num_trials_still_required(self):
         raise NotImplementedError
 
     def estimate_num_pending_trials(self, participant):
-        return self.expected_num_trials - self.get_num_completed_trials_in_phase(participant)
+        return self.expected_num_trials - self.get_num_completed_trials_in_phase(
+            participant
+        )
 
     @property
     def working_participants(self):
-        return (
-            Participant
-                .query
-                .filter_by(status="working", failed=False)
-        )
+        return Participant.query.filter_by(status="working", failed=False)
 
     @property
     def established_working_participants(self):
         return [
-            p for p in self.working_participants
+            p
+            for p in self.working_participants
             if p.progress > self.participant_progress_threshold
         ]
 
     def check_old_trials(self):
-        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.response_timeout_sec)
+        time_threshold = datetime.datetime.now() - datetime.timedelta(
+            seconds=self.response_timeout_sec
+        )
         trials_to_fail = (
-            self.trial_class
-                .query
-                .filter_by(
-                    complete=False,
-                    failed=False
-                )
-                .filter(self.trial_class.creation_time < time_threshold)
-                .all()
+            self.trial_class.query.filter_by(complete=False, failed=False)
+            .filter(self.trial_class.creation_time < time_threshold)
+            .all()
         )
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
             trial.fail()
 
     def check_async_trials(self):
-        trials_awaiting_processes = self.trial_class.query.filter_by(awaiting_async_process=True).all()
-        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
-        trials_to_fail = [t for t in trials_awaiting_processes if t.earliest_async_process_start_time < time_threshold]
-        logger.info("Found %i trial(s) with long-pending asynchronous processes to fail.", len(trials_to_fail))
+        trials_awaiting_processes = self.trial_class.query.filter_by(
+            awaiting_async_process=True
+        ).all()
+        time_threshold = datetime.datetime.now() - datetime.timedelta(
+            seconds=self.async_timeout_sec
+        )
+        trials_to_fail = [
+            t
+            for t in trials_awaiting_processes
+            if t.earliest_async_process_start_time < time_threshold
+        ]
+        logger.info(
+            "Found %i trial(s) with long-pending asynchronous processes to fail.",
+            len(trials_to_fail),
+        )
         for trial in trials_to_fail:
             trial.fail_async_processes(reason="long-pending trial process")
 
@@ -972,7 +1020,9 @@ class TrialMaker(Module):
             return None
         participant.set_participant_group(
             self.id,
-            self.choose_participant_group(experiment=experiment, participant=participant)
+            self.choose_participant_group(
+                experiment=experiment, participant=participant
+            ),
         )
 
     def choose_participant_group(self, experiment, participant):
@@ -1085,11 +1135,10 @@ class TrialMaker(Module):
 
     def fail_participant_trials(self, participant):
         trials_to_fail = (
-            db.session
-                .query(Trial)
-                .filter_by(participant_id=participant.id, failed=False)
-                .join(TrialNetwork)
-                .filter_by(trial_maker_id=self.id)
+            db.session.query(Trial)
+            .filter_by(participant_id=participant.id, failed=False)
+            .join(TrialNetwork)
+            .filter_by(trial_maker_id=self.id)
         )
         for trial in trials_to_fail:
             trial.fail()
@@ -1105,9 +1154,7 @@ class TrialMaker(Module):
 
         An event (:class:`~psynet.timeline.Event`) or a list of events.
         """
-        return join(
-            UnsuccessfulEndPage(failure_tags=["performance_check"])
-        )
+        return join(UnsuccessfulEndPage(failure_tags=["performance_check"]))
 
     def _check_performance_logic(self, type):
         def eval_checks(experiment, participant):
@@ -1115,7 +1162,7 @@ class TrialMaker(Module):
             results = self.performance_check(
                 experiment=experiment,
                 participant=participant,
-                participant_trials=participant_trials
+                participant_trials=participant_trials,
             )
             bonus = self.compute_bonus(**results)
             assert isinstance(results["passed"], bool)
@@ -1131,16 +1178,20 @@ class TrialMaker(Module):
             function=eval_checks,
             branches={
                 True: [] if type == "trial" else self._get_end_feedback_passed_logic(),
-                False: self.check_fail_logic()
+                False: self.check_fail_logic(),
             },
             fix_time_credit=False,
-            log_chosen_branch=False
+            log_chosen_branch=False,
         )
 
         if type == "end" and self.end_performance_check_waits:
             return join(
-                wait_while(self.any_pending_async_trials, expected_wait=5, log_message="Waiting for pending async trials."),
-                logic
+                wait_while(
+                    self.any_pending_async_trials,
+                    expected_wait=5,
+                    log_message="Waiting for pending async trials.",
+                ),
+                logic,
             )
         else:
             return logic
@@ -1162,10 +1213,15 @@ class TrialMaker(Module):
             corresponding to the current participant.
 
         """
-        all_participant_trials = self.trial_class.query.filter_by(participant_id=participant.id).all()
+        all_participant_trials = self.trial_class.query.filter_by(
+            participant_id=participant.id
+        ).all()
         return [
-            t for t in all_participant_trials
-            if t.trial_maker_id == self.id and t.phase == self.phase # the latter check shouldn't strictly be necessary
+            t
+            for t in all_participant_trials
+            if t.trial_maker_id == self.id
+            and t.phase
+            == self.phase  # the latter check shouldn't strictly be necessary
         ]
 
     def _prepare_trial(self, experiment, participant):
@@ -1176,7 +1232,9 @@ class TrialMaker(Module):
             trial = self.prepare_trial(experiment=experiment, participant=participant)
         if trial is None and self.num_repeat_trials > 0:
             participant.var.set(self.with_namespace("in_repeat_phase"), True)
-            trial = self._prepare_repeat_trial(experiment=experiment, participant=participant)
+            trial = self._prepare_repeat_trial(
+                experiment=experiment, participant=participant
+            )
         if trial is not None:
             participant.var.current_trial = trial.id
         else:
@@ -1187,11 +1245,17 @@ class TrialMaker(Module):
         if not participant.var.has(self.with_namespace("trials_to_repeat")):
             self._init_trials_to_repeat(participant)
         trials_to_repeat = participant.var.get(self.with_namespace("trials_to_repeat"))
-        repeat_trial_index = participant.var.get(self.with_namespace("repeat_trial_index"))
+        repeat_trial_index = participant.var.get(
+            self.with_namespace("repeat_trial_index")
+        )
         try:
             trial_to_repeat_id = trials_to_repeat[repeat_trial_index]
-            trial_to_repeat = self.trial_class.query.filter_by(id=trial_to_repeat_id).one()
-            trial = trial_to_repeat.new_repeat_trial(experiment, repeat_trial_index, len(trials_to_repeat))
+            trial_to_repeat = self.trial_class.query.filter_by(
+                id=trial_to_repeat_id
+            ).one()
+            trial = trial_to_repeat.new_repeat_trial(
+                experiment, repeat_trial_index, len(trials_to_repeat)
+            )
             participant.var.inc(self.with_namespace("repeat_trial_index"))
             experiment.save(trial)
         except IndexError:
@@ -1203,7 +1267,7 @@ class TrialMaker(Module):
         actual_num_repeat_trials = min(len(completed_trial_ids), self.num_repeat_trials)
         participant.var.set(
             self.with_namespace("trials_to_repeat"),
-            random.sample(completed_trial_ids, actual_num_repeat_trials)
+            random.sample(completed_trial_ids, actual_num_repeat_trials),
         )
         participant.var.set(self.with_namespace("repeat_trial_index"), 0)
 
@@ -1223,10 +1287,7 @@ class TrialMaker(Module):
         trial = self._get_current_trial(participant)
         answer = participant.answer
         self.finalise_trial(
-            answer=answer,
-            trial=trial,
-            experiment=experiment,
-            participant=participant
+            answer=answer, trial=trial, experiment=experiment, participant=participant
         )
 
     def _get_current_trial(self, participant):
@@ -1239,25 +1300,29 @@ class TrialMaker(Module):
         return conditional(
             label=self.with_namespace("feedback"),
             condition=lambda experiment, participant: (
-                self._get_current_trial(participant)
-                    .gives_feedback(experiment, participant)
+                self._get_current_trial(participant).gives_feedback(
+                    experiment, participant
+                )
             ),
             logic_if_true=join(
                 wait_while(
-                    lambda participant: not self._get_current_trial(participant).ready_for_feedback,
+                    lambda participant: not self._get_current_trial(
+                        participant
+                    ).ready_for_feedback,
                     expected_wait=0,
-                    log_message="Waiting for feedback to be ready."
+                    log_message="Waiting for feedback to be ready.",
                 ),
                 PageMaker(
                     lambda experiment, participant: (
-                        self._get_current_trial(participant)
-                            .show_feedback(experiment=experiment, participant=participant)
+                        self._get_current_trial(participant).show_feedback(
+                            experiment=experiment, participant=participant
+                        )
                     ),
-                    time_estimate=0
-                )
+                    time_estimate=0,
+                ),
             ),
             fix_time_credit=False,
-            log_chosen_branch=False
+            log_chosen_branch=False,
         )
 
     def _wait_for_trial(self, experiment, participant):
@@ -1265,28 +1330,39 @@ class TrialMaker(Module):
 
     def _trial_loop(self):
         return join(
-            wait_while(self._wait_for_trial, expected_wait=0.0, log_message="Waiting for trial to be ready."),
+            wait_while(
+                self._wait_for_trial,
+                expected_wait=0.0,
+                log_message="Waiting for trial to be ready.",
+            ),
             CodeBlock(self._prepare_trial),
             while_loop(
                 self.with_namespace("trial_loop"),
-                lambda experiment, participant: self._get_current_trial(participant) is not None,
+                lambda experiment, participant: self._get_current_trial(participant)
+                is not None,
                 logic=join(
                     multi_page_maker(
                         "show_trial",
                         self._show_trial,
                         expected_num_pages=self.trial_class.num_pages,
                         total_time_estimate=self.time_estimate_per_trial,
-                        accumulate_answers=self.trial_class.accumulate_answers
+                        accumulate_answers=self.trial_class.accumulate_answers,
                     ),
                     CodeBlock(self._postprocess_answer),
                     CodeBlock(self._finalise_trial),
                     self._construct_feedback_logic(),
-                    self._check_performance_logic(type="trial") if self.check_performance_every_trial else None,
-                    wait_while(self._wait_for_trial, expected_wait=0.0, log_message="Waiting for trial to be ready."),
-                    CodeBlock(self._prepare_trial)
+                    self._check_performance_logic(type="trial")
+                    if self.check_performance_every_trial
+                    else None,
+                    wait_while(
+                        self._wait_for_trial,
+                        expected_wait=0.0,
+                        log_message="Waiting for trial to be ready.",
+                    ),
+                    CodeBlock(self._prepare_trial),
                 ),
                 expected_repetitions=self.expected_num_trials,
-                fix_time_credit=False
+                fix_time_credit=False,
             ),
         )
 
@@ -1308,9 +1384,9 @@ class TrialMaker(Module):
 
     def increment_num_completed_trials_in_phase(self, participant):
         self.set_num_completed_trials_in_phase(
-            participant,
-            self.get_num_completed_trials_in_phase(participant) + 1
+            participant, self.get_num_completed_trials_in_phase(participant) + 1
         )
+
 
 class NetworkTrialMaker(TrialMaker):
     """
@@ -1509,7 +1585,7 @@ class NetworkTrialMaker(TrialMaker):
         recruit_mode,
         target_num_participants,
         num_repeat_trials: int,
-        wait_for_networks: bool
+        wait_for_networks: bool,
     ):
         super().__init__(
             id_=id_,
@@ -1524,7 +1600,7 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=propagate_failure,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
-            num_repeat_trials=num_repeat_trials
+            num_repeat_trials=num_repeat_trials,
         )
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
@@ -1534,17 +1610,27 @@ class NetworkTrialMaker(TrialMaker):
     def prepare_trial(self, experiment, participant):
         logger.info("Preparing trial for participant %i.", participant.id)
         networks = self.find_networks(participant=participant, experiment=experiment)
-        logger.info("Found %i network(s) for participant %i.", len(networks), participant.id)
+        logger.info(
+            "Found %i network(s) for participant %i.", len(networks), participant.id
+        )
 
         # Used to grow all available networks, but this was unscalable.
 
         for network in networks:
             self._grow_network(network, participant, experiment)
-            node = self.find_node(network=network, participant=participant, experiment=experiment)
+            node = self.find_node(
+                network=network, participant=participant, experiment=experiment
+            )
             if node is not None:
-                logger.info("Attached node %i to participant %i.", node.id, participant.id)
-                return self._create_trial(node=node, participant=participant, experiment=experiment)
-        logger.info("Found no available nodes for participant %i, exiting.", participant.id)
+                logger.info(
+                    "Attached node %i to participant %i.", node.id, participant.id
+                )
+                return self._create_trial(
+                    node=node, participant=participant, experiment=experiment
+                )
+        logger.info(
+            "Found no available nodes for participant %i, exiting.", participant.id
+        )
         return None
 
     ####
@@ -1610,11 +1696,7 @@ class NetworkTrialMaker(TrialMaker):
 
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(
-            experiment,
-            node,
-            participant,
-            self.propagate_failure,
-            is_repeat_trial=False
+            experiment, node, participant, self.propagate_failure, is_repeat_trial=False
         )
         db.session.add(trial)
         db.session.commit()
@@ -1638,13 +1720,8 @@ class NetworkTrialMaker(TrialMaker):
 
     @property
     def network_query(self):
-        return (
-            self.network_class
-                .query
-                .filter_by(
-                    trial_maker_id=self.id,
-                    phase=self.phase
-                )
+        return self.network_class.query.filter_by(
+            trial_maker_id=self.id, phase=self.phase
         )
 
     @property
@@ -1658,13 +1735,24 @@ class NetworkTrialMaker(TrialMaker):
     def check_timeout(self):
         super().check_timeout()
         self.check_async_networks()
-        db.session.commit() # pylint: disable=no-member
+        db.session.commit()  # pylint: disable=no-member
 
     def check_async_networks(self):
-        time_threshold = datetime.datetime.now() - datetime.timedelta(seconds=self.async_timeout_sec)
-        networks_awaiting_processes = self.network_class.query.filter_by(awaiting_async_process=True).all()
-        networks_to_fail = [n for n in networks_awaiting_processes if n.earliest_async_process_start_time < time_threshold]
-        logger.info("Found %i network(s) with long-pending asynchronous processes to clear.", len(networks_to_fail))
+        time_threshold = datetime.datetime.now() - datetime.timedelta(
+            seconds=self.async_timeout_sec
+        )
+        networks_awaiting_processes = self.network_class.query.filter_by(
+            awaiting_async_process=True
+        ).all()
+        networks_to_fail = [
+            n
+            for n in networks_awaiting_processes
+            if n.earliest_async_process_start_time < time_threshold
+        ]
+        logger.info(
+            "Found %i network(s) with long-pending asynchronous processes to clear.",
+            len(networks_to_fail),
+        )
         for network in networks_to_fail:
             network.fail_async_processes(reason="long-pending network process")
 
@@ -1682,9 +1770,13 @@ class NetworkTrialMaker(TrialMaker):
 
     def performance_check(self, experiment, participant, participant_trials):
         if self.performance_check_type == "consistency":
-            return self.performance_check_consistency(experiment, participant, participant_trials)
+            return self.performance_check_consistency(
+                experiment, participant, participant_trials
+            )
         elif self.performance_check_type == "performance":
-            return self.performance_check_accuracy(experiment, participant, participant_trials)
+            return self.performance_check_accuracy(
+                experiment, participant, participant_trials
+            )
         else:
             raise NotImplementedError
 
@@ -1697,16 +1789,15 @@ class NetworkTrialMaker(TrialMaker):
             num_failed_trials = len([t for t in participant_trials if t.failed])
             p = 1 - num_failed_trials / num_trials
             passed = p >= self.performance_check_threshold
-        return {
-            "score": p,
-            "passed": passed
-        }
+        return {"score": p, "passed": passed}
 
     def get_answer_for_consistency_check(self, trial):
         # Must return a number
         return float(trial.answer)
 
-    def performance_check_consistency(self, experiment, participant, participant_trials):
+    def performance_check_consistency(
+        self, experiment, participant, participant_trials
+    ):
         assert self.min_nodes_for_performance_check >= 2
         trials_by_node = self.group_trials_by_node(participant_trials)
         answer_groups = [
@@ -1729,12 +1820,9 @@ class NetworkTrialMaker(TrialMaker):
             "Performance check for participant %i: consistency = %s, passed = %s",
             participant.id,
             "NA" if score is None else f"{score:.3f}",
-            passed
+            passed,
         )
-        return {
-            "score": score,
-            "passed": passed
-        }
+        return {"score": score, "passed": passed}
 
     def monte_carlo_consistency(self, groups, n):
         rels = []
@@ -1775,12 +1863,17 @@ class NetworkTrialMaker(TrialMaker):
         if not self.wait_for_networks:
             return False
         else:
-            num_networks_available_now = len(self.find_networks(participant, experiment))
+            num_networks_available_now = len(
+                self.find_networks(participant, experiment)
+            )
             if num_networks_available_now > 0:
                 return False
             else:
-                num_networks_available_in_future = len(self.find_networks(
-                    participant, experiment, ignore_async_processes=True))
+                num_networks_available_in_future = len(
+                    self.find_networks(
+                        participant, experiment, ignore_async_processes=True
+                    )
+                )
                 if num_networks_available_in_future > 0:
                     return True
                 else:
@@ -1897,13 +1990,11 @@ class TrialNetwork(Network, AsyncProcessOwner):
     @property
     def num_completed_trials(self):
         return Trial.query.filter_by(
-            network_id=self.id,
-            failed=False,
-            complete=True,
-            is_repeat_trial=False
+            network_id=self.id, failed=False, complete=True, is_repeat_trial=False
         ).count()
 
     run_async_post_grow_network = False
+
     def async_post_grow_network(self):
         """
         Optional function to be run after the network is grown.
@@ -1934,16 +2025,26 @@ class TrialNetwork(Network, AsyncProcessOwner):
     @property
     @extra_var(__extra_vars__)
     def n_active_trials(self):
-        return len([info for info in self.all_infos if isinstance(info, Trial) and not info.failed])
+        return len(
+            [
+                info
+                for info in self.all_infos
+                if isinstance(info, Trial) and not info.failed
+            ]
+        )
 
     @property
     @extra_var(__extra_vars__)
     def n_failed_trials(self):
-        return len([info for info in self.all_infos if isinstance(info, Trial) and info.failed])
+        return len(
+            [info for info in self.all_infos if isinstance(info, Trial) and info.failed]
+        )
 
 
 def call_async_post_trial(trial_id, process_id):
-    logger.info("Running async_post_trial process %s for trial %i...", process_id, trial_id)
+    logger.info(
+        "Running async_post_trial process %s for trial %i...", process_id, trial_id
+    )
     import_local_experiment()
     experiment = dallinger.experiment.load()
     trial = Trial.query.filter_by(id=trial_id).one()
@@ -1954,12 +2055,17 @@ def call_async_post_trial(trial_id, process_id):
             trial.pop_async_process(process_id)
             trial_maker._grow_network(trial.network, trial.participant, experiment)
         else:
-            logger.info("Skipping async process %s as it is no longer queued.", process_id)
+            logger.info(
+                "Skipping async process %s as it is no longer queued.", process_id
+            )
     except BaseException as e:
-        trial.fail_async_processes(reason=f"exception in post-trial process: {e.__class__.__name__}")
+        trial.fail_async_processes(
+            reason=f"exception in post-trial process: {e.__class__.__name__}"
+        )
         raise
     finally:
-        db.session.commit() # pylint: disable=no-member
+        db.session.commit()  # pylint: disable=no-member
+
 
 def call_async_post_grow_network(network_id, process_id):
     logger.info("Running async_post_grow_network for network %i...", network_id)
@@ -1970,12 +2076,17 @@ def call_async_post_grow_network(network_id, process_id):
             network.async_post_grow_network()
             network.pop_async_process(process_id)
         else:
-            logger.info("Skipping async process %s as it is no longer queued.", process_id)
+            logger.info(
+                "Skipping async process %s as it is no longer queued.", process_id
+            )
     except BaseException as e:
-        network.fail_async_processes(reason=f"exception in post-grow-network process: {e.__class__.__name__}")
+        network.fail_async_processes(
+            reason=f"exception in post-grow-network process: {e.__class__.__name__}"
+        )
         raise
     finally:
-        db.session.commit() # pylint: disable=no-member
+        db.session.commit()  # pylint: disable=no-member
+
 
 class TrialNode(dallinger.models.Node):
     __mapper_args__ = {"polymorphic_identity": "trial_node"}
@@ -1987,6 +2098,7 @@ class TrialNode(dallinger.models.Node):
         field.json_add_extra_vars(x, self)
         field.json_format_vars(x)
         return x
+
 
 class TrialSource(dallinger.nodes.Source):
     __mapper_args__ = {"polymorphic_identity": "trial_source"}
