@@ -1,14 +1,8 @@
 from typing import Optional
 
-from psynet.modular_page import (
-    ModularPage,
-    PushButtonControl,
-)
+from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage
-from psynet.timeline import (
-    Module,
-    join,
-)
+from psynet.timeline import Module, join
 
 
 class PEI(Module):
@@ -25,6 +19,7 @@ class PEI(Module):
         An :class:`~psynet.page.InfoPage` object to be used as an introductionary first page.
         If none is supplied the default one is displayed (see source code).
     """
+
     def __init__(
         self,
         label: str = "pei",
@@ -33,7 +28,7 @@ class PEI(Module):
         if info_page is None:
             info_page = InfoPage(
                 "The following questions are designed to assess your confidence. Please answer as accurately as possible. Think about how the question applies to you during the last 2 months.",
-                time_estimate=5
+                time_estimate=5,
             )
         self.label = label
         self.events = join(
@@ -63,7 +58,9 @@ class PEI_01(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 class PEI_02(ModularPage):
@@ -80,7 +77,9 @@ class PEI_02(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 class PEI_03(ModularPage):
@@ -97,7 +96,9 @@ class PEI_03(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 class PEI_04(ModularPage):
@@ -114,7 +115,9 @@ class PEI_04(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 class PEI_05(ModularPage):
@@ -131,7 +134,9 @@ class PEI_05(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 class PEI_06(ModularPage):
@@ -148,7 +153,9 @@ class PEI_06(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 class PEI_07(ModularPage):
@@ -165,11 +172,18 @@ class PEI_07(ModularPage):
             agreement_scale()["choices"],
             agreement_scale()["labels"],
         )
-        super().__init__(self.label, self.prompt, control=control, time_estimate=self.time_estimate)
+        super().__init__(
+            self.label, self.prompt, control=control, time_estimate=self.time_estimate
+        )
 
 
 def agreement_scale():
     return {
         "choices": list(range(1, 5)),
-        "labels": ["Strongly Agree", "Mainly Agree", "Mainly Disagree", "Strongly Disagree"]
+        "labels": [
+            "Strongly Agree",
+            "Mainly Agree",
+            "Mainly Disagree",
+            "Strongly Disagree",
+        ],
     }

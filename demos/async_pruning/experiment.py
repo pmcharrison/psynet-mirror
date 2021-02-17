@@ -1,7 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### About
+# About
 ##########################################################################################
 
 # This is a version of the Gibbs demo that introduces failing of asynchronous
@@ -10,65 +10,44 @@
 # as a few participants then inspecting the monitor route.
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
-from flask import Markup
-from statistics import mean
 import random
-import re
-from typing import Union, List
-import time
-from dallinger import db
+from typing import List, Union
+
+from flask import Markup
 
 import psynet.experiment
-
-from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    Page,
-    Timeline,
-    PageMaker,
-    CodeBlock,
-    while_loop,
-    conditional,
-    switch,
-    FailedValidation
-)
-from psynet.page import (
-    InfoPage,
-    SuccessfulEndPage,
-    SliderPage,
-    NAFCPage,
-    NumberInputPage
-)
-from psynet.trial.chain import ChainNetwork
+from psynet.page import InfoPage, SliderPage, SuccessfulEndPage
+from psynet.timeline import Timeline
 from psynet.trial.gibbs import (
-    GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
+    GibbsNetwork,
+    GibbsNode,
+    GibbsSource,
+    GibbsTrial,
+    GibbsTrialMaker,
 )
 from psynet.utils import get_logger
 
 logger = get_logger()
 
-# import rpdb
 
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
 
-import os
-
 
 class ColorSliderPage(SliderPage):
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            selected_idx: int,
-            starting_values: List[int],
-            reverse_scale: bool,
-            directional: bool,
-            time_estimate=None,
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        selected_idx: int,
+        starting_values: List[int],
+        reverse_scale: bool,
+        directional: bool,
+        time_estimate=None,
+        **kwargs,
     ):
         assert selected_idx >= 0 and selected_idx < len(COLORS)
         self.prompt = prompt
@@ -80,8 +59,8 @@ class ColorSliderPage(SliderPage):
         not_selected_colors = [COLORS[i] for i in not_selected_idxs]
         not_selected_values = [starting_values[i] for i in not_selected_idxs]
         hidden_inputs = dict(zip(not_selected_colors, not_selected_values))
-        kwargs['template_arg'] = {
-            'hidden_inputs': hidden_inputs,
+        kwargs["template_arg"] = {
+            "hidden_inputs": hidden_inputs,
         }
         super().__init__(
             time_estimate=time_estimate,
@@ -95,15 +74,15 @@ class ColorSliderPage(SliderPage):
             reverse_scale=reverse_scale,
             directional=directional,
             template_arg={
-                'hidden_inputs': hidden_inputs,
-            }
+                "hidden_inputs": hidden_inputs,
+            },
         )
 
     def metadata(self, **kwargs):
         return {
             "prompt": self.prompt.metadata,
             "selected_idx": self.selected_idx,
-            "starting_values": self.starting_values
+            "starting_values": self.starting_values,
         }
 
 
@@ -116,20 +95,23 @@ class CustomNetwork(GibbsNetwork):
         return random.randint(0, 255)
 
     def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS)
-        }
+        return {"target": self.balance_across_networks(TARGETS)}
 
     # Minimal example of an async_post_grow_network function
     run_async_post_grow_network = True
+
     def async_post_grow_network(self):
-        logger.info("Running custom async_post_grow_network function (network id = %i)", self.id)
+        logger.info(
+            "Running custom async_post_grow_network function (network id = %i)", self.id
+        )
         if self.num_nodes > 1:
             if self.head.id % 3 == 0:
                 assert False
             elif self.head.id % 4 == 0:
                 import time
+
                 time.sleep(1e6)
+
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -151,7 +133,7 @@ class CustomTrial(GibbsTrial):
             selected_idx=self.active_index,
             reverse_scale=self.reverse_scale,
             directional=False,
-            time_estimate=5
+            time_estimate=5,
         )
 
     def show_feedback(self, experiment, participant):
@@ -164,13 +146,16 @@ class CustomTrial(GibbsTrial):
 
     # Minimal example of an async_post_trial function
     run_async_post_trial = True
+
     def async_post_trial(self):
         logger.info("Running custom async post trial (id = %i)", self.id)
         if self.id % 3 == 0:
             assert False
         elif self.id % 4 == 0:
             import time
+
             time.sleep(1e6)
+
 
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -178,6 +163,7 @@ class CustomNode(GibbsNode):
 
 class CustomSource(GibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
+
 
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
@@ -197,7 +183,7 @@ trial_maker = CustomTrialMaker(
     time_estimate_per_trial=5,
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=4,
-    num_iterations_per_chain=5, # note that the final node receives no trials
+    num_iterations_per_chain=5,  # note that the final node receives no trials
     num_chains_per_participant=None,  # set to None if chain_type="across"
     num_chains_per_experiment=4,  # set to None if chain_type="within"
     trials_per_node=1,
@@ -206,12 +192,13 @@ trial_maker = CustomTrialMaker(
     check_performance_every_trial=False,
     propagate_failure=False,
     recruit_mode="num_participants",
-    target_num_participants=10
+    target_num_participants=10,
 )
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -219,10 +206,7 @@ trial_maker = CustomTrialMaker(
 class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
-    timeline = Timeline(
-        trial_maker,
-        SuccessfulEndPage()
-    )
+    timeline = Timeline(trial_maker, SuccessfulEndPage())
 
     def __init__(self, session=None):
         super().__init__(session)

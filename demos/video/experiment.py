@@ -1,6 +1,4 @@
-from datetime import datetime
 import flask
-from urllib.parse import splitquery
 
 import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
@@ -26,7 +24,7 @@ video_record_page = join(
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
-            recording_source='both',
+            recording_source="both",
             public_read=True,
             start_delay=5.0,
         ),
@@ -34,8 +32,11 @@ video_record_page = join(
     ),
     conditional(
         "video_record_page",
-        lambda experiment, participant: (participant.answer["cameraUrl"] is None and participant.answer["screenUrl"] is None),
-        UnsuccessfulEndPage(failure_tags=["video_record_page"])
+        lambda experiment, participant: (
+            participant.answer["cameraUrl"] is None
+            and participant.answer["screenUrl"] is None
+        ),
+        UnsuccessfulEndPage(failure_tags=["video_record_page"]),
     ),
     PageMaker(
         lambda participant: ModularPage(
@@ -60,7 +61,7 @@ video_record_page = join(
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
-            recording_source='screen',
+            recording_source="screen",
             record_audio=False,
             public_read=True,
         ),
@@ -69,7 +70,7 @@ video_record_page = join(
     conditional(
         "screen_record_page",
         lambda experiment, participant: participant.answer["screenUrl"] is None,
-        UnsuccessfulEndPage(failure_tags=["screen_record_page"])
+        UnsuccessfulEndPage(failure_tags=["screen_record_page"]),
     ),
     PageMaker(
         lambda participant: ModularPage(
