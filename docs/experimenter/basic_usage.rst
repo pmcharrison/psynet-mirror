@@ -2,7 +2,7 @@
 Basic usage
 ===========
 
-Once installed (see :doc:`../installation`), you can import ``psynet`` like any other Python package:
+Once installed (see 'Installation' section), you can import ``psynet`` like any other Python package:
 
 ::
 
@@ -25,7 +25,7 @@ In particular, to add your GitLab password, you can do something like this:
 
     git+https://<username>:<password>@gitlab.com/computational-audition-lab/psynet#egg=psynet
 
-Alternatively, you can use a *deploy token* by simply copying the already prepared deploy token 
+Alternatively, you can use a *deploy token* by simply copying the already prepared deploy token
 
 ``qgwAvbx7C8J59CtiswKp``
 
@@ -58,7 +58,7 @@ Contrary to the above, use a branch name ``<branch_name>`` like ``dev`` in case 
 Custom packages
 ---------------
 
-When using a custom package in a Dallinger/PsyNet experiment, you also need to include it in your experiment’s ``requirements.txt``. You can use a package by including the following in your requirements:  
+When using a custom package in a Dallinger/PsyNet experiment, you also need to include it in your experiment’s ``requirements.txt``. You can use a package by including the following in your requirements:
 
 .. code-block:: console
 
@@ -83,7 +83,7 @@ In normal Dallinger experiments, `experiment.py` must define a class that is an 
 of the `Experiment` class, for example:
 
 ::
-    
+
     import dallinger.experiment
 
     class CustomExp(dallinger.experiment.Experiment):
@@ -100,7 +100,7 @@ You can use it as follows:
         ...
 
 
-You might think of doing it this way instead: 
+You might think of doing it this way instead:
 
 ::
 
@@ -141,8 +141,8 @@ Building the timeline
 ---------------------
 
 The key difference between ``psynet`` and core Dallinger is that
-``psynet`` introduces the *timeline*, a useful abstraction for 
-defining the control logic of experiments. 
+``psynet`` introduces the *timeline*, a useful abstraction for
+defining the control logic of experiments.
 The timeline is defined by overriding the `timeline` attribute
 of the Experiment class, for example:
 
@@ -166,8 +166,8 @@ of the Experiment class, for example:
                 "Welcome to the experiment!",
                 time_estimate=5
             ),
-            PageMaker(            
-                lambda experiment, participant: 
+            PageMaker(
+                lambda experiment, participant:
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
                 time_estimate=5
             ),

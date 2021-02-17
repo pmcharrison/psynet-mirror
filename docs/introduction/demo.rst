@@ -4,7 +4,7 @@
 Demo
 ====
 
-If you haven't installed the `psynet already`, follow the instructions in :doc:`installation`.
+If you haven't installed the `psynet already`, follow the instructions in the 'Installation' section.
 
 Then, navigate to the timeline demo directory, for example:
 
@@ -16,7 +16,7 @@ Make sure you're in the appropriate virtual environment, for example:
 
 ::
 
-    workon dlgr_env
+    workon psynet
 
 Finally, run the following command:
 

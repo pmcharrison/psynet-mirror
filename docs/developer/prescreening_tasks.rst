@@ -1,6 +1,8 @@
 .. _developer:
 .. highlight:: shell
 
+.. _Creating pre-screening tasks:
+
 ============================
 Creating pre-screening tasks
 ============================
@@ -115,7 +117,7 @@ The :meth:`instruction_page` method returns an :class:`~psynet.page.InfoPage`, e
 The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` overriding :meth:`~psynet.trial.main.performance_check`, e.g.:
 
 ::
-    
+
     from psynet.trial.non_adaptive import NonAdaptiveTrialMaker
 
     def trial_maker(
@@ -150,7 +152,7 @@ a specific quota of data. We therefore disable this behavior, setting
 The :meth:`trial` method returns a :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.page.ModularPage` e.g.:
 
 ::
-    
+
     from psynet.page import ModularPage
     from psynet.trial.non_adaptive import NonAdaptiveTrial
 

@@ -5,7 +5,7 @@
 Basic workflow
 ==============
 
-Before starting to contribute to PsyNet you need to carry out a developer installation on your local computer. Follow the instructions in :ref:`Developer installation` and come back here once you are done.
+Before starting to contribute to PsyNet you need to carry out a developer installation on your local computer. Follow the instructions in the 'Installation' section and come back here once you are done.
 
 Make sure to have read through :ref:`Working with Git` in the previous section which outlines the Git model the PsyNet development process is based on.
 
@@ -43,7 +43,7 @@ Make sure to have read through :ref:`Working with Git` in the previous section w
 
   .. code-block:: console
 
-    workon dlgr_env
+    workon psynet
 
   You should now be all set up to start coding.
 
@@ -58,9 +58,9 @@ Make sure to have read through :ref:`Working with Git` in the previous section w
 
   Once you think it is time to have others take a look at the code create a *merge request* in Gitlab.
 
-#. 
+#.
   Create a merge request in GitLab.
-  
+
   a.
     Login into GitLab and create a new `merge request` by first navigating to ``Merge Requests`` in the GitLab menu and then clicking the blue ``Create merge request`` button on the top right.
 
@@ -70,12 +70,12 @@ Make sure to have read through :ref:`Working with Git` in the previous section w
   #.
     Optionally, edit the title of the merge request by at least prefixing it with ``WIP:`` to signal that this is a work-in-progress which prevents the merge request from being merged before it's ready.
 
-  #. 
-    Optionally, increment the number of approvers. 
+  #.
+    Optionally, increment the number of approvers.
 
     *Enforcing approval is not mandatory but should be considered best practice. Using the feature promotes better control of the development process.*
 
-  #. 
+  #.
     Finally click the ``Submit merge request`` button.
 
 #.
