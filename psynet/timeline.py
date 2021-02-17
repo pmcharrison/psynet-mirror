@@ -1,45 +1,44 @@
 # pylint: disable=abstract-method
 
+import json
+import time
+from collections import Counter
 from datetime import datetime
-import importlib_resources
+from functools import reduce
+from statistics import median
+from typing import Callable, Dict, List, Optional
+
 import flask
 import gevent
-import time
-import json
-from statistics import median
-
+import importlib_resources
+from dallinger import db
+from dallinger.config import get_config
+from dallinger.models import Question
 from dominate import tags
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from typing import List, Optional, Dict, Callable
-from collections import Counter
-
+from . import templates
 from .utils import (
     call_function,
     check_function_args,
     dict_to_js_vars,
     format_datetime_string,
     get_logger,
-    merge_dicts
+    merge_dicts,
 )
-from . import templates
-
-from dallinger import db
-from dallinger.models import Question
-from dallinger.config import get_config
-
-from functools import reduce
 
 logger = get_logger()
-
-from .field import claim_field, claim_var, VarStore
 
 # pylint: disable=unused-import
 import rpdb
 
+from .field import VarStore, claim_field, claim_var
+
+
 def get_template(name):
     assert isinstance(name, str)
     return importlib_resources.read_text(templates, name)
+
 
 class Event:
     returns_time_credit = False
@@ -63,9 +62,11 @@ class Event:
     #             return i
     #     raise ValueError("Event not found in timeline.")
 
+
 class NullEvent(Event):
     def consume(self, experiment, participant):
         pass
+
 
 class CodeBlock(Event):
     """
@@ -79,15 +80,16 @@ class CodeBlock(Event):
         A function with up to two arguments named ``participant`` and ``experiment``,
         that is executed once the participant reaches the corresponding part of the timeline.
     """
+
     def __init__(self, function):
         self.function = function
 
     def consume(self, experiment, participant):
-        call_function(self.function, {
-            "self": self,
-            "experiment": experiment,
-            "participant": participant
-        })
+        call_function(
+            self.function,
+            {"self": self, "experiment": experiment, "participant": participant},
+        )
+
 
 class FixTime(Event):
     def __init__(self, time_estimate: float):
@@ -97,6 +99,7 @@ class FixTime(Event):
     def multiply_expected_repetitions(self, factor):
         self.expected_repetitions = self.expected_repetitions * factor
 
+
 class StartFixTime(FixTime):
     def __init__(self, time_estimate, end_fix_time):
         super().__init__(time_estimate)
@@ -105,9 +108,11 @@ class StartFixTime(FixTime):
     def consume(self, experiment, participant):
         participant.time_credit.start_fix_time(self.time_estimate)
 
+
 class EndFixTime(FixTime):
     def consume(self, experiment, participant):
         participant.time_credit.end_fix_time(self.time_estimate)
+
 
 class GoTo(Event):
     def __init__(self, target):
@@ -124,11 +129,12 @@ class GoTo(Event):
         target_event_id = target_event.id
         participant.event_id = target_event_id - 1
 
+
 class ReactiveGoTo(GoTo):
     def __init__(
         self,
-        function, # function taking experiment, participant and returning a key
-        targets # dict of possible target elements
+        function,  # function taking experiment, participant and returning a key
+        targets,  # dict of possible target elements
     ):
         # pylint: disable=super-init-not-called
         self.function = function
@@ -140,7 +146,9 @@ class ReactiveGoTo(GoTo):
         self.check_targets()
 
     def check_function(self):
-        check_function_args(self.function, ("self", "experiment", "participant"), need_all=False)
+        check_function_args(
+            self.function, ("self", "experiment", "participant"), need_all=False
+        )
 
     def check_targets(self):
         try:
@@ -153,21 +161,18 @@ class ReactiveGoTo(GoTo):
     def get_target(self, experiment, participant):
         val = call_function(
             self.function,
-            {
-                "self": self,
-                "experiment": experiment,
-                "participant": participant
-            }
+            {"self": self, "experiment": experiment, "participant": participant},
         )
         try:
             return self.targets[val]
         except KeyError:
             raise ValueError(
-                f"ReactiveGoTo returned {val}, which is not present among the target keys: " +
-                f"{list(self.targets)}."
-        )
+                f"ReactiveGoTo returned {val}, which is not present among the target keys: "
+                + f"{list(self.targets)}."
+            )
 
-class MediaSpec():
+
+class MediaSpec:
     """
     This object enumerates the media assets available for a given
     :class:`~psynet.timeline.Page` object.
@@ -201,14 +206,15 @@ class MediaSpec():
     video: dict
         An analogously structured dictionary of video stimuli.
     """
+
     modalities = ["audio", "image", "video"]
 
     def __init__(
-            self,
-            audio: Optional[dict] = None,
-            image: Optional[dict] = None,
-            video: Optional[dict] = None
-            ):
+        self,
+        audio: Optional[dict] = None,
+        image: Optional[dict] = None,
+        video: Optional[dict] = None,
+    ):
         if audio is None:
             audio = {}
 
@@ -218,11 +224,7 @@ class MediaSpec():
         if video is None:
             video = {}
 
-        self.data = {
-            "audio": audio,
-            "image": image,
-            "video": video
-        }
+        self.data = {"audio": audio, "image": image, "video": video}
 
         assert list(self.data) == self.modalities
 
@@ -271,7 +273,9 @@ class MediaSpec():
 
         new_args = {}
         for modality in self.modalities:
-            new_args[modality] = merge_dicts(*[x.data[modality] for x in args], overwrite=overwrite)
+            new_args[modality] = merge_dicts(
+                *[x.data[modality] for x in args], overwrite=overwrite
+            )
 
         return MediaSpec(**new_args)
 
@@ -282,23 +286,34 @@ class MediaSpec():
             ids = set()
             for file_id, file in value.items():
                 if file_id in ids:
-                    raise ValueError(f"{file_id} occurred more than once in page's {key} specification.")
+                    raise ValueError(
+                        f"{file_id} occurred more than once in page's {key} specification."
+                    )
                 ids.add(file_id)
                 if not isinstance(file, str):
                     if not isinstance(file, dict):
-                        raise TypeError(f"Media entry must either be a string URL or a dict (got {file}).")
+                        raise TypeError(
+                            f"Media entry must either be a string URL or a dict (got {file})."
+                        )
                     if not ("url" in file and "ids" in file):
-                        raise ValueError("Batch specifications must contain both 'url' and 'ids' keys.")
+                        raise ValueError(
+                            "Batch specifications must contain both 'url' and 'ids' keys."
+                        )
                     batch_ids = file["ids"]
                     if not isinstance(batch_ids, list):
-                        raise TypeError(f"The ids component of the batch specification must be a list (got {ids}).")
+                        raise TypeError(
+                            f"The ids component of the batch specification must be a list (got {ids})."
+                        )
                     for _id in batch_ids:
                         if not isinstance(_id, str):
-                            raise TypeError(f"Each id in the batch specification must be a string (got {_id}).")
+                            raise TypeError(
+                                f"Each id in the batch specification must be a string (got {_id})."
+                            )
                         ids.add(_id)
 
     def to_json(self):
         return json.dumps(self.data)
+
 
 class Page(Event):
     """
@@ -382,7 +397,7 @@ class Page(Event):
         media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
         css: Optional[List] = None,
-        save_answer: bool = True
+        save_answer: bool = True,
     ):
         if template_arg is None:
             template_arg = {}
@@ -434,20 +449,22 @@ class Page(Event):
     def consume(self, experiment, participant):
         participant.page_uuid = experiment.make_uuid()
 
-    def process_response(self, raw_answer, blobs, metadata, experiment, participant, client_ip_address):
+    def process_response(
+        self, raw_answer, blobs, metadata, experiment, participant, client_ip_address
+    ):
         answer = self.format_answer(
             raw_answer,
             blobs=blobs,
             metadata=metadata,
             experiment=experiment,
-            participant=participant
+            participant=participant,
         )
         extra_metadata = self.metadata(
             metadata=metadata,
             raw_answer=raw_answer,
             answer=answer,
             experiment=experiment,
-            participant=participant
+            participant=participant,
         )
         combined_metadata = {**metadata, **extra_metadata}
         resp = Response(
@@ -456,7 +473,7 @@ class Page(Event):
             answer=answer,
             page_type=type(self).__name__,
             metadata=combined_metadata,
-            client_ip_address=client_ip_address
+            client_ip_address=client_ip_address,
         )
 
         db.session.add(resp)
@@ -585,19 +602,19 @@ class Page(Event):
 
     def pre_render(self):
         """
-            This method is called immediately prior to rendering the page for
-            the participant. It will be called again each time the participant
-            refreshes the page.
+        This method is called immediately prior to rendering the page for
+        the participant. It will be called again each time the participant
+        refreshes the page.
         """
         pass
 
     def render(self, experiment, participant):
-        internal_js_vars = {
-            "page_uuid": participant.page_uuid
-        }
+        internal_js_vars = {"page_uuid": participant.page_uuid}
         all_template_arg = {
             **self.template_arg,
-            "init_js_vars": flask.Markup(dict_to_js_vars({**self.js_vars, **internal_js_vars})),
+            "init_js_vars": flask.Markup(
+                dict_to_js_vars({**self.js_vars, **internal_js_vars})
+            ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
             "experiment_progress_bar": self.create_experiment_progress_bar(participant),
@@ -607,7 +624,7 @@ class Page(Event):
             "participant_id": participant.id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
-            "css": self.css
+            "css": self.css,
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
@@ -622,14 +639,17 @@ class Page(Event):
         # pylint: disable=unused-argument
         if not experiment.show_bonus:
             return Footer([""])
-        return Footer([
+        return Footer(
+            [
                 f"Estimated bonus: <strong>&#36;{participant.time_credit.estimate_bonus():.2f}</strong>"
             ],
-            escape=False)
+            escape=False,
+        )
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
+
 
 class PageMaker(Event):
     """
@@ -664,33 +684,32 @@ class PageMaker(Event):
     def resolve(self, experiment, participant):
         page = call_function(
             self.function,
-            {
-                "self": self,
-                "experiment": experiment,
-                "participant": participant
-            }
+            {"self": self, "experiment": experiment, "participant": participant},
         )
         # page = self.function(experiment=experiment, participant=participant)
         if self.time_estimate != page.time_estimate and page.time_estimate is not None:
             logger.warning(
-                f"Observed a mismatch between a page maker's time_estimate slot ({self.time_estimate}) " +
-                f"and the time_estimate slot of the generated page ({page.time_estimate}). " +
-                f"The former will take precedent."
+                f"Observed a mismatch between a page maker's time_estimate slot ({self.time_estimate}) "
+                + f"and the time_estimate slot of the generated page ({page.time_estimate}). "
+                + f"The former will take precedent."
             )
         if not isinstance(page, Page):
-            raise TypeError("The PageMaker function must return an object of class Page.")
+            raise TypeError(
+                "The PageMaker function must return an object of class Page."
+            )
         return page
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
 
+
 def multi_page_maker(
-        label: str,
-        function,
-        expected_num_pages: int,
-        total_time_estimate: int,
-        accumulate_answers: bool = False,
+    label: str,
+    function,
+    expected_num_pages: int,
+    total_time_estimate: int,
+    accumulate_answers: bool = False,
 ):
     """
     Generalises the notion of PageMaker to multiple pages at a time.
@@ -721,6 +740,7 @@ def multi_page_maker(
     A list of test elements that can be incorporated into a timeline using ``join``.
 
     """
+
     def with_namespace(x=None):
         prefix = f"__multi_page_maker__{label}"
         if x is None:
@@ -729,11 +749,7 @@ def multi_page_maker(
 
     def get_page_list(experiment, participant):
         res = call_function(
-            function,
-            {
-                "experiment": experiment,
-                "participant": participant
-            }
+            function, {"experiment": experiment, "participant": participant}
         )
         if isinstance(res, Event):
             return [res]
@@ -744,16 +760,17 @@ def multi_page_maker(
         pages = get_page_list(experiment, participant)
         page = pages[pos]
         if not isinstance(page, Page):
-            raise RuntimeError("The function in multi_page_maker must return a list of Page objects.")
+            raise RuntimeError(
+                "The function in multi_page_maker must return a list of Page objects."
+            )
         return page
 
     def prepare_participant(participant):
         (
-            participant.var
-                .set(with_namespace("complete"), False)
-                .set(with_namespace("pos"), 0)
-                .set(with_namespace("seq_length"), expected_num_pages)
-                .set(with_namespace("answer"), [])
+            participant.var.set(with_namespace("complete"), False)
+            .set(with_namespace("pos"), 0)
+            .set(with_namespace("seq_length"), expected_num_pages)
+            .set(with_namespace("answer"), [])
         )
         if accumulate_answers:
             participant.var.set(with_namespace("accumulated_answers"), [])
@@ -766,7 +783,9 @@ def multi_page_maker(
     def get_updated_answer(participant):
         if participant.answer_is_fresh:
             if accumulate_answers:
-                return participant.var.get(with_namespace("answer")) + [participant.answer]
+                return participant.var.get(with_namespace("answer")) + [
+                    participant.answer
+                ]
             else:
                 return participant.answer
         else:
@@ -775,26 +794,33 @@ def multi_page_maker(
     def update(participant, experiment):
         if accumulate_answers:
             if participant.answer_is_fresh:
-                prev_answers = participant.var.get(with_namespace("accumulated_answers"))
-                participant.var.set(with_namespace("accumulated_answers"), prev_answers + [participant.answer])
+                prev_answers = participant.var.get(
+                    with_namespace("accumulated_answers")
+                )
+                participant.var.set(
+                    with_namespace("accumulated_answers"),
+                    prev_answers + [participant.answer],
+                )
 
         participant.var.set(
             with_namespace("complete"),
-            participant.var.get(with_namespace("pos")) >= get_actual_num_pages(experiment, participant) - 1
+            participant.var.get(with_namespace("pos"))
+            >= get_actual_num_pages(experiment, participant) - 1,
         )
         participant.var.inc(with_namespace("pos"))
 
     update_logic = CodeBlock(update)
 
     show_event = PageMaker(
-        new_function,
-        time_estimate=total_time_estimate / expected_num_pages
+        new_function, time_estimate=total_time_estimate / expected_num_pages
     )
     condition = lambda participant: not participant.var.get(with_namespace("complete"))
 
     def wrapup(participant):
         if accumulate_answers:
-            participant.answer = participant.var.get(with_namespace("accumulated_answers"))
+            participant.answer = participant.var.get(
+                with_namespace("accumulated_answers")
+            )
 
     wrapup_logic = CodeBlock(wrapup)
 
@@ -805,10 +831,11 @@ def multi_page_maker(
             condition=condition,
             logic=[show_event, update_logic],
             expected_repetitions=expected_num_pages,
-            fix_time_credit=False
+            fix_time_credit=False,
         ),
-        wrapup_logic
+        wrapup_logic,
     )
+
 
 class EndPage(PageMaker):
     def __init__(self):
@@ -816,9 +843,7 @@ class EndPage(PageMaker):
             return Page(
                 time_estimate=0,
                 template_str=get_template("final-page.html"),
-                template_arg={
-                    "content": self.get_content(participant)
-                }
+                template_arg={"content": self.get_content(participant)},
             )
 
         super().__init__(f, time_estimate=3)
@@ -866,7 +891,8 @@ class EndPage(PageMaker):
             corresponding to the current participant.
         """
 
-class Timeline():
+
+class Timeline:
     def __init__(self, *args):
         events = join(*args)
         self.events = events
@@ -885,8 +911,12 @@ class Timeline():
 
     def check_for_time_estimate(self):
         for i, event in enumerate(self.events):
-            if (isinstance(event, Page) or isinstance(event, PageMaker)) and event.time_estimate is None:
-                raise ValueError(f"Element {i} of the timeline was missing a time_estimate value.")
+            if (
+                isinstance(event, Page) or isinstance(event, PageMaker)
+            ) and event.time_estimate is None:
+                raise ValueError(
+                    f"Element {i} of the timeline was missing a time_estimate value."
+                )
 
     def check_start_fix_times(self):
         try:
@@ -915,14 +945,24 @@ class Timeline():
 
     def modules(self):
         from .participant import Participant
+
         participants = Participant.query.all()
-        return {"modules": [{"id": event.module.id} for event in self.events
-            if isinstance(event, StartModule)]}
+        return {
+            "modules": [
+                {"id": event.module.id}
+                for event in self.events
+                if isinstance(event, StartModule)
+            ]
+        }
 
     def get_trial_maker(self, trial_maker_id):
         events = self.events
         try:
-            start = [e for e in events if isinstance(e, StartModule) and e.label == trial_maker_id][0]
+            start = [
+                e
+                for e in events
+                if isinstance(e, StartModule) and e.label == trial_maker_id
+            ][0]
         except IndexError:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
         trial_maker = start.module
@@ -934,12 +974,12 @@ class Timeline():
         for i, event in enumerate(self.events):
             if event.id != i:
                 raise ValueError(
-                    f"Failed to set unique IDs for each element in the timeline " +
-                    f"(the element at 0-indexed position {i} ended up with the ID {event.id}). " +
-                    "This usually means that the same Python object instantiation is reused multiple times " +
-                    "in the same timeline. This kind of reusing is not permitted, instead you should " +
-                    "create a fresh instantiation of each element."
-            )
+                    f"Failed to set unique IDs for each element in the timeline "
+                    + f"(the element at 0-indexed position {i} ended up with the ID {event.id}). "
+                    + "This usually means that the same Python object instantiation is reused multiple times "
+                    + "in the same timeline. This kind of reusing is not permitted, instead you should "
+                    + "create a fresh instantiation of each element."
+                )
 
     def __len__(self):
         return len(self.events)
@@ -951,7 +991,9 @@ class Timeline():
         n = participant.event_id
         N = len(self)
         if n >= N:
-            raise ValueError(f"Tried to get element {n + 1} of a timeline with only {N} element(s).")
+            raise ValueError(
+                f"Tried to get element {n + 1} of a timeline with only {N} element(s)."
+            )
         else:
             res = self[n]
             if isinstance(res, PageMaker) and resolve:
@@ -980,7 +1022,8 @@ class Timeline():
     def estimated_completion_time(self, wage_per_hour):
         return self.estimated_time_credit.get_max("time", wage_per_hour=wage_per_hour)
 
-class CreditEstimate():
+
+class CreditEstimate:
     def __init__(self, events):
         self._events = events
         self._max_time = self._estimate_max_time(events)
@@ -996,7 +1039,7 @@ class CreditEstimate():
                 "time_seconds": self._max_time,
                 "time_minutes": self._max_time / 60,
                 "time_hours": self._max_time / (60 * 60),
-                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour)
+                "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour),
             }
 
     def _estimate_max_time(self, events):
@@ -1021,10 +1064,18 @@ class CreditEstimate():
                 pos += 1
 
             elif isinstance(event, StartSwitch):
-                time_credit += max([
-                    self._estimate_max_time(events[events.index(branch_start):(1 + events.index(event.end_switch))])
-                    for key, branch_start in event.branch_start_events.items()
-                ])
+                time_credit += max(
+                    [
+                        self._estimate_max_time(
+                            events[
+                                events.index(branch_start) : (
+                                    1 + events.index(event.end_switch)
+                                )
+                            ]
+                        )
+                        for key, branch_start in event.branch_start_events.items()
+                    ]
+                )
                 pos = events.index(event.end_switch)
 
             elif isinstance(event, EndSwitchBranch):
@@ -1040,6 +1091,7 @@ class CreditEstimate():
 class FailedValidation:
     def __init__(self, message="Invalid response, please try again."):
         self.message = message
+
 
 class Response(Question):
     """
@@ -1074,9 +1126,13 @@ class Response(Question):
     __extra_vars__ = {}
 
     page_type = claim_field(1, "page_type", __extra_vars__, str)
-    successful_validation = claim_field(2, "successful_validation", __extra_vars__, bool)
+    successful_validation = claim_field(
+        2, "successful_validation", __extra_vars__, bool
+    )
 
-    client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
+    client_ip_address = claim_var(
+        "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
+    )
 
     @hybrid_property
     def answer(self):
@@ -1095,12 +1151,11 @@ class Response(Question):
     def var(self):
         return VarStore(self)
 
-    def __init__(self, participant, label, answer, page_type, metadata, client_ip_address):
+    def __init__(
+        self, participant, label, answer, page_type, metadata, client_ip_address
+    ):
         super().__init__(
-            participant=participant,
-            question=label,
-            response="",
-            number=-1
+            participant=participant, question=label, response="", number=-1
         )
         self.answer = answer
         self.metadata = metadata
@@ -1120,16 +1175,23 @@ class Response(Question):
     def metadata(self, metadata):
         self.details = metadata
 
+
 def is_list_of(x: list, what):
     for val in x:
         if not isinstance(val, what):
             return False
     return True
 
+
 def join(*args):
     for i, arg in enumerate(args):
-        if not ((arg is None) or (isinstance(arg, (Event, Module)) or is_list_of(arg, (Event, Module)))):
-            raise TypeError(f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg}).")
+        if not (
+            (arg is None)
+            or (isinstance(arg, (Event, Module)) or is_list_of(arg, (Event, Module)))
+        ):
+            raise TypeError(
+                f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg})."
+            )
 
     if len(args) == 0:
         return []
@@ -1141,6 +1203,7 @@ def join(*args):
         else:
             return args[0]
     else:
+
         def f(x, y):
             if isinstance(x, Module):
                 x = x.resolve()
@@ -1163,6 +1226,7 @@ def join(*args):
 
         return reduce(f, args)
 
+
 class StartWhile(NullEvent):
     def __init__(self, label):
         # targets = {
@@ -1173,12 +1237,20 @@ class StartWhile(NullEvent):
         super().__init__()
         self.label = label
 
+
 class EndWhile(NullEvent):
     def __init__(self, label):
         super().__init__()
         self.label = label
 
-def while_loop(label: str, condition: Callable, logic, expected_repetitions: int, fix_time_credit=True):
+
+def while_loop(
+    label: str,
+    condition: Callable,
+    logic,
+    expected_repetitions: int,
+    fix_time_credit=True,
+):
     """
     Loops a series of events while a given criterion is satisfied.
     The criterion function is evaluated once at the beginning of each loop.
@@ -1229,9 +1301,9 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
             condition,
             conditional_logic,
             fix_time_credit=False,
-            log_chosen_branch=False
+            log_chosen_branch=False,
         ),
-        end_while
+        end_while,
     )
 
     if fix_time_credit:
@@ -1239,6 +1311,7 @@ def while_loop(label: str, condition: Callable, logic, expected_repetitions: int
         return fix_time(events, time_estimate)
     else:
         return events
+
 
 def check_branches(branches):
     try:
@@ -1251,13 +1324,14 @@ def check_branches(branches):
     except AssertionError:
         raise TypeError("<branches> must be a dict of (lists of) Event objects.")
 
+
 def switch(
-        label: str,
-        function: Callable,
-        branches: dict,
-        fix_time_credit: bool = True,
-        log_chosen_branch: bool = True
-    ):
+    label: str,
+    function: Callable,
+    branches: dict,
+    fix_time_credit: bool = True,
+    log_chosen_branch: bool = True,
+):
     """
     Selects a series of events to display to the participant according to a
     certain condition.
@@ -1305,27 +1379,39 @@ def switch(
         all_branch_starts[branch_name] = branch_start
         all_events = all_events + [branch_start] + branch_events + [branch_end]
 
-    start_switch = StartSwitch(label, function, branch_start_events=all_branch_starts, end_switch=end_switch,
-                               log_chosen_branch=log_chosen_branch)
+    start_switch = StartSwitch(
+        label,
+        function,
+        branch_start_events=all_branch_starts,
+        end_switch=end_switch,
+        log_chosen_branch=log_chosen_branch,
+    )
     combined_events = [start_switch] + all_events + [end_switch]
 
     if fix_time_credit:
-        time_estimate = max([
-            CreditEstimate(branch_events).get_max("time")
-            for branch_events in branches.values()
-        ])
+        time_estimate = max(
+            [
+                CreditEstimate(branch_events).get_max("time")
+                for branch_events in branches.values()
+            ]
+        )
         return fix_time(combined_events, time_estimate)
     else:
         return combined_events
 
+
 class StartSwitch(ReactiveGoTo):
-    def __init__(self, label, function, branch_start_events, end_switch, log_chosen_branch=True):
+    def __init__(
+        self, label, function, branch_start_events, end_switch, log_chosen_branch=True
+    ):
         if log_chosen_branch:
+
             def function_2(experiment, participant):
                 val = function(experiment, participant)
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
                 return val
+
             super().__init__(function_2, targets=branch_start_events)
         else:
             super().__init__(function, targets=branch_start_events)
@@ -1339,15 +1425,18 @@ class EndSwitch(NullEvent):
     def __init__(self, label):
         self.label = label
 
+
 class StartSwitchBranch(NullEvent):
     def __init__(self, name):
         super().__init__()
         self.name = name
 
+
 class EndSwitchBranch(GoTo):
     def __init__(self, name, final_event):
         super().__init__(target=final_event)
         self.name = name
+
 
 def conditional(
     label: str,
@@ -1355,8 +1444,8 @@ def conditional(
     logic_if_true,
     logic_if_false=None,
     fix_time_credit: bool = True,
-    log_chosen_branch: bool = True
-    ):
+    log_chosen_branch: bool = True,
+):
     """
     Executes a series of events if and only if a certain condition is satisfied.
 
@@ -1396,26 +1485,31 @@ def conditional(
         function=condition,
         branches={
             True: logic_if_true,
-            False: NullEvent() if logic_if_false is None else logic_if_false
+            False: NullEvent() if logic_if_false is None else logic_if_false,
         },
         fix_time_credit=fix_time_credit,
-        log_chosen_branch=log_chosen_branch
+        log_chosen_branch=log_chosen_branch,
     )
+
 
 class ConditionalEvent(Event):
     def __init__(self, label: str):
         self.label = label
 
+
 class StartConditional(ConditionalEvent):
     pass
 
+
 class EndConditional(ConditionalEvent):
     pass
+
 
 def fix_time(events, time_estimate):
     end_fix_time = EndFixTime(time_estimate)
     start_fix_time = StartFixTime(time_estimate, end_fix_time)
     return join(start_fix_time, events, end_fix_time)
+
 
 def multiply_expected_repetitions(logic, factor: float):
     assert isinstance(logic, Event) or is_list_of(logic, Event)
@@ -1426,7 +1520,8 @@ def multiply_expected_repetitions(logic, factor: float):
             event.multiply_expected_repetitions(factor)
     return logic
 
-class ExperimentProgressBar():
+
+class ExperimentProgressBar:
     def __init__(self, progress: float, show=True, min_pct=5, max_pct=99):
         self.show = show
         self.percentage = round(progress * 100)
@@ -1435,12 +1530,14 @@ class ExperimentProgressBar():
         elif self.percentage < min_pct:
             self.percentage = min_pct
 
-class Footer():
+
+class Footer:
     def __init__(self, text_to_show: List[str], escape=True, show=True):
         self.show = show
         self.text_to_show = [x if escape else flask.Markup(x) for x in text_to_show]
 
-class Module():
+
+class Module:
     default_id = None
     default_events = None
 
@@ -1450,29 +1547,40 @@ class Module():
         if self.default_id is None and id_ is None:
             raise ValueError("Either one of <default_id> or <id_> must not be none.")
         if self.default_events is None and events is None:
-            raise ValueError("Either one of <default_events> or <events> must not be none.")
+            raise ValueError(
+                "Either one of <default_events> or <events> must not be none."
+            )
 
         self.id = id_ if id_ is not None else self.default_id
         self.events = events if events is not None else self.default_events
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
-        return [{"time_started": participant.modules[module_id]["time_started"][0],
-                 "time_finished": participant.modules[module_id]["time_finished"][0]}
-                for participant in participants if module_id in participant.finished_modules]
+        return [
+            {
+                "time_started": participant.modules[module_id]["time_started"][0],
+                "time_finished": participant.modules[module_id]["time_finished"][0],
+            }
+            for participant in participants
+            if module_id in participant.finished_modules
+        ]
 
     @classmethod
     def median_finish_time_in_min(cls, participants, module_id):
-        started_and_finished_times = cls.started_and_finished_times(participants, module_id)
+        started_and_finished_times = cls.started_and_finished_times(
+            participants, module_id
+        )
 
         if not started_and_finished_times:
             return None
 
         durations_in_min = []
         for start_end_times in started_and_finished_times:
-            if not (start_end_times["time_started"] and start_end_times["time_finished"]):
+            if not (
+                start_end_times["time_started"] and start_end_times["time_finished"]
+            ):
                 continue
-            datetime_format = '%Y-%m-%dT%H:%M:%S.%f'
+            datetime_format = "%Y-%m-%dT%H:%M:%S.%f"
             t1 = datetime.strptime(start_end_times["time_started"], datetime_format)
             t2 = datetime.strptime(start_end_times["time_finished"], datetime_format)
             durations_in_min.append((t2 - t1).total_seconds() / 60)
@@ -1485,6 +1593,7 @@ class Module():
     @property
     def started_participants(self):
         from .participant import Participant
+
         participants = Participant.query.all()
         started_participants = [p for p in participants if self.id in p.started_modules]
         started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
@@ -1493,26 +1602,31 @@ class Module():
     @property
     def finished_participants(self):
         from .participant import Participant
+
         participants = Participant.query.all()
-        finished_participants = [p for p in participants if self.id in p.finished_modules]
+        finished_participants = [
+            p for p in participants if self.id in p.finished_modules
+        ]
         finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
         return finished_participants
 
     def resolve(self):
-        return join(
-            StartModule(self.id, module=self),
-            self.events,
-            EndModule(self.id)
-        )
+        return join(StartModule(self.id, module=self), self.events, EndModule(self.id))
 
     def visualize(self):
         phase = self.phase if hasattr(self, "phase") else None
 
         if self.started_participants:
-            time_started_last = self.started_participants[-1].modules[self.id]["time_started"][0]
+            time_started_last = self.started_participants[-1].modules[self.id][
+                "time_started"
+            ][0]
         if self.finished_participants:
-            time_finished_last = self.finished_participants[-1].modules[self.id]["time_finished"][0]
-            median_finish_time_in_min = round(Module.median_finish_time_in_min(self.finished_participants, self.id), 1)
+            time_finished_last = self.finished_participants[-1].modules[self.id][
+                "time_finished"
+            ][0]
+            median_finish_time_in_min = round(
+                Module.median_finish_time_in_min(self.finished_participants, self.id), 1
+            )
 
         div = tags.div()
         with div:
@@ -1524,22 +1638,30 @@ class Module():
                 tags.li(f"Participants started: {len(self.started_participants)}")
                 tags.li(f"Participants finished: {len(self.finished_participants)}")
                 if self.started_participants:
-                    tags.li(f"Participant started last: {format_datetime_string(time_started_last)}")
+                    tags.li(
+                        f"Participant started last: {format_datetime_string(time_started_last)}"
+                    )
                 if self.finished_participants:
-                    tags.li(f"Participant finished last: {format_datetime_string(time_finished_last)}")
+                    tags.li(
+                        f"Participant finished last: {format_datetime_string(time_finished_last)}"
+                    )
                     tags.li(f"Median time spent: {median_finish_time_in_min} min.")
 
         return div.render()
 
     def visualize_tooltip(self):
         if self.finished_participants:
-            median_finish_time_in_min = Module.median_finish_time_in_min(self.finished_participants, self.id)
+            median_finish_time_in_min = Module.median_finish_time_in_min(
+                self.finished_participants, self.id
+            )
 
         span = tags.span()
         with span:
             tags.b(self.id)
             tags.br()
-            tags.span(f"{len(self.started_participants)} started, {len(self.finished_participants)} finished,")
+            tags.span(
+                f"{len(self.started_participants)} started, {len(self.finished_participants)} finished,"
+            )
             if self.finished_participants:
                 tags.br()
                 tags.span(f"{round(median_finish_time_in_min, 1)} min. (median)")
@@ -1547,18 +1669,27 @@ class Module():
         return span.render()
 
     def get_progress_info(self):
-        target_num_participants = (self.target_num_participants
-                                   if hasattr(self, "target_num_participants")
-                                   else None)
+        target_num_participants = (
+            self.target_num_participants
+            if hasattr(self, "target_num_participants")
+            else None
+        )
         # TODO a more sophisticated calculation of progress
-        progress = (len(self.finished_participants) / target_num_participants
-                    if target_num_participants is not None and target_num_participants > 0
-                    else 1)
+        progress = (
+            len(self.finished_participants) / target_num_participants
+            if target_num_participants is not None and target_num_participants > 0
+            else 1
+        )
 
-        return { self.id: { "started_num_participants": len(self.started_participants),
-                            "finished_num_participants": len(self.finished_participants),
-                            "target_num_participants": target_num_participants,
-                            "progress": progress } }
+        return {
+            self.id: {
+                "started_num_participants": len(self.started_participants),
+                "finished_num_participants": len(self.finished_participants),
+                "target_num_participants": target_num_participants,
+                "progress": progress,
+            }
+        }
+
 
 class StartModule(NullEvent):
     def __init__(self, label, module):
@@ -1569,6 +1700,7 @@ class StartModule(NullEvent):
     def consume(self, experiment, participant):
         participant.start_module(self.label)
 
+
 class EndModule(NullEvent):
     def __init__(self, label):
         super().__init__()
@@ -1577,18 +1709,24 @@ class EndModule(NullEvent):
     def consume(self, experiment, participant):
         participant.end_module(self.label)
 
+
 class ExperimentSetupRoutine(NullEvent):
     def __init__(self, function):
         self.check_function(function)
         self.function = function
 
     def check_function(self, function):
-        if not self._is_function(function) and check_function_args(function, ["experiment"]):
-            raise TypeError("<function> must be a function or method of the form f(experiment).")
+        if not self._is_function(function) and check_function_args(
+            function, ["experiment"]
+        ):
+            raise TypeError(
+                "<function> must be a function or method of the form f(experiment)."
+            )
 
     @staticmethod
     def _is_function(x):
         return callable(x)
+
 
 class BackgroundTask(NullEvent):
     def __init__(self, label, function, interval_sec, run_on_launch=False):
@@ -1605,9 +1743,17 @@ class BackgroundTask(NullEvent):
             self.function()
             end_time = time.monotonic()
             time_taken = end_time - start_time
-            logger.info("The background task '%s' completed in %s seconds.", self.label, f"{time_taken:.3f}")
+            logger.info(
+                "The background task '%s' completed in %s seconds.",
+                self.label,
+                f"{time_taken:.3f}",
+            )
         except Exception:
-            logger.info("An exception was thrown in the background task '%s'.", self.label, exc_info=True)
+            logger.info(
+                "An exception was thrown in the background task '%s'.",
+                self.label,
+                exc_info=True,
+            )
 
     def daemon(self):
         if self.run_on_launch:
@@ -1615,6 +1761,7 @@ class BackgroundTask(NullEvent):
         while True:
             gevent.sleep(self.interval_sec)
             self.safe_function()
+
 
 class PreDeployRoutine(NullEvent):
     """
@@ -1634,21 +1781,25 @@ class PreDeployRoutine(NullEvent):
     args
         The arguments for the function to be executed.
     """
+
     def __init__(self, label, function, args):
         check_function_args(function, args=args.keys(), need_all=False)
         self.label = label
         self.function = function
         self.args = args
 
+
 class ParticipantFailRoutine(NullEvent):
     def __init__(self, label, function):
-        check_function_args(function, args=["participant", "experiment"], need_all=False)
+        check_function_args(
+            function, args=["participant", "experiment"], need_all=False
+        )
         self.label = label
         self.function = function
+
 
 class RecruitmentCriterion(NullEvent):
     def __init__(self, label, function):
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
-

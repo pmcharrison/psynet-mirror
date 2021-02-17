@@ -1,20 +1,17 @@
-import errno, json
+import errno
+import json
 import os
 import shutil
 import sys
+
 import click
 import requests
-from yaspin import yaspin
-
-from dallinger.command_line import (
-    data as dallinger_data,
-    debug as dallinger_debug,
-    deploy as dallinger_deploy,
-    log as dallinger_log,
-    sandbox as dallinger_sandbox,
-    verify_id as dallinger_verify_id,
-)
-
+from dallinger.command_line import data as dallinger_data
+from dallinger.command_line import debug as dallinger_debug
+from dallinger.command_line import deploy as dallinger_deploy
+from dallinger.command_line import log as dallinger_log
+from dallinger.command_line import sandbox as dallinger_sandbox
+from dallinger.command_line import verify_id as dallinger_verify_id
 from dallinger.models import (
     Info,
     Network,
@@ -27,8 +24,10 @@ from dallinger.models import (
     Vector,
 )
 from dallinger.utils import get_base_url
+from yaspin import yaspin
 
 from psynet import __version__
+
 from .utils import (
     import_local_experiment,
     json_to_data_frame,
@@ -38,10 +37,12 @@ from .utils import (
 
 FLAGS = set()
 
+
 def clean_sys_modules():
     to_clear = [k for k in sys.modules if k.startswith("dallinger_experiment")]
     for key in to_clear:
         del sys.modules[key]
+
 
 header = r"""
     ____             _   __     __
@@ -54,7 +55,10 @@ header = r"""
 
                 Laboratory automation for
        the behavioral and social sciences.
-""".format(f"v{__version__}")
+""".format(
+    f"v{__version__}"
+)
+
 
 @click.group()
 @click.version_option(__version__, "--version", "-v", message="%(version)s")
@@ -88,9 +92,7 @@ def prepare(force):
 ### debug ###
 @psynet.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
-@click.option(
-    "--bot", is_flag=True, help="Use bot to complete experiment"
-)
+@click.option("--bot", is_flag=True, help="Use bot to complete experiment")
 @click.option(
     "--proxy", default=None, help="Alternate port when opening browser windows"
 )
@@ -107,7 +109,9 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     """
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
-    ctx.invoke(dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers)
+    ctx.invoke(
+        dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers
+    )
 
 
 ### deploy ###
@@ -144,7 +148,12 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
 
 ### estimate ###
 @psynet.command()
-@click.option("--mode", default="both", type=click.Choice(['bonus', 'time', 'both']), help="Type of result. Can be either 'bonus', 'time', or 'both'.")
+@click.option(
+    "--mode",
+    default="both",
+    type=click.Choice(["bonus", "time", "both"]),
+    help="Type of result. Can be either 'bonus', 'time', or 'both'.",
+)
 def estimate(mode):
     """
     Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
@@ -154,10 +163,16 @@ def estimate(mode):
     experiment = setup_experiment_variables(experiment_class)
     if mode in ["bonus", "both"]:
         maximum_bonus = experiment_class.estimated_max_bonus(experiment.wage_per_hour)
-        dallinger_log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
+        dallinger_log(
+            f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}."
+        )
     if mode in ["time", "both"]:
-        completion_time = experiment_class.estimated_completion_time(experiment.wage_per_hour)
-        dallinger_log(f"Estimated time to complete experiment: {format_seconds(completion_time)}.")
+        completion_time = experiment_class.estimated_completion_time(
+            experiment.wage_per_hour
+        )
+        dallinger_log(
+            f"Estimated time to complete experiment: {format_seconds(completion_time)}."
+        )
 
 
 def setup_experiment_variables(experiment_class):
@@ -168,27 +183,33 @@ def setup_experiment_variables(experiment_class):
 
 ### export ###
 @psynet.command()
-@click.option("--app", default=None, required=True, callback=dallinger_verify_id, help="Experiment id")
+@click.option(
+    "--app",
+    default=None,
+    required=True,
+    callback=dallinger_verify_id,
+    help="Experiment id",
+)
 @click.option("--local", is_flag=True, help="Export local data")
 def export(app, local):
     """
-        Export data from an experiment.
+    Export data from an experiment.
 
-        The data is exported in three distinct formats into the 'data/data-<app>'
-        directory of an experiment which has following structure:
+    The data is exported in three distinct formats into the 'data/data-<app>'
+    directory of an experiment which has following structure:
 
-        data/
-        └── data-<app>/
-            ├── csv/
-            ├── db-snapshot/
-            └── json/
+    data/
+    └── data-<app>/
+        ├── csv/
+        ├── db-snapshot/
+        └── json/
 
-        csv:
-            Contains the experiment data in CSV format.
-        db-snapshot:
-            Contains the zip file generated by the default Dallinger export command.
-        json:
-            Contains the experiment data in JSON format.
+    csv:
+        Contains the experiment data in CSV format.
+    db-snapshot:
+        Contains the zip file generated by the default Dallinger export command.
+    json:
+        Contains the experiment data in JSON format.
     """
     dallinger_log(header)
     import_local_experiment()
@@ -208,9 +229,8 @@ def export(app, local):
     for dallinger_model in dallinger_models():
         class_name = dallinger_model.__name__
 
-        result = requests.get(f"{base_url}/export",
-                              params={"class_name": class_name})
-        json_data = json.loads(result.content.decode('utf8'))
+        result = requests.get(f"{base_url}/export", params={"class_name": class_name})
+        json_data = json.loads(result.content.decode("utf8"))
 
         for model_name, json_data in json_data.items():
             base_filename = model_name_to_snake_case(model_name)
@@ -232,17 +252,21 @@ def dallinger_models():
         Vector,
     ]
 
+
 def export_data(base_filename, data_dir_path, json_data):
     for file_format in ["json", "csv"]:
         with yaspin(text=f"Exporting '{file_format}'...", color="green") as spinner:
             base_filepath = os.path.join(data_dir_path, file_format, base_filename)
             with open(f"{base_filepath}.{file_format}", "w") as outfile:
                 if file_format == "json":
-                    json.dump(json_data, outfile, indent=2, sort_keys=False, default=serialise)
+                    json.dump(
+                        json_data, outfile, indent=2, sort_keys=False, default=serialise
+                    )
                 elif file_format == "csv":
                     data_frame = json_to_data_frame(json_data)
                     data_frame.to_csv(outfile, index=False)
             spinner.ok("✔")
+
 
 def create_export_dirs(data_dir_path):
     for file_format in ["csv", "db-snapshot", "json"]:
@@ -253,17 +277,18 @@ def create_export_dirs(data_dir_path):
             if e.errno != errno.EEXIST or not os.path.isdir(export_path):
                 raise
 
+
 def move_snapshot_file(data_dir_path, app):
     try:
         db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
         filename = f"{app}-data.zip"
         shutil.move(
-            os.path.join("data", filename),
-            os.path.join(db_snapshot_path, filename)
+            os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
         )
     except OSError as e:
         if e.errno != errno.EEXIST or not os.path.isdir(db_snapshot_path):
             raise
+
 
 def format_seconds(seconds):
     minutes_and_seconds = divmod(seconds, 60)

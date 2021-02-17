@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.11.1] Unreleased
+
+#### Added
+
+- Enforce standard Python code style with `"black" <https://black.readthedocs.io/en/stable/>`__ and `"isort" <https://github.com/pycqa/isort/>`__.
+
+
 # [1.11.0] Released on 2021-02-13
 
 #### Added

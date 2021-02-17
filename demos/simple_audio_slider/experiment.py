@@ -1,44 +1,44 @@
-import psynet.experiment
-from psynet.timeline import (
-    Timeline
-)
-from psynet.timeline import PageMaker, join, MediaSpec
-from psynet.page import (
-    AudioSliderPage,
-    InfoPage,
-    DebugResponsePage,
-    SuccessfulEndPage
-)
+import json
 
 import rpdb
-import json
 from flask import Markup, escape
 
+import psynet.experiment
+from psynet.page import AudioSliderPage, DebugResponsePage, InfoPage, SuccessfulEndPage
+from psynet.timeline import MediaSpec, PageMaker, Timeline, join
+
+
 def print_dict(x):
-    return "<pre style='overflow: scroll; max-height: 200px'>" + json.dumps(x, indent=4) + "</pre>"
+    return (
+        "<pre style='overflow: scroll; max-height: 200px'>"
+        + json.dumps(x, indent=4)
+        + "</pre>"
+    )
 
     MediaSpec(
         audio={
-            'batch': {
-                'url': '/static/stimuli/bier.batch',
-                'ids': [_id for _id, _ in kwargs["sound_locations"].items()],
-                'type': 'batch'
+            "batch": {
+                "url": "/static/stimuli/bier.batch",
+                "ids": [_id for _id, _ in kwargs["sound_locations"].items()],
+                "type": "batch",
             }
         }
     )
+
 
 def new_example(description, **kwargs):
     assert len(kwargs["sound_locations"]) == 472
     media = MediaSpec(
         audio={
-            'batch': {
-                'url': '/static/stimuli/bier.batch',
-                'ids': [_id for _id, _ in kwargs["sound_locations"].items()],
-                'type': 'batch'
+            "batch": {
+                "url": "/static/stimuli/bier.batch",
+                "ids": [_id for _id, _ in kwargs["sound_locations"].items()],
+                "type": "batch",
             }
         }
     )
-    prompt = Markup(f"""
+    prompt = Markup(
+        f"""
         {escape(description)}
         {print_dict(kwargs)}
         <p>
@@ -56,19 +56,16 @@ def new_example(description, **kwargs):
                 setInterval(update_value, 100);
             }});
         </script>
-        """)
+        """
+    )
     return join(
-        AudioSliderPage(
-            label="slider_page",
-            prompt=prompt,
-            media=media,
-            **kwargs
-        ),
-        DebugResponsePage()
+        AudioSliderPage(label="slider_page", prompt=prompt, media=media, **kwargs),
+        DebugResponsePage(),
     )
 
+
 class CustomExp(psynet.experiment.Experiment):
-    ids = [f'audio_{i}' for i in range(472)]
+    ids = [f"audio_{i}" for i in range(472)]
 
     timeline = Timeline(
         new_example(
@@ -84,7 +81,7 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=471,
             autoplay=True,
             minimal_time=2,
-            time_estimate=5
+            time_estimate=5,
         ),
         new_example(
             """
@@ -98,7 +95,7 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=471,
             autoplay=True,
             minimal_interactions=3,
-            time_estimate=5
+            time_estimate=5,
         ),
         new_example(
             "Same example but with slider snapping to deciles.",
@@ -109,7 +106,7 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=471,
             autoplay=True,
             minimal_interactions=3,
-            time_estimate=5
+            time_estimate=5,
         ),
         new_example(
             "Same example but where the slider can only be dragged through deciles.",
@@ -121,7 +118,7 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=471,
             autoplay=True,
             minimal_interactions=3,
-            time_estimate=5
+            time_estimate=5,
         ),
         new_example(
             "Same example but where the slider can only be dragged through sound locations.",
@@ -133,7 +130,7 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=471,
             autoplay=True,
             minimal_interactions=3,
-            time_estimate=5
+            time_estimate=5,
         ),
         new_example(
             "Same example with non-directional slider.",
@@ -177,7 +174,7 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=260,
             autoplay=True,
             minimal_interactions=1,
-            time_estimate=5
+            time_estimate=5,
         ),
         new_example(
             "Without autoplay, without minimal interactions.",
@@ -188,9 +185,10 @@ class CustomExp(psynet.experiment.Experiment):
             max_value=471,
             autoplay=False,
             minimal_interactions=0,
-            time_estimate=5
+            time_estimate=5,
         ),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = CustomExp().extra_routes()

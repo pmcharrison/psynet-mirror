@@ -1,16 +1,17 @@
 import copy
+import json
 import re
-
-from sqlalchemy import Boolean, String, Integer, Float
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql.expression import cast
 from datetime import datetime
 from functools import wraps
 
-import json
+from sqlalchemy import Boolean, Float, Integer, String
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.sql.expression import cast
 
 from .utils import get_logger
+
 logger = get_logger()
+
 
 def register_extra_var(extra_vars, name, db_index=None, overwrite=False, **kwargs):
     if (not overwrite) and (name in extra_vars):
@@ -19,19 +20,21 @@ def register_extra_var(extra_vars, name, db_index=None, overwrite=False, **kwarg
     if db_index is not None:
         for var in extra_vars.values():
             if var["db_index"] == db_index:
-                raise ValueError(f"tried to create duplicate field for db_index {db_index}")
+                raise ValueError(
+                    f"tried to create duplicate field for db_index {db_index}"
+                )
 
-    extra_vars[name] = {
-        "db_index": db_index,
-        **kwargs
-    }
+    extra_vars[name] = {"db_index": db_index, **kwargs}
+
 
 # Don't apply this decorator to time consuming operations, especially database queries!
 def extra_var(extra_vars):
     def real_decorator(function):
         register_extra_var(extra_vars, function.__name__, overwrite=True)
         return function
+
     return real_decorator
+
 
 def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
     if field_type is int:
@@ -55,8 +58,17 @@ def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
 
     return function
 
-class Field():
-    def __init__(self, db_index, from_db, to_db, permitted_python_types, sql_type, null_value=lambda: None):
+
+class Field:
+    def __init__(
+        self,
+        db_index,
+        from_db,
+        to_db,
+        permitted_python_types,
+        sql_type,
+        null_value=lambda: None,
+    ):
         assert 1 <= db_index and db_index <= 5
         db_field = f"property{db_index}"
 
@@ -83,15 +95,15 @@ class Field():
 
         self.function = function
 
-def claim_var(
-        name,
-        extra_vars: dict,
-        use_default=False,
-        default=lambda: None,
-        serialise=lambda x: x,
-        unserialise=lambda x: x
-    ):
 
+def claim_var(
+    name,
+    extra_vars: dict,
+    use_default=False,
+    default=lambda: None,
+    serialise=lambda x: x,
+    unserialise=lambda x: x,
+):
     @property
     def function(self):
         try:
@@ -109,6 +121,7 @@ def claim_var(
 
     return function
 
+
 def check_type(x, allowed):
     match = False
     for t in allowed:
@@ -117,13 +130,28 @@ def check_type(x, allowed):
     if not match:
         raise TypeError(f"{x} did not have a type in the approved list ({allowed}).")
 
+
 class IntField(Field):
     def __init__(self, db_index):
-        super().__init__(db_index, from_db=int, to_db=int, permitted_python_types=[int], sql_type=Integer)
+        super().__init__(
+            db_index,
+            from_db=int,
+            to_db=int,
+            permitted_python_types=[int],
+            sql_type=Integer,
+        )
+
 
 class FloatField(Field):
     def __init__(self, db_index):
-        super().__init__(db_index, from_db=float, to_db=float, permitted_python_types=[int, float], sql_type=Float)
+        super().__init__(
+            db_index,
+            from_db=float,
+            to_db=float,
+            permitted_python_types=[int, float],
+            sql_type=Float,
+        )
+
 
 class BoolField(Field):
     def __init__(self, db_index):
@@ -141,9 +169,17 @@ class BoolField(Field):
 
         super().__init__(db_index, from_db, to_db, [bool], Boolean)
 
+
 class StrField(Field):
     def __init__(self, db_index):
-        super().__init__(db_index, from_db=str, to_db=str, permitted_python_types=[str], sql_type=String)
+        super().__init__(
+            db_index,
+            from_db=str,
+            to_db=str,
+            permitted_python_types=[str],
+            sql_type=String,
+        )
+
 
 class DictField(Field):
     def __init__(self, db_index):
@@ -153,8 +189,9 @@ class DictField(Field):
             to_db=json.dumps,
             permitted_python_types=[dict],
             sql_type=String,
-            null_value=lambda: {}
+            null_value=lambda: {},
         )
+
 
 class ListField(Field):
     def __init__(self, db_index):
@@ -164,8 +201,9 @@ class ListField(Field):
             to_db=json.dumps,
             permitted_python_types=[list],
             sql_type=String,
-            null_value=lambda: []
+            null_value=lambda: [],
         )
+
 
 class ObjectField(Field):
     def __init__(self, db_index):
@@ -174,11 +212,13 @@ class ObjectField(Field):
             from_db=json.loads,
             to_db=json.dumps,
             permitted_python_types=[object],
-            sql_type=String
+            sql_type=String,
         )
+
 
 class UndefinedVariableError(Exception):
     pass
+
 
 class VarStore:
     """
@@ -225,6 +265,7 @@ class VarStore:
     **WARNING 2:** avoid storing large objects here on account of the performance cost
     of converting to and from JSON.
     """
+
     def __init__(self, owner):
         self._owner = owner
 
@@ -397,6 +438,7 @@ def json_clean(x, details=False, contents=False):
     if contents:
         del x["contents"]
 
+
 def json_add_extra_vars(x, obj):
     def valid_key(key):
         return not re.search("^_", key)
@@ -416,11 +458,15 @@ def json_add_extra_vars(x, obj):
 
     return x
 
+
 def json_format_vars(x):
     for key, value in x.items():
         if isinstance(value, datetime):
             new_val = value.strftime("%Y-%m-%d %H:%M")
-        elif not ((value is None) or isinstance(value, (int, float, str, bool, list, datetime))):
+        elif not (
+            (value is None)
+            or isinstance(value, (int, float, str, bool, list, datetime))
+        ):
             new_val = json.dumps(value)
         else:
             new_val = value

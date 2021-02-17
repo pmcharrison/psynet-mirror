@@ -55,3 +55,27 @@ already, e.g. by running `workon dlgr_env`):
     pip3 install -e .
 
 The `-e` flag makes it editable.
+
+
+Install the Git pre-commit hook
++++++++++++++++++++++++++++++++
+
+With the virtual environment still activated:
+
+.. code-block:: console
+
+    pip install pre-commit
+
+This will install the pre-commit package into the virtual environment. With that in place, each ``git clone`` of ``psynet`` you create will need to have the pre-commit hook installed with:
+
+.. code-block:: console
+
+    pre-commit install
+
+This will install a pre-commit hook to enforce a standard Python source code format via `black <https://black.readthedocs.io/en/stable>`_. You can run the ``black`` code formatter checks manually at any time by running:
+
+.. code-block:: console
+
+    pre-commit run --all-files
+
+You may also want to install a ``black`` plugin for your own code editor, though this is not strictly necessary, since the pre-commit hook will run ``black`` for you on commit.

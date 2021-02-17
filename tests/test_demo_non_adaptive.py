@@ -1,13 +1,19 @@
-import os
-import pytest
 import logging
-import time
+import os
 import re
-
+import time
 from collections import Counter
-from psynet.test import bot_class, next_page
-from psynet.trial.non_adaptive import NonAdaptiveNetwork, Stimulus, StimulusVersion, NonAdaptiveTrial
+
+import pytest
+
 from psynet.participant import Participant
+from psynet.test import bot_class, next_page
+from psynet.trial.non_adaptive import (
+    NonAdaptiveNetwork,
+    NonAdaptiveTrial,
+    Stimulus,
+    StimulusVersion,
+)
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -24,9 +30,9 @@ EXPERIMENT = None
 #     yield
 #     os.chdir(root)
 
-@pytest.mark.usefixtures("demo_non_adaptive")
-class TestExp():
 
+@pytest.mark.usefixtures("demo_non_adaptive")
+class TestExp:
     def test_exp(self, bot_recruits, db_session, trial_maker):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
@@ -63,23 +69,39 @@ class TestExp():
             for _ in range(num_remaining_trials + num_repeat_trials):
                 next_page(driver, "Very much")
 
-            assert driver.find_element_by_id("main-body").text == "You finished the animal questions! Your score was 0.\nNext"
+            assert (
+                driver.find_element_by_id("main-body").text
+                == "You finished the animal questions! Your score was 0.\nNext"
+            )
 
             trials = NonAdaptiveTrial.query.all()
 
-            trials_by_block = Counter([
-                trial.block for trial in trials
-                if trial.participant_id == 1 and not trial.is_repeat_trial
-            ])
-            assert list(trials_by_block.values()) == [2, 2, 2] # 2 trials in each block
+            trials_by_block = Counter(
+                [
+                    trial.block
+                    for trial in trials
+                    if trial.participant_id == 1 and not trial.is_repeat_trial
+                ]
+            )
+            assert list(trials_by_block.values()) == [2, 2, 2]  # 2 trials in each block
 
-            trials_by_stimulus = Counter([
-                trial.stimulus_id for trial in trials
-                if trial.participant_id == 1 and not trial.is_repeat_trial
-            ])
-            assert list(trials_by_stimulus.values()) == [1, 1, 1, 1, 1, 1]  # no stimuli comes twice
+            trials_by_stimulus = Counter(
+                [
+                    trial.stimulus_id
+                    for trial in trials
+                    if trial.participant_id == 1 and not trial.is_repeat_trial
+                ]
+            )
+            assert list(trials_by_stimulus.values()) == [
+                1,
+                1,
+                1,
+                1,
+                1,
+                1,
+            ]  # no stimuli comes twice
 
-            assert len([t for t in trials if t.is_repeat_trial]) == 3 # 3 repeat trials
+            assert len([t for t in trials if t.is_repeat_trial]) == 3  # 3 repeat trials
 
             participant = Participant.query.filter_by(id=1).one()
             p_trials = trial_maker.get_participant_trials(participant=participant)

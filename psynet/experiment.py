@@ -1,49 +1,36 @@
-from datetime import datetime
-from flask import render_template_string, Blueprint, request, render_template, jsonify
-from flask_login import login_required
 import json
 import os
+from datetime import datetime
+
+import dallinger.experiment
 import rpdb
-from pkg_resources import resource_filename
 from dallinger import db
 from dallinger.config import get_config
-import dallinger.experiment
-from dallinger.experiment_server.dashboard import (
-    dashboard,
-    dashboard_tabs
-)
-from dallinger.experiment_server.utils import (
-    success_response,
-    error_response
-)
+from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
+from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
+from flask import Blueprint, jsonify, render_template, render_template_string, request
+from flask_login import login_required
+from pkg_resources import resource_filename
+
+from psynet import __version__, data
 
 from . import field
 from .field import VarStore, claim_var
-from .participant import get_participant, Participant
+from .page import InfoPage, SuccessfulEndPage
+from .participant import Participant, get_participant
 from .timeline import (
-    get_template,
-    Timeline,
-    FailedValidation,
+    BackgroundTask,
     ExperimentSetupRoutine,
+    FailedValidation,
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
-    BackgroundTask
+    Timeline,
+    get_template,
 )
-from .page import (
-    InfoPage,
-    SuccessfulEndPage
-)
-from .utils import (
-    call_function,
-    get_arg_from_dict,
-    get_logger,
-    serialise
-)
-
-from psynet import data, __version__
+from .utils import call_function, get_arg_from_dict, get_logger, serialise
 
 logger = get_logger()
 
@@ -53,7 +40,7 @@ def json_serial(obj):
     if isinstance(obj, datetime):
         serial = obj.isoformat()
         return serial
-    raise TypeError ("Type not serializable")
+    raise TypeError("Type not serializable")
 
 
 class Experiment(dallinger.experiment.Experiment):
@@ -83,19 +70,35 @@ class Experiment(dallinger.experiment.Experiment):
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     timeline = Timeline(
-        InfoPage("Placeholder timeline", time_estimate=5),
-        SuccessfulEndPage()
+        InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
     __extra_vars__ = {}
 
-    psynet_version = claim_var("psynet_version", __extra_vars__, use_default=True, default=__version__)
-    min_browser_version = claim_var("min_browser_version", __extra_vars__, use_default=True, default="80.0")
-    max_participant_payment = claim_var("max_participant_payment", __extra_vars__, use_default=True, default=25.0)
-    soft_max_experiment_payment = claim_var("soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0)
-    soft_max_experiment_payment_email_sent = claim_var("soft_max_experiment_payment_email_sent", __extra_vars__, use_default=True, default=False)
-    wage_per_hour = claim_var("wage_per_hour", __extra_vars__, use_default=True, default=9.0)
-    consent_audiovisual_recordings = claim_var("consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True)
+    psynet_version = claim_var(
+        "psynet_version", __extra_vars__, use_default=True, default=__version__
+    )
+    min_browser_version = claim_var(
+        "min_browser_version", __extra_vars__, use_default=True, default="80.0"
+    )
+    max_participant_payment = claim_var(
+        "max_participant_payment", __extra_vars__, use_default=True, default=25.0
+    )
+    soft_max_experiment_payment = claim_var(
+        "soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0
+    )
+    soft_max_experiment_payment_email_sent = claim_var(
+        "soft_max_experiment_payment_email_sent",
+        __extra_vars__,
+        use_default=True,
+        default=False,
+    )
+    wage_per_hour = claim_var(
+        "wage_per_hour", __extra_vars__, use_default=True, default=9.0
+    )
+    consent_audiovisual_recordings = claim_var(
+        "consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True
+    )
     show_bonus = claim_var("show_bonus", __extra_vars__, use_default=True, default=True)
 
     pre_deploy_routines = []
@@ -151,7 +154,17 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def amount_spent(cls):
-        return sum([(0.0 if (not p.initialised or p.base_payment is None) else p.base_payment) + (0.0 if p.bonus is None else p.bonus) for p in Participant.query.all()])
+        return sum(
+            [
+                (
+                    0.0
+                    if (not p.initialised or p.base_payment is None)
+                    else p.base_payment
+                )
+                + (0.0 if p.bonus is None else p.bonus)
+                for p in Participant.query.all()
+            ]
+        )
 
     @classmethod
     def estimated_max_bonus(cls, wage_per_hour):
@@ -204,7 +217,9 @@ class Experiment(dallinger.experiment.Experiment):
 
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):
-            dashboard_tabs.insert_after_route(tab_title, "dashboard.timeline", "dashboard.monitoring")
+            dashboard_tabs.insert_after_route(
+                tab_title, "dashboard.timeline", "dashboard.monitoring"
+            )
 
     @classmethod
     def pre_deploy(cls):
@@ -216,7 +231,7 @@ class Experiment(dallinger.experiment.Experiment):
         logger.info(
             "Failing participant %i (%i routine(s) found)...",
             participant.id,
-            len(self.participant_fail_routines)
+            len(self.participant_fail_routines),
         )
         participant.failed = True
         participant.time_of_death = datetime.now()
@@ -225,9 +240,11 @@ class Experiment(dallinger.experiment.Experiment):
                 "Executing fail routine %i/%i ('%s')...",
                 i + 1,
                 len(self.participant_fail_routines),
-                routine.label
+                routine.label,
             )
-            call_function(routine.function, {"participant": participant, "experiment": self})
+            call_function(
+                routine.function, {"participant": participant, "experiment": self}
+            )
 
     @property
     def num_working_participants(self):
@@ -249,7 +266,11 @@ class Experiment(dallinger.experiment.Experiment):
 
         need_more = False
         for i, criterion in enumerate(self.recruitment_criteria):
-            logger.info("Evaluating recruitment criterion %i/%i...", i + 1, len(self.recruitment_criteria))
+            logger.info(
+                "Evaluating recruitment criterion %i/%i...",
+                i + 1,
+                len(self.recruitment_criteria),
+            )
             res = call_function(criterion.function, {"experiment": self})
             assert isinstance(res, bool)
             logger.info(
@@ -258,9 +279,10 @@ class Experiment(dallinger.experiment.Experiment):
                 len(self.recruitment_criteria),
                 criterion.label,
                 (
-                    "returned True (more participants needed)." if res
+                    "returned True (more participants needed)."
+                    if res
                     else "returned False (no more participants needed)."
-                )
+                ),
             )
             if res:
                 need_more = True
@@ -291,10 +313,12 @@ class Experiment(dallinger.experiment.Experiment):
             "body": template.format(
                 soft_max_experiment_payment=self.soft_max_experiment_payment,
                 app_id=config.get("id"),
-            )
+            ),
         }
-        logger.info(f"Recruitment ended. Maximum experiment payment "
-                    f"of {self.soft_max_experiment_payment}$ reached!")
+        logger.info(
+            f"Recruitment ended. Maximum experiment payment "
+            f"of {self.soft_max_experiment_payment}$ reached!"
+        )
         admin_notifier(config).send(**message)
 
     def is_complete(self):
@@ -340,7 +364,7 @@ class Experiment(dallinger.experiment.Experiment):
         """
         return round(
             participant.time_credit.get_bonus() + participant.performance_bonus,
-            ndigits=2
+            ndigits=2,
         )
 
     def check_bonus(self, bonus, participant):
@@ -361,13 +385,19 @@ class Experiment(dallinger.experiment.Experiment):
             self.ensure_soft_max_experiment_payment_email_sent()
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.max_participant_payment:
-            reduced_bonus = round(self.max_participant_payment - participant.amount_paid(), 2)
+            reduced_bonus = round(
+                self.max_participant_payment - participant.amount_paid(), 2
+            )
             participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
             return reduced_bonus
         return bonus
 
     def init_participant(self, participant_id, client_ip_address):
-        logger.info("Initialising participant %i, IP address %s...", participant_id, client_ip_address)
+        logger.info(
+            "Initialising participant %i, IP address %s...",
+            participant_id,
+            client_ip_address,
+        )
 
         participant = get_participant(participant_id)
         participant.initialise(self, client_ip_address)
@@ -377,8 +407,12 @@ class Experiment(dallinger.experiment.Experiment):
         self.save()
         return success_response()
 
-    def process_response(self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address):
-        logger.info(f"Received a response from participant {participant_id} on page {page_uuid}.")
+    def process_response(
+        self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address
+    ):
+        logger.info(
+            f"Received a response from participant {participant_id} on page {page_uuid}."
+        )
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
             event = self.timeline.get_current_event(self, participant)
@@ -388,12 +422,10 @@ class Experiment(dallinger.experiment.Experiment):
                 metadata=metadata,
                 experiment=self,
                 participant=participant,
-                client_ip_address=client_ip_address
+                client_ip_address=client_ip_address,
             )
             validation = event.validate(
-                response,
-                experiment=self,
-                participant=participant
+                response, experiment=self, participant=participant
             )
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
@@ -401,40 +433,60 @@ class Experiment(dallinger.experiment.Experiment):
             return self.response_approved()
         else:
             logger.warn(
-                f"Participant {participant_id} tried to submit data with the wrong page_uuid" +
-                f"(submitted = {page_uuid}, required = {participant.page_uuid})."
+                f"Participant {participant_id} tried to submit data with the wrong page_uuid"
+                + f"(submitted = {page_uuid}, required = {participant.page_uuid})."
             )
             return error_response()
 
     def response_approved(self):
         logger.debug("The response was approved.")
-        return success_response(
-            submission="approved"
-        )
+        return success_response(submission="approved")
 
     def response_rejected(self, message):
-        logger.warning("The response was rejected with the following message: '%s'.", message)
-        return success_response(
-            submission="rejected",
-            message=message
+        logger.warning(
+            "The response was rejected with the following message: '%s'.", message
         )
+        return success_response(submission="rejected", message=message)
 
     @classmethod
     def extra_files(cls):
         return [
-            (resource_filename('psynet', 'resources/favicon.ico'), "/static/favicon.ico"),
-            (resource_filename('psynet', 'resources/logo.png'), "/static/images/logo.png"),
-            (resource_filename('psynet', 'resources/logo.svg'), "/static/images/logo.svg"),
-            (resource_filename('psynet', 'resources/scripts/dashboard_timeline.js'), "/static/scripts/dashboard_timeline.js"),
-            (resource_filename('psynet', 'resources/css/dashboard_timeline.css'), "/static/css/dashboard_timeline.css"),
-            (resource_filename('psynet', 'resources/libraries/raphael-2.3.0/raphael.min.js'), "/static/scripts/raphael-2.3.0.min.js")
+            (
+                resource_filename("psynet", "resources/favicon.ico"),
+                "/static/favicon.ico",
+            ),
+            (
+                resource_filename("psynet", "resources/logo.png"),
+                "/static/images/logo.png",
+            ),
+            (
+                resource_filename("psynet", "resources/logo.svg"),
+                "/static/images/logo.svg",
+            ),
+            (
+                resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
+                "/static/scripts/dashboard_timeline.js",
+            ),
+            (
+                resource_filename("psynet", "resources/css/dashboard_timeline.css"),
+                "/static/css/dashboard_timeline.css",
+            ),
+            (
+                resource_filename(
+                    "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
+                ),
+                "/static/scripts/raphael-2.3.0.min.js",
+            ),
         ]
 
     def extra_routes(self):
-        #pylint: disable=unused-variable
+        # pylint: disable=unused-variable
 
         routes = Blueprint(
-            "extra_routes", __name__, template_folder="templates", static_folder="static"
+            "extra_routes",
+            __name__,
+            template_folder="templates",
+            static_folder="static",
         )
 
         if not hasattr(dashboard, "timeline"):
@@ -450,7 +502,9 @@ class Experiment(dallinger.experiment.Experiment):
                     "dashboard_timeline.html",
                     title="Timeline modules",
                     panes=panes,
-                    timeline_modules=json.dumps(exp.timeline.modules(), default=serialise)
+                    timeline_modules=json.dumps(
+                        exp.timeline.modules(), default=serialise
+                    ),
                 )
 
         @routes.route("/export", methods=["GET"])
@@ -499,12 +553,18 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/metadata", methods=["GET"])
         def get_metadata():
             exp = self.new(db.session)
-            return jsonify({
-                "duration_seconds": exp.timeline.estimated_time_credit.get_max(mode="time"),
-                "bonus_dollars": exp.timeline.estimated_time_credit.get_max(mode="bonus", wage_per_hour=exp.wage_per_hour),
-                "wage_per_hour": exp.wage_per_hour,
-                "base_payment": exp.base_payment
-            })
+            return jsonify(
+                {
+                    "duration_seconds": exp.timeline.estimated_time_credit.get_max(
+                        mode="time"
+                    ),
+                    "bonus_dollars": exp.timeline.estimated_time_credit.get_max(
+                        mode="bonus", wage_per_hour=exp.wage_per_hour
+                    ),
+                    "wage_per_hour": exp.wage_per_hour,
+                    "base_payment": exp.base_payment,
+                }
+            )
 
         @routes.route("/consent")
         def consent():
@@ -519,12 +579,13 @@ class Experiment(dallinger.experiment.Experiment):
                 contact_email_on_error=config.get("contact_email_on_error"),
                 min_browser_version=self.min_browser_version,
                 wage_per_hour=f"{exp.wage_per_hour:.2f}",
-                consent_audiovisual_recordings=self.consent_audiovisual_recordings
+                consent_audiovisual_recordings=self.consent_audiovisual_recordings,
             )
 
         @routes.route("/node/<int:node_id>/fail", methods=["GET", "POST"])
         def fail_node(node_id):
             from dallinger.models import Node
+
             node = Node.query.filter_by(id=node_id).one()
             node.fail()
             db.session.commit()
@@ -533,6 +594,7 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/info/<int:info_id>/fail", methods=["GET", "POST"])
         def fail_info(info_id):
             from dallinger.models import Info
+
             info = Info.query.filter_by(id=info_id).one()
             info.fail()
             db.session.commit()
@@ -541,51 +603,56 @@ class Experiment(dallinger.experiment.Experiment):
         @routes.route("/network/<int:network_id>/grow", methods=["GET", "POST"])
         def grow_network(network_id):
             from .trial.main import TrialNetwork
+
             network = TrialNetwork.query.filter_by(id=network_id).one()
             trial_maker = self.timeline.get_trial_maker(network.trial_maker_id)
             trial_maker._grow_network(network, participant=None, experiment=self)
             db.session.commit()
             return success_response()
 
-        @routes.route("/network/<int:network_id>/call_async_post_grow_network", methods=["GET", "POST"])
+        @routes.route(
+            "/network/<int:network_id>/call_async_post_grow_network",
+            methods=["GET", "POST"],
+        )
         def call_async_post_grow_network(network_id):
             from .trial.main import TrialNetwork, call_async_post_grow_network
+
             network = TrialNetwork.query.filter_by(id=network_id).one()
             network.queue_async_process(call_async_post_grow_network)
             db.session.commit()
             return success_response()
 
         def get_client_ip_address():
-            if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
-                return request.environ['REMOTE_ADDR']
+            if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
+                return request.environ["REMOTE_ADDR"]
             else:
-                return request.environ['HTTP_X_FORWARDED_FOR']
+                return request.environ["HTTP_X_FORWARDED_FOR"]
 
         @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
         def route_timeline(participant_id, assignment_id):
             from dallinger.experiment_server.utils import error_page
+
             exp = self.new(db.session)
             participant = get_participant(participant_id)
 
             if participant.assignment_id != assignment_id:
                 logger.error(
-                    f"Mismatch between provided assignment_id ({assignment_id})  " +
-                    f"and actual assignment_id {participant.assignment_id} "
+                    f"Mismatch between provided assignment_id ({assignment_id})  "
+                    + f"and actual assignment_id {participant.assignment_id} "
                     f"for participant {participant_id}."
                 )
                 msg = (
-                    "There was a problem authenticating your session, " +
-                    "did you switch browsers? Unfortunately this is not currently " +
-                    "supported by our system."
+                    "There was a problem authenticating your session, "
+                    + "did you switch browsers? Unfortunately this is not currently "
+                    + "supported by our system."
                 )
-                return error_page(
-                    participant=participant,
-                    error_text=msg
-                )
+                return error_page(participant=participant, error_text=msg)
 
             else:
                 if not participant.initialised:
-                    exp.init_participant(participant_id, client_ip_address=get_client_ip_address())
+                    exp.init_participant(
+                        participant_id, client_ip_address=get_client_ip_address()
+                    )
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
@@ -599,16 +666,27 @@ class Experiment(dallinger.experiment.Experiment):
 
             participant_id = get_arg_from_dict(json_data, "participant_id")
             page_uuid = get_arg_from_dict(json_data, "page_uuid")
-            raw_answer = get_arg_from_dict(json_data, "raw_answer", use_default=True, default=None)
+            raw_answer = get_arg_from_dict(
+                json_data, "raw_answer", use_default=True, default=None
+            )
             metadata = get_arg_from_dict(json_data, "metadata")
             client_ip_address = get_client_ip_address()
 
-            res = exp.process_response(participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address)
+            res = exp.process_response(
+                participant_id,
+                raw_answer,
+                blobs,
+                metadata,
+                page_uuid,
+                client_ip_address,
+            )
 
             exp.save()
             return res
 
-        @routes.route("/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"])
+        @routes.route(
+            "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
+        )
         def log(level, participant_id, assignment_id):
             participant = get_participant(participant_id)
             message = request.values["message"]
@@ -619,7 +697,7 @@ class Experiment(dallinger.experiment.Experiment):
                     "(expected %s, got %s).",
                     participant_id,
                     participant.assignment_id,
-                    assignment_id
+                    assignment_id,
                 )
 
             assert level in ["warning", "info", "error"]

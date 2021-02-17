@@ -3,15 +3,10 @@
 ##########################################################################################
 
 import psynet.experiment
+from psynet.demography.general import BasicDemography, Dance, HearingLoss
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import AttentionCheck
 from psynet.timeline import Timeline
-
-from psynet.demography.general import (
-    BasicDemography,
-    HearingLoss,
-    Dance
-)
 
 ##########################################################################################
 #### Experiment
@@ -30,7 +25,8 @@ class Exp(psynet.experiment.Experiment):
         AttentionCheck(),
         HearingLoss(),
         Dance(),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

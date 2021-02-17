@@ -4,40 +4,41 @@
 #### Imports
 ##########################################################################################
 
-from flask import Markup
-from statistics import mean
 import random
 import re
+from statistics import mean
+
+from flask import Markup
 
 import psynet.experiment
 from psynet.field import claim_field
-from psynet.participant import Participant, get_participant
-from psynet.timeline import (
-    Page,
-    Timeline,
-    PageMaker,
-    CodeBlock,
-    while_loop,
-    conditional,
-    switch,
-    FailedValidation
-)
 from psynet.page import (
     InfoPage,
-    SuccessfulEndPage,
     NAFCPage,
     NumberInputPage,
-    TextInputPage
+    SuccessfulEndPage,
+    TextInputPage,
+)
+from psynet.participant import Participant, get_participant
+from psynet.timeline import (
+    CodeBlock,
+    FailedValidation,
+    Page,
+    PageMaker,
+    Timeline,
+    conditional,
+    switch,
+    while_loop,
 )
 from psynet.trial.imitation_chain import (
-    ImitationChainTrial,
+    ImitationChainNetwork,
     ImitationChainNode,
     ImitationChainSource,
+    ImitationChainTrial,
     ImitationChainTrialMaker,
-    ImitationChainNetwork
 )
-
 from psynet.utils import get_logger
+
 logger = get_logger()
 
 import rpdb
@@ -45,6 +46,7 @@ import rpdb
 ##########################################################################################
 #### Stimuli
 ##########################################################################################
+
 
 class FixedDigitInputPage(TextInputPage):
     num_digits = 7
@@ -63,6 +65,7 @@ class FixedDigitInputPage(TextInputPage):
             return FailedValidation("Please enter a 7-digit number.")
         return None
 
+
 class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
@@ -72,13 +75,12 @@ class CustomTrial(ImitationChainTrial):
         page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
         page_2 = FixedDigitInputPage("number", "What was the number?")
 
-        return [
-            page_1,
-            page_2
-        ]
+        return [page_1, page_2]
+
 
 class CustomNetwork(ImitationChainNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
+
 
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -86,15 +88,18 @@ class CustomNode(ImitationChainNode):
     def summarise_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
 
+
 class CustomSource(ImitationChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 
+
 class CustomTrialMaker(ImitationChainTrialMaker):
     response_timeout_sec = 60
     check_timeout_interval = 30
+
 
 ##########################################################################################
 #### Experiment
@@ -125,14 +130,15 @@ class Exp(psynet.experiment.Experiment):
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_participants",
-            target_num_participants=10
+            target_num_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
+
 
 extra_routes = Exp().extra_routes()

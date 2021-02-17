@@ -1,28 +1,22 @@
 import psynet.experiment
-from psynet.timeline import (
-    Timeline,
-)
-from psynet.page import (
-    SuccessfulEndPage,
-    VolumeCalibration,
-    InfoPage
-)
 from psynet.media import prepare_s3_bucket_for_presigned_urls
-from psynet.modular_page import(
-    ModularPage,
+from psynet.modular_page import (
+    AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
+    ModularPage,
     PushButtonControl,
-    AudioMeterControl
 )
-from psynet.timeline import PreDeployRoutine
+from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
+from psynet.timeline import PreDeployRoutine, Timeline
 from psynet.trial.non_adaptive import (
-    NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
+    NonAdaptiveTrialMaker,
     StimulusSet,
     StimulusSpec,
-    StimulusVersionSpec
+    StimulusVersionSpec,
 )
+
 from .custom_synth import synth_stimulus
 
 ##########################################################################################
@@ -32,6 +26,7 @@ from .custom_synth import synth_stimulus
 # Prepare the audio stimuli by running the following command:
 # python3 experiment.py
 
+
 class CustomStimulusVersionSpec(StimulusVersionSpec):
     has_media = True
     media_ext = ".wav"
@@ -39,6 +34,7 @@ class CustomStimulusVersionSpec(StimulusVersionSpec):
     @classmethod
     def generate_media(cls, definition, output_path):
         synth_stimulus(definition["frequencies"], output_path)
+
 
 stimuli = [
     StimulusSpec(
@@ -49,18 +45,26 @@ stimuli = [
             CustomStimulusVersionSpec(
                 definition={
                     "start_frequency": start_frequency,
-                    "frequencies": [start_frequency + i * frequency_gradient for i in range(5)]
+                    "frequencies": [
+                        start_frequency + i * frequency_gradient for i in range(5)
+                    ],
                 }
             )
             for start_frequency in [-100, 0, 100]
         ],
-        phase="experiment"
+        phase="experiment",
     )
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet("non_adaptive_audio", stimuli, version="v3", s3_bucket="non-adaptive-audio-demo-stimuli")
+stimulus_set = StimulusSet(
+    "non_adaptive_audio",
+    stimuli,
+    version="v3",
+    s3_bucket="non-adaptive-audio-demo-stimuli",
+)
 recordings_s3_bucket = "non-adaptive-audio-demo-stimuli-recordings"
+
 
 class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -68,20 +72,23 @@ class CustomTrial(NonAdaptiveTrial):
     def show_trial(self, experiment, participant):
         return ModularPage(
             "question_page",
-            AudioPrompt(self.media_url, "Please imitate the spoken word as closely as possible."),
-            AudioRecordControl(
-                duration=3.0,
-                s3_bucket=recordings_s3_bucket,
-                public_read=True
+            AudioPrompt(
+                self.media_url, "Please imitate the spoken word as closely as possible."
             ),
-            time_estimate=5
+            AudioRecordControl(
+                duration=3.0, s3_bucket=recordings_s3_bucket, public_read=True
+            ),
+            time_estimate=5,
         )
 
     def show_feedback(self, experiment, participant):
         return ModularPage(
             "feedback_page",
-            AudioPrompt(participant.answer["url"], "Listen back to your recording. Did you do a good job?"),
-            time_estimate=2
+            AudioPrompt(
+                participant.answer["url"],
+                "Listen back to your recording. Did you do a good job?",
+            ),
+            time_estimate=2,
         )
 
 
@@ -93,7 +100,11 @@ class Exp(psynet.experiment.Experiment):
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
-            {"bucket_name": recordings_s3_bucket, "public_read": True, "create_new_bucket": True}
+            {
+                "bucket_name": recordings_s3_bucket,
+                "public_read": True,
+                "create_new_bucket": True,
+            },
         ),
         VolumeCalibration(),
         ModularPage(
@@ -104,14 +115,14 @@ class Exp(psynet.experiment.Experiment):
             closer or increasing the input volume on your computer.
             """,
             AudioMeterControl(),
-            time_estimate=5
+            time_estimate=5,
         ),
         InfoPage(
             """
             In this experiment you will hear some words. Your task will be to repeat
             them back as accurately as possible.
             """,
-            time_estimate=5
+            time_estimate=5,
         ),
         NonAdaptiveTrialMaker(
             id_="non_adaptive_audio",
@@ -120,9 +131,10 @@ class Exp(psynet.experiment.Experiment):
             stimulus_set=stimulus_set,
             time_estimate_per_trial=5,
             target_num_participants=3,
-            recruit_mode="num_participants"
+            recruit_mode="num_participants",
         ),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

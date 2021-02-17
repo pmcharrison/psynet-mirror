@@ -10,17 +10,17 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.timeline import (
-    Timeline
-)
-from psynet.page import (
-    InfoPage,
-    SuccessfulEndPage
-)
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
-    AudioGibbsNetwork, AudioGibbsTrial, AudioGibbsNode, AudioGibbsSource, AudioGibbsTrialMaker
+    AudioGibbsNetwork,
+    AudioGibbsNode,
+    AudioGibbsSource,
+    AudioGibbsTrial,
+    AudioGibbsTrialMaker,
 )
 from psynet.utils import get_logger
+
 logger = get_logger()
 
 import rpdb
@@ -33,14 +33,15 @@ GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True # set this to False if you deploy online, so that the stimuli will be stored in S3
+psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
+
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
     synth_function_location = {
         "module_name": "custom_synth",
-        "function_name": "synth_stimulus"
+        "function_name": "synth_stimulus",
     }
 
     s3_bucket = "audio-gibbs-demo"
@@ -49,9 +50,8 @@ class CustomNetwork(AudioGibbsNetwork):
     granularity = GRANULARITY
 
     def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS)
-        }
+        return {"target": self.balance_across_networks(TARGETS)}
+
 
 class CustomTrial(AudioGibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -68,11 +68,14 @@ class CustomTrial(AudioGibbsTrial):
             "as possible."
         )
 
+
 class CustomNode(AudioGibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
+
 class CustomSource(AudioGibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
+
 
 class CustomTrialMaker(AudioGibbsTrialMaker):
     performance_threshold = -1.0
@@ -82,9 +85,12 @@ class CustomTrialMaker(AudioGibbsTrialMaker):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
 
         return InfoPage(
-            Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
-            time_estimate=5
+            Markup(
+                f"Your consistency score was <strong>{score_to_display}&#37;</strong>."
+            ),
+            time_estimate=5,
         )
+
 
 trial_maker = CustomTrialMaker(
     id_="audio_gibbs_demo",
@@ -92,13 +98,13 @@ trial_maker = CustomTrialMaker(
     trial_class=CustomTrial,
     node_class=CustomNode,
     source_class=CustomSource,
-    phase="experiment", # can be whatever you like
+    phase="experiment",  # can be whatever you like
     time_estimate_per_trial=5,
-    chain_type="within", # can be "within" or "across"
+    chain_type="within",  # can be "within" or "across"
     num_trials_per_participant=21,
     num_iterations_per_chain=7,
-    num_chains_per_participant=3, # set to None if chain_type="across"
-    num_chains_per_experiment=None, # set to None if chain_type="within"
+    num_chains_per_participant=3,  # set to None if chain_type="across"
+    num_chains_per_experiment=None,  # set to None if chain_type="within"
     trials_per_node=1,
     active_balancing_across_chains=True,
     check_performance_at_end=True,
@@ -106,7 +112,7 @@ trial_maker = CustomTrialMaker(
     propagate_failure=False,
     recruit_mode="num_participants",
     target_num_participants=10,
-    wait_for_networks=True
+    wait_for_networks=True,
 )
 
 ##########################################################################################
@@ -117,15 +123,13 @@ trial_maker = CustomTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    timeline = Timeline(
-        trial_maker,
-        SuccessfulEndPage()
-    )
+    timeline = Timeline(trial_maker, SuccessfulEndPage())
 
     def __init__(self, session=None):
         super().__init__(session)
 
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
+
 
 extra_routes = Exp().extra_routes()
