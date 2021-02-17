@@ -1,9 +1,11 @@
+.. _Deploy tokens:
+
 Deploy tokens
 -------------
 
 There already exists a deploy token in GitLab which allows you to deploy your `PsyNet` experiment (see :doc:`basic_usage`). But if you want to use a custom package in a deployed/sandboxed experiment, you will need to create a new deploy token.
 
-The steps are as follows: 
+The steps are as follows:
 
 #.
   Go to the package repository in GitLab.
