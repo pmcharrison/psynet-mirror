@@ -234,7 +234,8 @@ class MotherTongue(ModularPage):
     def __init__(
         self,
         label="mother_tongue",
-        prompt="What is your mother tongue(s) - i.e., the language(s) which you have grown up speaking from early childhood)?"
+        # TODO Change back to plural (add "(s)") once multi-select is implemented.
+        prompt="What is your mother tongue - i.e., the language which you have grown up speaking from early childhood)?"
     ):
         self.label = label
         self.prompt = prompt
