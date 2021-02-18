@@ -1,12 +1,13 @@
 import pytest
 
 from psynet.trial.chain import (
-    ChainTrialMaker,
     ChainNetwork,
-    ChainSource,
     ChainNode,
-    ChainTrial
+    ChainSource,
+    ChainTrial,
+    ChainTrialMaker,
 )
+
 
 def new_trial_maker(**kwarg):
     args = dict(
@@ -26,10 +27,11 @@ def new_trial_maker(**kwarg):
         check_performance_at_end=True,
         check_performance_every_trial=False,
         recruit_mode="num_trials",
-        target_num_participants=None
+        target_num_participants=None,
     )
     all_args = {**args, **kwarg}
     return ChainTrialMaker(**all_args)
+
 
 def test_num_iterations():
     with pytest.deprecated_call():
@@ -41,7 +43,4 @@ def test_num_iterations():
     assert tm2.num_nodes_per_chain == 11
 
     with pytest.raises(ValueError):
-        tm3 = new_trial_maker(
-            num_nodes_per_chain=10,
-            num_iterations_per_chain=5
-        )
+        new_trial_maker(num_nodes_per_chain=10, num_iterations_per_chain=5)

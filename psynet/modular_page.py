@@ -1,30 +1,20 @@
-import json, os, tempfile
+import json
+import os
+from typing import Dict, List, Optional, Union
 from urllib.parse import splitquery, urlparse
+
 from dominate import tags
 from dominate.util import raw
-
 from flask import Markup
-from typing import Union, Optional, List
-from uuid import uuid4
-from scipy.io import wavfile
 
-from .timeline import (
-    FailedValidation,
-    Page,
-    MediaSpec,
-    is_list_of
-)
-from .media import (
-    get_s3_url,
-    generate_presigned_url,
-    prepare_s3_bucket_for_presigned_urls
-)
-
+from .media import generate_presigned_url
+from .timeline import FailedValidation, MediaSpec, Page, is_list_of
 from .utils import get_logger
 
 logger = get_logger()
 
-class Prompt():
+
+class Prompt:
     """
     The ``Prompt`` class displays some kind of media to the participant,
     to which they will have to respond.
@@ -66,11 +56,7 @@ class Prompt():
         in PsyNet's built-in ``prompt.html`` file.
     """
 
-    def __init__(
-            self,
-            text: Union[None, str, Markup] = None,
-            text_align: str = "left"
-        ):
+    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left"):
         self.text = text
         self.text_align = text_align
 
@@ -79,9 +65,7 @@ class Prompt():
 
     @property
     def metadata(self):
-        return {
-            "text": self.text
-        }
+        return {"text": self.text}
 
     @property
     def media(self):
@@ -97,6 +81,7 @@ class Prompt():
 
     def pre_render(self):
         pass
+
 
 class AudioPrompt(Prompt):
     """
@@ -144,18 +129,19 @@ class AudioPrompt(Prompt):
         otherwise, the audio file finishes playback at this timepoint (in seconds).
         The behaviour is undefined when the time window extends past the end of the audio file.
     """
+
     def __init__(
-            self,
-            url: str,
-            text: Union[str, Markup],
-            loop: bool = False,
-            prevent_response: bool = True,
-            prevent_submit: bool = True,
-            enable_submit_after: Optional[float] = None,
-            start_delay = 0.0,
-            text_align = "left",
-            play_window: Optional[List] = None
-        ):
+        self,
+        url: str,
+        text: Union[str, Markup],
+        loop: bool = False,
+        prevent_response: bool = True,
+        prevent_submit: bool = True,
+        enable_submit_after: Optional[float] = None,
+        start_delay=0.0,
+        text_align="left",
+        play_window: Optional[List] = None,
+    ):
         if play_window is None:
             play_window = [None, None]
         assert len(play_window) == 2
@@ -172,21 +158,13 @@ class AudioPrompt(Prompt):
         self.start_delay = start_delay
         self.play_window = play_window
 
-        self.js_play_options = dict(
-            loop=loop,
-            start=play_window[0],
-            end=play_window[1]
-        )
+        self.js_play_options = dict(loop=loop, start=play_window[0], end=play_window[1])
 
     macro = "audio"
 
     @property
     def metadata(self):
-        return {
-            "text": self.text,
-            "url": self.url,
-            "play_window": self.play_window
-        }
+        return {"text": self.text, "url": self.url, "play_window": self.play_window}
 
     @property
     def media(self):
@@ -197,15 +175,14 @@ class AudioPrompt(Prompt):
         src = f"{self.url}#t={'' if start is None else start},{'' if end is None else end}"
 
         html = (
-            super().visualize(trial) +
-            "\n" +
-            tags.audio(
-                tags.source(src=src),
-                id="visualize-audio-prompt",
-                controls=True
+            super().visualize(trial)
+            + "\n"
+            + tags.audio(
+                tags.source(src=src), id="visualize-audio-prompt", controls=True
             ).render()
         )
         return html
+
 
 class ImagePrompt(Prompt):
     """
@@ -243,17 +220,18 @@ class ImagePrompt(Prompt):
         CSS alignment of the text.
 
     """
+
     def __init__(
-            self,
-            url: str,
-            text: Union[str, Markup],
-            width: str,
-            height: str,
-            hide_after: Optional[float] = None,
-            margin_top: str = "0px",
-            margin_bottom: str = "0px",
-            text_align: str = "left"
-        ):
+        self,
+        url: str,
+        text: Union[str, Markup],
+        width: str,
+        height: str,
+        hide_after: Optional[float] = None,
+        margin_top: str = "0px",
+        margin_bottom: str = "0px",
+        text_align: str = "left",
+    ):
         super().__init__(text=text, text_align=text_align)
         self.url = url
         self.width = width
@@ -266,11 +244,8 @@ class ImagePrompt(Prompt):
 
     @property
     def metadata(self):
-        return {
-            "text": self.text,
-            "url": self.url,
-            "hide_after": self.hide_after
-        }
+        return {"text": self.text, "url": self.url, "hide_after": self.hide_after}
+
 
 class ColourPrompt(Prompt):
     """
@@ -296,14 +271,15 @@ class ColourPrompt(Prompt):
         CSS alignment of the text.
 
     """
+
     def __init__(
-            self,
-            colour: List[float],
-            text: Union[str, Markup],
-            width: str = "200px",
-            height: str = "200px",
-            text_align: str = "left"
-        ):
+        self,
+        colour: List[float],
+        text: Union[str, Markup],
+        width: str = "200px",
+        height: str = "200px",
+        text_align: str = "left",
+    ):
         assert isinstance(colour, list)
         super().__init__(text=text, text_align=text_align)
         self.hsl = colour
@@ -314,12 +290,10 @@ class ColourPrompt(Prompt):
 
     @property
     def metadata(self):
-        return {
-            "text": self.text,
-            "hsl": self.hsl
-        }
+        return {"text": self.text, "hsl": self.hsl}
 
-class Control():
+
+class Control:
     """
     The ``Control`` class provides some kind of controls for the participant,
     with which they will provide their response.
@@ -446,10 +420,12 @@ class Control():
     def pre_render(self):
         pass
 
+
 class NullControl(Control):
     """
     Here the participant just has a single button that takes them to the next page.
     """
+
     macro = "null"
     metadata = {}
 
@@ -509,21 +485,25 @@ class CheckboxControl(OptionControl):
     force_selection:
         Determines if at least checkbox has to be ticked. Default: False.
 
+    show_reset_button
+        Whether to display a 'Reset' button to allow for unsetting ticked checkboxes. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when at least one checkbox is ticked. Default: ``never``.
     """
 
     def __init__(
-            self,
-            choices: List[str],
-            labels: Optional[List[str]] = None,
-            style: str = "",
-            name: str = "",
-            arrange_vertically: bool = True,
-            force_selection: bool = False,
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        style: str = "",
+        name: str = "",
+        arrange_vertically: bool = True,
+        force_selection: bool = False,
+        show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
+        self.show_reset_button = show_reset_button
 
         self.checkboxes = [
             Checkbox(
@@ -546,7 +526,9 @@ class CheckboxControl(OptionControl):
                     id=choice,
                     name=self.name,
                     value=choice,
-                    checked=(True if answer is not None and choice in answer else False),
+                    checked=(
+                        True if answer is not None and choice in answer else False
+                    ),
                 )
                 tags.span(label)
                 tags.br()
@@ -558,7 +540,7 @@ class CheckboxControl(OptionControl):
         return None
 
 
-class Checkbox():
+class Checkbox:
     def __init__(self, id_, *, name, label, start_disabled=False, style=""):
         self.id = id_
         self.name = name
@@ -592,13 +574,13 @@ class DropdownControl(OptionControl):
     """
 
     def __init__(
-            self,
-            choices: List[str],
-            labels: Optional[List[str]] = None,
-            style: str = "",
-            name: str = "",
-            force_selection: bool = True,
-            default_text = "Select an option",
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        style: str = "",
+        name: str = "",
+        force_selection: bool = True,
+        default_text="Select an option",
     ):
         super().__init__(choices, labels, style)
         self.name = name
@@ -606,10 +588,7 @@ class DropdownControl(OptionControl):
         self.default_text = default_text
 
         self.dropdown = [
-            DropdownOption(
-                value=value,
-                text=text
-            )
+            DropdownOption(value=value, text=text)
             for value, text in zip(self.choices, self.labels)
         ]
 
@@ -638,7 +617,7 @@ class DropdownControl(OptionControl):
         return None
 
 
-class DropdownOption():
+class DropdownOption:
     def __init__(self, value, text):
         self.value = value
         self.text = text
@@ -666,11 +645,11 @@ class PushButtonControl(OptionControl):
     """
 
     def __init__(
-            self,
-            choices: List[str],
-            labels: Optional[List[str]] = None,
-            style: str = "min-width: 100px; margin: 10px",
-            arrange_vertically: bool = True,
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        style: str = "min-width: 100px; margin: 10px",
+        arrange_vertically: bool = True,
     ):
         super().__init__(choices, labels, style)
         self.arrange_vertically = arrange_vertically
@@ -681,7 +660,7 @@ class PushButtonControl(OptionControl):
                 label=label,
                 style=self.style,
                 arrange_vertically=self.arrange_vertically,
-                timed=self.timed
+                timed=self.timed,
             )
             for choice, label in zip(self.choices, self.labels)
         ]
@@ -691,18 +670,19 @@ class PushButtonControl(OptionControl):
 
     @property
     def metadata(self):
-        return {
-            "choices": self.choices,
-            "labels": self.labels
-        }
+        return {"choices": self.choices, "labels": self.labels}
 
     def visualize_response(self, answer, response, trial):
         html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                response_string = response.response.replace('"', '')
-                _class =f"btn push_button btn-primary response submit"
-                _class = _class.replace("btn-primary", "btn-success") if response_string == choice else _class
+                response_string = response.response.replace('"', "")
+                _class = "btn push_button btn-primary response submit"
+                _class = (
+                    _class.replace("btn-primary", "btn-success")
+                    if response_string == choice
+                    else _class
+                )
                 tags.button(
                     type="button",
                     id=choice,
@@ -711,6 +691,7 @@ class PushButtonControl(OptionControl):
                 ).add(label)
                 tags.br()
         return html.render()
+
 
 class TimedPushButtonControl(PushButtonControl):
     """
@@ -746,17 +727,13 @@ class TimedPushButtonControl(PushButtonControl):
     timed = True
 
     def __init__(
-            self,
-            choices: List[str],
-            labels: Optional[List[str]] = None,
-            button_highlight_duration: float = 0.75,
-            **kwargs
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        button_highlight_duration: float = 0.75,
+        **kwargs,
     ):
-        super().__init__(
-            choices=choices,
-            labels=labels,
-            **kwargs
-        )
+        super().__init__(choices=choices, labels=labels, **kwargs)
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
@@ -767,9 +744,13 @@ class TimedPushButtonControl(PushButtonControl):
         html = tags.div()
         with html:
             for choice, label in zip(self.choices, self.labels):
-                response_string = response.response.replace('"', '')
-                _class = f"btn push_button btn-primary response timed"
-                _class = _class.replace("btn-primary", "btn-success") if response_string == choice else _class
+                response_string = response.response.replace('"', "")
+                _class = "btn push_button btn-primary response timed"
+                _class = (
+                    _class.replace("btn-primary", "btn-success")
+                    if response_string == choice
+                    else _class
+                )
                 tags.button(
                     type="button",
                     id=choice,
@@ -779,16 +760,27 @@ class TimedPushButtonControl(PushButtonControl):
                 tags.br()
         return html.render()
 
+
 class NAFCControl(PushButtonControl):
     """
-    [DEPRECATED] This class exists only for retaining backward compatibility. Use ``PushButtonControl``
-    instead.
+    .. deprecated:: 1.7.0
+        This class exists only for retaining backward compatibility. Use :class:`psynet.modular_page.PushButtonControl` instead.
     """
+
     pass
 
 
-class PushButton():
-    def __init__(self, button_id, *, label, style, arrange_vertically, start_disabled=False, timed=False):
+class PushButton:
+    def __init__(
+        self,
+        button_id,
+        *,
+        label,
+        style,
+        arrange_vertically,
+        start_disabled=False,
+        timed=False,
+    ):
         self.id = button_id
         self.label = label
         self.style = style
@@ -822,29 +814,29 @@ class RadioButtonControl(OptionControl):
 
     force_selection
         Determines if an answer has to be selected. Default: ``True``.
+
+    show_reset_button
+        Whether to display a 'Reset' button to allow for unsetting a ticked radiobutton. Possible values are: `never`, `always`, and `on_selection`, the latter meaning that the button is displayed only when a radiobutton is ticked. Default: ``never``.
     """
 
     def __init__(
-            self,
-            choices: List[str],
-            labels: Optional[List[str]] = None,
-            style: str = "cursor: pointer;",
-            name: str = "",
-            arrange_vertically: bool = True,
-            force_selection: bool = True,
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        style: str = "cursor: pointer;",
+        name: str = "",
+        arrange_vertically: bool = True,
+        force_selection: bool = True,
+        show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
+        self.show_reset_button = show_reset_button
 
         self.radiobuttons = [
-            RadioButton(
-                name=self.name,
-                id_=choice,
-                label=label,
-                style=self.style
-            )
+            RadioButton(name=self.name, id_=choice, label=label, style=self.style)
             for choice, label in zip(self.choices, self.labels)
         ]
 
@@ -871,13 +863,49 @@ class RadioButtonControl(OptionControl):
         return None
 
 
-class RadioButton():
-    def __init__(self, id_, *, name, label, start_disabled=False, style="cursor: pointer"):
+class RadioButton:
+    def __init__(
+        self, id_, *, name, label, start_disabled=False, style="cursor: pointer"
+    ):
         self.id = id_
         self.name = name
         self.label = label
         self.start_disabled = start_disabled
         self.style = style
+
+
+class NumberControl(Control):
+    """
+    This control interface solicits number input from the participant.
+
+    Parameters
+    ----------
+
+    width:
+        CSS width property for the text box. Default: `"120px"`.
+
+    text_align:
+        CSS width property for the alignment of the text inside the number input field. Default: `"right"`.
+    """
+
+    def __init__(
+        self, width: Optional[str] = "120px", text_align: Optional[str] = "right"
+    ):
+        self.width = width
+        self.text_align = text_align
+
+    macro = "number"
+
+    @property
+    def metadata(self):
+        return {"width": self.width, "text_align": self.text_align}
+
+    def validate(self, response, **kwargs):
+        try:
+            float(response.answer)
+        except ValueError:
+            return FailedValidation("You need to provide a number!")
+        return None
 
 
 class TextControl(Control):
@@ -891,22 +919,21 @@ class TextControl(Control):
         Whether the text box should comprise solely one line.
 
     width:
-        Optional CSS width property for the text box.
+        CSS width property for the text box.
 
     height:
-        Optional CSS height property for the text box.
+        CSS height property for the text box.
 
-    align:
-        Alignment for the text.
-
+    text_align:
+        CSS width property for the alignment of the text inside the text input field. Default: `"left"`.
     """
 
     def __init__(
-            self,
-            one_line: bool = True,
-            width: Optional[str] = None,  # e.g. "100px"
-            height: Optional[str] = None,
-            text_align: str = "left"
+        self,
+        one_line: bool = True,
+        width: Optional[str] = None,  # e.g. "100px"
+        height: Optional[str] = None,
+        text_align: str = "left",
     ):
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
@@ -924,8 +951,9 @@ class TextControl(Control):
             "one_line": self.one_line,
             "width": self.width,
             "height": self.height,
-            "text_align": self.text_align
+            "text_align": self.text_align,
         }
+
 
 class ModularPage(Page):
     """
@@ -968,6 +996,7 @@ class ModularPage(Page):
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
+
     def __init__(
         self,
         label: str,
@@ -975,7 +1004,7 @@ class ModularPage(Page):
         control: Control = NullControl(),
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
-        **kwargs
+        **kwargs,
     ):
         if media is None:
             media = MediaSpec()
@@ -1008,12 +1037,9 @@ class ModularPage(Page):
             label=label,
             time_estimate=time_estimate,
             template_str=template_str,
-            template_arg={
-                "prompt_config": prompt,
-                "control_config": control
-            },
+            template_arg={"prompt_config": prompt, "control_config": control},
             media=all_media,
-            **kwargs
+            **kwargs,
         )
 
     @property
@@ -1047,21 +1073,21 @@ class ModularPage(Page):
 
     @property
     def import_external_templates(self):
-        return " ".join([
-            f'{{% import "{path}" as {name} with context %}}'
-            for path, name in zip(
-                [self.prompt.external_template, self.control.external_template],
-                ["custom_prompt", "custom_control"]
-            )
-            if path is not None
-        ])
+        return " ".join(
+            [
+                f'{{% import "{path}" as {name} with context %}}'
+                for path, name in zip(
+                    [self.prompt.external_template, self.control.external_template],
+                    ["custom_prompt", "custom_control"],
+                )
+                if path is not None
+            ]
+        )
 
     def visualize(self, trial):
         prompt = self.prompt.visualize(trial)
         response = self.control.visualize_response(
-            answer=trial.answer,
-            response=trial.response,
-            trial=trial
+            answer=trial.answer, response=trial.response, trial=trial
         )
         div = tags.div(id="trial-visualization")
         div_style = (
@@ -1072,20 +1098,12 @@ class ModularPage(Page):
         with div:
             if prompt != "":
                 tags.h3("Prompt"),
-                tags.div(
-                    raw(prompt),
-                    id="prompt-visualization",
-                    style=div_style
-                )
+                tags.div(raw(prompt), id="prompt-visualization", style=div_style)
             if prompt != "" and response != "":
                 tags.br()
             if response != "":
                 tags.h3("Response"),
-                tags.div(
-                    raw(response),
-                    id="response-visualization",
-                    style=div_style
-                )
+                tags.div(raw(response), id="response-visualization", style=div_style)
         return div.render()
 
     def format_answer(self, raw_answer, **kwargs):
@@ -1108,16 +1126,13 @@ class ModularPage(Page):
         of the :class:`~psynet.page.Prompt` member.
         and the :class:`~psynet.page.Control` members.
         """
-        return {
-            "prompt": self.prompt.metadata,
-            "control": self.control.metadata
-        }
+        return {"prompt": self.prompt.metadata, "control": self.control.metadata}
 
     def pre_render(self):
         """
-            This method is called immediately prior to rendering the page for
-            the participant. It will be called again each time the participant
-            refreshes the page.
+        This method is called immediately prior to rendering the page for
+        the participant. It will be called again each time the participant
+        refreshes the page.
         """
         self.prompt.pre_render()
         self.control.pre_render()
@@ -1127,121 +1142,439 @@ class AudioMeterControl(Control):
     macro = "audio_meter"
 
     def __init__(
-            self,
-            min_time: float = 2.5,
-            calibrate: bool = False,
-            submit_button: bool = True
-        ):
+        self, min_time: float = 2.5, calibrate: bool = False, submit_button: bool = True
+    ):
         assert min_time >= 0
         self.min_time = min_time
         self.calibrate = calibrate
         self.submit_button = submit_button
         if calibrate:
-            self.sliders = SliderControl([
-                Slider("decay_display", "Decay (display)", self.decay["display"], 0, 3, 0.001),
-                Slider("decay_high", "Decay (too high)", self.decay["high"], 0, 3, 0.001),
-                Slider("decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001),
-                Slider("threshold_high", "Threshold (high)", self.threshold["high"], -60, 0, 0.01),
-                Slider("threshold_low", "Threshold (low)", self.threshold["low"], -60, 0, 0.01),
-                Slider("grace_high", "Grace period (too high)", self.grace["high"], 0, 5, 0.001),
-                Slider("grace_low", "Grace period (too low)", self.grace["low"], 0, 5, 0.001),
-                Slider("warn_on_clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1),
-                Slider("msg_duration_high", "Message duration (high)", self.msg_duration["high"], 0, 10, 0.1),
-                Slider("msg_duration_low", "Message duration (low)", self.msg_duration["low"], 0, 10, 0.1)
-            ])
+            self.sliders = MultiSliderControl(
+                [
+                    Slider(
+                        "decay_display",
+                        "Decay (display)",
+                        self.decay["display"],
+                        0,
+                        3,
+                        0.001,
+                    ),
+                    Slider(
+                        "decay_high",
+                        "Decay (too high)",
+                        self.decay["high"],
+                        0,
+                        3,
+                        0.001,
+                    ),
+                    Slider(
+                        "decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001
+                    ),
+                    Slider(
+                        "threshold_high",
+                        "Threshold (high)",
+                        self.threshold["high"],
+                        -60,
+                        0,
+                        0.01,
+                    ),
+                    Slider(
+                        "threshold_low",
+                        "Threshold (low)",
+                        self.threshold["low"],
+                        -60,
+                        0,
+                        0.01,
+                    ),
+                    Slider(
+                        "grace_high",
+                        "Grace period (too high)",
+                        self.grace["high"],
+                        0,
+                        5,
+                        0.001,
+                    ),
+                    Slider(
+                        "grace_low",
+                        "Grace period (too low)",
+                        self.grace["low"],
+                        0,
+                        5,
+                        0.001,
+                    ),
+                    Slider(
+                        "warn_on_clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1
+                    ),
+                    Slider(
+                        "msg_duration_high",
+                        "Message duration (high)",
+                        self.msg_duration["high"],
+                        0,
+                        10,
+                        0.1,
+                    ),
+                    Slider(
+                        "msg_duration_low",
+                        "Message duration (low)",
+                        self.msg_duration["low"],
+                        0,
+                        10,
+                        0.1,
+                    ),
+                ]
+            )
         else:
             self.slider = None
 
-    display_range = {
-        "min": -60,
-        "max": 0
-    }
+    display_range = {"min": -60, "max": 0}
 
-    decay = {
-        "display": 0.1,
-        "high": 0.1,
-        "low": 0.1
-    }
+    decay = {"display": 0.1, "high": 0.1, "low": 0.1}
 
-    threshold = {
-        "high": -2,
-        "low": -20
-    }
+    threshold = {"high": -2, "low": -20}
 
-    grace = {
-        "high": 0.0,
-        "low": 1.5
-    }
+    grace = {"high": 0.0, "low": 1.5}
 
     warn_on_clip = True
 
-    msg_duration = {
-        "high": 0.25,
-        "low": 0.25
-    }
+    msg_duration = {"high": 0.25, "low": 0.25}
 
     def to_json(self):
-        return Markup(json.dumps({
-            "display_range": self.display_range,
-            "decay": self.decay,
-            "threshold": self.threshold,
-            "grace": self.grace,
-            "warn_on_clip": self.warn_on_clip,
-            "msg_duration": self.msg_duration
-        }))
+        return Markup(
+            json.dumps(
+                {
+                    "display_range": self.display_range,
+                    "decay": self.decay,
+                    "threshold": self.threshold,
+                    "grace": self.grace,
+                    "warn_on_clip": self.warn_on_clip,
+                    "msg_duration": self.msg_duration,
+                }
+            )
+        )
+
+    @property
+    def metadata(self):
+        return {"min_time": self.min_time}
+
+
+class TappingAudioMeterControl(AudioMeterControl):
+    decay = {"display": 0.01, "high": 0, "low": 0.01}
+
+    threshold = {"high": -2, "low": -20}
+
+    grace = {"high": 0.2, "low": 1.5}
+
+    warn_on_clip = False
+
+    msg_duration = {"high": 0.25, "low": 0.25}
+
+
+class SliderControl(Control):
+    """
+    This control interface displays a horizontal slider to the participant.
+
+    The control logs all interactions from the participant including:
+    - initial location of the slider
+    - subsequent release points along with time stamps
+
+    Currently the slider does not display any numbers describing the
+    slider's current position. We anticipate adding this feature in
+    a future release, if there is interest.
+
+    Parameters
+    ----------
+
+    label:
+        Internal label for the control (used to store results).
+
+    start_value:
+        Initial position of slider.
+
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    num_steps:
+        Determines the number of steps that the slider can be dragged through. Default: `10000`.
+
+    snap_values:
+        Optional. Determines the values to which the slider will 'snap' to once it is released.
+        Can take various forms:
+
+        - ``<None>``: no snapping is performed.
+
+        - ``<int>``: indicating number of equidistant steps between `min_value` and `max_value`.
+
+        - ``<list>``: list of numbers enumerating all possible values, need to be within `min_value` and `max_value`.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type :
+        By default we use the HTML5 slider, however future implementations might also use different slider
+        formats, like 2D sliders or circular sliders. Default: `"HTML5_range_slider"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+
+    continuous_updates:
+        If `True`, then the slider continuously calls slider-update events when it is dragged,
+        rather than just when it is released. In this case the log is disabled. Default: `False`.
+
+    template_filename:
+        Filename of an optional additional template. Default: `None`.
+
+    template_args:
+        Arguments for the  optional additional template. Default: `None`.
+    """
+
+    def __init__(
+        self,
+        label: str,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        num_steps: int = 10000,
+        reverse_scale: Optional[bool] = False,
+        directional: Optional[bool] = True,
+        slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        snap_values: Optional[Union[int, list]] = None,
+        minimal_interactions: Optional[int] = 0,
+        minimal_time: Optional[int] = 0,
+        continuous_updates: Optional[bool] = False,
+        template_filename: Optional[str] = None,
+        template_args: Optional[Dict] = None,
+    ):
+        self.label = label
+        self.start_value = start_value
+        self.min_value = min_value
+        self.max_value = max_value
+        self.num_steps = num_steps
+        self.step_size = (max_value - min_value) / (num_steps - 1)
+        self.reverse_scale = reverse_scale
+        self.directional = directional
+        self.slider_id = slider_id
+        self.input_type = input_type
+        self.template_filename = template_filename
+        self.template_args = template_args
+
+        js_vars = {}
+        js_vars["snap_values"] = snap_values
+        js_vars["minimal_interactions"] = minimal_interactions
+        js_vars["minimal_time"] = minimal_time
+        js_vars["continuous_updates"] = continuous_updates
+        self.js_vars = js_vars
+
+    macro = "slider"
 
     @property
     def metadata(self):
         return {
-            "min_time": self.min_time
+            "label": self.label,
+            "start_value": self.start_value,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+            "num_steps": self.num_steps,
+            "step_size": self.step_size,
+            "reverse_scale": self.reverse_scale,
+            "directional": self.directional,
+            "slider_id": self.slider_id,
+            "input_type": self.input_type,
+            "template_filename": self.template_filename,
+            "template_args": self.template_args,
+            "js_vars": self.js_vars,
         }
 
-class TappingAudioMeterControl(AudioMeterControl):
-    decay = {
-        "display": 0.01,
-        "high": 0,
-        "low": 0.01
-    }
 
-    threshold = {
-        "high": -2,
-        "low": -20
-    }
+class AudioSliderControl(SliderControl):
+    """
+    This control solicits a slider response from the user that results in playing some audio.
 
-    grace = {
-        "high": 0.2,
-        "low": 1.5
-    }
+    Parameters
+    ----------
 
-    warn_on_clip = False
+    label:
+        Internal label for the page (used to store results).
 
-    msg_duration = {
-        "high": 0.25,
-        "low": 0.25
-    }
+    start_value:
+        Initial position of slider.
 
-class SliderControl(Control):
+    min_value:
+        Minimum value of the slider.
+
+    max_value:
+        Maximum value of the slider.
+
+    audio:
+        A dictionary of audio assets.
+        Each item can either be a string,
+        corresponding to the URL for a single file (e.g. "/static/audio/test.wav"),
+        or a dictionary, corresponding to metadata for a batch of media assets.
+        A batch dictionary must contain the field "url", providing the URL to the batch file,
+        and the field "ids", providing the list of IDs for the batch's constituent assets.
+        A valid audio argument might look like the following:
+
+        ::
+
+            {
+                'example': '/static/example.wav',
+                'my_batch': {
+                    'url': '/static/file_concatenated.mp3',
+                    'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
+                    'type': 'batch'
+                }
+            }
+
+    sound_locations:
+        Dictionary with IDs as keys and locations on the slider as values.
+
+    autoplay:
+        The sound closest to the current slider position is played once the page is loaded. Default: `False`.
+
+    num_steps:
+        - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
+          can be dragged through. This is before any snapping occurs.
+
+        - ``"num_sounds"``: Sets the number of steps to the number of sounds. This only makes sense
+          if the sound locations are distributed equidistant between the `min_value` and `max_value` of the slider.
+
+        Default: `10000`.
+
+    slider_id:
+        The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    reverse_scale:
+        Flip the scale. Default: `False`.
+
+    directional: default: True
+        Make the slider appear in either grey/blue color (directional) or all grey color (non-directional).
+
+    snap_values:
+        - ``"sound_locations"``: slider snaps to nearest sound location.
+
+        - ``<int>``: indicates number of possible equidistant steps between `min_value` and `max_value`
+
+        - ``<list>``: enumerates all possible values, need to be within `min_value` and `max_value`.
+
+        - ``None``: don't snap slider.
+
+        Default: `"sound_locations"`.
+
+    minimal_interactions:
+        Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
+
+    minimal_time:
+        Minimum amount of time in seconds that the user must spend on the page before they can continue. Default: `0`.
+    """
+
     def __init__(
-            self,
-            sliders,
-            next_button=True,
-        ):
+        self,
+        label,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        audio: dict,
+        sound_locations: dict,
+        autoplay: Optional[bool] = False,
+        num_steps: Optional[int] = 10000,
+        slider_id: Optional[str] = "sliderpage_slider",
+        reverse_scale: Optional[bool] = False,
+        directional: bool = True,
+        snap_values: Optional[Union[int, list]] = "sound_locations",
+        minimal_interactions: Optional[int] = 0,
+        minimal_time: Optional[int] = 0,
+    ):
+        super().__init__(
+            label=label,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            num_steps=num_steps,
+            slider_id=slider_id,
+            reverse_scale=reverse_scale,
+            directional=directional,
+        )
+        self.sound_locations = sound_locations
+        self.autoplay = autoplay
+        self.snap_values = snap_values
+        self.audio = audio
+
+        js_vars = {}
+        js_vars["sound_locations"] = self.sound_locations
+        js_vars["autoplay"] = self.autoplay
+        js_vars["snap_values"] = self.snap_values
+        js_vars["minimal_interactions"] = minimal_interactions
+        js_vars["minimal_time"] = minimal_time
+
+        self.js_vars = js_vars
+
+    macro = "audio_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "sound_locations": self.sound_locations,
+            "autoplay": self.autoplay,
+        }
+
+
+# WIP
+class ColorSliderControl(SliderControl):
+    def __init__(
+        self,
+        label,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        slider_id: Optional[str] = "sliderpage_slider",
+        hidden_inputs: Optional[dict] = {},
+    ):
+        super().__init__(
+            label=label,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            slider_id=slider_id,
+            hidden_inputs=hidden_inputs,
+        )
+
+    macro = "color_slider"
+
+    @property
+    def metadata(self):
+        return {
+            **super().metadata,
+            "hidden_inputs": self.hidden_inputs,
+        }
+
+
+# WIP
+class MultiSliderControl(Control):
+    def __init__(
+        self,
+        sliders,
+        next_button=True,
+    ):
         assert is_list_of(sliders, Slider)
         self.sliders = sliders
         self.next_button = next_button
 
-    # WIP
 
-class Slider():
-    def __init__(
-            self,
-            slider_id,
-            label,
-            start_value,
-            min_value,
-            max_value,
-            step_size
-        ):
+class Slider:
+    def __init__(self, slider_id, label, start_value, min_value, max_value, step_size):
         self.label = label
         self.start_value = start_value
         self.min_value = min_value
@@ -1249,17 +1582,18 @@ class Slider():
         self.step_size = step_size
         self.slider_id = slider_id
 
+
 class AudioRecordControl(Control):
     macro = "audio_record"
 
     def __init__(
-            self,
-            *,
-            duration: float,
-            s3_bucket: str,
-            show_meter: bool = False,
-            public_read: bool = False
-        ):
+        self,
+        *,
+        duration: float,
+        s3_bucket: str,
+        show_meter: bool = False,
+        public_read: bool = False,
+    ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.show_meter = show_meter
@@ -1278,9 +1612,9 @@ class AudioRecordControl(Control):
         filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "s3_bucket": self.s3_bucket,
-            "key": filename, # Leave key for backward compatibility
+            "key": filename,  # Leave key for backward compatibility
             "url": splitquery(raw_answer)[0],
-            "duration_sec": self.duration
+            "duration_sec": self.duration,
         }
 
     def visualize_response(self, answer, response, trial):
@@ -1290,28 +1624,30 @@ class AudioRecordControl(Control):
             return tags.audio(
                 tags.source(src=answer["url"]),
                 id="visualize-audio-response",
-                controls=True
+                controls=True,
             ).render()
 
     def pre_render(self):
         self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
         logger.info(f"Generated presigned url: {self.presigned_url}")
 
+
 class VideoSliderControl(Control):
     macro = "video_slider"
 
     def __init__(
-            self,
-            *,
-            url: str,
-            file_type: str,
-            width: str,
-            height: str,
-            starting_value: float = 0.5,
-            minimal_time: float = 2.0,
-            reverse_scale: bool = False,
-            hide_slider: bool = False
-        ):
+        self,
+        *,
+        url: str,
+        file_type: str,
+        width: str,
+        height: str,
+        starting_value: float = 0.5,
+        minimal_time: float = 2.0,
+        reverse_scale: bool = False,
+        directional: bool = True,
+        hide_slider: bool = False,
+    ):
         assert 0 <= starting_value and starting_value <= 1
 
         self.url = url
@@ -1321,6 +1657,7 @@ class VideoSliderControl(Control):
         self.starting_value = starting_value
         self.minimal_time = minimal_time
         self.reverse_scale = reverse_scale
+        self.directional = directional
         self.hide_slider = hide_slider
 
     @property
@@ -1330,7 +1667,8 @@ class VideoSliderControl(Control):
             "starting_value": self.starting_value,
             "minimal_time": self.minimal_time,
             "reverse_scale": self.reverse_scale,
-            "hide_slider": self.hide_slider
+            "directional": self.directional,
+            "hide_slider": self.hide_slider,
         }
 
     @property
@@ -1339,17 +1677,16 @@ class VideoSliderControl(Control):
 
     def visualize_response(self, answer, response, trial):
         html = (
-            super().visualize_response(answer, response, trial) +
-            "\n" +
-            tags.div(
+            super().visualize_response(answer, response, trial)
+            + "\n"
+            + tags.div(
                 tags.p(f"Answer = {answer}"),
                 tags.video(
                     tags.source(src=self.url),
                     id="visualize-video-slider",
                     controls=True,
-                    style="max-width: 400px;"
-                )
+                    style="max-width: 400px;",
+                ),
             ).render()
         )
         return html
-

@@ -1,8 +1,9 @@
 .. _developer:
 .. highlight:: shell
 
-================
-Working with git
+.. _Working with Git:
+
+Working with Git
 ================
 
 When working on shared projects together, Git branching helps to organise the
@@ -16,7 +17,7 @@ the code is organised in Git:
 The ``master`` branch is the most public-facing version of the repository. It is
 the most stable form of the code, and we should be confident that whatever
 functionality is implemented there works well. Each change to the master branch
-will typically correspond to a new version number (see https://semver.org/ for 
+will typically correspond to a new version number (see https://semver.org/ for
 versioning conventions).
 
 The ``dev`` branch constitutes the next version of the software that is being

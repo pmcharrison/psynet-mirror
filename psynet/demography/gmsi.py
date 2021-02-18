@@ -1,16 +1,8 @@
 from typing import List, Optional
 
-from psynet.modular_page import (
-    ModularPage,
-    PushButtonControl,
-)
+from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage
-from psynet.timeline import (
-    CodeBlock,
-    Module,
-    Response,
-    join,
-)
+from psynet.timeline import CodeBlock, Module, Response, join
 
 
 class GMSI(Module):
@@ -33,6 +25,7 @@ class GMSI(Module):
         An :class:`~psynet.page.InfoPage` object to be used as an introductionary first page.
         If none is supplied the default one is displayed (see source code).
     """
+
     def __init__(
         self,
         label: str = "gmsi",
@@ -47,24 +40,55 @@ class GMSI(Module):
         if info_page is None:
             info_page = InfoPage(
                 "The following questions are designed to assess your musicality. Please answer as accurately as possible.",
-                time_estimate=5
+                time_estimate=5,
             )
 
         questions = []
         if self.subscales is not None:
             questions = {
-                label: question_data()[label] for label, data in question_data().items()
-                    if any(subscale in self.subscales for subscale in data["subscales"])
+                label: question_data()[label]
+                for label, data in question_data().items()
+                if any(subscale in self.subscales for subscale in data["subscales"])
             }
         elif self.short_version:
             questions_labels = [
                 f"q_{question_number:02d}"
-                for question_number in [1, 4, 19, 27, 30, 36, 3, 10, 20, 26, 39, 2, 12, 16, 22, 35,
-                    6, 13, 14, 24, 28, 29, 32, 8, 11, 23, 33, 40, 41]
+                for question_number in [
+                    1,
+                    4,
+                    19,
+                    27,
+                    30,
+                    36,
+                    3,
+                    10,
+                    20,
+                    26,
+                    39,
+                    2,
+                    12,
+                    16,
+                    22,
+                    35,
+                    6,
+                    13,
+                    14,
+                    24,
+                    28,
+                    29,
+                    32,
+                    8,
+                    11,
+                    23,
+                    33,
+                    40,
+                    41,
+                ]
             ]
             questions = {
-                label: question_data()[label] for label, data in question_data().items()
-                    if label in questions_labels
+                label: question_data()[label]
+                for label, data in question_data().items()
+                if label in questions_labels
             }
         else:
             questions = question_data()
@@ -79,16 +103,19 @@ class GMSI(Module):
                     labels=data.get("labels"),
                     arrange_vertically=data["arrange_vertically"],
                     module_label=self.label,
-                ) for label, data in questions.items()
+                )
+                for label, data in questions.items()
             ],
-            self.save_scores
+            self.save_scores,
         )
         super().__init__(self.label, self.events)
 
     @property
     def save_scores(self):
         return CodeBlock(
-            lambda participant: participant.var.set(self.label, self.compile_results(participant))
+            lambda participant: participant.var.set(
+                self.label, self.compile_results(participant)
+            )
         )
 
     def compile_results(self, participant):
@@ -96,19 +123,22 @@ class GMSI(Module):
         responses = Response.query.filter_by(participant_id=participant.id)
         # filter to retain only gmsi responses for current module
         responses = [
-            response for response in responses
+            response
+            for response in responses
             if response.question in question_data().keys()
-               and response.details["gmsi_label"] == self.label
+            and response.details["gmsi_label"] == self.label
         ]
         # calculate score for each question
         response_scores = {
-            response.question: self.calculate_score(response.question, response.response)
-                for response in responses
+            response.question: self.calculate_score(
+                response.question, response.response
+            )
+            for response in responses
         }
         # group scores by subscale
         grouped_scores = {}
         for question, score in response_scores.items():
-            subscales =  question_data()[question]["subscales"]
+            subscales = question_data()[question]["subscales"]
             for subscale in subscales:
                 if subscale in grouped_scores.keys():
                     grouped_scores[subscale].append(score)
@@ -117,7 +147,8 @@ class GMSI(Module):
         # calculate arithmetic mean for each subscale
         mean_scores_per_scale = {
             group[0]: round(sum(group[1]) / len(group[1]), 6)
-                if all(isinstance(item, int) for item in group[1]) else group[1][0]
+            if all(isinstance(item, int) for item in group[1])
+            else group[1][0]
             for group in grouped_scores.items()
         }
 
@@ -129,11 +160,14 @@ class GMSI(Module):
                 if subscale in self.subscales
             }
 
-        return {"response_scores": response_scores, "mean_scores_per_scale": mean_scores_per_scale}
+        return {
+            "response_scores": response_scores,
+            "mean_scores_per_scale": mean_scores_per_scale,
+        }
 
     @staticmethod
     def calculate_score(question, response):
-        response = response.replace("\"", "")
+        response = response.replace('"', "")
         if question == "q_40" and response == "19":
             return None
         if question in ["q_32", "q_41"]:
@@ -187,8 +221,9 @@ def agreement_scale():
             "Agree",
             "Strongly agree",
             "Completely agree",
-        ]
+        ],
     }
+
 
 def question_data():
     return {
@@ -437,14 +472,44 @@ def question_data():
             "inverted": False,
             "subscales": ["Active Engagement"],
             "choices": agreement_scale()["choices"],
-            "labels": ["0-15 min", "15-30 min", "30-60 min", "60-90 min", "2 hrs", "2-3 hrs", "4 hrs or more"],
+            "labels": [
+                "0-15 min",
+                "15-30 min",
+                "30-60 min",
+                "60-90 min",
+                "2 hrs",
+                "2-3 hrs",
+                "4 hrs or more",
+            ],
             "arrange_vertically": True,
         },
         "q_32": {
             "prompt": "The instrument I play best (including voice) is:",
             "inverted": False,
             "subscales": ["Instrument"],
-            "choices": ["I don't play any instrument.", 'voice', 'piano', 'guitar', 'drums', 'xylophone', 'flute', 'oboe', 'clarinet', 'bassoon', 'trumpet', 'trombone', 'tuba', 'saxophone', 'horn', 'violin', 'cello', 'viola', 'double bass', 'harp', 'other'],
+            "choices": [
+                "I don't play any instrument.",
+                "voice",
+                "piano",
+                "guitar",
+                "drums",
+                "xylophone",
+                "flute",
+                "oboe",
+                "clarinet",
+                "bassoon",
+                "trumpet",
+                "trombone",
+                "tuba",
+                "saxophone",
+                "horn",
+                "violin",
+                "cello",
+                "viola",
+                "double bass",
+                "harp",
+                "other",
+            ],
             "arrange_vertically": False,
         },
         "q_33": {

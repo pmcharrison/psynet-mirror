@@ -1,5 +1,44 @@
 # Changelog
 
+# [1.12.0] Unreleased
+
+#### Added
+- Enforce standard Python code style with `"black" <https://black.readthedocs.io/en/stable/>`__ and `"isort" <https://github.com/pycqa/isort/>`__.
+- Enforce Python code style consistency with `"flake8" <https://flake8.pycqa.org>`__.
+- Added a new section 'INSTALLATION' to the documentation page with installation instructions for *macOS* and *Ubuntu/GNU Linux*. Restructured low-level documentation section.
+
+#### Updated
+- Updated Google Chrome and Chromedriver versions to 88.x in `.gitlab-ci.yml`.
+- Updated Python to version 3.9 and Dallinger to version 7.0.0. in `.gitlab-ci.yml`.
+
+
+# [1.11.0] Released on 2021-02-13
+
+#### Added
+- Added `NumberControl`, `SliderControl`, `AudioSliderControl` controls.
+- Added new `directional` attribute to `Slider`.
+- Added optional reset button to `CheckboxControl` and `RadioButtonControl`.
+- Added new pre-screenings `AttentionCheck`, `LanguageVocabularyTest`, `LexTaleTest`, `REPPMarkersCheck`, `REPPTappingCalibration`, `REPPVolumeCalibrationMarkers`, and `REPPVolumeCalibrationMusic`.
+- Added demos for new pre-screenings.
+- Added favicon.ico.
+
+#### Fixed
+- Fixed `visualize_response` methods for `checkboxes`, `dropdown`, `radiobuttons`, and `push_buttons` macros.
+- Fixed erroneous display of reverse slider due to changes in Bootstrap 4.
+- Fixed compatibility with new Dallinger route registration.
+
+#### Deprecated
+- Deprecated `NAFCPage`, `TextInputPage`, `SliderPage`, `AudioSliderPage`, and `NumberInputPage` and refactored them into `ModularPage`s using controls.
+
+#### Removed
+- Deleted obsolete `psychTestR` directory.
+
+
+# [1.10.1] - Released on 2021-02-11
+
+#### Fixed
+-  Fixed compatibility with new Dallinger route registration.
+
 
 # [1.10.0] Released on 2020-12-21
 
