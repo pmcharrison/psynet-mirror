@@ -1,41 +1,34 @@
-from flask import Markup, escape
-import warnings
-
-from typing import (
-    Union,
-    Optional,
-    List
-)
-
-from math import ceil
 import itertools
 import json
+import warnings
+from math import ceil
+from typing import List, Optional, Union
 
-from .timeline import (
-    get_template,
-    join,
-    Page,
-    PageMaker,
-    CodeBlock,
-    MediaSpec,
-    EndPage,
-    FailedValidation,
-    while_loop
-)
-from .utils import linspace, get_logger
+from flask import Markup, escape
+
 from .modular_page import (
-    ModularPage,
-    Prompt,
     AudioPrompt,
     AudioSliderControl,
+    ModularPage,
     NumberControl,
+    Prompt,
     PushButtonControl,
     SliderControl,
     TextControl,
 )
+from .timeline import (
+    CodeBlock,
+    EndPage,
+    Page,
+    PageMaker,
+    get_template,
+    join,
+    while_loop,
+)
+from .utils import get_logger, linspace
 
 logger = get_logger()
-warnings.simplefilter('always', DeprecationWarning)
+warnings.simplefilter("always", DeprecationWarning)
 
 
 class InfoPage(Page):
@@ -58,26 +51,23 @@ class InfoPage(Page):
     """
 
     def __init__(
-            self,
-            content: Union[str, Markup],
-            time_estimate: Optional[float] = None,
-            **kwargs
+        self,
+        content: Union[str, Markup],
+        time_estimate: Optional[float] = None,
+        **kwargs,
     ):
         self.content = content
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
-            template_arg={
-                "content": "" if content is None else content
-            },
+            template_arg={"content": "" if content is None else content},
             save_answer=False,
-            **kwargs
+            **kwargs,
         )
 
     def metadata(self, **kwargs):
-        return {
-            "content": self.content
-        }
+        return {"content": self.content}
+
 
 class UnityPage(Page):
     """
@@ -132,16 +122,16 @@ class UnityPage(Page):
     """
 
     def __init__(
-            self,
-            title: str,
-            resources: str,
-            contents: dict,
-            session_id: str,
-            game_container_width: str = "960px",
-            game_container_height: str = "600px",
-            time_estimate: Optional[float] = None,
-            debug: bool = False,
-            **kwargs,
+        self,
+        title: str,
+        resources: str,
+        contents: dict,
+        session_id: str,
+        game_container_width: str = "960px",
+        game_container_height: str = "600px",
+        time_estimate: Optional[float] = None,
+        debug: bool = False,
+        **kwargs,
     ):
         self.title = title
         self.resources = resources
@@ -153,10 +143,10 @@ class UnityPage(Page):
         template = "unity-debug-page.html" if debug else "unity-page.html"
 
         super().__init__(
-            contents = self.contents,
-            time_estimate = time_estimate,
-            template_str = get_template(template),
-            template_arg = {
+            contents=self.contents,
+            time_estimate=time_estimate,
+            template_str=get_template(template),
+            template_arg={
                 "title": self.title,
                 "resources": "" if self.resources is None else self.resources,
                 "contents": {} if self.contents is None else self.contents,
@@ -164,8 +154,8 @@ class UnityPage(Page):
                 "game_container_height": self.game_container_height,
                 "session_id": self.session_id,
             },
-            session_id = session_id,
-            **kwargs
+            session_id=session_id,
+            **kwargs,
         )
 
     def metadata(self, **kwargs):
@@ -174,6 +164,7 @@ class UnityPage(Page):
             "contents": self.contents,
             "session_id": self.session_id,
         }
+
 
 class WaitPage(Page):
     """
@@ -192,36 +183,27 @@ class WaitPage(Page):
 
     content = "Please wait, the experiment should continue shortly..."
 
-    def __init__(
-            self,
-            wait_time: float,
-            **kwargs
-    ):
+    def __init__(self, wait_time: float, **kwargs):
         assert wait_time >= 0
         self.wait_time = wait_time
         super().__init__(
             time_estimate=wait_time,
             template_str=get_template("wait-page.html"),
-            template_arg={
-                "content": self.content,
-                "wait_time": self.wait_time
-            },
-            **kwargs
+            template_arg={"content": self.content, "wait_time": self.wait_time},
+            **kwargs,
         )
 
     def metadata(self, **kwargs):
-        return {
-            "content": self.content,
-            "wait_time": self.wait_time
-        }
+        return {"content": self.content, "wait_time": self.wait_time}
+
 
 def wait_while(
-        condition,
-        expected_wait: float,
-        check_interval: float = 2.0,
-        wait_page=WaitPage,
-        log_message: Optional[str]=None
-    ):
+    condition,
+    expected_wait: float,
+    check_interval: float = 2.0,
+    wait_page=WaitPage,
+    log_message: Optional[str] = None,
+):
     """
     Displays the participant a waiting page while a given condition
     remains satisfied.
@@ -272,11 +254,9 @@ def wait_while(
         logic = join(CodeBlock(log), _wait_page)
 
     return while_loop(
-        "wait_while",
-        condition,
-        logic=logic,
-        expected_repetitions=expected_repetitions
+        "wait_while", condition, logic=logic, expected_repetitions=expected_repetitions
     )
+
 
 class SuccessfulEndPage(EndPage):
     """
@@ -353,17 +333,20 @@ class NAFCPage(ModularPage):
     """
 
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            choices: List[str],
-            time_estimate: Optional[float] = None,
-            labels: Optional[List[str]] = None,
-            arrange_vertically: bool = False,
-            min_width: str = "100px",
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        choices: List[str],
+        time_estimate: Optional[float] = None,
+        labels: Optional[List[str]] = None,
+        arrange_vertically: bool = False,
+        min_width: str = "100px",
+        **kwargs,
     ):
-        warnings.warn("psynet.page.NAFCPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl instead.", DeprecationWarning)
+        warnings.warn(
+            "psynet.page.NAFCPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.PushButtonControl instead.",
+            DeprecationWarning,
+        )
 
         labels = choices if labels is None else labels
 
@@ -426,16 +409,19 @@ class TextInputPage(ModularPage):
     """
 
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            time_estimate: Optional[float] = None,
-            one_line: bool = True,
-            width: Optional[str] = None,  # e.g. "100px"
-            height: Optional[str] = None,
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        time_estimate: Optional[float] = None,
+        one_line: bool = True,
+        width: Optional[str] = None,  # e.g. "100px"
+        height: Optional[str] = None,
+        **kwargs,
     ):
-        warnings.warn("psynet.page.TextInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.", DeprecationWarning)
+        warnings.warn(
+            "psynet.page.TextInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.TextControl` instead.",
+            DeprecationWarning,
+        )
 
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
@@ -457,6 +443,7 @@ class TextInputPage(ModularPage):
             "prompt": self.prompt.metadata,
             "control": self.control.metadata,
         }
+
 
 class SliderPage(ModularPage):
     """
@@ -540,27 +527,30 @@ class SliderPage(ModularPage):
     """
 
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            *,
-            start_value: float,
-            min_value: float,
-            max_value: float,
-            num_steps: int = 10000,
-            snap_values: Optional[Union[int, list]] = None,
-            input_type: Optional[str] = "HTML5_range_slider",
-            minimal_interactions: Optional[int] = 0,
-            minimal_time: float = 0.0,
-            reverse_scale: Optional[bool] = False,
-            directional: Optional[bool] = True,
-            continuous_updates: bool = False,
-            slider_id: Optional[str] = 'sliderpage_slider',
-            time_estimate: Optional[float] = None,
-            template_filename: Optional[str] = None,
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        *,
+        start_value: float,
+        min_value: float,
+        max_value: float,
+        num_steps: int = 10000,
+        snap_values: Optional[Union[int, list]] = None,
+        input_type: Optional[str] = "HTML5_range_slider",
+        minimal_interactions: Optional[int] = 0,
+        minimal_time: float = 0.0,
+        reverse_scale: Optional[bool] = False,
+        directional: Optional[bool] = True,
+        continuous_updates: bool = False,
+        slider_id: Optional[str] = "sliderpage_slider",
+        time_estimate: Optional[float] = None,
+        template_filename: Optional[str] = None,
+        **kwargs,
     ):
-        warnings.warn("psynet.page.SliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.", DeprecationWarning)
+        warnings.warn(
+            "psynet.page.SliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.SliderControl` instead.",
+            DeprecationWarning,
+        )
 
         self.max_value = max_value
         self.min_value = min_value
@@ -578,10 +568,12 @@ class SliderPage(ModularPage):
 
         self._validate()
 
-        self.snap_values = self._format_snap_values(snap_values, min_value, max_value, num_steps)
+        self.snap_values = self._format_snap_values(
+            snap_values, min_value, max_value, num_steps
+        )
         self.template_filename = template_filename
 
-        if not 'template_arg' in kwargs:
+        if "template_arg" not in kwargs:
             self.template_args = {}
         else:
             self.template_args = kwargs["template_arg"]
@@ -610,17 +602,21 @@ class SliderPage(ModularPage):
 
     def _validate(self):
         if self.input_type != "HTML5_range_slider":
-            raise NotImplementedError('Currently "HTML5_range_slider" is the only supported `input_type`')
+            raise NotImplementedError(
+                'Currently "HTML5_range_slider" is the only supported `input_type`'
+            )
 
         if self.max_value <= self.min_value:
             raise ValueError("`max_value` must be larger than `min_value`")
 
         if self.start_value > self.max_value or self.start_value < self.min_value:
-            raise ValueError("`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)" % (
-                self.start_value, self.min_value, self.max_value))
+            raise ValueError(
+                "`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)"
+                % (self.start_value, self.min_value, self.max_value)
+            )
 
         if self.minimal_interactions < 0:
-            raise ValueError('`minimal_interactions` cannot be negative!')
+            raise ValueError("`minimal_interactions` cannot be negative!")
 
     def _format_snap_values(self, snap_values, min_value, max_value, num_steps):
         if snap_values is None:
@@ -639,14 +635,14 @@ class SliderPage(ModularPage):
             **super().metadata(),
             "prompt": self.prompt.metadata,
             "control": self.control.metadata,
-            'num_steps': self.num_steps,
-            'snap_values': self.snap_values,
-            'min_value': self.min_value,
-            'max_value': self.max_value,
-            'start_value': self.start_value,
-            'input_type': self.input_type,
-            'minimal_interactions': self.minimal_interactions,
-            'minimal_time': self.minimal_time
+            "num_steps": self.num_steps,
+            "snap_values": self.snap_values,
+            "min_value": self.min_value,
+            "max_value": self.max_value,
+            "start_value": self.start_value,
+            "input_type": self.input_type,
+            "minimal_interactions": self.minimal_interactions,
+            "minimal_time": self.minimal_time,
         }
 
 
@@ -721,16 +717,21 @@ class AudioSliderPage(ModularPage):
         num_steps: Union[str, int] = 10000,
         snap_values: Optional[Union[int, list]] = "sound_locations",
         autoplay: Optional[bool] = False,
-        slider_id: Optional[str] = 'sliderpage_slider',
+        slider_id: Optional[str] = "sliderpage_slider",
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[float] = None,
         continuous_updates: bool = False,
-        **kwargs
+        **kwargs,
     ):
-        warnings.warn("psynet.page.AudioSliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.AudioSliderControl` instead.", DeprecationWarning)
+        warnings.warn(
+            "psynet.page.AudioSliderPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.AudioSliderControl` instead.",
+            DeprecationWarning,
+        )
 
-        if not 'media' in kwargs:
-            raise ValueError('You must specify sounds in `media` you later want to play with the slider')
+        if "media" not in kwargs:
+            raise ValueError(
+                "You must specify sounds in `media` you later want to play with the slider"
+            )
 
         if isinstance(num_steps, str):
             if num_steps == "num_sounds":
@@ -746,20 +747,24 @@ class AudioSliderPage(ModularPage):
 
         # Check if all stimuli specified in `sound_locations` are
         # also preloaded before the participant can start the trial
-        audio = kwargs['media'].audio
+        audio = kwargs["media"].audio
         IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
         IDs_media = []
         for key, value in audio.items():
-            if isinstance(audio[key], dict) and 'ids' in audio[key]:
-                IDs_media.append(audio[key]['ids'])
+            if isinstance(audio[key], dict) and "ids" in audio[key]:
+                IDs_media.append(audio[key]["ids"])
             elif isinstance(audio[key], str):
                 IDs_media.append(key)
             else:
-                raise NotImplementedError('Currently we only support batch files or single files')
+                raise NotImplementedError(
+                    "Currently we only support batch files or single files"
+                )
         IDs_media = list(itertools.chain.from_iterable(IDs_media))
 
         if not any([i in IDs_media for i in IDs_sound_locations]):
-            raise ValueError('All stimulus IDs you specify in `sound_locations` need to be defined in `media` too.')
+            raise ValueError(
+                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+            )
 
         # Check if all audio files are also really playable
         # ticks, step_size, diff = self._get_ticks_step_size_and_diff(snap_values, max_value, min_value)
@@ -782,14 +787,14 @@ class AudioSliderPage(ModularPage):
                 autoplay=autoplay,
                 num_steps=num_steps,
                 slider_id=slider_id,
-                reverse_scale=kwargs.get('reverse_scale'),
-                directional=kwargs.get('directional'),
+                reverse_scale=kwargs.get("reverse_scale"),
+                directional=kwargs.get("directional"),
                 snap_values=snap_values,
                 minimal_interactions=minimal_interactions,
                 minimal_time=minimal_time,
             ),
-            media=kwargs.get('media'),
-            time_estimate=kwargs.get('time_estimate'),
+            media=kwargs.get("media"),
+            time_estimate=kwargs.get("time_estimate"),
         )
 
     def metadata(self, **kwargs):
@@ -812,14 +817,17 @@ class NumberInputPage(ModularPage):
     """
 
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            width: Optional[str] = None,  # e.g. "100px"
-            time_estimate: Optional[float] = None,
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        width: Optional[str] = None,  # e.g. "100px"
+        time_estimate: Optional[float] = None,
+        **kwargs,
     ):
-        warnings.warn("psynet.page.NumberInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.", DeprecationWarning)
+        warnings.warn(
+            "psynet.page.NumberInputPage is deprecated. Use :class:`psynet.modular_page.ModularPage` in combination with :class:`psynet.modular_page.Prompt` and :class:`psynet.modular_page.NumberControl` instead.",
+            DeprecationWarning,
+        )
 
         super().__init__(
             label,
@@ -836,7 +844,7 @@ class NumberInputPage(ModularPage):
         }
 
 
-class Button():
+class Button:
     def __init__(self, button_id, *, label, min_width, own_line, start_disabled=False):
         self.id = button_id
         self.label = label
@@ -863,8 +871,9 @@ class DebugResponsePage(PageMaker):
         page_type = escape(response.page_type)
         answer = escape(response.answer)
         metadata = escape(json.dumps(response.metadata, indent=4))
-        return InfoPage(Markup(
-            f"""
+        return InfoPage(
+            Markup(
+                f"""
             <h3>Page type</h3>
             {page_type}
             <p class="vspace"></p>
@@ -874,25 +883,25 @@ class DebugResponsePage(PageMaker):
             <h3>Metadata</h3>
             <pre style="max-height: 200px; overflow: scroll;">{metadata}</pre>
             """
-        ))
+            )
+        )
+
 
 class VolumeCalibration(ModularPage):
     def __init__(
-            self,
-            url="https://headphone-check.s3.amazonaws.com/brown_noise.wav",
-            min_time=2.5,
-            time_estimate=5.0,
-        ):
+        self,
+        url="https://headphone-check.s3.amazonaws.com/brown_noise.wav",
+        min_time=2.5,
+        time_estimate=5.0,
+    ):
         self._min_time = min_time
         self._url = url
         super().__init__(
-            "volume_calibration",
-            prompt=self._prompt,
-            time_estimate=time_estimate
+            "volume_calibration", prompt=self._prompt, time_estimate=time_estimate
         )
 
     @property
-    def _text (self):
+    def _text(self):
         return Markup(
             """
             <p>
@@ -910,8 +919,5 @@ class VolumeCalibration(ModularPage):
     @property
     def _prompt(self):
         return AudioPrompt(
-            self._url,
-            self._text,
-            loop=True,
-            enable_submit_after=self._min_time
+            self._url, self._text, loop=True, enable_submit_after=self._min_time
         )

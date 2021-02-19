@@ -1,26 +1,23 @@
 import json
+import logging
 import random
 
 import psynet.experiment
-from psynet.timeline import Timeline, CodeBlock
-from psynet.page import (
-    SuccessfulEndPage,
-    UnityPage,
-)
 from psynet.modular_page import ModularPage, PushButtonControl
+from psynet.page import SuccessfulEndPage, UnityPage
+from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.non_adaptive import (
-    NonAdaptiveTrialMaker,
     NonAdaptiveTrial,
+    NonAdaptiveTrialMaker,
     StimulusSet,
     StimulusSpec,
 )
 
-import logging
 logger = logging.getLogger()
 
 
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
 Debug = False
 number_of_islands = 1  # How many islands to visit in each world
@@ -37,10 +34,7 @@ all_rates = [0, 50, 100]
 # Definition of network
 stimulus_set = StimulusSet(
     "islands",
-    [
-        StimulusSpec(definition={"mtype": mtype}, phase="train")
-        for mtype in all_types
-    ],
+    [StimulusSpec(definition={"mtype": mtype}, phase="train") for mtype in all_types],
 )
 
 
@@ -126,7 +120,6 @@ class IslandTrial(NonAdaptiveTrial):
         return list_of_pages
 
 
-
 class FinalIslandTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "final_island_trial"}
     num_pages = number_of_islands_final
@@ -156,7 +149,7 @@ class FinalIslandTrial(NonAdaptiveTrial):
 
         # Convert dictionary into a string as Unity wants the data as a string
         data_as_json = json.dumps(data)
-        logger.info(f'Final island is: {participant.var.final_world}')
+        logger.info(f"Final island is: {participant.var.final_world}")
         page = UnityIslandPage(
             contents=data_as_json,
             session_id=str(participant.id * 1000),
@@ -230,8 +223,9 @@ final_trial_maker = IslandTrialMaker(
 )
 
 ##########################################################################################
-#### Experiment
-##############################################################wqsdQWDQWdqwdqwd############################
+# Experiment
+##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -253,7 +247,9 @@ class Exp(psynet.experiment.Experiment):
             time_estimate=5,
         ),
         CodeBlock(
-            lambda participant: participant.var.set("final_world", int(participant.answer))
+            lambda participant: participant.var.set(
+                "final_world", int(participant.answer)
+            )
         ),
         final_trial_maker,
         SuccessfulEndPage(),

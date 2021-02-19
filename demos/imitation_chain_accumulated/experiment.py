@@ -1,38 +1,32 @@
 # pylint: disable=unused-import,abstract-method,unused-argument
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
-from statistics import mean
 import random
 import re
+from statistics import mean
 
 import psynet.experiment
-from psynet.timeline import (
-    Timeline,
-    FailedValidation
-)
-from psynet.page import (
-    InfoPage,
-    SuccessfulEndPage,
-    TextInputPage
-)
+from psynet.page import InfoPage, SuccessfulEndPage, TextInputPage
+from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
-    ImitationChainTrial,
+    ImitationChainNetwork,
     ImitationChainNode,
     ImitationChainSource,
+    ImitationChainTrial,
     ImitationChainTrialMaker,
-    ImitationChainNetwork
 )
-
 from psynet.utils import get_logger
+
 logger = get_logger()
 
 
 ##########################################################################################
-#### Stimuli
+# Stimuli
 ##########################################################################################
+
 
 class FixedDigitInputPage(TextInputPage):
     num_digits = 7
@@ -51,6 +45,7 @@ class FixedDigitInputPage(TextInputPage):
             return FailedValidation("Please enter a 7-digit number.")
         return None
 
+
 class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
@@ -62,14 +57,12 @@ class CustomTrial(ImitationChainTrial):
         page_2 = FixedDigitInputPage("number", "What was the number?")
         page_3 = FixedDigitInputPage("number", "Type the number one more time.")
 
-        return [
-            page_1,
-            page_2,
-            page_3
-        ]
+        return [page_1, page_2, page_3]
+
 
 class CustomNetwork(ImitationChainNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
+
 
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -81,19 +74,23 @@ class CustomNode(ImitationChainNode):
 
         return round(mean([get_answer(trial) for trial in trials]))
 
+
 class CustomSource(ImitationChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 
+
 class CustomTrialMaker(ImitationChainTrialMaker):
     response_timeout_sec = 60
     check_timeout_interval = 30
 
+
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -104,11 +101,11 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         InfoPage(
             """
-            We will demonstrate a particular form of the imitation chain experiment where each 
+            We will demonstrate a particular form of the imitation chain experiment where each
             'show_trial' comprises multiple pages. This allows you to ask the participant the same
             question multiple times in a row. This is occasionally useful in production experiments.
             """,
-            time_estimate=3
+            time_estimate=3,
         ),
         CustomTrialMaker(
             id_="imitation_demo",
@@ -128,14 +125,15 @@ class Exp(psynet.experiment.Experiment):
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_participants",
-            target_num_participants=10
+            target_num_participants=10,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
+
 
 extra_routes = Exp().extra_routes()

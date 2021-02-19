@@ -1,10 +1,11 @@
-import setuptools
 import os
+
+import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open(os.path.join("psynet", 'VERSION')) as version_file:
+with open(os.path.join("psynet", "VERSION")) as version_file:
     version = version_file.read().strip()
 
 setuptools.setup(
@@ -22,13 +23,11 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7.0',
+    python_requires=">=3.7.0",
     include_package_data=True,
-    package_data={
-        'psynet': ["VERSION"]
-    },
+    package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger>=6.3.0",
+        "dallinger>=7.0.0",
         "click",
         "datetime",
         "dominate",
@@ -41,19 +40,10 @@ setuptools.setup(
         "numpy",
         "statsmodels",
         "yaspin",
-        "praat-parselmouth"
+        "praat-parselmouth",
     ],
-    extras_require={
-        "dev": [
-            "pytest",
-            "mock"
-        ]
-    },
-    entry_points={
-        "console_scripts": [
-            "psynet = psynet.command_line:psynet"
-        ]
-    }
+    extras_require={"dev": ["pytest", "mock"]},
+    entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},
 )
 
 # python3.7 setup.py sdist bdist_wheel

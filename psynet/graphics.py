@@ -1,9 +1,10 @@
 from typing import List, Optional
 
-from .modular_page import ModularPage, Prompt, Control
+from .modular_page import Control, ModularPage, Prompt
 from .timeline import MediaSpec
 
-class GraphicMixin():
+
+class GraphicMixin:
     """
     A mix-in corresponding to a graphic panel.
 
@@ -38,6 +39,7 @@ class GraphicMixin():
     **kwargs
         Additional parameters passed to parent classes.
     """
+
     margin: str = "25px"
     "CSS margin property for the graphic panel."
 
@@ -51,15 +53,15 @@ class GraphicMixin():
     "CSS border-width property for the graphic panel."
 
     def __init__(
-            self,
-            id_: str,
-            frames: List,
-            dimensions: List,
-            viewport_width: float = 0.6,
-            loop: bool = False,
-            media: Optional[MediaSpec] = None,
-            *args,
-            **kwargs
+        self,
+        id_: str,
+        frames: List,
+        dimensions: List,
+        viewport_width: float = 0.6,
+        loop: bool = False,
+        media: Optional[MediaSpec] = None,
+        *args,
+        **kwargs,
     ):
         super().__init__(*args, **kwargs)
         self.id = id_
@@ -74,7 +76,9 @@ class GraphicMixin():
 
     def validate_media(self, media):
         if not (media is None or isinstance(media, MediaSpec)):
-            raise ValueError("media must either be None or an instance of class MediaSpec")
+            raise ValueError(
+                "media must either be None or an instance of class MediaSpec"
+            )
 
         if media is None:
             media = MediaSpec()
@@ -84,12 +88,16 @@ class GraphicMixin():
         for frame in self.frames:
             if frame.audio_id is not None:
                 if frame.audio_id not in media_ids["audio"]:
-                    raise ValueError(f"audio '{frame.audio_id}' was missing from the media collection")
+                    raise ValueError(
+                        f"audio '{frame.audio_id}' was missing from the media collection"
+                    )
 
             for obj in frame.objects:
                 if isinstance(obj, Image):
                     if obj.media_id not in media_ids["image"]:
-                        raise ValueError(f"image '{obj.media_id}' was missing from the media collection")
+                        raise ValueError(
+                            f"image '{obj.media_id}' was missing from the media collection"
+                        )
 
     def validate_id(self, id_):
         if not isinstance(id_, str):
@@ -108,9 +116,13 @@ class GraphicMixin():
             frame_objects = set()
             for o in frame.objects:
                 if o.id in frame_objects:
-                    raise ValueError(f"in Graphic {self.id}, Frame {frame_id}, duplicate object ID '{o.id}'")
+                    raise ValueError(
+                        f"in Graphic {self.id}, Frame {frame_id}, duplicate object ID '{o.id}'"
+                    )
                 if o.id in persistent_objects:
-                    raise ValueError(f"in Graphic {self.id}, Frame {frame_id}, tried to override persistent object '{o.id}'")
+                    raise ValueError(
+                        f"in Graphic {self.id}, Frame {frame_id}, tried to override persistent object '{o.id}'"
+                    )
                 frame_objects.add(o.id)
                 if o.persist:
                     persistent_objects.add(o.id)
@@ -129,10 +141,11 @@ class GraphicMixin():
             "dimensions": self.dimensions,
             "viewport_width": self.viewport_width,
             "loop": self.loop,
-            "num_frames": len(self.frames)
+            "num_frames": len(self.frames),
         }
 
-class Frame():
+
+class Frame:
     """
     A :class:`psynet.graphic.Frame` defines an image to show to the participant.
 
@@ -157,13 +170,14 @@ class Frame():
         If ``True``, then enable response submission for the page's :class:`psynet.modular_page.Control` object
         once this frame is reached.
     """
+
     def __init__(
-            self,
-            objects: List,
-            duration: Optional[float] = None,
-            audio_id: Optional[str] = None,
-            activate_control_response: bool = False,
-            activate_control_submit: bool = False
+        self,
+        objects: List,
+        duration: Optional[float] = None,
+        audio_id: Optional[str] = None,
+        activate_control_response: bool = False,
+        activate_control_submit: bool = False,
     ):
         assert (duration is None) or (duration >= 0)
         self.objects = objects
@@ -172,7 +186,8 @@ class Frame():
         self.activate_control_response = activate_control_response
         self.activate_control_submit = activate_control_submit
 
-class Animation():
+
+class Animation:
     """
     An :class:`psynet.graphic.Animation` can be added to an :class:`psynet.graphic.Object` to provide motion.
 
@@ -196,17 +211,14 @@ class Animation():
         Permitted values are ``"linear"``, ``"ease-in"``, ``"ease-out"``, ``"ease-in-out"``,
         ``"back-in"``, ``"back-out"``, ``"elastic"``, and ``"bounce"``.
     """
-    def __init__(
-            self,
-            final_attributes: dict,
-            duration: float,
-            easing: str = "linear"
-    ):
+
+    def __init__(self, final_attributes: dict, duration: float, easing: str = "linear"):
         self.final_attributes = final_attributes
         self.duration = duration
         self.easing = easing
 
-class GraphicObject():
+
+class GraphicObject:
     """
     An object that is displayed as part of a :class:`psynet.graphic.Frame`.
 
@@ -235,15 +247,16 @@ class GraphicObject():
     loop_animations
         If ``True``, then the object's animations will be looped back to the beginning once they finish.
     """
+
     def __init__(
-            self,
-            id_: str,
-            click_to_answer: bool = False,
-            persist: bool = False,
-            attributes: Optional[dict] = None,
-            animations: Optional[List] = None,
-            loop_animations: bool = False
-        ):
+        self,
+        id_: str,
+        click_to_answer: bool = False,
+        persist: bool = False,
+        attributes: Optional[dict] = None,
+        animations: Optional[List] = None,
+        loop_animations: bool = False,
+    ):
         self.validate_id(id_)
         self.id = id_
         self.click_to_answer = click_to_answer
@@ -263,14 +276,19 @@ class GraphicObject():
         elif isinstance(animations, list):
             self.animations = animations
         else:
-            raise ValueError("animations must be None, or an object of class Animation, or a list of Animations")
+            raise ValueError(
+                "animations must be None, or an object of class Animation, or a list of Animations"
+            )
 
-        self.animations_js = [{
-            "index": index,
-            "final_attributes": animation.final_attributes,
-            "duration": animation.duration,
-            "easing": animation.easing
-        } for index, animation in enumerate(self.animations)]
+        self.animations_js = [
+            {
+                "index": index,
+                "final_attributes": animation.final_attributes,
+                "duration": animation.duration,
+                "easing": animation.easing,
+            }
+            for index, animation in enumerate(self.animations)
+        ]
 
     def validate_id(self, id_):
         if not isinstance(id_, str):
@@ -309,13 +327,8 @@ class Text(GraphicObject):
     **kwargs
         Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
     """
-    def __init__(
-            self,
-            id_: str,
-            text: str,
-            x: int,
-            y: int,
-            **kwargs):
+
+    def __init__(self, id_: str, text: str, x: int, y: int, **kwargs):
         super().__init__(id_, **kwargs)
         self.text = text
         self.x = round(x)
@@ -326,7 +339,7 @@ class Text(GraphicObject):
         escaped_text = self.text.replace("'", "\\'")
         return [
             *super().js_init,
-            f"this.raphael = paper.text({self.x}, {self.y}, '{escaped_text}');"
+            f"this.raphael = paper.text({self.x}, {self.y}, '{escaped_text}');",
         ]
 
 
@@ -369,17 +382,18 @@ class Image(GraphicObject):
     **kwargs
         Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
     """
+
     def __init__(
-            self,
-            id_: str,
-            media_id: str,
-            x: int,
-            y: int,
-            width: int,
-            height: Optional[int] = None,
-            anchor_x: float = 0.5,  # 0 means align to the left side; 1 means align to the right side
-            anchor_y: float = 0.5,  # 0 means align to the top side; 1 means align to the bottom side
-            **kwargs
+        self,
+        id_: str,
+        media_id: str,
+        x: int,
+        y: int,
+        width: int,
+        height: Optional[int] = None,
+        anchor_x: float = 0.5,  # 0 means align to the left side; 1 means align to the right side
+        anchor_y: float = 0.5,  # 0 means align to the top side; 1 means align to the bottom side
+        **kwargs,
     ):
         super().__init__(id_, **kwargs)
         self.media_id = media_id
@@ -403,7 +417,7 @@ class Image(GraphicObject):
 
         return [
             *super().js_init,
-            f"this.raphael = paper.image(psynet.image['{self.media_id}'].url, {self.x}, {self.y}, {self.width}, {height_js});"
+            f"this.raphael = paper.image(psynet.image['{self.media_id}'].url, {self.x}, {self.y}, {self.width}, {height_js});",
         ]
 
     @property
@@ -418,8 +432,9 @@ class Image(GraphicObject):
                 this.y_offset = - Math.round(height * {self.anchor_y});
                 this.raphael.transform('t' + this.x_offset + ',' + this.y_offset);
             }}
-            """
+            """,
         ]
+
 
 class Path(GraphicObject):
     """
@@ -440,21 +455,13 @@ class Path(GraphicObject):
         Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
     """
 
-    def __init__(
-            self,
-            id_: str,
-            path_string: str,
-            **kwargs
-    ):
+    def __init__(self, id_: str, path_string: str, **kwargs):
         super().__init__(id_, **kwargs)
         self.path_string = path_string
 
     @property
     def js_init(self) -> str:
-        return [
-            *super().js_init,
-            f"this.raphael = paper.path('{self.path_string}');"
-        ]
+        return [*super().js_init, f"this.raphael = paper.path('{self.path_string}');"]
 
 
 class Circle(GraphicObject):
@@ -479,6 +486,7 @@ class Circle(GraphicObject):
     **kwargs
         Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
     """
+
     def __init__(self, id_: str, x: int, y: int, radius: int, **kwargs):
         super().__init__(id_, **kwargs)
         self.x = round(x)
@@ -489,7 +497,7 @@ class Circle(GraphicObject):
     def js_init(self) -> str:
         return [
             *super().js_init,
-            f"this.raphael = paper.circle({self.x}, {self.y}, {self.radius});"
+            f"this.raphael = paper.circle({self.x}, {self.y}, {self.radius});",
         ]
 
 
@@ -519,14 +527,9 @@ class Ellipse(GraphicObject):
     **kwargs
         Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
     """
+
     def __init__(
-            self,
-            id_: str,
-            x: int,
-            y: int,
-            radius_x: int,
-            radius_y: int,
-            **kwargs
+        self, id_: str, x: int, y: int, radius_x: int, radius_y: int, **kwargs
     ):
         super().__init__(id_, **kwargs)
         self.x = round(x)
@@ -538,7 +541,7 @@ class Ellipse(GraphicObject):
     def js_init(self):
         return [
             *super().js_init,
-            f"this.raphael = paper.ellipse({self.x}, {self.y}, {self.radius_x}, {self.radius_y});"
+            f"this.raphael = paper.ellipse({self.x}, {self.y}, {self.radius_x}, {self.radius_y});",
         ]
 
 
@@ -570,15 +573,16 @@ class Rectangle(GraphicObject):
     **kwargs
         Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
     """
+
     def __init__(
-            self,
-            id_: str,
-            x: int,
-            y: int,
-            width: int,
-            height: int,
-            corner_radius: int = 0,
-            **kwargs
+        self,
+        id_: str,
+        x: int,
+        y: int,
+        width: int,
+        height: int,
+        corner_radius: int = 0,
+        **kwargs,
     ):
         super().__init__(id_, **kwargs)
         self.x = round(x)
@@ -591,8 +595,9 @@ class Rectangle(GraphicObject):
     def js_init(self):
         return [
             *super().js_init,
-            f"this.raphael = paper.rect({self.x}, {self.y}, {self.width}, {self.height}, {self.corner_radius});"
+            f"this.raphael = paper.rect({self.x}, {self.y}, {self.width}, {self.height}, {self.corner_radius});",
         ]
+
 
 class GraphicPrompt(GraphicMixin, Prompt):
     """
@@ -612,15 +617,16 @@ class GraphicPrompt(GraphicMixin, Prompt):
     **kwargs
         Parameters passed to :class:`~psynet.graphic.GraphicMixin` and :class:`~psynet.modular_page.Prompt`.
     """
+
     macro = "graphic"
 
     def __init__(
-            self,
-            *,
-            prevent_control_response: bool = False,
-            prevent_control_submit: bool = False,
-            **kwargs
-        ):
+        self,
+        *,
+        prevent_control_response: bool = False,
+        prevent_control_submit: bool = False,
+        **kwargs,
+    ):
         super().__init__(id_="prompt", **kwargs)
         self.prevent_control_response = prevent_control_response
         self.prevent_control_submit = prevent_control_submit
@@ -638,33 +644,33 @@ class GraphicPrompt(GraphicMixin, Prompt):
             if frame.activate_control_submit:
                 submit_activated = True
         if self.prevent_control_response and not response_activated:
-            raise ValueError("if prevent_control_response == True, then at least one frame must have activate_control_response == True")
+            raise ValueError(
+                "if prevent_control_response == True, then at least one frame must have activate_control_response == True"
+            )
         if self.prevent_control_submit and not submit_activated:
-            raise ValueError("if prevent_control_submit == True, then at least one frame must have activate_control_submit == True")
+            raise ValueError(
+                "if prevent_control_submit == True, then at least one frame must have activate_control_submit == True"
+            )
         return True
 
 
 class GraphicControl(GraphicMixin, Control):
     """
-        A graphic control for use in :class:`psynet.modular_page.ModularPage`.
+    A graphic control for use in :class:`psynet.modular_page.ModularPage`.
 
-        Parameters
-        ----------
+    Parameters
+    ----------
 
-        auto_advance_after : float
-            If not ``None``, a time in seconds after which the page will automatically advance to the next page.
+    auto_advance_after : float
+        If not ``None``, a time in seconds after which the page will automatically advance to the next page.
 
-        **kwargs
-            Parameters passed to :class:`~psynet.graphic.GraphicMixin` and :class:`~psynet.modular_page.Control`.
-        """
+    **kwargs
+        Parameters passed to :class:`~psynet.graphic.GraphicMixin` and :class:`~psynet.modular_page.Control`.
+    """
 
     macro = "graphic"
 
-    def __init__(
-            self,
-            auto_advance_after: Optional[float] = None,
-            **kwargs
-    ):
+    def __init__(self, auto_advance_after: Optional[float] = None, **kwargs):
         super().__init__(id_="control", **kwargs)
         self.auto_advance_after = auto_advance_after
 
@@ -689,6 +695,7 @@ class GraphicControl(GraphicMixin, Control):
         # )
         # return html
 
+
 class GraphicPage(ModularPage):
     """
     A page that contains a single graphic.
@@ -705,13 +712,8 @@ class GraphicPage(ModularPage):
     **kwargs
         Parameters passed to :class:`~psynet.graphic.GraphicControl`.
     """
-    def __init__(
-            self,
-            label,
-            *,
-            time_estimate,
-            **kwargs
-    ):
+
+    def __init__(self, label, *, time_estimate, **kwargs):
         super().__init__(
             label,
             Prompt(),

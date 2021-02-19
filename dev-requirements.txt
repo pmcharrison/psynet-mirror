@@ -1,0 +1,5 @@
+pycountry
+sphinx-autodoc-typehints
+sphinx_rtd_theme
+pre-commit
+
