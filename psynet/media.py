@@ -9,6 +9,7 @@ import botocore.errorfactory
 import tempfile
 import shutil
 import numpy as np
+import uuid
 from dallinger.config import get_config
 
 from pathlib import Path
@@ -88,7 +89,7 @@ def generate_presigned_url(bucket_name: str, file_extension: str):
         "put_object",
         Params={
             "Bucket": bucket_name,
-            "Key": f"{str(uuid4())}.{file_extension}"
+            "Key": f"{str(uuid.uuid4())}.{file_extension}"
         }
     )
 
