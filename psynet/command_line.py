@@ -203,6 +203,10 @@ def export(app, local):
         spinner.ok("✔")
 
     dallinger_log("Exporting 'json' and 'csv' files.")
+    from dallinger.config import get_config
+    config = get_config()
+    if not config.ready:
+        config.load()
     base_url = get_base_url() if local else f"https://dlgr-{app}.herokuapp.com"
 
     for dallinger_model in dallinger_models():
