@@ -90,8 +90,14 @@ class AudioRecordTrial():
         with tempfile.NamedTemporaryFile() as temp_recording:
             with tempfile.NamedTemporaryFile() as temp_plot:
                 self.download_recording(temp_recording.name)
-                self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
-                if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
+                recode_wav(temp_recording.name)
+                self.analysis = self.analyse_recording(
+                    temp_recording.name, temp_plot.name
+                )
+                if not (
+                    "no_plot_generated" in self.analysis
+                    and self.analysis["no_plot_generated"]
+                ):
                     self.upload_plot(temp_plot.name)
                 try:
                     if self.analysis["failed"]:

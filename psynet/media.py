@@ -1,4 +1,9 @@
 import os
+<<<<<<< HEAD
+=======
+import parselmouth
+import shutil
+>>>>>>> 9fdad1c... Merge branch 'CAP-688_Revert-recode_wav' into 'dev'
 import struct
 import json
 import boto3
@@ -7,8 +12,12 @@ import botocore.errorfactory
 import tempfile
 import shutil
 import numpy as np
+<<<<<<< HEAD
 from uuid import uuid4
 from scipy.io import wavfile
+=======
+from dallinger.config import get_config
+>>>>>>> 9fdad1c... Merge branch 'CAP-688_Revert-recode_wav' into 'dev'
 
 from pathlib import Path
 
@@ -316,11 +325,8 @@ def make_bucket_public(bucket_name):
     bucket_policy.put(Policy = new_policy)
 
 def recode_wav(file_path):
-    import parselmouth
     with tempfile.NamedTemporaryFile() as temp_file:
-        fs, data = wavfile.read(file_path)
-        force_bit_depth = data.astype(np.float32)
-        wavfile.write(temp_file.name, fs, force_bit_depth)
+        shutil.copyfile(file_path, temp_file.name)
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
 
