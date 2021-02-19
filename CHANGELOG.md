@@ -12,6 +12,16 @@
 - Updated Python to version 3.9 and Dallinger to version 7.0.0. in `.gitlab-ci.yml`.
 
 
+# [1.11.1] Released on 2021-02-19
+
+#### Fixed
+
+- Fix export command by loading config.
+- Remove quotes from PushButton HTML id.
+- Use Dallinger v7.0.0 in gitlab-ci.
+- Fix minor spelling mistake.
+
+
 # [1.11.0] Released on 2021-02-13
 
 #### Added
