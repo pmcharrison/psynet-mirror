@@ -1,9 +1,6 @@
 import os
-<<<<<<< HEAD
-=======
 import parselmouth
 import shutil
->>>>>>> 9fdad1c... Merge branch 'CAP-688_Revert-recode_wav' into 'dev'
 import struct
 import json
 import boto3
@@ -12,12 +9,7 @@ import botocore.errorfactory
 import tempfile
 import shutil
 import numpy as np
-<<<<<<< HEAD
-from uuid import uuid4
-from scipy.io import wavfile
-=======
 from dallinger.config import get_config
->>>>>>> 9fdad1c... Merge branch 'CAP-688_Revert-recode_wav' into 'dev'
 
 from pathlib import Path
 
