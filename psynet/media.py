@@ -1,5 +1,6 @@
 import json
 import os
+import parselmouth
 import shutil
 import struct
 import tempfile
@@ -11,7 +12,6 @@ import botocore.errorfactory
 import botocore.exceptions
 import numpy as np
 from dallinger.config import get_config
-from scipy.io import wavfile
 
 from .utils import get_logger, log_time_taken
 
@@ -353,15 +353,10 @@ def make_bucket_public(bucket_name):
 
 
 def recode_wav(file_path):
-    import parselmouth
-
     with tempfile.NamedTemporaryFile() as temp_file:
-        fs, data = wavfile.read(file_path)
-        force_bit_depth = data.astype(np.float32)
-        wavfile.write(temp_file.name, fs, force_bit_depth)
+        shutil.copyfile(file_path, temp_file.name)
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
-
 
 def get_s3_url(bucket, key):
     if LOCAL_S3:
