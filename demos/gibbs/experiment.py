@@ -1,49 +1,43 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
-from flask import Markup
 import random
-from typing import Union, List
+from typing import List, Union
+
+from flask import Markup
 
 import psynet.experiment
-
-from psynet.timeline import (
-    Timeline,
-    CodeBlock,
-)
-from psynet.page import (
-    InfoPage,
-    SuccessfulEndPage,
-    SliderPage,
-    NAFCPage,
-)
+from psynet.page import InfoPage, NAFCPage, SliderPage, SuccessfulEndPage
+from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import (
-    GibbsNetwork, GibbsTrial, GibbsNode, GibbsSource, GibbsTrialMaker
+    GibbsNetwork,
+    GibbsNode,
+    GibbsSource,
+    GibbsTrial,
+    GibbsTrialMaker,
 )
-
 from psynet.utils import get_logger
+
 logger = get_logger()
 
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
 
-import os
-
 
 class ColorSliderPage(SliderPage):
     def __init__(
-            self,
-            label: str,
-            prompt: Union[str, Markup],
-            selected_idx: int,
-            starting_values: List[int],
-            reverse_scale: bool,
-            directional: bool,
-            time_estimate=None,
-            **kwargs
+        self,
+        label: str,
+        prompt: Union[str, Markup],
+        selected_idx: int,
+        starting_values: List[int],
+        reverse_scale: bool,
+        directional: bool,
+        time_estimate=None,
+        **kwargs,
     ):
         assert selected_idx >= 0 and selected_idx < len(COLORS)
         self.prompt = prompt
@@ -55,8 +49,8 @@ class ColorSliderPage(SliderPage):
         not_selected_colors = [COLORS[i] for i in not_selected_idxs]
         not_selected_values = [starting_values[i] for i in not_selected_idxs]
         hidden_inputs = dict(zip(not_selected_colors, not_selected_values))
-        kwargs['template_arg'] = {
-            'hidden_inputs': hidden_inputs,
+        kwargs["template_arg"] = {
+            "hidden_inputs": hidden_inputs,
         }
         super().__init__(
             time_estimate=time_estimate,
@@ -70,16 +64,16 @@ class ColorSliderPage(SliderPage):
             reverse_scale=reverse_scale,
             directional=directional,
             template_arg={
-                'hidden_inputs': hidden_inputs,
+                "hidden_inputs": hidden_inputs,
             },
-            continuous_updates=True
+            continuous_updates=True,
         )
 
     def metadata(self, **kwargs):
         return {
             "prompt": self.prompt.metadata,
             "selected_idx": self.selected_idx,
-            "starting_values": self.starting_values
+            "starting_values": self.starting_values,
         }
 
 
@@ -94,8 +88,9 @@ class CustomNetwork(GibbsNetwork):
     def make_definition(self):
         return {
             "target": self.balance_across_networks(TARGETS),
-            "participant_group": self.balance_across_networks(["A", "B"])
+            "participant_group": self.balance_across_networks(["A", "B"]),
         }
+
 
 class CustomTrial(GibbsTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
@@ -118,8 +113,9 @@ class CustomTrial(GibbsTrial):
             selected_idx=self.active_index,
             reverse_scale=self.reverse_scale,
             directional=False,
-            time_estimate=5
+            time_estimate=5,
         )
+
 
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -127,6 +123,7 @@ class CustomNode(GibbsNode):
 
 class CustomSource(GibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
+
 
 class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
@@ -136,8 +133,10 @@ class CustomTrialMaker(GibbsTrialMaker):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
 
         return InfoPage(
-            Markup(f"Your consistency score was <strong>{score_to_display}&#37;</strong>."),
-            time_estimate=5
+            Markup(
+                f"Your consistency score was <strong>{score_to_display}&#37;</strong>."
+            ),
+            time_estimate=5,
         )
 
     def compute_bonus(self, score, passed):
@@ -145,6 +144,7 @@ class CustomTrialMaker(GibbsTrialMaker):
             return 0.0
         else:
             return max(0.0, score)
+
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
@@ -166,12 +166,13 @@ trial_maker = CustomTrialMaker(
     propagate_failure=False,
     recruit_mode="num_trials",
     target_num_participants=None,
-    num_repeat_trials=3
+    num_repeat_trials=3,
 )
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -184,11 +185,15 @@ class Exp(psynet.experiment.Experiment):
             "choose_network",
             "What participant group would you like to join?",
             ["A", "B"],
-            time_estimate=5
+            time_estimate=5,
         ),
-        CodeBlock(lambda participant: participant.set_participant_group("gibbs_demo", participant.answer)),
+        CodeBlock(
+            lambda participant: participant.set_participant_group(
+                "gibbs_demo", participant.answer
+            )
+        ),
         trial_maker,
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
 
     def __init__(self, session=None):

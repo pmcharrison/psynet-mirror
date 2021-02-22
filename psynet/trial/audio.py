@@ -2,27 +2,26 @@
 
 import os
 import tempfile
-import dominate.tags as tags
-
 from uuid import uuid4
+
+import dominate.tags as tags
 from dallinger import db
 
-from ..media import download_from_s3, upload_to_s3, recode_wav, get_s3_url
-from ..field import claim_field, claim_var, extra_var
-
-from .main import Trial
+from ..field import claim_var, extra_var
+from ..media import download_from_s3, get_s3_url, recode_wav, upload_to_s3
+from ..utils import get_logger
 from .imitation_chain import (
     ImitationChainNetwork,
-    ImitationChainTrial,
     ImitationChainNode,
     ImitationChainSource,
-    ImitationChainTrialMaker
+    ImitationChainTrial,
+    ImitationChainTrialMaker,
 )
 
-from ..utils import get_logger
 logger = get_logger()
 
-class AudioRecordTrial():
+
+class AudioRecordTrial:
     __extra_vars__ = {}
 
     run_async_post_trial = True
@@ -37,10 +36,12 @@ class AudioRecordTrial():
             return {
                 "s3_bucket": answer["s3_bucket"],
                 "key": answer["key"],
-                "url": answer["url"]
+                "url": answer["url"],
             }
         except KeyError as e:
-            raise KeyError(str(e) + " Did the trial include an AudioRecordControl, as required?")
+            raise KeyError(
+                str(e) + " Did the trial include an AudioRecordControl, as required?"
+            )
 
     @property
     @extra_var(__extra_vars__)
@@ -77,11 +78,8 @@ class AudioRecordTrial():
         html = super().visualization_html
         if self.has_recording:
             html += tags.div(
-                tags.img(
-                    src=self.plot_url,
-                    style="max-width: 100%;"
-                ),
-                style="border-style: solid; border-width: 1px;"
+                tags.img(src=self.plot_url, style="max-width: 100%;"),
+                style="border-style: solid; border-width: 1px;",
             ).render()
         return html
 
@@ -90,24 +88,36 @@ class AudioRecordTrial():
         with tempfile.NamedTemporaryFile() as temp_recording:
             with tempfile.NamedTemporaryFile() as temp_plot:
                 self.download_recording(temp_recording.name)
-                self.analysis = self.analyse_recording(temp_recording.name, temp_plot.name)
-                if not ("no_plot_generated" in self.analysis and self.analysis["no_plot_generated"]):
+                recode_wav(temp_recording.name)
+                self.analysis = self.analyse_recording(
+                    temp_recording.name, temp_plot.name
+                )
+                if not (
+                    "no_plot_generated" in self.analysis
+                    and self.analysis["no_plot_generated"]
+                ):
                     self.upload_plot(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
                         self.fail()
                 except KeyError:
-                    raise KeyError("The recording analysis failed to contain a 'failed' attribute.")
+                    raise KeyError(
+                        "The recording analysis failed to contain a 'failed' attribute."
+                    )
                 finally:
                     db.session.commit()
-
 
     def download_recording(self, local_path):
         recording_info = self.recording_info
         download_from_s3(local_path, recording_info["s3_bucket"], recording_info["key"])
 
     def upload_plot(self, local_path):
-        upload_to_s3(local_path, self.recording_info["s3_bucket"], self.plot_key, public_read=True)
+        upload_to_s3(
+            local_path,
+            self.recording_info["s3_bucket"],
+            self.plot_key,
+            public_read=True,
+        )
 
     def analyse_recording(self, audio_file: str, output_plot: str):
         """
@@ -142,13 +152,16 @@ class AudioImitationChainNetwork(ImitationChainNetwork):
     """
     A Network class for audio imitation chains.
     """
+
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_network"}
 
     s3_bucket = ""
 
     def validate(self):
         if self.s3_bucket == "":
-            raise ValueError("The AudioImitationChainNetwork must possess a valid s3_bucket attribute.")
+            raise ValueError(
+                "The AudioImitationChainNetwork must possess a valid s3_bucket attribute."
+            )
 
     run_async_post_grow_network = True
 
@@ -158,7 +171,10 @@ class AudioImitationChainNetwork(ImitationChainNetwork):
         node = self.head
 
         if isinstance(node, AudioImitationChainSource):
-            logger.info("Network %i only contains a Source, no audio to be synthesised.", self.id)
+            logger.info(
+                "Network %i only contains a Source, no audio to be synthesised.",
+                self.id,
+            )
         else:
             with tempfile.NamedTemporaryFile() as temp_file:
                 node.synthesise_target(temp_file.name)
@@ -169,7 +185,7 @@ class AudioImitationChainNetwork(ImitationChainNetwork):
                     self.s3_bucket,
                     key=target_key,
                     public_read=True,
-                    create_new_bucket=True
+                    create_new_bucket=True,
                 )["url"]
 
 
@@ -183,8 +199,9 @@ class AudioImitationChainTrial(AudioRecordTrial, ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_trial"}
     __extra_vars__ = {
         **AudioRecordTrial.__extra_vars__,
-        **ImitationChainTrial.__extra_vars__
+        **ImitationChainTrial.__extra_vars__,
     }
+
 
 class AudioImitationChainNode(ImitationChainNode):
     """
@@ -192,6 +209,7 @@ class AudioImitationChainNode(ImitationChainNode):
     Users must override the
     :meth:`~psynet.trial.audio.AudioImitationChainNode.synthesise_target` method.
     """
+
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_node"}
     __extra_vars__ = ImitationChainNode.__extra_vars__.copy()
 
@@ -205,11 +223,14 @@ class AudioImitationChainNode(ImitationChainNode):
         """
         raise NotImplementedError
 
+
 class AudioImitationChainSource(ImitationChainSource):
     """
     A Source class for imitation chains.
     """
+
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_source"}
+
 
 class AudioImitationChainTrialMaker(ImitationChainTrialMaker):
     """

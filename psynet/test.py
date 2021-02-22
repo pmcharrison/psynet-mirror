@@ -1,12 +1,13 @@
 import logging
-import time
 import os
+import time
 
 from cached_property import cached_property
-from selenium.common.exceptions import TimeoutException
 from dallinger.bots import BotBase
+from selenium.common.exceptions import TimeoutException
 
 logger = logging.getLogger(__file__)
+
 
 def bot_class(headless=None):
     if headless is None:
@@ -37,10 +38,12 @@ def bot_class(headless=None):
             chrome_options.add_argument("--no-sandbox")
 
             if headless:
-                chrome_options.add_argument('--headless')
+                chrome_options.add_argument("--headless")
 
             return webdriver.Chrome(chrome_options=chrome_options)
+
     return PYTEST_BOT_CLASS
+
 
 def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.0):
     old_id = driver.execute_script("return page_uuid")

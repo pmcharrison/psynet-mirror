@@ -5,11 +5,18 @@ PsyNet Documentation
    :maxdepth: 1
    :caption: Introduction
 
-   about
-   how_to_use
-   installation
-   command_line
-   demo
+   introduction/about
+   introduction/how_to_use
+   introduction/command_line
+   introduction/demo
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Installation
+
+   installation/basic
+   installation/macos
+   installation/linux
 
 .. toctree::
    :maxdepth: 2
@@ -47,4 +54,10 @@ PsyNet Documentation
    :caption: Low-level documentation
    :glob:
 
-   low_level/*
+   low_level/demography
+   low_level/Experiment
+   low_level/Participant
+   low_level/prescreen
+   low_level/timeline
+   low_level/trial
+   low_level/VarStore

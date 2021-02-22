@@ -8,13 +8,13 @@ that are administered one after the other to the participant.
 such experiments. In particular, we consider the following scenarios
 at increasing levels of specificity:
 
-1. :ref:`Experiments using trials`.
+1. `Experiments using trials`_.
 
-2. :ref:`Experiments where trials are organised into networks`.
+2. `Experiments where trials are organised into networks`_.
 
-3. :ref:`Experiments where the networks take the form of chains`.
+3. `Experiments where the networks take the form of chains`_.
 
-4. :ref:`Specific paradigms` such as generic non-adaptive experiments,
+4. `Specific paradigms`_ such as generic non-adaptive experiments,
    *Markov Chain Monte Carlo with People*, *iterated reproduction*,
    and *Gibbs sampling*.
 

@@ -1,24 +1,16 @@
 import psynet.experiment
-from psynet.timeline import (
-    Timeline,
-    Module,
-)
 from psynet.modular_page import (
-    AudioPrompt,
     CheckboxControl,
     DropdownControl,
     ModularPage,
     PushButtonControl,
     RadioButtonControl,
 )
-from psynet.page import (
-    SuccessfulEndPage
-)
-
+from psynet.page import SuccessfulEndPage
+from psynet.timeline import Timeline
 from psynet.utils import get_logger
-logger = get_logger()
 
-from datetime import datetime
+logger = get_logger()
 
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
@@ -33,7 +25,7 @@ class Exp(psynet.experiment.Experiment):
                 ["red", "green", "blue"],
                 ["Red", "Green", "Blue"],
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
         ModularPage(
             "response",
@@ -43,7 +35,7 @@ class Exp(psynet.experiment.Experiment):
                 ["Red", "Green", "Blue"],
                 arrange_vertically=False,
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
         ModularPage(
             "response",
@@ -53,7 +45,7 @@ class Exp(psynet.experiment.Experiment):
                 ["Cirrus", "Stratus", "Cumulus"],
                 name="clouds",
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
         ModularPage(
             "response",
@@ -63,7 +55,7 @@ class Exp(psynet.experiment.Experiment):
                 ["Sneakers", "Sandals", "Clogs"],
                 name="shoes",
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
         ModularPage(
             "response",
@@ -74,9 +66,9 @@ class Exp(psynet.experiment.Experiment):
                 name="shoes",
                 arrange_vertically=False,
                 force_selection=True,
-                show_reset_button='always',
+                show_reset_button="always",
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
         ModularPage(
             "response",
@@ -86,9 +78,9 @@ class Exp(psynet.experiment.Experiment):
                 ["Maple", "Cottonwood", "Alder"],
                 name="trees",
                 arrange_vertically=True,
-                show_reset_button='on_selection',
+                show_reset_button="on_selection",
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
         ModularPage(
             "response",
@@ -100,9 +92,10 @@ class Exp(psynet.experiment.Experiment):
                 arrange_vertically=False,
                 force_selection=False,
             ),
-            time_estimate=5
+            time_estimate=5,
         ),
-        SuccessfulEndPage()
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()

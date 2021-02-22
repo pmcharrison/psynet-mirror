@@ -1,28 +1,30 @@
-import json
-import inspect
-import importlib
-import time
-import sys
-import os
-import pandas as pd
 import hashlib
+import importlib
 import importlib.util
-import re
-from datetime import datetime
+import inspect
+import json
 import logging
-
+import os
+import re
+import sys
+import time
+from datetime import datetime
 from functools import reduce, wraps
+
+import pandas as pd
+from dallinger.config import get_config
 from sqlalchemy.sql import func
 
-from dallinger.config import get_config, initialize_experiment_package
 
 def get_logger():
     logging.basicConfig(level=logging.INFO)
     return logging.getLogger()
 
+
 logger = get_logger()
 
-def get_arg_from_dict(x, desired: str, use_default = False, default = None):
+
+def get_arg_from_dict(x, desired: str, use_default=False, default=None):
     if desired not in x:
         if use_default:
             return default
@@ -30,8 +32,10 @@ def get_arg_from_dict(x, desired: str, use_default = False, default = None):
             raise KeyError
     return x[desired]
 
+
 def sql_sample_one(x):
     return x.order_by(func.random()).first()
+
 
 def import_local_experiment():
     # Imports experiment.py and returns a dict consisting of
@@ -41,9 +45,10 @@ def import_local_experiment():
     # It also adds the experiment directory to sys.path, meaning that any other
     # modules defined there can be imported using ``import``.
     # import pdb; pdb.set_trace()
-    config = get_config()
+    get_config()
 
     import dallinger.experiment
+
     dallinger.experiment.load()
 
     dallinger_experiment = sys.modules.get("dallinger_experiment")
@@ -52,14 +57,17 @@ def import_local_experiment():
     try:
         module = dallinger_experiment.experiment
     except AttributeError as e:
-        raise Exception(f"Possible ModuleNotFoundError in your experiment's experiment.py file. " \
-                        f"Please check your imports!\nOriginal error was \"AttributeError: {e}\"")
+        raise Exception(
+            f"Possible ModuleNotFoundError in your experiment's experiment.py file. "
+            f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
+        )
 
     return {
         "package": dallinger_experiment,
         "module": module,
-        "class": dallinger.experiment.load()
+        "class": dallinger.experiment.load(),
     }
+
 
 # def import_local_experiment():
 #     sys.path.append(os.getcwd())
@@ -85,17 +93,21 @@ def import_local_experiment():
 # class APIMissingJSON(ValueError):
 #     pass
 
+
 def dict_to_js_vars(x):
     y = [f"var {key} = JSON.parse('{json.dumps(value)}'); " for key, value in x.items()]
-    return reduce(lambda a, b: a + b, y )
+    return reduce(lambda a, b: a + b, y)
+
 
 def call_function(function, args: dict):
     requested_args = get_function_args(function)
     arg_values = [args[requested] for requested in requested_args]
     return function(*arg_values)
 
+
 def get_function_args(f):
     return [str(x) for x in inspect.signature(f).parameters]
+
 
 def check_function_args(f, args, need_all=True):
     if not callable(f):
@@ -109,6 +121,7 @@ def check_function_args(f, args, need_all=True):
             if a not in args:
                 raise ValueError(f"Invalid argument: {a}")
     return True
+
 
 def get_object_from_module(module_name: str, object_name: str):
     """
@@ -127,6 +140,7 @@ def get_object_from_module(module_name: str, object_name: str):
     obj = getattr(mod, object_name)
     return obj
 
+
 def log_time_taken(fun):
     @wraps(fun)
     def wrapper(*args, **kwargs):
@@ -136,7 +150,9 @@ def log_time_taken(fun):
         time_taken = end_time - start_time
         logger.info("Time taken by %s: %.3f seconds.", fun.__name__, time_taken)
         return res
+
     return wrapper
+
 
 def negate(f):
     """
@@ -148,10 +164,13 @@ def negate(f):
     f
         Function to negate.
     """
+
     @wraps(f)
-    def g(*args,**kwargs):
-        return not f(*args,**kwargs)
+    def g(*args, **kwargs):
+        return not f(*args, **kwargs)
+
     return g
+
 
 def linspace(lower, upper, length: int):
     """
@@ -170,6 +189,7 @@ def linspace(lower, upper, length: int):
         The length of the resulting list.
     """
     return [lower + x * (upper - lower) / (length - 1) for x in range(length)]
+
 
 def merge_dicts(*args, overwrite: bool):
     """
@@ -191,6 +211,7 @@ def merge_dicts(*args, overwrite: bool):
     if len(args) == 0:
         return {}
     return reduce(lambda x, y: merge_two_dicts(x, y, overwrite), args)
+
 
 def merge_two_dicts(x: dict, y: dict, overwrite: bool):
     """
@@ -214,25 +235,29 @@ def merge_two_dicts(x: dict, y: dict, overwrite: bool):
     if not overwrite:
         for key in y.keys():
             if key in x:
-                raise DuplicateKeyError(f"Duplicate key {key} found in the dictionaries to be merged.")
+                raise DuplicateKeyError(
+                    f"Duplicate key {key} found in the dictionaries to be merged."
+                )
 
     return {**x, **y}
+
 
 class DuplicateKeyError(ValueError):
     pass
 
+
 def corr(x: list, y: list, method="pearson"):
-    df = pd.DataFrame(
-        {"x": x, "y": y},
-        columns=["x", "y"]
-    )
+    df = pd.DataFrame({"x": x, "y": y}, columns=["x", "y"])
     return float(df.corr(method=method).at["x", "y"])
 
-class DisableLogger():
+
+class DisableLogger:
     def __enter__(self):
         logging.disable(logging.CRITICAL)
+
     def __exit__(self, a, b, c):
         logging.disable(logging.NOTSET)
+
 
 def query_yes_no(question, default="yes"):
     """Ask a yes/no question via raw_input() and return their answer.
@@ -244,8 +269,7 @@ def query_yes_no(question, default="yes"):
 
     The "answer" return value is True for "yes" or False for "no".
     """
-    valid = {"yes": True, "y": True, "ye": True,
-             "no": False, "n": False}
+    valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
     if default is None:
         prompt = " [y/n] "
     elif default == "yes":
@@ -258,50 +282,63 @@ def query_yes_no(question, default="yes"):
     while True:
         sys.stdout.write(question + prompt)
         choice = input().lower()
-        if default is not None and choice == '':
+        if default is not None and choice == "":
             return valid[default]
         elif choice in valid:
             return valid[choice]
         else:
-            sys.stdout.write("Please respond with 'yes' or 'no' "
-                             "(or 'y' or 'n').\n")
+            sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+
 
 def hash_object(x):
     return hashlib.md5(json.dumps(x).encode("utf-8")).hexdigest()
+
 
 def import_module(name, source):
     spec = importlib.util.spec_from_file_location(name, source)
     foo = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(foo)
 
+
 def serialise_datetime(x):
     if x is None:
         return None
     return x.isoformat()
+
 
 def unserialise_datetime(x):
     if x is None:
         return None
     return datetime.fromisoformat(x)
 
+
 def clamp(x):
     return max(0, min(x, 255))
 
+
 def rgb_to_hex(r, g, b):
-    return "#{0:02x}{1:02x}{2:02x}".format(clamp(round(r)), clamp(round(g)), clamp(round(b)))
+    return "#{0:02x}{1:02x}{2:02x}".format(
+        clamp(round(r)), clamp(round(g)), clamp(round(b))
+    )
+
 
 def serialise(obj):
     """Serialise objects not serialisable by default"""
 
     if isinstance(obj, (datetime)):
         return serialise_datetime(obj)
-    raise TypeError ("Type %s is not serialisable" % type(obj))
+    raise TypeError("Type %s is not serialisable" % type(obj))
+
 
 def format_datetime_string(datetime_string):
-    return datetime.strptime(datetime_string, '%Y-%m-%dT%H:%M:%S.%f').strftime('%Y-%m-%d %H:%M:%S')
+    return datetime.strptime(datetime_string, "%Y-%m-%dT%H:%M:%S.%f").strftime(
+        "%Y-%m-%d %H:%M:%S"
+    )
+
 
 def model_name_to_snake_case(model_name):
-    return re.sub(r'(?<!^)(?=[A-Z])', '_', model_name).lower()
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", model_name).lower()
+
 
 def json_to_data_frame(json_data):
     columns = []

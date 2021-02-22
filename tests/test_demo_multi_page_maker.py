@@ -1,18 +1,16 @@
-import os
-import pytest
-import re
 import logging
 import time
 
-from psynet.participant import Participant, get_participant
+import pytest
+
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 
-@pytest.mark.usefixtures("demo_multi_page_maker")
-class TestExp():
 
+@pytest.mark.usefixtures("demo_multi_page_maker")
+class TestExp:
     def test_exp(self, bot_recruits):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver

@@ -1,21 +1,22 @@
 # pylint: disable=attribute-defined-outside-init
 
+import datetime
+import json
+
+import dallinger.models
+from dallinger.config import get_config
+from dallinger.notifications import admin_notifier
 from sqlalchemy import desc
 
-from dallinger.config import get_config
-import dallinger.models
-from dallinger.notifications import admin_notifier
-import datetime
 from . import field
 from .field import VarStore, claim_var, extra_var
 from .timeline import Response
-import json
-import os
 from .utils import get_logger, serialise_datetime, unserialise_datetime
 
 logger = get_logger()
 
 # pylint: disable=unused-import
+
 
 class Participant(dallinger.models.Participant):
     """
@@ -114,14 +115,24 @@ class Participant(dallinger.models.Participant):
     answer = field.claim_field(4, "answer", __extra_vars__, object)
     branch_log = field.claim_field(5, "branch_log", __extra_vars__, list)
 
-    initialised = claim_var("initialised", __extra_vars__, use_default=True, default=lambda: False)
-    failure_tags = claim_var("failure_tags", __extra_vars__, use_default=True, default=lambda: [])
-    last_response_id = claim_var("last_response_id", __extra_vars__, use_default=True, default=lambda: None)
+    initialised = claim_var(
+        "initialised", __extra_vars__, use_default=True, default=lambda: False
+    )
+    failure_tags = claim_var(
+        "failure_tags", __extra_vars__, use_default=True, default=lambda: []
+    )
+    last_response_id = claim_var(
+        "last_response_id", __extra_vars__, use_default=True, default=lambda: None
+    )
     base_payment = claim_var("base_payment", __extra_vars__)
     performance_bonus = claim_var("performance_bonus", __extra_vars__)
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
-    client_ip_address = claim_var("client_ip_address", __extra_vars__, use_default=True, default=lambda: "")
-    answer_is_fresh = claim_var("answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False)
+    client_ip_address = claim_var(
+        "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
+    )
+    answer_is_fresh = claim_var(
+        "answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False
+    )
 
     def __json__(self):
         x = super().__json__()
@@ -142,14 +153,22 @@ class Participant(dallinger.models.Participant):
     @property
     @extra_var(__extra_vars__)
     def started_modules(self):
-        modules = [(key, value) for key, value in self.modules.items() if len(value["time_started"]) > 0]
+        modules = [
+            (key, value)
+            for key, value in self.modules.items()
+            if len(value["time_started"]) > 0
+        ]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
 
     @property
     @extra_var(__extra_vars__)
     def finished_modules(self):
-        modules = [(key, value) for key, value in self.modules.items() if len(value["time_finished"]) > 0]
+        modules = [
+            (key, value)
+            for key, value in self.modules.items()
+            if len(value["time_finished"]) > 0
+        ]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
 
@@ -158,10 +177,7 @@ class Participant(dallinger.models.Participant):
         try:
             log = modules[label]
         except KeyError:
-            log = {
-                "time_started": [],
-                "time_finished": []
-            }
+            log = {"time_started": [], "time_finished": []}
         time_now = serialise_datetime(datetime.datetime.now())
         log["time_started"] = log["time_started"] + [time_now]
         modules[label] = log.copy()
@@ -192,21 +208,28 @@ class Participant(dallinger.models.Participant):
         self.performance_bonus = self.performance_bonus + value
 
     def amount_paid(self):
-        return (0.0 if self.base_payment is None else self.base_payment) + (0.0 if self.bonus is None else self.bonus)
+        return (0.0 if self.base_payment is None else self.base_payment) + (
+            0.0 if self.bonus is None else self.bonus
+        )
 
     def set_participant_group(self, trial_maker_id: str, participant_group: str):
         from .trial.main import set_participant_group
+
         return set_participant_group(trial_maker_id, self, participant_group)
 
     def get_participant_group(self, trial_maker_id: str):
         from .trial.main import get_participant_group
+
         return get_participant_group(trial_maker_id, self)
 
     def has_participant_group(self, trial_maker_id: str):
         from .trial.main import has_participant_group
+
         return has_participant_group(trial_maker_id, self)
 
-    def send_email_max_payment_reached(self, experiment_class, requested_bonus, reduced_bonus):
+    def send_email_max_payment_reached(
+        self, experiment_class, requested_bonus, reduced_bonus
+    ):
         config = get_config()
         template = """Dear experimenter,
 
@@ -231,20 +254,20 @@ class Participant(dallinger.models.Participant):
                 requested_bonus=requested_bonus,
                 reduced_bonus=reduced_bonus,
                 app_id=config.get("id"),
-            )
+            ),
         }
-        logger.info(f"Recruitment ended. Maximum amount paid to participant "
-                    f"with assignment_id '{self.assignment_id}' reached!")
+        logger.info(
+            f"Recruitment ended. Maximum amount paid to participant "
+            f"with assignment_id '{self.assignment_id}' reached!"
+        )
         admin_notifier(config).send(**message)
 
     @property
     def response(self):
         return (
-            Response
-                .query
-                .filter_by(participant_id=self.id)
-                .order_by(desc(Response.id))
-                .first()
+            Response.query.filter_by(participant_id=self.id)
+            .order_by(desc(Response.id))
+            .first()
         )
 
     @property
@@ -268,13 +291,19 @@ class Participant(dallinger.models.Participant):
     def append_branch_log(self, entry: str):
         # We need to create a new list otherwise the change may not be recognised
         # by SQLAlchemy(?)
-        if not isinstance(entry, list) or len(entry) != 2 or not isinstance(entry[0], str):
-            raise ValueError(f"Log entry must be a list of length 2 where the first element is a string (received {entry}).")
+        if (
+            not isinstance(entry, list)
+            or len(entry) != 2
+            or not isinstance(entry[0], str)
+        ):
+            raise ValueError(
+                f"Log entry must be a list of length 2 where the first element is a string (received {entry})."
+            )
         if json.loads(json.dumps(entry)) != entry:
             raise ValueError(
-                f"The provided log entry cannot be accurately serialised to JSON (received {entry}). " +
-                "Please simplify the log entry (this is typically determined by the output type of the user-provided function " +
-                "in switch() or conditional())."
+                f"The provided log entry cannot be accurately serialised to JSON (received {entry}). "
+                + "Please simplify the log entry (this is typically determined by the output type of the user-provided function "
+                + "in switch() or conditional())."
             )
         self.branch_log = self.branch_log + [entry]
 
@@ -303,6 +332,7 @@ class Participant(dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
+
 def get_participant(participant_id: int):
     """
     Returns the participant with a given ID.
@@ -321,6 +351,7 @@ def get_participant(participant_id: int):
     """
     return Participant.query.filter_by(id=participant_id).one()
 
+
 class TimeCreditStore:
     fields = [
         "confirmed_credit",
@@ -329,7 +360,7 @@ class TimeCreditStore:
         "max_pending_credit",
         "wage_per_hour",
         "experiment_max_time_credit",
-        "experiment_max_bonus"
+        "experiment_max_bonus",
     ]
 
     def __init__(self, participant):
@@ -360,8 +391,12 @@ class TimeCreditStore:
         self.wage_per_hour = experiment.wage_per_hour
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
-        self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(mode="time")
-        self.experiment_max_bonus = experiment_estimated_time_credit.get_max(mode="bonus", wage_per_hour=experiment.wage_per_hour)
+        self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
+            mode="time"
+        )
+        self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
+            mode="bonus", wage_per_hour=experiment.wage_per_hour
+        )
 
     def increment(self, value: float):
         if self.is_fixed:

@@ -2,8 +2,10 @@
 # Note: synth_stimulus is the only function required by the Audio Gibbs Sampler;
 #       synth_batch is just here as relic from a previous implementation.
 
-import numpy as np
 import os
+
+import numpy as np
+
 
 def synth_stimulus(vector, output_path, chain_definition):
     """
@@ -28,28 +30,33 @@ def synth_stimulus(vector, output_path, chain_definition):
     """
     assert isinstance(chain_definition, dict)
     assert len(vector) == 5
-    times = np.array([0.0, 0.090453, 0.18091 , 0.27136 , 0.36181])
+    times = np.array([0.0, 0.090453, 0.18091, 0.27136, 0.36181])
     freqs = np.array(vector)
     x = np.column_stack((times, freqs))
 
-    effects = [{
-        'name': 'fade-out',
-        'duration': 0.01
-    }]
+    effects = [{"name": "fade-out", "duration": 0.01}]
 
     synth_batch(
         [x],
         [output_path],
-        'synth_files/audio/3c_sp5_cr_su_i10_g00_bier_no-b_flat_235Hz_no-sil.wav',
-        prepend_path='synth_files/audio/2b_sp5_cr_su_i10_g00_bier_b-only.wav',
-        append_path='synth_files/audio/silence.wav',
-        effects=effects
+        "synth_files/audio/3c_sp5_cr_su_i10_g00_bier_no-b_flat_235Hz_no-sil.wav",
+        prepend_path="synth_files/audio/2b_sp5_cr_su_i10_g00_bier_b-only.wav",
+        append_path="synth_files/audio/silence.wav",
+        effects=effects,
     )
 
+
 def synth_batch(
-    BPFs, filenames, baseline_audio_path, prepend_path=None, append_path=None,
-    reference_tone=235, man_step_size=0.01, man_min_F0=75, man_max_F0=600,
-    effects = []
+    BPFs,
+    filenames,
+    baseline_audio_path,
+    prepend_path=None,
+    append_path=None,
+    reference_tone=235,
+    man_step_size=0.01,
+    man_min_F0=75,
+    man_max_F0=600,
+    effects=[],
 ):
     """
     Create stimuli based on BPFs
@@ -75,34 +82,41 @@ def synth_batch(
     from scipy.io.wavfile import write as write_wav
 
     # Do some checks
-    supported_effects = ['fade-out']
-    if not all(['name' in e.keys() and e['name'] in supported_effects for e in effects]):
-        raise ValueError('Your effect must have a name. Currently we only support the following effects: %s' % ', '.join(supported_effects))
+    supported_effects = ["fade-out"]
+    if not all(
+        ["name" in e.keys() and e["name"] in supported_effects for e in effects]
+    ):
+        raise ValueError(
+            "Your effect must have a name. Currently we only support the following effects: %s"
+            % ", ".join(supported_effects)
+        )
 
     if len(BPFs) != len(filenames):
-        raise ValueError('Need to be of same length!')
+        raise ValueError("Need to be of same length!")
 
-    if append_path != None and not os.path.exists(append_path):
-        raise FileNotFoundError('Specified `append_path` not found on this system')
+    if append_path is not None and not os.path.exists(append_path):
+        raise FileNotFoundError("Specified `append_path` not found on this system")
 
-    if prepend_path != None and not os.path.exists(prepend_path):
-        raise FileNotFoundError('Specified `prepend_path` not found on this system')
+    if prepend_path is not None and not os.path.exists(prepend_path):
+        raise FileNotFoundError("Specified `prepend_path` not found on this system")
 
     if not os.path.exists(baseline_audio_path):
-        raise FileNotFoundError('Specified `baseline_audio_path` not found on this system')
+        raise FileNotFoundError(
+            "Specified `baseline_audio_path` not found on this system"
+        )
 
     def cent2herz(ct, base=reference_tone):
         """Converts deviation in cents to a value in Hertz"""
         st = ct / 100
         semi1 = np.log(np.power(2, 1 / 12))
-        return (np.exp(st * semi1) * base)
+        return np.exp(st * semi1) * base
 
     # Load the sound
     sound = Sound(baseline_audio_path)
-    if prepend_path != None:
+    if prepend_path is not None:
         pre_sound = Sound(prepend_path)
 
-    if append_path != None:
+    if append_path is not None:
         app_sound = Sound(append_path)
 
     # Create a manipulation object
@@ -130,17 +144,24 @@ def synth_batch(
 
         # Assuming all effects are applied to the main file
         for effect in effects:
-            if effect['name'] == "fade-out":
-                if 'duration' in effect.keys():
-                    call(synth_main, "Fade out", 1, synth_main.xmax - effect['duration'], effect['duration'], "yes")
+            if effect["name"] == "fade-out":
+                if "duration" in effect.keys():
+                    call(
+                        synth_main,
+                        "Fade out",
+                        1,
+                        synth_main.xmax - effect["duration"],
+                        effect["duration"],
+                        "yes",
+                    )
 
         # Concatenate it
-        if prepend_path != None or append_path != None:
+        if prepend_path is not None or append_path is not None:
             sounds = []
-            if prepend_path != None:
+            if prepend_path is not None:
                 sounds.append(pre_sound)
             sounds.append(synth_main)
-            if append_path != None:
+            if append_path is not None:
                 sounds.append(app_sound)
             synth_main = call(sounds, "Concatenate")
 
