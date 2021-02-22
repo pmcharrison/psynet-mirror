@@ -88,6 +88,7 @@ class AudioRecordTrial:
         with tempfile.NamedTemporaryFile() as temp_recording:
             with tempfile.NamedTemporaryFile() as temp_plot:
                 self.download_recording(temp_recording.name)
+                recode_wav(temp_recording.name)
                 self.analysis = self.analyse_recording(
                     temp_recording.name, temp_plot.name
                 )
