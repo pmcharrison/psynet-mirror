@@ -149,6 +149,9 @@ class AudioPrompt(Prompt):
 
     controls
         Whether to give the user playback controls (default = ``False``).
+
+    fade_in
+        Fade-in duration for the audio (defaults to ``0.0``).
     """
     def __init__(
             self,
@@ -162,7 +165,8 @@ class AudioPrompt(Prompt):
             text_align = "left",
             play_window: Optional[List] = None,
             progress_bar: bool = False,
-            controls: bool = False
+            controls: bool = False,
+            fade_in: float = 0.0
         ):
         if play_window is None:
             play_window = [None, None]
@@ -185,7 +189,8 @@ class AudioPrompt(Prompt):
         self.js_play_options = dict(
             loop=loop,
             start=play_window[0],
-            end=play_window[1]
+            end=play_window[1],
+            fade_in=fade_in
         )
 
     macro = "audio"
