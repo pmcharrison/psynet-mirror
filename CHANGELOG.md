@@ -1,11 +1,14 @@
 # Changelog
 
-# [1.12.0] Unreleased
+# [1.12.0] Released on 2021-02-22
 
 #### Added
 - Enforce standard Python code style with `"black" <https://black.readthedocs.io/en/stable/>`__ and `"isort" <https://github.com/pycqa/isort/>`__.
 - Enforce Python code style consistency with `"flake8" <https://flake8.pycqa.org>`__.
-- Added a new section 'INSTALLATION' to the documentation page with installation instructions for *macOS* and *Ubuntu/GNU Linux*. Restructured low-level documentation section.
+- Added a new section 'INSTALLATION' to the documentation page with installation instructions for *macOS* and *Ubuntu/GNU Linux*, restructured low-level documentation section.
+
+#### Changed
+- Revert recode_wav function to an older, non scipy-dependent version.
 
 #### Updated
 - Updated Google Chrome and Chromedriver versions to 88.x in `.gitlab-ci.yml`.
