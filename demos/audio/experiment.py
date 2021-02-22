@@ -230,7 +230,8 @@ example_record_with_audio_prompt = join(
             start_delay=0.0,
             enable_submit_after=5.5,
             progress_bar=False,
-            play_window=[0, 4.6]
+            play_window=[0, 4.6],
+            fade_in=1.0
         ),
         AudioRecordControl(
             duration=4.6,
@@ -241,7 +242,8 @@ example_record_with_audio_prompt = join(
             controls=True,
             record_window=[1, 4]
         ),
-        time_estimate=5
+        time_estimate=5,
+        auto_start_trial=True
     ),
     PageMaker(
         lambda participant: ModularPage(
@@ -257,8 +259,8 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        example_audio_page,
-        example_audio_page_2,
+        # example_audio_page,
+        # example_audio_page_2,
         example_record_with_audio_prompt,
         example_record_page,
         example_audio_meter,

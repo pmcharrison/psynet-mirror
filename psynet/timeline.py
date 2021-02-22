@@ -367,6 +367,10 @@ class Page(Event):
         and a link to the corresponding ``Response`` object is saved in ``participant.last_response_id``.
         If ``False``, these slots are left unchanged.
 
+    auto_start_trial:
+        If ``True`` (default), then the trial starts automatically once it's ready.
+        If ``False``, the trial must be started with ``psynet.trial.start()``.
+
     """
 
     returns_time_credit = True
@@ -382,7 +386,8 @@ class Page(Event):
         media: Optional[MediaSpec] = None,
         scripts: Optional[List] = None,
         css: Optional[List] = None,
-        save_answer: bool = True
+        save_answer: bool = True,
+        auto_start_trial: bool = True
     ):
         if template_arg is None:
             template_arg = {}
@@ -420,6 +425,7 @@ class Page(Event):
         assert isinstance(self.css, list)
 
         self.save_answer = save_answer
+        self.auto_start_trial = auto_start_trial
 
     @property
     def initial_download_progress(self):
@@ -607,7 +613,8 @@ class Page(Event):
             "participant_id": participant.id,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
-            "css": self.css
+            "css": self.css,
+            "auto_start_trial": self.auto_start_trial
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
