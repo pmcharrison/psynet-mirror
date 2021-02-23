@@ -40,16 +40,19 @@
         <script>
             psynet.media.register_on_loaded_routine(function() {
                 {% if config.play_window[0] is not none and config.play_window[1] is not none %}
-                    let duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
+                    let audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
                 {% elif config.play_window[0] is none and config.play_window[1] is not none %}
-                    let duration = {{ config.play_window[1] }};
+                    let audio_duration = {{ config.play_window[1] }};
                 {% elif config.play_window[0] is not none and config.play_window[1] is none %}
-                    let duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
+                    let audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
                 {% else %}
-                    let duration = psynet.audio.prompt.buffer.duration;
+                    let audio_duration = psynet.audio.prompt.buffer.duration;
                 {% endif %}
 
-                psynet.trial.setDuration(duration);
+                let old_duration = psynet.trial.duration;
+                let new_duration = Math.max(old_duration, audio_duration);
+
+                psynet.trial.setDuration(new_duration);
                 console.log("duration = " + duration);
 
                 let bar = $("#audio-prompt-progress-bar");
