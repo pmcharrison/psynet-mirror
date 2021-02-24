@@ -793,7 +793,8 @@
         var presignedUrlCamera = "{{ config.presigned_url_camera }}";
         var presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
-
+        var playback_before_upload = {{ config.playback_before_upload | lower }};
+        var allow_restart = {{ config.allow_restart | lower }};
         var cameraVideo = document.getElementById('camera-recording');
         var screenVideo = document.getElementById('screen-recording');
         var screenRecorder;

@@ -1772,6 +1772,12 @@ class VideoRecordControl(Control):
 
     show_preview
         Whether to show a preview of the video on the page. Default: `False`.
+
+    playback_before_upload
+        Whether to play back the recorded webcam video before it is uploaded.
+
+    allow_restart
+         Whether to be able to manually restart the video recording.
     """
 
     macro = "video_record"
@@ -1788,6 +1794,8 @@ class VideoRecordControl(Control):
         start_delay: float = 0.0,
         public_read: bool = False,
         show_preview: bool = False,
+        playback_before_upload: bool = False,
+        allow_restart: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1798,6 +1806,8 @@ class VideoRecordControl(Control):
         self.start_delay = start_delay
         self.public_read = public_read
         self.show_preview = show_preview
+        self.playback_before_upload = playback_before_upload
+        self.allow_restart = allow_restart
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
