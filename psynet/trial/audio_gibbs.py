@@ -26,7 +26,8 @@ class AudioGibbsNetwork(GibbsNetwork):
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`,
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_ranges`,
     and optionally
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`.
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`,
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.parallelize`.
     The user is also invited to override the
     :meth:`psynet.trial.chain.ChainNetwork.make_definition` method
     in situations where different chains are to have different properties
@@ -63,6 +64,9 @@ class AudioGibbsNetwork(GibbsNetwork):
         Must be overridden with a list with length equal to
         :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`.
 
+    parallelize : bool
+        Boolean indicating if stimulus generation should be performed in parallel (True) or sequentially (False, default).
+
     granularity : Union[int, str]
         When a new :class:`~psynet.trial.audio_gibbs.AudioGibbsNode`
         is created, a collection of stimuli are generated that
@@ -82,6 +86,7 @@ class AudioGibbsNetwork(GibbsNetwork):
     vector_length = 0
     vector_ranges = []
     granularity = 100
+    parallelize = False
 
     @property
     def synth_function(self):
@@ -148,6 +153,7 @@ class AudioGibbsNetwork(GibbsNetwork):
             )
         else:
             granularity = self.granularity
+            parallelize = self.parallelize
             vector = node.definition["vector"]
             active_index = node.definition["active_index"]
 
@@ -165,6 +171,7 @@ class AudioGibbsNetwork(GibbsNetwork):
                     "chain_definition": self.definition,
                     "output_dir": individual_stimuli_dir,
                     "synth_function": self.synth_function,
+                    "parallelize": self.parallelize,
                 }
 
                 if granularity == "custom":
@@ -365,20 +372,37 @@ def make_audio_regular_intervals(
     chain_definition,
     output_dir,
     synth_function,
+    parallelize
 ):
-    stimuli = []
-    for _i, _value in enumerate(
-        linspace(range_to_sample[0], range_to_sample[1], granularity)
-    ):
-        _vector = vector.copy()
-        _vector[active_index] = _value
+    def get_id_and_path(output_dir, _i):
         _id = f"slider_stimulus_{_i}"
         _file = f"{_id}.wav"
         _path = os.path.join(output_dir, _file)
+        return _id, _path
+
+    def run_synth_function(_i, _value):
+        _vector = vector.copy()
+        _vector[active_index] = _value
+        _, _path = get_id_and_path(output_dir, _i)
         synth_function(
             vector=_vector, output_path=_path, chain_definition=chain_definition
         )
 
+    ticks = linspace(range_to_sample[0], range_to_sample[1], granularity)
+
+    if parallelize:
+        import multiprocessing
+        from joblib import Parallel, delayed
+        num_cores = multiprocessing.cpu_count()
+        logger.info('Using %d cores in parallel' % num_cores)
+        Parallel(n_jobs=num_cores)(delayed(run_synth_function)(_i, _value) for _i, _value in enumerate(ticks))
+    else:
+        for _i, _value in enumerate(ticks):
+            run_synth_function(_i, _value)
+
+    stimuli = []
+    for _i, _value in enumerate(ticks):
+        _id, _path = get_id_and_path(output_dir, _i)
         stimuli.append({"id": _id, "value": _value, "path": _path})
     return stimuli
 

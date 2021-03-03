@@ -41,6 +41,7 @@ setuptools.setup(
         "statsmodels",
         "yaspin",
         "praat-parselmouth",
+        "joblib"  # Library used for internal parallelization of for loops
     ],
     extras_require={"dev": ["pytest", "mock"]},
     entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},
