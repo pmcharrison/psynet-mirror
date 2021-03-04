@@ -240,7 +240,8 @@ example_record_with_audio_prompt = join(
             public_read=True,
             progress_bar=True,
             controls=True,
-            record_window=[1, 4]
+            record_window=[1, 4],
+            loop_playback=True
         ),
         time_estimate=5,
         auto_start_trial=True

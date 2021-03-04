@@ -548,12 +548,15 @@
             });
             $("#audio-record-play-prompt").on("click", function() {
                 psynet.trial.cancel();
-                psynet.audio.prompt.play(audio_prompt_player_options);
+                let options = psynet.utils.shallow_copy(audio_prompt_player_options);
+                options.loop = loop;
+                psynet.audio.prompt.play(options);
             });
             $("#audio-record-play-recording").on("click", function() {
                 replayMode = true;
                 psynet.trial.cancel();
-                psynet.audio.recording.play();
+                let options = {loop: loop};
+                psynet.audio.recording.play(options);
             });
             $("#audio-record-stop").on("click", function() {
                 psynet.trial.cancel();
