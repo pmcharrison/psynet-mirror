@@ -570,6 +570,7 @@
             });
             $("#audio-record-upload").on("click", function() {
                 startPresignedUrlUpload(recording_blob);
+                psynet.add_event_listener("presigned_url_end_upload", () => $("#next_button").click());
             });
         });
 
@@ -666,11 +667,11 @@
 
             xhr.onload = function(e) {
                 psynet.log.debug("File uploaded successfully to presigned url.");
-                psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
                 psynet.submit.ready("finished-recording");
                 $(".record-alert").hide();
                 $("#record-upload").html("Ready to upload response.");
                 $("#record-finish").show();
+                psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
             };
 
             let wavFile = new File([wavAudioBlob], "s3_upload.wav")
