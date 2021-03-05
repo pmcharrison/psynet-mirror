@@ -930,6 +930,7 @@
                         psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
 
                         let out = psynet.media.data.audio[stimulus_id];
+                        out.buffer = buffer;
 
                         out.play = function (provided_options) {
                             let options = {

@@ -17,6 +17,25 @@
 
     <script>
         var audio_prompt_player_options = {{ config.js_play_options | tojson }};
+
+        psynet.media.register_on_loaded_routine(function() {
+            let audio_duration;
+
+            {% if config.play_window[0] is not none and config.play_window[1] is not none %}
+                audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
+            {% elif config.play_window[0] is none and config.play_window[1] is not none %}
+                audio_duration = {{ config.play_window[1] }};
+            {% elif config.play_window[0] is not none and config.play_window[1] is none %}
+                audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
+            {% else %}
+                audio_duration = psynet.audio.prompt.buffer.duration;
+            {% endif %}
+
+            let old_duration = psynet.trial.duration;
+            let new_duration = Math.max(old_duration, audio_duration);
+
+            psynet.trial.setDuration(new_duration);
+        });
     </script>
 
     {% if config.progress_bar %}
@@ -38,40 +57,40 @@
 {#            <div id="audio-prompt-progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>#}
 {#        </div>#}
 {##}
-{#        <script>#}
-{#            psynet.media.register_on_loaded_routine(function() {#}
-{#                {% if config.play_window[0] is not none and config.play_window[1] is not none %}#}
-{#                    let audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};#}
-{#                {% elif config.play_window[0] is none and config.play_window[1] is not none %}#}
-{#                    let audio_duration = {{ config.play_window[1] }};#}
-{#                {% elif config.play_window[0] is not none and config.play_window[1] is none %}#}
-{#                    let audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};#}
-{#                {% else %}#}
-{#                    let audio_duration = psynet.audio.prompt.buffer.duration;#}
-{#                {% endif %}#}
-{##}
-{#                let old_duration = psynet.trial.duration;#}
-{#                let new_duration = Math.max(old_duration, audio_duration);#}
-{##}
-{#                psynet.trial.setDuration(new_duration);#}
-{#                console.log("duration = " + duration);#}
-{##}
-{#                let bar = $("#audio-prompt-progress-bar");#}
-{##}
-{#                let update_bar = function() {#}
-                    {#let duration = psynet.audio.prompt.duration;#}
-{#                    let time = psynet.audio.prompt.get_current_time();#}
-{#                    if (time !== null) {#}
-{#                        let percent = 100 * time / duration;#}
-{#                        bar.css("width", percent + "%");#}
-{#                        bar.attr("aria-valuenow", percent);#}
-{#                    }#}
-{#                }#}
-{##}
-{#                update_bar();#}
-{#                setInterval(update_bar, 1);#}
-{#            });#}
-{#        </script>#}
+        <script>
+            psynet.media.register_on_loaded_routine(function() {
+                {% if config.play_window[0] is not none and config.play_window[1] is not none %}
+                    let audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
+                {% elif config.play_window[0] is none and config.play_window[1] is not none %}
+                    let audio_duration = {{ config.play_window[1] }};
+                {% elif config.play_window[0] is not none and config.play_window[1] is none %}
+                    let audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
+                {% else %}
+                    let audio_duration = psynet.audio.prompt.buffer.duration;
+                {% endif %}
+
+                let old_duration = psynet.trial.duration;
+                let new_duration = Math.max(old_duration, audio_duration);
+
+                psynet.trial.setDuration(new_duration);
+                console.log("duration = " + duration);
+
+                let bar = $("#audio-prompt-progress-bar");
+
+                let update_bar = function() {
+                    let duration = psynet.audio.prompt.duration;
+                    let time = psynet.audio.prompt.get_current_time();
+                    if (time !== null) {
+                        let percent = 100 * time / duration;
+                        bar.css("width", percent + "%");
+                        bar.attr("aria-valuenow", percent);
+                    }
+                }
+
+                update_bar();
+                setInterval(update_bar, 1);
+            });
+        </script>
     {% endif %}
 
     {% if config.controls %}
