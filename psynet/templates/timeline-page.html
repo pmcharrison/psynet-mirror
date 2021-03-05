@@ -619,6 +619,8 @@
                 psynet.media.types = ["audio", "image", "video"];
                 psynet.media.data = {};
 
+                psynet.media.sounds = [];
+
                 // Can be very dangerous if indexes are not sorted properly!
                 // psynet.media.get_by_idx = function (media_type, idx) {
                 //     if (!psynet.utils.key_exists_in_array(media_type, psynet.media.types)) {
@@ -924,161 +926,100 @@
                 create_audio_stimulus = function(data, stimulus_id, handler) {
                     psynet.log.debug('Decoding sound ' + stimulus_id + '...');
 
-                    psynet.media.audio_context.decodeAudioData(data, function (res) {
+                    psynet.media.audio_context.decodeAudioData(data, function (buffer) {
                         psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
 
                         let out = psynet.media.data.audio[stimulus_id];
 
-                        out.buffer = res;
-                        out.source = null;
-                        out.start_time = null;
-                        out.stimulus_id = stimulus_id;
-                        out.playing = false;
+                        out.play = function (provided_options) {
+                            let options = {
+                                fade_in: 0.0,
+                                start_delay: 0.01,
+                                gain: 1,
+                                loop: false,
+                                start: null,
+                                end: null
+                            };
 
-                        out.on_end = function () {
+                            Object.assign(options, provided_options);
 
-                        };
+                            const start = (options.start === null) ? 0.0 : options.start;
+                            const duration = (options.end === null) ? undefined : options.end - options.start;
 
-                        // Add play function to buffer
-                        out.play = function (options) {
-                            if (out.playing) {
-                                let on_stopped = function () {
-                                    out.play(options);
-                                }
-                                return out.stop(options, on_stopped);
-                            }
+                            let sound = {
+                                source: psynet.media.audio_context.createBufferSource(),
+                                gain_node: psynet.media.audio_context.createGain(),
+                                start_time: psynet.media.audio_context.currentTime + options.start_delay,
+                                options: options,
+                                manually_stopped: false,
+                                duration: (duration === undefined) ? buffer.duration : duration,
+                                stimulus_id: stimulus_id,
+                                on_end: null
+                            };
 
-                            if (options == undefined) {
-                                options = {};
-                            }
-                            if (!("fade_in" in options)) {
-                                options.fade_in = 0.0;
-                            }
-                            if (!("start_delay" in options)) {
-                                options.start_delay = 0.01;
-                            }
-                            if (!("gain" in options)) {
-                                options.gain = 1;
-                            }
-                            if (!("loop" in options)) {
-                                options.loop = false;
-                            }
-                            if (!("start" in options)) {
-                                options.start = null;
-                            }
-                            if (!("end" in options)) {
-                                options.end = null;
-                            }
+                            sound.source.buffer = buffer;
 
-                            let start = (options.start === null) ? 0.0 : options.start;
-                            let duration = (options.end === null) ? undefined : options.end - options.start;
+                            sound.source.connect(sound.gain_node);
+                            sound.gain_node.connect(psynet.media.audio_context.destination);
 
-                            this.on_end = function () {
-                                if (options.loop) {
-                                    psynet.log.debug("Looping sound with ID = " + out.stimulus_id);
-                                    out.play(options);
-                                } else {
-                                    psynet.log.debug("Sound with ID = " + out.stimulus_id + " finished.");
-                                }
-                            }
+                            sound.source.start(this.start_time, start, duration);
 
-                            this.source = psynet.media.audio_context.createBufferSource();
-                            this.gain_node = psynet.media.audio_context.createGain();
-                            this.source.connect(this.gain_node);
-                            this.gain_node.connect(psynet.media.audio_context.destination);
-
-                            this.playing = true;
-                            this.fading_out = false;
-
-                            this.source.buffer = res;
-                            this.start_time = psynet.media.audio_context.currentTime + options.start_delay;
-
-                            this.source.start(this.start_time, start, duration);
-                            this.duration = (duration === undefined) ? this.buffer.duration : duration;
-
-                            this.gain_node.gain.setValueAtTime(
+                            sound.gain_node.gain.setValueAtTime(
                                 0.001,
                                 psynet.media.audio_context.currentTime + options.start_delay
                             );
 
                             if (options.gain > 1e-10) {
-                                this.gain_node.gain.exponentialRampToValueAtTime(
+                                sound.gain_node.gain.exponentialRampToValueAtTime(
                                     options.gain,
                                     psynet.media.audio_context.currentTime + options.start_delay + options.fade_in
                                 );
                             }
 
-                            var this_audio = this;
-                            this.source.addEventListener("ended", function () {
-                                psynet.log.debug("Finished sound with ID = " + this_audio.stimulus_id);
-                                this_audio.playing = false; // don't use 'this', it'll point to the wrong place!
-                                this_audio.start_time = null;
-                                this_audio.source = null;
-                                this_audio.on_end();
+                            sound.stop = function (provided_options) {
+                                let options = {
+                                    fade_out: 0.05
+                                };
+
+                                Object.assign(options, provided_options);
+
+                                psynet.log.debug("Stopping audio " + sound.stimulus_id + ".");
+
+                                sound.manually_stopped = true;
+
+                                let gain_now = sound.gain_node.gain.value;
+                                let time_now = psynet.media.audio_context.currentTime;
+
+                                if (sound.gain_node.gain.value > 0.001) {
+                                    sound.gain_node.gain.setValueAtTime(gain_now, time_now);
+                                    sound.gain_node.gain.exponentialRampToValueAtTime(0.001, time_now + options.fade_out);
+                                }
+
+                                setTimeout(() => sound.source.stop(), options.fade_out * 1000);
+
+                                return sound;
+                            }
+
+                            sound.source.addEventListener("ended", function () {
+                                psynet.log.debug("Finished sound with ID = " + sound.stimulus_id);
+                                psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
+                                if (sound.options.loop && !sound.manually_stopped) {
+                                    psynet.log.debug("Looping sound with ID = " + out.stimulus_id);
+                                    out.play(sound.options);
+                                }
                             });
 
-                            return this
+                            psynet.media.sounds.push(sound);
+                            return sound;
                         };
 
-                        // stop the sound
-                        out.stop = function (options, on_stopped) {
-                            if (options == undefined) {
-                                options = {};
-                            }
-                            if (!("fade_out" in options)) {
-                                options.fade_out = 0.05;
-                            }
-
-                            if (on_stopped) {
-                                this.on_end = on_stopped
-                            } else {
-                                this.on_end = function () {
-                                    psynet.log.debug("Stopped audio " + this.stimulus_id + ".");
-                                };
-                            }
-                            psynet.log.debug("this.fading_out: " + this.fading_out)
-                            psynet.log.debug("this.source: " + this.source)
-                            if (!this.fading_out) {
-                                if (this.playing && this.source !== null) {
-                                    psynet.log.debug("Stopping audio " + this.stimulus_id + ".");
-
-                                    // According to the documentation, we have to add an audio event
-                                    // to constitute the reference start point for the fade out.
-                                    // Here we just set the gain to itself.
-                                    var current_gain = this.gain_node.gain.value;
-                                    this.fading_out = true;
-
-                                    if (this.gain_node.gain.value > 0.001) {
-                                        this.gain_node.gain.setValueAtTime(current_gain, psynet.media.audio_context.currentTime);
-                                        this.gain_node.gain.exponentialRampToValueAtTime(0.001, psynet.media.audio_context.currentTime + options.fade_out);
-                                    }
-                                    var this_audio = this;
-                                    var this_source = this.source;
-                                    setTimeout(function () {
-                                        this_audio.playing = false;
-                                        this_source.stop();
-                                    }, options.fade_out * 1000);
+                        out.stop = function (options) {
+                            psynet.media.sounds.forEach(function(s) {
+                                if (s.stimulus_id == stimulus_id) {
+                                    s.stop(options);
                                 }
-                            }
+                            });
                             return this
-                        };
-
-                        out.pause = function () {
-                            // TODO
-                            throw Error("Not implemented yet");
-                        };
-
-                        out.continue = function () {
-                            // TODO
-                            throw Error("Not implemented yet");
-                        };
-
-                        out.get_current_time = function () {
-                            if (!out.playing) {
-                                return 0.0;
-                            } else {
-                                return psynet.media.audio_context.currentTime - out.start_time;
-                            }
                         };
 
                         out.loaded = true;

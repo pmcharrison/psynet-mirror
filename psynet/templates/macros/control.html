@@ -560,6 +560,7 @@
             });
             $("#audio-record-stop").on("click", function() {
                 psynet.trial.cancel();
+                psynet.media.stop_all_audio();
             });
             $("#audio-record-loop-input").on("change", function(event) {
                 loop = event.target.checked;
