@@ -458,20 +458,20 @@
             <button id="audio-record-play-all" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
                 Play all
             </button>
-            <button id="audio-record-play-prompt" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm">
+            <button id="audio-record-play-prompt" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
                 Play prompt
             </button>
             <button id="audio-record-play-recording" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
                 Play recording
             </button>
-            <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm" disabled>
+            <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm">
                 Stop
             </button>
             <button id="audio-record-upload" type="button" class="btn audio-record-button audio-record-control btn-success btn-sm" disabled>
                 Upload
             </button>
             <div id="audio-record-loop">
-                <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" disabled {% if config.loop_playback %} checked {% endif %}>
+                <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
                 <label>Loop</label>
             </div>
         </div>
@@ -530,7 +530,10 @@
 
         $(document).ready(function() {
             psynet.add_event_listener("audio_recording_finished", function() {
-                $(".audio-record-control").attr("disabled", false);
+                $("#audio-record-play-recording").attr("disabled", false);
+                if (psynet.audio.prompt) {
+                    $("#audio-record-play-all").attr("disabled", false);
+                }
             });
 
             $(".audio-record-button").on("click", function() {
@@ -631,6 +634,10 @@
         psynet.trial.wait_for("recorder_ready");
 
         psynet.media.register_on_loaded_routine(function() {
+            if (psynet.audio.prompt) {
+                $("#audio-record-play-prompt").prop("disabled", false);
+            }
+
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
