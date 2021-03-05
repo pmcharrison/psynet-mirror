@@ -452,7 +452,7 @@
         </style>
 
         <div id="audio-record-controls">
-            <button id="audio-record-record" type="button" class="btn audio-record-button audio-record-control btn-danger btn-sm">
+            <button id="audio-record-record" type="button" class="btn audio-record-button audio-record-control btn-danger btn-sm" disabled>
                 Record from start
             </button>
             <button id="audio-record-play-all" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
@@ -634,6 +634,8 @@
         psynet.trial.wait_for("recorder_ready");
 
         psynet.media.register_on_loaded_routine(function() {
+            $("#audio-record-record").prop("disabled", false);
+
             if (psynet.audio.prompt) {
                 $("#audio-record-play-prompt").prop("disabled", false);
             }
