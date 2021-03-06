@@ -18,7 +18,7 @@
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
                 let participantId = dallinger.identity.participantId;
-                let assignmentId = dallinger.getUrlParameter("assignmentId");
+                let assignmentId = dallinger.identity.assignmentId || dallinger.getUrlParameter("assignmentId") || dallinger.getUrlParameter("assignment_id");
                 dallinger.identity.assignmentId = assignmentId; // <-- this is to deal with a recent bug in Dallinger, #2604 https://github.com/Dallinger/Dallinger/issues/2604
                 dallinger.goToPage("timeline/" + participantId + "/" + assignmentId);
             }, 500);
