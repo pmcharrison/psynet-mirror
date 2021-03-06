@@ -276,7 +276,7 @@
 
     <script>
         {% if not experiment.consent_audiovisual_recordings %}
-            document.getElementById("consent").setAttribute("onclick", "window.location='/start?hit_id={{ hit_id }}&assignment_id={{ assignment_id }}&worker_id={{ worker_id }}&mode={{ mode }}';")
+            document.getElementById("consent").setAttribute("onclick", "window.location='/start?{{query_string | safe}}';")
         {% endif %}
         next_consent_page = function() {
             document.getElementById("page_1").style.display = "none";
