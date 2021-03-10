@@ -301,10 +301,18 @@ class ChainNetwork(TrialNetwork):
         if degree == 0:
             return self.source
         nodes = (
-            ChainNode.query.filter_by(degree=degree, network_id=self.id, failed=False)
+            ChainNode.query.filter_by(network_id=self.id, failed=False)
             .order_by(ChainNode.id)
             .all()
         )
+
+        # This cannot be included in the SQL call because not all Node objects
+        # have the property `degree`.
+        # This can cause an error once enough SQLAlchemy Node classes have been
+        # registered (more than 6 changes the order of execution and so
+        # SQL tries to cast property1 to int even for Node classes that aren't ChainNodes.
+        nodes = [n for n in nodes if n.degree == degree]
+
         # This deals with the case where somehow we've ended up with multiple
         # nodes at the same degree.
         first_node = nodes[0]
