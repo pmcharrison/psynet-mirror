@@ -565,22 +565,6 @@ class Experiment(dallinger.experiment.Experiment):
                 }
             )
 
-        @routes.route("/consent")
-        def consent():
-            config = get_config()
-            exp = self.new(db.session)
-            return render_template(
-                "consent.html",
-                hit_id=request.args["hit_id"],
-                assignment_id=request.args["assignment_id"],
-                worker_id=request.args["worker_id"],
-                mode=config.get("mode"),
-                contact_email_on_error=config.get("contact_email_on_error"),
-                min_browser_version=self.min_browser_version,
-                wage_per_hour=f"{exp.wage_per_hour:.2f}",
-                consent_audiovisual_recordings=self.consent_audiovisual_recordings,
-            )
-
         @routes.route("/node/<int:node_id>/fail", methods=["GET", "POST"])
         def fail_node(node_id):
             from dallinger.models import Node

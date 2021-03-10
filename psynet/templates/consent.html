@@ -114,7 +114,7 @@
         <h2>Compensation</h2>
 
         If you satisfactorily complete the study, you will receive approximately
-        &#36;{{wage_per_hour}} per hour to compensate you for your participation.
+        &#36;{{ "{:.2f}".format(experiment.wage_per_hour) }} per hour to compensate you for your participation.
         In some cases, the experiment may finish early: this is not an error,
         and there is no need to write to us. In this case you will be paid in
         proportion to the amount of the experiment that you completed.
@@ -208,7 +208,7 @@
 
     <button
         type="button" class="btn btn-primary btn-lg" id="consent_button" style="display:none; margin-bottom: 50px;"
-        onClick="window.location='/start?hit_id={{ hit_id }}&assignment_id={{ assignment_id }}&worker_id={{ worker_id }}&mode={{ mode }}';" style="float: left;">
+        onClick="window.location='/start?{{query_string | safe}}';" style="float: left;">
         I agree
     </button>
 {% endblock consent_button %}
@@ -252,7 +252,7 @@
         }
         window.addEventListener("load", function() {
             console.log(platform.toString());
-            var min_browser_version = "{{ min_browser_version }}";
+            var min_browser_version = "{{ experiment.min_browser_version }}";
             if (platform.name != "Chrome") {
                 $("#consent").prop("disabled", true);
                 $("#consent").append("(please reload in Chrome first)");
@@ -275,8 +275,8 @@
     </script>
 
     <script>
-        {% if not consent_audiovisual_recordings %}
-            document.getElementById("consent").setAttribute("onclick", "window.location='/start?hit_id={{ hit_id }}&assignment_id={{ assignment_id }}&worker_id={{ worker_id }}&mode={{ mode }}';")
+        {% if not experiment.consent_audiovisual_recordings %}
+            document.getElementById("consent").setAttribute("onclick", "window.location='/start?{{query_string | safe}}';")
         {% endif %}
         next_consent_page = function() {
             document.getElementById("page_1").style.display = "none";
