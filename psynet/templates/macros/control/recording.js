@@ -1,3 +1,14 @@
+$(document).ready(function() {
+    $('#camera-playback-button').click(function() {
+        $('#camera-playback-button').prop('disabled', true);
+        let cameraPlayback = document.getElementById("camera-playback")
+        cameraPlayback.play();
+        cameraPlayback.onended = function(e) {
+          $('#camera-playback-button').prop('disabled', false);
+        };
+    });
+});
+
 /*** Audio recording functions ***/
 function startAudioRecording() {
     psynet.log.debug("Starting recording.");
@@ -89,9 +100,28 @@ function stopCameraRecording(presignedUrl) {
         videoRecorder.stream.stop();
 
         $(".record-alert").hide();
-        $("#record-upload").show();
 
-        startPresignedUrlUpload(videoBlob, presignedUrl);
+        if (playback_before_upload) {
+          $('#next_button').hide();
+          $('#camera-recording').hide()
+          $('#camera-playback').show()
+          $('#camera-playback-button').show()
+          $('#video-upload-button').show()
+
+          let cameraPlayback = document.getElementById("camera-playback");
+          cameraPlayback.src = URL.createObjectURL(videoBlob);
+          cameraPlayback.pause();
+          $('#video-upload-button').click(function(){
+            $("#record-upload").show();
+            $('#camera-playback-button').hide()
+            $('#video-upload-button').hide()
+            $('#next_button').show();
+            startPresignedUrlUpload(videoBlob, presignedUrl)
+          });
+        } else {
+          $("#record-upload").show();
+          startPresignedUrlUpload(videoBlob, presignedUrl);
+        }
         psynet.log.debug("Video recording ended successfully!")
     }).catch(function(error) {
         console.error('stopRecording failure', error);
@@ -112,6 +142,7 @@ function startPresignedUrlUpload(wavAudioBlob, presignedUrl) {
         psynet.submit.ready("finished-recording");
         $(".record-alert").hide();
         $("#record-finish").show();
+        $('#next_button').show();
     };
 
     let wavFile = new File([wavAudioBlob], "s3_upload.wav")

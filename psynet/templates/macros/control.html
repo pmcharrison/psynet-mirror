@@ -759,6 +759,7 @@
 
     {% if config.recording_source == "camera" or config.recording_source == "both" %}
         <video id="camera-recording" style="display: {% if config.show_preview %}block{% else %}none{% endif %}; width: {{ config.width }}"></video>
+        <video id="camera-playback" style="display: none; width: {{ config.width }}"></video>
     {% endif %}
     {% if config.recording_source == "screen" or config.recording_source == "both" %}
         <video id="screen-recording" style="display: none;"></video>
@@ -779,11 +780,18 @@
         </div>
 
         <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading response...
+            Uploading...
         </div>
     </div>
 
+    <button id="camera-playback-button" type="button" class="btn btn-success btn-lg" style="display: none">
+        Playback
+    </button>
+    <button id="video-upload-button" type="button" class="btn btn-primary btn-lg" style="display: none">
+        Upload
+    </button>
     {{ null(config) }}
+
     <script>
         {% include "macros/control/RecordRTC.js" %}
         {% include "macros/control/adapter.js" %}

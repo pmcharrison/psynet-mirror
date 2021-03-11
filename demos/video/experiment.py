@@ -83,6 +83,36 @@ video_record_page = join(
         ),
         time_estimate=5,
     ),
+    ModularPage(
+        "camera_record_page_with_playback_and_manual_upload",
+        "This page lets you record a video with your camera and additionally, playback the video before manual upload.",
+        VideoRecordControl(
+            s3_bucket=bucket_name,
+            duration=5.0,
+            recording_source="camera",
+            show_preview=True,
+            playback_before_upload=True,
+            allow_restart=True,
+            public_read=True,
+        ),
+        time_estimate=5,
+    ),
+    conditional(
+        "camera_record_page",
+        lambda experiment, participant: participant.answer["cameraUrl"] is None,
+        UnsuccessfulEndPage(failure_tags=["camera_record_page"]),
+    ),
+    PageMaker(
+        lambda participant: ModularPage(
+            "screen_playback",
+            VideoPrompt(
+                participant.answer["cameraUrl"],
+                "Here's the camera recording you just made.",
+                width="400px",
+            ),
+        ),
+        time_estimate=5,
+    ),
 )
 
 
