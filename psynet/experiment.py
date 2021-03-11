@@ -554,6 +554,22 @@ class Experiment(dallinger.experiment.Experiment):
             db.session.commit()
             return success_response()
 
+        @routes.route("/restart_background_processes", methods=["GET"])
+        def restart_background_processes():
+            # Todo: delete this hack
+            import gevent
+            exp = self.new(db.session)
+            for task in exp.background_tasks:
+                try:
+                    gevent.spawn(task)
+                except Exception:
+                    return error_response(
+                        error_text="Failed to spawn task on launch: {}, ".format(task)
+                                   + "check experiment server log for details",
+                        status=500,
+                        simple=True,
+                    )
+
         def get_client_ip_address():
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
                 return request.environ['REMOTE_ADDR']
