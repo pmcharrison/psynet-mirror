@@ -569,6 +569,7 @@ class Experiment(dallinger.experiment.Experiment):
                         status=500,
                         simple=True,
                     )
+            return success_response()
 
         def get_client_ip_address():
             if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
