@@ -889,7 +889,7 @@
             psynet.response.register_on_ready_routine(function () {
                 setTimeout(startScreenRecording, 1000 * {{ config.start_delay }});
                 setTimeout(function () {
-                    stopScreenRecording(psynet.media.presignedUrlScreen);
+                    stopScreenRecording();
                 }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
             });
         {% endif %}
