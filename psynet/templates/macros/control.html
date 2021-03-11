@@ -801,8 +801,8 @@
         {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
-        var presignedUrlCamera = "{{ config.presigned_url_camera }}";
-        var presignedUrlScreen = "{{ config.presigned_url_screen }}";
+        psynet.media.presignedUrlCamera = "{{ config.presigned_url_camera }}";
+        psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
         var playback_before_upload = {{ config.playback_before_upload | lower }};
         var allow_restart = {{ config.allow_restart | lower }};
@@ -820,10 +820,10 @@
                 }).then(function (stream) {
                     psynet.log.debug("Initialising video recorder.");
 
-                    // Display a live preview on the video element of the page
+                    // Display a live preview if video element is visible.
                     setSrcObject(stream, cameraVideo);
 
-                    // Start to display the preview on the video element and mute the video to disable echoing!
+                    // Start displaying the preview video and mute it to disable echoing.
                     cameraVideo.play();
                     cameraVideo.muted = true;
 
@@ -880,7 +880,7 @@
             psynet.response.register_on_ready_routine(function () {
                 setTimeout(startCameraRecording, 1000 * {{ config.start_delay }});
                 setTimeout(function () {
-                    stopCameraRecording(presignedUrlCamera);
+                    stopCameraRecording();
                 }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
             });
         {% endif %}
@@ -889,7 +889,7 @@
             psynet.response.register_on_ready_routine(function () {
                 setTimeout(startScreenRecording, 1000 * {{ config.start_delay }});
                 setTimeout(function () {
-                    stopScreenRecording(presignedUrlScreen);
+                    stopScreenRecording(psynet.media.presignedUrlScreen);
                 }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
             });
         {% endif %}
@@ -897,8 +897,8 @@
         function retrieve_response() {
             return {
                 raw_answer: {
-                    'camera': presignedUrlCamera,
-                    'screen': presignedUrlScreen,
+                    'camera': psynet.media.presignedUrlCamera,
+                    'screen': psynet.media.presignedUrlScreen,
                 }
             }
         }
