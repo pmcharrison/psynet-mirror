@@ -84,8 +84,8 @@ video_record_page = join(
         time_estimate=5,
     ),
     ModularPage(
-        "camera_record_page_with_playback_and_manual_upload",
-        "This page lets you record a video with your camera and additionally, playback the video before manual upload.",
+        "camera_record_page_with_playback_and_manual_upload_and_recording_restart",
+        "This page lets you record a video with your camera and play it back before upload. Clicking the 'Restart recording' button discards the last recording and records a new one.",
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
@@ -93,6 +93,7 @@ video_record_page = join(
             show_preview=True,
             playback_before_upload=True,
             allow_restart=True,
+            start_delay=2.0,
             public_read=True,
         ),
         time_estimate=5,

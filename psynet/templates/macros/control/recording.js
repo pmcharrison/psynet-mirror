@@ -7,6 +7,10 @@ $(document).ready(function() {
           $('#camera-playback-button').prop('disabled', false);
         };
     });
+
+    $('#restart-recording-button').click(function() {
+        window.location.reload();
+    });
 });
 
 /*** Audio recording functions ***/
@@ -101,6 +105,12 @@ function stopCameraRecording(presignedUrl) {
 
         $(".record-alert").hide();
 
+        if (allow_restart) {
+          $('#next_button').hide();
+          $('#restart-recording-button').show()
+          $('#video-upload-button').show()
+        }
+
         if (playback_before_upload) {
           $('#next_button').hide();
           $('#camera-recording').hide()
@@ -115,6 +125,7 @@ function stopCameraRecording(presignedUrl) {
             $("#record-upload").show();
             $('#camera-playback-button').hide()
             $('#video-upload-button').hide()
+            $('#restart-recording-button').hide()
             $('#next_button').show();
             startPresignedUrlUpload(videoBlob, presignedUrl)
           });
