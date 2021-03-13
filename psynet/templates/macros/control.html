@@ -521,6 +521,14 @@
 
         psynet.trial.addCleanupRoutine("stopRecorder",  () => recorder.stop());
         psynet.trial.addCleanupRoutine("stopRecordingPlayback", () => psynet.media.stop_all_audio());
+        psynet.trial.addCleanupRoutine("updateStatusText", function() {
+            $("#record-active").hide();
+            if (hasRecorded) {
+                $("#record-upload").show();
+            } else {
+                $("#record-wait").show();
+            }
+        });
 
         psynet.trial.addFinishRoutine("restart", function() {
             if (loop) {
