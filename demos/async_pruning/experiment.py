@@ -19,7 +19,8 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
-from psynet.page import InfoPage, SliderPage, SuccessfulEndPage
+from psynet.modular_page import SliderControl
+from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
@@ -32,12 +33,11 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-
 TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
 
 
-class ColorSliderPage(SliderPage):
+class ColorSliderPage(ModularPage):
     def __init__(
         self,
         label: str,
@@ -63,19 +63,22 @@ class ColorSliderPage(SliderPage):
             "hidden_inputs": hidden_inputs,
         }
         super().__init__(
-            time_estimate=time_estimate,
-            template_filename="color-slider.html",
             label=label,
-            prompt=prompt,
-            start_value=starting_values[selected_idx],
-            min_value=0,
-            max_value=255,
-            slider_id=COLORS[selected_idx],
-            reverse_scale=reverse_scale,
-            directional=directional,
-            template_arg={
-                "hidden_inputs": hidden_inputs,
-            },
+            prompt=Prompt(prompt),
+            control=SliderControl(
+                label=label,
+                start_value=starting_values[selected_idx],
+                min_value=0,
+                max_value=255,
+                slider_id=COLORS[selected_idx],
+                reverse_scale=reverse_scale,
+                directional=directional,
+                template_filename="color-slider.html",
+                template_args={
+                    "hidden_inputs": hidden_inputs,
+                },
+            ),
+            time_estimate=time_estimate,
         )
 
     def metadata(self, **kwargs):
