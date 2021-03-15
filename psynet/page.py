@@ -135,7 +135,7 @@ class UnityPage(Page):
     ):
         self.title = title
         self.resources = resources
-        self.contents = json.loads(contents)
+        self.contents = contents
         self.game_container_width = game_container_width
         self.game_container_height = game_container_height
         self.session_id = session_id
