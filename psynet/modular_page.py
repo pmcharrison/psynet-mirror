@@ -9,7 +9,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import get_logger
+from .utils import get_logger, linspace
 
 logger = get_logger()
 
@@ -1370,14 +1370,48 @@ class SliderControl(Control):
         self.template_filename = template_filename
         self.template_args = template_args
 
+        self.snap_values = self.format_snap_values(
+            snap_values, min_value, max_value, num_steps
+        )
+
         js_vars = {}
-        js_vars["snap_values"] = snap_values
+        js_vars["snap_values"] = self.snap_values
         js_vars["minimal_interactions"] = minimal_interactions
         js_vars["minimal_time"] = minimal_time
         js_vars["continuous_updates"] = continuous_updates
         self.js_vars = js_vars
 
     macro = "slider"
+
+    def format_snap_values(self, snap_values, min_value, max_value, num_steps):
+        if snap_values is None:
+            return linspace(min_value, max_value, num_steps)
+        elif isinstance(snap_values, int):
+            return linspace(min_value, max_value, snap_values)
+        else:
+            for x in snap_values:
+                assert isinstance(x, (float, int))
+                assert x >= min_value
+                assert x <= max_value
+            return sorted(snap_values)
+
+    def validate(self, response, **kwargs):
+        if self.input_type != "HTML5_range_slider":
+            raise NotImplementedError(
+                'Currently "HTML5_range_slider" is the only supported `input_type`'
+            )
+
+        if self.max_value <= self.min_value:
+            raise ValueError("`max_value` must be larger than `min_value`")
+
+        if self.start_value > self.max_value or self.start_value < self.min_value:
+            raise ValueError(
+                "`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)"
+                % (self.start_value, self.min_value, self.max_value)
+            )
+
+        if self.js_vars["minimal_interactions"] < 0:
+            raise ValueError("`minimal_interactions` cannot be negative!")
 
     @property
     def metadata(self):

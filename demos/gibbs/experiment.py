@@ -10,8 +10,8 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
-from psynet.modular_page import PushButtonControl, SliderControl
-from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
+from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
+from psynet.page import InfoPage, Prompt, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
@@ -54,8 +54,8 @@ class ColorSliderPage(ModularPage):
             "hidden_inputs": hidden_inputs,
         }
         super().__init__(
-            label=label,
-            prompt=Prompt(prompt),
+            label,
+            Prompt(prompt),
             control=SliderControl(
                 label=label,
                 start_value=starting_values[selected_idx],

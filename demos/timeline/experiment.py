@@ -6,9 +6,10 @@ from psynet.modular_page import (
     NumberControl,
     Prompt,
     PushButtonControl,
+    TextControl,
     TimedPushButtonControl,
 )
-from psynet.page import InfoPage, SuccessfulEndPage, TextInputPage
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
     CodeBlock,
     Module,
@@ -40,8 +41,11 @@ class Exp(psynet.experiment.Experiment):
                 ),
                 time_estimate=5,
             ),
-            TextInputPage(
-                "message", "Write me a message!", time_estimate=5, one_line=False
+            ModularPage(
+                "message",
+                "Write me a message!",
+                control=TextControl(one_line=False),
+                time_estimate=5,
             ),
             PageMaker(
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
