@@ -520,8 +520,8 @@ class Experiment(dallinger.experiment.Experiment):
                     ),
                 )
 
-        @routes.route("/debug_participants", methods=["GET"])
-        def debug_participants():
+        @routes.route("/get_participant_info_for_debug_mode", methods=["GET"])
+        def get_participant_info_for_debug_mode():
             config = get_config()
             if not config.get("mode") == "debug":
                 return error_response()
@@ -532,7 +532,9 @@ class Experiment(dallinger.experiment.Experiment):
                 "assignment_id": participant.assignment_id,
                 "page_uuid": participant.page_uuid,
             }
-            logger.debug(f"Returning from /debug_participants: {json_data}")
+            logger.debug(
+                f"Returning from /get_participant_info_for_debug_mode: {json_data}"
+            )
             return json.dumps(json_data, default=serialise)
 
         @routes.route("/export", methods=["GET"])
