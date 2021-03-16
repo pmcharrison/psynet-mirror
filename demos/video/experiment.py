@@ -33,8 +33,8 @@ video_record_page = join(
     conditional(
         "video_record_page",
         lambda experiment, participant: (
-            participant.answer["cameraUrl"] is None
-            and participant.answer["screenUrl"] is None
+            participant.answer["camera_url"] is None
+            and participant.answer["screen_url"] is None
         ),
         UnsuccessfulEndPage(failure_tags=["video_record_page"]),
     ),
@@ -42,12 +42,12 @@ video_record_page = join(
         lambda participant: ModularPage(
             "video_playback",
             VideoPrompt(
-                participant.answer["cameraUrl"],
+                participant.answer["camera_url"],
                 flask.Markup(
                     f"""
                         Here's the camera recording you just made.
                         <br>
-                        Click <a href="{participant.answer["screenUrl"]}">this link</a> to download the corresponding screen recording.
+                        Click <a href="{participant.answer["screen_url"]}">this link</a> to download the corresponding screen recording.
                     """
                 ),
                 width="400px",
@@ -69,14 +69,14 @@ video_record_page = join(
     ),
     conditional(
         "screen_record_page",
-        lambda experiment, participant: participant.answer["screenUrl"] is None,
+        lambda experiment, participant: participant.answer["screen_url"] is None,
         UnsuccessfulEndPage(failure_tags=["screen_record_page"]),
     ),
     PageMaker(
         lambda participant: ModularPage(
             "screen_playback",
             VideoPrompt(
-                participant.answer["screenUrl"],
+                participant.answer["screen_url"],
                 "Here's the screen recording you just made.",
                 width="400px",
             ),
@@ -100,14 +100,14 @@ video_record_page = join(
     ),
     conditional(
         "camera_record_page",
-        lambda experiment, participant: participant.answer["cameraUrl"] is None,
+        lambda experiment, participant: participant.answer["camera_url"] is None,
         UnsuccessfulEndPage(failure_tags=["camera_record_page"]),
     ),
     PageMaker(
         lambda participant: ModularPage(
             "screen_playback",
             VideoPrompt(
-                participant.answer["cameraUrl"],
+                participant.answer["camera_url"],
                 "Here's the camera recording you just made.",
                 width="400px",
             ),

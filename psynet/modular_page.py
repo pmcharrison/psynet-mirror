@@ -1823,10 +1823,10 @@ class VideoRecordControl(Control):
     def format_answer(self, raw_answer, **kwargs):
         return {
             "s3_bucket": self.s3_bucket,
-            "cameraUrl": splitquery(raw_answer["camera"])[0]
+            "camera_url": splitquery(raw_answer["camera"])[0]
             if raw_answer is not None
             else None,
-            "screenUrl": splitquery(raw_answer["screen"])[0]
+            "screen_url": splitquery(raw_answer["screen"])[0]
             if raw_answer is not None
             else None,
             "duration_sec": self.duration,
