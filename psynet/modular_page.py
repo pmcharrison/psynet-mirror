@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Dict, List, Optional, Union
-from urllib.parse import splitquery, urlparse
+from urllib.parse import urlparse
 
 from dominate import tags
 from dominate.util import raw
@@ -1716,10 +1716,11 @@ class AudioRecordControl(Control):
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
+        parse_result = urlparse(raw_answer)
         return {
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
-            "url": splitquery(raw_answer)[0],
+            "url": f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}",
             "duration_sec": self.duration,
         }
 
@@ -1821,14 +1822,15 @@ class VideoRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
+        parse_result_camera = urlparse(raw_answer["camera"])
+        camera_url = f"{parse_result_camera.scheme}://{parse_result_camera.netloc}{parse_result_camera.path}"
+        parse_result_screen = urlparse(raw_answer["screen"])
+        screen_url = f"{parse_result_screen.scheme}://{parse_result_screen.netloc}{parse_result_screen.path}"
+
         return {
             "s3_bucket": self.s3_bucket,
-            "camera_url": splitquery(raw_answer["camera"])[0]
-            if raw_answer is not None
-            else None,
-            "screen_url": splitquery(raw_answer["screen"])[0]
-            if raw_answer is not None
-            else None,
+            "camera_url": camera_url if raw_answer is not None else None,
+            "screen_url": screen_url if raw_answer is not None else None,
             "duration_sec": self.duration,
             "recording_source": self.recording_source,
             "record_audio": self.record_audio,
