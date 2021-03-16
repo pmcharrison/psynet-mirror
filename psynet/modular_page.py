@@ -1838,11 +1838,24 @@ class VideoRecordControl(Control):
         if answer is None:
             return tags.p("No video recorded yet.").render()
         else:
-            return tags.video(
-                tags.source(src=answer["url"]),
-                id="visualize-video-response",
-                controls=True,
-            ).render()
+            html = tags.div()
+            if answer["camera_url"]:
+                html += tags.h5("Camera recording")
+                html += tags.video(
+                    tags.source(src=answer["camera_url"]),
+                    id="visualize-camera-video-response",
+                    controls=True,
+                    style="max-width: 640px;",
+                )
+            if answer["screen_url"]:
+                html += tags.h5("Screen recording")
+                html += tags.video(
+                    tags.source(src=answer["screen_url"]),
+                    id="visualize-screen-video-response",
+                    controls=True,
+                    style="max-width: 640px;",
+                )
+            return html.render()
 
     def pre_render(self):
         if self.recording_source in ["camera", "both"]:
