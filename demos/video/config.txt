@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Monitor preview
+title = Video recording demo
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -15,8 +15,8 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
 [Advert metadata]
-description = This app is for previewing the monitor page.
-keywords = monitor
+description = This app demonstrates camera/screen video recordings.
+keywords = video
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 
