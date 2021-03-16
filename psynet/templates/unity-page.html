@@ -7,12 +7,6 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <link rel="shortcut icon" href="{{ resources }}/scripts/TemplateData/favicon.ico">
     <link rel="stylesheet" href="{{ resources }}/scripts/TemplateData/style.css">
-    <script>
-      {% autoescape off %}
-        psynet.page.attributes = {{ attributes.__dict__ }}
-        psynet.page.contents = {{ contents }}
-      {% endautoescape %}
-    </script>
 {% endblock %}
 
 {% block stylesheets %}
@@ -36,19 +30,19 @@
       </div>
     </div>
     <script>
-      var buildUrl = "{{ resources }}/scripts/Build";
-      var loaderUrl = "{{ resources }}/scripts/Build/WebGL.loader.js";
-      var config = {
+      let buildUrl = "{{ resources }}/scripts/Build";
+      let loaderUrl = "{{ resources }}/scripts/Build/WebGL.loader.js";
+      let config = {
         dataUrl: buildUrl + "/WebGL.data",
         frameworkUrl: buildUrl + "/WebGL.framework.js",
         codeUrl: buildUrl + "/WebGL.wasm",
       };
 
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      let container = document.querySelector("#unity-container");
+      let canvas = document.querySelector("#unity-canvas");
+      let loadingBar = document.querySelector("#unity-loading-bar");
+      let progressBarFull = document.querySelector("#unity-progress-bar-full");
+      let fullscreenButton = document.querySelector("#unity-fullscreen-button");
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
         container.className = "unity-mobile";
@@ -59,8 +53,8 @@
       }
       loadingBar.style.display = "block";
 
-      var script = document.createElement("script");
-      var unityInstance;
+      let script = document.createElement("script");
+      let unityInstance;
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
@@ -81,6 +75,4 @@
 
 {% block libs %}
     {{ super() }}
-    <script src="{{ resources }}/scripts/markdown.min.js"> </script>
-    <script src="{{ resources }}/scripts/experiment.js"> </script>
 {% endblock %}

@@ -19,7 +19,7 @@ logger = logging.getLogger()
 ##########################################################################################
 # Stimuli
 ##########################################################################################
-Debug = False
+debug = False
 number_of_islands = 1  # How many islands to visit in each world
 number_of_islands_final = 1  # How many islands to visit in the final world
 
@@ -57,9 +57,9 @@ class UnityIslandPage(UnityPage):
         self.game_container_height = "600px"
         self.resources = "/static"
         self.time_estimate = 5
-        self.debug = Debug
         self.contents = contents
         self.session_id = session_id
+        self.debug = debug
 
         super().__init__(
             title=self.title,
@@ -113,7 +113,7 @@ class IslandTrial(NonAdaptiveTrial):
         page = UnityIslandPage(
             # Send this string to Unity
             contents=data_as_json,
-            # We stay in the same session. '* 1000' is not important for now
+            # We stay in the same Unity session by using the same session_id across multiple UnityPages.
             session_id=str(participant.id * 1000),
         )
         list_of_pages = [page] * (self.num_pages)
