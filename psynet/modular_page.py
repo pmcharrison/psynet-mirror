@@ -1831,7 +1831,7 @@ class VideoRecordControl(Control):
             else None,
             "duration_sec": self.duration,
             "recording_source": self.recording_source,
-            "record_audio": str(self.record_audio),
+            "record_audio": self.record_audio,
         }
 
     def visualize_response(self, answer, response, trial):

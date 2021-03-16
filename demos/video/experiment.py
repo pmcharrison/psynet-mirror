@@ -20,7 +20,7 @@ video_record_page = join(
     ),
     ModularPage(
         "video_record_page",
-        "This page lets you record video and sound from camera and microphone.",
+        "This page lets you record video and sound from camera and microphone while also doing a simultaneous screen recording.",
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
@@ -34,7 +34,7 @@ video_record_page = join(
         "video_record_page",
         lambda experiment, participant: (
             participant.answer["camera_url"] is None
-            and participant.answer["screen_url"] is None
+            or participant.answer["screen_url"] is None
         ),
         UnsuccessfulEndPage(failure_tags=["video_record_page"]),
     ),
