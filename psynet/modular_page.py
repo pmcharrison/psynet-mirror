@@ -1,3 +1,4 @@
+import itertools
 import json
 import os
 from typing import Dict, List, Optional, Union
@@ -1374,12 +1375,15 @@ class SliderControl(Control):
             snap_values, min_value, max_value, num_steps
         )
 
-        js_vars = {}
-        js_vars["snap_values"] = self.snap_values
-        js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["minimal_time"] = minimal_time
-        js_vars["continuous_updates"] = continuous_updates
-        self.js_vars = js_vars
+        try:
+            self.js_vars
+        except AttributeError:
+            js_vars = {}
+            js_vars["snap_values"] = self.snap_values
+            js_vars["minimal_interactions"] = minimal_interactions
+            js_vars["minimal_time"] = minimal_time
+            js_vars["continuous_updates"] = continuous_updates
+            self.js_vars = js_vars
 
     macro = "slider"
 
@@ -1530,16 +1534,38 @@ class AudioSliderControl(SliderControl):
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
     ):
-        super().__init__(
-            label=label,
-            start_value=start_value,
-            min_value=min_value,
-            max_value=max_value,
-            num_steps=num_steps,
-            slider_id=slider_id,
-            reverse_scale=reverse_scale,
-            directional=directional,
-        )
+        if isinstance(num_steps, str):
+            if num_steps == "num_sounds":
+                num_steps = len(sound_locations)
+            else:
+                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+
+        if isinstance(snap_values, str):
+            if snap_values == "sound_locations":
+                snap_values = list(sound_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
+
+        # Check if all stimuli specified in `sound_locations` are
+        # also preloaded before the participant can start the trial
+        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media = []
+        for key, value in audio.items():
+            if isinstance(audio[key], dict) and "ids" in audio[key]:
+                IDs_media.append(audio[key]["ids"])
+            elif isinstance(audio[key], str):
+                IDs_media.append(key)
+            else:
+                raise NotImplementedError(
+                    "Currently we only support batch files or single files"
+                )
+        IDs_media = list(itertools.chain.from_iterable(IDs_media))
+
+        if not any([i in IDs_media for i in IDs_sound_locations]):
+            raise ValueError(
+                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+            )
+
         self.sound_locations = sound_locations
         self.autoplay = autoplay
         self.snap_values = snap_values
@@ -1551,8 +1577,18 @@ class AudioSliderControl(SliderControl):
         js_vars["snap_values"] = self.snap_values
         js_vars["minimal_interactions"] = minimal_interactions
         js_vars["minimal_time"] = minimal_time
-
         self.js_vars = js_vars
+
+        super().__init__(
+            label=label,
+            start_value=start_value,
+            min_value=min_value,
+            max_value=max_value,
+            num_steps=num_steps,
+            slider_id=slider_id,
+            reverse_scale=reverse_scale,
+            directional=directional,
+        )
 
     macro = "audio_slider"
 
