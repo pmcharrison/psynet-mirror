@@ -10,6 +10,7 @@ import sys
 import time
 from datetime import datetime
 from functools import reduce, wraps
+from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
 from dallinger.config import get_config
@@ -347,3 +348,15 @@ def json_to_data_frame(json_data):
 
     data_frame = pd.DataFrame.from_records(json_data, columns=columns)
     return data_frame
+
+
+def strip_url_parameters(url):
+    parse_result = urlparse(url)
+    return ParseResult(
+        scheme=parse_result.scheme,
+        netloc=parse_result.netloc,
+        path=parse_result.path,
+        params=None,
+        query=None,
+        fragment=None,
+    ).geturl()
