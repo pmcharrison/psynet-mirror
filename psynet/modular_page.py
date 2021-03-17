@@ -9,7 +9,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import get_logger
+from .utils import get_logger, strip_url_parameters
 
 logger = get_logger()
 
@@ -1716,11 +1716,10 @@ class AudioRecordControl(Control):
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
-        parse_result = urlparse(raw_answer)
         return {
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
-            "url": f"{parse_result.scheme}://{parse_result.netloc}{parse_result.path}",
+            "url": strip_url_parameters(raw_answer),
             "duration_sec": self.duration,
         }
 
@@ -1822,15 +1821,14 @@ class VideoRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
-        parse_result_camera = urlparse(raw_answer["camera"])
-        camera_url = f"{parse_result_camera.scheme}://{parse_result_camera.netloc}{parse_result_camera.path}"
-        parse_result_screen = urlparse(raw_answer["screen"])
-        screen_url = f"{parse_result_screen.scheme}://{parse_result_screen.netloc}{parse_result_screen.path}"
-
         return {
             "s3_bucket": self.s3_bucket,
-            "camera_url": camera_url if raw_answer is not None else None,
-            "screen_url": screen_url if raw_answer is not None else None,
+            "camera_url": strip_url_parameters(raw_answer["camera"])
+            if raw_answer is not None
+            else None,
+            "screen_url": strip_url_parameters(raw_answer["screen"])
+            if raw_answer is not None
+            else None,
             "duration_sec": self.duration,
             "recording_source": self.recording_source,
             "record_audio": self.record_audio,
