@@ -804,6 +804,7 @@
             }
         });
 
+        psynet.trial.addPrepareRoutine("clearAudio", () => psynet.media.stop_all_audio());
         psynet.trial.addCleanupRoutine("stopRecorder",  () => recorder.stop());
         psynet.trial.addCleanupRoutine("stopRecordingPlayback", () => psynet.media.stop_all_audio());
         psynet.trial.addCleanupRoutine("updateStatusText", function() {

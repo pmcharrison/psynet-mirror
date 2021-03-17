@@ -308,27 +308,25 @@
                         inProgress: false,
                         startTime: null,
                         events: {},
-                        routines: {
-                            cleanup: [],
-                            finish: []
-                        },
+                        routines: {},
 
-                        start: function() {
+                        start: async function() {
                             if (this.duration === null) {
                                 throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
                             }
                             let trial = this;
-                            trial.cancel().then(function() {
-                                trial.iteration += 1;
-                                psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
-                                psynet.register_event("trialStart");
-                                trial.addEvent("trialFinish", trial.duration, () => trial.finish());
-                                trial.inProgress = true;
-                                trial.startTime = trial.getGlobalTime();
-                                trial.state = "trialStart";
-                                trial.clearEventQueue();
-                                trial.queueEvents();
-                            })
+                            await trial.cancel();
+                            await this.runRoutines("prepare");
+                            trial.iteration += 1;
+                            psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
+                            psynet.register_event("trialStart");
+                            trial.addEvent("trialFinish", trial.duration, () => trial.finish());
+                            trial.inProgress = true;
+                            trial.startTime = trial.getGlobalTime();
+                            trial.state = "trialStart";
+                            trial.clearEventQueue();
+                            trial.queueEvents();
+                            return await Promise.resolve(true);
                          },
 
                         cancel: async function() {
@@ -385,7 +383,7 @@
                              Object.values(this.events).forEach(e => e.queue());
                         },
 
-                        routineTypes: ["cleanup", "finish"],
+                        routineTypes: ["prepare", "cleanup", "finish"],
 
                         initRoutines: function() {
                             this.routineTypes.forEach(function(type) {
@@ -398,6 +396,10 @@
                                 id: id,
                                 handler: handler
                             })
+                        },
+
+                        addPrepareRoutine: function(id, handler) {
+                            this.addRoutine("prepare", id, handler);
                         },
 
                         addCleanupRoutine: function(id, handler) {
@@ -433,6 +435,7 @@
                         }
                     }
 
+                    obj.initRoutines();
                     return obj
                 }
 
