@@ -1,6 +1,5 @@
 import json
 import os
-import parselmouth
 import shutil
 import struct
 import tempfile
@@ -10,7 +9,7 @@ from uuid import uuid4
 import boto3
 import botocore.errorfactory
 import botocore.exceptions
-import numpy as np
+import parselmouth
 from dallinger.config import get_config
 
 from .utils import get_logger, log_time_taken
@@ -357,6 +356,7 @@ def recode_wav(file_path):
         shutil.copyfile(file_path, temp_file.name)
         s = parselmouth.Sound(temp_file.name)
         s.save(file_path, "WAV")
+
 
 def get_s3_url(bucket, key):
     if LOCAL_S3:
