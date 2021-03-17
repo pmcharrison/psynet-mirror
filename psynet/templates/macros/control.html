@@ -664,8 +664,7 @@
     </script>
 {% endmacro %}
 
-{% macro audio_record(config) %}
-
+{% macro generic_record(config) %}
     {% if config.show_meter %}
         {{ audio_meter(config.meter) }}
     {% endif %}
@@ -677,7 +676,7 @@
         }
     </style>
 
-    <div id="record-status">
+        <div id="record-status">
         <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
             Waiting to record...
         </div>
@@ -697,10 +696,10 @@
 
     {% if config.progress_bar %}
         <style>
-            #audio-record-progress {
+            #record-progress {
                 margin: 50px
             }
-            .audio-record-progress-bar {
+            .record-progress-bar {
                 -webkit-transition: none;
                 -moz-transition: none;
                 -ms-transition: none;
@@ -709,81 +708,122 @@
             }
         </style>
 
-        <div id="audio-record-progress" class="progress">
-            <div id="audio-record-progress-bar-0" class="progress-bar audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 1" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            <div id="audio-record-progress-bar-1" class="progress-bar audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            <div id="audio-record-progress-bar-2" class="progress-bar bg-danger audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 0.25" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            <div id="audio-record-progress-bar-3" class="progress-bar audio-record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        <div id="record-progress" class="progress">
+            <div id="record-progress-bar-0" class="progress-bar record-progress-bar" role="progressbar" style="width: 0%; opacity: 1" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="record-progress-bar-1" class="progress-bar record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="record-progress-bar-2" class="progress-bar bg-danger record-progress-bar" role="progressbar" style="width: 0%; opacity: 0.25" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="record-progress-bar-3" class="progress-bar record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
         </div>
     {% endif %}
 
     {% if config.controls %}
         <style>
-            #audio-record-controls {
+            #record-controls {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 padding-bottom: 50px;
             }
-            .audio-record-button {
+            .record-button {
                 margin-left: 10px;
                 margin-right: 10px;
             }
-            #audio-record-loop {
+            #record-loop {
                 margin-left: 10px;
                 margin-right: 10px;
             }
         </style>
 
-        <div id="audio-record-controls">
-            <button id="audio-record-record" type="button" class="btn audio-record-button audio-record-control btn-danger btn-sm" disabled>
+        <div id="record-controls">
+            <button id="btn-record-record" type="button" class="btn record-button record-control btn-danger btn-sm" disabled>
                 Record from start
             </button>
-            <button id="audio-record-play-all" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+            <button id="btn-record-play-all" type="button" class="btn record-button record-control btn-primary btn-sm" disabled>
                 Play all
             </button>
-            <button id="audio-record-play-prompt" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+            <button id="btn-record-play-prompt" type="button" class="btn record-button record-control btn-primary btn-sm" disabled>
                 Play prompt
             </button>
-            <button id="audio-record-play-recording" type="button" class="btn audio-record-button audio-record-control btn-primary btn-sm" disabled>
+            <button id="btn-record-play-recording" type="button" class="btn record-button record-control btn-primary btn-sm" disabled>
                 Play recording
             </button>
-            <button id="audio-record-stop" type="button" class="btn audio-record-button audio-record-control btn-secondary btn-sm">
+            <button id="btn-record-stop" type="button" class="btn record-button record-control btn-secondary btn-sm">
                 Stop
             </button>
-            <button id="audio-record-upload" type="button" class="btn audio-record-button audio-record-control btn-success btn-sm" disabled>
+            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>
                 Upload
             </button>
-            <div id="audio-record-loop">
-                <input id="audio-record-loop-input" class="audio-record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
+            <div id="record-loop">
+                <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
                 <label>Loop</label>
             </div>
         </div>
     {% endif %}
 
-    {{ null(config) }}
+    <script>
+        {% include "macros/control/recording.js" %}
+    </script>
 
     <script>
-        {% include "macros/control/recorder.js" %}
-        {% include "macros/control/recording.js" %}
+        $(document).ready(function() {
+            psynet.add_event_listener("recording_ready", function() {
+                $("#btn-record-play-recording").attr("disabled", false);
+                if (psynet.audio.prompt) {
+                    $("#btn-record-play-all").attr("disabled", false);
+                }
+            });
 
-        {% autoescape off %}
-        var presignedUrl = "{{ config.presigned_url }}";
-        {% endautoescape %}
+            $(".record-button").on("click", function() {
+                this.disabled = true;
+                setTimeout(() => this.disabled = false, 500);
+            });
 
-        var recorder;
+            $("#btn-record-record").on("click", function() {
+                replayMode = false;
+                psynet.trial.start();
+            });
 
-        var hasRecorded = false;
-        let recording_blob;
+            $("#btn-record-play-all").on("click", function() {
+                replayMode = true;
+                psynet.media.stop_all_audio();
+                psynet.trial.start();
+            });
 
-        let recorderControls = {{ config.controls | lower }};
-        let recordWindow = {{ config.record_window | tojson }};
+            $("#btn-record-play-prompt").on("click", function() {
+                psynet.trial.cancel();
+                let options = psynet.utils.shallow_copy(audio_prompt_player_options);
+                options.loop = loop;
+                psynet.media.stop_all_audio();
+                psynet.audio.prompt.play(options);
+            });
 
-        let replayMode = false;
+            $("#btn-record-play-recording").on("click", function() {
+                replayMode = true;
+                psynet.trial.cancel();
+                let options = {loop: loop};
+                psynet.media.stop_all_audio();
+                psynet.audio.recording.play(options);
+            });
 
-        let loop = {{ config.loop_playback | tojson }};
+            $("#btn-record-stop").on("click", function() {
+                psynet.trial.cancel();
+                psynet.media.stop_all_audio();
+            });
 
-        psynet.trial.setDuration({{ config.duration }});
+            $("#record-loop-input").on("change", function(event) {
+                loop = event.target.checked;
+            });
+
+            $("#btn-record-upload").on("click", function() {
+                psynet.register_event("presigned_url_begin_upload");
+                psynet.add_event_listener("presigned_url_end_upload", () => $("#next_button").click());
+            });
+        });
+
+        var recorderControls = {{ config.controls | lower }};
+        var recordWindow = {{ config.record_window | tojson }};
+        var replayMode = false;
+        var loop = {{ config.loop_playback | tojson }};
 
         psynet.trial.addEvent("startRecording", recordWindow[0], function () {
             if (replayMode) {
@@ -791,22 +831,18 @@
             } else {
                 $(".record-alert").hide();
                 $("#record-active").show();
-                recorder.clear();
-                recorder.record();
             }
         });
 
         psynet.trial.addEvent("endRecording", recordWindow[1], function() {
             if (!replayMode) {
-                recorder.stop();
                 hasRecorded = true;
-                exportRecording();
             }
         });
 
         psynet.trial.addPrepareRoutine("clearAudio", () => psynet.media.stop_all_audio());
-        psynet.trial.addCleanupRoutine("stopRecorder",  () => recorder.stop());
-        psynet.trial.addCleanupRoutine("stopRecordingPlayback", () => psynet.media.stop_all_audio());
+
+        psynet.trial.addCleanupRoutine("stopPlayback", () => psynet.media.stop_all_audio());
         psynet.trial.addCleanupRoutine("updateStatusText", function() {
             $("#record-active").hide();
             if (hasRecorded) {
@@ -822,81 +858,12 @@
             }
         });
 
-        $(document).ready(function() {
-            psynet.add_event_listener("audio_recording_finished", function() {
-                $("#audio-record-play-recording").attr("disabled", false);
-                if (psynet.audio.prompt) {
-                    $("#audio-record-play-all").attr("disabled", false);
-                }
-            });
-
-            $(".audio-record-button").on("click", function() {
-                this.disabled = true;
-                setTimeout(() => this.disabled = false, 500);
-            })
-
-            $("#audio-record-record").on("click", function() {
-                replayMode = false;
-                psynet.trial.start();
-            });
-            $("#audio-record-play-all").on("click", function() {
-                replayMode = true;
-                psynet.media.stop_all_audio();
-                psynet.trial.start();
-            });
-            $("#audio-record-play-prompt").on("click", function() {
-                psynet.trial.cancel();
-                let options = psynet.utils.shallow_copy(audio_prompt_player_options);
-                options.loop = loop;
-                psynet.media.stop_all_audio();
-                psynet.audio.prompt.play(options);
-            });
-            $("#audio-record-play-recording").on("click", function() {
-                replayMode = true;
-                psynet.trial.cancel();
-                let options = {loop: loop};
-                psynet.media.stop_all_audio();
-                psynet.audio.recording.play(options);
-            });
-            $("#audio-record-stop").on("click", function() {
-                psynet.trial.cancel();
-                psynet.media.stop_all_audio();
-            });
-            $("#audio-record-loop-input").on("change", function(event) {
-                loop = event.target.checked;
-            });
-            $("#audio-record-upload").on("click", function() {
-                startPresignedUrlUpload(recording_blob);
-                psynet.add_event_listener("presigned_url_end_upload", () => $("#next_button").click());
-            });
-        });
-
-        let exportRecording = function() {
-            recorder.exportWAV(function (blob) {
-                $(".record-alert").hide();
-                $("#record-upload").show();
-
-                recording_blob = blob;
-
-                psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
-                    psynet.media.add_extra_audio_stimulus(buffer, "recording");
-                    psynet.register_event("audio_recording_finished");
-                });
-
-                if (recorderControls) {
-                    $("#audio-record-upload").prop("disabled", false);
-                } else {
-                    startPresignedUrlUpload(recording_blob);
-                }
-            })
-        }
-
         let initProgressBar = function() {
             let bars = [
-                $("#audio-record-progress-bar-0"),
-                $("#audio-record-progress-bar-1"),
-                $("#audio-record-progress-bar-2"),
-                $("#audio-record-progress-bar-3")
+                $("#record-progress-bar-0"),
+                $("#record-progress-bar-1"),
+                $("#record-progress-bar-2"),
+                $("#record-progress-bar-3")
             ];
 
             let updateBars = function() {
@@ -925,15 +892,92 @@
             }
         };
 
+        psynet.media.register_on_loaded_routine(function() {
+            if (psynet.audio.prompt) {
+                $("#btn-record-play-prompt").prop("disabled", false);
+            }
+        });
+
+        psynet.add_event_listener("recorder_ready", function() {
+            $("#btn-record-record").prop("disabled", false);
+            {% if config.progress_bar %} initProgressBar() {% endif %}
+        });
+
+        psynet.response.wait_for("page_load_buffer");
+        psynet.response.wait_for("recorder_ready");
+        psynet.submit.wait_for("recording_uploaded");
+
+        setTimeout(function() {
+            psynet.response.ready("page_load_buffer");
+        }, 1000);
+
+        psynet.add_event_listener("endRecording", function() {
+            $(".record-alert").hide();
+            $("#record-upload").show();
+        });
+
+        psynet.add_event_listener("recording_ready", function() {
+            if (recorderControls) {
+                $("#btn-record-upload").prop("disabled", false);
+            }
+        });
+
+    </script>
+
+{% endmacro %}
+
+{% macro audio_record(config) %}
+    {{ generic_record(config) }}
+
+    {{ null(config) }}
+
+    <script>
+        {% include "macros/control/recorder.js" %}
+
+        {% autoescape off %}
+        var presignedUrl = "{{ config.presigned_url }}";
+        {% endautoescape %}
+
+        var recorder;
+        var hasRecorded = false;
+        var recording_blob;
+
+        psynet.trial.setDuration({{ config.duration }});
+
+        psynet.add_event_listener("startRecording", function() {
+            if (!replayMode) {
+                recorder.clear();
+                recorder.record();
+            }
+        });
+
+        psynet.add_event_listener("endRecording", function() {
+            if (!replayMode) {
+                recorder.stop();
+                recorder.exportWAV(function (blob) {
+                    recording_blob = blob;
+
+                    psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
+                        psynet.media.add_extra_audio_stimulus(buffer, "recording");
+                        psynet.register_event("recording_ready");
+                    });
+
+                    if (!recorderControls) {
+                        psynet.register_event("presigned_url_begin_upload");
+                    }
+                });
+            }
+        });
+
+        psynet.add_event_listener("presigned_url_begin_upload", function() {
+            startPresignedUrlUpload(recording_blob, presignedUrl);
+        });
+
+        psynet.trial.addCleanupRoutine("stopRecorder",  () => recorder.stop());
+
         psynet.trial.wait_for("recorder_ready");
 
         psynet.media.register_on_loaded_routine(function() {
-            $("#audio-record-record").prop("disabled", false);
-
-            if (psynet.audio.prompt) {
-                $("#audio-record-play-prompt").prop("disabled", false);
-            }
-
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
@@ -942,44 +986,14 @@
                 },
                 video: false
             }).then(function(stream) {
-                psynet.log.debug("Initialising recorder.");
+                psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);
+                psynet.register_event("recorder_ready");
                 psynet.response.ready("recorder_ready");
                 psynet.trial.ready("recorder_ready");
-                {% if config.progress_bar %} initProgressBar() {% endif %}
             })
         });
-
-        psynet.response.wait_for("page_load_buffer");
-        psynet.response.wait_for("recorder_ready");
-        psynet.submit.wait_for("finished-recording");
-
-        setTimeout(function() {
-            psynet.response.ready("page_load_buffer");
-        }, 1000)
-
-        startPresignedUrlUpload = function(wavAudioBlob) {
-            $("#record-upload").html("Uploading response...");
-            // TODO upload if LOCAL_S3
-            let xhr = new XMLHttpRequest();
-            xhr.open('PUT', presignedUrl, true);
-            psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
-
-            psynet.register_event("presigned_url_start_upload", {url: presignedUrl});
-
-            xhr.onload = function(e) {
-                psynet.log.debug("File uploaded successfully to presigned url.");
-                psynet.submit.ready("finished-recording");
-                $(".record-alert").hide();
-                $("#record-upload").html("Ready to upload response.");
-                $("#record-finish").show();
-                psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
-            };
-
-            let wavFile = new File([wavAudioBlob], "s3_upload.wav")
-            xhr.send(wavFile);
-        }
 
         retrieve_response = function() {
             return {
@@ -990,17 +1004,7 @@
 {% endmacro %}
 
 {% macro video_record(config) %}
-
-    {% if config.show_meter %}
-        {{ audio_meter(config.meter) }}
-    {% endif %}
-
-    <style>
-        #record-status {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-    </style>
+    {{ generic_record(config) }}
 
     {% if config.recording_source == "camera" or config.recording_source == "both" %}
         <video id="camera-recording" style="display: {% if config.show_preview %}block{% else %}none{% endif %}; width: {{ config.width }}"></video>
@@ -1025,7 +1029,7 @@
         </div>
 
         <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading...
+            Ready to upload response.
         </div>
     </div>
 
@@ -1115,7 +1119,7 @@
         /*** Screen recording end ***/
 
         psynet.response.wait_for("page_load_buffer");
-        psynet.submit.wait_for("finished-recording");
+        psynet.submit.wait_for("recording_uploaded");
 
         setTimeout(function () {
             psynet.response.ready("page_load_buffer");

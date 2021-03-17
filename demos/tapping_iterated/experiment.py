@@ -88,8 +88,8 @@ class CustomTrial(AudioImitationChainTrial):
                             Trial number {position} out of {NUM_TRIALS_PARTICIPANT}  trials.
                             <script>
                             show_message = function(message, color_box) {{
-                            document.getElementById("record-active").textContent=message
-                            document.getElementById("record-active").style.backgroundColor = color_box
+                            document.getElementById("msg-record-active").textContent=message
+                            document.getElementById("msg-record-active").style.backgroundColor = color_box
                             }}
                             psynet.response.register_on_ready_routine(function() {{
                             message_to_display=[{{"msg":"WAIT IN SILENCE", "time":10, "color": "pink"}},{{"msg":">>>>>>>> START TAPPING! >>>>>>>>", "time":3150,  "color": "lightgreen"}},{{"msg":"STOP TAPPING!", "time":{time_last_JS_text_ms}, "color": "pink"}}]
