@@ -17,11 +17,11 @@
         dallinger.identity.participantId = "undefined";
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
-                dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                let participantId = dallinger.identity.participantId;
+                let assignmentId = dallinger.identity.assignmentId;
+                dallinger.goToPage("timeline/" + participantId + "/" + assignmentId);
             }, 500);
         }).fail(function(resp) {
-            dallinger.error(resp);
-        }).error(function(resp) {
             dallinger.error(resp);
         });
     </script>

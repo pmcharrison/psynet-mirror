@@ -5,28 +5,36 @@ from psynet.utils import json_to_data_frame
 
 
 def test_json_to_data_frame():
-    x = {"id": 1, "a":  2, "b": 3}
-    y = {"id": 2, "a":  4, "b": 8}
+    x = {"id": 1, "a": 2, "b": 3}
+    y = {"id": 2, "a": 4, "b": 8}
     json_data = [x, y]
     columns = ["id", "a", "b"]
     expected_result = pd.DataFrame.from_records(json_data, columns=columns)
 
-    assert pdt.assert_frame_equal(json_to_data_frame(json_data), expected_result) is None
+    assert (
+        pdt.assert_frame_equal(json_to_data_frame(json_data), expected_result) is None
+    )
+
 
 def test_json_to_data_frame_extra_column():
-    x = {"id": 1, "a":  2, "b": 3}
-    y = {"id": 2, "a":  4, "c": 8}
+    x = {"id": 1, "a": 2, "b": 3}
+    y = {"id": 2, "a": 4, "c": 8}
     json_data = [x, y]
     columns = ["id", "a", "b", "c"]
     expected_result = pd.DataFrame.from_records(json_data, columns=columns)
 
-    assert pdt.assert_frame_equal(json_to_data_frame(json_data), expected_result) is None
+    assert (
+        pdt.assert_frame_equal(json_to_data_frame(json_data), expected_result) is None
+    )
+
 
 def test_json_to_data_frame_extra_columns_mixed_different_length():
-    x = {"id": 1, "a":  2, "c": 3}
-    y = {"id": 2, "d":  4, "a": 8, "b": 11}
+    x = {"id": 1, "a": 2, "c": 3}
+    y = {"id": 2, "d": 4, "a": 8, "b": 11}
     json_data = [x, y]
     columns = ["id", "a", "c", "d", "b"]
     expected_result = pd.DataFrame.from_records(json_data, columns=columns)
 
-    assert pdt.assert_frame_equal(json_to_data_frame(json_data), expected_result) is None
+    assert (
+        pdt.assert_frame_equal(json_to_data_frame(json_data), expected_result) is None
+    )

@@ -1,5 +1,5 @@
 ##########################################################################################
-#### Imports
+# Imports
 ##########################################################################################
 
 import psynet.experiment
@@ -8,8 +8,9 @@ from psynet.prescreen import ColorVocabularyTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
-#### Experiment
+# Experiment
 ##########################################################################################
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
@@ -19,8 +20,11 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         ColorVocabularyTest(),
-        InfoPage("You passed the color vocabulary task! Congratulations.", time_estimate=3),
-        SuccessfulEndPage()
+        InfoPage(
+            "You passed the color vocabulary task! Congratulations.", time_estimate=3
+        ),
+        SuccessfulEndPage(),
     )
+
 
 extra_routes = Exp().extra_routes()
