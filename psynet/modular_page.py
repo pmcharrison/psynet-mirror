@@ -1481,15 +1481,12 @@ class SliderControl(Control):
             snap_values, min_value, max_value, num_steps
         )
 
-        try:
-            self.js_vars
-        except AttributeError:
-            js_vars = {}
-            js_vars["snap_values"] = self.snap_values
-            js_vars["minimal_interactions"] = minimal_interactions
-            js_vars["minimal_time"] = minimal_time
-            js_vars["continuous_updates"] = continuous_updates
-            self.js_vars = js_vars
+        js_vars = {}
+        js_vars["snap_values"] = self.snap_values
+        js_vars["minimal_interactions"] = minimal_interactions
+        js_vars["minimal_time"] = minimal_time
+        js_vars["continuous_updates"] = continuous_updates
+        self.js_vars = js_vars
 
     macro = "slider"
 
@@ -1672,19 +1669,6 @@ class AudioSliderControl(SliderControl):
                 "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
             )
 
-        self.sound_locations = sound_locations
-        self.autoplay = autoplay
-        self.snap_values = snap_values
-        self.audio = audio
-
-        js_vars = {}
-        js_vars["sound_locations"] = self.sound_locations
-        js_vars["autoplay"] = self.autoplay
-        js_vars["snap_values"] = self.snap_values
-        js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["minimal_time"] = minimal_time
-        self.js_vars = js_vars
-
         super().__init__(
             label=label,
             start_value=start_value,
@@ -1694,7 +1678,17 @@ class AudioSliderControl(SliderControl):
             slider_id=slider_id,
             reverse_scale=reverse_scale,
             directional=directional,
+            snap_values=snap_values,
+            minimal_interactions=minimal_interactions,
+            minimal_time=minimal_time,
         )
+
+        self.sound_locations = sound_locations
+        self.autoplay = autoplay
+        self.snap_values = snap_values
+        self.audio = audio
+        self.js_vars["sound_locations"] = sound_locations
+        self.js_vars["autoplay"] = autoplay
 
     macro = "audio_slider"
 
