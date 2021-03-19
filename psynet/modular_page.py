@@ -1831,11 +1831,18 @@ class VideoRecordControl(Control):
     show_preview
         Whether to show a preview of the video on the page. Default: `False`.
 
-    playback_before_upload
-        Whether to play back the recorded webcam video before it is uploaded.
+    progress_bar
+        Whether to show a progress bar.
 
-    allow_restart
-         Whether to be able to manually restart the video recording.
+    controls
+        Whether to provide controls for manipulating the recording.
+
+    loop_playback
+        Whether to loop playback by default (only relevant if ``controls=True``.
+
+    record_window
+        Optional list of two numbers describing when the recorder should
+        start and stop, expressed in seconds relative to the beginning of the trial.
     """
 
     macro = "video_record"
@@ -1852,8 +1859,10 @@ class VideoRecordControl(Control):
         start_delay: float = 0.0,
         public_read: bool = False,
         show_preview: bool = False,
-        playback_before_upload: bool = False,
-        allow_restart: bool = False,
+        progress_bar: bool = False,
+        controls: bool = False,
+        loop_playback: bool = False,
+        record_window: Optional[List] = None,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1864,8 +1873,12 @@ class VideoRecordControl(Control):
         self.start_delay = start_delay
         self.public_read = public_read
         self.show_preview = show_preview
-        self.playback_before_upload = playback_before_upload
-        self.allow_restart = allow_restart
+        self.controls = controls
+        self.loop_playback = loop_playback
+        self.record_window = record_window
+
+        if self.record_window is None:
+            self.record_window = [0.0, self.duration]
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
@@ -1873,6 +1886,15 @@ class VideoRecordControl(Control):
             self.meter = None
 
         assert self.recording_source in ["camera", "screen", "both"]
+
+        self.check_attr()
+
+    def check_attr(self):
+        assert isinstance(self.record_window, list)
+        assert len(self.record_window) == 2
+        assert self.record_window[0] >= 0
+        assert self.record_window[1] <= self.duration
+        assert self.record_window[1] >= self.record_window[0]
 
     @property
     def metadata(self):

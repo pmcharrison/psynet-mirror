@@ -326,7 +326,7 @@
                             trial.state = "trialStart";
                             trial.clearEventQueue();
                             trial.queueEvents();
-                            return await Promise.resolve(true);
+                            return true;
                          },
 
                         cancel: async function() {
@@ -335,16 +335,16 @@
                                 this.state = "trialCancel";
                                 return await this.stop();
                             } else {
-                                return await Promise.resolve(true);
+                                return true;
                             }
                         },
 
                         finish: async function() {
                             if (this.inProgress) {
-                                return await this.stop().then(() => this.runRoutines("finish"));
-                            } else {
-                                return await Promise.resolve(true);
+                                await this.stop();
+                                await this.runRoutines("finish");
                             }
+                            return true;
                         },
 
                         stop: async function() {
@@ -411,11 +411,12 @@
                         },
 
                         runRoutines: function(type) {
+                            let promises = [];
                             this.routines[type].forEach(function(routine) {
                                 psynet.log.debug("Running trial (" + this.iteration + ") " + type + " routine: " + routine.id);
-                                routine.handler()
+                                promises.push(routine.handler());
                             }, this);
-                            return new Promise(resolve => setTimeout(() => resolve("true"), 10)); // gruesome hack to be fixed later
+                            return Promise.all(promises);
                         },
 
                         clearEventQueue: function() {
@@ -999,9 +1000,12 @@
                                     sound.gain_node.gain.exponentialRampToValueAtTime(0.001, time_now + options.fade_out);
                                 }
 
-                                setTimeout(() => sound.source.stop(), options.fade_out * 1000);
-
-                                return sound;
+                                return new Promise((resolve, reject) => {
+                                    setTimeout(() => {
+                                        sound.source.stop();
+                                        resolve();
+                                    }, options.fade_out * 1000);
+                                });
                             }
 
                             sound.source.addEventListener("ended", function () {
@@ -1205,15 +1209,25 @@
 
                 psynet.event_log = [];
 
-                psynet.event_listener_registry = document.createElement("span");
+                psynet.event_listener_registry = {};
 
                 psynet.add_event_listener = function(type, func) {
-                    psynet.event_listener_registry.addEventListener(type, func);
+                    if (!psynet.event_listener_registry.hasOwnProperty("type")) {
+                        psynet.event_listener_registry[type] = [];
+                    }
+                    psynet.event_listener_registry[type].push(func);
                 }
 
-                psynet.register_event = function(event_type, info) {
-                    let e = new Event(event_type);
-                    psynet.event_listener_registry.dispatchEvent(e)
+                psynet.run_event_handlers = async function(event_type) {
+                    let handlers = psynet.event_listener_registry[event_type];
+                    if (handlers) {
+                        for (let i = 0; i < handlers.length; i++) {
+                            await handlers[i](); // ensures that all the handlers are executed in order
+                        }
+                    }
+                }
+
+                psynet.register_event = async function(event_type, info) {
                     let time = new Date();
                     let log_entry = {
                         event_type: event_type,
@@ -1221,6 +1235,7 @@
                         info: (info === undefined) ? null : info};
                     psynet.event_log.push(log_entry);
                     psynet.log.debug(event_type);
+                    await psynet.run_event_handlers(event_type);
                 }
 
                 psynet.init_page = function () {
