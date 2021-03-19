@@ -15,7 +15,7 @@ class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
-            time.sleep(0.2)
+            time.sleep(1)
 
             # What participant group would you like to join?
             participant_group = ["A", "B", "A", "B"][participant]
