@@ -720,45 +720,6 @@ class Experiment(dallinger.experiment.Experiment):
             exp.save()
             return res
 
-        @routes.route("/unity_response", methods=["POST"])
-        def route_unity_response():
-            logger.debug("Calling /unity_response POST")
-            exp = self.new(db.session)
-
-            json_data = dict(request.form)
-            blobs = None
-            client_ip_address = request.remote_addr
-
-            # temporary bugfix to remove list around values in Ofer's instance
-            json_data = dict(
-                map(
-                    lambda x: (x[0], x[1][0])
-                    if isinstance(x[1], list)
-                    else (x[0], x[1]),
-                    json_data.items(),
-                )
-            )
-
-            participant_id = get_arg_from_dict(json_data, "participant_id")
-            page_uuid = get_arg_from_dict(json_data, "page_uuid")
-            raw_answer = get_arg_from_dict(
-                json_data, "raw_answer", use_default=True, default=None
-            )
-            metadata = get_arg_from_dict(json_data, "metadata")
-            metadata = json.loads(metadata)
-
-            res = exp.process_response(
-                participant_id,
-                raw_answer,
-                blobs,
-                metadata,
-                page_uuid,
-                client_ip_address,
-                request_context="unity",
-            )
-            exp.save()
-            return res
-
         @routes.route(
             "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
         )
