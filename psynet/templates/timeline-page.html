@@ -367,22 +367,30 @@
 
                         routines: {},
 
-                        start: async function() {
+                        start: async function(provided_options) {
+                            let trial = this;
+
+                            let options = {
+                                trialStart: 0.0,
+                                trialEnd: trial.duration
+                            }
+                            Object.assign(options, provided_options);
+
                             if (this.duration === null) {
                                 throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
                             }
-                            let trial = this;
+
                             await trial.cancel();
                             await this.runRoutines("prepare");
                             trial.iteration += 1;
                             psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
                             psynet.register_event("trialStart");
-                            trial.addEvent("trialFinish", trial.duration, () => trial.finish());
+                            trial.addEvent("trialFinish", options.trialEnd, () => trial.finish());
                             trial.inProgress = true;
                             trial.startTime = trial.getGlobalTime();
                             trial.state = "trialStart";
                             trial.clearEventQueue();
-                            trial.queueEvents();
+                            trial.queueEvents(options.trialStart);
                             return true;
                          },
 
@@ -427,7 +435,7 @@
                                 trial: this
                             };
                             let trial = this;
-                            e.queue = function() {
+                            e.queue = function(trialStart) {
                                 e.timer = setTimeout(async function() {
                                     psynet.register_event(id);
                                     psynet.log.debug("Iteration = " + e.trial.iteration + ", event = " + id);
@@ -435,13 +443,13 @@
                                     trial.pendingEventHandlers.add(id);
                                     await e.handler();
                                     trial.pendingEventHandlers.remove(id);
-                                }, e.time * 1000);
+                                }, 1000 * (e.time - trialStart));
                             };
                             this.events[id] = e;
                         },
 
-                        queueEvents: function() {
-                             Object.values(this.events).forEach(e => e.queue());
+                        queueEvents: function(trialStart) {
+                             Object.values(this.events).forEach(e => e.queue(trialStart));
                         },
 
                         routineTypes: ["prepare", "cleanup", "finish"],

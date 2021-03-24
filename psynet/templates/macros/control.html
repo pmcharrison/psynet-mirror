@@ -797,10 +797,14 @@
 
             $("#btn-record-play-recording").on("click", function() {
                 replayMode = true;
-                psynet.trial.cancel();
-                let options = {loop: loop};
-                psynet.media.stop_all_audio();
-                psynet.audio.recording.play(options);
+                psynet.trial.start({
+                    trialStart: recordWindow[0],
+                    trialEnd: recordWindow[1]
+                })
+                {#psynet.trial.cancel();#}
+                {#let options = {loop: loop};#}
+                {#psynet.media.stop_all_audio();#}
+                {#psynet.audio.recording.play(options);#}
             });
 
             $("#btn-record-stop").on("click", function() {
@@ -1030,7 +1034,7 @@
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        var videoPlayer = document.getElementById('videoPlayer');
+        var videoPlayer = document.getElementById('video-control');
         var screenVideo = document.getElementById('screen-recording');
 
         let recording_source = "{{ config.recording_source | lower }}";
