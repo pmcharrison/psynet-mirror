@@ -1086,42 +1086,42 @@
                 }
             });
 
-            function loadRecordedVideo() {
+            async function loadRecordedVideo() {
                 videoPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
                 videoPlayer.src = URL.createObjectURL(blob);
-                videoPlayer.pause();
                 videoPlayer.muted = true; // todo - switch back to false
+                await videoPlayer.pause();
             }
 
-            function loadCameraPreview() {
+            async function loadCameraPreview() {
                 videoPlayer.src = null;
                 setSrcObject(cameraStream, videoPlayer);
-                videoPlayer.play();
                 videoPlayer.muted = true;
+                await videoPlayer.play();
             }
 
-            psynet.trial.addPrepareRoutine("prepareVideoDisplay", () => {
+            psynet.trial.addPrepareRoutine("prepareVideoDisplay", async function() {
                 videoPlayer.src = null;
                 videoPlayer.srcObject = null;
                 if (replayMode) {
-                    loadRecordedVideo();
+                    await loadRecordedVideo();
                 } else {
-                    loadCameraPreview();
+                    await loadCameraPreview();
                 }
             });
 
-            psynet.add_event_listener("startRecording", function() {
+            psynet.add_event_listener("startRecording", async function() {
                 if (replayMode) {
-                    videoPlayer.play();
+                    await videoPlayer.play();
                 } else {
-                    videoRecorder.startRecording(videoRecorder.stream);
+                    await videoRecorder.startRecording(videoRecorder.stream);
                 }
             });
 
             psynet.add_event_listener("endRecording", async function() {
                 if (replayMode) {
-                    videoPlayer.pause();
+                    await videoPlayer.pause();
                 } else {
                     await videoRecorder.stopRecording();
                     psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
@@ -1136,7 +1136,7 @@
                     await videoRecorder.stopRecording();
                 }
                 await videoRecorder.reset();
-                loadCameraPreview();
+                await loadCameraPreview();
             });
         }
 
