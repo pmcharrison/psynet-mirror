@@ -1873,6 +1873,7 @@ class VideoRecordControl(Control):
         self.start_delay = start_delay
         self.public_read = public_read
         self.show_preview = show_preview
+        self.progress_bar = progress_bar
         self.controls = controls
         self.loop_playback = loop_playback
         self.record_window = record_window

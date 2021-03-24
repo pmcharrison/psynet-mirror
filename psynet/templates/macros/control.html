@@ -869,8 +869,9 @@
             let updateBars = function() {
                 let duration = psynet.trial.duration;
                 let time = psynet.trial.time;
+                let isRecording = (time >= recordWindow[0] && time <= recordWindow[1]);
 
-                updateBar(bars[0], 100 * time / duration, recorder.recording, {});
+                updateBar(bars[0], 100 * time / duration, isRecording, {});
                 updateBar(bars[1], 100 * Math.max(0, recordWindow[0] - time) / duration, false, {});
                 updateBar(bars[2], 100 * Math.max(0, recordWindow[1] - Math.max(time, recordWindow[0])) / duration, true, {});
                 updateBar(bars[3], 100 * Math.max(0, duration - Math.max(recordWindow[1], time)) / duration, false, {});
