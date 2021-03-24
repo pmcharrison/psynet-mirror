@@ -7,6 +7,8 @@ from psynet.modular_page import (
     AudioRecordControl,
     ModularPage,
     TappingAudioMeterControl,
+    VideoPrompt,
+    VideoRecordControl,
 )
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, PageMaker, Timeline, join
@@ -215,15 +217,17 @@ example_record_with_audio_prompt = join(
             play_window=[0, 4.6],
             fade_in=1.0,
         ),
-        AudioRecordControl(
+        VideoRecordControl(
             duration=4.6,
             s3_bucket="audio-record-demo",
-            show_meter=True,
+            recording_source="camera",
+            show_preview=True,
+            show_meter=False,
             public_read=True,
             progress_bar=True,
             controls=True,
             record_window=[1, 4],
-            loop_playback=True,
+            loop_playback=False,
         ),
         time_estimate=5,
         auto_start_trial=True,
@@ -231,9 +235,14 @@ example_record_with_audio_prompt = join(
     PageMaker(
         lambda participant: ModularPage(
             "playback",
-            AudioPrompt(
-                participant.answer["url"], "Here's the recording you just made."
+            VideoPrompt(
+                participant.answer["camera_url"], "Here's the recording you just made."
             ),
+            # You can alternatively use an AudioPrompt here to play back just the
+            # audio component of the recording.
+            # AudioPrompt(
+            #     participant.answer["camera_url"], "Here's the recording you just made."
+            # ),
         ),
         time_estimate=5,
     ),

@@ -1810,10 +1810,13 @@ class VideoRecordControl(Control):
         Duration of the video file in seconds.
 
     recording_source
-        Specifies whether to record by using the camera and/or by capturing from the screen. Possible values are 'camera', 'screen' and 'both'.
+        Specifies whether to record by using the camera and/or by capturing from the screen.
+        Possible values are 'camera', 'screen' and 'both'.
+        Default: 'camera'.
 
     record_audio
-        Whether to record audio using the microphone. This settings only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
+        Whether to record audio using the microphone.
+        This setting only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
 
     show_meter
         Whether an `AudioMeterControl` should be displayed. Default: `False`.
@@ -1852,7 +1855,7 @@ class VideoRecordControl(Control):
         *,
         s3_bucket: str,
         duration: float,
-        recording_source: str,
+        recording_source: str = "camera",
         record_audio: bool = True,
         show_meter: bool = False,
         width: str = "300px",
