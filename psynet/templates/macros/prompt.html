@@ -153,7 +153,6 @@
         {% endif %}
 
         psynet.trial.delay = {{config.start_delay}};
-        psynet.trial.wait_for("media_load");
 
         psynet.trial.addEvent("audioPlay", 0.0, function() {
             console.log(audio_prompt_player_options);

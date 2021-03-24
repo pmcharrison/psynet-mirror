@@ -766,11 +766,9 @@
 
     <script>
         $(document).ready(function() {
-            psynet.add_event_listener("recording_ready", function() {
+            psynet.add_event_listener("recordingReady", function() {
                 $("#btn-record-play-recording").attr("disabled", false);
-                if (psynet.audio.prompt) {
-                    $("#btn-record-play-all").attr("disabled", false);
-                }
+                $("#btn-record-play-all").attr("disabled", false);
             });
 
             $(".record-button").on("click", function() {
@@ -826,9 +824,7 @@
         var loop = {{ config.loop_playback | tojson }};
 
         psynet.trial.addEvent("startRecording", recordWindow[0], function () {
-            if (replayMode) {
-                psynet.audio.recording.play();
-            } else {
+            if (!replayMode) {
                 $(".record-alert").hide();
                 $("#record-active").show();
             }
@@ -920,7 +916,7 @@
             }
         });
 
-        psynet.add_event_listener("recording_ready", function() {
+        psynet.add_event_listener("recordingReady", function() {
             if (recorderControls) {
                 $("#btn-record-upload").prop("disabled", false);
             }
@@ -951,7 +947,9 @@
         psynet.response.wait_for("audio_recorder_ready");
 
         psynet.add_event_listener("startRecording", function() {
-            if (!replayMode) {
+            if (replayMode) {
+                psynet.audio.recording.play();
+            } else {
                 recorder.clear();
                 recorder.record();
             }
@@ -965,7 +963,7 @@
 
                     psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
                         psynet.media.add_extra_audio_stimulus(buffer, "recording");
-                        psynet.register_event("recording_ready");
+                        psynet.register_event("recordingReady");
                     });
                 });
             }
@@ -1050,6 +1048,7 @@
         {% endautoescape %}
 
         var cameraVideo = document.getElementById('camera-recording');
+        var cameraPlayback = document.getElementById('camera-playback');
         var screenVideo = document.getElementById('screen-recording');
 
         let recording_source = "{{ config.recording_source | lower }}";
@@ -1075,13 +1074,6 @@
             }).then(function (stream) {
                 psynet.log.debug("Initialising video recorder.");
 
-                // Display a live preview if video element is visible.
-                setSrcObject(stream, cameraVideo);
-
-                // Start displaying the preview video and mute it to disable echoing.
-                cameraVideo.play();
-                cameraVideo.muted = true;
-
                 cameraStream = stream;
 
                 psynet.response.ready("camera_recorder_ready");
@@ -1091,34 +1083,65 @@
             });
 
             psynet.trial.addPrepareRoutine("prepareCameraRecorder", () => {
-                videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
-                    mimeType: 'video/webm',
-                });
-                videoRecorder.stream = cameraStream;
-            })
+                if (!replayMode) {
+                    videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
+                        mimeType: 'video/webm',
+                    });
+                    videoRecorder.stream = cameraStream;
+                }
+            });
+
+            function loadRecordedVideo() {
+                cameraVideo.srcObject = null;
+                let blob = psynet.media.data.videoBlob;
+                cameraVideo.src = URL.createObjectURL(blob);
+                cameraVideo.pause();
+                cameraVideo.muted = true; // todo - switch back to false
+            }
+
+            function loadCameraPreview() {
+                cameraVideo.src = null;
+                setSrcObject(cameraStream, cameraVideo);
+                cameraVideo.play();
+                cameraVideo.muted = true;
+            }
+
+            psynet.trial.addPrepareRoutine("prepareVideoDisplay", () => {
+                cameraVideo.src = null;
+                cameraVideo.srcObject = null;
+                if (replayMode) {
+                    loadRecordedVideo();
+                } else {
+                    loadCameraPreview();
+                }
+            });
 
             psynet.add_event_listener("startRecording", function() {
-                if (!replayMode) {
+                if (replayMode) {
+                    cameraVideo.play();
+                } else {
                     videoRecorder.startRecording(videoRecorder.stream);
                 }
             });
 
             psynet.add_event_listener("endRecording", async function() {
-                console.log("About to stop recording");
-                await videoRecorder.stopRecording();
-                console.log("Saving the blob");
-                psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
-                await videoRecorder.reset();
-                {#videoRecorder.stream.stop();#}
+                if (replayMode) {
+                    cameraVideo.pause();
+                } else {
+                    await videoRecorder.stopRecording();
+                    psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
+                    await videoRecorder.reset();
+                    psynet.register_event("recordingReady");
+                }
             });
 
             psynet.trial.addCleanupRoutine("videoRecorder", async function() {
-                {#videoRecorder.stream.stop();#}
                 let state = await videoRecorder.getState();
                 if (state != "inactive") {
                     await videoRecorder.stopRecording();
                 }
                 await videoRecorder.reset();
+                loadCameraPreview();
             });
         }
 
@@ -1150,8 +1173,10 @@
             });
 
             psynet.add_event_listener("endRecording", function() {
-                screenBlob = screenRecorder.getBlob();
-                screenRecorder.screen.stop();
+                if (!replayMode) {
+                    screenBlob = screenRecorder.getBlob();
+                    screenRecorder.screen.stop();
+                }
             });
 
             psynet.trial.addCleanupRoutine("resetScreenCapture", function() {

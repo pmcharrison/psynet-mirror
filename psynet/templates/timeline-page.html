@@ -349,7 +349,7 @@
                                                     clearInterval(poller);
                                                     resolve();
                                                 } else {
-                                                    timer += pollInterval;
+                                                    timer += options.pollInterval;
                                                     if (timer >= options.timeOut) {
                                                         reject();
                                                         clearInterval(poller);
@@ -601,6 +601,8 @@
                     psynet.log.debug("Waiting for trial-ready event: " + event);
                     psynet.trial.waiting_for.push(event);
                 }
+
+                psynet.trial.wait_for("media_load");
 
                 psynet.response.ready = function (event) {
                     psynet.log.debug("A response-ready event occurred: " + event);
