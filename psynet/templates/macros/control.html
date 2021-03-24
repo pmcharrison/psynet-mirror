@@ -1103,17 +1103,10 @@
                 }
             });
 
-            psynet.add_event_listener("endRecording", () => {
-                debugger
-                return new Promise(resolve => {
-                    debugger
-                    videoRecorder.stopRecording(function() {
-                        debugger
-                        psynet.media.data["videoBlob"] = videoRecorder.getBlob();
-                        videoRecorder.stream.stop();
-                        resolve(true);
-                    });
-                });
+            psynet.add_event_listener("endRecording", async function() {
+                await videoRecorder.stopRecording();
+                psynet.media.data["videoBlob"] = videoRecorder.blob
+                videoRecorder.stream.stop();
             });
 
             psynet.trial.addCleanupRoutine("videoRecorder", () => {
