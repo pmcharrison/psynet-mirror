@@ -908,6 +908,7 @@
 
         setTimeout(function() {
             psynet.response.ready("page_load_buffer");
+            psynet.trial.ready("page_load_buffer");
         }, 1000);
 
         psynet.add_event_listener("endRecording", function() {
