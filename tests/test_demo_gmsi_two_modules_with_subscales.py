@@ -1,4 +1,5 @@
 import os
+import time
 
 import pytest
 
@@ -29,9 +30,10 @@ class TestExp(object):
         instance = Exp(db_session)
         yield instance
 
-    def test_exp_selenium(self, bot_recruits, db_session):
+    def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
+            time.sleep(1)
 
             next_page(driver, "next_button")
             next_page(driver, "1")

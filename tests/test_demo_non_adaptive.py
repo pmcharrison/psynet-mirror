@@ -34,7 +34,7 @@ class TestExp:
     def test_exp(self, bot_recruits, db_session, trial_maker):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
-            time.sleep(0.2)
+            time.sleep(1)
 
             networks = NonAdaptiveNetwork.query.all()
             stimuli = Stimulus.query.all()
