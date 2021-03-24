@@ -1084,7 +1084,7 @@
                 videoPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
                 videoPlayer.src = URL.createObjectURL(blob);
-                videoPlayer.muted = true; // todo - switch back to false
+                videoPlayer.muted = false;
                 await videoPlayer.pause();
             }
 
