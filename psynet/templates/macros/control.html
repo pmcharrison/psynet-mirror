@@ -769,6 +769,7 @@
             psynet.add_event_listener("recordingReady", function() {
                 $("#btn-record-play-recording").attr("disabled", false);
                 $("#btn-record-play-all").attr("disabled", false);
+                $("#btn-record-upload").prop("disabled", false);
             });
 
             $(".record-button").on("click", function() {
@@ -920,13 +921,6 @@
                 psynet.register_event("begin_upload");
             }
         });
-
-        psynet.add_event_listener("recordingReady", function() {
-            if (recorderControls) {
-                $("#btn-record-upload").prop("disabled", false);
-            }
-        });
-
     </script>
 
 {% endmacro %}
