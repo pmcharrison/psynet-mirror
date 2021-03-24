@@ -1104,13 +1104,18 @@
             });
 
             psynet.add_event_listener("endRecording", async function() {
+                console.log("About to stop recording");
                 await videoRecorder.stopRecording();
-                psynet.media.data["videoBlob"] = videoRecorder.blob
-                videoRecorder.stream.stop();
+                console.log("Saving the blob");
+                psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
+                videoRecorder.reset();
+                {#videoRecorder.stream.stop();#}
             });
 
-            psynet.trial.addCleanupRoutine("videoRecorder", () => {
-                videoRecorder.stream.stop();
+            psynet.trial.addCleanupRoutine("videoRecorder", async function() {
+                {#videoRecorder.stream.stop();#}
+                await videoRecorder.stopRecording();
+                videoRecorder.reset();
             });
         }
 

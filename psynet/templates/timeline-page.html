@@ -308,6 +308,63 @@
                         inProgress: false,
                         startTime: null,
                         events: {},
+
+                        pendingEventHandlers: (() => {
+                            let data = {};
+                            return {
+                                data: data,
+
+                                add: function(id) {
+                                    let time = new Date();
+                                    data[id] = {
+                                        timeStarted: time
+                                    }
+                                },
+
+                                remove: function(id) {
+                                    delete data[id];
+                                },
+
+                                waitFor: async function(provided_options) {
+                                    let options = {
+                                        pollInterval: 0.005,
+                                        timeOut: 10,
+                                        ignore: []
+                                    };
+
+                                    Object.assign(options, provided_options);
+
+                                    let timer = 0;
+
+                                    function queueIsEmpty() {
+                                        let pendingHandlers = Object.keys(data);
+                                        let filteredHandlers = pendingHandlers.filter((id) => !options.ignore.includes(id));
+                                        return filteredHandlers.length == 0;
+                                    }
+
+                                    function checkQueue() {
+                                        return new Promise((resolve, reject) => {
+                                            let poller = setInterval(() => {
+                                                if (queueIsEmpty()) {
+                                                    clearInterval(poller);
+                                                    resolve();
+                                                } else {
+                                                    timer += pollInterval;
+                                                    if (timer >= options.timeOut) {
+                                                        reject();
+                                                        clearInterval(poller);
+                                                        throw new Error("Timed out when waiting for event handlers to complete.");
+                                                    }
+                                                }
+                                            }, options.pollInterval);
+                                        });
+                                    }
+
+                                    await checkQueue();
+                                }
+                            };
+                        })(),
+
                         routines: {},
 
                         start: async function() {
@@ -350,6 +407,7 @@
                         stop: async function() {
                             this.clearEventQueue();
                             this.inProgress = false;
+                            await this.pendingEventHandlers.waitFor({ignore: ["trialFinish"]});
                             await this.runRoutines("cleanup");
                         },
 
@@ -368,12 +426,15 @@
                                 handler: handler,
                                 trial: this
                             };
+                            let trial = this;
                             e.queue = function() {
-                                e.timer = setTimeout(function() {
+                                e.timer = setTimeout(async function() {
                                     psynet.register_event(id);
                                     psynet.log.debug("Iteration = " + e.trial.iteration + ", event = " + id);
-                                    e.handler();
-                                    this.state = id;
+                                    trial.state = id;
+                                    trial.pendingEventHandlers.add(id);
+                                    await e.handler();
+                                    trial.pendingEventHandlers.remove(id);
                                 }, e.time * 1000);
                             };
                             this.events[id] = e;
