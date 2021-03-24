@@ -1855,7 +1855,7 @@ class VideoRecordControl(Control):
         recording_source: str,
         record_audio: bool = True,
         show_meter: bool = False,
-        width: str = "560px",
+        width: str = "300px",
         start_delay: float = 0.0,
         public_read: bool = False,
         show_preview: bool = False,

@@ -1011,13 +1011,21 @@
     {{ generic_record(config) }}
 
     <style>
-        #video-player {
+        #video-control-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #video-control {
             display: {% if config.show_preview %} block {% else %} none {% endif %};
             width: {{ config.width }};
+            margin: 10px
         }
     </style>
 
-    <video id="video-control"></video>
+    <div id="video-control-container">
+        <video id="video-control"></video>
+    </div>
 
 {#    <div id="countdown-container">#}
 {#        Recording starts in #}
