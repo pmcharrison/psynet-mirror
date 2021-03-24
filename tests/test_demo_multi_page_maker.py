@@ -14,7 +14,7 @@ class TestExp:
     def test_exp(self, bot_recruits):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
-            time.sleep(0.2)
+            time.sleep(1)
 
             next_page(driver, "3")
 

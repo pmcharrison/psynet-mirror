@@ -1,7 +1,7 @@
 -e git+https://tapping_extract:NbfgRMYEujzRimHySJnV@gitlab.com/computational-audition-lab/tapping-mvp/tapping_extract@2dd9364524198685354bc511aac3055a796d9f99#egg=tapping_extract
 dallinger
-praat-parselmouth==0.3.3
-urllib3==1.23
-docopt==0.6.2
-matplotlib==3.3.1
-scipy==1.5.3
+praat-parselmouth
+urllib3
+docopt
+matplotlib
+scipy
