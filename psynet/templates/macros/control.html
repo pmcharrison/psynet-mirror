@@ -1108,14 +1108,17 @@
                 await videoRecorder.stopRecording();
                 console.log("Saving the blob");
                 psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
-                videoRecorder.reset();
+                await videoRecorder.reset();
                 {#videoRecorder.stream.stop();#}
             });
 
             psynet.trial.addCleanupRoutine("videoRecorder", async function() {
                 {#videoRecorder.stream.stop();#}
-                await videoRecorder.stopRecording();
-                videoRecorder.reset();
+                let state = await videoRecorder.getState();
+                if (state != "inactive") {
+                    await videoRecorder.stopRecording();
+                }
+                await videoRecorder.reset();
             });
         }
 
