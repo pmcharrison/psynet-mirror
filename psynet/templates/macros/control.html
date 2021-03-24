@@ -1006,30 +1006,13 @@
     {{ generic_record(config) }}
 
     <style>
-        #camera-recording {
+        #video-player {
             display: {% if config.show_preview %} block {% else %} none {% endif %};
             width: {{ config.width }};
         }
-        #camera-playback {
-            display: none;
-            width: {{ config.width }}
-        }
-        #screen-recording {
-            display: none;
-        }
-        #countdown-container {
-            display: none;
-        }
     </style>
 
-    {% if config.recording_source == "camera" or config.recording_source == "both" %}
-        <video id="camera-recording"></video>
-        <video id="camera-playback"></video>
-    {% endif %}
-
-    {% if config.recording_source == "screen" or config.recording_source == "both" %}
-        <video id="screen-recording"></video>
-    {% endif %}
+    <video id="video-control"></video>
 
 {#    <div id="countdown-container">#}
 {#        Recording starts in #}
@@ -1047,8 +1030,7 @@
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        var cameraVideo = document.getElementById('camera-recording');
-        var cameraPlayback = document.getElementById('camera-playback');
+        var videoPlayer = document.getElementById('videoPlayer');
         var screenVideo = document.getElementById('screen-recording');
 
         let recording_source = "{{ config.recording_source | lower }}";
@@ -1092,23 +1074,23 @@
             });
 
             function loadRecordedVideo() {
-                cameraVideo.srcObject = null;
+                videoPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
-                cameraVideo.src = URL.createObjectURL(blob);
-                cameraVideo.pause();
-                cameraVideo.muted = true; // todo - switch back to false
+                videoPlayer.src = URL.createObjectURL(blob);
+                videoPlayer.pause();
+                videoPlayer.muted = true; // todo - switch back to false
             }
 
             function loadCameraPreview() {
-                cameraVideo.src = null;
-                setSrcObject(cameraStream, cameraVideo);
-                cameraVideo.play();
-                cameraVideo.muted = true;
+                videoPlayer.src = null;
+                setSrcObject(cameraStream, videoPlayer);
+                videoPlayer.play();
+                videoPlayer.muted = true;
             }
 
             psynet.trial.addPrepareRoutine("prepareVideoDisplay", () => {
-                cameraVideo.src = null;
-                cameraVideo.srcObject = null;
+                videoPlayer.src = null;
+                videoPlayer.srcObject = null;
                 if (replayMode) {
                     loadRecordedVideo();
                 } else {
@@ -1118,7 +1100,7 @@
 
             psynet.add_event_listener("startRecording", function() {
                 if (replayMode) {
-                    cameraVideo.play();
+                    videoPlayer.play();
                 } else {
                     videoRecorder.startRecording(videoRecorder.stream);
                 }
@@ -1126,7 +1108,7 @@
 
             psynet.add_event_listener("endRecording", async function() {
                 if (replayMode) {
-                    cameraVideo.pause();
+                    videoPlayer.pause();
                 } else {
                     await videoRecorder.stopRecording();
                     psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
