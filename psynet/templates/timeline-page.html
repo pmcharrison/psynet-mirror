@@ -745,9 +745,11 @@
                 // };
 
                 psynet.media.stop_all_audio = function() {
-                    Object.values(psynet.audio).forEach(function(x) {
-                        x.stop();
-                    })
+                    if (psynet.audio) {
+                        Object.values(psynet.audio).forEach(function(x) {
+                            x.stop();
+                        });
+                    }
                 }
 
                 psynet.media.init_audio_context = function () {
