@@ -740,6 +740,10 @@
             startAudioRecording();
             setTimeout(endAudioRecording, 1000 * {{ config.duration }});
         });
+
+        {% if config.auto_advance %}
+        psynet.submit.register_on_ready_routine(on_next_button);
+        {% endif %}
     </script>
 {% endmacro %}
 

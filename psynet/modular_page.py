@@ -1690,6 +1690,33 @@ class Slider:
 
 
 class AudioRecordControl(Control):
+    """
+    This control interface solicits an audio recording from the participant.
+
+    Parameters
+    ----------
+
+    duration
+        Duration of the desired recording, in seconds.
+        Note: the output recording may not be exactly this length, owing to inaccuracies
+        in the Javascript recording process.
+
+    s3_bucket
+        Name of the S3 bucket to which the recording should be uploaded.
+
+    show_meter
+        Whether an audio meter should be displayed, so as to help the participant
+        to calibrate their volume.
+
+    public_read
+        Whether the audio recording should be uploaded to the S3 bucket
+        with public read permissions.
+
+    auto_advance
+        Whether the page should automatically advance to the next page
+        once the audio recording has been uploaded.
+    """
+
     macro = "audio_record"
 
     def __init__(
@@ -1699,11 +1726,13 @@ class AudioRecordControl(Control):
         s3_bucket: str,
         show_meter: bool = False,
         public_read: bool = False,
+        auto_advance: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.show_meter = show_meter
         self.public_read = public_read
+        self.auto_advance = auto_advance
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
