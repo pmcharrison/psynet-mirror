@@ -1,5 +1,9 @@
 # Changelog
 
+#### Added
+
+- Add `auto_advance` option to `AudioRecordControl`. 
+
 # [1.12.0] Released on 2021-02-22
 
 #### Added

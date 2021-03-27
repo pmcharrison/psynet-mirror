@@ -65,8 +65,8 @@ Install Python virtualenv
 
 .. code-block:: bash
 
-   sudo pip3 install virtualenv
-   sudo pip3 install virtualenvwrapper
+   pip3 install virtualenv
+   pip3 install virtualenvwrapper
 
 Setup virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,11 +75,11 @@ Setup virtual environment
 
    export WORKON_HOME=$HOME/.virtualenvs
    mkdir -p $WORKON_HOME
-   export VIRTUALENVWRAPPER_PYTHON=$(which python3.9)
-   source /usr/local/bin/virtualenvwrapper.sh
+   echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3)" >> ~/.bashrc
+   echo "source ~/.local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+   export VIRTUALENVWRAPPER_PYTHON=$(which python3)
+   source ~/.local/bin/virtualenvwrapper.sh
    mkvirtualenv psynet --python $(which python3.9)
-   echo "export VIRTUALENVWRAPPER_PYTHON=$(which python3.9)" >> ~/.bashrc
-   echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
 
 Activate virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -608,9 +608,7 @@
             ()=> psynet.submit.ready("audio_meter"),
             1000 * {{ config.min_time }}
         );
-    </script>
 
-    <script>
         {% include "macros/control/audio_meter.js" %}
 
         audio_meter_control.init('{{ config.to_json() }}');
@@ -701,6 +699,7 @@
 
     <script>
         {% include "macros/control/recorder.js" %}
+        {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
         var presignedUrl = "{{ config.presigned_url }}";
@@ -731,45 +730,6 @@
             psynet.response.ready("page_load_buffer");
         }, 1000)
 
-        startRecording = function() {
-            psynet.log.debug("Starting recording.");
-            psynet.register_event("audio_record_start");
-            $(".record-alert").hide();
-            $("#record-active").show();
-            recorder.clear();
-            recorder.record();
-        }
-
-        endRecording = function() {
-            psynet.log.debug("Ending recording.")
-            psynet.register_event("audio_record_end");
-            recorder.exportWAV(function (blob) {
-                $(".record-alert").hide();
-                $("#record-upload").show();
-                startPresignedUrlUpload(blob);
-            })
-        }
-
-        startPresignedUrlUpload = function(wavAudioBlob) {
-            // TODO upload if LOCAL_S3
-            let xhr = new XMLHttpRequest();
-            xhr.open('PUT', presignedUrl, true);
-            psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
-
-            psynet.register_event("presigned_url_start_upload", {url: presignedUrl});
-
-            xhr.onload = function(e) {
-                psynet.log.debug("File uploaded successfully to presigned url.");
-                psynet.register_event("presigned_url_end_upload", {url: presignedUrl});
-                psynet.submit.ready("finished-recording");
-                $(".record-alert").hide();
-                $("#record-finish").show();
-            };
-
-            let wavFile = new File([wavAudioBlob], "s3_upload.wav")
-            xhr.send(wavFile);
-        }
-
         retrieve_response = function() {
             return {
                 raw_answer: presignedUrl
@@ -777,9 +737,175 @@
         }
 
         psynet.response.register_on_ready_routine(function() {
-            startRecording();
-            setTimeout(endRecording, 1000 * {{ config.duration }});
+            startAudioRecording();
+            setTimeout(endAudioRecording, 1000 * {{ config.duration }});
         });
+
+        {% if config.auto_advance %}
+        psynet.submit.register_on_ready_routine(on_next_button);
+        {% endif %}
+    </script>
+{% endmacro %}
+
+
+{% macro video_record(config) %}
+
+    {% if config.show_meter %}
+        {{ audio_meter(config.meter) }}
+    {% endif %}
+
+    <style>
+        #record-status {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
+
+    {% if config.recording_source == "camera" or config.recording_source == "both" %}
+        <video id="camera-recording" style="display: {% if config.show_preview %}block{% else %}none{% endif %}; width: {{ config.width }}"></video>
+        <video id="camera-playback" style="display: none; width: {{ config.width }}"></video>
+    {% endif %}
+    {% if config.recording_source == "screen" or config.recording_source == "both" %}
+        <video id="screen-recording" style="display: none;"></video>
+    {% endif %}
+
+    <div id="countdown-container" style="display: none;">Recording starts in <span id="countdown">{{ config.start_delay | int }}</span> seconds!</div>
+    <div id="record-status">
+        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
+            Waiting to record...
+        </div>
+
+        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
+            Recording...
+        </div>
+
+        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
+            Uploading finished.
+        </div>
+
+        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
+            Uploading...
+        </div>
+    </div>
+
+    <button id="camera-playback-button" type="button" class="btn btn-success btn-lg" style="display: none">
+        Playback
+    </button>
+    <button id="restart-recording-button" type="button" class="btn btn-primary btn-lg" style="display: none">
+        Restart recording
+    </button>
+    <button id="video-upload-button" type="button" class="btn btn-primary btn-lg" style="display: none">
+        Upload
+    </button>
+    {{ null(config) }}
+
+    <script>
+        {% include "macros/control/RecordRTC.js" %}
+        {% include "macros/control/adapter.js" %}
+        {% include "macros/control/recording.js" %}
+
+        {% autoescape off %}
+        psynet.media.presignedUrlCamera = "{{ config.presigned_url_camera }}";
+        psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
+        {% endautoescape %}
+        var playback_before_upload = {{ config.playback_before_upload | lower }};
+        var allow_restart = {{ config.allow_restart | lower }};
+        var cameraVideo = document.getElementById('camera-recording');
+        var screenVideo = document.getElementById('screen-recording');
+        var screenRecorder;
+        var videoRecorder;
+
+        /*** Camera recording start***/
+        {% if config.recording_source == "camera" or config.recording_source == "both" %}
+            psynet.media.register_on_loaded_routine(function () {
+                navigator.mediaDevices.getUserMedia({
+                    audio: {{ config.record_audio | lower }},
+                    video: true,
+                }).then(function (stream) {
+                    psynet.log.debug("Initialising video recorder.");
+
+                    // Display a live preview if video element is visible.
+                    setSrcObject(stream, cameraVideo);
+
+                    // Start displaying the preview video and mute it to disable echoing.
+                    cameraVideo.play();
+                    cameraVideo.muted = true;
+
+                    videoRecorder = new RecordRTCPromisesHandler(stream, {
+                        mimeType: 'video/webm',
+                    });
+
+                    let startDelay = {{ config.start_delay }};
+                    if (startDelay > 0) {
+                        $('#countdown-container').show();
+                        startTimer(startDelay, $('#countdown-container'), $('#countdown'));
+                    }
+                    videoRecorder.stream = stream;
+                    psynet.response.ready("camera_recorder_ready")
+                }).catch(function (error) {
+                    console.error('Cannot start video recording:', error.name + ":", error.message);
+                    psynet.next_page();
+                });
+            });
+
+            psynet.response.wait_for("camera_recorder_ready");
+        {% endif %}
+        /*** Camera recording end ***/
+
+        /*** Screen recording start ***/
+        {% if config.recording_source == "screen" or config.recording_source == "both" %}
+            captureScreen(function (screen) {
+                screenVideo.srcObject = screen;
+                screenRecorder = RecordRTC(screen, {
+                    type: 'video'
+                });
+
+                {% if config.recording_source == "both" %}
+                psynet.response.wait_for("camera_recorder_ready");
+                {% endif %}
+                screenRecorder.startRecording()
+                screenRecorder.screen = screen;
+
+                psynet.response.ready("screen_recorder_ready")
+            });
+
+            psynet.response.wait_for("screen_recorder_ready");
+        {% endif %}
+        /*** Screen recording end ***/
+
+        psynet.response.wait_for("page_load_buffer");
+        psynet.submit.wait_for("finished-recording");
+
+        setTimeout(function () {
+            psynet.response.ready("page_load_buffer");
+        }, 1000);
+
+        {% if config.recording_source == "camera" or config.recording_source == "both" %}
+            psynet.response.register_on_ready_routine(function () {
+                setTimeout(startCameraRecording, 1000 * {{ config.start_delay }});
+                setTimeout(function () {
+                    stopCameraRecording();
+                }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
+            });
+        {% endif %}
+
+        {% if config.recording_source == "screen" or config.recording_source == "both" %}
+            psynet.response.register_on_ready_routine(function () {
+                setTimeout(startScreenRecording, 1000 * {{ config.start_delay }});
+                setTimeout(function () {
+                    stopScreenRecording();
+                }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
+            });
+        {% endif %}
+
+        function retrieve_response() {
+            return {
+                raw_answer: {
+                    'camera': psynet.media.presignedUrlCamera,
+                    'screen': psynet.media.presignedUrlScreen,
+                }
+            }
+        }
     </script>
 {% endmacro %}
 

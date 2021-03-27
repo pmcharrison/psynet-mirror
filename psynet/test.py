@@ -5,6 +5,9 @@ import time
 from cached_property import cached_property
 from dallinger.bots import BotBase
 from selenium.common.exceptions import TimeoutException
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 logger = logging.getLogger(__file__)
 
@@ -16,6 +19,36 @@ def bot_class(headless=None):
         headless = headless_env == "TRUE"
 
     class PYTEST_BOT_CLASS(BotBase):
+        def sign_up(self):
+            """Accept HIT, give consent and start experiment.
+
+            This uses Selenium to click through buttons on the ad,
+            consent, and instruction pages.
+            """
+            try:
+                self.driver.get(self.URL)
+                logger.info("Loaded ad page.")
+                begin = WebDriverWait(self.driver, 10).until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn-primary"))
+                )
+                begin.click()
+                logger.info("Clicked begin experiment button.")
+                WebDriverWait(self.driver, 10).until(
+                    lambda d: len(d.window_handles) == 2
+                )
+                self.driver.switch_to.window(self.driver.window_handles[-1])
+                self.driver.set_window_size(1024, 768)
+                logger.info("Switched to experiment popup.")
+                consent = WebDriverWait(self.driver, 10).until(
+                    EC.element_to_be_clickable((By.ID, "consent"))
+                )
+                consent.click()
+                logger.info("Clicked consent button.")
+                return True
+            except TimeoutException:
+                logger.error("Error during experiment sign up.")
+                return False
+
         def sign_off(self):
             try:
                 logger.info("Clicked submit questionnaire button.")
