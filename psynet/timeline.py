@@ -1120,10 +1120,8 @@ class Response(Question):
     __mapper_args__ = {"polymorphic_identity": "response"}
     __extra_vars__ = {}
 
-    page_type = claim_field(1, "page_type", __extra_vars__, str)
-    successful_validation = claim_field(
-        2, "successful_validation", __extra_vars__, bool
-    )
+    page_type = claim_field("page_type", __extra_vars__, str)
+    successful_validation = claim_field("successful_validation", __extra_vars__, bool)
 
     client_ip_address = claim_var(
         "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
