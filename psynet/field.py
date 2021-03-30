@@ -3,27 +3,19 @@ import json
 import re
 from datetime import datetime
 
-from sqlalchemy import Boolean, Float, Integer, String
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql.expression import cast
+from sqlalchemy import Boolean, Column, Float, Integer, String
+from sqlalchemy.dialects.postgresql import JSONB
 
 from .utils import get_logger
 
 logger = get_logger()
 
 
-def register_extra_var(extra_vars, name, db_index=None, overwrite=False, **kwargs):
+def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
     if (not overwrite) and (name in extra_vars):
         raise ValueError(f"tried to overwrite the variable {name}")
 
-    if db_index is not None:
-        for var in extra_vars.values():
-            if var["db_index"] == db_index:
-                raise ValueError(
-                    f"tried to create duplicate field for db_index {db_index}"
-                )
-
-    extra_vars[name] = {"db_index": db_index, **kwargs}
+    extra_vars[name] = {**kwargs}
 
 
 # Don't apply this decorator to time consuming operations, especially database queries!
@@ -35,64 +27,27 @@ def extra_var(extra_vars):
     return real_decorator
 
 
-def claim_field(db_index, name: str, extra_vars: dict, field_type=object):
+def claim_field(name: str, extra_vars: dict, field_type=object):
+    register_extra_var(extra_vars, name, field_type=field_type)
+
     if field_type is int:
-        function = IntField(db_index).function
+        col = Column(Integer, nullable=True)
     elif field_type is float:
-        function = FloatField(db_index).function
+        col = Column(Float, nullable=True)
     elif field_type is bool:
-        function = BoolField(db_index).function
+        col = Column(Boolean, nullable=True)
     elif field_type is str:
-        function = StrField(db_index).function
+        col = Column(String, nullable=True)
     elif field_type is dict:
-        function = DictField(db_index).function
+        col = Column(JSONB, server_default="{}", default=lambda: {})
     elif field_type is list:
-        function = ListField(db_index).function
+        col = Column(JSONB, server_default="[]", default=lambda: [])
     elif field_type is object:
-        function = ObjectField(db_index).function
+        col = Column(JSONB, server_default="{}", default=lambda: {})
     else:
         raise NotImplementedError
 
-    register_extra_var(extra_vars, name, db_index=db_index, field_type=field_type)
-
-    return function
-
-
-class Field:
-    def __init__(
-        self,
-        db_index,
-        from_db,
-        to_db,
-        permitted_python_types,
-        sql_type,
-        null_value=lambda: None,
-    ):
-        assert 1 <= db_index and db_index <= 5
-        db_field = f"property{db_index}"
-
-        @hybrid_property
-        def function(self):
-            val = getattr(self, db_field)
-            if val is None:
-                return null_value()
-            else:
-                return from_db(val)
-
-        @function.setter
-        def function(self, value):
-            if value is null_value():
-                db_value = None
-            else:
-                check_type(value, permitted_python_types)
-                db_value = to_db(value)
-            setattr(self, db_field, db_value)
-
-        @function.expression
-        def function(self):
-            return cast(getattr(self, db_field), sql_type)
-
-        self.function = function
+    return col
 
 
 def claim_var(
@@ -128,91 +83,6 @@ def check_type(x, allowed):
             match = True
     if not match:
         raise TypeError(f"{x} did not have a type in the approved list ({allowed}).")
-
-
-class IntField(Field):
-    def __init__(self, db_index):
-        super().__init__(
-            db_index,
-            from_db=int,
-            to_db=int,
-            permitted_python_types=[int],
-            sql_type=Integer,
-        )
-
-
-class FloatField(Field):
-    def __init__(self, db_index):
-        super().__init__(
-            db_index,
-            from_db=float,
-            to_db=float,
-            permitted_python_types=[int, float],
-            sql_type=Float,
-        )
-
-
-class BoolField(Field):
-    def __init__(self, db_index):
-        def from_db(x):
-            if x == "True":
-                return True
-            elif x == "False":
-                return False
-            else:
-                raise TypeError(f"Invalid value for BoolField: '{x}'.")
-
-        def to_db(x):
-            # return repr(int(x))
-            return repr(bool(x))
-
-        super().__init__(db_index, from_db, to_db, [bool], Boolean)
-
-
-class StrField(Field):
-    def __init__(self, db_index):
-        super().__init__(
-            db_index,
-            from_db=str,
-            to_db=str,
-            permitted_python_types=[str],
-            sql_type=String,
-        )
-
-
-class DictField(Field):
-    def __init__(self, db_index):
-        super().__init__(
-            db_index,
-            from_db=json.loads,
-            to_db=json.dumps,
-            permitted_python_types=[dict],
-            sql_type=String,
-            null_value=lambda: {},
-        )
-
-
-class ListField(Field):
-    def __init__(self, db_index):
-        super().__init__(
-            db_index,
-            from_db=json.loads,
-            to_db=json.dumps,
-            permitted_python_types=[list],
-            sql_type=String,
-            null_value=lambda: [],
-        )
-
-
-class ObjectField(Field):
-    def __init__(self, db_index):
-        super().__init__(
-            db_index,
-            from_db=json.loads,
-            to_db=json.dumps,
-            permitted_python_types=[object],
-            sql_type=String,
-        )
 
 
 class UndefinedVariableError(Exception):
