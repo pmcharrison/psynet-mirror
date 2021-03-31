@@ -1,7 +1,6 @@
 # pylint: disable=unused-argument
 
 import datetime
-import json
 import random
 from math import isnan, nan
 from statistics import mean
@@ -17,12 +16,21 @@ from dallinger.models import Info, Network, Node
 from dominate import tags
 from flask import Markup
 from rq import Queue
-from sqlalchemy import String
+from sqlalchemy import Column, String
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
 from .. import field
-from ..field import UndefinedVariableError, VarStore, claim_field, claim_var, extra_var
+from ..field import (
+    UndefinedVariableError,
+    VarStore,
+    claim_field,
+    claim_var,
+    extra_var,
+    register_extra_var,
+)
 from ..page import InfoPage, UnsuccessfulEndPage, wait_while
 from ..participant import Participant
 from ..timeline import (
@@ -77,12 +85,23 @@ def has_participant_group(trial_maker_id, participant):
     )
 
 
+class HasDefinition:
+    # Mixin class that provides a 'definition' slot.
+    # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
+    @declared_attr
+    def definition(cls):
+        return cls.__table__.c.get(
+            "definition", Column(JSONB, server_default="{}", default=lambda: {})
+        )
+
+    __extra_vars__ = {}
+    register_extra_var(__extra_vars__, "definition", field_type=dict)
+
+
 class AsyncProcessOwner:
     __extra_vars__ = {}
 
-    awaiting_async_process = claim_field(
-        5, "awaiting_async_process", __extra_vars__, bool
-    )
+    awaiting_async_process = claim_field("awaiting_async_process", __extra_vars__, bool)
     pending_async_processes = claim_var(
         "pending_async_processes", __extra_vars__, use_default=True, default=lambda: {}
     )
@@ -151,7 +170,7 @@ class AsyncProcessOwner:
         self.failed_async_processes = failed_async_processes
 
 
-class Trial(Info, AsyncProcessOwner):
+class Trial(Info, AsyncProcessOwner, HasDefinition):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -274,12 +293,15 @@ class Trial(Info, AsyncProcessOwner):
 
     # pylint: disable=unused-argument
     __mapper_args__ = {"polymorphic_identity": "trial"}
-    __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
+    __extra_vars__ = {
+        **AsyncProcessOwner.__extra_vars__.copy(),
+        **HasDefinition.__extra_vars__.copy(),
+    }
 
     # Properties ###
-    participant_id = claim_field(1, "participant_id", __extra_vars__, int)
-    complete = claim_field(2, "complete", __extra_vars__, bool)
-    is_repeat_trial = claim_field(3, "is_repeat_trial", __extra_vars__, bool)
+    participant_id = claim_field("participant_id", __extra_vars__, int)
+    complete = claim_field("complete", __extra_vars__, bool)
+    is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
 
     answer = claim_var("answer", __extra_vars__, use_default=True)
     propagate_failure = claim_var("propagate_failure", __extra_vars__, use_default=True)
@@ -308,16 +330,6 @@ class Trial(Info, AsyncProcessOwner):
     @property
     def var(self):
         return VarStore(self)
-
-    # Refactor this bit with claim_field equivalent.
-    @property
-    @extra_var(__extra_vars__)
-    def definition(self):
-        return json.loads(self.contents)
-
-    @definition.setter
-    def definition(self, definition):
-        self.contents = json.dumps(definition)
 
     @property
     def participant(self):
@@ -1932,8 +1944,8 @@ class TrialNetwork(Network, AsyncProcessOwner):
     __mapper_args__ = {"polymorphic_identity": "trial_network"}
     __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
 
-    trial_maker_id = claim_field(1, "trial_maker_id", __extra_vars__, str)
-    target_num_trials = claim_field(2, "target_num_trials", __extra_vars__, int)
+    trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
+    target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
 
     def __json__(self):
         x = super().__json__()
