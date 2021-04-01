@@ -12,7 +12,14 @@ from sqlalchemy.sql.expression import not_
 from ..field import VarStore, claim_field, claim_var, register_extra_var
 from ..page import wait_while
 from ..utils import get_logger, negate
-from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode, TrialSource
+from .main import (
+    HasDefinition,
+    NetworkTrialMaker,
+    Trial,
+    TrialNetwork,
+    TrialNode,
+    TrialSource,
+)
 
 logger = get_logger()
 
@@ -363,7 +370,7 @@ class ChainNetwork(TrialNetwork):
         self.head.fail()
 
 
-class ChainNode(TrialNode, HasSeed):
+class ChainNode(TrialNode, HasSeed, HasDefinition):
     """
     Represents a node in a chain network.
     In an experimental context, the node represents a state in the experiment;
@@ -486,7 +493,10 @@ class ChainNode(TrialNode, HasSeed):
     """
 
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
-    __extra_vars__ = HasSeed.__extra_vars__.copy()
+    __extra_vars__ = {
+        **HasSeed.__extra_vars__.copy(),
+        **HasDefinition.__extra_vars__.copy(),
+    }
 
     def __init__(
         self,
@@ -573,7 +583,6 @@ class ChainNode(TrialNode, HasSeed):
 
     degree = claim_field("degree", __extra_vars__, int)
     child_id = claim_field("child_id", __extra_vars__, int)
-    definition = claim_field("definition", __extra_vars__)
 
     propagate_failure = claim_var("propagate_failure", __extra_vars__)
 
