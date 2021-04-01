@@ -9,7 +9,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import get_logger
+from .utils import base_filename_from_url, get_logger
 
 logger = get_logger()
 
@@ -1913,13 +1913,9 @@ class VideoRecordControl(Control):
         )
         if raw_answer is not None:
             camera_url = splitquery(raw_answer["camera"])[0]
-            camera_base_filename = os.path.splitext(
-                urlparse(camera_url).path.strip("/")
-            )[0]
+            camera_base_filename = base_filename_from_url(camera_url)
             screen_url = splitquery(raw_answer["screen"])[0]
-            screen_base_filename = os.path.splitext(
-                urlparse(screen_url).path.strip("/")
-            )[0]
+            screen_base_filename = base_filename_from_url(screen_url)
 
         return {
             "s3_bucket": self.s3_bucket,
