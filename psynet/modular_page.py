@@ -1905,14 +1905,28 @@ class VideoRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
+        camera_url, camera_base_filename, screen_url, screen_base_filename = (
+            None,
+            None,
+            None,
+            None,
+        )
+        if raw_answer is not None:
+            camera_url = splitquery(raw_answer["camera"])[0]
+            camera_base_filename = os.path.splitext(
+                urlparse(camera_url).path.strip("/")
+            )[0]
+            screen_url = splitquery(raw_answer["screen"])[0]
+            screen_base_filename = os.path.splitext(
+                urlparse(screen_url).path.strip("/")
+            )[0]
+
         return {
             "s3_bucket": self.s3_bucket,
-            "camera_url": splitquery(raw_answer["camera"])[0]
-            if raw_answer is not None
-            else None,
-            "screen_url": splitquery(raw_answer["screen"])[0]
-            if raw_answer is not None
-            else None,
+            "camera_url": camera_url,
+            "camera_base_filename": camera_base_filename,
+            "screen_url": screen_url,
+            "screen_base_filename": screen_base_filename,
             "duration_sec": self.duration,
             "recording_source": self.recording_source,
             "record_audio": str(self.record_audio),
