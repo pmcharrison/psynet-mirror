@@ -1080,24 +1080,38 @@
                 }
             });
 
+            let videoDisplayMode = null;
+
             async function loadRecordedVideo() {
+                if (videoDisplayMode == "playback") {
+                    return;
+                }
+                videoPlayer.src = null;
                 videoPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
                 videoPlayer.src = URL.createObjectURL(blob);
                 videoPlayer.muted = false;
                 await videoPlayer.pause();
+                videoDisplayMode = "playback";
             }
 
             async function loadCameraPreview() {
+                if (videoDisplayMode == "preview") {
+                    return;
+                }
                 videoPlayer.src = null;
+                videoPlayer.srcObject = null;
                 setSrcObject(cameraStream, videoPlayer);
                 videoPlayer.muted = true;
                 await videoPlayer.play();
+                videoDisplayMode = "preview";
             }
 
+            psynet.trial.addInitRoutine("prepareVideoDisplay", async function() {
+                await loadCameraPreview();
+            })
+
             psynet.trial.addPrepareRoutine("prepareVideoDisplay", async function() {
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
                 if (replayMode) {
                     await loadRecordedVideo();
                 } else {

@@ -230,7 +230,7 @@ example_record_with_audio_prompt = join(
             loop_playback=False,
         ),
         time_estimate=5,
-        auto_start_trial=True,
+        auto_start_trial=False,
     ),
     PageMaker(
         lambda participant: ModularPage(

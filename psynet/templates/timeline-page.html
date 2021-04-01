@@ -452,7 +452,7 @@
                              Object.values(this.events).forEach(e => e.queue(trialStart));
                         },
 
-                        routineTypes: ["prepare", "cleanup", "finish"],
+                        routineTypes: ["init", "prepare", "cleanup", "finish"],
 
                         initRoutines: function() {
                             this.routineTypes.forEach(function(type) {
@@ -465,6 +465,10 @@
                                 id: id,
                                 handler: handler
                             })
+                        },
+
+                        addInitRoutine: function(id, handler) {
+                            this.addRoutine("init", id, handler);
                         },
 
                         addPrepareRoutine: function(id, handler) {
@@ -660,7 +664,7 @@
                     }
                 };
 
-                psynet.trial.ready = function (event) {
+                psynet.trial.ready = async function (event) {
                     psynet.log.debug("A trial-ready event occurred: " + event);
                     if (event != undefined) {
                         psynet.trial.waiting_for = psynet.trial.waiting_for.filter(function(elt) {
@@ -668,14 +672,10 @@
                         })
                     }
                     if (psynet.trial.waiting_for.length == 0) {
-                        if (psynet.trial.ready_done) {
-                            // Have now decided that calling response.ready multiple times is fine
-                            // and shouldn't be discouraged.
-                            //
-                            // psynet.log.warning("Submit-ready has already been called.");
-                        } else {
+                        if (!psynet.trial.ready_done) {
                             psynet.log.debug("Ready for trial to begin.");
                             psynet.register_event("trial_ready");
+                            await psynet.trial.runRoutines("init");
                             let auto_start_trial = {{ auto_start_trial | tojson }};
                             if (auto_start_trial) {
                                 psynet.log.debug("Starting trial.");
