@@ -48,6 +48,9 @@ class TestExp:
 
             assert sorted([n.block for n in networks]) == ["A", "B", "C"]
 
+            # Do you want to enable custom stimulus filters?
+            next_page(driver, "No")
+
             assert driver.find_element_by_id("trial-position").text == "Trial 1"
             next_page(driver, "A little")
 
@@ -113,6 +116,51 @@ class TestExp:
             for t in p_trials:
                 assert t.participant_id == 1
                 assert t.trial_maker_id == "animals"
+
+            next_page(driver, "next_button")
+            next_page(driver, "next_button", finished=True)
+
+    def test_custom_filters(self, bot_recruits, db_session, trial_maker):
+        for participant, bot in enumerate(bot_recruits):
+            driver = bot.driver
+            time.sleep(1)
+
+            # Do you want to enable custom stimulus filters?
+            next_page(driver, "Yes")
+
+            next_page(driver, "A little")
+            next_page(driver, "Very much")
+
+            # This part tests that the custom_stimulus_filter works appropriately -
+            # the fact that the previous answer was "Very much" means that
+            # the next question will be about ponies
+            assert (
+                driver.find_element_by_id("question").text
+                == "How much do you like ponies?"
+            )
+
+            num_remaining_trials = 4
+            num_repeat_trials = 3
+
+            # This part tests that the custom_stimulus_version_filter works appropriately -
+            # the fact that we've now had more than three trials means that the text color
+            # will be red.
+            next_page(driver, "Very much")
+            num_remaining_trials -= 1
+            assert (
+                driver.find_element_by_id("question").value_of_css_property("color")
+                == "rgba(255, 0, 0, 1)"
+            )
+
+            next_page(driver, "Very much")
+            num_remaining_trials -= 1
+            assert (
+                driver.find_element_by_id("question").value_of_css_property("color")
+                == "rgba(255, 0, 0, 1)"
+            )
+
+            for _ in range(num_remaining_trials + num_repeat_trials):
+                next_page(driver, "Very much")
 
             next_page(driver, "next_button")
             next_page(driver, "next_button", finished=True)

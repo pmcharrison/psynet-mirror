@@ -1252,6 +1252,12 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
 
         candidates = candidates.all()
+        candidates = self.custom_stimulus_filter(
+            candidates=candidates, participant=participant
+        )
+        if not isinstance(candidates, list):
+            return ValueError("custom_stimulus_filter must return a list of stimuli")
+
         if self.active_balancing_within_participants:
             candidates = self.balance_within_participants(candidates, completed_stimuli)
         if self.active_balancing_across_participants:
@@ -1265,6 +1271,46 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             return True
         num_unique_completed_stimuli = len(completed_stimuli)
         return num_unique_completed_stimuli < self.max_unique_stimuli_per_block
+
+    def custom_stimulus_filter(self, candidates, participant):
+        """
+        Override this function to define a custom filter for choosing the participant's next stimulus.
+
+        Parameters
+        ----------
+        candidates:
+            The current list of candidate stimuli as defined by the built-in non-adaptive procedure.
+
+        participant:
+            The current participant.
+
+        Returns
+        -------
+
+        An updated list of candidate stimuli. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain stimuli from the list.
+        """
+        return candidates
+
+    def custom_stimulus_version_filter(self, candidates, participant):
+        """
+        Override this function to define a custom filter for choosing the participant's next stimulus version.
+
+        Parameters
+        ----------
+        candidates:
+            The current list of candidate stimulus versions as defined by the built-in non-adaptive procedure.
+
+        participant:
+            The current participant.
+
+        Returns
+        -------
+
+        An updated list of candidate stimulus versions. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain stimulus versions from the list.
+        """
+        return candidates
 
     @staticmethod
     def filter_out_repeated_stimuli(candidates, completed_stimuli):
@@ -1329,11 +1375,20 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             if candidate_count_across == min_count_across
         ]
 
-    @staticmethod
-    def find_stimulus_version(stimulus, participant, experiment):
+    def find_stimulus_version(self, stimulus, participant, experiment):
         # pylint: disable=unused-argument
         candidates = StimulusVersion.query.filter_by(stimulus_id=stimulus.id).all()
         assert len(candidates) > 0
+        candidates = self.custom_stimulus_version_filter(
+            candidates=candidates, participant=participant
+        )
+        if not isinstance(candidates, list):
+            return ValueError(
+                "custom_stimulus_version_filter must return a list of stimuli"
+            )
+        if len(candidates) == 0:
+            return ValueError("custom_stimulus_version_filter returned an empty list")
+
         return random.choice(candidates)
 
 
