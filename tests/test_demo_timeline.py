@@ -94,6 +94,9 @@ class TestExp(object):
                 "page_load",
                 "response_ready",
                 "submit_ready",
+                "trial_ready",
+                "trialStart",
+                "trialFinish",
                 "submit_response",
             ]
 
@@ -126,6 +129,9 @@ class TestExp(object):
                 "page_load",
                 "response_ready",
                 "submit_ready",
+                "trial_ready",
+                "trialStart",
+                "trialFinish",
                 "submit_response",
             ]
 
