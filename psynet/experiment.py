@@ -510,18 +510,20 @@ class Experiment(dallinger.experiment.Experiment):
         if not hasattr(dashboard, "timeline"):
             dashboard.timeline = True
 
-        @dashboard.route("/timeline")
-        @login_required
-        def timeline():
-            exp = self.new(db.session)
-            panes = exp.monitoring_panels()
+            @dashboard.route("/timeline")
+            @login_required
+            def timeline():
+                exp = self.new(db.session)
+                panes = exp.monitoring_panels()
 
-            return render_template(
-                "dashboard_timeline.html",
-                title="Timeline modules",
-                panes=panes,
-                timeline_modules=json.dumps(exp.timeline.modules(), default=serialise),
-            )
+                return render_template(
+                    "dashboard_timeline.html",
+                    title="Timeline modules",
+                    panes=panes,
+                    timeline_modules=json.dumps(
+                        exp.timeline.modules(), default=serialise
+                    ),
+                )
 
         @routes.route("/export", methods=["GET"])
         def export():
