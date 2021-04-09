@@ -4,15 +4,15 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: f47b4ab86b108000aa053a5a5ac8a6d6
+# Compiled from a requirement.txt file with md5sum: d128328434cdadfcdea6f626df4df7a5
 #
--e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
+-e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@docker#egg=psynet
     # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
-boto3==1.17.48
+boto3==1.17.49
     # via dallinger
-botocore==1.20.48
+botocore==1.20.49
     # via
     #   boto3
     #   s3transfer
