@@ -495,6 +495,12 @@ class Experiment(dallinger.experiment.Experiment):
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
+            (
+                resource_filename(
+                    "psynet", "resources/scripts/prepare_docker_image.sh"
+                ),
+                "prepare_docker_image.sh",
+            ),
         ]
 
     def extra_routes(self):

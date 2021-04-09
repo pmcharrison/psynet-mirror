@@ -1,1 +1,2 @@
-dallinger
+dallinger==7.2.0
+-e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@docker#egg=psynet
