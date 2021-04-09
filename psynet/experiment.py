@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 import dallinger.experiment
+import requests
 import rpdb
 from dallinger import db
 from dallinger.config import get_config
@@ -218,6 +219,24 @@ class Experiment(dallinger.experiment.Experiment):
         if all(tab_title != tab.title for tab in dashboard_tabs):
             dashboard_tabs.insert_after_route(
                 tab_title, "dashboard.timeline", "dashboard.monitoring"
+            )
+
+    def submission_successful(self, participant):
+        """Run when a participant submits successfully."""
+        if participant.entry_information.get("externalRecruiter") == "cap-recruiter":
+            url = f'{os.environ.get("CAP_RECRUITER_BASE_URL")}/hits/complete'
+            data = {
+                "recruiter": participant.recruiter_id,
+                "workerId": participant.worker_id,
+                "assignmentId": participant.assignment_id,
+                "groupId": participant.entry_information["groupId"],
+                "basePay": participant.base_pay,
+                "bonus": participant.bonus,
+            }
+            requests.post(
+                url,
+                json=data,
+                headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
             )
 
     @classmethod

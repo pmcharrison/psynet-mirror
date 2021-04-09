@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import datetime
 from functools import reduce, wraps
-from urllib.parse import urlparse
+from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
 from dallinger.config import get_config
@@ -350,5 +350,13 @@ def json_to_data_frame(json_data):
     return data_frame
 
 
-def base_filename_from_url(url):
-    return os.path.splitext(urlparse(url).path.strip("/"))[0]
+def strip_url_parameters(url):
+    parse_result = urlparse(url)
+    return ParseResult(
+        scheme=parse_result.scheme,
+        netloc=parse_result.netloc,
+        path=parse_result.path,
+        params=None,
+        query=None,
+        fragment=None,
+    ).geturl()

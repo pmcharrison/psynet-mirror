@@ -209,7 +209,7 @@ example_record_with_audio_prompt = join(
         AudioPrompt(
             # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
-            text="This page enables the recorder and immediately plays the audio.",
+            text="This page plays audio and records video alongside. Works best with headphones.",
             prevent_response=False,
             start_delay=0.0,
             enable_submit_after=5.5,

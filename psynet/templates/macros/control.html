@@ -766,12 +766,6 @@
 
     <script>
         $(document).ready(function() {
-            psynet.add_event_listener("recordingReady", function() {
-                $("#btn-record-play-recording").attr("disabled", false);
-                $("#btn-record-play-all").attr("disabled", false);
-                $("#btn-record-upload").prop("disabled", false);
-            });
-
             $(".record-button").on("click", function() {
                 this.disabled = true;
                 setTimeout(() => this.disabled = false, 500);
@@ -828,6 +822,10 @@
         var replayMode = false;
         var loop = {{ config.loop_playback | tojson }};
 
+        {% if config.auto_advance %}
+            psynet.submit.register_on_ready_routine(on_next_button);
+        {% endif %}
+
         psynet.trial.addEvent("startRecording", recordWindow[0], function () {
             if (!replayMode) {
                 $(".record-alert").hide();
@@ -839,6 +837,21 @@
             if (!replayMode) {
                 hasRecorded = true;
             }
+        });
+
+        psynet.add_event_listener("endRecording", function() {
+            $("#btn-record-play-recording").attr("disabled", false);
+            $("#btn-record-play-all").attr("disabled", false);
+            $("#btn-record-upload").prop("disabled", false);
+
+            $(".record-alert").hide();
+            $("#record-upload").show();
+
+            if (!recorderControls) {
+                psynet.register_event("begin_upload");
+            }
+        }, {
+            priority: 100 // ensures that this is only executed once all the media processing completes
         });
 
         psynet.trial.addPrepareRoutine("clearAudio", () => psynet.media.stop_all_audio());
@@ -913,14 +926,6 @@
             psynet.trial.ready("page_load_buffer");
         }, 1000);
 
-        psynet.add_event_listener("endRecording", function() {
-            $(".record-alert").hide();
-            $("#record-upload").show();
-
-            if (!recorderControls) {
-                psynet.register_event("begin_upload");
-            }
-        });
     </script>
 
 {% endmacro %}
@@ -932,6 +937,7 @@
 
     <script>
         {% include "macros/control/recorder.js" %}
+        {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
         var presignedUrl = "{{ config.presigned_url }}";
@@ -954,17 +960,18 @@
             }
         });
 
-        psynet.add_event_listener("endRecording", function() {
-            if (!replayMode) {
-                recorder.stop();
-                recorder.exportWAV(function (blob) {
-                    recording_blob = blob;
+        let getAudioRecording = function() {
+            return new Promise(resolve => {
+                recorder.exportWAV((blob) => resolve(blob));
+            });
+        }
 
-                    psynet.media.blob_to_array_buffer(blob).then(function(buffer) {
-                        psynet.media.add_extra_audio_stimulus(buffer, "recording");
-                        psynet.register_event("recordingReady");
-                    });
-                });
+        psynet.add_event_listener("endRecording", async function() {
+            if (!replayMode) {
+                await recorder.stop();
+                recording_blob = await getAudioRecording();
+                buffer = await psynet.media.blob_to_array_buffer(recording_blob);
+                psynet.media.add_extra_audio_stimulus(buffer, "recording");
             }
         });
 
@@ -1134,7 +1141,6 @@
                     await videoRecorder.stopRecording();
                     psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
                     await videoRecorder.reset();
-                    psynet.register_event("recordingReady");
                 }
             });
 
@@ -1150,23 +1156,26 @@
 
         let screenBlob = null;
         let screenRecorder = null;
+        let screenStream = null;
 
         if (recording_screen) {
             let prepareScreenRecorder = function() {
                 return new Promise(resolve => {
-                    captureScreen((screen) => {
-                        screenVideo.srcObject = screen;
-                        screenRecorder = RecordRTC(screen, {
-                            type: 'video'
+                    captureScreen((stream) => {
+                        screenStream = stream;
+                        screenRecorder = new RecordRTCPromisesHandler(screenStream, {
+                            mimeType: 'video/webm',
                         });
-                        screenRecorder.screen = screen;
+                        screenRecorder.stream = screenStream;
                         resolve(true);
                     });
                 });
             }
 
             psynet.trial.addPrepareRoutine("prepareScreenRecorder", async function() {
-                await prepareScreenRecorder();
+                if (!replayMode) {
+                    await prepareScreenRecorder();
+                }
             });
 
             psynet.add_event_listener("startRecording", function() {
@@ -1175,23 +1184,23 @@
                 }
             });
 
-            psynet.add_event_listener("endRecording", function() {
+            psynet.add_event_listener("endRecording", async function() {
                 if (!replayMode) {
-                    screenBlob = screenRecorder.getBlob();
-                    screenRecorder.screen.stop();
+                    debugger
+                    await screenRecorder.stopRecording();
+                    psynet.media.data["screenBlob"] = await screenRecorder.getBlob();
+                    await screenRecorder.reset();
                 }
             });
 
-            psynet.trial.addCleanupRoutine("resetScreenCapture", function() {
-                screenRecorder.screen.stop();
-                screenRecorder.destroy();
-                screenRecorder = null;
+            psynet.trial.addCleanupRoutine("resetScreenCapture", async function() {
+                let state = await screenRecorder.getState();
+                if (state != "inactive") {
+                    await screenRecorder.stopRecording();
+                }
+                await screenRecorder.reset();
             });
 
-            psynet.add_event_listener("begin_upload", async function() {
-                await uploadToS3(screenBlob, psynet.media.presignedUrlScreen);
-                psynet.submit.ready("uploadScreenRecord");
-            });
         }
 
         psynet.add_event_listener("begin_upload", async function() {
@@ -1200,7 +1209,8 @@
                 promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
             }
             if (recording_screen) {
-                promises.push(uploadToS3(screenBlob, psynet.media.presignedUrlScreen));
+                debugger
+                promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
             }
             await Promise.all(promises);
             psynet.register_event("finished_upload");

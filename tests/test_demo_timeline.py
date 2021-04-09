@@ -28,14 +28,12 @@ class TestExp(object):
         instance = Exp(db_session)
         yield instance
 
-    def test_exp_selenium(
-        self, bot_recruits, db_session
-    ):  # two_iterations, bot_recruits):
+    def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 
             # Page 0
-            time.sleep(0.2)
+            time.sleep(1)
 
             assert get_participant(1).modules == {}
 

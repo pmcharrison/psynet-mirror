@@ -20,12 +20,13 @@ video_record_page = join(
     ),
     ModularPage(
         "video_record_page",
-        "This page lets you record video and sound from camera and microphone.",
+        "This page lets you record video and sound from camera and microphone while also doing a simultaneous screen recording.",
         VideoRecordControl(
             s3_bucket=bucket_name,
             duration=5.0,
-            recording_source="camera",
+            recording_source="both",
             public_read=True,
+            start_delay=1.0,
             show_preview=True,
             controls=True,
             progress_bar=True,
@@ -36,7 +37,7 @@ video_record_page = join(
         "video_record_page",
         lambda experiment, participant: (
             participant.answer["camera_url"] is None
-            and participant.answer["screen_url"] is None
+            or participant.answer["screen_url"] is None
         ),
         UnsuccessfulEndPage(failure_tags=["video_record_page"]),
     ),
@@ -80,37 +81,6 @@ video_record_page = join(
             VideoPrompt(
                 participant.answer["screen_url"],
                 "Here's the screen recording you just made.",
-                width="400px",
-            ),
-        ),
-        time_estimate=5,
-    ),
-    ModularPage(
-        "camera_record_page_with_playback_and_manual_upload_and_recording_restart",
-        "This page lets you record a video with your camera and play it back before upload. Clicking the 'Restart recording' button discards the last recording and records a new one.",
-        VideoRecordControl(
-            s3_bucket=bucket_name,
-            duration=5.0,
-            recording_source="camera",
-            show_preview=True,
-            progress_bar=True,
-            controls=True,
-            start_delay=2.0,
-            public_read=True,
-        ),
-        time_estimate=5,
-    ),
-    conditional(
-        "camera_record_page",
-        lambda experiment, participant: participant.answer["camera_url"] is None,
-        UnsuccessfulEndPage(failure_tags=["camera_record_page"]),
-    ),
-    PageMaker(
-        lambda participant: ModularPage(
-            "screen_playback",
-            VideoPrompt(
-                participant.answer["camera_url"],
-                "Here's the camera recording you just made.",
                 width="400px",
             ),
         ),

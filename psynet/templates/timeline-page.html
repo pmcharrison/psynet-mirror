@@ -387,7 +387,8 @@
                             psynet.register_event("trialStart");
                             trial.addEvent("trialFinish", options.trialEnd, () => trial.finish());
                             trial.inProgress = true;
-                            trial.startTime = trial.getGlobalTime();
+                            // If trialStart > 0, we pretend that the trial started a while ago
+                            trial.startTime = trial.getGlobalTime() - options.trialStart;
                             trial.state = "trialStart";
                             trial.clearEventQueue();
                             trial.queueEvents(options.trialStart);
@@ -436,14 +437,16 @@
                             };
                             let trial = this;
                             e.queue = function(trialStart) {
-                                e.timer = setTimeout(async function() {
-                                    psynet.register_event(id);
-                                    psynet.log.debug("Iteration = " + e.trial.iteration + ", event = " + id);
-                                    trial.state = id;
-                                    trial.pendingEventHandlers.add(id);
-                                    await e.handler();
-                                    trial.pendingEventHandlers.remove(id);
-                                }, 1000 * (e.time - trialStart));
+                                if (e.time - trialStart >= 0) {
+                                    e.timer = setTimeout(async function() {
+                                        psynet.register_event(id);
+                                        psynet.log.debug("Iteration = " + e.trial.iteration + ", event = " + id);
+                                        trial.state = id;
+                                        trial.pendingEventHandlers.add(id);
+                                        await e.handler();
+                                        trial.pendingEventHandlers.remove(id);
+                                    }, 1000 * (e.time - trialStart));
+                                }
                             };
                             this.events[id] = e;
                         },
@@ -1284,18 +1287,28 @@
 
                 psynet.event_listener_registry = {};
 
-                psynet.add_event_listener = function(type, func) {
-                    if (!psynet.event_listener_registry.hasOwnProperty("type")) {
+                psynet.add_event_listener = function(type, func, provided_options) {
+                    // Lower priority values are executed first
+                    let options = {
+                        priority: 0.0
+                    };
+                    Object.assign(options, provided_options);
+
+                    if (!psynet.event_listener_registry.hasOwnProperty(type)) {
                         psynet.event_listener_registry[type] = [];
                     }
-                    psynet.event_listener_registry[type].push(func);
+                    psynet.event_listener_registry[type].push({
+                        func: func,
+                        priority: options.priority
+                    });
                 }
 
                 psynet.run_event_handlers = async function(event_type) {
                     let handlers = psynet.event_listener_registry[event_type];
                     if (handlers) {
+                        handlers.sort((a, b) => a.priority - b.priority);
                         for (let i = 0; i < handlers.length; i++) {
-                            await handlers[i](); // ensures that all the handlers are executed in order
+                            await handlers[i].func(); // ensures that all the handlers are executed in order
                         }
                     }
                 }

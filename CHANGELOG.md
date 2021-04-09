@@ -1,5 +1,10 @@
 # Changelog
 
+#### Added
+
+- Add `auto_advance` option to `AudioRecordControl`. 
+- Update for compatibility with SQLAlchemy v1.4.
+
 # [1.12.0] Released on 2021-02-22
 
 #### Added

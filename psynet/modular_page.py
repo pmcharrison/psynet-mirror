@@ -1,7 +1,7 @@
 import json
 import os
 from typing import Dict, List, Optional, Union
-from urllib.parse import splitquery, urlparse
+from urllib.parse import urlparse
 
 from dominate import tags
 from dominate.util import raw
@@ -9,7 +9,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import base_filename_from_url, get_logger
+from .utils import get_logger, strip_url_parameters
 
 logger = get_logger()
 
@@ -1715,6 +1715,26 @@ class AudioRecordControl(Control):
     Parameters
     ----------
 
+    duration
+        Duration of the desired recording, in seconds.
+        Note: the output recording may not be exactly this length, owing to inaccuracies
+        in the Javascript recording process.
+
+    s3_bucket
+        Name of the S3 bucket to which the recording should be uploaded.
+
+    show_meter
+        Whether an audio meter should be displayed, so as to help the participant
+        to calibrate their volume.
+
+    public_read
+        Whether the audio recording should be uploaded to the S3 bucket
+        with public read permissions.
+
+    auto_advance
+        Whether the page should automatically advance to the next page
+        once the audio recording has been uploaded.
+
     controls
         Whether to give the user controls for the recorder (default = ``False``).
 
@@ -1737,6 +1757,7 @@ class AudioRecordControl(Control):
         s3_bucket: str,
         show_meter: bool = False,
         public_read: bool = False,
+        auto_advance: bool = False,
         progress_bar: bool = False,
         controls: bool = False,
         loop_playback: bool = False,
@@ -1746,6 +1767,7 @@ class AudioRecordControl(Control):
         self.s3_bucket = s3_bucket
         self.show_meter = show_meter
         self.public_read = public_read
+        self.auto_advance = auto_advance
         self.progress_bar = progress_bar
         self.controls = controls
         self.loop_playback = loop_playback
@@ -1777,7 +1799,7 @@ class AudioRecordControl(Control):
         return {
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
-            "url": splitquery(raw_answer)[0],
+            "url": strip_url_parameters(raw_answer),
             "duration_sec": self.duration,
         }
 
@@ -1846,6 +1868,10 @@ class VideoRecordControl(Control):
     record_window
         Optional list of two numbers describing when the recorder should
         start and stop, expressed in seconds relative to the beginning of the trial.
+
+    auto_advance
+        Whether the page should automatically advance to the next page
+        once the video recording has been uploaded.
     """
 
     macro = "video_record"
@@ -1866,6 +1892,7 @@ class VideoRecordControl(Control):
         controls: bool = False,
         loop_playback: bool = False,
         record_window: Optional[List] = None,
+        auto_advance: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1880,6 +1907,7 @@ class VideoRecordControl(Control):
         self.controls = controls
         self.loop_playback = loop_playback
         self.record_window = record_window
+        self.auto_advance = auto_advance
 
         if self.record_window is None:
             self.record_window = [0.0, self.duration]
@@ -1905,38 +1933,41 @@ class VideoRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
-        camera_url, camera_base_filename, screen_url, screen_base_filename = (
-            None,
-            None,
-            None,
-            None,
-        )
-        if raw_answer is not None:
-            camera_url = splitquery(raw_answer["camera"])[0]
-            camera_base_filename = base_filename_from_url(camera_url)
-            screen_url = splitquery(raw_answer["screen"])[0]
-            screen_base_filename = base_filename_from_url(screen_url)
-
         return {
             "s3_bucket": self.s3_bucket,
-            "camera_url": camera_url,
-            "camera_base_filename": camera_base_filename,
-            "screen_url": screen_url,
-            "screen_base_filename": screen_base_filename,
+            "camera_url": strip_url_parameters(raw_answer["camera"])
+            if raw_answer is not None
+            else None,
+            "screen_url": strip_url_parameters(raw_answer["screen"])
+            if raw_answer is not None
+            else None,
             "duration_sec": self.duration,
             "recording_source": self.recording_source,
-            "record_audio": str(self.record_audio),
+            "record_audio": self.record_audio,
         }
 
     def visualize_response(self, answer, response, trial):
         if answer is None:
             return tags.p("No video recorded yet.").render()
         else:
-            return tags.video(
-                tags.source(src=answer["url"]),
-                id="visualize-video-response",
-                controls=True,
-            ).render()
+            html = tags.div()
+            if answer["camera_url"]:
+                html += tags.h5("Camera recording")
+                html += tags.video(
+                    tags.source(src=answer["camera_url"]),
+                    id="visualize-camera-video-response",
+                    controls=True,
+                    style="max-width: 640px;",
+                )
+            if answer["screen_url"]:
+                html += tags.h5("Screen recording")
+                html += tags.video(
+                    tags.source(src=answer["screen_url"]),
+                    id="visualize-screen-video-response",
+                    controls=True,
+                    style="max-width: 640px;",
+                )
+            return html.render()
 
     def pre_render(self):
         if self.recording_source in ["camera", "both"]:
