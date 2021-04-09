@@ -301,7 +301,7 @@
 
                 let Trial = function(duration) {
                     let obj = {
-                        duration: null,
+                        duration: 0.0,
                         delay: 0.0,
                         iteration: -1,
                         state: null,
@@ -375,10 +375,6 @@
                                 trialEnd: trial.duration
                             }
                             Object.assign(options, provided_options);
-
-                            if (this.duration === null) {
-                                throw Error("The trial's duration must be set with setDuration() before you can start the trial.");
-                            }
 
                             await trial.cancel();
                             await this.runRoutines("prepare");
