@@ -433,16 +433,13 @@ class Experiment(dallinger.experiment.Experiment):
         metadata,
         page_uuid,
         client_ip_address,
-        request_context=None,
     ):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
         participant = get_participant(participant_id)
-        event = self.timeline.get_current_event(self, participant)
-
-        # TODO Hack when request originates from Unity (needs improvement)
-        if page_uuid == participant.page_uuid or request_context == "unity":
+        if page_uuid == participant.page_uuid:
+            event = self.timeline.get_current_event(self, participant)
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,

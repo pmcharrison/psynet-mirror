@@ -1064,7 +1064,7 @@
                         psynet.page_loaded = true;
                     })
                     page_updated = new CustomEvent("page_updated");
-                    window.addEventListener("page_updated", on_page_updated)
+                    psynet.add_event_listener("page_updated", on_page_updated)
                 };
 
                 psynet.register_error_handler = function () {
@@ -1092,13 +1092,15 @@
                     response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
-                        // By setting the response's session_id to the session_id of the current page we can prevent psynet from moving to the next timeline element and dispatch the `page_updated` event instead.
-                        if (response.page.attributes && psynet.page.attributes &&
-                            response.page.attributes.session_id == psynet.page.attributes.session_id) {
-                            psynet.page = response.page
-                            window.dispatchEvent(page_updated)
-                        } else {
+                        let should_go_to_next_timeline_event = !(
+                            response.page.attributes && psynet.page.attributes &&
+                            response.page.attributes.session_id == psynet.page.attributes.session_id
+                        );
+                        if (should_go_to_next_timeline_event) {
                             dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                        } else {
+                            psynet.page = response.page
+                            psynet.register_event(page_updated)
                         }
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
