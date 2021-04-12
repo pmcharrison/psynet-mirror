@@ -926,6 +926,28 @@
             psynet.trial.ready("page_load_buffer");
         }, 1000);
 
+        function uploadToS3(blob, presignedUrl) {
+            return new Promise(resolve => {
+                $("#record-upload").html("Uploading response...");
+                // TODO upload if LOCAL_S3
+                let xhr = new XMLHttpRequest();
+                xhr.open('PUT', presignedUrl, true);
+                psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
+
+                xhr.onload = function(e) {
+                    psynet.log.debug("File uploaded successfully to presigned url.");
+                    psynet.submit.ready("recording_uploaded");
+                    $(".record-alert").hide();
+                    $("#record-upload").html("Ready to upload response.");
+                    $("#record-finish").show();
+                    resolve(true);
+                };
+
+                let wavFile = new File([blob], "s3_upload.wav")
+                xhr.send(wavFile);
+            });
+        };
+
     </script>
 
 {% endmacro %}
@@ -1160,16 +1182,17 @@
 
         if (recording_screen) {
             let prepareScreenRecorder = function() {
-                return new Promise(resolve => {
-                    captureScreen((stream) => {
-                        screenStream = stream;
-                        screenRecorder = new RecordRTCPromisesHandler(screenStream, {
-                            mimeType: 'video/webm',
-                        });
-                        screenRecorder.stream = screenStream;
-                        resolve(true);
-                    });
-                });
+                let success = function(stream) {
+                    screenStream = stream;
+                    screenRecorder = new RecordRTCPromisesHandler(screenStream, {mimeType: 'video/webm'});
+                    screenRecorder.stream = screenStream;
+                    resolve(true);
+                }
+                let error = function(error) {
+                    throw new Error("Unable to capture your screen." + error.name + ":" + error.message);
+                }
+                let f = navigator.mediaDevices.getDisplayMedia ? navigator.mediaDevices.getDisplayMedia : navigator.getDisplayMedia;
+                f({ video: true }).then(success).catch(error);
             }
 
             psynet.trial.addPrepareRoutine("prepareScreenRecorder", async function() {
@@ -1186,7 +1209,6 @@
 
             psynet.add_event_listener("endRecording", async function() {
                 if (!replayMode) {
-                    debugger
                     await screenRecorder.stopRecording();
                     psynet.media.data["screenBlob"] = await screenRecorder.getBlob();
                     await screenRecorder.reset();
