@@ -31,7 +31,7 @@ tests:
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
   - export HEADLESS=TRUE
-  - pytest --chrome tests/
+  - pytest --chrome tests
 
 pages:
   stage: deploy

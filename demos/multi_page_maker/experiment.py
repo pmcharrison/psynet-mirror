@@ -1,5 +1,6 @@
 import psynet.experiment
-from psynet.page import CodeBlock, InfoPage, NAFCPage, SuccessfulEndPage
+from psynet.modular_page import PushButtonControl
+from psynet.page import CodeBlock, InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline, multi_page_maker
 from psynet.utils import get_logger
 
@@ -13,10 +14,12 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-        NAFCPage(
+        ModularPage(
             "choose_number",
-            "What number would you like to count to?",
-            ["1", "2", "3", "4", "5"],
+            Prompt("What number would you like to count to?"),
+            control=PushButtonControl(
+                ["1", "2", "3", "4", "5"], arrange_vertically=False
+            ),
             time_estimate=5,
         ),
         CodeBlock(

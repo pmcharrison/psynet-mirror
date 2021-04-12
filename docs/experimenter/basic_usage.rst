@@ -150,32 +150,27 @@ of the Experiment class, for example:
 
     import psynet.experiment
 
-    from psynet.timeline import (
-        PageMaker,
-        TextInputPage,
-        Timeline
-    )
-    from psynet.page import (
-        InfoPage,
-        SuccessfulEndPage
-    )
+    from psynet.modular_page import ModularPage, TextControl
+    from psynet.page import InfoPage, Prompt, SuccessfulEndPage
+    from psynet.timeline import PageMaker, Timeline
+
 
     class CustomExp(psynet.Experiment):
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",
-                time_estimate=5
+                time_estimate=5,
             ),
             PageMaker(
                 lambda experiment, participant:
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
-                time_estimate=5
-            ),
-            TextInputPage(
-                "message",
-                "Write me a message!",
                 time_estimate=5,
-                one_line=False
+            ),
+            ModularPage(
+                "message",
+                Prompt("Write me a message!"),
+                control=TextControl(one_line=False),
+                time_estimate=5,
             ),
             SuccessfulEndPage()
         )
