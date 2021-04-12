@@ -1996,6 +1996,14 @@ class TrialNetwork(Network, AsyncProcessOwner):
     def num_nodes(self):
         return TrialNode.query.filter_by(network_id=self.id, failed=False).count()
 
+    def trials(self, failed=False, complete=True, is_repeat_trial=False):
+        return Trial.query.filter_by(
+            network_id=self.id,
+            failed=failed,
+            complete=complete,
+            is_repeat_trial=is_repeat_trial,
+        ).all()
+
     @property
     def num_completed_trials(self):
         return Trial.query.filter_by(

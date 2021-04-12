@@ -11,7 +11,7 @@ from flask import Markup
 import psynet.experiment
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Timeline
+from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.non_adaptive import (
     NonAdaptiveTrial,
     NonAdaptiveTrialMaker,
@@ -71,7 +71,7 @@ class AnimalTrial(NonAdaptiveTrial):
             Markup(
                 f"""
                 {header}
-                <p style='color: {text_color}'>How much do you like {animal}?</p>
+                <p id='question' style='color: {text_color}'>How much do you like {animal}?</p>
                 """
             ),
             PushButtonControl(["Not at all", "A little", "Very much"]),
@@ -100,6 +100,21 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
             Markup(f"You finished the animal questions! Your score was {score}."),
             time_estimate=5,
         )
+
+    def custom_stimulus_filter(self, candidates, participant):
+        # If the participant answers "Very much", then the next question will be about ponies
+        if participant.var.custom_filters and participant.answer == "Very much":
+            return [x for x in candidates if x.definition["animal"] == "ponies"]
+        else:
+            return candidates
+
+    def custom_stimulus_version_filter(self, candidates, participant):
+        # If the participant has answered at least three trials, make the text colour red.
+        trials = self.get_participant_trials(participant)
+        complete_trials = [t for t in trials if t.complete]
+        if participant.var.custom_filters and len(complete_trials) >= 3:
+            return [x for x in candidates if x.definition["text_color"] == "red"]
+        return candidates
 
 
 trial_maker = AnimalTrialMaker(
@@ -132,7 +147,21 @@ trial_maker = AnimalTrialMaker(
 class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
-    timeline = Timeline(trial_maker, SuccessfulEndPage())
+    timeline = Timeline(
+        ModularPage(
+            "custom_filters",
+            "Do you want to enable custom stimulus and stimulus version filters?",
+            PushButtonControl(["Yes", "No"]),
+            time_estimate=5,
+        ),
+        CodeBlock(
+            lambda participant: participant.var.set(
+                "custom_filters", participant.answer == "Yes"
+            )
+        ),
+        trial_maker,
+        SuccessfulEndPage(),
+    )
 
     def __init__(self, session=None):
         super().__init__(session)

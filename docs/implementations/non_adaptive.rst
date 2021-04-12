@@ -106,6 +106,12 @@ See the low-level documentation (below)
 and the demo (``demos/non_adaptive``)
 for more details.
 
+Further customization can be achieved by overriding the
+:meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.custom_stimulus_filter`
+and :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.custom_stimulus_version_filter`
+methods. This allows the experimenter to further restrict the stimuli and stimulus versions
+available to the participant at a given point in the experiment.
+
 .. [1] The :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrial.show_trial` method
    may alternatively return a list of :class:`~psynet.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the final
