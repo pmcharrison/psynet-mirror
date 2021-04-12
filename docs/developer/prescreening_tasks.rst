@@ -16,12 +16,13 @@ In general, a pre-screening task is a :class:`~psynet.trial.Module` which contai
 
 In the following we show an example of a pre-screening task that consists of a single Yes/No question checking for the participant's suitability for a follow-up hearing test.
 
-The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module` and defines the actual pre-screening. It has a single event (:class:`~psynet.trial.Module`) assigned to its ``events`` property which consists of a ``label``, a :class:`~psynet.timeline.Page` (:class:`~psynet.page.NAFCPage`) for the participant's input and the logic (:class:`~psynet.timeline.conditional`) to determine a positive or negative outcome. In the negative case the :class:`~psynet.page.UnsuccessfulEndPage` is shown and the participant exits the pre-screening. This class also needs to be provided with values for ``label`` and ``time_estimate_per_trial``.
+The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module` and defines the actual pre-screening. It has a single event (:class:`~psynet.trial.Module`) assigned to its ``events`` property which consists of a ``label``, a :class:`~psynet.timeline.Page` (:class:`~psynet.page.ModularPage`) for the participant's input and the logic (:class:`~psynet.timeline.conditional`) to determine a positive or negative outcome. In the negative case the :class:`~psynet.page.UnsuccessfulEndPage` is shown and the participant exits the pre-screening. This class also needs to be provided with values for ``label`` and ``time_estimate_per_trial``.
 
 ::
 
     import psynet.experiment
-    from psynet.page import InfoPage, NAFCPage, SuccessfulEndPage, UnsuccessfulEndPage
+    from psynet.modular_page import ModularPage, PushButtonControl
+    from psynet.page import InfoPage, Prompt, SuccessfulEndPage, UnsuccessfulEndPage
     from psynet.timeline import Module, Timeline, conditional, join
 
     class HearingImpairmentCheck(Module):
@@ -32,11 +33,11 @@ The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module`
             ):
             self.label = label
             self.events = join(
-                NAFCPage(
-                    label = self.label,
-                    prompt="Do you have any kind of hearing impairment? (I.e., do you have any problems with your hearing?)",
-                    choices=["Yes", "No"],
-                    time_estimate=time_estimate_per_trial
+                ModularPage(
+                    self.label,
+                    Prompt("Do you have any kind of hearing impairment? (I.e., do you have any problems with your hearing?)"),
+                    control=PushButtonControl(["Yes", "No"]),
+                    time_estimate=time_estimate_per_trial,
                 ),
                 conditional(
                     "hearing_impairment_check",
@@ -46,7 +47,7 @@ The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module`
             )
             super().__init__(self.label, self.events)
 
-\* Another simple example would be a :class:`~psynet.page.TextInputPage` where the text provided by the participant is evaluated by some logic determining the positive/negative outcome.
+\* Another simple example would be a :class:`~psynet.page.ModularPage` with a :class:`~psynet.modular_page.TextControl` where the text provided by the participant is evaluated by some logic determining the positive/negative outcome.
 
 A pre-screening task can then be included in an experiment as follows:
 

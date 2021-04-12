@@ -3,7 +3,8 @@ import json
 from flask import Markup
 
 import psynet.experiment
-from psynet.page import DebugResponsePage, SliderPage, SuccessfulEndPage
+from psynet.modular_page import ModularPage, SliderControl
+from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline, join
 
 
@@ -28,7 +29,13 @@ def make_example(args):
     )
 
     return join(
-        SliderPage("slider_page", prompt, time_estimate=5, **args), DebugResponsePage()
+        ModularPage(
+            "slider_page",
+            prompt,
+            control=SliderControl("slider_control", **args),
+            time_estimate=5,
+        ),
+        DebugResponsePage(),
     )
 
 
