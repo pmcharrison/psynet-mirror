@@ -158,7 +158,6 @@ example_audio_page = ModularPage(
     AudioPrompt(
         "/static/audio/bier.wav",
         "This page illustrates a simple audio page with one stimulus.",
-        progress_bar=True,
         loop=False,
     ),
     time_estimate=5,
@@ -167,12 +166,26 @@ example_audio_page = ModularPage(
 example_audio_page_2 = ModularPage(
     "audio_page",
     AudioPrompt(
+        "/static/audio/bier.wav",
+        "This page adds audio playback controls.",
+        controls=True,
+        loop=False,
+    ),
+    time_estimate=5,
+)
+
+example_audio_page_3 = ModularPage(
+    "audio_page",
+    AudioPrompt(
         "/static/audio/train1.wav",
-        "This page illustrates a play window combined with a loop.",
+        """
+        This page illustrates a 'play window' combined with a loop.
+        By setting the play_window argument to [5, 9], we instruct PsyNet
+        to only play seconds 5-9 of the audio file.
+        """,
         play_window=[5, 9],
         loop=True,
         enable_submit_after=2,
-        progress_bar=True,
         controls=True,
     ),
     time_estimate=5,
@@ -181,7 +194,7 @@ example_audio_page_2 = ModularPage(
 example_record_page = join(
     ModularPage(
         "record_page",
-        "This page lets you record audio.",
+        "This page lets you record audio. Note that, in this version, you must click 'Upload' when finished.",
         AudioRecordControl(
             duration=3.0,
             s3_bucket="audio-record-demo",
@@ -189,6 +202,7 @@ example_record_page = join(
             public_read=True,
             progress_bar=True,
             controls=True,
+            auto_advance=True,
         ),
         time_estimate=5,
     ),
@@ -209,13 +223,17 @@ example_record_with_audio_prompt = join(
         AudioPrompt(
             # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
-            text="This page plays audio and records video alongside. Works best with headphones.",
+            text="""
+            This page plays audio and records video alongside.
+            It'll work best if you wear headphones.
+            The red portion of the progress bar identifies the period when the video
+            will be recording.
+            """,
             prevent_response=False,
             start_delay=0.0,
             enable_submit_after=5.5,
-            progress_bar=False,
             play_window=[0, 4.6],
-            fade_in=1.0,
+            fade_in=0.2,
         ),
         VideoRecordControl(
             duration=4.6,
@@ -254,10 +272,11 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        # example_audio_page,
-        # example_audio_page_2,
-        example_record_with_audio_prompt,
+        example_audio_page,
+        example_audio_page_2,
+        example_audio_page_3,
         example_record_page,
+        example_record_with_audio_prompt,
         example_audio_meter,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,

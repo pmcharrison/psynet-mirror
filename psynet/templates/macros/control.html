@@ -761,10 +761,6 @@
     {% endif %}
 
     <script>
-        {% include "macros/control/recording.js" %}
-    </script>
-
-    <script>
         $(document).ready(function() {
             $(".record-button").on("click", function() {
                 this.disabled = true;
@@ -796,10 +792,6 @@
                     trialStart: recordWindow[0],
                     trialEnd: recordWindow[1]
                 })
-                {#psynet.trial.cancel();#}
-                {#let options = {loop: loop};#}
-                {#psynet.media.stop_all_audio();#}
-                {#psynet.audio.recording.play(options);#}
             });
 
             $("#btn-record-stop").on("click", function() {
@@ -817,13 +809,13 @@
             });
         });
 
-        var recorderControls = {{ config.controls | lower }};
-        var recordWindow = {{ config.record_window | tojson }};
-        var replayMode = false;
-        var loop = {{ config.loop_playback | tojson }};
+        let recorderControls = {{ config.controls | lower }};
+        let recordWindow = {{ config.record_window | tojson }};
+        let replayMode = false;
+        let loop = {{ config.loop_playback | tojson }};
 
         {% if config.auto_advance %}
-            psynet.submit.register_on_ready_routine(on_next_button);
+            psynet.submit.register_on_ready_routine(() => $("#next_button").click());
         {% endif %}
 
         psynet.trial.addEvent("startRecording", recordWindow[0], function () {
@@ -959,7 +951,6 @@
 
     <script>
         {% include "macros/control/recorder.js" %}
-        {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
         var presignedUrl = "{{ config.presigned_url }}";
@@ -1066,8 +1057,8 @@
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        var videoPlayer = document.getElementById('video-control');
-        var screenVideo = document.getElementById('screen-recording');
+        let videoPlayer = document.getElementById('video-control');
+        let screenVideo = document.getElementById('screen-recording');
 
         let recording_source = "{{ config.recording_source | lower }}";
         let recording_camera = recording_source == "camera" || recording_source == "both";
@@ -1231,7 +1222,6 @@
                 promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
             }
             if (recording_screen) {
-                debugger
                 promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
             }
             await Promise.all(promises);

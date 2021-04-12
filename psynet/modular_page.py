@@ -129,9 +129,6 @@ class AudioPrompt(Prompt):
         otherwise, the audio file finishes playback at this timepoint (in seconds).
         The behaviour is undefined when the time window extends past the end of the audio file.
 
-    progress_bar
-        Whether to display a progress bar for the audio playback (default = ``False``).
-
     controls
         Whether to give the user playback controls (default = ``False``).
 
@@ -150,7 +147,6 @@ class AudioPrompt(Prompt):
         start_delay=0.0,
         text_align="left",
         play_window: Optional[List] = None,
-        progress_bar: bool = False,
         controls: bool = False,
         fade_in: float = 0.0,
     ):
@@ -169,7 +165,6 @@ class AudioPrompt(Prompt):
         self.loop = loop
         self.start_delay = start_delay
         self.play_window = play_window
-        self.progress_bar = progress_bar
         self.controls = controls
 
         self.js_play_options = dict(

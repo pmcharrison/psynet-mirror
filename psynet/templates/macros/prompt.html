@@ -40,33 +40,18 @@
 
     {% if config.progress_bar %}
         <h3>Audio progress bar is no longer supported!</h3>
-{#        <style>#}
-{#            #audio-prompt-progress {#}
-{#                margin: 50px#}
-{#            }#}
-{#            #audio-prompt-progress-bar {#}
-{#                -webkit-transition: none;#}
-{#                -moz-transition: none;#}
-{#                -ms-transition: none;#}
-{#                -o-transition: none;#}
-{#                transition: none;#}
-{#            }#}
-{#        </style>#}
-{##}
-{#        <div id="audio-prompt-progress" class="progress">#}
-{#            <div id="audio-prompt-progress-bar" class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>#}
-{#        </div>#}
-{##}
+
         <script>
             psynet.media.register_on_loaded_routine(function() {
+                let audio_duration;
                 {% if config.play_window[0] is not none and config.play_window[1] is not none %}
-                    let audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
+                    audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
                 {% elif config.play_window[0] is none and config.play_window[1] is not none %}
-                    let audio_duration = {{ config.play_window[1] }};
+                    audio_duration = {{ config.play_window[1] }};
                 {% elif config.play_window[0] is not none and config.play_window[1] is none %}
-                    let audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
+                    audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
                 {% else %}
-                    let audio_duration = psynet.audio.prompt.buffer.duration;
+                    audio_duration = psynet.audio.prompt.buffer.duration;
                 {% endif %}
 
                 let old_duration = psynet.trial.duration;
@@ -99,6 +84,7 @@
                 display: flex;
                 justify-content: center;
                 align-items: center;
+                padding-top: 25px;
             }
             .audio-prompt-button {
                 margin-left: 10px;
@@ -129,12 +115,11 @@
             psynet.media.register_on_loaded_routine(function() {
                 $(".audio-prompt-button").prop("disabled", false)
                 $("#audio-prompt-play").on("click", function() {
+                    psynet.media.stop_all_audio();
                     psynet.audio.prompt.play(audio_prompt_player_options);
                 });
                 $("#audio-prompt-stop").on("click", function() {
-                    if (psynet.audio.prompt.playing) {
-                        psynet.audio.prompt.stop(audio_prompt_player_options);
-                    }
+                    psynet.media.stop_all_audio();
                 });
                 $("#audio-prompt-loop-input").on("change", function(event) {
                     audio_prompt_player_options.loop = event.target.checked;
