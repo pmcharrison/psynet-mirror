@@ -779,7 +779,7 @@
             });
 
             $("#btn-record-play-prompt").on("click", function() {
-                psynet.trial.cancel();
+                psynet.trial.stop();
                 let options = psynet.utils.shallow_copy(audio_prompt_player_options);
                 options.loop = loop;
                 psynet.media.stop_all_audio();
@@ -795,7 +795,7 @@
             });
 
             $("#btn-record-stop").on("click", function() {
-                psynet.trial.cancel();
+                psynet.trial.stop();
                 psynet.media.stop_all_audio();
             });
 
@@ -846,10 +846,10 @@
             priority: 100 // ensures that this is only executed once all the media processing completes
         });
 
-        psynet.trial.addPrepareRoutine("clearAudio", () => psynet.media.stop_all_audio());
+        psynet.trial.addRoutine("prepare", () => psynet.media.stop_all_audio());
 
-        psynet.trial.addCleanupRoutine("stopPlayback", () => psynet.media.stop_all_audio());
-        psynet.trial.addCleanupRoutine("updateStatusText", function() {
+        psynet.trial.addRoutine("cleanup", () => psynet.media.stop_all_audio());
+        psynet.trial.addRoutine("cleanup", function() {
             $("#record-active").hide();
             if (hasRecorded) {
                 $("#record-upload").show();
@@ -858,7 +858,7 @@
             }
         });
 
-        psynet.trial.addFinishRoutine("restart", function() {
+        psynet.trial.addRoutine("finish", function() {
             if (loop) {
                 psynet.trial.start();
             }
@@ -993,7 +993,7 @@
             psynet.register_event("finished_upload", {url: presignedUrl});
         });
 
-        psynet.trial.addCleanupRoutine("stopRecorder", () => recorder.stop());
+        psynet.trial.addRoutine("cleanup", () => recorder.stop());
 
         psynet.media.register_on_loaded_routine(function() {
             navigator.mediaDevices.getUserMedia({
@@ -1091,7 +1091,7 @@
                 console.error('Cannot start video recording:', error.name + ":", error.message);
             });
 
-            psynet.trial.addPrepareRoutine("prepareCameraRecorder", () => {
+            psynet.trial.addRoutine("prepare", () => {
                 if (!replayMode) {
                     videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
                         mimeType: 'video/webm',
@@ -1127,11 +1127,12 @@
                 videoDisplayMode = "preview";
             }
 
-            psynet.trial.addInitRoutine("prepareVideoDisplay", async function() {
+            psynet.trial.addRoutine("construct", async function() {
                 await loadCameraPreview();
             })
 
-            psynet.trial.addPrepareRoutine("prepareVideoDisplay", async function() {
+            psynet.trial.addRoutine("prepare", async function() {
+                // Prepare the video display
                 if (replayMode) {
                     await loadRecordedVideo();
                 } else {
@@ -1157,7 +1158,7 @@
                 }
             });
 
-            psynet.trial.addCleanupRoutine("videoRecorder", async function() {
+            psynet.trial.addRoutine("cleanup", async function() {
                 let state = await videoRecorder.getState();
                 if (state != "inactive") {
                     await videoRecorder.stopRecording();
@@ -1186,7 +1187,8 @@
                 f({ video: true }).then(success).catch(error);
             }
 
-            psynet.trial.addPrepareRoutine("prepareScreenRecorder", async function() {
+            psynet.trial.addRoutine("prepare", async function() {
+                // Prepare the screen recorder
                 if (!replayMode) {
                     await prepareScreenRecorder();
                 }
@@ -1206,7 +1208,7 @@
                 }
             });
 
-            psynet.trial.addCleanupRoutine("resetScreenCapture", async function() {
+            psynet.trial.addRoutine("cleanup", async function() {
                 let state = await screenRecorder.getState();
                 if (state != "inactive") {
                     await screenRecorder.stopRecording();
