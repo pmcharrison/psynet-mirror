@@ -1,7 +1,7 @@
 macOS
 =====
 
-The following installation instructions apply to **macOS Big Sur (11.1)** only. They address both experiment authors as well as developers who want to work on PsyNet's source code.
+The following installation instructions apply to **macOS Big Sur (11.1) and Catalina (10.15)**. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 .. note::
    You must have set up your GitLab SSH keys already.
@@ -108,8 +108,8 @@ In the example below Dallinger is cloned into the user's home directory, but you
    cd ~
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
-   pip install -r dev-requirements.txt
-   pip install --editable '.[data]'
+   pip3 install -r dev-requirements.txt
+   pip3 install --editable '.[data]'
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -136,7 +136,7 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
    cd ~
    git clone git@gitlab.com:computational-audition-lab/psynet
    cd psynet
-   pip install -e .
+   pip3 install -e .
 
 The `-e` flag makes in the last command above makes the `psynet` code editable.
 
@@ -144,7 +144,7 @@ Now, install some additional libraries needed in development:
 
 .. code-block:: bash
 
-    pip install -r dev-requirements.txt
+    pip3 install -r dev-requirements.txt
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -177,7 +177,7 @@ Install additional Python packages
 
 .. code-block:: bash
 
-    pip install -r dev-requirements.txt
+    pip3 install -r dev-requirements.txt
 
 Install the Git pre-commit hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -186,7 +186,7 @@ With the virtual environment still activated:
 
 .. code-block:: bash
 
-   pip install pre-commit
+   pip3 install pre-commit
 
 This will install the pre-commit package into the virtual environment. With that in place, each git clone of `psynet` you create will need to have the pre-commit hook installed with:
 
