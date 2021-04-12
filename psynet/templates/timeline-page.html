@@ -730,25 +730,6 @@
 
                 psynet.media.sounds = [];
 
-                // Can be very dangerous if indexes are not sorted properly!
-                // psynet.media.get_by_idx = function (media_type, idx) {
-                //     if (!psynet.utils.key_exists_in_array(media_type, psynet.media.types)) {
-                //         psynet.log.warning('Tried to access psynet.' + media_type + ' but it does not exist!');
-                //     } else {
-                //         // Needs to be reversed because they were added in the other order
-                //         var keys = Object.keys(psynet[media_type]).reverse();
-                //         if (idx > (keys.length - 1)) {
-                //             psynet.log.warning(
-                //                 'Tried to index position ' + idx + ', but psynet.' + media_type +
-                //                 ' only goes until index ' + (keys.length - 1)
-                //             );
-                //         } else {
-                //             var key = keys[idx];
-                //             return psynet[media_type][key];
-                //         }
-                //     }
-                // };
-
                 psynet.media.on_loaded_routines = [];
 
                 psynet.media.register_on_loaded_routine = function (f) {
