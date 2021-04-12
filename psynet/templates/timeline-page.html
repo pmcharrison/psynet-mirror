@@ -492,7 +492,7 @@
                             }, this);
                         },
 
-                        addRoutine: function(type, id, handler) {
+                        addRoutine: function(type, handler) {
                             /**
                              * Registers a function to be called at a particular part of the trial's timeline.
                              * For now, only a few specific moments in the timeline are supported
@@ -514,8 +514,6 @@
                              * Cleanup routines are run when the trial stops, including when
                              * the trial is stopped early.
                              * Finish routines are run when the trial runs to completion.
-                             *
-                             * @param id {string} ID to give the handler.
                              *
                              * @param handler {function} Function to run.
                              **/
@@ -711,7 +709,7 @@
                         if (!psynet.trial.ready_done) {
                             psynet.log.debug("Ready for trial to begin.");
                             psynet.register_event("trial_ready");
-                            await psynet.trial.runRoutines("init");
+                            await psynet.trial.runRoutines("construct");
                             let auto_start_trial = {{ auto_start_trial | tojson }};
                             if (auto_start_trial) {
                                 psynet.log.debug("Starting trial.");
