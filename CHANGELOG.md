@@ -1,9 +1,17 @@
 # Changelog
 
-#### Added
+# [1.13.0] Unreleased
 
+#### Added
 - Add `auto_advance` option to `AudioRecordControl`. 
+- Integration of external recruiter with new CapRecruiter classes.
+- Filter options for customising stimulus, stimulus version, and network selection.
+- Unity integration including a WebGL demo.
+
+#### Updated
 - Update for compatibility with SQLAlchemy v1.4.
+- Replace deprecated `Page` classes with `ModularPage` class.
+
 
 # [1.12.0] Released on 2021-02-22
 
