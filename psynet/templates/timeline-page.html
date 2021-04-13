@@ -1062,9 +1062,8 @@
                         psynet.response.ready("page_load");
                         psynet.submit.ready("page_load");
                         psynet.page_loaded = true;
-                    })
-                    page_updated = new CustomEvent("page_updated");
-                    psynet.add_event_listener("page_updated", on_page_updated)
+                    });
+                    psynet.add_event_listener("page_updated", on_page_updated);
                 };
 
                 psynet.register_error_handler = function () {
@@ -1099,8 +1098,8 @@
                         if (should_refresh_page) {
                             dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
                         } else {
-                            psynet.page = response.page
-                            psynet.register_event(page_updated)
+                            psynet.page = response.page;
+                            psynet.register_event("page_updated");
                         }
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
