@@ -8,7 +8,7 @@ Unity Pages
   :class:`~psynet.page.UnityPage` functionality is still experimental, and its API is liable to change.
 
 Unity pages are the foundational part for the integration of Unity with PsyNet.
-Following are the basic steps neccessary for Unity to interact with PsyNet's user interface:
+Here are the basic steps necessary for Unity to interact with PsyNet's user interface:
 
 #. Define an experiment timeline using :class:`~psynet.page.UnityPage` elements.
 #. Call ``psynet.next_page()``, listen for the JavaScript event ``page_updated``, and respond to the updated data on the page.
