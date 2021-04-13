@@ -86,7 +86,6 @@ class UnityIslandPage(UnityPage):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        # Handle Unity answer
         logger.info("----------------- format answer -----------------")
         logger.info(raw_answer)
 
@@ -118,28 +117,21 @@ class UnityQuestionPage(UnityPage):
         return raw_answer["answer"]
 
 
-# Trial has several pages often input and output. Each island is a page. All islands are in one trial.
+# In this case the trial comprises multiple pages, each corresponding to an island.
 class IslandTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "island_trial"}
     num_pages = NUMBER_OF_ISLANDS
     accumulate_answers = True
 
-    # How we build the series of islands
     def show_trial(self, experiment, participant):
         network_content = self.definition
         world_id = int(network_content["world_id"])
 
-        # Map type to a permutation that depends only on particpant number
         my_perm = participant.var.color_permutation
 
-        # Save permutation in code for debugging and good practices
-        participant.var.set("permutation", my_perm)
-
-        # Based on type define variables that determine Unity behaviour.
         dashboard_rate = WORLD_FEEDBACK_RATES[world_id]
         feedback_rate = WORLD_FEEDBACK_RATES[world_id]
 
-        # Prepare data for JSON
         data = {
             "dashboard_rate": dashboard_rate,
             "feedback_rate": feedback_rate,
@@ -152,7 +144,7 @@ class IslandTrial(NonAdaptiveTrial):
             contents=data, session_id=SAME_SESSION_ID, time_estimate=5
         )
 
-        list_of_pages = [page] * (self.num_pages)
+        list_of_pages = [page] * self.num_pages
         return list_of_pages
 
     def get_island_color(self, **kwargs):
@@ -177,10 +169,10 @@ class IslandTrialMaker(NonAdaptiveTrialMaker):
         """
         Should return a tuple (score: float, passed: bool)
         """
-        score = 1  # should be zero
+        score = 1
         for trial in participant_trials:
             for answer in trial.answer:
-                data = answer  # json.loads(answer)
+                data = answer
                 number_of_coins_in_trial = len(data["coins"])
                 score += number_of_coins_in_trial
         passed = True
