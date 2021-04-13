@@ -408,7 +408,13 @@ class Experiment(dallinger.experiment.Experiment):
         return success_response()
 
     def process_response(
-        self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address
+        self,
+        participant_id,
+        raw_answer,
+        blobs,
+        metadata,
+        page_uuid,
+        client_ip_address,
     ):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
@@ -430,7 +436,7 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
             self.timeline.advance_page(self, participant)
-            return self.response_approved()
+            return self.response_approved(participant)
         else:
             logger.warn(
                 f"Participant {participant_id} tried to submit data with the wrong page_uuid"
@@ -438,9 +444,10 @@ class Experiment(dallinger.experiment.Experiment):
             )
             return error_response()
 
-    def response_approved(self):
+    def response_approved(self, participant):
         logger.debug("The response was approved.")
-        return success_response(submission="approved")
+        page = self.timeline.get_current_event(self, participant)
+        return success_response(submission="approved", page=page.__json__(participant))
 
     def response_rejected(self, message):
         logger.warning(
@@ -462,6 +469,10 @@ class Experiment(dallinger.experiment.Experiment):
             (
                 resource_filename("psynet", "resources/logo.svg"),
                 "/static/images/logo.svg",
+            ),
+            (
+                resource_filename("psynet", "resources/images/unity_logo.png"),
+                "/static/images/unity_logo.png",
             ),
             (
                 resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
@@ -506,6 +517,23 @@ class Experiment(dallinger.experiment.Experiment):
                         exp.timeline.modules(), default=serialise
                     ),
                 )
+
+        @routes.route("/get_participant_info_for_debug_mode", methods=["GET"])
+        def get_participant_info_for_debug_mode():
+            config = get_config()
+            if not config.get("mode") == "debug":
+                return error_response()
+
+            participant = Participant.query.first()
+            json_data = {
+                "id": participant.id,
+                "assignment_id": participant.assignment_id,
+                "page_uuid": participant.page_uuid,
+            }
+            logger.debug(
+                f"Returning from /get_participant_info_for_debug_mode: {json_data}"
+            )
+            return json.dumps(json_data, default=serialise)
 
         @routes.route("/export", methods=["GET"])
         def export():
@@ -618,6 +646,7 @@ class Experiment(dallinger.experiment.Experiment):
 
             exp = self.new(db.session)
             participant = get_participant(participant_id)
+            mode = request.args.get("mode")
 
             if participant.assignment_id != assignment_id:
                 logger.error(
@@ -640,6 +669,8 @@ class Experiment(dallinger.experiment.Experiment):
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
+                if mode == "json":
+                    return jsonify(page.__json__(participant))
                 return page.render(exp, participant)
 
         @routes.route("/response", methods=["POST"])
