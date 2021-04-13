@@ -103,7 +103,12 @@ example_on_loaded = InfoPage(
 
 example_audio_meter = ModularPage(
     "audio_meter",
-    "This page shows an audio meter.",
+    """
+    This page shows an audio meter.
+    At the time of writing, it's important to include an audio meter page
+    before you include any recording-based trials, otherwise recording
+    permissions won't be enabled and the trial won't work properly.
+    """,
     AudioMeterControl(calibrate=False),
     time_estimate=5,
 )
@@ -217,6 +222,33 @@ example_record_page = join(
     ),
 )
 
+example_listen_then_record_page = join(
+    ModularPage(
+        "record_page",
+        AudioPrompt(
+            url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+            text="""
+            Here we play audio then activate the recorder afterwards.
+            This is achieved by setting prevent_response=True in the
+            AudioPrompt; if I wanted the recorder to start straight away,
+            I'd set prevent_response=False.
+            """,
+            prevent_response=True,
+            play_window=[0, 2.5],
+        ),
+        AudioRecordControl(
+            duration=1.5,
+            s3_bucket="audio-record-demo",
+            show_meter=True,
+            public_read=True,
+            progress_bar=True,
+            controls=True,
+            auto_advance=True,
+        ),
+        time_estimate=5,
+    ),
+)
+
 example_record_with_audio_prompt = join(
     ModularPage(
         "record_page",
@@ -275,9 +307,10 @@ class Exp(psynet.experiment.Experiment):
         example_audio_page,
         example_audio_page_2,
         example_audio_page_3,
-        example_record_page,
-        example_record_with_audio_prompt,
         example_audio_meter,
+        example_record_page,
+        example_listen_then_record_page,
+        example_record_with_audio_prompt,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
         example_preloading,
