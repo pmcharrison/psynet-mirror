@@ -140,12 +140,6 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
 
 The `-e` flag makes in the last command above makes the `psynet` code editable.
 
-Now, install some additional libraries needed in development:
-
-.. code-block:: bash
-
-    pip3 install -r dev-requirements.txt
-
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -177,7 +171,7 @@ Install additional Python packages
 
 .. code-block:: bash
 
-    pip3 install -r dev-requirements.txt
+    pip3 install -e '.[dev]'
 
 Install the Git pre-commit hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
