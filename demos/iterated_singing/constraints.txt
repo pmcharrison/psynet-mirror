@@ -4,14 +4,22 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with sha: e0d41c1c42f5c6721deafa4072ecf49e
+# Compiled from a requirement.txt file with sha: 092ef49742dc2c85d367de2e6ca3367f
 #
 -e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
     # via -r requirements.txt
+-e git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing-extract#egg=singing_extract
+    # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
+aubio==0.4.9
+    # via
+    #   -r requirements.txt
+    #   singing-extract
 boto3==1.17.51
-    # via dallinger
+    # via
+    #   dallinger
+    #   singing-extract
 botocore==1.20.51
     # via
     #   boto3
@@ -34,11 +42,17 @@ click==7.1.2
 cycler==0.10.0
     # via matplotlib
 dallinger==7.2.0
-    # via psynet
+    # via
+    #   psynet
+    #   singing-extract
 datetime==4.3
-    # via psynet
+    # via
+    #   psynet
+    #   singing-extract
 docopt==0.6.2
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   singing-extract
 dominate==2.6.0
     # via psynet
 faker==8.0.0
@@ -59,6 +73,7 @@ flask==1.1.2
     #   flask-sockets
     #   flask-wtf
     #   psynet
+    #   singing-extract
 future==0.18.2
     # via dallinger
 gevent-websocket==0.10.1
@@ -78,7 +93,9 @@ gunicorn==20.1.0
 idna==2.10
     # via requests
 importlib-resources==5.1.2
-    # via psynet
+    # via
+    #   psynet
+    #   singing-extract
 itsdangerous==1.1.0
     # via
     #   flask
@@ -98,15 +115,19 @@ markupsafe==1.1.1
     #   jinja2
     #   wtforms
 matplotlib==3.4.1
-    # via -r requirements.txt
+    # via
+    #   -r requirements.txt
+    #   singing-extract
 numpy==1.20.2
     # via
+    #   aubio
     #   matplotlib
     #   pandas
     #   patsy
     #   praat-parselmouth
     #   psynet
     #   scipy
+    #   singing-extract
     #   statsmodels
 packaging==20.9
     # via build
@@ -169,6 +190,7 @@ s3transfer==0.3.7
 scipy==1.6.2
     # via
     #   psynet
+    #   singing-extract
     #   statsmodels
 selenium==3.141.0
     # via dallinger
