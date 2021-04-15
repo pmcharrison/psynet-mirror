@@ -3,6 +3,7 @@
 # [1.13.0] Released on 2021-04-15
 
 #### Added
+- Video and screen recording
 - Unity integration including a WebGL demo.
 - Filter options for customising stimulus, stimulus version, and network selection.
 - Integration of external recruiter with new CapRecruiter classes.
