@@ -15,10 +15,12 @@
 {{super()}}
     <script>
         dallinger.identity.participantId = "undefined";
+        let assignmentId = dallinger.identity.assignmentId;
+        dallinger.identity.assignmentId = null;
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
                 let participantId = dallinger.identity.participantId;
-                let assignmentId = dallinger.identity.assignmentId;
+                dallinger.identity.assignmentId = assignmentId
                 dallinger.goToPage("timeline/" + participantId + "/" + assignmentId);
             }, 500);
         }).fail(function(resp) {

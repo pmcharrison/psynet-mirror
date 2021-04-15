@@ -15,7 +15,7 @@ class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
-            time.sleep(0.2)
+            time.sleep(1)
 
             # What participant group would you like to join?
             participant_group = ["A", "B", "A", "B"][participant]
@@ -30,5 +30,13 @@ class TestExp:
                 next_page(driver, "next_button")
 
             next_page(driver, "next_button")
+
+            from psynet.participant import Participant
+
+            pt = Participant.query.filter_by(id=participant + 1).one()
+            trials = pt.trials()
+            trials.sort(key=lambda x: x.id)
+            network_ids = [t.network.id for t in trials]
+            assert network_ids == sorted(network_ids)
 
             next_page(driver, "next_button", finished=True)

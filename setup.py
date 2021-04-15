@@ -27,7 +27,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger>=7.0.0",
+        "dallinger==7.2.0",
         "click",
         "datetime",
         "dominate",
@@ -42,7 +42,15 @@ setuptools.setup(
         "yaspin",
         "praat-parselmouth",
     ],
-    extras_require={"dev": ["pytest", "mock"]},
+    extras_require={
+        "dev": [
+            "mock",
+            "pre-commit",
+            "pytest",
+            "sphinx-autodoc-typehints",
+            "sphinx_rtd_theme",
+        ]
+    },
     entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},
 )
 

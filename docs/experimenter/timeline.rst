@@ -10,11 +10,11 @@ presented sequentially. There are three main kinds of events:
 * `Page makers`_
 * `Code blocks`_
 
-`Pages`_ define the web page that is shown to the participant at a given 
+`Pages`_ define the web page that is shown to the participant at a given
 point in time, and have fixed content that is the same for all participants.
 `Page makers`_ are like pages, but include content that is computed
 when the participant's web page loads.
-`Code blocks`_ contain server logic that is executed in between pages, 
+`Code blocks`_ contain server logic that is executed in between pages,
 for example to assign the participant to a group or to save the participant's data.
 
 All these events are defined as ``psynet`` classes inheriting from
@@ -34,7 +34,7 @@ These different events may be created using their constructor functions, e.g.:
 Pages
 -----
 
-Pages are defined in a hierarchy of object-oriented classes. The base class 
+Pages are defined in a hierarchy of object-oriented classes. The base class
 is `Page`, which provides the most general and verbose way to specify a ``psynet`` page.
 A simpler example is `InfoPage`, which takes a piece of text or HTML and displays it to the user:
 
@@ -49,47 +49,47 @@ for example in the form of a text-input field:
 
 ::
 
-    from psynet.page import TextInputPage
+    from psynet.modular_page import ModularPage, TextControl
+    from psynet.page import Prompt
 
-    TextInputPage(
+    ModularPage(
         "full_name",
         "Please enter your full name",
+        control=TextControl(one_line=False),
         time_estimate=5,
-        one_line=True
     )
 
 or in a multiple-choice format:
 
 ::
 
-    from psynet.page import NAFCPage
+    from psynet.page import Prompt
+    from psynet.modular_page import ModularPage, PushButtonControl
 
-    NAFCPage(
-        label="chocolate",
-        prompt="Do you like chocolate?",
-        choices=["Yes", "No"],
-        time_estimate=3
+    ModularPage(
+        "chocolate",
+        Prompt("Do you like chocolate?"),
+        control=PushButtonControl(["Yes", "No"]),
+        time_estimate=3,
     )
 
 See the documentation of individual classes for more guidance, for example:
 
 * :class:`~psynet.timeline.Page`
 * :class:`~psynet.page.InfoPage`
-* :class:`~psynet.page.TextInputPage`
-* :class:`~psynet.page.NumberInputPage`
-* :class:`~psynet.page.NAFCPage`
+* :class:`~psynet.page.ModularPage`
 * :class:`~psynet.page.SuccessfulEndPage`
 * :class:`~psynet.page.UnsuccessfulEndPage`.
 
-:class:`~psynet.page.SuccessfulEndPage` and 
-:class:`~psynet.page.UnsuccessfulEndPage` 
+:class:`~psynet.page.SuccessfulEndPage` and
+:class:`~psynet.page.UnsuccessfulEndPage`
 are special page types
 used to complete a timeline; upon reaching one of these pages, the experiment will
 terminate and the participant will receive their payment. The difference
-between 
-:class:`~psynet.page.SuccessfulEndPage` and 
+between
+:class:`~psynet.page.SuccessfulEndPage` and
 :class:`~psynet.page.UnsuccessfulEndPage` is twofold:
-in the former case, the participant will be marked in the database 
+in the former case, the participant will be marked in the database
 with ``complete=True`` and ``failed=False``,
 whereas in the latter case the participant will be marked
 with ``complete=False`` and ``failed=True``.
@@ -97,23 +97,15 @@ In both cases the participant will be paid the amount that they have accumulated
 however, :class:`~psynet.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
 when the participant has yet to accumulate much payment.
 
-Often you may wish to create a custom page type. The best way is usually
-to start with the source code for a related page type from the ``psynet``
-package, and modify it to make your new page type. These page types
-should usually inherit from the most specific relevant ``psynet`` page type;
-for example, 
-:class:`~psynet.page.NumberInputPage`
-inherits from 
-:class:`~psynet.page.TextInputPage`,
-and adds a validation step to make sure that the user has entered a valid number.
+:class:`~psynet.page.UnityPage` allows for the integration of Unity and PsyNet. See the special section on :doc:`unity_page` for more detailed information.
 
-We hope to significantly extend the page types available in ``psynet`` in the future.
-When you've found a custom page type useful for your own experiment,
-you might consider submitting it to the ``psynet`` code base via 
+We hope to significantly extend the control types available in ``psynet`` in the future.
+When you've found a custom control type useful for your own experiment,
+you might consider submitting it to the ``psynet`` code base via
 a Pull Request (or, in GitLab terminology, a Merge Request).
 
 This should be enough to start experimenting with different kinds of page types.
-For a full understanding of the customisation possibilities, see the full :ref:`Page` documentation.
+For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`ModularPage` documentation.
 
 Page makers
 -----------
@@ -168,7 +160,7 @@ See :class:`~psynet.timeline.CodeBlock` documentation for more details.
 Control logic
 -------------
 
-Most experiments require some kind of non-trivial control logic, 
+Most experiments require some kind of non-trivial control logic,
 such as conditional branches and loops. ``psynet`` provides
 the following control constructs for this purpose:
 
@@ -185,20 +177,20 @@ Time estimate
 
 It is considered good practice to pay online participants a fee that corresponds
 approximately to a reasonable hourly wage, for example 9 USD/hour.
-The ``psynet`` package provides sophisticated functionality for applying such 
+The ``psynet`` package provides sophisticated functionality for applying such
 payment schemes without rewarding participants to participate slowly.
 When designing an experiment, the researcher must specify along with each
 page a ``time_estimate`` argument, corresponding to the estimated time in seconds
 that a participant should take to complete that portion of the experiment.
 This ``time_estimate`` argument is used to construct a progress bar displaying
-the participant's progress through the experiment and to determine the participant's 
+the participant's progress through the experiment and to determine the participant's
 final payment.
 
 
 Combining events
 ----------------
 
-The ``Experiment`` class expects us to provide an object of 
+The ``Experiment`` class expects us to provide an object of
 class :class:`psynet.timeline.Timeline` in the ``timeline`` slot.
 This ``Timeline`` object expects either events or lists of events
 as its input; it will concatenate them together into one big list.
@@ -208,15 +200,9 @@ Following this method, here's a complete definition of a simple experiment:
 
     import psynet.experiment
 
-    from psynet.timeline import (
-        Timeline,       
-        PageMaker
-    )
-    from psynet.page import (
-        InfoPage,
-        TextInputPage,
-        SuccessfulEndPage,
-    )
+    from psynet.modular_page import ModularPage, TextControl
+    from psynet.page import InfoPage, Prompt, SuccessfulEndPage
+    from psynet.timeline import PageMaker, Timeline
 
     class CustomExp(psynet.Experiment):
         timeline = Timeline(
@@ -224,16 +210,16 @@ Following this method, here's a complete definition of a simple experiment:
                 "Welcome to the experiment!",
                 time_estimate=5
             ),
-            PageMaker(            
-                lambda experiment, participant: 
+            PageMaker(
+                lambda experiment, participant:
                     InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
                 time_estimate=5
             ),
-            TextInputPage(
+            ModularPage(
                 "message",
-                "Write me a message!",
+                Prompt("Write me a message!"),
+                control=TextControl(one_line=False),
                 time_estimate=5,
-                one_line=False
             ),
             SuccessfulEndPage()
         )
@@ -243,36 +229,29 @@ Following this method, here's a complete definition of a simple experiment:
 It is generally wise to build up the test logic in small pieces. For example:
 
 ::
-    
-    from psynet.timeline import (
-        PageMaker,
-        Timeline,
-        join
-    )
-    from psynet.page import (
-        InfoPage,
-        TextInputPage,
-        SuccessfulEndPage
-    )
+
+    from psynet.modular_page import ModularPage, TextControl
+    from psynet.page import InfoPage, Prompt, SuccessfulEndPage
+    from psynet.timeline import PageMaker, Timeline, join
 
     intro = join(
         InfoPage(
             "Welcome to the experiment!",
             time_estimate=5
         ),
-        PageMaker(            
-            lambda experiment, participant: 
+        PageMaker(
+            lambda experiment, participant:
                 InfoPage(f"The current time is {datetime.now().strftime('%H:%M:%S')}."),
             time_estimate=5
         )
     )
 
-    test = TextInputPage(
-                "message",
-                "Write me a message!",
-                time_estimate=5,
-                one_line=False
-            )
+    test = ModularPage(
+        "message",
+        Prompt("Write me a message!"),
+        control=TextControl(one_line=False),
+        time_estimate=5,
+    )
 
     timeline = Timeline(intro, test)
 
@@ -281,5 +260,5 @@ two events into a list. When its arguments are all events,
 the ``join`` function behaves like a Python list constructor;
 when the arguments also include lists of events, the ``join`` function
 merges these lists. This makes it handy for combining timeline logic,
-where different bits of logic often correspond either to events or 
+where different bits of logic often correspond either to events or
 lists of events.

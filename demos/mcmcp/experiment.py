@@ -7,7 +7,8 @@
 import random
 
 import psynet.experiment
-from psynet.page import InfoPage, NAFCPage, SuccessfulEndPage
+from psynet.modular_page import PushButtonControl
+from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.mcmcp import (
     MCMCPNetwork,
@@ -56,12 +57,13 @@ class CustomTrial(MCMCPTrial):
             f"Person B is {age_2} years old. "
             f"Which one is the {occupation}?"
         )
-        return NAFCPage(
+        return ModularPage(
             "mcmcp_trial",
-            prompt,
-            choices=["0", "1"],
+            Prompt(prompt),
+            control=PushButtonControl(
+                ["0", "1"], labels=["Person A", "Person B"], arrange_vertically=False
+            ),
             time_estimate=5,
-            labels=["Person A", "Person B"],
         )
 
 

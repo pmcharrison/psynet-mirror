@@ -109,11 +109,11 @@ class Participant(dallinger.models.Participant):
     __mapper_args__ = {"polymorphic_identity": "participant"}
     __extra_vars__ = {}
 
-    event_id = field.claim_field(1, "event_id", __extra_vars__, int)
-    page_uuid = field.claim_field(2, "page_uuid", __extra_vars__, str)
-    complete = field.claim_field(3, "complete", __extra_vars__, bool)
-    answer = field.claim_field(4, "answer", __extra_vars__, object)
-    branch_log = field.claim_field(5, "branch_log", __extra_vars__, list)
+    event_id = field.claim_field("event_id", __extra_vars__, int)
+    page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
+    complete = field.claim_field("complete", __extra_vars__, bool)
+    answer = field.claim_field("answer", __extra_vars__, object)
+    branch_log = field.claim_field("branch_log", __extra_vars__, list)
 
     initialised = claim_var(
         "initialised", __extra_vars__, use_default=True, default=lambda: False
@@ -143,6 +143,16 @@ class Participant(dallinger.models.Participant):
         del x["modules"]
         field.json_format_vars(x)
         return x
+
+    def trials(self, failed=False, complete=True, is_repeat_trial=False):
+        from .trial.main import Trial
+
+        return Trial.query.filter_by(
+            participant_id=self.id,
+            failed=failed,
+            complete=complete,
+            is_repeat_trial=is_repeat_trial,
+        ).all()
 
     @property
     def last_response(self):

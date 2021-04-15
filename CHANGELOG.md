@@ -1,5 +1,22 @@
 # Changelog
 
+# [1.13.0] Released on 2021-04-15
+
+#### Added
+- Video and screen recording
+- Unity integration including a WebGL demo.
+- Filter options for customising stimulus, stimulus version, and network selection.
+- Integration of external recruiter with new CapRecruiter classes.
+- Add `auto_advance` option to `AudioRecordControl`. 
+
+#### Fixed
+- Update for compatibility with SQLAlchemy v1.4.
+
+#### Updated
+- Pin to Dallinger v7.2.0
+- Replace deprecated `Page` classes with `ModularPage` class.
+
+
 # [1.12.0] Released on 2021-02-22
 
 #### Added

@@ -28,7 +28,14 @@ from ..media import (
     write_string_to_s3,
 )
 from ..utils import DisableLogger, get_logger, hash_object, import_local_experiment
-from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode, TrialSource
+from .main import (
+    HasDefinition,
+    NetworkTrialMaker,
+    Trial,
+    TrialNetwork,
+    TrialNode,
+    TrialSource,
+)
 
 logger = get_logger()
 
@@ -41,7 +48,7 @@ def query_all_completed_trials():
     return filter_for_completed_trials(NonAdaptiveTrial.query)
 
 
-class Stimulus(TrialNode):
+class Stimulus(TrialNode, HasDefinition):
     """
     A stimulus class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class.
@@ -76,18 +83,12 @@ class Stimulus(TrialNode):
     """
 
     __mapper_args__ = {"polymorphic_identity": "stimulus"}
-    __extra_vars__ = TrialNode.__extra_vars__.copy()
+    __extra_vars__ = {
+        **TrialNode.__extra_vars__.copy(),
+        **HasDefinition.__extra_vars__.copy(),
+    }
 
-    target_num_trials = claim_field(1, "target_num_trials", __extra_vars__, int)
-
-    @property
-    @extra_var(__extra_vars__)
-    def definition(self):
-        return self.details.copy()
-
-    @definition.setter
-    def definition(self, definition):
-        self.details = definition
+    target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
 
     @property
     def phase(self):
@@ -220,7 +221,7 @@ class StimulusSpec:
             s.upload_media(s3_bucket, local_media_cache_dir, remote_media_dir)
 
 
-class StimulusVersion(TrialNode):
+class StimulusVersion(TrialNode, HasDefinition):
     """
     A stimulus version class for non-adaptive experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class;
@@ -255,22 +256,13 @@ class StimulusVersion(TrialNode):
     """
 
     __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
-    __extra_vars__ = TrialNode.__extra_vars__
+    __extra_vars__ = {**TrialNode.__extra_vars__, **HasDefinition.__extra_vars__}
 
-    stimulus_id = claim_field(1, "stimulus_id", __extra_vars__, int)
-    has_media = claim_field(2, "has_media", __extra_vars__, bool)
-    s3_bucket = claim_field(3, "s3_bucket", __extra_vars__, str)
-    remote_media_dir = claim_field(4, "remote_media_dir", __extra_vars__, str)
-    media_id = claim_field(5, "media_id", __extra_vars__, str)
-
-    @property
-    @extra_var(__extra_vars__)
-    def definition(self):
-        return self.details.copy()
-
-    @definition.setter
-    def definition(self, definition):
-        self.details = definition
+    stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
+    has_media = claim_field("has_media", __extra_vars__, bool)
+    s3_bucket = claim_field("s3_bucket", __extra_vars__, str)
+    remote_media_dir = claim_field("remote_media_dir", __extra_vars__, str)
+    media_id = claim_field("media_id", __extra_vars__, str)
 
     @property
     @extra_var(__extra_vars__)
@@ -701,7 +693,7 @@ class NonAdaptiveTrial(Trial):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = claim_field(4, "stimulus_id", __extra_vars__, int)
+    stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
 
     def __init__(
         self, experiment, node, participant, propagate_failure, is_repeat_trial
@@ -1260,6 +1252,12 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
 
         candidates = candidates.all()
+        candidates = self.custom_stimulus_filter(
+            candidates=candidates, participant=participant
+        )
+        if not isinstance(candidates, list):
+            return ValueError("custom_stimulus_filter must return a list of stimuli")
+
         if self.active_balancing_within_participants:
             candidates = self.balance_within_participants(candidates, completed_stimuli)
         if self.active_balancing_across_participants:
@@ -1273,6 +1271,46 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             return True
         num_unique_completed_stimuli = len(completed_stimuli)
         return num_unique_completed_stimuli < self.max_unique_stimuli_per_block
+
+    def custom_stimulus_filter(self, candidates, participant):
+        """
+        Override this function to define a custom filter for choosing the participant's next stimulus.
+
+        Parameters
+        ----------
+        candidates:
+            The current list of candidate stimuli as defined by the built-in non-adaptive procedure.
+
+        participant:
+            The current participant.
+
+        Returns
+        -------
+
+        An updated list of candidate stimuli. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain stimuli from the list.
+        """
+        return candidates
+
+    def custom_stimulus_version_filter(self, candidates, participant):
+        """
+        Override this function to define a custom filter for choosing the participant's next stimulus version.
+
+        Parameters
+        ----------
+        candidates:
+            The current list of candidate stimulus versions as defined by the built-in non-adaptive procedure.
+
+        participant:
+            The current participant.
+
+        Returns
+        -------
+
+        An updated list of candidate stimulus versions. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain stimulus versions from the list.
+        """
+        return candidates
 
     @staticmethod
     def filter_out_repeated_stimuli(candidates, completed_stimuli):
@@ -1337,11 +1375,20 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
             if candidate_count_across == min_count_across
         ]
 
-    @staticmethod
-    def find_stimulus_version(stimulus, participant, experiment):
+    def find_stimulus_version(self, stimulus, participant, experiment):
         # pylint: disable=unused-argument
         candidates = StimulusVersion.query.filter_by(stimulus_id=stimulus.id).all()
         assert len(candidates) > 0
+        candidates = self.custom_stimulus_version_filter(
+            candidates=candidates, participant=participant
+        )
+        if not isinstance(candidates, list):
+            return ValueError(
+                "custom_stimulus_version_filter must return a list of stimuli"
+            )
+        if len(candidates) == 0:
+            return ValueError("custom_stimulus_version_filter returned an empty list")
+
         return random.choice(candidates)
 
 
@@ -1427,8 +1474,8 @@ class NonAdaptiveNetwork(TrialNetwork):
     __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_group = claim_field(3, "participant_group", __extra_vars__, str)
-    block = claim_field(4, "block", __extra_vars__, str)
+    participant_group = claim_field("participant_group", __extra_vars__, str)
+    block = claim_field("block", __extra_vars__, str)
 
     creation_started = claim_var("creation_started", __extra_vars__)
     creation_progress = claim_var("creation_progress", __extra_vars__)

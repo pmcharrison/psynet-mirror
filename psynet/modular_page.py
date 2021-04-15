@@ -1,7 +1,8 @@
+import itertools
 import json
 import os
 from typing import Dict, List, Optional, Union
-from urllib.parse import splitquery, urlparse
+from urllib.parse import urlparse
 
 from dominate import tags
 from dominate.util import raw
@@ -9,7 +10,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import get_logger
+from .utils import get_logger, linspace, strip_url_parameters
 
 logger = get_logger()
 
@@ -179,6 +180,112 @@ class AudioPrompt(Prompt):
             + "\n"
             + tags.audio(
                 tags.source(src=src), id="visualize-audio-prompt", controls=True
+            ).render()
+        )
+        return html
+
+
+class VideoPrompt(Prompt):
+    """
+    Plays a video file to the participant.
+
+    Parameters
+    ----------
+
+    url
+        URL of the video file to play.
+
+    text
+        Text to display to the participant. This can either be a string
+        for plain text, or an HTML specification from ``flask.Markup``.
+
+    loop
+        Whether the video should loop back to the beginning after finishing.
+
+    prevent_response
+        Whether the participant should be prevented from interacting with the
+        response controls until the video is finished.
+
+    prevent_submit
+        Whether the participant should be prevented from submitting their final
+        response until the video is finished.
+
+    enable_submit_after
+        If not ``None``, sets a time interval in seconds after which the response
+        options will be enabled.
+
+    start_delay
+        Delay in seconds before the video should start playing, counting from
+        the media load event.
+
+    text_align
+        CSS alignment of the text.
+
+    width
+        Width of the video frame to be displayed. Default: "560px".
+
+    play_window
+        An optional two-element list identifying the time window in the video file that
+        should be played.
+        If the first element is ``None``, then the video file is played from the beginning;
+        otherwise, the video file starts playback from this timepoint (in seconds)
+        (note that negative numbers will not be accepted here).
+        If the second element is ``None``, then the video file is played until the end;
+        otherwise, the video file finishes playback at this timepoint (in seconds).
+        The behaviour is undefined when the time window extends past the end of the video file.
+    """
+
+    def __init__(
+        self,
+        url: str,
+        text: Union[str, Markup],
+        loop: bool = False,
+        prevent_response: bool = True,
+        prevent_submit: bool = True,
+        enable_submit_after: Optional[float] = None,
+        start_delay=0.0,
+        text_align="left",
+        width: str = "560px",
+        play_window: Optional[List] = None,
+    ):
+        if play_window is None:
+            play_window = [None, None]
+        assert len(play_window) == 2
+
+        if play_window[0] is not None and play_window[0] < 0:
+            raise ValueError("play_window[0] may not be less than 0")
+
+        super().__init__(text=text, text_align=text_align)
+        self.url = url
+        self.prevent_response = prevent_response
+        self.prevent_submit = prevent_submit
+        self.enable_submit_after = enable_submit_after
+        self.loop = loop
+        self.start_delay = start_delay
+        self.width = width
+        self.play_window = play_window
+
+        self.js_play_options = dict(loop=loop, start=play_window[0], end=play_window[1])
+
+    macro = "video"
+
+    @property
+    def metadata(self):
+        return {"text": self.text, "url": self.url, "play_window": self.play_window}
+
+    @property
+    def media(self):
+        return MediaSpec(video={"prompt": self.url})
+
+    def visualize(self, trial):
+        start, end = tuple(self.play_window)
+        src = f"{self.url}#t={'' if start is None else start},{'' if end is None else end}"
+
+        html = (
+            super().visualize(trial)
+            + "\n"
+            + tags.video(
+                tags.source(src=src), id="visualize-video-prompt", controls=True
             ).render()
         )
         return html
@@ -1370,14 +1477,48 @@ class SliderControl(Control):
         self.template_filename = template_filename
         self.template_args = template_args
 
+        self.snap_values = self.format_snap_values(
+            snap_values, min_value, max_value, num_steps
+        )
+
         js_vars = {}
-        js_vars["snap_values"] = snap_values
+        js_vars["snap_values"] = self.snap_values
         js_vars["minimal_interactions"] = minimal_interactions
         js_vars["minimal_time"] = minimal_time
         js_vars["continuous_updates"] = continuous_updates
         self.js_vars = js_vars
 
     macro = "slider"
+
+    def format_snap_values(self, snap_values, min_value, max_value, num_steps):
+        if snap_values is None:
+            return linspace(min_value, max_value, num_steps)
+        elif isinstance(snap_values, int):
+            return linspace(min_value, max_value, snap_values)
+        else:
+            for x in snap_values:
+                assert isinstance(x, (float, int))
+                assert x >= min_value
+                assert x <= max_value
+            return sorted(snap_values)
+
+    def validate(self, response, **kwargs):
+        if self.input_type != "HTML5_range_slider":
+            raise NotImplementedError(
+                'Currently "HTML5_range_slider" is the only supported `input_type`'
+            )
+
+        if self.max_value <= self.min_value:
+            raise ValueError("`max_value` must be larger than `min_value`")
+
+        if self.start_value > self.max_value or self.start_value < self.min_value:
+            raise ValueError(
+                "`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)"
+                % (self.start_value, self.min_value, self.max_value)
+            )
+
+        if self.js_vars["minimal_interactions"] < 0:
+            raise ValueError("`minimal_interactions` cannot be negative!")
 
     @property
     def metadata(self):
@@ -1496,6 +1637,38 @@ class AudioSliderControl(SliderControl):
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
     ):
+        if isinstance(num_steps, str):
+            if num_steps == "num_sounds":
+                num_steps = len(sound_locations)
+            else:
+                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+
+        if isinstance(snap_values, str):
+            if snap_values == "sound_locations":
+                snap_values = list(sound_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
+
+        # Check if all stimuli specified in `sound_locations` are
+        # also preloaded before the participant can start the trial
+        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media = []
+        for key, value in audio.items():
+            if isinstance(audio[key], dict) and "ids" in audio[key]:
+                IDs_media.append(audio[key]["ids"])
+            elif isinstance(audio[key], str):
+                IDs_media.append(key)
+            else:
+                raise NotImplementedError(
+                    "Currently we only support batch files or single files"
+                )
+        IDs_media = list(itertools.chain.from_iterable(IDs_media))
+
+        if not any([i in IDs_media for i in IDs_sound_locations]):
+            raise ValueError(
+                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+            )
+
         super().__init__(
             label=label,
             start_value=start_value,
@@ -1505,20 +1678,17 @@ class AudioSliderControl(SliderControl):
             slider_id=slider_id,
             reverse_scale=reverse_scale,
             directional=directional,
+            snap_values=snap_values,
+            minimal_interactions=minimal_interactions,
+            minimal_time=minimal_time,
         )
+
         self.sound_locations = sound_locations
         self.autoplay = autoplay
         self.snap_values = snap_values
         self.audio = audio
-
-        js_vars = {}
-        js_vars["sound_locations"] = self.sound_locations
-        js_vars["autoplay"] = self.autoplay
-        js_vars["snap_values"] = self.snap_values
-        js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["minimal_time"] = minimal_time
-
-        self.js_vars = js_vars
+        self.js_vars["sound_locations"] = sound_locations
+        self.js_vars["autoplay"] = autoplay
 
     macro = "audio_slider"
 
@@ -1584,6 +1754,33 @@ class Slider:
 
 
 class AudioRecordControl(Control):
+    """
+    This control interface solicits an audio recording from the participant.
+
+    Parameters
+    ----------
+
+    duration
+        Duration of the desired recording, in seconds.
+        Note: the output recording may not be exactly this length, owing to inaccuracies
+        in the Javascript recording process.
+
+    s3_bucket
+        Name of the S3 bucket to which the recording should be uploaded.
+
+    show_meter
+        Whether an audio meter should be displayed, so as to help the participant
+        to calibrate their volume.
+
+    public_read
+        Whether the audio recording should be uploaded to the S3 bucket
+        with public read permissions.
+
+    auto_advance
+        Whether the page should automatically advance to the next page
+        once the audio recording has been uploaded.
+    """
+
     macro = "audio_record"
 
     def __init__(
@@ -1593,11 +1790,13 @@ class AudioRecordControl(Control):
         s3_bucket: str,
         show_meter: bool = False,
         public_read: bool = False,
+        auto_advance: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.show_meter = show_meter
         self.public_read = public_read
+        self.auto_advance = auto_advance
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
@@ -1613,7 +1812,7 @@ class AudioRecordControl(Control):
         return {
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
-            "url": splitquery(raw_answer)[0],
+            "url": strip_url_parameters(raw_answer),
             "duration_sec": self.duration,
         }
 
@@ -1630,6 +1829,134 @@ class AudioRecordControl(Control):
     def pre_render(self):
         self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
         logger.info(f"Generated presigned url: {self.presigned_url}")
+
+
+class VideoRecordControl(Control):
+    """
+    Records a video either by using the the camera or by capturing from the screen.
+
+    Parameters
+    ----------
+
+    s3_bucket
+        Name of the AWS S3 bucket to save the resulting file into.
+
+    duration
+        Duration of the video file in seconds.
+
+    recording_source
+        Specifies whether to record by using the camera and/or by capturing from the screen. Possible values are 'camera', 'screen' and 'both'.
+
+    record_audio
+        Whether to record audio using the microphone. This settings only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
+
+    show_meter
+        Whether an `AudioMeterControl` should be displayed. Default: `False`.
+
+    width
+        Width of the video frame to be displayed. Default: "560px".
+
+    start_delay
+        Delay in seconds before the video starts recording, counting from
+        the media load event. A countdown is displayed if `start_delay` > 0. Default: 0.0.
+
+    public_read
+        Whether the AWS S3 bucket's access permission is set to 'Public'. For reference see https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access.html
+
+    show_preview
+        Whether to show a preview of the video on the page. Default: `False`.
+
+    playback_before_upload
+        Whether to play back the recorded webcam video before it is uploaded.
+
+    allow_restart
+         Whether to be able to manually restart the video recording.
+    """
+
+    macro = "video_record"
+
+    def __init__(
+        self,
+        *,
+        s3_bucket: str,
+        duration: float,
+        recording_source: str,
+        record_audio: bool = True,
+        show_meter: bool = False,
+        width: str = "560px",
+        start_delay: float = 0.0,
+        public_read: bool = False,
+        show_preview: bool = False,
+        playback_before_upload: bool = False,
+        allow_restart: bool = False,
+    ):
+        self.duration = duration
+        self.s3_bucket = s3_bucket
+        self.recording_source = recording_source
+        self.record_audio = record_audio
+        self.show_meter = show_meter
+        self.width = width
+        self.start_delay = start_delay
+        self.public_read = public_read
+        self.show_preview = show_preview
+        self.playback_before_upload = playback_before_upload
+        self.allow_restart = allow_restart
+
+        if show_meter:
+            self.meter = AudioMeterControl(submit_button=False)
+        else:
+            self.meter = None
+
+        assert self.recording_source in ["camera", "screen", "both"]
+
+    @property
+    def metadata(self):
+        return {}
+
+    def format_answer(self, raw_answer, **kwargs):
+        return {
+            "s3_bucket": self.s3_bucket,
+            "camera_url": strip_url_parameters(raw_answer["camera"])
+            if raw_answer is not None
+            else None,
+            "screen_url": strip_url_parameters(raw_answer["screen"])
+            if raw_answer is not None
+            else None,
+            "duration_sec": self.duration,
+            "recording_source": self.recording_source,
+            "record_audio": self.record_audio,
+        }
+
+    def visualize_response(self, answer, response, trial):
+        if answer is None:
+            return tags.p("No video recorded yet.").render()
+        else:
+            html = tags.div()
+            if answer["camera_url"]:
+                html += tags.h5("Camera recording")
+                html += tags.video(
+                    tags.source(src=answer["camera_url"]),
+                    id="visualize-camera-video-response",
+                    controls=True,
+                    style="max-width: 640px;",
+                )
+            if answer["screen_url"]:
+                html += tags.h5("Screen recording")
+                html += tags.video(
+                    tags.source(src=answer["screen_url"]),
+                    id="visualize-screen-video-response",
+                    controls=True,
+                    style="max-width: 640px;",
+                )
+            return html.render()
+
+    def pre_render(self):
+        if self.recording_source in ["camera", "both"]:
+            self.presigned_url_camera = generate_presigned_url(self.s3_bucket, "webm")
+            logger.info(f"Generated presigned url: {self.presigned_url_camera}")
+        if self.recording_source in ["screen", "both"]:
+            self.presigned_url_screen = generate_presigned_url(self.s3_bucket, "webm")
+            logger.info(f"Generated presigned url: {self.presigned_url_screen}")
 
 
 class VideoSliderControl(Control):

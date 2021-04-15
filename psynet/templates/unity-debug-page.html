@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+{% block head %}
+  {{ super() }}
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="refresh" content="5">
+  <link rel="shortcut icon" href="{{ resources }}/scripts/TemplateData/favicon.ico">
+  <link rel="stylesheet" href="{{ resources }}/scripts/TemplateData/style.css">
+{% endblock %}
+
+{% block body %}
+    {{super()}}
+
+    <h1 style="float: left; background-color: black;" class="p-2 text-white"><img src="/static/images/unity_logo.png" style="float: left; height: 54px;"/>unity debug page</h1>
+    <h2 style="float: left;" class="p-3">Please go to your Unity IDE!</h2>
+    <ul style="clear: both; list-style-type: none;">
+      <li><span style="font-size: larger; font-weight: bold; text-decoration: underline;">{{ title }}</span></li>
+      <li style="font-weight: bold;">Session ID: <span style="font-weight: normal">{{ session_id }}</span></li>
+      <li style="font-weight: bold;">Contents</li>
+        <ul>
+        {% for key, value in contents.items() %}
+          <li style="font-size: smaller; list-style-type: disc;">{{ key }}: <i>{{ value }}</i></li>
+        {% endfor %}
+        </ul>
+      </li>
+      <li style="font-weight: bold;">Participant data</li>
+        <ul>
+        {% for key, value in participant.__json__().items() %}
+          <li style="font-size: smaller; list-style-type: disc;">{{ key }}: <i>{{ value }}</i></li>
+        {% endfor %}
+        </ul>
+      </li>
+    </ul>
+{% endblock %}

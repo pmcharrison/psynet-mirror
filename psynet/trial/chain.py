@@ -4,15 +4,37 @@ import warnings
 from typing import Optional, Union
 
 from dallinger import db
-from sqlalchemy import func
+from sqlalchemy import Column, func
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql.expression import not_
 
-from ..field import VarStore, claim_field, claim_var
+from ..field import VarStore, claim_field, claim_var, register_extra_var
 from ..page import wait_while
 from ..utils import get_logger, negate
-from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode, TrialSource
+from .main import (
+    HasDefinition,
+    NetworkTrialMaker,
+    Trial,
+    TrialNetwork,
+    TrialNode,
+    TrialSource,
+)
 
 logger = get_logger()
+
+
+class HasSeed:
+    # Mixin class that provides a 'seed' slot.
+    # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
+    @declared_attr
+    def seed(cls):
+        return cls.__table__.c.get(
+            "seed", Column(JSONB, server_default="{}", default=lambda: {})
+        )
+
+    __extra_vars__ = {}
+    register_extra_var(__extra_vars__, "seed", field_type=dict)
 
 
 class ChainNetwork(TrialNetwork):
@@ -113,8 +135,8 @@ class ChainNetwork(TrialNetwork):
     __mapper_args__ = {"polymorphic_identity": "chain_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_id = claim_field(3, "participant_id", __extra_vars__, int)
-    id_within_participant = claim_field(4, "id_within_participant", __extra_vars__, int)
+    participant_id = claim_field("participant_id", __extra_vars__, int)
+    id_within_participant = claim_field("id_within_participant", __extra_vars__, int)
 
     participant_group = claim_var("participant_group", __extra_vars__)
     chain_type = claim_var("chain_type", __extra_vars__)
@@ -280,7 +302,7 @@ class ChainNetwork(TrialNetwork):
         return (
             # pylint: disable=no-member
             db.session.query(func.max(ChainNode.degree))
-            .filter_by(network_id=self.id, failed=False)
+            .filter(ChainNode.network_id == self.id, ChainNode.failed.is_(False))
             .scalar()
         )
 
@@ -348,7 +370,7 @@ class ChainNetwork(TrialNetwork):
         self.head.fail()
 
 
-class ChainNode(TrialNode):
+class ChainNode(TrialNode, HasSeed, HasDefinition):
     """
     Represents a node in a chain network.
     In an experimental context, the node represents a state in the experiment;
@@ -471,7 +493,10 @@ class ChainNode(TrialNode):
     """
 
     __mapper_args__ = {"polymorphic_identity": "chain_node"}
-    __extra_vars__ = {}
+    __extra_vars__ = {
+        **HasSeed.__extra_vars__.copy(),
+        **HasDefinition.__extra_vars__.copy(),
+    }
 
     def __init__(
         self,
@@ -556,10 +581,8 @@ class ChainNode(TrialNode):
         trials = self.completed_and_processed_trials.all()
         return self.summarise_trials(trials, experiment, participant)
 
-    degree = claim_field(1, "degree", __extra_vars__, int)
-    child_id = claim_field(2, "child_id", __extra_vars__, int)
-    seed = claim_field(3, "seed", __extra_vars__)
-    definition = claim_field(4, "definition", __extra_vars__)
+    degree = claim_field("degree", __extra_vars__, int)
+    child_id = claim_field("child_id", __extra_vars__, int)
 
     propagate_failure = claim_var("propagate_failure", __extra_vars__)
 
@@ -642,7 +665,7 @@ class ChainNode(TrialNode):
                     self.child.fail()
 
 
-class ChainSource(TrialSource):
+class ChainSource(TrialSource, HasSeed):
     """
     Represents a source in a chain network.
     The source provides the seed from which the rest of the chain is ultimately derived.
@@ -698,10 +721,12 @@ class ChainSource(TrialSource):
 
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_source"}
-    __extra_vars__ = TrialSource.__extra_vars__.copy()
+    __extra_vars__ = {
+        **TrialSource.__extra_vars__.copy(),
+        **HasSeed.__extra_vars__.copy(),
+    }
 
     ready_to_spawn = True
-    seed = claim_field(1, "seed", __extra_vars__)
 
     degree = 0
 
@@ -1330,12 +1355,38 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant_group = participant.get_participant_group(self.id)
         networks = [n for n in networks if n.participant_group == participant_group]
 
+        networks = self.custom_network_filter(
+            candidates=networks, participant=participant
+        )
+        if not isinstance(networks, list):
+            return TypeError("custom_network_filter must return a list of networks")
+
         random.shuffle(networks)
 
         if self.active_balancing_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
 
         return networks
+
+    def custom_network_filter(self, candidates, participant):
+        """
+        Override this function to define a custom filter for choosing the participant's next network.
+
+        Parameters
+        ----------
+        candidates:
+            The current list of candidate networks as defined by the built-in chain procedure.
+
+        participant:
+            The current participant.
+
+        Returns
+        -------
+
+        An updated list of candidate networks. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain networks from the list.
+        """
+        return candidates
 
     @staticmethod
     def filter_by_participant_id(networks, participant):

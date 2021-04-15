@@ -211,6 +211,7 @@ example_record_with_audio_prompt = join(
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
+            auto_advance=True,
         ),
         time_estimate=5,
     ),

@@ -69,6 +69,103 @@ class InfoPage(Page):
         return {"content": self.content}
 
 
+class UnityPage(Page):
+    """
+    This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
+
+    Ín order to conclude this page call the ``psynet.next_page`` function which has following parameters:
+
+    * ``raw_answer``: The main answer that the page returns.
+
+    * ``metadata``: Additional information that might be useful for debugging or other exploration, e.g. time taken on the page.
+
+    * ``blobs``: Use this for large binaries, e.g. audio recordings.
+
+    Once the ``psynet.next_page`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``page_updated`` in the ``window`` object.
+
+    Parameters
+    ----------
+
+    title:
+        The title of the experiment to be rendered in the HTML title-tag of the page.
+
+    game_container_width:
+        The width of the game container, e.g. '960px'.
+
+    game_container_height:
+        The height of the game container, e.g. '600px'.
+
+    resources:
+        The path to the directory containing the Unity files residing inside the "static" directory. The path should start with "/static" and should comply with following basic structure:
+
+        static/
+        ├── css/
+        └── scripts/
+
+        css: Contains stylesheets
+        scripts: Contains JavaScript files
+
+    contents:
+        A dictionary containing experiment specific data.
+
+    time_estimate:
+        Time estimated for the page (seconds).
+
+    session_id:
+        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with JavaScript code like window.addEventListener(”page_updated”, ...).
+
+    debug:
+        Specifies if we are in debug mode and use `unity-debug-page.html` as template instead of the standard `unity-page.html`.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    def __init__(
+        self,
+        title: str,
+        resources: str,
+        contents: dict,
+        session_id: str,
+        game_container_width: str = "960px",
+        game_container_height: str = "600px",
+        time_estimate: Optional[float] = None,
+        debug: bool = False,
+        **kwargs,
+    ):
+        self.title = title
+        self.resources = resources
+        self.contents = contents
+        self.game_container_width = game_container_width
+        self.game_container_height = game_container_height
+        self.session_id = session_id
+
+        template = "unity-debug-page.html" if debug else "unity-page.html"
+
+        super().__init__(
+            contents=self.contents,
+            time_estimate=time_estimate,
+            template_str=get_template(template),
+            template_arg={
+                "title": self.title,
+                "resources": "" if self.resources is None else self.resources,
+                "contents": {} if self.contents is None else self.contents,
+                "game_container_width": self.game_container_width,
+                "game_container_height": self.game_container_height,
+                "session_id": self.session_id,
+            },
+            session_id=session_id,
+            **kwargs,
+        )
+
+    def metadata(self, **kwargs):
+        return {
+            "resources": self.resources,
+            "contents": self.contents,
+            "session_id": self.session_id,
+        }
+
+
 class WaitPage(Page):
     """
     This page makes the user wait for a specified amount of time
