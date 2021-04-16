@@ -36,7 +36,7 @@ def get_template(name):
     return importlib_resources.read_text(templates, name)
 
 
-class Event:
+class Elt:
     returns_time_credit = False
     time_estimate = None
     expected_repetitions = None
@@ -59,12 +59,12 @@ class Event:
     #     raise ValueError("Event not found in timeline.")
 
 
-class NullEvent(Event):
+class NullElt(Elt):
     def consume(self, experiment, participant):
         pass
 
 
-class CodeBlock(Event):
+class CodeBlock(Elt):
     """
     A timeline component that executes some back-end logic without showing
     anything to the participant.
@@ -87,7 +87,7 @@ class CodeBlock(Event):
         )
 
 
-class FixTime(Event):
+class FixTime(Elt):
     def __init__(self, time_estimate: float):
         self.time_estimate = time_estimate
         self.expected_repetitions = 1
@@ -110,7 +110,7 @@ class EndFixTime(FixTime):
         participant.time_credit.end_fix_time(self.time_estimate)
 
 
-class GoTo(Event):
+class GoTo(Elt):
     def __init__(self, target):
         self.target = target
 
@@ -150,9 +150,9 @@ class ReactiveGoTo(GoTo):
         try:
             assert isinstance(self.targets, dict)
             for target in self.targets.values():
-                assert isinstance(target, Event)
+                assert isinstance(target, Elt)
         except AssertionError:
-            raise TypeError("<targets> must be a dictionary of Event objects.")
+            raise TypeError("<targets> must be a dictionary of Elt objects.")
 
     def get_target(self, experiment, participant):
         val = call_function(
@@ -311,7 +311,7 @@ class MediaSpec:
         return json.dumps(self.data)
 
 
-class Page(Event):
+class Page(Elt):
     """
     The base class for pages, customised by passing values to the ``__init__``
     function and by overriding the following methods:
@@ -437,6 +437,7 @@ class Page(Event):
 
         self.save_answer = save_answer
         self.auto_start_trial = auto_start_trial
+        self.schedule = {}
 
     @property
     def initial_download_progress(self):
@@ -628,6 +629,7 @@ class Page(Event):
             "scripts": self.scripts,
             "css": self.css,
             "auto_start_trial": self.auto_start_trial,
+            "schedule": self.schedule,
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 
@@ -654,7 +656,7 @@ class Page(Event):
         return self
 
 
-class PageMaker(Event):
+class PageMaker(Elt):
     """
     A page maker is defined by a function that is executed when
     the participant requests the relevant page.
@@ -754,7 +756,7 @@ def multi_page_maker(
         res = call_function(
             function, {"experiment": experiment, "participant": participant}
         )
-        if isinstance(res, Event):
+        if isinstance(res, Elt):
             return [res]
         return res
 
@@ -1187,16 +1189,16 @@ def join(*args):
     for i, arg in enumerate(args):
         if not (
             (arg is None)
-            or (isinstance(arg, (Event, Module)) or is_list_of(arg, (Event, Module)))
+            or (isinstance(arg, (Elt, Module)) or is_list_of(arg, (Elt, Module)))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Event nor a list of Events nor a Module ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module ({arg})."
             )
 
     if len(args) == 0:
         return []
     elif len(args) == 1:
-        if isinstance(args[0], Event):
+        if isinstance(args[0], Elt):
             return [args[0]]
         elif isinstance(args[0], Module):
             return args[0].resolve()
@@ -1213,11 +1215,11 @@ def join(*args):
                 return y
             elif y is None:
                 return x
-            elif isinstance(x, Event) and isinstance(y, Event):
+            elif isinstance(x, Elt) and isinstance(y, Elt):
                 return [x, y]
-            elif isinstance(x, Event) and isinstance(y, list):
+            elif isinstance(x, Elt) and isinstance(y, list):
                 return [x] + y
-            elif isinstance(x, list) and isinstance(y, Event):
+            elif isinstance(x, list) and isinstance(y, Elt):
                 return x + [y]
             elif isinstance(x, list) and isinstance(y, list):
                 return x + y
@@ -1227,7 +1229,7 @@ def join(*args):
         return reduce(f, args)
 
 
-class StartWhile(NullEvent):
+class StartWhile(NullElt):
     def __init__(self, label):
         # targets = {
         #     True: self,
@@ -1238,7 +1240,7 @@ class StartWhile(NullEvent):
         self.label = label
 
 
-class EndWhile(NullEvent):
+class EndWhile(NullElt):
     def __init__(self, label):
         super().__init__()
         self.label = label
@@ -1317,12 +1319,12 @@ def check_branches(branches):
     try:
         assert isinstance(branches, dict)
         for branch_name, branch_events in branches.items():
-            assert isinstance(branch_events, Event) or is_list_of(branch_events, Event)
-            if isinstance(branch_events, Event):
+            assert isinstance(branch_events, Elt) or is_list_of(branch_events, Elt)
+            if isinstance(branch_events, Elt):
                 branches[branch_name] = [branch_events]
         return branches
     except AssertionError:
-        raise TypeError("<branches> must be a dict of (lists of) Event objects.")
+        raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
 
 
 def switch(
@@ -1421,12 +1423,12 @@ class StartSwitch(ReactiveGoTo):
         self.log_chosen_branch = log_chosen_branch
 
 
-class EndSwitch(NullEvent):
+class EndSwitch(NullElt):
     def __init__(self, label):
         self.label = label
 
 
-class StartSwitchBranch(NullEvent):
+class StartSwitchBranch(NullElt):
     def __init__(self, name):
         super().__init__()
         self.name = name
@@ -1485,23 +1487,23 @@ def conditional(
         function=condition,
         branches={
             True: logic_if_true,
-            False: NullEvent() if logic_if_false is None else logic_if_false,
+            False: NullElt() if logic_if_false is None else logic_if_false,
         },
         fix_time_credit=fix_time_credit,
         log_chosen_branch=log_chosen_branch,
     )
 
 
-class ConditionalEvent(Event):
+class ConditionalElt(Elt):
     def __init__(self, label: str):
         self.label = label
 
 
-class StartConditional(ConditionalEvent):
+class StartConditional(ConditionalElt):
     pass
 
 
-class EndConditional(ConditionalEvent):
+class EndConditional(ConditionalElt):
     pass
 
 
@@ -1512,8 +1514,8 @@ def fix_time(events, time_estimate):
 
 
 def multiply_expected_repetitions(logic, factor: float):
-    assert isinstance(logic, Event) or is_list_of(logic, Event)
-    if isinstance(logic, Event):
+    assert isinstance(logic, Elt) or is_list_of(logic, Elt)
+    if isinstance(logic, Elt):
         logic.multiply_expected_repetitions(factor)
     else:
         for event in logic:
@@ -1691,7 +1693,7 @@ class Module:
         }
 
 
-class StartModule(NullEvent):
+class StartModule(NullElt):
     def __init__(self, label, module):
         super().__init__()
         self.label = label
@@ -1701,7 +1703,7 @@ class StartModule(NullEvent):
         participant.start_module(self.label)
 
 
-class EndModule(NullEvent):
+class EndModule(NullElt):
     def __init__(self, label):
         super().__init__()
         self.label = label
@@ -1710,7 +1712,7 @@ class EndModule(NullEvent):
         participant.end_module(self.label)
 
 
-class ExperimentSetupRoutine(NullEvent):
+class ExperimentSetupRoutine(NullElt):
     def __init__(self, function):
         self.check_function(function)
         self.function = function
@@ -1728,7 +1730,7 @@ class ExperimentSetupRoutine(NullEvent):
         return callable(x)
 
 
-class BackgroundTask(NullEvent):
+class BackgroundTask(NullElt):
     def __init__(self, label, function, interval_sec, run_on_launch=False):
         check_function_args(function, args=[])
         self.label = label
@@ -1763,7 +1765,7 @@ class BackgroundTask(NullEvent):
             self.safe_function()
 
 
-class PreDeployRoutine(NullEvent):
+class PreDeployRoutine(NullElt):
     """
     A timeline component that allows for the definition of tasks to be performed
     before deployment. :class:`PreDeployRoutine`s are thought to be added to the
@@ -1789,7 +1791,7 @@ class PreDeployRoutine(NullEvent):
         self.args = args
 
 
-class ParticipantFailRoutine(NullEvent):
+class ParticipantFailRoutine(NullElt):
     def __init__(self, label, function):
         check_function_args(
             function, args=["participant", "experiment"], need_all=False
@@ -1798,7 +1800,7 @@ class ParticipantFailRoutine(NullEvent):
         self.function = function
 
 
-class RecruitmentCriterion(NullEvent):
+class RecruitmentCriterion(NullElt):
     def __init__(self, label, function):
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
