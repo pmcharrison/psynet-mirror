@@ -8,7 +8,7 @@ from dominate.util import raw
 from flask import Markup
 
 from .media import generate_presigned_url
-from .timeline import FailedValidation, MediaSpec, Page, is_list_of
+from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import get_logger, strip_url_parameters
 
 logger = get_logger()
@@ -56,9 +56,21 @@ class Prompt:
         in PsyNet's built-in ``prompt.html`` file.
     """
 
-    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left"):
+    def __init__(
+        self,
+        text: Union[None, str, Markup] = None,
+        text_align: str = "left",
+        response_enable_trigger: str = "promptFinish",
+        response_enable_delay: float = 0.0,
+        submit_enable_trigger: str = "promptFinish",
+        submit_enable_delay: float = 0.0,
+    ):
         self.text = text
         self.text_align = text_align
+        self.response_enable_trigger = response_enable_trigger
+        self.response_enable_delay = response_enable_delay
+        self.submit_enable_trigger = submit_enable_trigger
+        self.submit_enable_delay = submit_enable_delay
 
     macro = "simple"
     external_template = None
@@ -82,6 +94,17 @@ class Prompt:
     def pre_render(self):
         pass
 
+    def update_schedule(self, schedule):
+        schedule["responseReady"].add_trigger(
+            Trigger(
+                event_id=self.response_enable_trigger, delay=self.response_enable_delay
+            )
+        )
+
+        schedule["submitReady"].add_trigger(
+            Trigger(event_id=self.submit_enable_trigger, delay=self.submit_enable_delay)
+        )
+
 
 class AudioPrompt(Prompt):
     """
@@ -99,18 +122,6 @@ class AudioPrompt(Prompt):
 
     loop
         Whether the audio should loop back to the beginning after finishing.
-
-    prevent_response
-        Whether the participant should be prevented from interacting with the
-        response controls until the audio is finished.
-
-    prevent_submit
-        Whether the participant should be prevented from submitting their final
-        response until the audio is finished.
-
-    enable_submit_after
-        If not ``None``, sets a time interval in seconds after which the response
-        options will be enabled.
 
     start_delay
         Delay in seconds before the sound should start playing, counting from
@@ -134,6 +145,9 @@ class AudioPrompt(Prompt):
 
     fade_in
         Fade-in duration for the audio (defaults to ``0.0``).
+
+    kwargs
+        Passed to :class:`~psynet.modular_page.Prompt`.
     """
 
     def __init__(
@@ -141,14 +155,12 @@ class AudioPrompt(Prompt):
         url: str,
         text: Union[str, Markup],
         loop: bool = False,
-        prevent_response: bool = True,
-        prevent_submit: bool = True,
-        enable_submit_after: Optional[float] = None,
         start_delay=0.0,
         text_align="left",
         play_window: Optional[List] = None,
         controls: bool = False,
         fade_in: float = 0.0,
+        **kwargs,
     ):
         if play_window is None:
             play_window = [None, None]
@@ -157,11 +169,8 @@ class AudioPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(text=text, text_align=text_align)
+        super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
-        self.prevent_response = prevent_response
-        self.prevent_submit = prevent_submit
-        self.enable_submit_after = enable_submit_after
         self.loop = loop
         self.start_delay = start_delay
         self.play_window = play_window
@@ -215,18 +224,6 @@ class VideoPrompt(Prompt):
     loop
         Whether the video should loop back to the beginning after finishing.
 
-    prevent_response
-        Whether the participant should be prevented from interacting with the
-        response controls until the video is finished.
-
-    prevent_submit
-        Whether the participant should be prevented from submitting their final
-        response until the video is finished.
-
-    enable_submit_after
-        If not ``None``, sets a time interval in seconds after which the response
-        options will be enabled.
-
     start_delay
         Delay in seconds before the video should start playing, counting from
         the media load event.
@@ -246,6 +243,9 @@ class VideoPrompt(Prompt):
         If the second element is ``None``, then the video file is played until the end;
         otherwise, the video file finishes playback at this timepoint (in seconds).
         The behaviour is undefined when the time window extends past the end of the video file.
+
+    kwargs
+        Passed to :class:`~psynet.modular_page.Prompt`.
     """
 
     def __init__(
@@ -253,13 +253,11 @@ class VideoPrompt(Prompt):
         url: str,
         text: Union[str, Markup],
         loop: bool = False,
-        prevent_response: bool = True,
-        prevent_submit: bool = True,
-        enable_submit_after: Optional[float] = None,
         start_delay=0.0,
         text_align="left",
         width: str = "560px",
         play_window: Optional[List] = None,
+        **kwargs,
     ):
         if play_window is None:
             play_window = [None, None]
@@ -268,11 +266,8 @@ class VideoPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(text=text, text_align=text_align)
+        super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
-        self.prevent_response = prevent_response
-        self.prevent_submit = prevent_submit
-        self.enable_submit_after = enable_submit_after
         self.loop = loop
         self.start_delay = start_delay
         self.width = width
@@ -538,6 +533,9 @@ class Control:
         return ""
 
     def pre_render(self):
+        pass
+
+    def update_schedule(self, schedule):
         pass
 
 
@@ -1161,6 +1159,14 @@ class ModularPage(Page):
             media=all_media,
             **kwargs,
         )
+
+        self.update_schedule(self.schedule)
+
+    def update_schedule(self, schedule):
+        schedule["responseReady"] = Event(triggers=[], trigger_condition="all", delay=0)
+        schedule["submitReady"] = Event(triggers=[], trigger_condition="all", delay=0)
+        self.prompt.update_schedule(schedule)
+        self.control.update_schedule(schedule)
 
     @property
     def prompt_macro(self):

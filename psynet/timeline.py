@@ -31,6 +31,25 @@ from .utils import (
 logger = get_logger()
 
 
+class Event(dict):
+    def __init__(self, triggers, trigger_condition, delay):
+        super().__init__(
+            triggers=triggers, trigger_condition=trigger_condition, delay=delay
+        )
+
+    def add_trigger(self, trigger):
+        self["triggers"].append(trigger)
+
+
+class Trigger(dict):
+    def __init__(self, event_id, delay):
+        super().__init__(event_id=event_id, delay=delay)
+
+
+def schedule_event(triggers, trigger_condition, delay):
+    return dict(triggers=triggers, trigger_condition=trigger_condition, delay=delay)
+
+
 def get_template(name):
     assert isinstance(name, str)
     return importlib_resources.read_text(templates, name)
