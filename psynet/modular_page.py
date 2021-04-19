@@ -568,7 +568,7 @@ class OptionControl(Control):
 
 class CheckboxControl(OptionControl):
     """
-    This control interface solicits a multiple-choice response from the participant using chekboxes.
+    This control interface solicits a multiple-choice response from the participant using checkboxes.
 
     Parameters
     ----------
@@ -601,7 +601,7 @@ class CheckboxControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
-        name: str = "",
+        name: str = "checkboxes",
         arrange_vertically: bool = True,
         force_selection: bool = False,
         show_reset_button: str = "never",
@@ -685,7 +685,7 @@ class DropdownControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
-        name: str = "",
+        name: str = "dropdown",
         force_selection: bool = True,
         default_text="Select an option",
     ):
@@ -931,7 +931,7 @@ class RadioButtonControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "cursor: pointer;",
-        name: str = "",
+        name: str = "radiobuttons",
         arrange_vertically: bool = True,
         force_selection: bool = True,
         show_reset_button: str = "never",
