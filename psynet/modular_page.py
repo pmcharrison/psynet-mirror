@@ -1792,6 +1792,7 @@ class AudioRecordControl(Control):
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
         return {
+            "origin": "AudioRecordControl",
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
             "url": strip_url_parameters(raw_answer),
