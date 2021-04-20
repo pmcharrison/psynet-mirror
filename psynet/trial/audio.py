@@ -28,8 +28,20 @@ class AudioRecordTrial:
     analysis = claim_var("analysis", __extra_vars__)
 
     @property
+    def audio_answer(self):
+        if isinstance(self.answer, list): # multipage
+            for a in self.answer:
+                try:
+                    if a["origin"] == "AudioRecordControl":
+                        return a
+                except (KeyError, TypeError) as e:
+                    continue
+        else:
+            return self.answer
+
+    @property
     def recording_info(self):
-        answer = self.answer
+        answer = self.audio_answer
         if answer is None:
             return None
         try:

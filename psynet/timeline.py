@@ -477,7 +477,7 @@ class Page(Event):
             metadata=combined_metadata,
             client_ip_address=client_ip_address,
         )
-
+        
         db.session.add(resp)
         db.session.commit()
 
