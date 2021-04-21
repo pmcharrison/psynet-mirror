@@ -43,7 +43,7 @@ var Recorder = exports.Recorder = (function () {
 
         this.config = {
             bufferLen: 4096,
-            numChannels: numChannels, // NORI CHANGED THIS TO HAVE ALWAYS A MONO FILE!!!
+            numChannels: numChannels,
             mimeType: 'audio/wav'
         };
         this.recording = false;
