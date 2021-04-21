@@ -1757,6 +1757,7 @@ class AudioRecordControl(Control):
         controls: bool = False,
         loop_playback: bool = False,
         record_window: Optional[List] = None,
+        num_channels: int = 1
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1767,6 +1768,7 @@ class AudioRecordControl(Control):
         self.controls = controls
         self.loop_playback = loop_playback
         self.record_window = record_window
+        self.num_channels = num_channels
 
         if self.record_window is None:
             self.record_window = [0.0, self.duration]

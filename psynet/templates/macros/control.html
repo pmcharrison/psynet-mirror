@@ -998,6 +998,7 @@
         psynet.media.register_on_loaded_routine(function() {
             navigator.mediaDevices.getUserMedia({
                 audio: {
+                    channelCount: {{ config.num_channels }},
                     autoGainControl: false,
                     echoCancellation: false,
                     noiseSuppression: false
