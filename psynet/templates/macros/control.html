@@ -995,11 +995,11 @@
 
         psynet.trial.addRoutine("cleanup", () => recorder.stop());
 
-        let numChannels = config.num_channels; 
+        let nc = {{ config.num_channels }} ; 
         psynet.media.register_on_loaded_routine(function() {
             navigator.mediaDevices.getUserMedia({
                 audio: {
-                    channelCount: {{ numChannels }},
+                    channelCount: nc,
                     autoGainControl: false,
                     echoCancellation: false,
                     noiseSuppression: false
@@ -1008,7 +1008,7 @@
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
-                recorder = new Recorder(input, num_channels);
+                recorder = new Recorder(input, nc);
                 psynet.register_event("audio_recorder_ready");
                 psynet.response.ready("audio_recorder_ready");
                 psynet.trial.ready("audio_recorder_ready");
