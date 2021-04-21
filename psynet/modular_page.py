@@ -1741,6 +1741,9 @@ class AudioRecordControl(Control):
         If not ``None``, a time window within which the recorder should record, specified as
         ``[time_start, time_end]`` (seconds) where both numbers are less than or equal to ``duration``.
         This is mainly useful for synchronising the recorder with other timed events in the PsyNet page.
+    
+    num_channels
+        The number of channels used to record the audio. Default is mono (`num_channels=1`). 
     """
 
     macro = "audio_record"
