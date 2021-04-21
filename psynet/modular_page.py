@@ -1741,6 +1741,9 @@ class AudioRecordControl(Control):
         If not ``None``, a time window within which the recorder should record, specified as
         ``[time_start, time_end]`` (seconds) where both numbers are less than or equal to ``duration``.
         This is mainly useful for synchronising the recorder with other timed events in the PsyNet page.
+    
+    num_channels
+        The number of channels used to record the audio. Default is mono (`num_channels=1`). 
     """
 
     macro = "audio_record"
@@ -1757,6 +1760,7 @@ class AudioRecordControl(Control):
         controls: bool = False,
         loop_playback: bool = False,
         record_window: Optional[List] = None,
+        num_channels: int = 1
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1767,6 +1771,7 @@ class AudioRecordControl(Control):
         self.controls = controls
         self.loop_playback = loop_playback
         self.record_window = record_window
+        self.num_channels = num_channels
 
         if self.record_window is None:
             self.record_window = [0.0, self.duration]
