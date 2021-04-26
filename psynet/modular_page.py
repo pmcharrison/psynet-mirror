@@ -10,7 +10,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import get_logger, linspace, strip_url_parameters
+from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
 
 logger = get_logger()
 
@@ -556,6 +556,12 @@ class OptionControl(Control):
         assert isinstance(self.labels, list)
         assert len(self.choices) == len(self.labels)
 
+    def validate_name(self, name):
+        if not isinstance(name, str):
+            raise ValueError("name must be a string")
+        if not is_valid_html5_id(name):
+            raise ValueError("name must be a valid HTML5 id")
+
     @property
     def metadata(self):
         return {
@@ -607,6 +613,7 @@ class CheckboxControl(OptionControl):
         show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
@@ -690,6 +697,7 @@ class DropdownControl(OptionControl):
         default_text="Select an option",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.force_selection = force_selection
         self.default_text = default_text
@@ -937,6 +945,7 @@ class RadioButtonControl(OptionControl):
         show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection

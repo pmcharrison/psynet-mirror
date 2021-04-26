@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from .modular_page import Control, ModularPage, Prompt
 from .timeline import MediaSpec
+from .utils import is_valid_html5_id
 
 
 class GraphicMixin:
@@ -102,8 +103,8 @@ class GraphicMixin:
     def validate_id(self, id_):
         if not isinstance(id_, str):
             raise ValueError("id_ must be a string")
-        if not id_.isidentifier():
-            raise ValueError("id_ must be a valid variable name")
+        if not is_valid_html5_id(id_):
+            raise ValueError("id_ must be a valid HTML5 id")
 
     def validate_frames(self, frames):
         for f in frames:
@@ -293,8 +294,8 @@ class GraphicObject:
     def validate_id(self, id_):
         if not isinstance(id_, str):
             raise ValueError("id_ must be a string")
-        if not id_.isidentifier():
-            raise ValueError("id_ must be a valid variable name")
+        if not is_valid_html5_id(id_):
+            raise ValueError("id_ must be a valid HTML5 id")
 
     @property
     def js_init(self):
