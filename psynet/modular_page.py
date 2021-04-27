@@ -10,7 +10,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import FailedValidation, MediaSpec, Page, is_list_of
-from .utils import get_logger, linspace, strip_url_parameters
+from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
 
 logger = get_logger()
 
@@ -556,6 +556,12 @@ class OptionControl(Control):
         assert isinstance(self.labels, list)
         assert len(self.choices) == len(self.labels)
 
+    def validate_name(self, name):
+        if not isinstance(name, str):
+            raise ValueError("name must be a string")
+        if not is_valid_html5_id(name):
+            raise ValueError("name must be a valid HTML5 id")
+
     @property
     def metadata(self):
         return {
@@ -568,7 +574,7 @@ class OptionControl(Control):
 
 class CheckboxControl(OptionControl):
     """
-    This control interface solicits a multiple-choice response from the participant using chekboxes.
+    This control interface solicits a multiple-choice response from the participant using checkboxes.
 
     Parameters
     ----------
@@ -601,12 +607,13 @@ class CheckboxControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
-        name: str = "",
+        name: str = "checkboxes",
         arrange_vertically: bool = True,
         force_selection: bool = False,
         show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
@@ -685,11 +692,12 @@ class DropdownControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
-        name: str = "",
+        name: str = "dropdown",
         force_selection: bool = True,
         default_text="Select an option",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.force_selection = force_selection
         self.default_text = default_text
@@ -931,12 +939,13 @@ class RadioButtonControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "cursor: pointer;",
-        name: str = "",
+        name: str = "radiobuttons",
         arrange_vertically: bool = True,
         force_selection: bool = True,
         show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
