@@ -44,6 +44,7 @@ setuptools.setup(
     ],
     extras_require={
         "dev": [
+            "isort",
             "mock",
             "pre-commit",
             "pytest",
