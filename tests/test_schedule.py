@@ -22,20 +22,20 @@ def test_events_format():
 
     assert page.events == {
         "responseReady": {
-            "triggered_by": [{"event_id": "promptFinish", "delay": 1.0}],
-            "trigger_condition": "all",
+            "isTriggeredBy": [{"eventId": "promptFinish", "delay": 1.0}],
+            "triggerCondition": "all",
             "delay": 0,
             "once": True,
         },
         "submitReady": {
-            "triggered_by": [{"event_id": "promptFinish", "delay": 2.0}],
-            "trigger_condition": "all",
+            "isTriggeredBy": [{"eventId": "promptFinish", "delay": 2.0}],
+            "triggerCondition": "all",
             "delay": 0,
             "once": True,
         },
         "promptStart": {
-            "triggered_by": [{"event_id": "trialStart", "delay": 0.0}],
-            "trigger_condition": "all",
+            "isTriggeredBy": [{"eventId": "trialStart", "delay": 0.0}],
+            "triggerCondition": "all",
             "delay": 0,
             "once": True,
         },
@@ -59,41 +59,41 @@ def test_events_audio_record():
 
     assert page.events == {
         "responseReady": {
-            "triggered_by": [],
-            "trigger_condition": "all",
+            "isTriggeredBy": [],
+            "triggerCondition": "all",
             "delay": 0.0,
             "once": True,
         },
         "submitReady": {
-            "triggered_by": [],
-            "trigger_condition": "all",
+            "isTriggeredBy": [],
+            "triggerCondition": "all",
             "delay": 0.0,
             "once": True,
         },
         "audioStart": {
-            "triggered_by": [{"event_id": "trialStart", "delay": 0.75}],
-            "trigger_condition": "all",
+            "isTriggeredBy": [{"eventId": "trialStart", "delay": 0.75}],
+            "triggerCondition": "all",
             "delay": 0.0,
             "once": True,
         },
         "recordingStart": {
-            "triggered_by": [{"event_id": "trialStart", "delay": 1.0}],
-            "trigger_condition": "all",
+            "isTriggeredBy": [{"eventId": "trialStart", "delay": 1.0}],
+            "triggerCondition": "all",
             "delay": 0.0,
             "once": True,
         },
         "recordingEnd": {
-            "triggered_by": [{"event_id": "trialStart", "delay": 2.0}],
-            "trigger_condition": "all",
+            "isTriggeredBy": [{"eventId": "trialStart", "delay": 2.0}],
+            "triggerCondition": "all",
             "delay": 0.0,
             "once": True,
         },
         "trialEnd": {
-            "triggered_by": [
-                {"event_id": "audioEnd", "delay": 0.0},
-                {"event_id": "recordingEnd", "delay": 0.0},
+            "isTriggeredBy": [
+                {"eventId": "audioEnd", "delay": 0.0},
+                {"eventId": "recordingEnd", "delay": 0.0},
             ],
-            "trigger_condition": "all",
+            "triggerCondition": "all",
             "delay": 0.0,
             "once": True,
         },

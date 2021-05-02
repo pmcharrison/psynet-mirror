@@ -32,23 +32,27 @@ logger = get_logger()
 
 
 class Event(dict):
-    def __init__(self, triggered_by, trigger_condition="all", delay=0.0, once=True):
-        if isinstance(triggered_by, Trigger):
-            triggered_by = [triggered_by]
+    def __init__(
+        self, is_triggered_by=None, trigger_condition="all", delay=0.0, once=True
+    ):
+        if is_triggered_by is None:
+            is_triggered_by = []
+        elif isinstance(is_triggered_by, Trigger):
+            is_triggered_by = [is_triggered_by]
         super().__init__(
-            triggered_by=triggered_by,
-            trigger_condition=trigger_condition,
+            isTriggeredBy=is_triggered_by,
+            triggerCondition=trigger_condition,
             delay=delay,
             once=once,
         )
 
     def add_trigger(self, trigger):
-        self["triggered_by"].append(trigger)
+        self["isTriggeredBy"].append(trigger)
 
 
 class Trigger(dict):
     def __init__(self, event_id, delay):
-        super().__init__(event_id=event_id, delay=delay)
+        super().__init__(eventId=event_id, delay=delay)
 
 
 def get_template(name):
@@ -457,7 +461,7 @@ class Page(Elt):
 
         self.save_answer = save_answer
         self.auto_start_trial = auto_start_trial
-        self.events = {}
+        self.events = {"trialStart": Event()}
 
     @property
     def initial_download_progress(self):

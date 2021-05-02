@@ -139,17 +139,14 @@
 
         psynet.trial.delay = {{config.start_delay}};
 
-        psynet.trial.addEvent("audioPlay", 0.0, function() {
-            console.log(audio_prompt_player_options);
-            var sound = psynet.audio.prompt.play(audio_prompt_player_options);
-            psynet.register_event("audio_play_start");
+        psynet.trial.onEvent("audioPromptStart", function() {
+            let sound = psynet.audio.prompt.play(audio_prompt_player_options);
             sound.source.addEventListener("ended", function() {
-                psynet.register_event("audio_play_end");
+                psynet.trial.registerEvent("audioPromptEnd");
                 {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
                 {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
             });
-
-        });
+        })
 
         {% if config.submit_enable_delay is not none %}
             psynet.trial.addEvent(

@@ -314,7 +314,7 @@
                         state: null,
                         inProgress: false,
                         startTime: null,
-                        events: null,
+                        events: {},
                         timers: [],
                         get time() {
                             if (this.inProgress) {
@@ -328,15 +328,16 @@
                     let Event = function(id, spec) {
                         let event = {
                             id: id,
-                            triggeredBy: spec.triggered_by,
-                            triggerCondition: spec.trigger_condition,
+                            isTriggeredBy: spec.isTriggeredBy,
+                            willTrigger: [],
+                            triggerCondition: spec.triggerCondition,
                             delay: spec.delay,
                             once: spec.once,
                             handlers: [],
-                            triggered: false,
-                            triggers: []
+                            hasBeenTriggered: false
                         };
-                        event.triggeredBy.forEach((trigger) => {
+
+                        event.isTriggeredBy.forEach((trigger) => {
                             trigger.fired = false;
                             trigger.parent = event;
                             trigger.fire = function() {
@@ -345,24 +346,31 @@
                             }
                         });
                         event.checkTriggers = function() {
-                            let allTriggersFired = event.triggeredBy.every((trigger) => trigger.fired);
-                            if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.triggered)) {
+                            let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
+                            if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.hasBeenTriggered)) {
                                 trial.registerEvent(id);
-                                event.triggered = true;
+                                event.hasBeenTriggered = true;
                             }
                         };
                         event.propagateTriggers = function() {
-                            event.triggeredBy.forEach((trigger) => {
-                                let triggeringEvent = trial.events[trigger.event_id];
-                                triggeringEvent.triggers.push(trigger);
+                            event.isTriggeredBy.forEach((trigger) => {
+                                let triggeringEvent = trial.events[trigger.eventId];
+                                if (triggeringEvent == undefined) {
+                                    throw Error(
+                                        "Tried to use " + trigger.eventId + " as an event trigger, " +
+                                        "but no such event existed in the trial's timeline."
+                                    );
+                                }
+                                triggeringEvent.willTrigger.push(trigger);
                             });
                         };
                         return event;
                     };
 
                     trial.initEvents = function() {
-                        trial.events = Object.entries({{ events | tojson }}).map(([id, spec]) => Event(id, spec));
-                        trial.events.forEach((e) => e.propagateTriggers());
+                        let rawEvents = {{ events | tojson }};
+                        Object.entries(rawEvents).forEach(([id, spec]) => trial.events[id] = Event(id, spec));
+                        Object.values(trial.events).forEach((event) => event.propagateTriggers());
                     };
 
                     trial.setTimer = function(handler, timeout) {
@@ -374,7 +382,9 @@
                     };
 
                     trial.registerEvent = async function(id) {
-                        await psynet.register_event(id);
+                        {#await psynet.register_event(id);#}
+                        trial.state = id;
+
                         let event = trial.events[id];
 
                         for (const handler of event.handlers) {
@@ -383,9 +393,8 @@
                             trial.pendingEventHandlers.remove(id);
                         }
 
-                        for (const trigger of event.triggers) {
-                            let delay = trigger.delay;
-                            trial.setTimer(trigger => trigger.fire(), delay * 1000);
+                        for (const t of event.willTrigger) {
+                            trial.setTimer(t => t.fire(), t.delay * 1000);
                         }
                     };
 
@@ -463,8 +472,7 @@
                          * can cause the trial to end early.
                          */
                         let options = {
-                            trialStart: 0.0,
-                            trialEnd: trial.duration
+                            startAt: "trialStart"
                         }
                         Object.assign(options, provided_options);
 
@@ -477,10 +485,8 @@
                         trial.iteration += 1;
                         psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
 
-                        // If trialStart > 0, we pretend that the trial started a while ago
-                        trial.startTime = trial.getGlobalTime() - options.trialStart;
-                        trial.state = "trialStart";
-                        await trial.registerEvent("trialStart");
+                        trial.startTime = trial.getGlobalTime();
+                        await trial.registerEvent(options.startAt);
 
                         trial.inProgress = true;
                     };
@@ -496,10 +502,6 @@
                             await this.pendingEventHandlers.waitFor({ignore: ["trialFinish"]});
                             await this.runRoutines("cleanup");
                         }
-                    };
-
-                    trial.setDuration = function(duration) {
-                        trial.duration = duration;
                     };
 
                     trial.onEvent = function(id, handler) {
@@ -563,6 +565,7 @@
                     trial.initEvents();
                     trial.initRoutines();
                     trial.onEvent("trialEnd", () => trial.stop());
+
                     return trial
                 }
 

@@ -99,7 +99,7 @@ class Prompt:
     def update_events(self, events):
 
         events["promptStart"] = Event(
-            triggered_by=[
+            is_triggered_by=[
                 Trigger(
                     event_id="trialStart",
                     delay=self.start_delay,
@@ -223,6 +223,20 @@ class AudioPrompt(Prompt):
             ).render()
         )
         return html
+
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["audioPromptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    event_id="promptStart",
+                    delay=0,
+                )
+            ]
+        )
+
+        events["audioPromptEnd"] = Event(is_triggered_by=[])
 
 
 class VideoPrompt(Prompt):
@@ -1184,9 +1198,11 @@ class ModularPage(Page):
 
     def update_events(self, events):
         events["responseReady"] = Event(
-            triggered_by=[], trigger_condition="all", delay=0
+            is_triggered_by=[], trigger_condition="all", delay=0
         )
-        events["submitReady"] = Event(triggered_by=[], trigger_condition="all", delay=0)
+        events["submitReady"] = Event(
+            is_triggered_by=[], trigger_condition="all", delay=0
+        )
         self.prompt.update_events(events)
         self.control.update_events(events)
 

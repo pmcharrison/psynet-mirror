@@ -846,10 +846,9 @@
             priority: 100 // ensures that this is only executed once all the media processing completes
         });
 
-        psynet.trial.addRoutine("prepare", () => psynet.media.stop_all_audio());
-
-        psynet.trial.addRoutine("cleanup", () => psynet.media.stop_all_audio());
         psynet.trial.addRoutine("cleanup", function() {
+            psynet.media.stop_all_audio();
+
             $("#record-active").hide();
             if (hasRecorded) {
                 $("#record-upload").show();
@@ -864,13 +863,26 @@
             }
         });
 
-        let initProgressBar = function() {
+        let initProgressBar = function(startTime) {
             let bars = [
                 $("#record-progress-bar-0"),
                 $("#record-progress-bar-1"),
                 $("#record-progress-bar-2"),
                 $("#record-progress-bar-3")
             ];
+
+            let updateBar = function(bar, percent, red, css) {
+                bar.css("width", percent + "%");
+                bar.attr("aria-valuenow", percent);
+
+                bar.css(css);
+
+                if (red) {
+                    bar.addClass("bg-danger");
+                } else {
+                    bar.removeClass("bg-danger");
+                }
+            };
 
             let updateBars = function() {
                 let duration = psynet.trial.duration;
@@ -884,20 +896,12 @@
             }
 
             setInterval(updateBars, 5);
-        }
-
-        let updateBar = function(bar, percent, red, css) {
-            bar.css("width", percent + "%");
-            bar.attr("aria-valuenow", percent);
-
-            bar.css(css);
-
-            if (red) {
-                bar.addClass("bg-danger");
-            } else {
-                bar.removeClass("bg-danger");
-            }
         };
+
+        psynet.trial.addRoutine("prepare", () => {
+            psynet.media.stop_all_audio();
+            initProgressBar();
+        });
 
         psynet.media.register_on_loaded_routine(function() {
             if (psynet.audio.prompt) {
