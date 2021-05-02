@@ -20,12 +20,6 @@ def test_events_default():
             "delay": 0.0,
             "once": True,
         },
-        "allowResponse": {
-            "isTriggeredBy": [{"eventId": "trialStart", "delay": 0.0}],
-            "triggerCondition": "all",
-            "delay": 0.0,
-            "once": True,
-        },
         "allowSubmit": {
             "isTriggeredBy": [{"eventId": "trialStart", "delay": 0.0}],
             "triggerCondition": "all",
