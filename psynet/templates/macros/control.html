@@ -858,7 +858,7 @@
             }
         });
 
-        psynet.trial.addRoutine("finish", function() {
+        psynet.trial.onEvent("trialEnd", function() {
             if (loop) {
                 psynet.trial.start();
             }

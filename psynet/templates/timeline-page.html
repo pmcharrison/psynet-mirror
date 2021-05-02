@@ -374,7 +374,7 @@
                     };
 
                     trial.registerEvent = async function(id) {
-                        psynet.register_event(id);
+                        await psynet.register_event(id);
                         let event = trial.events[id];
 
                         for (const handler of event.handlers) {
@@ -477,35 +477,12 @@
                         trial.iteration += 1;
                         psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
 
-                        trial.addEvent("trialFinish", options.trialEnd, async function() {
-                            await trial.stop();
-                            await trial.runRoutines("finish");
-                        });
-
-                        trial.events["trialFinish"] = Event("trialFinish", {
-
-                        })
-
-                        event = {
-                            id: id,
-                            triggeredBy: spec.triggered_by,
-                            triggerCondition: spec.trigger_condition,
-                            delay: spec.delay,
-                            once: spec.once,
-                            handlers: [],
-                            triggered: false,
-                            triggers: []
-                        };
-
                         // If trialStart > 0, we pretend that the trial started a while ago
                         trial.startTime = trial.getGlobalTime() - options.trialStart;
                         trial.state = "trialStart";
-                        psynet.register_event("trialStart");
+                        await trial.registerEvent("trialStart");
 
                         trial.inProgress = true;
-
-                        trial.clearEventQueue();
-                        trial.queueEvents(options.trialStart);
                     };
 
                     trial.stop = async function() {
@@ -522,19 +499,14 @@
                     };
 
                     trial.setDuration = function(duration) {
-                        /**
-                         * Sets the trial's duration; it will be stored in the `duration` slot.
-                         */
                         trial.duration = duration;
                     };
 
                     trial.onEvent = function(id, handler) {
-                        trial.events[id].handlers.push[handler];
-                        debugger
+                        trial.events[id].handlers.push(handler);
                     };
 
-
-                    trial.routineTypes = ["construct", "prepare", "cleanup", "finish"];
+                    trial.routineTypes = ["construct", "prepare", "cleanup"];
 
                     trial.initRoutines = function() {
                         this.routineTypes.forEach(function(type) {
@@ -584,16 +556,13 @@
                         return Promise.all(promises);
                     };
 
-                    trial.clearEventQueue = function() {
-                        Object.values(this.events).forEach(e => clearTimeout(e.timer));
-                    };
-
                     trial.getGlobalTime = function() {
                         return psynet.media.audio_context.currentTime;
                     };
 
-                    trial.prepareEvents();
+                    trial.initEvents();
                     trial.initRoutines();
+                    trial.onEvent("trialEnd", () => trial.stop());
                     return trial
                 }
 

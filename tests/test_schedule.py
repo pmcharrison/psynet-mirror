@@ -70,7 +70,7 @@ def test_events_audio_record():
             "delay": 0.0,
             "once": True,
         },
-        "promptStart": {
+        "audioStart": {
             "triggered_by": [{"event_id": "trialStart", "delay": 0.75}],
             "trigger_condition": "all",
             "delay": 0.0,
@@ -88,5 +88,13 @@ def test_events_audio_record():
             "delay": 0.0,
             "once": True,
         },
-        "trialEnd": {},
+        "trialEnd": {
+            "triggered_by": [
+                {"event_id": "audioEnd", "delay": 0.0},
+                {"event_id": "recordingEnd", "delay": 0.0},
+            ],
+            "trigger_condition": "all",
+            "delay": 0.0,
+            "once": True,
+        },
     }
