@@ -64,6 +64,7 @@ class Prompt:
         response_enable_delay: float = 0.0,
         submit_enable_trigger: str = "promptFinish",
         submit_enable_delay: float = 0.0,
+        start_delay: float = 0.0,
     ):
         self.text = text
         self.text_align = text_align
@@ -71,6 +72,7 @@ class Prompt:
         self.response_enable_delay = response_enable_delay
         self.submit_enable_trigger = submit_enable_trigger
         self.submit_enable_delay = submit_enable_delay
+        self.start_delay = start_delay
 
     macro = "simple"
     external_template = None
@@ -95,6 +97,16 @@ class Prompt:
         pass
 
     def update_events(self, events):
+
+        events["promptStart"] = Event(
+            triggers=[
+                Trigger(
+                    event_id="trialStart",
+                    delay=self.start_delay,
+                )
+            ]
+        )
+
         if self.response_enable_trigger:
             events["responseReady"].add_trigger(
                 Trigger(
@@ -174,10 +186,11 @@ class AudioPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(text=text, text_align=text_align, **kwargs)
+        super().__init__(
+            text=text, text_align=text_align, start_delay=start_delay, **kwargs
+        )
         self.url = url
         self.loop = loop
-        self.start_delay = start_delay
         self.play_window = play_window
         self.controls = controls
 
@@ -271,7 +284,9 @@ class VideoPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(text=text, text_align=text_align, **kwargs)
+        super().__init__(
+            text=text, text_align=text_align, start_delay=start_delay, **kwargs
+        )
         self.url = url
         self.loop = loop
         self.start_delay = start_delay
@@ -1822,6 +1837,14 @@ class AudioRecordControl(Control):
     def pre_render(self):
         self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
         logger.info(f"Generated presigned url: {self.presigned_url}")
+
+    def update_events(self, events):
+        events["recordingStart"] = Event(
+            Trigger("trialStart", delay=self.record_window[0])
+        )
+        events["recordingEnd"] = Event(
+            Trigger("trialStart", delay=self.record_window[1])
+        )
 
 
 class VideoRecordControl(Control):

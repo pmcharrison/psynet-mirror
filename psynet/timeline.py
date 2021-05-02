@@ -32,7 +32,9 @@ logger = get_logger()
 
 
 class Event(dict):
-    def __init__(self, triggers, trigger_condition, delay, once=True):
+    def __init__(self, triggers, trigger_condition="all", delay=0.0, once=True):
+        if isinstance(triggers, Trigger):
+            triggers = [triggers]
         super().__init__(
             triggers=triggers,
             trigger_condition=trigger_condition,
