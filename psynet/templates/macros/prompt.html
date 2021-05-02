@@ -151,10 +151,10 @@
 
         });
 
-        {% if config.enable_submit_after is not none %}
+        {% if config.submit_enable_delay is not none %}
             psynet.trial.addEvent(
                 "audioPromptSubmitReady",
-                {{ config.enable_submit_after }},
+                {{ config.submit_enable_delay }},
                 ()=> psynet.submit.ready("audio_prompt")
             );
         {% endif %}
@@ -188,10 +188,10 @@
                     {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
                 });
                 psynet.log.debug(psynet.submit)
-                {% if config.enable_submit_after is not none %}
+                {% if config.submit_enable_delay is not none %}
                     setTimeout(
                         ()=> psynet.submit.ready("video_prompt"),
-                        1000 * {{ config.enable_submit_after }}
+                        1000 * {{ config.submit_enable_delay }}
                     );
                 {% endif %}
             }, {{config.start_delay}} * 1000)
@@ -225,10 +225,10 @@
                     {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
                 });
                 psynet.log.debug(psynet.submit)
-                {% if config.enable_submit_after is not none %}
+                {% if config.submit_enable_delay is not none %}
                     setTimeout(
                         ()=> psynet.submit.ready("video_prompt"),
-                        1000 * {{ config.enable_submit_after }}
+                        1000 * {{ config.submit_enable_delay }}
                     );
                 {% endif %}
             }, {{config.start_delay}} * 1000)

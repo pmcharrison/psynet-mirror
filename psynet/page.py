@@ -822,5 +822,5 @@ class VolumeCalibration(ModularPage):
     @property
     def _prompt(self):
         return AudioPrompt(
-            self._url, self._text, loop=True, enable_submit_after=self._min_time
+            self._url, self._text, loop=True, submit_enable_delay=self._min_time
         )

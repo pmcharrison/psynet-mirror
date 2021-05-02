@@ -99,7 +99,7 @@ class Prompt:
     def update_events(self, events):
 
         events["promptStart"] = Event(
-            triggers=[
+            triggered_by=[
                 Trigger(
                     event_id="trialStart",
                     delay=self.start_delay,
@@ -1183,8 +1183,10 @@ class ModularPage(Page):
         self.update_events(self.events)
 
     def update_events(self, events):
-        events["responseReady"] = Event(triggers=[], trigger_condition="all", delay=0)
-        events["submitReady"] = Event(triggers=[], trigger_condition="all", delay=0)
+        events["responseReady"] = Event(
+            triggered_by=[], trigger_condition="all", delay=0
+        )
+        events["submitReady"] = Event(triggered_by=[], trigger_condition="all", delay=0)
         self.prompt.update_events(events)
         self.control.update_events(events)
 

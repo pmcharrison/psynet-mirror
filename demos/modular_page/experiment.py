@@ -79,7 +79,7 @@ class Exp(psynet.experiment.Experiment):
             """,
                 prevent_response=False,
                 start_delay=0.5,
-                enable_submit_after=3.0,
+                submit_enable_delay=3.0,
             ),
             TimedPushButtonControl(choices=["A", "B", "C"], arrange_vertically=False),
             time_estimate=5,

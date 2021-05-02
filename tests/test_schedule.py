@@ -22,19 +22,19 @@ def test_events_format():
 
     assert page.events == {
         "responseReady": {
-            "triggers": [{"event_id": "promptFinish", "delay": 1.0}],
+            "triggered_by": [{"event_id": "promptFinish", "delay": 1.0}],
             "trigger_condition": "all",
             "delay": 0,
             "once": True,
         },
         "submitReady": {
-            "triggers": [{"event_id": "promptFinish", "delay": 2.0}],
+            "triggered_by": [{"event_id": "promptFinish", "delay": 2.0}],
             "trigger_condition": "all",
             "delay": 0,
             "once": True,
         },
         "promptStart": {
-            "triggers": [{"event_id": "trialStart", "delay": 0.0}],
+            "triggered_by": [{"event_id": "trialStart", "delay": 0.0}],
             "trigger_condition": "all",
             "delay": 0,
             "once": True,
@@ -59,33 +59,34 @@ def test_events_audio_record():
 
     assert page.events == {
         "responseReady": {
-            "triggers": [],
+            "triggered_by": [],
             "trigger_condition": "all",
             "delay": 0.0,
             "once": True,
         },
         "submitReady": {
-            "triggers": [],
+            "triggered_by": [],
             "trigger_condition": "all",
             "delay": 0.0,
             "once": True,
         },
         "promptStart": {
-            "triggers": [{"event_id": "trialStart", "delay": 0.75}],
+            "triggered_by": [{"event_id": "trialStart", "delay": 0.75}],
             "trigger_condition": "all",
             "delay": 0.0,
             "once": True,
         },
         "recordingStart": {
-            "triggers": [{"event_id": "trialStart", "delay": 1.0}],
+            "triggered_by": [{"event_id": "trialStart", "delay": 1.0}],
             "trigger_condition": "all",
             "delay": 0.0,
             "once": True,
         },
         "recordingEnd": {
-            "triggers": [{"event_id": "trialStart", "delay": 2.0}],
+            "triggered_by": [{"event_id": "trialStart", "delay": 2.0}],
             "trigger_condition": "all",
             "delay": 0.0,
             "once": True,
         },
+        "trialEnd": {},
     }

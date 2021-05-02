@@ -98,7 +98,7 @@ class REPPVolumeCalibrationMusic(Module):
                 """
                     ),
                     loop=True,
-                    enable_submit_after=min_time_before_submitting,
+                    submit_enable_delay=min_time_before_submitting,
                 ),
                 VolumeTestControlMusic(
                     min_time=min_time_before_submitting, calibrate=False
@@ -180,7 +180,7 @@ class REPPVolumeCalibrationMarkers(Module):
                 """
                     ),
                     loop=True,
-                    enable_submit_after=min_time_before_submitting,
+                    submit_enable_delay=min_time_before_submitting,
                 ),
                 VolumeTestControlMarkers(
                     min_time=min_time_before_submitting, calibrate=False

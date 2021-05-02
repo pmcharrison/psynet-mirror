@@ -32,18 +32,18 @@ logger = get_logger()
 
 
 class Event(dict):
-    def __init__(self, triggers, trigger_condition="all", delay=0.0, once=True):
-        if isinstance(triggers, Trigger):
-            triggers = [triggers]
+    def __init__(self, triggered_by, trigger_condition="all", delay=0.0, once=True):
+        if isinstance(triggered_by, Trigger):
+            triggered_by = [triggered_by]
         super().__init__(
-            triggers=triggers,
+            triggered_by=triggered_by,
             trigger_condition=trigger_condition,
             delay=delay,
             once=once,
         )
 
     def add_trigger(self, trigger):
-        self["triggers"].append(trigger)
+        self["triggered_by"].append(trigger)
 
 
 class Trigger(dict):

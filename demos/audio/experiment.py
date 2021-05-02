@@ -126,7 +126,7 @@ example_audio_meter_calibrate_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "The default meter parameters are designed to work well for music playback.",
         loop=True,
-        enable_submit_after=0,
+        submit_enable_delay=0,
     ),
     AudioMeterControl(calibrate=True),
     time_estimate=5,
@@ -138,7 +138,7 @@ example_audio_meter_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "This page shows an audio meter alongside an audio stimulus.",
         loop=True,
-        enable_submit_after=2.5,
+        submit_enable_delay=2.5,
     ),
     AudioMeterControl(min_time=2.5, calibrate=True),
     time_estimate=5,
@@ -190,7 +190,7 @@ example_audio_page_3 = ModularPage(
         """,
         play_window=[5, 9],
         loop=True,
-        enable_submit_after=2,
+        submit_enable_delay=2,
         controls=True,
     ),
     time_estimate=5,
@@ -229,11 +229,8 @@ example_listen_then_record_page = join(
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
             Here we play audio then activate the recorder afterwards.
-            This is achieved by setting prevent_response=True in the
-            AudioPrompt; if I wanted the recorder to start straight away,
-            I'd set prevent_response=False.
             """,
-            prevent_response=True,
+            response_enable_trigger="audioFinish",
             play_window=[0, 2.5],
         ),
         AudioRecordControl(
@@ -261,9 +258,8 @@ example_record_with_audio_prompt = join(
             The red portion of the progress bar identifies the period when the video
             will be recording.
             """,
-            prevent_response=False,
             start_delay=0.0,
-            enable_submit_after=5.5,
+            submit_enable_delay=5.5,
             play_window=[0, 4.6],
             fade_in=0.2,
         ),
@@ -304,12 +300,12 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        example_audio_page,
-        example_audio_page_2,
-        example_audio_page_3,
-        example_audio_meter,
-        example_record_page,
-        example_listen_then_record_page,
+        # example_audio_page,
+        # example_audio_page_2,
+        # example_audio_page_3,
+        # example_audio_meter,
+        # example_record_page,
+        # example_listen_then_record_page,
         example_record_with_audio_prompt,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
