@@ -47,6 +47,32 @@ def test_events_default():
     }
 
 
+def test_events_override():
+    from psynet.timeline import Event
+
+    page = ModularPage(
+        "test_page",
+        "Hello!",
+        TextControl(),
+        events={"allowSubmit": Event(is_triggered_by="Happiness")},
+    )
+
+    assert page.events == {
+        "trialStart": {
+            "isTriggeredBy": [],
+            "triggerCondition": "all",
+            "delay": 0.0,
+            "once": True,
+        },
+        "allowSubmit": {
+            "isTriggeredBy": [{"eventId": "Happiness", "delay": 0.0}],
+            "triggerCondition": "all",
+            "delay": 0.0,
+            "once": True,
+        },
+    }
+
+
 def test_events_audio_record():
     page = ModularPage(
         "audio_page",
