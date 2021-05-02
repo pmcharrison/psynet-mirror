@@ -56,23 +56,9 @@ class Prompt:
         in PsyNet's built-in ``prompt.html`` file.
     """
 
-    def __init__(
-        self,
-        text: Union[None, str, Markup] = None,
-        text_align: str = "left",
-        response_enable_trigger: str = "promptFinish",
-        response_enable_delay: float = 0.0,
-        submit_enable_trigger: str = "promptFinish",
-        submit_enable_delay: float = 0.0,
-        start_delay: float = 0.0,
-    ):
+    def __init__(self, text: Union[None, str, Markup] = None, text_align: str = "left"):
         self.text = text
         self.text_align = text_align
-        self.response_enable_trigger = response_enable_trigger
-        self.response_enable_delay = response_enable_delay
-        self.submit_enable_trigger = submit_enable_trigger
-        self.submit_enable_delay = submit_enable_delay
-        self.start_delay = start_delay
 
     macro = "simple"
     external_template = None
@@ -97,30 +83,7 @@ class Prompt:
         pass
 
     def update_events(self, events):
-
-        events["promptStart"] = Event(
-            is_triggered_by=[
-                Trigger(
-                    event_id="trialStart",
-                    delay=self.start_delay,
-                )
-            ]
-        )
-
-        if self.response_enable_trigger:
-            events["responseReady"].add_trigger(
-                Trigger(
-                    event_id=self.response_enable_trigger,
-                    delay=self.response_enable_delay,
-                )
-            )
-
-        if self.submit_enable_trigger:
-            events["submitReady"].add_trigger(
-                Trigger(
-                    event_id=self.submit_enable_trigger, delay=self.submit_enable_delay
-                )
-            )
+        pass
 
 
 class AudioPrompt(Prompt):
@@ -139,10 +102,6 @@ class AudioPrompt(Prompt):
 
     loop
         Whether the audio should loop back to the beginning after finishing.
-
-    start_delay
-        Delay in seconds before the sound should start playing, counting from
-        the media load event.
 
     text_align
         CSS alignment of the text.
@@ -172,7 +131,6 @@ class AudioPrompt(Prompt):
         url: str,
         text: Union[str, Markup],
         loop: bool = False,
-        start_delay=0.0,
         text_align="left",
         play_window: Optional[List] = None,
         controls: bool = False,
@@ -186,9 +144,7 @@ class AudioPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(
-            text=text, text_align=text_align, start_delay=start_delay, **kwargs
-        )
+        super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
         self.loop = loop
         self.play_window = play_window
@@ -230,7 +186,7 @@ class AudioPrompt(Prompt):
         events["audioPromptStart"] = Event(
             is_triggered_by=[
                 Trigger(
-                    event_id="promptStart",
+                    event_id="trialStart",
                     delay=0,
                 )
             ]
@@ -255,10 +211,6 @@ class VideoPrompt(Prompt):
 
     loop
         Whether the video should loop back to the beginning after finishing.
-
-    start_delay
-        Delay in seconds before the video should start playing, counting from
-        the media load event.
 
     text_align
         CSS alignment of the text.
@@ -285,7 +237,6 @@ class VideoPrompt(Prompt):
         url: str,
         text: Union[str, Markup],
         loop: bool = False,
-        start_delay=0.0,
         text_align="left",
         width: str = "560px",
         play_window: Optional[List] = None,
@@ -298,12 +249,9 @@ class VideoPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(
-            text=text, text_align=text_align, start_delay=start_delay, **kwargs
-        )
+        super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
         self.loop = loop
-        self.start_delay = start_delay
         self.width = width
         self.play_window = play_window
 
@@ -1156,6 +1104,7 @@ class ModularPage(Page):
         control: Control = NullControl(),
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
+        events: Optional[List] = None,
         **kwargs,
     ):
         if media is None:
@@ -1191,18 +1140,13 @@ class ModularPage(Page):
             template_str=template_str,
             template_arg={"prompt_config": prompt, "control_config": control},
             media=all_media,
+            events=events,
             **kwargs,
         )
 
         self.update_events(self.events)
 
     def update_events(self, events):
-        events["responseReady"] = Event(
-            is_triggered_by=[], trigger_condition="all", delay=0
-        )
-        events["submitReady"] = Event(
-            is_triggered_by=[], trigger_condition="all", delay=0
-        )
         self.prompt.update_events(events)
         self.control.update_events(events)
 
@@ -1800,7 +1744,6 @@ class AudioRecordControl(Control):
         progress_bar: bool = False,
         controls: bool = False,
         loop_playback: bool = False,
-        record_window: Optional[List] = None,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
@@ -1810,28 +1753,15 @@ class AudioRecordControl(Control):
         self.progress_bar = progress_bar
         self.controls = controls
         self.loop_playback = loop_playback
-        self.record_window = record_window
-
-        if self.record_window is None:
-            self.record_window = [0.0, self.duration]
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
         else:
             self.meter = None
 
-        self.check_attr()
-
     @property
     def metadata(self):
         return {}
-
-    def check_attr(self):
-        assert isinstance(self.record_window, list)
-        assert len(self.record_window) == 2
-        assert self.record_window[0] >= 0
-        assert self.record_window[1] >= self.record_window[0]
-        assert self.record_window[1] - self.record_window[0] == self.duration
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
@@ -1857,12 +1787,12 @@ class AudioRecordControl(Control):
         logger.info(f"Generated presigned url: {self.presigned_url}")
 
     def update_events(self, events):
-        events["recordingStart"] = Event(
-            Trigger("trialStart", delay=self.record_window[0])
+        events["audioRecordStart"] = Event(Trigger("trialStart"))
+        events["audioRecordEnd"] = Event(
+            Trigger("audioRecordStart", delay=self.duration)
         )
-        events["recordingEnd"] = Event(
-            Trigger("trialStart", delay=self.record_window[1])
-        )
+
+        events["allowSubmit"] = Event(Trigger("audioRecordEnd"))
 
 
 class VideoRecordControl(Control):
@@ -1893,10 +1823,6 @@ class VideoRecordControl(Control):
     width
         Width of the video frame to be displayed. Default: "560px".
 
-    start_delay
-        Delay in seconds before the video starts recording, counting from
-        the media load event. A countdown is displayed if `start_delay` > 0. Default: 0.0.
-
     public_read
         Whether the AWS S3 bucket's access permission is set to 'Public'. For reference see https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access.html
 
@@ -1911,10 +1837,6 @@ class VideoRecordControl(Control):
 
     loop_playback
         Whether to loop playback by default (only relevant if ``controls=True``.
-
-    record_window
-        Optional list of two numbers describing when the recorder should
-        start and stop, expressed in seconds relative to the beginning of the trial.
 
     auto_advance
         Whether the page should automatically advance to the next page
@@ -1932,13 +1854,11 @@ class VideoRecordControl(Control):
         record_audio: bool = True,
         show_meter: bool = False,
         width: str = "300px",
-        start_delay: float = 0.0,
         public_read: bool = False,
         show_preview: bool = False,
         progress_bar: bool = False,
         controls: bool = False,
         loop_playback: bool = False,
-        record_window: Optional[List] = None,
         auto_advance: bool = False,
     ):
         self.duration = duration
@@ -1947,17 +1867,12 @@ class VideoRecordControl(Control):
         self.record_audio = record_audio
         self.show_meter = show_meter
         self.width = width
-        self.start_delay = start_delay
         self.public_read = public_read
         self.show_preview = show_preview
         self.progress_bar = progress_bar
         self.controls = controls
         self.loop_playback = loop_playback
-        self.record_window = record_window
         self.auto_advance = auto_advance
-
-        if self.record_window is None:
-            self.record_window = [0.0, self.duration]
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
@@ -1965,15 +1880,6 @@ class VideoRecordControl(Control):
             self.meter = None
 
         assert self.recording_source in ["camera", "screen", "both"]
-
-        self.check_attr()
-
-    def check_attr(self):
-        assert isinstance(self.record_window, list)
-        assert len(self.record_window) == 2
-        assert self.record_window[0] >= 0
-        assert self.record_window[1] <= self.duration
-        assert self.record_window[1] >= self.record_window[0]
 
     @property
     def metadata(self):

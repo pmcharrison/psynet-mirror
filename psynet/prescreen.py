@@ -370,7 +370,6 @@ class REPPMarkersCheck(Module):
                             """
                         ),
                         prevent_response=False,
-                        start_delay=0.5,
                     ),
                     AudioRecordControl(
                         duration=self.definition["duration_sec"],

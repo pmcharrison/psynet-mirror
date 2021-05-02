@@ -75,11 +75,8 @@ class Exp(psynet.experiment.Experiment):
                 url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
                 text="""
             This page illustrates the timed push button control combined with an audio prompt.
-            The submit button is enabled after 3.0 seconds.
             """,
                 prevent_response=False,
-                start_delay=0.5,
-                submit_enable_delay=3.0,
             ),
             TimedPushButtonControl(choices=["A", "B", "C"], arrange_vertically=False),
             time_estimate=5,

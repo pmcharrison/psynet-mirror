@@ -37,8 +37,14 @@ class Event(dict):
     ):
         if is_triggered_by is None:
             is_triggered_by = []
-        elif isinstance(is_triggered_by, Trigger):
+
+        if not isinstance(is_triggered_by, list):
             is_triggered_by = [is_triggered_by]
+
+        is_triggered_by = [
+            x if isinstance(x, Trigger) else Trigger(x) for x in is_triggered_by
+        ]
+
         super().__init__(
             isTriggeredBy=is_triggered_by,
             triggerCondition=trigger_condition,
@@ -51,8 +57,9 @@ class Event(dict):
 
 
 class Trigger(dict):
-    def __init__(self, event_id, delay):
-        super().__init__(eventId=event_id, delay=delay)
+    def __init__(self, event_id, delay=0.0):
+        assert isinstance(event_id, str)
+        super().__init__(eventId=event_id, delay=float(delay))
 
 
 def get_template(name):
@@ -423,6 +430,7 @@ class Page(Elt):
         css: Optional[List] = None,
         save_answer: bool = True,
         auto_start_trial: bool = True,
+        events: Optional[Dict] = None,
     ):
         if template_arg is None:
             template_arg = {}
@@ -461,7 +469,13 @@ class Page(Elt):
 
         self.save_answer = save_answer
         self.auto_start_trial = auto_start_trial
-        self.events = {"trialStart": Event()}
+
+        self.events = {
+            "trialStart": Event(),
+            # "allowResponse": Event(is_triggered_by="trialStart", delay=0.0),
+            "allowSubmit": Event(is_triggered_by="trialStart", delay=0.0),
+            **({} if events is None else events),
+        }
 
     @property
     def initial_download_progress(self):
