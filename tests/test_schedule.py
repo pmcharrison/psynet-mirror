@@ -19,10 +19,12 @@ def test_schedule_format():
             "triggers": [{"event_id": "promptFinish", "delay": 1.0}],
             "trigger_condition": "all",
             "delay": 0,
+            "once": True,
         },
         "submitReady": {
             "triggers": [{"event_id": "promptFinish", "delay": 2.0}],
             "trigger_condition": "all",
             "delay": 0,
+            "once": True,
         },
     }
