@@ -95,15 +95,20 @@ class Prompt:
         pass
 
     def update_events(self, events):
-        events["responseReady"].add_trigger(
-            Trigger(
-                event_id=self.response_enable_trigger, delay=self.response_enable_delay
+        if self.response_enable_trigger:
+            events["responseReady"].add_trigger(
+                Trigger(
+                    event_id=self.response_enable_trigger,
+                    delay=self.response_enable_delay,
+                )
             )
-        )
 
-        events["submitReady"].add_trigger(
-            Trigger(event_id=self.submit_enable_trigger, delay=self.submit_enable_delay)
-        )
+        if self.submit_enable_trigger:
+            events["submitReady"].add_trigger(
+                Trigger(
+                    event_id=self.submit_enable_trigger, delay=self.submit_enable_delay
+                )
+            )
 
 
 class AudioPrompt(Prompt):
@@ -1792,8 +1797,8 @@ class AudioRecordControl(Control):
         assert isinstance(self.record_window, list)
         assert len(self.record_window) == 2
         assert self.record_window[0] >= 0
-        assert self.record_window[1] <= self.duration
         assert self.record_window[1] >= self.record_window[0]
+        assert self.record_window[1] - self.record_window[0] == self.duration
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
