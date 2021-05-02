@@ -314,7 +314,7 @@
                         state: null,
                         inProgress: false,
                         startTime: null,
-                        events: {},
+                        events: {{ events | tojson }},
 
                         pendingEventHandlers: (() => {
                             let data = {};
