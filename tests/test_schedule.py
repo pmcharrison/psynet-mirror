@@ -1,7 +1,7 @@
 from psynet.modular_page import AudioPrompt, ModularPage, TextControl
 
 
-def test_schedule_format():
+def test_events_format():
     page = ModularPage(
         "test_page",
         AudioPrompt(
@@ -14,7 +14,7 @@ def test_schedule_format():
         ),
         TextControl(),
     )
-    assert page.schedule == {
+    assert page.events == {
         "responseReady": {
             "triggers": [{"event_id": "promptFinish", "delay": 1.0}],
             "trigger_condition": "all",

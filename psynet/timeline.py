@@ -49,10 +49,6 @@ class Trigger(dict):
         super().__init__(event_id=event_id, delay=delay)
 
 
-def schedule_event(triggers, trigger_condition, delay):
-    return dict(triggers=triggers, trigger_condition=trigger_condition, delay=delay)
-
-
 def get_template(name):
     assert isinstance(name, str)
     return importlib_resources.read_text(templates, name)
@@ -459,7 +455,7 @@ class Page(Elt):
 
         self.save_answer = save_answer
         self.auto_start_trial = auto_start_trial
-        self.schedule = {}
+        self.events = {}
 
     @property
     def initial_download_progress(self):
@@ -651,7 +647,7 @@ class Page(Elt):
             "scripts": self.scripts,
             "css": self.css,
             "auto_start_trial": self.auto_start_trial,
-            "schedule": self.schedule,
+            "events": self.events,
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 

@@ -94,14 +94,14 @@ class Prompt:
     def pre_render(self):
         pass
 
-    def update_schedule(self, schedule):
-        schedule["responseReady"].add_trigger(
+    def update_events(self, events):
+        events["responseReady"].add_trigger(
             Trigger(
                 event_id=self.response_enable_trigger, delay=self.response_enable_delay
             )
         )
 
-        schedule["submitReady"].add_trigger(
+        events["submitReady"].add_trigger(
             Trigger(event_id=self.submit_enable_trigger, delay=self.submit_enable_delay)
         )
 
@@ -535,7 +535,7 @@ class Control:
     def pre_render(self):
         pass
 
-    def update_schedule(self, schedule):
+    def update_events(self, events):
         pass
 
 
@@ -1160,13 +1160,13 @@ class ModularPage(Page):
             **kwargs,
         )
 
-        self.update_schedule(self.schedule)
+        self.update_events(self.events)
 
-    def update_schedule(self, schedule):
-        schedule["responseReady"] = Event(triggers=[], trigger_condition="all", delay=0)
-        schedule["submitReady"] = Event(triggers=[], trigger_condition="all", delay=0)
-        self.prompt.update_schedule(schedule)
-        self.control.update_schedule(schedule)
+    def update_events(self, events):
+        events["responseReady"] = Event(triggers=[], trigger_condition="all", delay=0)
+        events["submitReady"] = Event(triggers=[], trigger_condition="all", delay=0)
+        self.prompt.update_events(events)
+        self.control.update_events(events)
 
     @property
     def prompt_macro(self):
