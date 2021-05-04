@@ -19,7 +19,7 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
-from psynet.consent import AudiovisualRecordingsConsentPage, StandardConsentPage
+from psynet.consent import StandardConsentPage
 from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -212,7 +212,6 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         StandardConsentPage(time_estimate=5),
-        AudiovisualRecordingsConsentPage(time_estimate=5),
         trial_maker,
         SuccessfulEndPage(),
     )
