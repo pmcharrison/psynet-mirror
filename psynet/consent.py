@@ -1,9 +1,12 @@
 from typing import Optional
 
-from .timeline import Page, get_template
+import flask
+
+from .page import InfoPage
+from .timeline import get_template
 
 
-class StandardConsentPage(Page):
+class StandardConsentPage(InfoPage):
     """
     This page displays the standard consent page.
 
@@ -23,13 +26,14 @@ class StandardConsentPage(Page):
         **kwargs,
     ):
         super().__init__(
+            content=flask.Markup(get_template("standard_consent.html")),
             time_estimate=time_estimate,
-            template_str=get_template("standard_consent.html"),
+            show_next_button=False,
             **kwargs,
         )
 
 
-class AudiovisualRecordingsConsentPage(Page):
+class AudiovisualRecordingsConsentPage(InfoPage):
     """
     This page displays the audiovisual recordings consent page.
 
@@ -49,7 +53,8 @@ class AudiovisualRecordingsConsentPage(Page):
         **kwargs,
     ):
         super().__init__(
+            content=flask.Markup(get_template("audiovisual_recordings_consent.html")),
             time_estimate=time_estimate,
-            template_str=get_template("audiovisual_recordings_consent.html"),
+            show_next_button=False,
             **kwargs,
         )
