@@ -19,7 +19,7 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
-from psynet.consents import AudiovisualRecordingsConsentPage, StandardConsentPage
+from psynet.consent import AudiovisualRecordingsConsentPage, StandardConsentPage
 from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
