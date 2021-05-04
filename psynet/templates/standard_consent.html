@@ -13,8 +13,8 @@
         <p>
             This research is being conducted by researchers at the
             Max-Planck-Institute for Empirical Aesthetics. In case of questions you
-            can contact the researchers at <a href="mailto:{{contact_email_on_error}}">
-            {{contact_email_on_error}}</a>.
+            can contact the researchers at <a href="mailto:%(contact_email_on_error)s">
+            %(contact_email_on_error)s</a>.
         </p>
 
         <p>
@@ -143,7 +143,7 @@
         <h2> Contact information </h2>
 
         If you have any questions about this research, do not hesitate to contact
-        the Computational Auditory Perception group at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
+        the Computational Auditory Perception group at <a href="mailto:%(contact_email_on_error)s">%(contact_email_on_error)s</a>.
         If you have any questions about your rights or treatment as a participant in
         this research project, please contact Nori Jacoby (nori.jacoby@ae.mpg.de).
 
@@ -157,7 +157,7 @@
       <hr>
       <h4>Do you understand and consent to these terms?</h4>
       <br>
-      <button type="button" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page();" style="float: left;">
+      <button type="button" id="next_button" class="btn btn-primary btn-lg" onClick="psynet.next_page();" style="float: left;">
         I agree
       </button>
       <button type="button" class="btn btn-danger btn-lg" onClick="self.close();" style="float: right;">

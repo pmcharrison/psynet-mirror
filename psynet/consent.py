@@ -25,12 +25,17 @@ class StandardConsentPage(InfoPage):
         time_estimate: Optional[float] = None,
         **kwargs,
     ):
+        markup = flask.Markup(get_template("standard_consent.html"))
+        markup = markup % {"contact_email_on_error": "TODO"}
         super().__init__(
-            content=flask.Markup(get_template("standard_consent.html")),
+            content=markup,
             time_estimate=time_estimate,
             show_next_button=False,
             **kwargs,
         )
+
+    def format_answer(self, raw_answer, **kwargs):
+        return {"participant_consent": True}
 
 
 class AudiovisualRecordingsConsentPage(InfoPage):
@@ -58,3 +63,6 @@ class AudiovisualRecordingsConsentPage(InfoPage):
             show_next_button=False,
             **kwargs,
         )
+
+    def format_answer(self, raw_answer, **kwargs):
+        return {"participant_consent": True}
