@@ -2,6 +2,7 @@ import os
 
 import dallinger.recruiters
 import requests
+from dallinger.db import session
 
 from .utils import get_logger
 
@@ -30,6 +31,15 @@ class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
         raise RuntimeError("Compensation is not implemented.")
+
+    def notify_duration_exceeded(self, participants, reference_time):
+        """
+        The participant has been working longer than the time defined in
+        the "duration" config value.
+        """
+        for participant in participants:
+            participant.status = "abandoned"
+            session.commit()
 
     def reward_bonus(self, assignment_id, amount, reason):
         """

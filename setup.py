@@ -27,7 +27,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger==7.2.0",
+        "dallinger==7.2.1",
         "click",
         "datetime",
         "dominate",
@@ -44,6 +44,7 @@ setuptools.setup(
     ],
     extras_require={
         "dev": [
+            "isort",
             "mock",
             "pre-commit",
             "pytest",
