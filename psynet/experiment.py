@@ -488,6 +488,10 @@ class Experiment(dallinger.experiment.Experiment):
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
+            (
+                resource_filename("psynet", "templates/error.html"),
+                "templates/error.html",
+            ),
         ]
 
     def extra_routes(self):
