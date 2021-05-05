@@ -46,9 +46,6 @@ class InfoPage(Page):
     time_estimate:
         Time estimated for the page.
 
-    show_next_button:
-        Whether the `Next` should be displayed. Default: `True`.
-
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
@@ -57,18 +54,13 @@ class InfoPage(Page):
         self,
         content: Union[str, Markup],
         time_estimate: Optional[float] = None,
-        show_next_button: Optional[bool] = True,
         **kwargs,
     ):
         self.content = content
-        self.show_next_button = show_next_button
         super().__init__(
             time_estimate=time_estimate,
             template_str=get_template("info-page.html"),
-            template_arg={
-                "content": "" if content is None else content,
-                "show_next_button": show_next_button,
-            },
+            template_arg={"content": "" if content is None else content},
             save_answer=False,
             **kwargs,
         )

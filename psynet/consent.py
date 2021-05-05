@@ -1,12 +1,9 @@
 from typing import Optional
 
-import flask
-
-from .page import InfoPage
-from .timeline import get_template
+from .timeline import Page, get_template
 
 
-class StandardConsentPage(InfoPage):
+class StandardConsentPage(Page):
     """
     This page displays the standard consent page.
 
@@ -25,12 +22,9 @@ class StandardConsentPage(InfoPage):
         time_estimate: Optional[float] = None,
         **kwargs,
     ):
-        markup = flask.Markup(get_template("standard_consent.html"))
-        markup = markup % {"contact_email_on_error": "TODO"}
         super().__init__(
-            content=markup,
             time_estimate=time_estimate,
-            show_next_button=False,
+            template_str=get_template("standard_consent.html"),
             **kwargs,
         )
 
@@ -38,7 +32,7 @@ class StandardConsentPage(InfoPage):
         return {"participant_consent": True}
 
 
-class AudiovisualRecordingsConsentPage(InfoPage):
+class AudiovisualRecordingsConsentPage(Page):
     """
     This page displays the audiovisual recordings consent page.
 
@@ -58,9 +52,8 @@ class AudiovisualRecordingsConsentPage(InfoPage):
         **kwargs,
     ):
         super().__init__(
-            content=flask.Markup(get_template("audiovisual_recordings_consent.html")),
             time_estimate=time_estimate,
-            show_next_button=False,
+            template_str=get_template("audiovisual_recordings_consent.html"),
             **kwargs,
         )
 
