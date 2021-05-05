@@ -13,7 +13,6 @@ from dallinger import db
 from dallinger.models import Network
 from progress.bar import Bar
 from sqlalchemy import func
-from sqlalchemy.sql.expression import not_
 
 from .. import command_line
 from ..field import claim_field, claim_var, extra_var
@@ -1245,13 +1244,12 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
         candidates = Stimulus.query.filter_by(
             network_id=network.id
-        )  # networks are guaranteed to be from the correct phase
+        ).all()  # networks are guaranteed to be from the correct phase
         if not self.allow_repeated_stimuli:
             candidates = self.filter_out_repeated_stimuli(candidates, completed_stimuli)
         if not allow_new_stimulus:
             candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
 
-        candidates = candidates.all()
         candidates = self.custom_stimulus_filter(
             candidates=candidates, participant=participant
         )
@@ -1314,11 +1312,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     @staticmethod
     def filter_out_repeated_stimuli(candidates, completed_stimuli):
-        return candidates.filter(not_(Stimulus.id.in_(list(completed_stimuli.keys()))))
+        return [x for x in candidates if x.id not in completed_stimuli.keys()]
 
     @staticmethod
     def filter_out_new_stimuli(candidates, completed_stimuli):
-        return candidates.filter(Stimulus.id.in_(list(completed_stimuli.keys())))
+        return [x for x in candidates if x.id in completed_stimuli.keys()]
 
     @staticmethod
     def balance_within_participants(candidates, completed_stimuli):
