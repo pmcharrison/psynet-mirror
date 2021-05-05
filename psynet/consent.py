@@ -19,7 +19,7 @@ class StandardConsentPage(Page):
 
     def __init__(
         self,
-        time_estimate: Optional[float] = None,
+        time_estimate: Optional[float] = 30,
         **kwargs,
     ):
         super().__init__(
@@ -48,7 +48,7 @@ class AudiovisualRecordingsConsentPage(Page):
 
     def __init__(
         self,
-        time_estimate: Optional[float] = None,
+        time_estimate: Optional[float] = 10,
         **kwargs,
     ):
         super().__init__(
