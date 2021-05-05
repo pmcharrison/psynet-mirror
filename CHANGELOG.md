@@ -1,5 +1,15 @@
 # Changelog
 
+# [1.13.1] Released on 2021-05-05
+
+#### Fixed
+- Fix name attribute default value for RadioButtonControl, DropdownControl, and CheckboxControl
+- Fix some deprecation warnings in tests
+- Update black, isort, and flake8 versions in pre-commit hook config
+- Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
+- Implement missing notify_duration_exceeded method for CAPRecruiter
+- Update Dallinger to v7.2.1
+
 # [1.13.0] Released on 2021-04-15
 
 #### Added
