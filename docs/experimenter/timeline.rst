@@ -253,11 +253,13 @@ It is generally wise to build up the test logic in small pieces. For example:
         time_estimate=5,
     )
 
-    timeline = Timeline(intro, test)
+    timeline = Timeline(intro, test, SuccessfulEndPage())
+
+    extra_routes = Exp().extra_routes()
 
 Here we used the :func:`psynet.timeline.join` function to join
-two events into a list. When its arguments are all events,
-the ``join`` function behaves like a Python list constructor;
+two events into a list (more than two events can also be joined).
+When its arguments are all events, the ``join`` function behaves like a Python list constructor;
 when the arguments also include lists of events, the ``join`` function
 merges these lists. This makes it handy for combining timeline logic,
 where different bits of logic often correspond either to events or
