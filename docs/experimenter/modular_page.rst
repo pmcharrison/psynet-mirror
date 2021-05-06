@@ -1,4 +1,4 @@
-.. _modular_page:
+.. _ModularPage:
 
 =============
 Modular Pages

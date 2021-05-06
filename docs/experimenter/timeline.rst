@@ -77,7 +77,7 @@ See the documentation of individual classes for more guidance, for example:
 
 * :class:`~psynet.timeline.Page`
 * :class:`~psynet.page.InfoPage`
-* :class:`~psynet.page.ModularPage`
+* :class:`~psynet.modular_page.ModularPage`
 * :class:`~psynet.page.SuccessfulEndPage`
 * :class:`~psynet.page.UnsuccessfulEndPage`.
 
