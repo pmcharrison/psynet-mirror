@@ -1,7 +1,7 @@
 import flask
 
 import psynet.experiment
-from psynet.consent import AudiovisualRecordingsConsentPage, StandardConsentPage
+from psynet.consent import MTurkAudiovisualConsentPage, MTurkStandardConsentPage
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -233,8 +233,8 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        StandardConsentPage(time_estimate=5),
-        AudiovisualRecordingsConsentPage(time_estimate=5),
+        MTurkStandardConsentPage(time_estimate=5),
+        MTurkAudiovisualConsentPage(time_estimate=5),
         example_audio_page,
         example_audio_page_2,
         example_record_with_audio_prompt,

@@ -3,7 +3,7 @@ from typing import Optional
 from .timeline import Page, get_template
 
 
-class StandardConsentPage(Page):
+class MTurkStandardConsentPage(Page):
     """
     This page displays the standard consent page.
 
@@ -24,7 +24,7 @@ class StandardConsentPage(Page):
     ):
         super().__init__(
             time_estimate=time_estimate,
-            template_str=get_template("standard_consent.html"),
+            template_str=get_template("mturk_standard_consent.html"),
             **kwargs,
         )
 
@@ -32,7 +32,7 @@ class StandardConsentPage(Page):
         return {"participant_consent": True}
 
 
-class AudiovisualRecordingsConsentPage(Page):
+class MTurkAudiovisualConsentPage(Page):
     """
     This page displays the audiovisual recordings consent page.
 
@@ -53,7 +53,7 @@ class AudiovisualRecordingsConsentPage(Page):
     ):
         super().__init__(
             time_estimate=time_estimate,
-            template_str=get_template("audiovisual_recordings_consent.html"),
+            template_str=get_template("mturk_audiovisual_consent.html"),
             **kwargs,
         )
 

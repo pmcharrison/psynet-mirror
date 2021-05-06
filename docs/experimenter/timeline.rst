@@ -108,7 +108,7 @@ Consent pages
 ~~~~~~~~~~~~~
 
 Before the start of an experiment you normally want to have the participant consent to the data collection being caried out.
-We included two `Page` types :class:`~psynet.consent.StandardConsentPage` and :class:`~psynet.consent.AudiovisualRecordingsConsentPage`
+We included two `Page` types :class:`~psynet.consent.MTurkStandardConsentPage` and :class:`~psynet.consent.MTurkAudiovisualConsentPage`
 one or both of which can be added to the start of an experiment timeline, as appropriate.
 
 This should be enough to start experimenting with different kinds of page types.
