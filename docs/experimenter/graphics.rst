@@ -148,7 +148,8 @@ See below for an example:
         GraphicPage,
         Frame,
         Text,
-        Image
+        Image,
+        Animation
     )
 
     page = GraphicPage(
