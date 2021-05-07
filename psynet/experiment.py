@@ -34,6 +34,8 @@ from .utils import call_function, get_arg_from_dict, get_logger, serialise
 
 logger = get_logger()
 
+# Hello world!
+
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
