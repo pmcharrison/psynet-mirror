@@ -37,19 +37,17 @@
             <label style="margin-left: 35px; cursor: pointer;">
               <input
                   type="checkbox"
-                  id="consent_to_demonstartion_purposes_yes"
-                  name="consent_to_demonstartion_purposes_yes"
+                  id="demonstration_purposes_consent_yes"
                   style="cursor: pointer;"
-                  onclick="$('#consent_to_demonstartion_purposes_no').prop('checked', false)" />
+                  onclick="$('#demonstration_purposes_consent_no').prop('checked', false);set_demonstration_purposes_consent();" />
               <span>YES</span>
             </label>
             <label style="margin-left: 25px; cursor: pointer;">
               <input
                   type="checkbox"
-                  id="consent_to_demonstartion_purposes_no"
-                  name="consent_to_demonstartion_purposes_no"
+                  id="cdemonstration_purposes_consent_no"
                   style="cursor: pointer;"
-                  onclick="$('#consent_to_demonstartion_purposes_yes').prop('checked', false)" />
+                  onclick="$('#demonstration_purposes_consent_yes').prop('checked', false);set_demonstration_purposes_consent();" />
               <span>NO</span>
             </label>
   ​        </p>
@@ -90,6 +88,13 @@
         <hr>
         <h4>Do you understand and consent to these terms?</h4>
         <br>
+        <script>
+          psynet.response.staged.metadata = {};
+          psynet.response.staged.metadata["demonstration_purposes_consent"] = false;
+          function set_demonstration_purposes_consent() {
+            psynet.response.staged.metadata["demonstration_purposes_consent"] = $('#demonstration_purposes_consent_yes').prop('checked')
+          }
+        </script>
         <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page();" style="float: left;">
           I agree
         </button>

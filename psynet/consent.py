@@ -29,7 +29,7 @@ class CAPRecruiterStandardConsentPage(Page):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        return {"participant_consent": True}
+        return {"standard_consent": True}
 
 
 class CAPRecruiterAudiovisualConsentPage(Page):
@@ -58,7 +58,12 @@ class CAPRecruiterAudiovisualConsentPage(Page):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        return {"participant_consent": True}
+        return {
+            "audiovisual_consent": True,
+            "demonstration_purposes_consent": kwargs["metadata"][
+                "demonstration_purposes_consent"
+            ],
+        }
 
 
 class MTurkStandardConsentPage(Page):
@@ -87,7 +92,7 @@ class MTurkStandardConsentPage(Page):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        return {"participant_consent": True}
+        return {"standard_consent": True}
 
 
 class MTurkAudiovisualConsentPage(Page):
@@ -116,4 +121,4 @@ class MTurkAudiovisualConsentPage(Page):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        return {"participant_consent": True}
+        return {"audiovisual_consent": True}
