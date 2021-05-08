@@ -1,5 +1,10 @@
 # Changelog
 
+#### Updated
+- Migrated background tasks to Dallinger's new `scheduled_task` API.
+This means that the tasks now run on the clock dyno,
+and are now robust to dyno restarts, app crashes etc. 
+
 # [1.13.1] Released on 2021-05-05
 
 #### Fixed

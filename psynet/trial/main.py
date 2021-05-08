@@ -35,12 +35,12 @@ from ..page import InfoPage, UnsuccessfulEndPage, wait_while
 from ..participant import Participant
 from ..timeline import (
     CodeBlock,
+    DatabaseCheck,
     ExperimentSetupRoutine,
     Module,
     PageMaker,
     ParticipantFailRoutine,
     RecruitmentCriterion,
-    RecurringTask,
     Response,
     conditional,
     join,
@@ -820,11 +820,7 @@ class TrialMaker(Module):
 
     @property
     def check_timeout_task(self):
-        return RecurringTask(
-            self.with_namespace("check_timeout"),
-            self.check_timeout,
-            interval_sec=self.check_timeout_interval,
-        )
+        return DatabaseCheck(self.with_namespace("check_timeout"), self.check_timeout)
 
     def check_timeout(self):
         # pylint: disable=no-member

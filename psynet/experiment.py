@@ -6,6 +6,7 @@ import dallinger.experiment
 import rpdb
 from dallinger import db
 from dallinger.config import get_config
+from dallinger.experiment import scheduled_task
 from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -22,12 +23,12 @@ from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
 from .timeline import (
+    DatabaseCheck,
     ExperimentSetupRoutine,
     FailedValidation,
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
-    RecurringTask,
     Timeline,
 )
 from .utils import call_function, get_arg_from_dict, get_logger, serialise
@@ -106,7 +107,7 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        self.recurring_tasks = []
+        self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
@@ -116,6 +117,14 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         else:
             self.register_pre_deployment_routines()
+
+    @scheduled_task("interval", minutes=1)
+    @staticmethod
+    def check_database():
+        exp_class = dallinger.experiment.load()
+        exp = exp_class.new(db.session)
+        for c in exp.database_checks:
+            c.run()
 
     @property
     def base_payment(self):
@@ -136,8 +145,8 @@ class Experiment(dallinger.experiment.Experiment):
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
 
-    def register_recurring_task(self, task):
-        self.recurring_tasks.append(task)
+    def register_database_check(self, task):
+        self.database_checks.append(task)
 
     def register_pre_deployment_routines(self):
         for event in self.timeline.events:
@@ -204,8 +213,8 @@ class Experiment(dallinger.experiment.Experiment):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
-            if isinstance(event, RecurringTask):
-                self.register_recurring_task(event.daemon)
+            if isinstance(event, DatabaseCheck):
+                self.register_database_check(event)
             if isinstance(event, ParticipantFailRoutine):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
