@@ -106,7 +106,7 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        self._recurring_tasks = []
+        self.recurring_tasks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
@@ -136,12 +136,8 @@ class Experiment(dallinger.experiment.Experiment):
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
 
-    @property
-    def recurring_tasks(self):
-        return self._recurring_tasks
-
     def register_recurring_task(self, task):
-        self._recurring_tasks.append(task)
+        self.recurring_tasks.append(task)
 
     def register_pre_deployment_routines(self):
         for event in self.timeline.events:
