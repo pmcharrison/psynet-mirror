@@ -1,5 +1,3 @@
-praat-parselmouth
-urllib3
+-e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
 docopt
 matplotlib
-scipy

@@ -12,8 +12,12 @@ def test_id():
     assert str(e.value) == "id_ must be a string"
 
     with pytest.raises(ValueError) as e:
-        GraphicObject("3")
-    assert str(e.value) == "id_ must be a valid variable name"
+        GraphicObject("3 a")
+    assert str(e.value) == "id_ must be a valid HTML5 id"
+
+    with pytest.raises(ValueError) as e:
+        GraphicObject("")
+    assert str(e.value) == "id_ must be a valid HTML5 id"
 
 
 def test_image():

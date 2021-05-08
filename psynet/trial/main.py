@@ -34,8 +34,8 @@ from ..field import (
 from ..page import InfoPage, UnsuccessfulEndPage, wait_while
 from ..participant import Participant
 from ..timeline import (
-    BackgroundTask,
     CodeBlock,
+    DatabaseCheck,
     ExperimentSetupRoutine,
     Module,
     PageMaker,
@@ -820,11 +820,7 @@ class TrialMaker(Module):
 
     @property
     def check_timeout_task(self):
-        return BackgroundTask(
-            self.with_namespace("check_timeout"),
-            self.check_timeout,
-            interval_sec=self.check_timeout_interval,
-        )
+        return DatabaseCheck(self.with_namespace("check_timeout"), self.check_timeout)
 
     def check_timeout(self):
         # pylint: disable=no-member
@@ -1995,6 +1991,14 @@ class TrialNetwork(Network, AsyncProcessOwner):
     @property
     def num_nodes(self):
         return TrialNode.query.filter_by(network_id=self.id, failed=False).count()
+
+    def trials(self, failed=False, complete=True, is_repeat_trial=False):
+        return Trial.query.filter_by(
+            network_id=self.id,
+            failed=failed,
+            complete=complete,
+            is_repeat_trial=is_repeat_trial,
+        ).all()
 
     @property
     def num_completed_trials(self):

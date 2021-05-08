@@ -1,9 +1,36 @@
 # Changelog
 
-#### Added
+#### Updated
+- Migrated background tasks to Dallinger's new `scheduled_task` API.
+This means that the tasks now run on the clock dyno,
+and are now robust to dyno restarts, app crashes etc. 
 
+# [1.13.1] Released on 2021-05-05
+
+#### Fixed
+- Fix name attribute default value for RadioButtonControl, DropdownControl, and CheckboxControl
+- Fix some deprecation warnings in tests
+- Update black, isort, and flake8 versions in pre-commit hook config
+- Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
+- Implement missing notify_duration_exceeded method for CAPRecruiter
+- Update Dallinger to v7.2.1
+
+# [1.13.0] Released on 2021-04-15
+
+#### Added
+- Video and screen recording
+- Unity integration including a WebGL demo.
+- Filter options for customising stimulus, stimulus version, and network selection.
+- Integration of external recruiter with new CapRecruiter classes.
 - Add `auto_advance` option to `AudioRecordControl`. 
+
+#### Fixed
 - Update for compatibility with SQLAlchemy v1.4.
+
+#### Updated
+- Pin to Dallinger v7.2.0
+- Replace deprecated `Page` classes with `ModularPage` class.
+
 
 # [1.12.0] Released on 2021-02-22
 

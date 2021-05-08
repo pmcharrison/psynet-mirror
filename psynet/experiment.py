@@ -3,10 +3,10 @@ import os
 from datetime import datetime
 
 import dallinger.experiment
-import requests
 import rpdb
 from dallinger import db
 from dallinger.config import get_config
+from dallinger.experiment import scheduled_task
 from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -21,8 +21,9 @@ from . import field
 from .field import VarStore, claim_var
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
+from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
 from .timeline import (
-    BackgroundTask,
+    DatabaseCheck,
     ExperimentSetupRoutine,
     FailedValidation,
     ParticipantFailRoutine,
@@ -106,7 +107,7 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        self._background_tasks = []
+        self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
@@ -116,6 +117,14 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         else:
             self.register_pre_deployment_routines()
+
+    @scheduled_task("interval", minutes=1)
+    @staticmethod
+    def check_database():
+        exp_class = dallinger.experiment.load()
+        exp = exp_class.new(db.session)
+        for c in exp.database_checks:
+            c.run()
 
     @property
     def base_payment(self):
@@ -136,12 +145,8 @@ class Experiment(dallinger.experiment.Experiment):
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
 
-    @property
-    def background_tasks(self):
-        return self._background_tasks
-
-    def register_background_task(self, task):
-        self._background_tasks.append(task)
+    def register_database_check(self, task):
+        self.database_checks.append(task)
 
     def register_pre_deployment_routines(self):
         for event in self.timeline.events:
@@ -208,8 +213,8 @@ class Experiment(dallinger.experiment.Experiment):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
-            if isinstance(event, BackgroundTask):
-                self.register_background_task(event.daemon)
+            if isinstance(event, DatabaseCheck):
+                self.register_database_check(event)
             if isinstance(event, ParticipantFailRoutine):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
@@ -219,24 +224,6 @@ class Experiment(dallinger.experiment.Experiment):
         if all(tab_title != tab.title for tab in dashboard_tabs):
             dashboard_tabs.insert_after_route(
                 tab_title, "dashboard.timeline", "dashboard.monitoring"
-            )
-
-    def submission_successful(self, participant):
-        """Run when a participant submits successfully."""
-        if participant.entry_information.get("externalRecruiter") == "cap-recruiter":
-            url = f'{os.environ.get("CAP_RECRUITER_BASE_URL")}/hits/complete'
-            data = {
-                "recruiter": participant.recruiter_id,
-                "workerId": participant.worker_id,
-                "assignmentId": participant.assignment_id,
-                "groupId": participant.entry_information["groupId"],
-                "basePay": participant.base_pay,
-                "bonus": participant.bonus,
-            }
-            requests.post(
-                url,
-                json=data,
-                headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
             )
 
     @classmethod
@@ -426,7 +413,13 @@ class Experiment(dallinger.experiment.Experiment):
         return success_response()
 
     def process_response(
-        self, participant_id, raw_answer, blobs, metadata, page_uuid, client_ip_address
+        self,
+        participant_id,
+        raw_answer,
+        blobs,
+        metadata,
+        page_uuid,
+        client_ip_address,
     ):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
@@ -448,7 +441,7 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
             self.timeline.advance_page(self, participant)
-            return self.response_approved()
+            return self.response_approved(participant)
         else:
             logger.warn(
                 f"Participant {participant_id} tried to submit data with the wrong page_uuid"
@@ -456,9 +449,10 @@ class Experiment(dallinger.experiment.Experiment):
             )
             return error_response()
 
-    def response_approved(self):
+    def response_approved(self, participant):
         logger.debug("The response was approved.")
-        return success_response(submission="approved")
+        page = self.timeline.get_current_event(self, participant)
+        return success_response(submission="approved", page=page.__json__(participant))
 
     def response_rejected(self, message):
         logger.warning(
@@ -482,6 +476,10 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/images/logo.svg",
             ),
             (
+                resource_filename("psynet", "resources/images/unity_logo.png"),
+                "/static/images/unity_logo.png",
+            ),
+            (
                 resource_filename("psynet", "resources/scripts/dashboard_timeline.js"),
                 "/static/scripts/dashboard_timeline.js",
             ),
@@ -494,6 +492,10 @@ class Experiment(dallinger.experiment.Experiment):
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
+            ),
+            (
+                resource_filename("psynet", "templates/error.html"),
+                "templates/error.html",
             ),
         ]
 
@@ -524,6 +526,23 @@ class Experiment(dallinger.experiment.Experiment):
                         exp.timeline.modules(), default=serialise
                     ),
                 )
+
+        @routes.route("/get_participant_info_for_debug_mode", methods=["GET"])
+        def get_participant_info_for_debug_mode():
+            config = get_config()
+            if not config.get("mode") == "debug":
+                return error_response()
+
+            participant = Participant.query.first()
+            json_data = {
+                "id": participant.id,
+                "assignment_id": participant.assignment_id,
+                "page_uuid": participant.page_uuid,
+            }
+            logger.debug(
+                f"Returning from /get_participant_info_for_debug_mode: {json_data}"
+            )
+            return json.dumps(json_data, default=serialise)
 
         @routes.route("/export", methods=["GET"])
         def export():
@@ -654,6 +673,7 @@ class Experiment(dallinger.experiment.Experiment):
 
             exp = self.new(db.session)
             participant = get_participant(participant_id)
+            mode = request.args.get("mode")
 
             if participant.assignment_id != assignment_id:
                 logger.error(
@@ -676,6 +696,8 @@ class Experiment(dallinger.experiment.Experiment):
                 page = exp.timeline.get_current_event(self, participant)
                 page.pre_render()
                 exp.save()
+                if mode == "json":
+                    return jsonify(page.__json__(participant))
                 return page.render(exp, participant)
 
         @routes.route("/response", methods=["POST"])

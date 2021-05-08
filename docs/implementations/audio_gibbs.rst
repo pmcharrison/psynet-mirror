@@ -78,6 +78,9 @@ See the low-level documentation (below)
 and the demo (``demos/audio_gibbs``)
 for more details.
 
+Note: you can customize the assignment of participants to chains by overriding the
+:meth:`~psynet.trial.audio_gibbs.AudioGibbsTrialMaker.custom_network_filter` method.
+
 .. automodule:: psynet.trial.audio_gibbs
     :show-inheritance:
     :members:

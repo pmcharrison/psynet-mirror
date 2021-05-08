@@ -31,4 +31,12 @@ class TestExp:
 
             next_page(driver, "next_button")
 
+            from psynet.participant import Participant
+
+            pt = Participant.query.filter_by(id=participant + 1).one()
+            trials = pt.trials()
+            trials.sort(key=lambda x: x.id)
+            network_ids = [t.network.id for t in trials]
+            assert network_ids == sorted(network_ids)
+
             next_page(driver, "next_button", finished=True)

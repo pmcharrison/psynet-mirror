@@ -3,7 +3,8 @@ import json
 from flask import Markup, escape
 
 import psynet.experiment
-from psynet.page import AudioSliderPage, DebugResponsePage, SuccessfulEndPage
+from psynet.modular_page import AudioSliderControl, ModularPage
+from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline, join
 
 
@@ -57,8 +58,16 @@ def new_example(description, **kwargs):
         </script>
         """
     )
+    time_estimate = kwargs.pop("time_estimate")
+
     return join(
-        AudioSliderPage(label="slider_page", prompt=prompt, media=media, **kwargs),
+        ModularPage(
+            "slider_page",
+            prompt,
+            control=AudioSliderControl("slider_control", audio=media.audio, **kwargs),
+            media=media,
+            time_estimate=time_estimate,
+        ),
         DebugResponsePage(),
     )
 

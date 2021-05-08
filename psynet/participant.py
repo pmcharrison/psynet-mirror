@@ -144,6 +144,16 @@ class Participant(dallinger.models.Participant):
         field.json_format_vars(x)
         return x
 
+    def trials(self, failed=False, complete=True, is_repeat_trial=False):
+        from .trial.main import Trial
+
+        return Trial.query.filter_by(
+            participant_id=self.id,
+            failed=failed,
+            complete=complete,
+            is_repeat_trial=is_repeat_trial,
+        ).all()
+
     @property
     def last_response(self):
         if self.last_response_id is None:

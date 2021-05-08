@@ -81,6 +81,9 @@ See the low-level documentation (below)
 and the demo (``demos/mcmcp``)
 for more details.
 
+Note: you can customize the assignment of participants to chains by overriding the
+:meth:`~psynet.trial.mcmcp.MCMCPTrialMaker.custom_network_filter` method.
+
 .. [1] The :meth:`~psynet.trial.mcmcp.MCMCPTrial.show_trial` method
    may alternatively return a list of :class:`~psynet.timeline.Page` objects.
    In this case, the user is responsible for ensuring that the 

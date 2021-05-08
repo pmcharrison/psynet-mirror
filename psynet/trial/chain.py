@@ -1355,12 +1355,38 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant_group = participant.get_participant_group(self.id)
         networks = [n for n in networks if n.participant_group == participant_group]
 
+        networks = self.custom_network_filter(
+            candidates=networks, participant=participant
+        )
+        if not isinstance(networks, list):
+            return TypeError("custom_network_filter must return a list of networks")
+
         random.shuffle(networks)
 
         if self.active_balancing_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
 
         return networks
+
+    def custom_network_filter(self, candidates, participant):
+        """
+        Override this function to define a custom filter for choosing the participant's next network.
+
+        Parameters
+        ----------
+        candidates:
+            The current list of candidate networks as defined by the built-in chain procedure.
+
+        participant:
+            The current participant.
+
+        Returns
+        -------
+
+        An updated list of candidate networks. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain networks from the list.
+        """
+        return candidates
 
     @staticmethod
     def filter_by_participant_id(networks, participant):
