@@ -1767,7 +1767,7 @@ class ExperimentSetupRoutine(NullEvent):
         return callable(x)
 
 
-class BackgroundTask(NullEvent):
+class RecurringTask(NullEvent):
     def __init__(self, label, function, interval_sec, run_on_launch=False):
         check_function_args(function, args=[])
         self.label = label
@@ -1777,19 +1777,19 @@ class BackgroundTask(NullEvent):
 
     def safe_function(self):
         start_time = time.monotonic()
-        logger.info("Executing the background task '%s'...", self.label)
+        logger.info("Executing the recurring task '%s'...", self.label)
         try:
             self.function()
             end_time = time.monotonic()
             time_taken = end_time - start_time
             logger.info(
-                "The background task '%s' completed in %s seconds.",
+                "The recurring task '%s' completed in %s seconds.",
                 self.label,
                 f"{time_taken:.3f}",
             )
         except Exception:
             logger.info(
-                "An exception was thrown in the background task '%s'.",
+                "An exception was thrown in the recurring task '%s'.",
                 self.label,
                 exc_info=True,
             )

@@ -22,12 +22,12 @@ from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
 from .timeline import (
-    BackgroundTask,
     ExperimentSetupRoutine,
     FailedValidation,
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
+    RecurringTask,
     Timeline,
 )
 from .utils import call_function, get_arg_from_dict, get_logger, serialise
@@ -106,7 +106,7 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        self._background_tasks = []
+        self._recurring_tasks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
@@ -137,11 +137,11 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria.append(criterion)
 
     @property
-    def background_tasks(self):
-        return self._background_tasks
+    def recurring_tasks(self):
+        return self._recurring_tasks
 
-    def register_background_task(self, task):
-        self._background_tasks.append(task)
+    def register_recurring_task(self, task):
+        self._recurring_tasks.append(task)
 
     def register_pre_deployment_routines(self):
         for event in self.timeline.events:
@@ -208,8 +208,8 @@ class Experiment(dallinger.experiment.Experiment):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
-            if isinstance(event, BackgroundTask):
-                self.register_background_task(event.daemon)
+            if isinstance(event, RecurringTask):
+                self.register_recurring_task(event.daemon)
             if isinstance(event, ParticipantFailRoutine):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
