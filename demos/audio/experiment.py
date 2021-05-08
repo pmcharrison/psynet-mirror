@@ -278,6 +278,7 @@ example_record_with_audio_prompt = join(
             controls=True,
             record_window=[1, 4],
             loop_playback=False,
+            auto_advance=True,
         ),
         time_estimate=5,
         auto_start_trial=False,

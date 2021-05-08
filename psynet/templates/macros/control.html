@@ -805,7 +805,6 @@
 
             $("#btn-record-upload").on("click", function() {
                 psynet.register_event("begin_upload");
-                psynet.add_event_listener("finished_upload", () => $("#next_button").click());
             });
         });
 
