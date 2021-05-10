@@ -107,9 +107,12 @@ a Pull Request (or, in GitLab terminology, a Merge Request).
 Consent pages
 ~~~~~~~~~~~~~
 
-Before the start of an experiment you normally want to have the participant consent to the data collection being caried out.
-We included two `Page` types :class:`~psynet.consent.MTurkStandardConsentPage` and :class:`~psynet.consent.MTurkAudiovisualConsentPage`
-one or both of which can be added to the start of an experiment timeline, as appropriate.
+Before the start of an experiment you normally want to have the participant consent to the data collection being caried
+out. We include the `Page` types :class:`~psynet.consent.MTurkStandardConsentPage` and
+:class:`~psynet.consent.MTurkAudiovisualConsentPage` for experiments making use of MTurk recruiting and the `Page` types
+:class:`~psynet.consent.CAPRecruiterStandardConsentPage` and :class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage`
+using the CAP-Recruiter web application as the recruitment instrument, resp. In each case (MTurk or CAP-Recruiter) one
+or both of the corresponding consent pages can be added to the start of an experiment timeline, as appropriate.
 
 This should be enough to start experimenting with different kinds of page types.
 For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`modular_page` documentation.
