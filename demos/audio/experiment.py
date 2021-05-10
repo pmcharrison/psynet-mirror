@@ -233,8 +233,8 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        MTurkStandardConsentPage(time_estimate=5),
-        MTurkAudiovisualConsentPage(time_estimate=5),
+        MTurkStandardConsentPage(),
+        MTurkAudiovisualConsentPage(),
         example_audio_page,
         example_audio_page_2,
         example_record_with_audio_prompt,

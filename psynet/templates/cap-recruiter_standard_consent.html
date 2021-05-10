@@ -1,6 +1,12 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
+  <style>
+    .main_div {
+      margin: 0;
+    }
+  </style>
+
   <div class="main_div" style="padding-bottom: 100px;
   ">
     <noscript>
@@ -62,12 +68,4 @@
         </button>
       </div>
   </div>
-
-  {% block stylesheets %}
-  <style>
-    .main_div {
-      margin: 0;
-    }
-  </style>
-  {% endblock %}
 {% endblock %}

@@ -89,7 +89,7 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-        MTurkStandardConsentPage(time_estimate=5),
+        MTurkStandardConsentPage(),
         MCMCPTrialMaker(
             id_="mcmcp_demo",
             network_class=CustomNetwork,

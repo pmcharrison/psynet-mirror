@@ -128,8 +128,8 @@ trial_maker = CustomTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        CAPRecruiterStandardConsentPage(time_estimate=5),
-        CAPRecruiterAudiovisualConsentPage(time_estimate=5),
+        CAPRecruiterStandardConsentPage(),
+        CAPRecruiterAudiovisualConsentPage(),
         trial_maker,
         SuccessfulEndPage(),
     )
