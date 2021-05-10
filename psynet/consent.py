@@ -19,7 +19,7 @@ class CAPRecruiterStandardConsentPage(Page):
 
     def __init__(
         self,
-        time_estimate: Optional[float] = 30,
+        time_estimate: Optional[float] = 10,
         **kwargs,
     ):
         super().__init__(
@@ -64,6 +64,35 @@ class CAPRecruiterAudiovisualConsentPage(Page):
                 "demonstration_purposes_consent"
             ],
         }
+
+
+class PrincetonConsentPage(Page):
+    """
+    This page displays the consent page for the Griffiths lab at Princeton University.
+
+    Parameters
+    ----------
+
+    time_estimate:
+        Time estimated for the page.
+
+    **kwargs:
+        Further arguments to pass to :class:`psynet.timeline.Page`.
+    """
+
+    def __init__(
+        self,
+        time_estimate: Optional[float] = 30,
+        **kwargs,
+    ):
+        super().__init__(
+            time_estimate=time_estimate,
+            template_str=get_template("princeton_consent.html"),
+            **kwargs,
+        )
+
+    def format_answer(self, raw_answer, **kwargs):
+        return {"consent": True}
 
 
 class MTurkStandardConsentPage(Page):
