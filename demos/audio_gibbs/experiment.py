@@ -10,6 +10,10 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
+from psynet.consent import (
+    CAPRecruiterAudiovisualConsentPage,
+    CAPRecruiterStandardConsentPage,
+)
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
@@ -123,7 +127,12 @@ trial_maker = CustomTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    timeline = Timeline(trial_maker, SuccessfulEndPage())
+    timeline = Timeline(
+        CAPRecruiterStandardConsentPage(time_estimate=5),
+        CAPRecruiterAudiovisualConsentPage(time_estimate=5),
+        trial_maker,
+        SuccessfulEndPage(),
+    )
 
     def __init__(self, session=None):
         super().__init__(session)
