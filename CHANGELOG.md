@@ -1,5 +1,24 @@
 # Changelog
 
+#### Added
+
+- It is now possible to use `save_answer` to specify a participant variable
+in which the answer should be saved:
+
+```python
+from psynet.modular_page import ModularPage, Prompt, NumberControl
+
+ModularPage(
+    "weight",
+    Prompt("What is your weight in kg?"),
+    NumberControl(),
+    time_estimate=5,
+    save_answer="weight",
+)
+``` 
+
+The resulting answer can then be accessed, in this case, by `participant.var.weight`.
+
 # [1.13.1] Released on 2021-05-05
 
 #### Fixed
