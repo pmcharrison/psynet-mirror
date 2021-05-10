@@ -228,9 +228,21 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def pre_deploy(cls):
+        cls.check_config()
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
+
+    @classmethod
+    def check_config(cls):
+        config = get_config()
+        if not config.ready:
+            config.load()
+        if not config.get("clock_on"):
+            # We force the clock to be on because it's necessary for the check_networks functionality.
+            raise RuntimeError(
+                "PsyNet requires the clock process to be enabled; please set clock_on = true in config.txt."
+            )
 
     def fail_participant(self, participant):
         logger.info(
