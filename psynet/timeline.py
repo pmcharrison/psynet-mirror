@@ -9,7 +9,6 @@ from statistics import median
 from typing import Callable, Dict, List, Optional
 
 import flask
-import gevent
 import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
@@ -1767,39 +1766,30 @@ class ExperimentSetupRoutine(NullEvent):
         return callable(x)
 
 
-class BackgroundTask(NullEvent):
-    def __init__(self, label, function, interval_sec, run_on_launch=False):
+class DatabaseCheck(NullEvent):
+    def __init__(self, label, function):
         check_function_args(function, args=[])
         self.label = label
         self.function = function
-        self.interval_sec = interval_sec
-        self.run_on_launch = run_on_launch
 
-    def safe_function(self):
+    def run(self):
         start_time = time.monotonic()
-        logger.info("Executing the background task '%s'...", self.label)
+        logger.info("Executing the database check '%s'...", self.label)
         try:
             self.function()
             end_time = time.monotonic()
             time_taken = end_time - start_time
             logger.info(
-                "The background task '%s' completed in %s seconds.",
+                "The database check '%s' completed in %s seconds.",
                 self.label,
                 f"{time_taken:.3f}",
             )
         except Exception:
             logger.info(
-                "An exception was thrown in the background task '%s'.",
+                "An exception was thrown in the database check '%s'.",
                 self.label,
                 exc_info=True,
             )
-
-    def daemon(self):
-        if self.run_on_launch:
-            self.safe_function()
-        while True:
-            gevent.sleep(self.interval_sec)
-            self.safe_function()
 
 
 class PreDeployRoutine(NullEvent):
