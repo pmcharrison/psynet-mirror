@@ -1,5 +1,7 @@
 from typing import Optional
 
+from psynet.timeline import CodeBlock
+
 from .page import RejectedConsentPage
 from .timeline import Module, Page, conditional, get_template, join
 
@@ -32,6 +34,12 @@ class CAPRecruiterStandardConsent(Module):
                     or participant.answer["standard_consent"] is not True
                 ),
                 RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "cap-recruiter_standard_consent",
+                    participant.answer["standard_consent"],
+                )
             ),
         )
         super().__init__(self.label, self.events)
@@ -86,6 +94,18 @@ class CAPRecruiterAudiovisualConsent(Module):
                     or participant.answer["audiovisual_consent"] is not True
                 ),
                 RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "cap-recruiter_audiovisual_consent",
+                    participant.answer["audiovisual_consent"],
+                )
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "cap-recruiter_demonstration_purposes_consent",
+                    participant.answer["demonstration_purposes_consent"],
+                )
             ),
         )
         super().__init__(self.label, self.events)
@@ -149,6 +169,11 @@ class MTurkStandardConsent(Module):
                 ),
                 RejectedConsentPage(),
             ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "mturk_standard_consent", participant.answer["standard_consent"]
+                )
+            ),
         )
         super().__init__(self.label, self.events)
 
@@ -202,6 +227,12 @@ class MTurkAudiovisualConsent(Module):
                     or participant.answer["audiovisual_consent"] is not True
                 ),
                 RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "mturk_audiovisual_consent",
+                    participant.answer["audiovisual_consent"],
+                )
             ),
         )
         super().__init__(self.label, self.events)
@@ -259,6 +290,11 @@ class PrincetonConsent(Module):
                     or participant.answer["consent"] is not True
                 ),
                 RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "princeton_consent", participant.answer["consent"]
+                )
             ),
         )
         super().__init__(self.label, self.events)
