@@ -10,10 +10,7 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import (
-    CAPRecruiterAudiovisualConsentPage,
-    CAPRecruiterStandardConsentPage,
-)
+from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
@@ -128,8 +125,8 @@ trial_maker = CustomTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        CAPRecruiterStandardConsentPage(),
-        CAPRecruiterAudiovisualConsentPage(),
+        CAPRecruiterStandardConsent(),
+        CAPRecruiterAudiovisualConsent(),
         trial_maker,
         SuccessfulEndPage(),
     )
