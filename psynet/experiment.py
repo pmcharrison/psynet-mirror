@@ -118,7 +118,7 @@ class Experiment(dallinger.experiment.Experiment):
         else:
             self.register_pre_deployment_routines()
 
-    @scheduled_task("interval", minutes=1)
+    @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def check_database():
         exp_class = dallinger.experiment.load()
