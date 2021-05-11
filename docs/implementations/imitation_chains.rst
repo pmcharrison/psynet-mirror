@@ -66,7 +66,7 @@ You can define a custom imitation-chain experiment through the following steps:
    then one will have to implement a custom 
    :meth:`~psynet.trial.imitation_chain.ImitationChainNode.summarise_trials` method.
    
-5. Create an instance of :class:`~psynet.trial.imitation_chain.ImitationChainMaker`,
+5. Create an instance of :class:`~psynet.trial.imitation_chain.ImitationChainTrialMaker`,
    filling in its constructor parameter list
    with reference to the classes you created above,
    and insert it into your experiment's timeline.
