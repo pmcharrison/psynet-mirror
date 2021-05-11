@@ -26,7 +26,7 @@ class CAPRecruiterStandardConsent(Module):
     ):
         self.label = "cap-recruiter_standard_consent"
         self.events = join(
-            CAPRecruiterStandardConsentPage(),
+            self.CAPRecruiterStandardConsentPage(),
             conditional(
                 "cap-recruiter_standard_consent_conditional",
                 lambda experiment, participant: (
@@ -44,29 +44,28 @@ class CAPRecruiterStandardConsent(Module):
         )
         super().__init__(self.label, self.events)
 
+    class CAPRecruiterStandardConsentPage(Page):
+        """
+        This page displays the CAP-Recruiter standard consent page.
 
-class CAPRecruiterStandardConsentPage(Page):
-    """
-    This page displays the CAP-Recruiter standard consent page.
+        Parameters
+        ----------
 
-    Parameters
-    ----------
+        time_estimate:
+            Time estimated for the page.
+        """
 
-    time_estimate:
-        Time estimated for the page.
-    """
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("cap-recruiter_standard_consent.html"),
+            )
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("cap-recruiter_standard_consent.html"),
-        )
-
-    def format_answer(self, raw_answer, **kwargs):
-        return {"standard_consent": raw_answer}
+        def format_answer(self, raw_answer, **kwargs):
+            return {"standard_consent": raw_answer}
 
 
 class CAPRecruiterAudiovisualConsent(Module):
@@ -86,7 +85,7 @@ class CAPRecruiterAudiovisualConsent(Module):
     ):
         self.label = "cap-recruiter_audiovisual_consent"
         self.events = join(
-            CAPRecruiterAudiovisualConsentPage(),
+            self.CAPRecruiterAudiovisualConsentPage(),
             conditional(
                 "cap-recruiter_audiovisual_consent_conditional",
                 lambda experiment, participant: (
@@ -110,34 +109,33 @@ class CAPRecruiterAudiovisualConsent(Module):
         )
         super().__init__(self.label, self.events)
 
+    class CAPRecruiterAudiovisualConsentPage(Page):
+        """
+        This page displays the CAP-Recruiter audiovisual consent page.
 
-class CAPRecruiterAudiovisualConsentPage(Page):
-    """
-    This page displays the CAP-Recruiter audiovisual consent page.
+        Parameters
+        ----------
 
-    Parameters
-    ----------
+        time_estimate:
+            Time estimated for the page.
+        """
 
-    time_estimate:
-        Time estimated for the page.
-    """
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("cap-recruiter_audiovisual_consent.html"),
+            )
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("cap-recruiter_audiovisual_consent.html"),
-        )
-
-    def format_answer(self, raw_answer, **kwargs):
-        return {
-            "audiovisual_consent": raw_answer,
-            "demonstration_purposes_consent": kwargs["metadata"][
-                "demonstration_purposes_consent"
-            ],
-        }
+        def format_answer(self, raw_answer, **kwargs):
+            return {
+                "audiovisual_consent": raw_answer,
+                "demonstration_purposes_consent": kwargs["metadata"][
+                    "demonstration_purposes_consent"
+                ],
+            }
 
 
 #########
@@ -160,7 +158,7 @@ class MTurkStandardConsent(Module):
     ):
         self.label = "mturk_standard_consent"
         self.events = join(
-            MTurkStandardConsentPage(),
+            self.MTurkStandardConsentPage(),
             conditional(
                 "mturk_standard_consent_conditional",
                 lambda experiment, participant: (
@@ -177,29 +175,28 @@ class MTurkStandardConsent(Module):
         )
         super().__init__(self.label, self.events)
 
+    class MTurkStandardConsentPage(Page):
+        """
+        This page displays the MTurk standard consent page.
 
-class MTurkStandardConsentPage(Page):
-    """
-    This page displays the MTurk standard consent page.
+        Parameters
+        ----------
 
-    Parameters
-    ----------
+        time_estimate:
+            Time estimated for the page.
+        """
 
-    time_estimate:
-        Time estimated for the page.
-    """
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("mturk_standard_consent.html"),
+            )
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("mturk_standard_consent.html"),
-        )
-
-    def format_answer(self, raw_answer, **kwargs):
-        return {"standard_consent": raw_answer}
+        def format_answer(self, raw_answer, **kwargs):
+            return {"standard_consent": raw_answer}
 
 
 class MTurkAudiovisualConsent(Module):
@@ -219,7 +216,7 @@ class MTurkAudiovisualConsent(Module):
     ):
         self.label = "mturk_audiovisual_consent"
         self.events = join(
-            MTurkAudiovisualConsentPage(),
+            self.MTurkAudiovisualConsentPage(),
             conditional(
                 "mturk_audiovisual_consent_conditional",
                 lambda experiment, participant: (
@@ -237,29 +234,28 @@ class MTurkAudiovisualConsent(Module):
         )
         super().__init__(self.label, self.events)
 
+    class MTurkAudiovisualConsentPage(Page):
+        """
+        This page displays the MTurk audiovisual consent page.
 
-class MTurkAudiovisualConsentPage(Page):
-    """
-    This page displays the MTurk audiovisual consent page.
+        Parameters
+        ----------
 
-    Parameters
-    ----------
+        time_estimate:
+            Time estimated for the page.
+        """
 
-    time_estimate:
-        Time estimated for the page.
-    """
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("mturk_audiovisual_consent.html"),
+            )
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("mturk_audiovisual_consent.html"),
-        )
-
-    def format_answer(self, raw_answer, **kwargs):
-        return {"audiovisual_consent": raw_answer}
+        def format_answer(self, raw_answer, **kwargs):
+            return {"audiovisual_consent": raw_answer}
 
 
 #############
@@ -282,7 +278,7 @@ class PrincetonConsent(Module):
     ):
         self.label = "princeton_consent"
         self.events = join(
-            PrincetonConsentPage(),
+            self.PrincetonConsentPage(),
             conditional(
                 "princeton_consent_conditional",
                 lambda experiment, participant: (
@@ -299,26 +295,25 @@ class PrincetonConsent(Module):
         )
         super().__init__(self.label, self.events)
 
+    class PrincetonConsentPage(Page):
+        """
+        This page displays the Princeton University consent page.
 
-class PrincetonConsentPage(Page):
-    """
-    This page displays the Princeton University consent page.
+        Parameters
+        ----------
 
-    Parameters
-    ----------
+        time_estimate:
+            Time estimated for the page.
+        """
 
-    time_estimate:
-        Time estimated for the page.
-    """
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template("princeton_consent.html"),
+            )
 
-    def __init__(
-        self,
-        time_estimate: Optional[float] = 30,
-    ):
-        super().__init__(
-            time_estimate=time_estimate,
-            template_str=get_template("princeton_consent.html"),
-        )
-
-    def format_answer(self, raw_answer, **kwargs):
-        return {"consent": raw_answer}
+        def format_answer(self, raw_answer, **kwargs):
+            return {"consent": raw_answer}
