@@ -30,8 +30,7 @@ class CAPRecruiterStandardConsent(Module):
             conditional(
                 "cap-recruiter_standard_consent_conditional",
                 lambda experiment, participant: (
-                    "standard_consent" not in participant.answer
-                    or participant.answer["standard_consent"] is not True
+                    not participant.answer["standard_consent"]
                 ),
                 RejectedConsentPage(),
             ),
@@ -89,8 +88,7 @@ class CAPRecruiterAudiovisualConsent(Module):
             conditional(
                 "cap-recruiter_audiovisual_consent_conditional",
                 lambda experiment, participant: (
-                    "audiovisual_consent" not in participant.answer
-                    or participant.answer["audiovisual_consent"] is not True
+                    not participant.answer["audiovisual_consent"]
                 ),
                 RejectedConsentPage(),
             ),
@@ -162,8 +160,7 @@ class MTurkStandardConsent(Module):
             conditional(
                 "mturk_standard_consent_conditional",
                 lambda experiment, participant: (
-                    "standard_consent" not in participant.answer
-                    or participant.answer["standard_consent"] is not True
+                    not participant.answer["standard_consent"]
                 ),
                 RejectedConsentPage(),
             ),
@@ -220,8 +217,7 @@ class MTurkAudiovisualConsent(Module):
             conditional(
                 "mturk_audiovisual_consent_conditional",
                 lambda experiment, participant: (
-                    "audiovisual_consent" not in participant.answer
-                    or participant.answer["audiovisual_consent"] is not True
+                    not participant.answer["audiovisual_consent"]
                 ),
                 RejectedConsentPage(),
             ),
@@ -281,10 +277,7 @@ class PrincetonConsent(Module):
             self.PrincetonConsentPage(),
             conditional(
                 "princeton_consent_conditional",
-                lambda experiment, participant: (
-                    "consent" not in participant.answer
-                    or participant.answer["consent"] is not True
-                ),
+                lambda experiment, participant: (not participant.answer["consent"]),
                 RejectedConsentPage(),
             ),
             CodeBlock(
