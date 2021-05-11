@@ -6,6 +6,7 @@ import dallinger.experiment
 import rpdb
 from dallinger import db
 from dallinger.config import get_config
+from dallinger.experiment import scheduled_task
 from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -22,7 +23,7 @@ from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
 from .timeline import (
-    BackgroundTask,
+    DatabaseCheck,
     ExperimentSetupRoutine,
     FailedValidation,
     ParticipantFailRoutine,
@@ -106,7 +107,7 @@ class Experiment(dallinger.experiment.Experiment):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        self._background_tasks = []
+        self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
@@ -116,6 +117,14 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         else:
             self.register_pre_deployment_routines()
+
+    @scheduled_task("interval", minutes=1)
+    @staticmethod
+    def check_database():
+        exp_class = dallinger.experiment.load()
+        exp = exp_class.new(db.session)
+        for c in exp.database_checks:
+            c.run()
 
     @property
     def base_payment(self):
@@ -136,12 +145,8 @@ class Experiment(dallinger.experiment.Experiment):
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
 
-    @property
-    def background_tasks(self):
-        return self._background_tasks
-
-    def register_background_task(self, task):
-        self._background_tasks.append(task)
+    def register_database_check(self, task):
+        self.database_checks.append(task)
 
     def register_pre_deployment_routines(self):
         for event in self.timeline.events:
@@ -208,8 +213,8 @@ class Experiment(dallinger.experiment.Experiment):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
-            if isinstance(event, BackgroundTask):
-                self.register_background_task(event.daemon)
+            if isinstance(event, DatabaseCheck):
+                self.register_database_check(event)
             if isinstance(event, ParticipantFailRoutine):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
@@ -223,9 +228,21 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def pre_deploy(cls):
+        cls.check_config()
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
+
+    @classmethod
+    def check_config(cls):
+        config = get_config()
+        if not config.ready:
+            config.load()
+        if not config.get("clock_on"):
+            # We force the clock to be on because it's necessary for the check_networks functionality.
+            raise RuntimeError(
+                "PsyNet requires the clock process to be enabled; please set clock_on = true in config.txt."
+            )
 
     def fail_participant(self, participant):
         logger.info(
