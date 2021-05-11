@@ -1,10 +1,10 @@
 import psynet.experiment
 from psynet.consent import (
-    CAPRecruiterAudiovisualConsentPage,
-    CAPRecruiterStandardConsentPage,
-    MTurkAudiovisualConsentPage,
-    MTurkStandardConsentPage,
-    PrincetonConsentPage,
+    CAPRecruiterAudiovisualConsent,
+    CAPRecruiterStandardConsent,
+    MTurkAudiovisualConsent,
+    MTurkStandardConsent,
+    PrincetonConsent,
 )
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -17,11 +17,11 @@ class Exp(psynet.experiment.Experiment):
     wage_per_hour = 12.0
 
     timeline = Timeline(
-        MTurkStandardConsentPage(),
-        MTurkAudiovisualConsentPage(),
-        CAPRecruiterStandardConsentPage(),
-        CAPRecruiterAudiovisualConsentPage(),
-        PrincetonConsentPage(),
+        MTurkStandardConsent(),
+        MTurkAudiovisualConsent(),
+        CAPRecruiterStandardConsent(),
+        CAPRecruiterAudiovisualConsent(),
+        PrincetonConsent(),
         SuccessfulEndPage(),
     )
 
