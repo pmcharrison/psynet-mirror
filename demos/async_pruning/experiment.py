@@ -209,7 +209,10 @@ trial_maker = CustomTrialMaker(
 class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
-    timeline = Timeline(trial_maker, SuccessfulEndPage())
+    timeline = Timeline(
+        trial_maker,
+        SuccessfulEndPage(),
+    )
 
     def __init__(self, session=None):
         super().__init__(session)
