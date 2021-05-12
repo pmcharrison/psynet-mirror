@@ -26,6 +26,14 @@ Page
     :members:
     :show-inheritance:
 
+=============
+Consent pages
+=============
+
+.. automodule:: psynet.consent
+    :members:
+    :show-inheritance:
+
 =========
 PageMaker
 =========

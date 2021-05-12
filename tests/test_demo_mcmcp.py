@@ -17,6 +17,10 @@ class TestExp:
             driver = bot.driver
             time.sleep(1)
 
+            driver.execute_script(
+                "$('html').animate({ scrollTop: $(document).height() }, 0);"
+            )
+            next_page(driver, "standard_consent")
             for i in range(10):
                 next_page(driver, "1")
 
