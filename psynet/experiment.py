@@ -210,6 +210,7 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
         }
 
+    @property
     def default_variables(self):
         return {}
 
