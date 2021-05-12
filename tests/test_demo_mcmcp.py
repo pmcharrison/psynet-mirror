@@ -19,6 +19,6 @@ class TestExp:
 
             for i in range(10):
                 next_page(driver, "1")
-
+            print(self.__dict__)
             next_page(driver, "next_button")
             next_page(driver, "next_button", finished=True)

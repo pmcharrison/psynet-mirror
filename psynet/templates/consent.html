@@ -114,7 +114,8 @@
         <h2>Compensation</h2>
 
         If you satisfactorily complete the study, you will receive approximately
-        &#36;{{ "{:.2f}".format(experiment.wage_per_hour) }} per hour to compensate you for your participation.
+        &#36;{{ "{:.2f}".format(experiment.var.wage_per_hour) }} per hour to
+        compensate you for your participation.
         In some cases, the experiment may finish early: this is not an error,
         and there is no need to write to us. In this case you will be paid in
         proportion to the amount of the experiment that you completed.
@@ -252,7 +253,7 @@
         }
         window.addEventListener("load", function() {
             console.log(platform.toString());
-            var min_browser_version = "{{ experiment.min_browser_version }}";
+            var min_browser_version = "{{ experiment.var.min_browser_version }}";
             if (platform.name != "Chrome") {
                 $("#consent").prop("disabled", true);
                 $("#consent").append("(please reload in Chrome first)");
@@ -275,7 +276,7 @@
     </script>
 
     <script>
-        {% if not experiment.consent_audiovisual_recordings %}
+        {% if not experiment.var.consent_audiovisual_recordings %}
             document.getElementById("consent").setAttribute("onclick", "window.location='/start?{{query_string | safe}}';")
         {% endif %}
         next_consent_page = function() {

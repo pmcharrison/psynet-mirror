@@ -188,7 +188,7 @@ trial_maker = CustomTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
+    default_variables = {"consent_audiovisual_recordings": False}
 
     timeline = Timeline(
         ModularPage(
