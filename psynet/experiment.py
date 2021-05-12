@@ -31,7 +31,13 @@ from .timeline import (
     RecruitmentCriterion,
     Timeline,
 )
-from .utils import call_function, get_arg_from_dict, get_logger, serialise
+from .utils import (
+    call_function,
+    get_arg_from_dict,
+    get_logger,
+    pretty_log_dict,
+    serialise,
+)
 
 logger = get_logger()
 
@@ -94,7 +100,6 @@ class Experiment(dallinger.experiment.Experiment):
     )
 
     __extra_vars__ = {}
-    default_variables = {}
 
     pre_deploy_routines = []
 
@@ -205,9 +210,15 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
         }
 
+    def default_variables(self):
+        return {}
+
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
         variables = {**self._default_variables, **self.default_variables}
+        logger.info(
+            "Initializing experiment with variables \n" + pretty_log_dict(variables, 4)
+        )
 
         for key, value in variables.items():
             self.var.set(key, value)
