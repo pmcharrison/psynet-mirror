@@ -97,15 +97,25 @@ In both cases the participant will be paid the amount that they have accumulated
 however, :class:`~psynet.page.UnsuccessfulEndPage` is typically used to terminate an experiment early,
 when the participant has yet to accumulate much payment.
 
-:class:`~psynet.page.UnityPage` allows for the integration of Unity and PsyNet. See the special section on :doc:`unity_page` for more detailed information.
+:class:`~psynet.page.UnityPage` allows for the integration of Unity and PsyNet. See the special section on :doc:`/experimenter/unity_page` for more detailed information.
 
 We hope to significantly extend the control types available in ``psynet`` in the future.
 When you've found a custom control type useful for your own experiment,
 you might consider submitting it to the ``psynet`` code base via
 a Pull Request (or, in GitLab terminology, a Merge Request).
 
+Consent pages
+~~~~~~~~~~~~~
+
+Before the start of an experiment you normally want to have the participant consent to the data collection being carried
+out. We include the `Page` types :class:`~psynet.consent.MTurkStandardConsentPage` and
+:class:`~psynet.consent.MTurkAudiovisualConsentPage` for experiments making use of MTurk recruiting and the `Page` types
+:class:`~psynet.consent.CAPRecruiterStandardConsentPage` and :class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage`
+using the CAP-Recruiter web application as the recruitment instrument, resp. In each case (MTurk or CAP-Recruiter) one
+or both of the corresponding consent pages can be added to the start of an experiment timeline, as appropriate.
+
 This should be enough to start experimenting with different kinds of page types.
-For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`ModularPage` documentation.
+For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`modular_page` documentation.
 
 Page makers
 -----------

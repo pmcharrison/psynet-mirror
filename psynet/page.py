@@ -292,6 +292,23 @@ class UnsuccessfulEndPage(EndPage):
         experiment.fail_participant(participant)
 
 
+class RejectedConsentPage(EndPage):
+    """
+    Indicates a consent that has been rejected.
+    """
+
+    def get_content(self, participant):
+        return Markup("Consent was rejected. End of experiment.")
+
+    def __init__(self, failure_tags: Optional[List] = None):
+        super().__init__()
+
+    def finalise_participant(self, experiment, participant):
+        experiment.fail_participant(participant)
+        if experiment.need_more_participants:
+            experiment.recruiter.recruit(n=1)
+
+
 class NAFCPage(ModularPage):
     """
     .. deprecated:: 1.11.0

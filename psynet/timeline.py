@@ -660,6 +660,7 @@ class Page(Event):
             "experiment_progress_bar": self.create_experiment_progress_bar(participant),
             "footer": self.create_footer(experiment, participant),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
+            "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
             "participant": participant,
             "worker_id": participant.worker_id,

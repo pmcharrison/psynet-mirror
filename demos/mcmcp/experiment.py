@@ -7,6 +7,7 @@
 import random
 
 import psynet.experiment
+from psynet.consent import MTurkStandardConsent
 from psynet.modular_page import PushButtonControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -88,6 +89,7 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
+        MTurkStandardConsent(),
         MCMCPTrialMaker(
             id_="mcmcp_demo",
             network_class=CustomNetwork,

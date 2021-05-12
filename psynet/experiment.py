@@ -471,6 +471,10 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/images/logo.svg",
             ),
             (
+                resource_filename("psynet", "resources/images/princeton-consent.png"),
+                "/static/images/princeton-consent.png",
+            ),
+            (
                 resource_filename("psynet", "resources/images/unity_logo.png"),
                 "/static/images/unity_logo.png",
             ),
