@@ -55,7 +55,8 @@ class Experiment(dallinger.experiment.Experiment):
     """
     The main experiment class from which to inherit when building experiments.
 
-    Experiment variables accessible through `psynet.experiment.Experiment.var` are:
+    Experiment variables accessible through `psynet.experiment.Experiment.var` and defined in
+    method ``_default_variables`` are:
 
     max_participant_payment : `float`
         The maximum payment in US dollars a participant can get. Default: `25.0`.

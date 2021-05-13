@@ -127,11 +127,12 @@ a. Assignment to `default_variables`:
     from psynet.experiment import Experiment
 
     class SomeExperiment(psynet.Experiment):
-        default_variables = {
-            "max_participant_payment": 20.0,
-            "wage_per_hour": 12.0,
-            "new_variable": "some-value"
-        }
+        @property
+        def default_variables(self):
+            return {
+                "new_variable": "some-other-value",
+                "wage_per_hour": 16.0
+            }
 
 b. Using the `default_variables` method:
 ::
