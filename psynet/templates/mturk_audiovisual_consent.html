@@ -1,0 +1,85 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+  <div class="main_div" style="padding-bottom: 100px;
+  ">
+    <noscript>
+        <h1>Warning: Javascript is not working on your browser</h1>
+        <p>The study will not work unless Javascript is enabled on your browser.</p>
+        <p>Please enable Javascript then refresh this page.</p>
+    </noscript>
+    <h1>We need your consent to proceed</h1>
+    <hr>
+    <div class="consent_div text-justify">
+        <div class="text-left" style="font-size:18px">
+          <p>
+            <h4>
+                In this experiment, you may be asked to make a voice or video recording.
+                For example, you may be asked to record your finger-tapping in response to
+                a sound or video, or to record yourself speaking or singing.
+            </h4>
+          </p>
+
+          <h2>Confidentiality</h2>
+          <p>
+              All the recordings we obtain during this research will be kept confidential,
+              and nobody outside the group of researchers will be able to share or store them.
+              However, in some experiments, your recordings may be seen or heard by other
+              participants in order to evaluate them in different attributes or create new
+              materials (for example replicate a rhythm that you created, or continue a melody
+              that you sang). Your recordings will not be associated with your name or other
+              identifiers in any way. Your recordings will not be used to derive your real
+              identity, and they will not be made public. Raw audio/video will not be shared
+              with collaborators (we will only share extracted data from recordings without
+              personal identifiers).
+          </p>
+          <p>
+              Although researchers will not use your recordings to derive your real identity,
+              personal information could be leaked if you are not in an isolated environment.
+              You may wish to make sure that no sounds/visual material in your environment
+              could be linked to your personal information. In addition, while you perform
+              a recording, the microphone or camera can capture unintended audio or video,
+              for example the camera can capture another family member, or the microphone
+              can capture something you say to another person. If you choose to participate
+              in the experiment, it is important and your responsibility to make sure that
+              while you record audio and video nothing that you don’t intend to be recorded
+              is recorded. For example, you may want to sit in a room that is isolated from
+              the rest of the house. By consenting to this experiment, you are committing
+              not to use profanity while recording audio or nudity while recording video.
+          </p>
+
+          <h2>Security</h2>
+          <p>
+              During data collection, audio-visual material will be recorded on a separate server and encrypted
+              using a strong encryption protocol (such as Advanced Encryption Standard).
+              MTurk ID information will not be used to index this data.
+          </p>
+
+          <h2>Consent</h2>
+          <p>
+              By consenting to participate, you acknowledge that you are 18 years or older,
+              have read this consent form, agree to its contents, and agree to take part
+              in this research. If you do not wish to consent, please close this page and
+              return the HIT on Mechanical Turk.
+          </p>
+        </div>
+        <hr>
+        <h4>Do you understand and consent to these terms?</h4>
+        <br>
+        <button type="button" id="audiovisual_recordings_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page(true);" style="float: left;">
+          I agree
+        </button>
+        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.next_page(false);" style="float: right;">
+          No, thank you (return task)
+        </button>
+      </div>
+  </div>
+
+  {% block stylesheets %}
+  <style>
+    .main_div {
+      margin: 0;
+    }
+  </style>
+  {% endblock %}
+{% endblock %}

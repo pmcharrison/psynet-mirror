@@ -46,6 +46,7 @@ class Exp(psynet.experiment.Experiment):
                 "Write me a message!",
                 control=TextControl(one_line=False),
                 time_estimate=5,
+                save_answer=True,
             ),
             PageMaker(
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
@@ -59,10 +60,11 @@ class Exp(psynet.experiment.Experiment):
                 Prompt("What is your weight in kg?"),
                 NumberControl(),
                 time_estimate=5,
+                save_answer="weight",
             ),
             PageMaker(
                 lambda participant: InfoPage(
-                    f"Your weight is {participant.answer} kg."
+                    f"Your weight is {participant.var.weight} kg."
                 ),
                 time_estimate=5,
             ),
