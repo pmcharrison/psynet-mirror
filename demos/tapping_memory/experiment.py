@@ -173,8 +173,6 @@ class CustomSource(AudioImitationChainSource):
 # Timeline
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
-    variables = {"consent_audiovisual_recordings": False}
-
     timeline = Timeline(
         REPPTappingCalibration(),  # calibrate tapping
         InfoPage(

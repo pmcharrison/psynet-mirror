@@ -95,9 +95,6 @@ class Experiment(dallinger.experiment.Experiment):
     wage_per_hour : `float`
         The payment in US dollars the participant gets per hour. Default: `9.0`.
 
-    consent_audiovisual_recordings : `bool`
-        Whether an audiovisual recordings consent page should be displayed. Default: `True`.
-
 
     Parameters
     ----------
@@ -221,7 +218,6 @@ class Experiment(dallinger.experiment.Experiment):
             "soft_max_experiment_payment": 1000.0,
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
-            "consent_audiovisual_recordings": True,
             "show_bonus": True,
         }
 
