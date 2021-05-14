@@ -119,9 +119,8 @@ Experiment variables
 
 There are a couple of variables tied to an experiment all of which are documented
 in the :class:`~psynet.experiment.Experiment` class. They have been assigned reasonable default values which can be
-overridden. Also, they can be enriched with new variables in the following ways:
+overridden. Also, they can be enriched with new variables in the following way:
 
-a. Assignment to `variables`:
 ::
 
     from psynet.experiment import Experiment
@@ -132,33 +131,6 @@ a. Assignment to `variables`:
             return {
                 "new_variable": "some-other-value",
                 "wage_per_hour": 16.0
-            }
-
-b. Using the `variables` method:
-::
-
-    from psynet.experiment import Experiment
-
-    class ExpensiveExperiment(psynet.Experiment):
-        @property
-        def variables(self):
-            return {
-                "new_variable": "some-other-value",
-                "wage_per_hour": 16.0
-            }
-
-c. Using the `variables` method in conjunction with experiment inheritance:
-::
-
-    from psynet.experiment import Experiment
-
-    class VeryExpensiveExperiment(SomeExperiment):
-        @property
-        def variables(self):
-            return {
-                **super().variables,
-                "new_variable": "some-other-value",
-                "wage_per_hour": 21.0
             }
 
 Experiment variables of an instance of ``Experiment`` can be accessed through the ``var`` property like
