@@ -128,8 +128,8 @@ overridden. Also, they can be enriched with new variables in the following way:
     class SomeExperiment(psynet.Experiment):
         variables = {
             "new_variable": "some-value",
-                "wage_per_hour": 16.0
-            }
+            "wage_per_hour": 16.0
+        }
 
 Experiment variables of an instance of ``Experiment`` can be accessed through the ``var`` property like
 ``experiment.var.wage_per_hour``. Similarly they can be set like ``experiment.var.set("wage_per_hour", 12.0)``.
