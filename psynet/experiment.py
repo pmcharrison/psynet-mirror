@@ -80,7 +80,7 @@ class Experiment(dallinger.experiment.Experiment):
         The minimum version of the browser a participant needs in order to take a HIT. Default: `80.0`.
 
     wage_per_hour : `float`
-        The payment in Dollars the participant gets per hour. Default: `9.0`.
+        The payment in US dollars the participant gets per hour. Default: `9.0`.
 
     consent_audiovisual_recordings : `bool`
         Whether an audiovisual recordings consent page should be displayed. Default: `True`.
