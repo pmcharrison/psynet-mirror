@@ -26,3 +26,11 @@ class TestExp:
 
             next_page(driver, "next_button")
             next_page(driver, "next_button", finished=True)
+
+    def test_variables(self, db_session):
+        from psynet.utils import import_local_experiment
+
+        exp_class = import_local_experiment()["class"]
+        exp = exp_class.new(db_session)
+        assert exp.var.wage_per_hour == 12.0
+        assert exp.var.new_variable == "some-value"
