@@ -102,6 +102,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     __extra_vars__ = {}
 
+    variables = {}
     pre_deploy_routines = []
 
     def __init__(self, session=None):
@@ -210,10 +211,6 @@ class Experiment(dallinger.experiment.Experiment):
             "consent_audiovisual_recordings": True,
             "show_bonus": True,
         }
-
-    @property
-    def variables(self):
-        return {}
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
