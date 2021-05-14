@@ -121,42 +121,42 @@ There are a couple of variables tied to an experiment all of which are documente
 in the :class:`~psynet.experiment.Experiment` class. They have been assigned reasonable default values which can be
 overridden. Also, they can be enriched with new variables in the following ways:
 
-a. Assignment to `default_variables`:
+a. Assignment to `variables`:
 ::
 
     from psynet.experiment import Experiment
 
     class SomeExperiment(psynet.Experiment):
         @property
-        def default_variables(self):
+        def variables(self):
             return {
                 "new_variable": "some-other-value",
                 "wage_per_hour": 16.0
             }
 
-b. Using the `default_variables` method:
+b. Using the `variables` method:
 ::
 
     from psynet.experiment import Experiment
 
     class ExpensiveExperiment(psynet.Experiment):
         @property
-        def default_variables(self):
+        def variables(self):
             return {
                 "new_variable": "some-other-value",
                 "wage_per_hour": 16.0
             }
 
-c. Using the `default_variables` method in conjunction with experiment inheritance:
+c. Using the `variables` method in conjunction with experiment inheritance:
 ::
 
     from psynet.experiment import Experiment
 
     class VeryExpensiveExperiment(SomeExperiment):
         @property
-        def default_variables(self):
+        def variables(self):
             return {
-                **super().default_variables,
+                **super().variables,
                 "new_variable": "some-other-value",
                 "wage_per_hour": 21.0
             }

@@ -236,7 +236,7 @@ class CustomSource(AudioImitationChainSource):
 # Timeline
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
-    default_variables = {"consent_audiovisual_recordings": False}
+    variables = {"consent_audiovisual_recordings": False}
 
     timeline = Timeline(
         PreDeployRoutine(

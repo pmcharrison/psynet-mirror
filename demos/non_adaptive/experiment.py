@@ -145,7 +145,7 @@ trial_maker = AnimalTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    default_variables = {"consent_audiovisual_recordings": False}
+    variables = {"consent_audiovisual_recordings": False}
 
     timeline = Timeline(
         ModularPage(

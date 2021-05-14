@@ -212,12 +212,12 @@ class Experiment(dallinger.experiment.Experiment):
         }
 
     @property
-    def default_variables(self):
+    def variables(self):
         return {}
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
-        variables = {**self._default_variables, **self.default_variables}
+        variables = {**self._default_variables, **self.variables}
         logger.info(
             "Initializing experiment with variables \n" + pretty_log_dict(variables, 4)
         )

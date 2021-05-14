@@ -15,7 +15,7 @@ from psynet.timeline import Timeline
 
 
 class Exp(psynet.experiment.Experiment):
-    default_variables = {"consent_audiovisual_recordings": False}
+    variables = {"consent_audiovisual_recordings": False}
 
     timeline = Timeline(
         LexTaleTest(  # Prescreen1: Lextale test for English proficiency

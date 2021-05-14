@@ -15,7 +15,7 @@ Both limits are implemented as `class attributes` and can be overriden in the de
 ::
 
     class Exp(psynet.experiment.Experiment):
-        default_variables = {
+        variables = {
             "max_participant_payment": 10.0,
             "soft_max_experiment_payment": 500.0,
         }
