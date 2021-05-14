@@ -126,10 +126,8 @@ overridden. Also, they can be enriched with new variables in the following way:
     from psynet.experiment import Experiment
 
     class SomeExperiment(psynet.Experiment):
-        @property
-        def variables(self):
-            return {
-                "new_variable": "some-other-value",
+        variables = {
+            "new_variable": "some-value",
                 "wage_per_hour": 16.0
             }
 

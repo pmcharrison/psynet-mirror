@@ -55,8 +55,21 @@ class Experiment(dallinger.experiment.Experiment):
     """
     The main experiment class from which to inherit when building experiments.
 
-    Experiment variables accessible through `psynet.experiment.Experiment.var` and defined in
-    method ``_default_variables`` are:
+    There are a number of variables tied to an experiment all of which are documented below.
+    They have been assigned reasonable default values which can be overridden when defining an experiment
+    (see method ``_default_variables``). Also, they can be enriched with new variables in the following way:
+
+    ``
+    from psynet.experiment import Experiment
+
+    class SomeExperiment(psynet.Experiment):
+        variables = {
+            "new_variable": "some-value",  # Adding a new variable
+            "wage_per_hour": 16.0,         # Overriding an existing variable
+        }
+    ``
+
+    Experiment variables accessible through `psynet.experiment.Experiment.var` are:
 
     max_participant_payment : `float`
         The maximum payment in US dollars a participant can get. Default: `25.0`.
