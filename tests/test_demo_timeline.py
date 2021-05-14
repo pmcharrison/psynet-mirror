@@ -21,13 +21,6 @@ def exp_dir(root):
 
 @pytest.mark.usefixtures("exp_dir")
 class TestExp(object):
-    @pytest.fixture
-    def demo(self, db_session):  # , exp_config):
-        from psynet.demos.timeline.experiment import Exp
-
-        instance = Exp(db_session)
-        yield instance
-
     def test_default_variables(self, db_session):
         from psynet.utils import import_local_experiment
 
@@ -255,7 +248,7 @@ class TestExp(object):
             # Final page
             assert driver.find_element_by_id("main-body").text == (
                 "That's the end of the experiment! In addition to your base payment of $0.10, "
-                "you will receive a bonus of $0.20 for the time you spent on the experiment. "
+                "you will receive a bonus of $0.27 for the time you spent on the experiment. "
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 
