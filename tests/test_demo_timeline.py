@@ -33,12 +33,8 @@ class TestExp(object):
 
         exp_class = import_local_experiment()["class"]
         exp = exp_class.new(db_session)
-        assert exp.var.min_browser_version == "80.0"
-        assert exp.var.max_participant_payment == 25.0
-        assert exp.var.soft_max_experiment_payment == 1000.0
-        assert exp.var.soft_max_experiment_payment_email_sent is False
-        assert exp.var.wage_per_hour == 9.0
-        assert exp.var.show_bonus is True
+        assert exp.var.wage_per_hour == 12.0
+        assert exp.var.new_variable == "some-value"
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
