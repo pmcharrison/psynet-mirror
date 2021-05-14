@@ -59,15 +59,15 @@ class Experiment(dallinger.experiment.Experiment):
     They have been assigned reasonable default values which can be overridden when defining an experiment
     (see method ``_default_variables``). Also, they can be enriched with new variables in the following way:
 
-    ``
-    from psynet.experiment import Experiment
+    ::
 
-    class SomeExperiment(psynet.Experiment):
-        variables = {
-            "new_variable": "some-value",  # Adding a new variable
-            "wage_per_hour": 16.0,         # Overriding an existing variable
-        }
-    ``
+        from psynet.experiment import Experiment
+
+        class SomeExperiment(psynet.Experiment):
+            variables = {
+                "new_variable": "some-value",  # Adding a new variable
+                "wage_per_hour": 12.0,         # Overriding an existing variable
+            }
 
     Experiment variables accessible through `psynet.experiment.Experiment.var` are:
 
