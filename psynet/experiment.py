@@ -69,7 +69,16 @@ class Experiment(dallinger.experiment.Experiment):
                 "wage_per_hour": 12.0,         # Overriding an existing variable
             }
 
-    Experiment variables accessible through `psynet.experiment.Experiment.var` are:
+    These variables can then be changed in the course of experiment, just like 
+    (e.g.) participant variables.
+
+    ::
+
+        from psynet.timeline import CodeBlock
+
+        CodeBlock(lambda experiment: experiment.var.set("custom-variable", 42))
+
+    Default experiment variables accessible through `psynet.experiment.Experiment.var` are:
 
     max_participant_payment : `float`
         The maximum payment in US dollars a participant is allowed to get. Default: `25.0`.
