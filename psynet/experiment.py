@@ -72,28 +72,32 @@ class Experiment(dallinger.experiment.Experiment):
     Experiment variables accessible through `psynet.experiment.Experiment.var` are:
 
     max_participant_payment : `float`
-        The maximum payment in US dollars a participant can get. Default: `25.0`.
+        The maximum payment in US dollars a participant is allowed to get. Default: `25.0`.
 
     soft_max_experiment_payment : `float`
         The recruiting process stops if the amount of accumulated payments
         (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
 
-    soft_max_experiment_payment_email_sent : `bool`
-        Whether an email to the experimenter has been sent indicating the `soft_max_experiment_payment`
-        had been reached. Default: `False`.
-
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
         at the bottom of the page.
 
-    psynet_version : `str`
-        The version of the `psynet` package.
-
     min_browser_version : `str`
-        The minimum version of the browser a participant needs in order to take a HIT. Default: `80.0`.
+        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
 
     wage_per_hour : `float`
         The payment in US dollars the participant gets per hour. Default: `9.0`.
+
+    There are also a few experiment variables that are set automatically and that should,
+    in general, not be changed manually:
+
+    psynet_version : `str`
+        The version of the `psynet` package.
+
+    soft_max_experiment_payment_email_sent : `bool`
+        Whether an email to the experimenter has already been sent indicating the `soft_max_experiment_payment`
+        had been reached. Default: `False`. Once this is `True`, no more emails will be sent about 
+        this payment limit being reached.
 
 
     Parameters
