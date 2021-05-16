@@ -87,14 +87,6 @@
             });
         })
 
-        {% if config.submit_enable_delay is not none %}
-            psynet.trial.addEvent(
-                "audioPromptSubmitReady",
-                {{ config.submit_enable_delay }},
-                ()=> psynet.submit.ready("audio_prompt")
-            );
-        {% endif %}
-
     </script>
 {% endmacro %}
 

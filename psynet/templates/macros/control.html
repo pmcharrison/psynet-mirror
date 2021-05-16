@@ -669,31 +669,6 @@
         {{ audio_meter(config.meter) }}
     {% endif %}
 
-    <style>
-        #record-status {
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
-    </style>
-
-        <div id="record-status">
-        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
-            Waiting to record...
-        </div>
-
-        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
-            Recording...
-        </div>
-
-        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
-            Uploading finished.
-        </div>
-
-        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Ready to upload response.
-        </div>
-    </div>
-
 
     {% if config.controls %}
         <style>
@@ -796,13 +771,6 @@
             psynet.submit.register_on_ready_routine(() => $("#next_button").click());
         {% endif %}
 
-        psynet.trial.onEvent("recordStart", function () {
-            if (!replayMode) {
-                $(".record-alert").hide();
-                $("#record-active").show();
-            }
-        });
-
         psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
                 hasRecorded = true;
@@ -814,9 +782,6 @@
             $("#btn-record-play-all").attr("disabled", false);
             $("#btn-record-upload").prop("disabled", false);
 
-            $(".record-alert").hide();
-            $("#record-upload").show();
-
             if (!recorderControls) {
                 psynet.register_event("begin_upload");
             }
@@ -826,13 +791,6 @@
 
         psynet.trial.addRoutine("cleanup", function() {
             psynet.media.stop_all_audio();
-
-            $("#record-active").hide();
-            if (hasRecorded) {
-                $("#record-upload").show();
-            } else {
-                $("#record-wait").show();
-            }
         });
 
         /*
@@ -845,7 +803,6 @@
 
         psynet.trial.addRoutine("prepare", () => {
             psynet.media.stop_all_audio();
-            initProgressBar();
         });
 
         psynet.media.register_on_loaded_routine(function() {
@@ -856,7 +813,6 @@
 
         psynet.add_event_listener("trial_ready", function() {
             $("#btn-record-record").prop("disabled", false);
-            {% if config.progress_bar %} initProgressBar() {% endif %}
         });
 
         psynet.response.wait_for("page_load_buffer");

@@ -1550,7 +1550,9 @@
     </style>
 
     <div id="page-progress-bar" class="progress"></div>
-    <div id="page-progress-bar-caption"></div>
+    <div id="page-progress-bar-caption">
+        <span id="page-progress-bar-caption-contents">&nbsp;</span>
+    </div>
 
     <script>
         pageProgressBar = function() {
@@ -1596,23 +1598,26 @@
                     }
                 };
             });
+
             let startTime = null;
             let startProgressBar = function () {
                 startTime = psynet.trial.getGlobalTime();
             }
 
-            let caption = $("<span/>");
-            $("#page-progress-bar-caption ").append(caption);
+            let caption = $("#page-progress-bar-caption-contents");
 
-            psynet.trial.onEvent(config.start, startProgressBar);
             let update = function () {
-                let elapsed = psynet.trial.getGlobalTime() - startTime;
-                config.stages.forEach((s) => s.update(elapsed));
-                caption.text(activeStage.caption);
-                caption.css("color", activeStage.color);
+                if (startTime) {
+                    let elapsed = psynet.trial.getGlobalTime() - startTime;
+                    config.stages.forEach((s) => s.update(elapsed));
+                    caption.text(activeStage.caption);
+                    caption.css("color", activeStage.color);
+                }
             };
 
             setInterval(update, 5);
+
+            psynet.trial.onEvent(config.start, startProgressBar);
         }
         psynet.media.register_on_loaded_routine(pageProgressBar);
     </script>
