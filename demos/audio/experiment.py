@@ -107,9 +107,6 @@ example_audio_meter = ModularPage(
     "audio_meter",
     """
     This page shows an audio meter.
-    At the time of writing, it's important to include an audio meter page
-    before you include any recording-based trials, otherwise recording
-    permissions won't be enabled and the trial won't work properly.
     """,
     AudioMeterControl(calibrate=False),
     time_estimate=5,

@@ -581,13 +581,11 @@
                         })
                     };
 
-                    trial.runRoutines = function(type) {
-                        let promises = [];
-                        this.routines[type].forEach(function(routine) {
-                            psynet.log.debug("Running trial (" + this.iteration + ") " + type + " routine");
-                            promises.push(routine.handler());
-                        }, this);
-                        return Promise.all(promises);
+                    trial.runRoutines = async function(type) {
+                        for (const routine of this.routines[type]) {
+                            psynet.log.debug("Running " + type + " routine");
+                            await routine.handler();
+                        }
                     };
 
                     trial.getGlobalTime = function() {
