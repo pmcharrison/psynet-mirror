@@ -280,6 +280,20 @@ class VideoPrompt(Prompt):
         )
         return html
 
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["videoPromptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    event_id="trialStart",
+                    delay=0,
+                )
+            ]
+        )
+
+        events["videoPromptEnd"] = Event(is_triggered_by=[])
+
 
 class ImagePrompt(Prompt):
     """
@@ -1815,7 +1829,8 @@ class RecordControl(Control):
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("trialStart"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["submitEnable"] = Event(Trigger("recordEnd"))
+        events["submitEnable"] = Event(Trigger("uploadEnd"))
+        events["uploadEnd"] = Event(is_triggered_by=[])
 
 
 class AudioRecordControl(RecordControl):

@@ -740,11 +740,7 @@
             });
 
             $("#btn-record-play-recording").on("click", function() {
-                replayMode = true;
-                psynet.trial.start({
-                    trialStart: recordWindow[0],
-                    trialEnd: recordWindow[1]
-                })
+                psynet.audio.recording.play();
             });
 
             $("#btn-record-stop").on("click", function() {
@@ -765,10 +761,6 @@
         let recorderControls = {{ config.controls | lower }};
         let replayMode = false;
         let loop = {{ config.loop_playback | tojson }};
-
-        {% if config.auto_advance %}
-            psynet.submit.register_on_ready_routine(() => $("#next_button").click());
-        {% endif %}
 
         psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
@@ -804,13 +796,11 @@
             psynet.media.stop_all_audio();
         });
 
-        psynet.media.register_on_loaded_routine(function() {
+        psynet.trial.onEvent("trialStart", () => {
             if (psynet.audio.prompt) {
                 $("#btn-record-play-prompt").prop("disabled", false);
-            }
-        });
 
-        psynet.add_event_listener("trial_ready", function() {
+            }
             $("#btn-record-record").prop("disabled", false);
         });
 
@@ -849,7 +839,7 @@
         var hasRecorded = false;
         var recording_blob;
 
-        psynet.trial.onEvent("startRecording", function() {
+        psynet.trial.onEvent("recordStart", function() {
             if (replayMode) {
                 psynet.audio.recording.play();
             } else {
@@ -864,7 +854,7 @@
             });
         }
 
-        psynet.trial.onEvent("endRecording", async function() {
+        psynet.trial.onEvent("recordEnd", async function() {
             if (!replayMode) {
                 await recorder.stop();
                 recording_blob = await getAudioRecording();
@@ -1012,7 +1002,7 @@
                 }
             });
 
-            psynet.trial.onEvent("startRecording", async function() {
+            psynet.trial.onEvent("recordStart", async function() {
                 if (replayMode) {
                     await videoPlayer.play();
                 } else {
@@ -1020,7 +1010,7 @@
                 }
             });
 
-            psynet.trial.onEvent("endRecording", async function() {
+            psynet.trial.onEvent("recordEnd", async function() {
                 if (replayMode) {
                     await videoPlayer.pause();
                 } else {
@@ -1066,13 +1056,13 @@
                 }
             });
 
-            psynet.trial.onEvent("startRecording", function() {
+            psynet.trial.onEvent("recordStart", function() {
                 if (!replayMode) {
                     screenRecorder.startRecording();
                 }
             });
 
-            psynet.trial.onEvent("endRecording", async function() {
+            psynet.trial.onEvent("recordEnd", async function() {
                 if (!replayMode) {
                     await screenRecorder.stopRecording();
                     psynet.media.data["screenBlob"] = await screenRecorder.getBlob();

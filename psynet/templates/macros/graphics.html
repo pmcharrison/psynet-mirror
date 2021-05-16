@@ -195,7 +195,7 @@
             };
 
             if (frames.length > 0) {
-                psynet.media.register_on_loaded_routine(start_sequence);
+                psynet.trial.onEvent("trialStart", start_sequence);
             }
         })();
 

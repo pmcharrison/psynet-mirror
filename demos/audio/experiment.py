@@ -96,8 +96,8 @@ example_on_loaded = InfoPage(
     ),
     scripts=[
         """
-        psynet.media.register_on_loaded_routine(function() {
-            alert("Media has finished loading!");
+        psynet.trial.onEvent("trialStart", function() {
+            alert("The trial is starting now!");
         });
         """
     ],
@@ -206,6 +206,13 @@ example_record_page = join(
             auto_advance=True,
         ),
         time_estimate=5,
+        progress_bar=Bar(
+            duration=3.0,
+            stages=[
+                Stage([0.0, 3.0], "Recording...", "red"),
+                Stage([3.0, 3.0], "Finished recording.", "green"),
+            ],
+        ),
     ),
     PageMaker(
         lambda participant: ModularPage(
@@ -300,10 +307,10 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        example_audio_page,
-        example_audio_page_2,
-        example_audio_page_3,
-        example_audio_meter,
+        # example_audio_page,
+        # example_audio_page_2,
+        # example_audio_page_3,
+        # example_audio_meter,
         example_record_page,
         example_listen_then_record_page,
         example_record_with_audio_prompt,

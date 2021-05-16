@@ -87,16 +87,12 @@
     {{ simple(config) }}
     <video id="prompt_video" src="{{ config.url }}" style="width: {{ config.width }}" alt="Video not found" controls></video>
     <script>
-        psynet.media.register_on_loaded_routine(function() {
-            var options = {{ config.js_play_options | tojson }};
+        psynet.trial.onEvent("videoPromptStart", function() {
+            let options = {{ config.js_play_options | tojson }}; // TODO - aren't these options being ignored?
             psynet.log.debug(options)
-            var visual = document.getElementById('prompt_video');
+            let visual = document.getElementById('prompt_video');
             visual.play()
-            psynet.trial.registerEvent("videoPlayStart");
-
-            visual.addEventListener("ended", function() {
-                psynet.trial.registerEvent("videoPromptEnd");
-            });
+            visual.addEventListener("ended", () => psynet.trial.registerEvent("videoPromptEnd"));
         });
     </script>
 {% endmacro %}

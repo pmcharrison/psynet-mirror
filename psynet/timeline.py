@@ -34,7 +34,7 @@ logger = get_logger()
 class Event(dict):
     def __init__(
         self,
-        is_triggered_by="trialStart",
+        is_triggered_by,
         trigger_condition="all",
         delay=0.0,
         once=True,

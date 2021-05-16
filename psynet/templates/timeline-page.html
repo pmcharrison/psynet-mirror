@@ -324,6 +324,13 @@
                         }
                     };
 
+                    trial.reset = function() {
+                        trial.state = null;
+                        trial.inProgress = false;
+                        trial.startTime = null;
+                        Object.values(trial.events).forEach((e) => e.reset());
+                    };
+
                     let Event = function(id, spec) {
                         let event = {
                             id: id,
@@ -350,19 +357,40 @@
                                 trial.registerEvent(id);
                             }
                         };
+
                         event.propagateTriggers = function() {
                             event.isTriggeredBy.forEach((trigger) => {
                                 let triggeringEvent = trial.events[trigger.eventId];
-                                if (triggeringEvent == undefined) {
-                                    throw Error(
-                                        "Tried to use " + trigger.eventId + " as an event trigger, " +
-                                        "but no such event existed in the trial's timeline."
-                                    );
+                                if (!triggeringEvent) {
+                                    triggeringEvent = genericEvent(trigger.eventId);
+                                    trial.events[trigger.eventId] = triggeringEvent;
                                 }
+
                                 triggeringEvent.willTrigger.push(trigger);
                             });
                         };
+
+                        event.resetTriggers = function() {
+                            event.isTriggeredBy.forEach((trigger) => {
+                                trigger.fired = false;
+                            });
+                        };
+
+                        event.reset = function() {
+                            event.happened = false;
+                            event.resetTriggers();
+                        };
+
                         return event;
+                    };
+
+                    let genericEvent = function(id) {
+                        return Event(id, {
+                            isTriggeredBy: [],
+                            triggerCondition: "all",
+                            delay: 0.0,
+                            once: false
+                        });
                     };
 
                     trial.initEvents = function() {
@@ -377,37 +405,6 @@
 
                     trial.clearTimers = function() {
                         trial.timers.forEach(timer => clearTimeout(timer));
-                    };
-
-                    trial.registerEvent = async function(id, info) {
-                        {#await psynet.register_event(id);#}
-                        trial.state = id;
-
-                        let event = trial.events[id];
-                        event.happened = true;
-
-                        let time = new Date();
-                        let log_entry = {
-                            event_type: id,
-                            local_time: time,
-                            info: (info === undefined) ? null : info};
-                        trial.event_log.push(log_entry);
-                        psynet.log.debug(id);
-
-                        if (event !== undefined) {
-                            let handlers = event.handlers;
-                            handlers.sort((a, b) => a.priority - b.priority);
-
-                            for (const handler of handlers) {
-                                trial.pendingEventHandlers.add(id);
-                                await handler.func();
-                                trial.pendingEventHandlers.remove(id);
-                            }
-
-                            for (const toBeTriggered of event.willTrigger) {
-                                trial.setTimer(() => toBeTriggered.fire(), toBeTriggered.delay * 1000);
-                            }
-                        }
                     };
 
                     trial.pendingEventHandlers = (() => {
@@ -466,6 +463,37 @@
                         };
                     })();
 
+                    trial.registerEvent = async function(id, info) {
+                        trial.state = id;
+
+                        let time = new Date();
+                        trial.event_log.push({
+                            event_type: id,
+                            local_time: time,
+                            info: (info === undefined) ? null : info
+                        });
+                        psynet.log.debug(id);
+
+                        let event = trial.events[id];
+
+                        if (event !== undefined) {
+                            event.happened = true;
+
+                            let handlers = event.handlers;
+                            handlers.sort((a, b) => a.priority - b.priority);
+
+                            for (const handler of handlers) {
+                                trial.pendingEventHandlers.add(id);
+                                await handler.func();
+                                trial.pendingEventHandlers.remove(id);
+                            }
+
+                            for (const toBeTriggered of event.willTrigger) {
+                                trial.setTimer(() => toBeTriggered.fire(), toBeTriggered.delay * 1000);
+                            }
+                        }
+                    };
+
                     trial.routines = {}
 
                     trial.start = async function(provided_options) {
@@ -509,16 +537,16 @@
                      * Stops the trial. Is idempotent (you can call it multiple times
                      * with no bad side effects).
                      */
-                        if (this.inProgress) {
-                            this.clearTimers();
-                            this.inProgress = false;
+                        if (trial.inProgress) {
+                            trial.clearTimers();
+                            trial.inProgress = false;
                             await this.pendingEventHandlers.waitFor({ignore: ["trialFinish"]});
                             await this.runRoutines("cleanup");
+                            trial.reset();
                         }
                     };
 
                     trial.onEvent = function(id, handler, provided_options) {
-
                         // Lower priority values are executed first
                         let options = {
                             priority: 0.0
@@ -527,12 +555,8 @@
 
                         let event = trial.events[id]
                         if (event === undefined) {
-                            event = Event(id, {
-                                isTriggeredBy: [],
-                                triggerCondition: "all",
-                                delay: 0.0,
-                                once: false
-                            });
+                            event = genericEvent(id);
+                            trial.events[id] = event;
                         }
                         event.handlers.push({
                             func: handler,
@@ -617,12 +641,12 @@
                     psynet.log.info("Initialising media within the construct function");
                     await psynet.media.init();
                     psynet.log.info("Finished initialising media");
-                    $('.wait-for-media-load').removeAttr('disabled');
+                    $(".wait-for-media-load").removeAttr("disabled");
                 });
 
                 psynet.submit = {
-                    enable: () => $('.submit').removeAttr('disabled'),
-                    disable: () => $('.submit').attr('disabled', 'disabled')
+                    enable: () => $(".submit").removeAttr("disabled"),
+                    disable: () => $(".submit").attr("disabled", "disabled")
                 };
 
                 psynet.trial.onEvent("submitEnable", psynet.submit.enable);
@@ -633,8 +657,8 @@
                         metadata: undefined,
                         blobs: undefined
                     },
-                    enable: () => $('.response').removeAttr('disabled'),
-                    disable: () => $('.response').attr('disabled', 'disabled')
+                    enable: () => $(".response").removeAttr("disabled"),
+                    disable: () => $(".response").attr("disabled", "disabled")
                 };
 
                 psynet.media.types = ["audio", "image", "video"];
@@ -677,7 +701,7 @@
                     let bar = psynet.media.download_progress.bar();
                     if (bar !== null) {
                         var progress = psynet.media.download_progress.get_total();
-                        bar.style.width = Math.round(progress) + '%';
+                        bar.style.width = Math.round(progress) + "%";
                         if (progress === 100) {
                             // You could do something here once loading is complete,
                             // e.g. delete progress bar text
@@ -691,13 +715,13 @@
                 {{ define_media_requests }}
 
                 // psynet.media.requests = {
-                //     'audio': {
-                //         'batch': {
-                //             'url': 'file_concatenated.mp3',
-                //             'ids': ['funk_game_loop', 'honey_bee', 'there_it_is'],
-                //             'type': 'batch'
+                //     "audio": {
+                //         "batch": {
+                //             "url": "file_concatenated.mp3",
+                //             "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
+                //             "type": "batch"
                 //         },
-                //         'bier': 'bier.wav'
+                //         "bier": "bier.wav"
                 //     }
                 // };
 
@@ -711,10 +735,10 @@
 
                 psynet.media.init_audio_context = function () {
                     let context = null;
-                    if ('webkitAudioContext' in window) context = new webkitAudioContext();
-                    if ('AudioContext' in window) context = new AudioContext();
+                    if ("webkitAudioContext" in window) context = new webkitAudioContext();
+                    if ("AudioContext" in window) context = new AudioContext();
                     if (!context) {
-                        throw Error('ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.');
+                        throw Error("ERROR: No AudioContext available. Try Chrome, Safari or Firefox Nightly.");
                     }
                     if (context.state == "suspended") {
                         context.resume();
@@ -823,7 +847,7 @@
 
                 async function create_request(url, media_type, callback_function, args) {
                     let request = new XMLHttpRequest();
-                    request.open('GET', url, true);
+                    request.open("GET", url, true);
 
                     if (media_type == "audio") {
                         request.responseType = "arraybuffer";
@@ -867,19 +891,19 @@
 
                     let log_stimulus = function (id) {
                         if (psynet.utils.key_exists_in_array(id, ids)) {
-                            throw Error('The ID you specified `' + id + '` already exists! IDs must be unique!');
+                            throw Error("The ID you specified `" + id + "` already exists! IDs must be unique!");
                         }
                         ids.push(id);
                     };
 
                     let log_batch = function (batch) {
-                        if (!('url' in batch)) {
+                        if (!("url" in batch)) {
                             throw Error('Each batch object must contain a "url" attribute.');
                         }
-                        if (!('ids' in batch)) {
+                        if (!("ids" in batch)) {
                             throw Error('Each batch object must contain an "ids" attribute specifying its constituent stimuli.');
                         }
-                        let stimulus_ids = batch['ids'];
+                        let stimulus_ids = batch["ids"];
                         stimulus_ids.forEach(log_stimulus);
                     };
 
@@ -887,10 +911,10 @@
                 };
 
                 let create_audio_stimulus = function(data, stimulus_id, handler) {
-                    psynet.log.debug('Decoding sound ' + stimulus_id + '...');
+                    psynet.log.debug("Decoding sound " + stimulus_id + "...");
 
                     return new Promise((resolve) => { psynet.media.audio_context.decodeAudioData(data, function (buffer) {
-                        psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
+                        psynet.log.debug("Sound " + stimulus_id + " decoded.");
 
                         let out = psynet.media.data.audio[stimulus_id];
                         out.buffer = buffer;
@@ -1026,9 +1050,9 @@
                 };
 
                 create_media_from_buffer.image = async function (data, args) {
-                    let stimulus_id = args['stimulus_id'];
-                    let media_type = args['media_type'];
-                    let file_id = args['file_id'];
+                    let stimulus_id = args["stimulus_id"];
+                    let media_type = args["media_type"];
+                    let file_id = args["file_id"];
                     let url = URL.createObjectURL(data);
                     let metadata = await get_image_metadata_from_url(url);
 
@@ -1044,9 +1068,9 @@
                 }
 
                 create_media_from_buffer.video = function (data, args) {
-                    let stimulus_id = args['stimulus_id'];
-                    let media_type = args['media_type'];
-                    let file_id = args['file_id'];
+                    let stimulus_id = args["stimulus_id"];
+                    let media_type = args["media_type"];
+                    let file_id = args["file_id"];
 
                     let player = document.getElementById(stimulus_id);
                     if (player != null) {
@@ -1072,7 +1096,7 @@
                 process_media_batch.audio = function (data, args) { //, ids,) {
                     let stimulus_ids = args["stimulus_ids"];
                     let media_type = args["media_type"];
-                    let file_id = args['file_id'];
+                    let file_id = args["file_id"];
 
                     function extract_buffer(src, start, length) {
                         // This function is used to find the start and end of each file
@@ -1098,9 +1122,9 @@
 
                         if (num_files > stimulus_ids.length) {
                             throw Error(
-                                'Too many stimuli found in batch file (' +
-                                'expected ' + stimulus_ids.length +
-                                ', got at least' + num_files + ').'
+                                "Too many stimuli found in batch file (" +
+                                "expected " + stimulus_ids.length +
+                                ", got at least" + num_files + ")."
                             );
                         }
 
@@ -1114,9 +1138,9 @@
                     }
                     if (num_files < stimulus_ids.length) {
                         throw Error(
-                            'Too few stimuli found in batch file (' +
-                            'expected ' + stimulus_ids.length +
-                            ', got ' + num_files + ').'
+                            "Too few stimuli found in batch file (" +
+                            "expected " + stimulus_ids.length +
+                            ", got " + num_files + ")."
                         );
                     }
                     return Promise.all(promises);
@@ -1179,7 +1203,7 @@
 
                     psynet.response.disable();
                     psynet.submit.disable();
-                    $('.wait-for-media-load').attr('disabled', 'disabled');
+                    $(".wait-for-media-load").attr("disabled", "disabled");
 
                     await waitForPageLoad();
 
@@ -1270,7 +1294,7 @@
                     // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
-                    $( " .response, .submit " ).prop('disabled', true);
+                    $( " .response, .submit " ).prop("disabled", true);
 
                     json = prepare_json_submission(raw_answer, metadata);
 
@@ -1286,10 +1310,10 @@
                     request.onreadystatechange = function () {
                         if (request.readyState === 4) {
                             if (request.status === 200) {
-                                psynet.log.debug('Response was successfully received.');
+                                psynet.log.debug("Response was successfully received.");
                                 on_success_response(request);
                             } else {
-                                psynet.log.debug('Something went wrong.');
+                                psynet.log.debug("Something went wrong.");
                                 on_error_response(request);
                             }
                         }
