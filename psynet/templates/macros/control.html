@@ -758,8 +758,8 @@
             });
 
             $("#btn-record-upload").on("click", function() {
-                psynet.register_event("begin_upload");
-                psynet.add_event_listener("finished_upload", () => $("#next_button").click());
+                psynet.trial.registerEvent("uploadStart");
+                psynet.trial.onEvent("uploadEnd", () => $("#next_button").click());
             });
         });
 
@@ -777,13 +777,13 @@
             }
         });
 
-        psynet.add_event_listener("recordEnd", function() {
+        psynet.trial.onEvent("recordEnd", function() {
             $("#btn-record-play-recording").attr("disabled", false);
             $("#btn-record-play-all").attr("disabled", false);
             $("#btn-record-upload").prop("disabled", false);
 
             if (!recorderControls) {
-                psynet.register_event("begin_upload");
+                psynet.trial.registerEvent("uploadStart");
             }
         }, {
             priority: 100 // ensures that this is only executed once all the media processing completes
@@ -892,9 +892,9 @@
             }
         });
 
-        psynet.add_event_listener("begin_upload", async function() {
+        psynet.trial.onEvent("uploadStart", async function() {
             await uploadToS3(recording_blob, presignedUrl);
-            psynet.register_event("finished_upload", {url: presignedUrl});
+            psynet.trial.registerEvent("uploadEnd", {url: presignedUrl});
         });
 
         psynet.trial.addRoutine("cleanup", () => recorder.stop());
@@ -1120,7 +1120,7 @@
 
         }
 
-        psynet.add_event_listener("begin_upload", async function() {
+        psynet.trial.onEvent("uploadStart", async function() {
             let promises = [];
             if (recording_camera) {
                 promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
@@ -1129,7 +1129,7 @@
                 promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
             }
             await Promise.all(promises);
-            psynet.register_event("finished_upload");
+            psynet.trial.registerEvent("uploadFinish");
         });
 
         function retrieve_response() {

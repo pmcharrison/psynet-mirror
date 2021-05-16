@@ -308,8 +308,6 @@
                      * over to this scheme.
                      */
                     let trial = {
-                        duration: 0.0,
-                        delay: 0.0,
                         iteration: -1,
                         state: null,
                         inProgress: false,
@@ -334,7 +332,7 @@
                             delay: spec.delay,
                             once: spec.once,
                             handlers: [],
-                            hasBeenTriggered: false
+                            happened: false
                         };
 
                         event.isTriggeredBy.forEach((trigger) => {
@@ -347,9 +345,8 @@
                         });
                         event.checkTriggers = function() {
                             let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
-                            if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.hasBeenTriggered)) {
+                            if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.happened)) {
                                 trial.registerEvent(id);
-                                event.hasBeenTriggered = true;
                             }
                         };
                         event.propagateTriggers = function() {
@@ -386,6 +383,7 @@
                         trial.state = id;
 
                         let event = trial.events[id];
+                        event.happened = true;
 
                         if (event !== undefined) {
                             for (const handler of event.handlers) {
@@ -509,7 +507,12 @@
                     trial.onEvent = function(id, handler) {
                         let event = trial.events[id]
                         if (event === undefined) {
-                            throw Error("Tried to register an event handler for '" + id + "', but this event hasn't been registered yet.");
+                            event = Event(id, {
+                                isTriggeredBy: [],
+                                triggerCondition: "all",
+                                delay: 0.0,
+                                once: false
+                            });
                         }
                         event.handlers.push(handler);
                     };
