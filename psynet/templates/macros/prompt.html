@@ -53,25 +53,22 @@
         </div>
 
         <script>
-        /*
-            psynet.media.register_on_loaded_routine(function() {
-                $(".audio-prompt-button").prop("disabled", false)
-                $("#audio-prompt-play").on("click", function() {
-                    psynet.media.stop_all_audio();
-                    let sound = psynet.audio.prompt.play(audio_prompt_player_options);
-                    debugger
-                    sound.source.addEventListener("ended", () => {
-                        debugger
-                    }); //psynet.trial.registerEvent("audioPromptEnd"));
+        psynet.trial.addRoutine("construct", function() {
+            $(".audio-prompt-button").prop("disabled", false)
+            $("#audio-prompt-play").on("click", function() {
+                psynet.media.stop_all_audio();
+                let sound = psynet.audio.prompt.play(audio_prompt_player_options);
+                sound.source.addEventListener("ended", () => {
+                    psynet.trial.registerEvent("audioPromptEnd");
                 });
-                $("#audio-prompt-stop").on("click", function() {
-                    psynet.media.stop_all_audio();
-                });
-                $("#audio-prompt-loop-input").on("change", function(event) {
-                    audio_prompt_player_options.loop = event.target.checked;
-                });
-            })
-         */
+            });
+            $("#audio-prompt-stop").on("click", function() {
+                psynet.media.stop_all_audio();
+            });
+            $("#audio-prompt-loop-input").on("change", function(event) {
+                audio_prompt_player_options.loop = event.target.checked;
+            });
+        });
         </script>
     {% endif %}
 
