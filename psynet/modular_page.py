@@ -1059,12 +1059,12 @@ class Stage(dict):
     def __init__(
         self,
         time: List,
-        description: str,
+        caption: str,
         color: str,
     ):
         self["time"] = time
         self["duration"] = time[1] - time[0]
-        self["description"] = description
+        self["caption"] = caption
         self["color"] = color
 
 
@@ -1079,7 +1079,9 @@ class Bar(dict):
         self["start"] = start
 
         if stages is None:
-            stages = [Stage(description="", start=0.0, color="grey")]
+            stages = [
+                Stage(time=[0.0, duration], caption="", color="rgb(49, 124, 246)")
+            ]
 
         self["stages"] = stages
 

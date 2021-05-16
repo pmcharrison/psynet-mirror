@@ -1532,13 +1532,16 @@
 {% endblock %}
 
 {% macro progress_bar(config) %}
-    Progress bar goes here :-)
-    Hey!
-
     <style>
         #page-progress-bar {
             margin-top: 15px;
             margin-bottom: 15px;
+        }
+        #page-progress-bar-caption {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
         }
         .page-progress-bar-segment {
             -webkit-transition: none;
@@ -1550,6 +1553,7 @@
     </style>
 
     <div id="page-progress-bar" class="progress"></div>
+    <div id="page-progress-bar-caption"></div>
 
     <script>
         pageProgressBar = function() {
@@ -1581,6 +1585,7 @@
             let bound = function(x, min, max) {
                 return Math.max(min, Math.min(x, max));
             };
+            let activeStage = config.stages[0];
             config.stages.forEach((stage) => {
                 stage.update = function(elapsed) {
                     let proportionOfStageComplete = bound((elapsed - stage.time[0]) / stage.duration, 0, 1);
@@ -1589,17 +1594,27 @@
                     let proportionOfStageIncomplete = 1 - proportionOfStageComplete;
                     let proportionOfBarIncomplete = (proportionOfStageIncomplete * stage.duration) / config.duration
                     stage.html.future.setWidth(100 * proportionOfBarIncomplete);
+                    if (proportionOfStageComplete > 0) {
+                        activeStage = stage;
+                    }
                 };
             });
             let startTime = null;
             let startProgressBar = function () {
                 startTime = psynet.trial.getGlobalTime();
             }
+
+            let caption = $("<span/>");
+            $("#page-progress-bar-caption ").append(caption);
+
             psynet.trial.onEvent(config.start, startProgressBar);
             let update = function () {
                 let elapsed = psynet.trial.getGlobalTime() - startTime;
                 config.stages.forEach((s) => s.update(elapsed));
+                caption.text(activeStage.caption);
+                caption.css("color", activeStage.color);
             };
+
             setInterval(update, 5);
         }
         psynet.media.register_on_loaded_routine(pageProgressBar);
