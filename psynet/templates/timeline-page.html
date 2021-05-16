@@ -792,11 +792,11 @@
                 };
                 psynet.media.loaded = false;
 
-                psynet.media.check_loaded = function () {
+                psynet.media.checkLoaded = function () {
                     if (psynet.media.loaded) {
                         return true;
                     }
-                    var loaded = true;
+                    let loaded = true;
                     Object.values(psynet.media.data).forEach(function (stimuli) {
                         Object.values(stimuli).forEach(function (stimulus) {
                             if (!stimulus.loaded) {
@@ -827,7 +827,7 @@
                 };
 
                 psynet.media.download_progress.get_total = function () {
-                    var res = [];
+                    let res = [];
                     Object
                         .values(psynet.media.download_progress.by_file)
                         .forEach(function (processes) {
@@ -843,7 +843,7 @@
                 };
 
                 psynet.media.download_progress.update_display = function () {
-                    bar = psynet.media.download_progress.bar();
+                    let bar = psynet.media.download_progress.bar();
                     if (bar !== null) {
                         var progress = psynet.media.download_progress.get_total();
                         bar.style.width = Math.round(progress) + '%';
@@ -907,62 +907,62 @@
                 };
 
                 psynet.media.init = function () {
-                    psynet.response.wait_for("media_load");
-                    psynet.submit.wait_for("media_load");
-                    psynet.media.init_audio_context();
+                    return new Promise(resolve => {
+                        psynet.media.onLoad = resolve;
+                        psynet.media.init_audio_context();
 
-                    if (psynet.media.audio_context.state == "suspended") {
-                        // var wait = 1;
-                        psynet.log.info(
-                            "Audio context is suspended, and can only be resumed " +
-                            "after a user interaction. Waiting for the participant to click 'Resume'."
-                        );
-                        psynet.show_resume_modal();
-                        // setTimeout(psynet.media.init, wait * 1000);
-                    } else {
-                        requests = psynet.media.requests;
-                            media_types = Object.keys(requests);
-                            media_types.forEach(function (x) {
-                                process_requests(x, requests[x]);
-                            });
-                            psynet.media.check_loaded();
+                        if (psynet.media.audio_context.state == "suspended") {
+                            psynet.log.info(
+                                "Audio context is suspended, and can only be resumed " +
+                                "after a user interaction. Waiting for the participant to click 'Resume'."
+                            );
+                            psynet.show_resume_modal();
+                        } else {
+                            let requests = psynet.media.requests;
+                            let media_types = Object.keys(requests);
+                            return Promise.all(
+                                media_types.map((x) => processRequests(x, requests[x]))
+                            )
                         }
+                    });
                 };
 
-                init_media_type = function (media_type) {
+                let init_media_type = function (media_type) {
                     x = {};
                     psynet.media.data[media_type] = x;
                     psynet[media_type] = x;
                 };
 
-                init_stimulus = function (id, media_type) {
+                let init_stimulus = function (id, media_type) {
                     psynet.media.data[media_type][id] = {
                         loaded: false
                     };
                 };
 
-                process_requests = function (media_type, requests) {
+                let processRequests = function (media_type, requests) {
                     init_media_type(media_type);
                     check_requests(requests);
 
-                    Object.keys(requests).forEach(function (id) {
-                        var value = requests[id];
-                        if (is_batch(value)) {
-                            preload_batch(id, value, media_type);
-                        } else {
-                            var url = value;
-                            preload_stimulus(id, url, media_type);
-                        }
-                    });
+                    return Promise.all(
+                        Object.keys(requests).map(function (id) {
+                            let value = requests[id];
+                            if (is_batch(value)) {
+                                preload_batch(id, value, media_type);
+                            } else {
+                                let url = value;
+                                preload_stimulus(id, url, media_type);
+                            }
+                        })
+                    );
                 };
 
-                is_batch = function (x) {
+                let is_batch = function (x) {
                     return psynet.utils.is_dict(x)
                 };
 
-                preload_batch = function (batch_id, batch, media_type) {
-                    var url = batch.url;
-                    var args = {
+                let preload_batch = function (batch_id, batch, media_type) {
+                    let url = batch.url;
+                    let args = {
                         batch_id: batch_id,
                         stimulus_ids: batch.ids,
                         media_type: media_type,
@@ -972,11 +972,11 @@
                         init_stimulus(id, media_type);
                     });
 
-                    create_request(url, media_type, process_media_batch[media_type], args);
+                    return create_request(url, media_type, process_media_batch[media_type], args);
                 };
 
-                preload_stimulus = function (stimulus_id, url, media_type) {
-                    var args = {
+                let preload_stimulus = function (stimulus_id, url, media_type) {
+                    let args = {
                         stimulus_id: stimulus_id,
                         media_type: media_type,
                         file_id: stimulus_id
@@ -986,7 +986,7 @@
                 };
 
                 function report_request_error(url, status) {
-                    var msg;
+                    let msg;
                     if (status === 404) {
                         msg = "Failed to load media asset at " + url + " (404, file not found).";
                     } else {
@@ -995,8 +995,8 @@
                     throw Error(msg);
                 }
 
-                function create_request(url, media_type, callback_function, args) {
-                    var request = new XMLHttpRequest();
+                async function create_request(url, media_type, callback_function, args) {
+                    let request = new XMLHttpRequest();
                     request.open('GET', url, true);
 
                     if (media_type == "audio") {
@@ -1007,25 +1007,30 @@
                         throw Error("Unsupported media type: " + media_type);
                     }
 
-                    request.onload = function () {
-                        if (request.status === 200) {
-                            callback_function(request.response, args);
-                        } else {
-                            report_request_error(url, request.status);
-                        }
-                    };
                     request.onprogress = function (e) {
                         psynet.media.download_progress.set(args["media_type"], args["file_id"], e.loaded * 100 / e.total);
                     };
-                    request.send();
+
+                    return new Promise((resolve) => {
+                        request.onload = async function () {
+                            if (request.status === 200) {
+                                await callback_function(request.response, args);
+                                resolve();
+                            } else {
+                                report_request_error(url, request.status);
+                            }
+                        };
+
+                        request.send();
+                    });
                 }
 
                 check_requests = function (requests) {
                     // - Checks for missing URLs in batches.
                     // - Checks for duplicated IDs
-                    var ids = [];
+                    let ids = [];
 
-                    log = function (id) {
+                    let log = function (id) {
                         var value = requests[id];
                         if (psynet.utils.is_dict(value)) {
                             log_batch(value);
@@ -1034,31 +1039,31 @@
                         }
                     };
 
-                    log_stimulus = function (id) {
+                    let log_stimulus = function (id) {
                         if (psynet.utils.key_exists_in_array(id, ids)) {
                             throw Error('The ID you specified `' + id + '` already exists! IDs must be unique!');
                         }
                         ids.push(id);
                     };
 
-                    log_batch = function (batch) {
+                    let log_batch = function (batch) {
                         if (!('url' in batch)) {
                             throw Error('Each batch object must contain a "url" attribute.');
                         }
                         if (!('ids' in batch)) {
                             throw Error('Each batch object must contain an "ids" attribute specifying its constituent stimuli.');
                         }
-                        var stimulus_ids = batch['ids'];
+                        let stimulus_ids = batch['ids'];
                         stimulus_ids.forEach(log_stimulus);
                     };
 
                     Object.keys(requests).forEach(log);
                 };
 
-                create_audio_stimulus = function(data, stimulus_id, handler) {
+                let create_audio_stimulus = function(data, stimulus_id, handler) {
                     psynet.log.debug('Decoding sound ' + stimulus_id + '...');
 
-                    psynet.media.audio_context.decodeAudioData(data, function (buffer) {
+                    return new Promise((resolve) => { psynet.media.audio_context.decodeAudioData(data, function (buffer) {
                         psynet.log.debug('Sound ' + stimulus_id + ' decoded.');
 
                         let out = psynet.media.data.audio[stimulus_id];
@@ -1160,10 +1165,8 @@
 
                         out.loaded = true;
 
-                        if (handler) {
-                            handler();
-                        }
-                    })
+                        resolve();
+                    })});
                 };
 
                 psynet.media.blob_to_array_buffer = async function(blob) {
@@ -1178,15 +1181,13 @@
                     await create_audio_stimulus(buffer, stimulus_id, () => Promise.resolve());
                 }
 
-                create_media_from_buffer = {};
+                let create_media_from_buffer = {};
                 create_media_from_buffer.audio = function (data, args) {
                     psynet.media.download_progress.set(args.media_type, args.file_id, 100);
-                    create_audio_stimulus(data, args.stimulus_id, function() {
-                        psynet.media.check_loaded();
-                    });
+                    return create_audio_stimulus(data, args.stimulus_id);
                 };
 
-                get_image_metadata_from_url = function(url) {
+                let get_image_metadata_from_url = function(url) {
                     return new Promise((resolve, reject) => {
                         let img = new Image();
                         img.onload = () => resolve({
@@ -1199,13 +1200,13 @@
                 };
 
                 create_media_from_buffer.image = async function (data, args) {
-                    var stimulus_id = args['stimulus_id'];
-                    var media_type = args['media_type'];
-                    var file_id = args['file_id'];
-                    var url = URL.createObjectURL(data);
-                    var metadata = await get_image_metadata_from_url(url);
+                    let stimulus_id = args['stimulus_id'];
+                    let media_type = args['media_type'];
+                    let file_id = args['file_id'];
+                    let url = URL.createObjectURL(data);
+                    let metadata = await get_image_metadata_from_url(url);
 
-                    var out = psynet.media.data[media_type][stimulus_id];
+                    let out = psynet.media.data[media_type][stimulus_id];
                     out.url = url;
                     out.width = metadata.width;
                     out.height = metadata.height;
@@ -1213,15 +1214,15 @@
                     out.loaded = true;
 
                     psynet.media.download_progress.set(media_type, file_id, 100);
-                    psynet.media.check_loaded();
+                    return true;
                 }
 
                 create_media_from_buffer.video = function (data, args) {
-                    var stimulus_id = args['stimulus_id'];
-                    var media_type = args['media_type'];
-                    var file_id = args['file_id'];
+                    let stimulus_id = args['stimulus_id'];
+                    let media_type = args['media_type'];
+                    let file_id = args['file_id'];
 
-                    var player = document.getElementById(stimulus_id);
+                    let player = document.getElementById(stimulus_id);
                     if (player != null) {
                         psynet.log.debug(
                             "Associating video '" + stimulus_id
@@ -1237,34 +1238,35 @@
                     out.loaded = true;
 
                     psynet.media.download_progress.set(media_type, file_id, 100);
-                    psynet.media.check_loaded();
+                    return true;
                 };
 
-                process_media_batch = {};
+                let process_media_batch = {};
 
                 process_media_batch.audio = function (data, args) { //, ids,) {
-                    var stimulus_ids = args["stimulus_ids"];
-                    var media_type = args["media_type"];
-                    var file_id = args['file_id'];
+                    let stimulus_ids = args["stimulus_ids"];
+                    let media_type = args["media_type"];
+                    let file_id = args['file_id'];
 
                     function extract_buffer(src, start, length) {
                         // This function is used to find the start and end of each file
-                        var dstU8 = new Uint8Array(length);
-                        var srcU8 = new Uint8Array(src, start, length);
+                        let dstU8 = new Uint8Array(length);
+                        let srcU8 = new Uint8Array(src, start, length);
                         dstU8.set(srcU8);
                         return dstU8;
                     }
 
-                    var num_files = current_file = 0;
+                    let num_files = current_file = 0;
                     psynet.log.debug('Unpacking the audio batch "' + file_id + '".');
-                    var bb = new DataView(data);
-                    var offset = 0;
+                    let bb = new DataView(data);
+                    let offset = 0;
+                    let promises = [];
 
                     while (offset < bb.byteLength) {
-                        var stimulus_id = stimulus_ids[num_files];
-                        var length = bb.getUint32(offset, true);
+                        let stimulus_id = stimulus_ids[num_files];
+                        let length = bb.getUint32(offset, true);
                         offset += 4;
-                        var sound = extract_buffer(data, offset, length);
+                        let sound = extract_buffer(data, offset, length);
                         offset += length;
                         num_files++;
 
@@ -1282,7 +1284,7 @@
                             file_id: file_id
                         };
 
-                        create_media_from_buffer.audio(sound.buffer, args);
+                        promises.push(create_media_from_buffer.audio(sound.buffer, args));
                     }
                     if (num_files < stimulus_ids.length) {
                         throw Error(
@@ -1291,9 +1293,10 @@
                             ', got ' + num_files + ').'
                         );
                     }
+                    return Promise.all(promises);
                 };
 
-                check_participant_id = function () {
+                let check_participant_id = function () {
                     if (dallinger.identity.participantId === undefined) {
                         alert(
                             "Your participant ID is undefined, perhaps because you " +
@@ -1304,10 +1307,10 @@
                     }
                 };
 
-                init_modal = function () {
-                    var modal = document.getElementById("help_modal");
-                    var help_btn = document.getElementById("help_button");
-                    var span = document.getElementsByClassName("close")[0];
+                let init_modal = function () {
+                    let modal = document.getElementById("help_modal");
+                    let help_btn = document.getElementById("help_button");
+                    let span = document.getElementsByClassName("close")[0];
 
                     if (modal !== null) {
                         help_btn.onclick = function () {
@@ -1376,8 +1379,21 @@
                     await psynet.run_event_handlers(event_type);
                 }
 
-                psynet.init_page = function () {
+                let waitForPageLoad = function() {
+                    return new Promise(resolve => {
+                        window.addEventListener("load", () => resolve());
+                    });
+                };
+
+                psynet.init_page = async function () {
                     console.log("Initialising page...");
+
+                    await Promise.all(
+                        waitForPageLoad(),
+                        psynet.media.init()
+                    );
+
+
                     psynet.register_event("init_page");
                     psynet.register_error_handler();
                     psynet.response.disable();
@@ -1392,8 +1408,6 @@
                     psynet.media.init();
                     window.addEventListener("load", function() {
                         psynet.register_event("page_load");
-                        psynet.response.ready("page_load");
-                        psynet.submit.ready("page_load");
                         psynet.trial.ready("page_load");
                         psynet.page_loaded = true;
                     })
