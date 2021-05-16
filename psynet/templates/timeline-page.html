@@ -649,8 +649,6 @@
                     disable: () => $(".submit").attr("disabled", "disabled")
                 };
 
-                psynet.trial.onEvent("submitEnable", psynet.submit.enable);
-
                 psynet.response = {
                     staged: {
                         raw_answer: null,
@@ -660,6 +658,9 @@
                     enable: () => $(".response").removeAttr("disabled"),
                     disable: () => $(".response").attr("disabled", "disabled")
                 };
+
+                psynet.trial.onEvent("responseEnable", psynet.response.enable);
+                psynet.trial.onEvent("submitEnable", psynet.submit.enable);
 
                 psynet.media.types = ["audio", "image", "video"];
                 psynet.media.data = {};

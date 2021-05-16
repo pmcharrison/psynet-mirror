@@ -472,8 +472,8 @@ class Page(Elt):
         self.auto_start_trial = auto_start_trial
 
         self.events = {
-            "trialStart": Event(),
-            # "allowResponse": Event(is_triggered_by="trialStart", delay=0.0),
+            "trialStart": Event(is_triggered_by=[]),
+            "responseEnable": Event(is_triggered_by="trialStart", delay=0.0),
             "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
             **({} if events is None else events),
         }

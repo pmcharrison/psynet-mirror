@@ -281,7 +281,10 @@ example_record_with_audio_prompt = join(
                 Stage([4.0, 4.6], "Recording finished.", color="green"),
             ],
         ),
-        events={"audioStart": Event(delay=0.0), "recordStart": Event(delay=2.6)},
+        events={
+            "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
+            "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
+        },
         time_estimate=5,
         auto_start_trial=False,
     ),

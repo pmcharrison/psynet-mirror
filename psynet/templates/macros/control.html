@@ -688,23 +688,24 @@
         </style>
 
         <div id="record-controls">
-            <button id="btn-record-record" type="button" class="btn record-button record-control btn-danger btn-sm" disabled>
+            <button id="btn-record-record" type="button" class="btn record-button auto-reset record-control btn-danger btn-sm" disabled>
                 Record from start
             </button>
-            <button id="btn-record-play-all" type="button" class="btn record-button record-control btn-primary btn-sm" disabled>
+            <button id="btn-record-play-all" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
                 Play all
             </button>
-            <button id="btn-record-play-prompt" type="button" class="btn record-button record-control btn-primary btn-sm" disabled>
+            <button id="btn-record-play-prompt" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
                 Play prompt
             </button>
-            <button id="btn-record-play-recording" type="button" class="btn record-button record-control btn-primary btn-sm" disabled>
+            <button id="btn-record-play-recording" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
                 Play recording
             </button>
-            <button id="btn-record-stop" type="button" class="btn record-button record-control btn-secondary btn-sm">
+            <button id="btn-record-stop" type="button" class="btn record-button auto-reset record-control btn-secondary btn-sm">
                 Stop
             </button>
             <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>
-                Upload
+                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
+                <span>Upload</span>
             </button>
             <div id="record-loop">
                 <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
@@ -715,7 +716,7 @@
 
     <script>
         $(document).ready(function() {
-            $(".record-button").on("click", function() {
+            $(".auto-reset").on("click", function() {
                 this.disabled = true;
                 setTimeout(() => this.disabled = false, 500);
             });
@@ -753,8 +754,20 @@
             });
 
             $("#btn-record-upload").on("click", function() {
+                let spinner = $("#btn-record-upload-spinner");
+                let button = $(this);
+                button.prop("disabled", true);
+                let resetButton = function() {
+                    button.prop("disabled", true);
+                    spinner.hide();
+                }
+                spinner.show();
                 psynet.trial.registerEvent("uploadStart");
-                psynet.trial.onEvent("uploadEnd", () => $("#next_button").click());
+                psynet.trial.onEvent("uploadEnd", () => {
+                    spinner.hide();
+                    $("#next_button").click()
+                });
+                psynet.trial.onEvent("uploadFail", resetButton);
             });
         });
 
@@ -864,10 +877,15 @@
         });
 
         psynet.trial.onEvent("uploadStart", async function() {
-            await uploadToS3(recording_blob, presignedUrl);
-            // We don't want to wait for the following line, not sure how to get round
-            // the linter complaining here.
-            psynet.trial.registerEvent("uploadEnd", {url: presignedUrl});
+            try {
+                await uploadToS3(recording_blob, presignedUrl);
+                // We don't want to wait for the following line, not sure how to get round
+                // the linter complaining here.
+                psynet.trial.registerEvent("uploadEnd", {url: presignedUrl});
+            } catch(e) {
+                psynet.trial.registerEvent("uploadFail");
+                throw e;
+            }
         });
 
         psynet.trial.addRoutine("cleanup", () => recorder.stop());
@@ -1088,8 +1106,13 @@
             if (recording_screen) {
                 promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
             }
-            await Promise.all(promises);
-            psynet.trial.registerEvent("uploadEnd");
+            try {
+                await Promise.all(promises);
+                psynet.trial.registerEvent("uploadEnd");
+            } catch(e) {
+                psynet.trial.registerEvent("uploadFail");
+                throw e;
+            }
         });
 
         function retrieve_response() {
