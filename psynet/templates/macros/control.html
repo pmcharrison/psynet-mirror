@@ -868,7 +868,7 @@
         psynet.trial.wait_for("audio_recorder_ready");
         psynet.response.wait_for("audio_recorder_ready");
 
-        psynet.add_event_listener("startRecording", function() {
+        psynet.trial.onEvent("startRecording", function() {
             if (replayMode) {
                 psynet.audio.recording.play();
             } else {
@@ -883,7 +883,7 @@
             });
         }
 
-        psynet.add_event_listener("endRecording", async function() {
+        psynet.trial.onEvent("endRecording", async function() {
             if (!replayMode) {
                 await recorder.stop();
                 recording_blob = await getAudioRecording();
@@ -1042,7 +1042,7 @@
                 }
             });
 
-            psynet.add_event_listener("startRecording", async function() {
+            psynet.trial.onEvent("startRecording", async function() {
                 if (replayMode) {
                     await videoPlayer.play();
                 } else {
@@ -1050,7 +1050,7 @@
                 }
             });
 
-            psynet.add_event_listener("endRecording", async function() {
+            psynet.trial.onEvent("endRecording", async function() {
                 if (replayMode) {
                     await videoPlayer.pause();
                 } else {
@@ -1096,13 +1096,13 @@
                 }
             });
 
-            psynet.add_event_listener("startRecording", function() {
+            psynet.trial.onEvent("startRecording", function() {
                 if (!replayMode) {
                     screenRecorder.startRecording();
                 }
             });
 
-            psynet.add_event_listener("endRecording", async function() {
+            psynet.trial.onEvent("endRecording", async function() {
                 if (!replayMode) {
                     await screenRecorder.stopRecording();
                     psynet.media.data["screenBlob"] = await screenRecorder.getBlob();

@@ -386,9 +386,12 @@
                         event.happened = true;
 
                         if (event !== undefined) {
-                            for (const handler of event.handlers) {
+                            let handlers = event.handlers;
+                            handlers.sort((a, b) => a.priority - b.priority);
+
+                            for (const handler of handlers) {
                                 trial.pendingEventHandlers.add(id);
-                                await handler();
+                                await handler.func();
                                 trial.pendingEventHandlers.remove(id);
                             }
 
@@ -504,7 +507,14 @@
                         }
                     };
 
-                    trial.onEvent = function(id, handler) {
+                    trial.onEvent = function(id, handler, provided_options) {
+
+                        // Lower priority values are executed first
+                        let options = {
+                            priority: 0.0
+                        };
+                        Object.assign(options, provided_options);
+
                         let event = trial.events[id]
                         if (event === undefined) {
                             event = Event(id, {
@@ -514,7 +524,10 @@
                                 once: false
                             });
                         }
-                        event.handlers.push(handler);
+                        event.handlers.push({
+                            func: handler,
+                            priority: options.priority
+                        });
                     };
 
                     trial.routineTypes = ["construct", "prepare", "cleanup"];
