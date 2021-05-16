@@ -5,13 +5,15 @@ from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
+    Bar,
     ModularPage,
+    Stage,
     TappingAudioMeterControl,
     VideoPrompt,
     VideoRecordControl,
 )
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import MediaSpec, PageMaker, Timeline, join
+from psynet.timeline import Event, MediaSpec, PageMaker, Timeline, join
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -249,7 +251,7 @@ example_record_with_audio_prompt = join(
             # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
-            This page plays audio and records video alongside.
+            This page plays audio and records video after a couple of seconds.
             It'll work best if you wear headphones.
             The red portion of the progress bar identifies the period when the video
             will be recording.
@@ -258,16 +260,24 @@ example_record_with_audio_prompt = join(
             fade_in=0.2,
         ),
         VideoRecordControl(
-            duration=4.6,
+            duration=2.0,
             s3_bucket="audio-record-demo",
             recording_source="camera",
             show_preview=True,
             show_meter=False,
             public_read=True,
-            progress_bar=True,
             controls=True,
             loop_playback=False,
         ),
+        progress_bar=Bar(
+            duration=4.6,
+            stages=[
+                Stage([0.0, 2.6], "Waiting to record...", color="grey"),
+                Stage([2.6, 4.0], "Recording!", color="red"),
+                Stage([4.0, 4.6], "Recording finished.", color="green"),
+            ],
+        ),
+        events={"audioStart": Event(delay=0.0), "recordStart": Event(delay=2.6)},
         time_estimate=5,
         auto_start_trial=False,
     ),

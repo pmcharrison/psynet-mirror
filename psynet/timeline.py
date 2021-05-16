@@ -33,11 +33,12 @@ logger = get_logger()
 
 class Event(dict):
     def __init__(
-        self, is_triggered_by=None, trigger_condition="all", delay=0.0, once=True
+        self,
+        is_triggered_by="trialStart",
+        trigger_condition="all",
+        delay=0.0,
+        once=True,
     ):
-        if is_triggered_by is None:
-            is_triggered_by = []
-
         if not isinstance(is_triggered_by, list):
             is_triggered_by = [is_triggered_by]
 

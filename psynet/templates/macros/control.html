@@ -694,27 +694,6 @@
         </div>
     </div>
 
-    {% if config.progress_bar %}
-        <style>
-            #record-progress {
-                margin: 50px
-            }
-            .record-progress-bar {
-                -webkit-transition: none;
-                -moz-transition: none;
-                -ms-transition: none;
-                -o-transition: none;
-                transition: none;
-            }
-        </style>
-
-        <div id="record-progress" class="progress">
-            <div id="record-progress-bar-0" class="progress-bar record-progress-bar" role="progressbar" style="width: 0%; opacity: 1" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            <div id="record-progress-bar-1" class="progress-bar record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            <div id="record-progress-bar-2" class="progress-bar bg-danger record-progress-bar" role="progressbar" style="width: 0%; opacity: 0.25" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            <div id="record-progress-bar-3" class="progress-bar record-progress-bar" role="progressbar" style="width: 0%; opacity: 0" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
-    {% endif %}
 
     {% if config.controls %}
         <style>
@@ -864,41 +843,6 @@
         });
         */
 
-        let initProgressBar = function(startTime) {
-            let bars = [
-                $("#record-progress-bar-0"),
-                $("#record-progress-bar-1"),
-                $("#record-progress-bar-2"),
-                $("#record-progress-bar-3")
-            ];
-
-            let updateBar = function(bar, percent, red, css) {
-                bar.css("width", percent + "%");
-                bar.attr("aria-valuenow", percent);
-
-                bar.css(css);
-
-                if (red) {
-                    bar.addClass("bg-danger");
-                } else {
-                    bar.removeClass("bg-danger");
-                }
-            };
-
-            let updateBars = function() {
-                let duration = psynet.trial.duration;
-                let time = psynet.trial.time;
-                let isRecording = (time >= recordWindow[0] && time <= recordWindow[1]);
-
-                updateBar(bars[0], 100 * time / duration, isRecording, {});
-                updateBar(bars[1], 100 * Math.max(0, recordWindow[0] - time) / duration, false, {});
-                updateBar(bars[2], 100 * Math.max(0, recordWindow[1] - Math.max(time, recordWindow[0])) / duration, true, {});
-                updateBar(bars[3], 100 * Math.max(0, duration - Math.max(recordWindow[1], time)) / duration, false, {});
-            }
-
-            setInterval(updateBars, 5);
-        };
-
         psynet.trial.addRoutine("prepare", () => {
             psynet.media.stop_all_audio();
             initProgressBar();
@@ -965,7 +909,6 @@
         var hasRecorded = false;
         var recording_blob;
 
-        psynet.trial.setDuration({{ config.duration }});
         psynet.trial.wait_for("audio_recorder_ready");
         psynet.response.wait_for("audio_recorder_ready");
 
@@ -1068,8 +1011,6 @@
         let recording_source = "{{ config.recording_source | lower }}";
         let recording_camera = recording_source == "camera" || recording_source == "both";
         let recording_screen = recording_source == "screen" || recording_source == "both";
-
-        psynet.trial.setDuration({{ config.duration }});
 
         psynet.trial.wait_for("page_load_buffer");
         psynet.response.wait_for("page_load_buffer");

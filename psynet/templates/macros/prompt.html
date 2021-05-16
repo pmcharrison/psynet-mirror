@@ -17,66 +17,7 @@
 
     <script>
         var audio_prompt_player_options = {{ config.js_play_options | tojson }};
-
-        psynet.media.register_on_loaded_routine(function() {
-            let audio_duration;
-
-            {% if config.play_window[0] is not none and config.play_window[1] is not none %}
-                audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
-            {% elif config.play_window[0] is none and config.play_window[1] is not none %}
-                audio_duration = {{ config.play_window[1] }};
-            {% elif config.play_window[0] is not none and config.play_window[1] is none %}
-                audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
-            {% else %}
-                audio_duration = psynet.audio.prompt.buffer.duration;
-            {% endif %}
-
-            let old_duration = psynet.trial.duration;
-            let new_duration = Math.max(old_duration, audio_duration);
-
-            psynet.trial.setDuration(new_duration);
-        });
     </script>
-
-    {% if config.progress_bar %}
-        <h3>Audio progress bar is no longer supported!</h3>
-
-        <script>
-            psynet.media.register_on_loaded_routine(function() {
-                let audio_duration;
-                {% if config.play_window[0] is not none and config.play_window[1] is not none %}
-                    audio_duration = {{ config.play_window[1] }} - {{ config.play_window[0] }};
-                {% elif config.play_window[0] is none and config.play_window[1] is not none %}
-                    audio_duration = {{ config.play_window[1] }};
-                {% elif config.play_window[0] is not none and config.play_window[1] is none %}
-                    audio_duration = psynet.audio.prompt.buffer.duration - {{ config.play_window[0] }};
-                {% else %}
-                    audio_duration = psynet.audio.prompt.buffer.duration;
-                {% endif %}
-
-                let old_duration = psynet.trial.duration;
-                let new_duration = Math.max(old_duration, audio_duration);
-
-                psynet.trial.setDuration(new_duration);
-                console.log("duration = " + duration);
-
-                let bar = $("#audio-prompt-progress-bar");
-
-                let update_bar = function() {
-                    let duration = psynet.audio.prompt.duration;
-                    let time = psynet.audio.prompt.get_current_time();
-                    if (time !== null) {
-                        let percent = 100 * time / duration;
-                        bar.css("width", percent + "%");
-                        bar.attr("aria-valuenow", percent);
-                    }
-                }
-
-                update_bar();
-                setInterval(update_bar, 1);
-            });
-        </script>
-    {% endif %}
 
     {% if config.controls %}
         <style>
@@ -137,8 +78,6 @@
             psynet.submit.wait_for("audio_prompt");
         {% endif %}
 
-        psynet.trial.delay = {{config.start_delay}};
-
         psynet.trial.onEvent("audioPromptStart", function() {
             let sound = psynet.audio.prompt.play(audio_prompt_player_options);
             sound.source.addEventListener("ended", function() {
@@ -172,26 +111,24 @@
         {% endif %}
 
         psynet.media.register_on_loaded_routine(function() {
-            setTimeout(function() {
-                var options = {{ config.js_play_options | tojson }};
-                psynet.log.debug(options)
-                var visual = document.getElementById('prompt_video');
-                visual.play()
-                psynet.register_event("video_play_start");
+            var options = {{ config.js_play_options | tojson }};
+            psynet.log.debug(options)
+            var visual = document.getElementById('prompt_video');
+            visual.play()
+            psynet.register_event("video_play_start");
 
-                visual.addEventListener("ended", function() {
-                    psynet.register_event("video_play_end");
-                    {% if config.prevent_response %} psynet.response.ready("video_prompt"); {% endif %}
-                    {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
-                });
-                psynet.log.debug(psynet.submit)
-                {% if config.submit_enable_delay is not none %}
-                    setTimeout(
-                        ()=> psynet.submit.ready("video_prompt"),
-                        1000 * {{ config.submit_enable_delay }}
-                    );
-                {% endif %}
-            }, {{config.start_delay}} * 1000)
+            visual.addEventListener("ended", function() {
+                psynet.register_event("video_play_end");
+                {% if config.prevent_response %} psynet.response.ready("video_prompt"); {% endif %}
+                {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
+            });
+            psynet.log.debug(psynet.submit)
+            {% if config.submit_enable_delay is not none %}
+                setTimeout(
+                    ()=> psynet.submit.ready("video_prompt"),
+                    1000 * {{ config.submit_enable_delay }}
+                );
+            {% endif %}
         });
     </script>
 {% endmacro %}
@@ -209,26 +146,24 @@
         {% endif %}
 
         psynet.media.register_on_loaded_routine(function() {
-            setTimeout(function() {
-                var options = {{ config.js_play_options | tojson }};
-                psynet.log.debug(options)
-                var visual = document.getElementById('prompt_video');
-                visual.play()
-                psynet.register_event("video_play_start");
+            var options = {{ config.js_play_options | tojson }};
+            psynet.log.debug(options)
+            var visual = document.getElementById('prompt_video');
+            visual.play()
+            psynet.register_event("video_play_start");
 
-                visual.addEventListener("ended", function() {
-                    psynet.register_event("video_play_end");
-                    {% if config.prevent_response %} psynet.response.ready("video_prompt"); {% endif %}
-                    {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
-                });
-                psynet.log.debug(psynet.submit)
-                {% if config.submit_enable_delay is not none %}
-                    setTimeout(
-                        ()=> psynet.submit.ready("video_prompt"),
-                        1000 * {{ config.submit_enable_delay }}
-                    );
-                {% endif %}
-            }, {{config.start_delay}} * 1000)
+            visual.addEventListener("ended", function() {
+                psynet.register_event("video_play_end");
+                {% if config.prevent_response %} psynet.response.ready("video_prompt"); {% endif %}
+                {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
+            });
+            psynet.log.debug(psynet.submit)
+            {% if config.submit_enable_delay is not none %}
+                setTimeout(
+                    ()=> psynet.submit.ready("video_prompt"),
+                    1000 * {{ config.submit_enable_delay }}
+                );
+            {% endif %}
         });
     </script>
 {% endmacro %}

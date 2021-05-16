@@ -740,10 +740,7 @@
                             let auto_start_trial = {{ auto_start_trial | tojson }};
                             if (auto_start_trial) {
                                 psynet.log.debug("Starting trial.");
-                                setTimeout(
-                                    () => psynet.trial.start(),
-                                    psynet.trial.delay * 1000
-                                );
+                                psynet.trial.start();
                                 psynet.trial.ready_done = true;
                             } else {
                                 psynet.log.debug("auto_start_trial is False, so the trial won't be started right now.");
