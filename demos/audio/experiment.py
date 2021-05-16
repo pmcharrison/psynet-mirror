@@ -140,7 +140,7 @@ example_audio_meter_with_audio = ModularPage(
         "This page shows an audio meter alongside an audio stimulus.",
         loop=True,
     ),
-    AudioMeterControl(min_time=2.5, calibrate=True),
+    AudioMeterControl(calibrate=True),
     time_estimate=5,
 )
 
@@ -303,12 +303,12 @@ example_record_with_audio_prompt = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        # example_audio_page,
-        # example_audio_page_2,
-        # example_audio_page_3,
-        # example_audio_meter,
-        # example_record_page,
-        # example_listen_then_record_page,
+        example_audio_page,
+        example_audio_page_2,
+        example_audio_page_3,
+        example_audio_meter,
+        example_record_page,
+        example_listen_then_record_page,
         example_record_with_audio_prompt,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,

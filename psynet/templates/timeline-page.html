@@ -120,7 +120,7 @@
                     <p>
                         Click the button when you're ready to continue the experiment.
                     </p>
-                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume_button" onclick="psynet.resume();">
+                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume_button">
                         Resume
                     </button>
                 </div>
@@ -314,6 +314,7 @@
                         startTime: null,
                         events: {},
                         timers: [],
+                        event_log: [],
                         get time() {
                             if (this.inProgress) {
                                 return this.getGlobalTime() - this.startTime;
@@ -378,12 +379,20 @@
                         trial.timers.forEach(timer => clearTimeout(timer));
                     };
 
-                    trial.registerEvent = async function(id) {
+                    trial.registerEvent = async function(id, info) {
                         {#await psynet.register_event(id);#}
                         trial.state = id;
 
                         let event = trial.events[id];
                         event.happened = true;
+
+                        let time = new Date();
+                        let log_entry = {
+                            event_type: id,
+                            local_time: time,
+                            info: (info === undefined) ? null : info};
+                        trial.event_log.push(log_entry);
+                        psynet.log.debug(id);
 
                         if (event !== undefined) {
                             let handlers = event.handlers;
@@ -489,6 +498,7 @@
                         psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
 
                         trial.startTime = trial.getGlobalTime();
+
                         await trial.registerEvent(options.startAt);
 
                         trial.inProgress = true;
@@ -574,7 +584,7 @@
                     trial.runRoutines = function(type) {
                         let promises = [];
                         this.routines[type].forEach(function(routine) {
-                            psynet.log.debug("Running trial (" + this.iteration + ") " + type + " routine: " + routine.id);
+                            psynet.log.debug("Running trial (" + this.iteration + ") " + type + " routine");
                             promises.push(routine.handler());
                         }, this);
                         return Promise.all(promises);
@@ -595,174 +605,38 @@
                         trial.onEvent("trialEnd", () => trial.stop());
                     }
 
+                    trial.init = async function() {
+                        await psynet.trial.runRoutines("construct");
+                        await psynet.trial.start();
+                    }
+
                     return trial;
                 }
 
                 psynet.trial = Trial();
 
-                psynet.submit = {};
-                psynet.response = {};
-
-                psynet.response.staged = {
-                    raw_answer: null,
-                    metadata: undefined,
-                    blobs: undefined
-                };
-
-                psynet.response.enable = function() {
-                    $('.response').removeAttr('disabled');
-                }
-
-                psynet.response.disable = function() {
-                    $('.response').attr('disabled', 'disabled');
-                }
-
-                psynet.submit.enable = function() {
-                    $('.submit').removeAttr('disabled');
-                }
-
-                psynet.submit.disable = function() {
-                    $('.submit').attr('disabled', 'disabled');
-                }
-
-                psynet.response.on_ready_routines = [];
-                psynet.submit.on_ready_routines = [];
-
-                psynet.response.register_on_ready_routine = function (f) {
-                    // Registers a function to be called when psynet.response.ready() is called.
-                    if (psynet.response.ready_done) {
-                        psynet.log.warn(
-                            "Tried to register a response.register_on_ready_routine, " +
-                            "but the response-ready event has already occurred."
-                        );
-                    }
-                    if (!psynet.utils.is_function(f)) {
-                        throw Error("f was not a function.");
-                    }
-                    psynet.response.on_ready_routines.push(f);
-                };
-
-                psynet.submit.register_on_ready_routine = function (f) {
-                    // Registers a function to be called when psynet.submit.ready() is called.
-                    if (psynet.submit.ready_done) {
-                        psynet.log.warn(
-                            "Tried to register a submit.register_on_ready_routine, " +
-                            "but the submit-ready event has already occurred."
-                        );
-                    }
-                    if (!psynet.utils.is_function(f)) {
-                        throw Error("f was not a function.");
-                    }
-                    psynet.submit.on_ready_routines.push(f);
-                };
-
-                psynet.response.register_on_ready_routine(function () {
-                    // When psynet.response.ready() is called, we want to enable all controls
-                    // that were waiting for the response-ready event.
-                    psynet.response.enable();
+                psynet.trial.addRoutine("construct", async function() {
+                    psynet.log.info("Initialising media within the construct function");
+                    await psynet.media.init();
+                    psynet.log.info("Finished initialising media");
+                    $('.wait-for-media-load').removeAttr('disabled');
                 });
 
-                psynet.submit.register_on_ready_routine(function () {
-                    // When psynet.submit.ready() is called, we want to enable all controls
-                    // that were waiting for the submit-ready event.
-                    psynet.submit.enable();
-                });
-
-                psynet.response.waiting_for = [];
-                psynet.submit.waiting_for = [];
-                psynet.trial.waiting_for = [];
-
-                psynet.response.ready_done = false;
-                psynet.submit.ready_done = false;
-                psynet.trial.ready_done = false;
-
-                psynet.response.wait_for = function(event) {
-                    psynet.log.debug("Waiting for response-ready event: " + event);
-                    psynet.response.waiting_for.push(event);
-                }
-
-                psynet.submit.wait_for = function(event) {
-                    psynet.log.debug("Waiting for submit-ready event: " + event);
-                    psynet.submit.waiting_for.push(event);
-                }
-
-                psynet.trial.wait_for = function(event) {
-                    psynet.log.debug("Waiting for trial-ready event: " + event);
-                    psynet.trial.waiting_for.push(event);
-                }
-
-                psynet.trial.wait_for("media_load");
-
-                psynet.response.ready = function (event) {
-                    psynet.log.debug("A response-ready event occurred: " + event);
-                    if (event != undefined) {
-                        psynet.response.waiting_for = psynet.response.waiting_for.filter(function(elt) {
-                            return elt != event
-                        })
-                    }
-                    if (psynet.response.waiting_for.length == 0) {
-                        if (psynet.response.ready_done) {
-                            // Have now decided that calling response.ready multiple times is fine
-                            // and shouldn't be discouraged.
-                            //
-                            // psynet.log.warning("Response-ready has already been called.");
-                        } else {
-                            psynet.log.debug("Ready for user to enter response.");
-                            psynet.register_event("response_ready");
-                            psynet.response.on_ready_routines.forEach(function (f) {
-                                f();
-                            });
-                            psynet.response.ready_done = true;
-                        }
-                    }
+                psynet.submit = {
+                    enable: () => $('.submit').removeAttr('disabled'),
+                    disable: () => $('.submit').attr('disabled', 'disabled')
                 };
 
-                psynet.submit.ready = function (event) {
-                    psynet.log.debug("A submit-ready event occurred: " + event);
-                    if (event != undefined) {
-                        psynet.submit.waiting_for = psynet.submit.waiting_for.filter(function(elt) {
-                            return elt != event
-                        })
-                    }
-                    if (psynet.submit.waiting_for.length == 0) {
-                        if (psynet.submit.ready_done) {
-                            // Have now decided that calling response.ready multiple times is fine
-                            // and shouldn't be discouraged.
-                            //
-                            // psynet.log.warning("Submit-ready has already been called.");
-                        } else {
-                            psynet.log.debug("Ready for user to submit response.");
-                            psynet.register_event("submit_ready");
-                            psynet.submit.on_ready_routines.forEach(function (f) {
-                                f();
-                            });
-                            psynet.submit.ready_done = true;
-                        }
-                    }
-                };
+                psynet.trial.onEvent("submitEnable", psynet.submit.enable);
 
-                psynet.trial.ready = async function (event) {
-                    psynet.log.debug("A trial-ready event occurred: " + event);
-                    if (event != undefined) {
-                        psynet.trial.waiting_for = psynet.trial.waiting_for.filter(function(elt) {
-                            return elt != event
-                        })
-                    }
-                    if (psynet.trial.waiting_for.length == 0) {
-                        if (!psynet.trial.ready_done) {
-                            psynet.log.debug("Ready for trial to begin.");
-                            psynet.register_event("trial_ready");
-                            await psynet.trial.runRoutines("construct");
-                            let auto_start_trial = {{ auto_start_trial | tojson }};
-                            if (auto_start_trial) {
-                                psynet.log.debug("Starting trial.");
-                                psynet.trial.start();
-                                psynet.trial.ready_done = true;
-                            } else {
-                                psynet.log.debug("auto_start_trial is False, so the trial won't be started right now.");
-                            }
-                        }
-                    }
+                psynet.response = {
+                    staged: {
+                        raw_answer: null,
+                        metadata: undefined,
+                        blobs: undefined
+                    },
+                    enable: () => $('.response').removeAttr('disabled'),
+                    disable: () => $('.response').attr('disabled', 'disabled')
                 };
 
                 psynet.media.types = ["audio", "image", "video"];
@@ -770,48 +644,7 @@
 
                 psynet.media.sounds = [];
 
-                psynet.media.on_loaded_routines = [];
-
-                psynet.media.register_on_loaded_routine = function (f) {
-                    if (!psynet.utils.is_function(f)) {
-                        throw Error("f was not a function.");
-                    }
-                    psynet.media.on_loaded_routines.push(f);
-                };
-
-                psynet.media.on_loaded = function () {
-                    psynet.log.debug("All media loaded.");
-
-                    psynet.media.on_loaded_routines.forEach(function (f) { f(); });
-
-                    $('.wait-for-media-load').removeAttr('disabled');
-                    psynet.register_event("media_load");
-                    psynet.response.ready("media_load");
-                    psynet.submit.ready("media_load");
-                    psynet.trial.ready("media_load");
-                };
                 psynet.media.loaded = false;
-
-                psynet.media.checkLoaded = function () {
-                    if (psynet.media.loaded) {
-                        return true;
-                    }
-                    let loaded = true;
-                    Object.values(psynet.media.data).forEach(function (stimuli) {
-                        Object.values(stimuli).forEach(function (stimulus) {
-                            if (!stimulus.loaded) {
-                                loaded = false;
-                            }
-                        });
-                    });
-                    if (loaded) {
-                        psynet.media.loaded = true;
-                        psynet.media.on_loaded();
-                        return true
-                    } else {
-                        return false
-                    }
-                };
 
                 psynet.media.download_progress = {
                     by_file: {}
@@ -879,7 +712,7 @@
                 }
 
                 psynet.media.init_audio_context = function () {
-                    var context = null;
+                    let context = null;
                     if ('webkitAudioContext' in window) context = new webkitAudioContext();
                     if ('AudioContext' in window) context = new AudioContext();
                     if (!context) {
@@ -888,43 +721,38 @@
                     if (context.state == "suspended") {
                         context.resume();
                     }
-                    psynet.media.audio_context = context
-
+                    psynet.media.audio_context = context;
                 };
 
-                psynet.show_resume_modal = function() {
-                    document.getElementById("resume_modal").style.display = "block";
-                };
-
-                psynet.hide_resume_modal = function() {
-                    document.getElementById("resume_modal").style.display = "none";
-                };
-
-                psynet.resume = function() {
-                    psynet.log.info("Resuming the experiment.");
-                    psynet.hide_resume_modal();
-                    psynet.media.init();
-                };
-
-                psynet.media.init = function () {
-                    return new Promise(resolve => {
-                        psynet.media.onLoad = resolve;
-                        psynet.media.init_audio_context();
-
-                        if (psynet.media.audio_context.state == "suspended") {
-                            psynet.log.info(
-                                "Audio context is suspended, and can only be resumed " +
-                                "after a user interaction. Waiting for the participant to click 'Resume'."
-                            );
-                            psynet.show_resume_modal();
-                        } else {
-                            let requests = psynet.media.requests;
-                            let media_types = Object.keys(requests);
-                            return Promise.all(
-                                media_types.map((x) => processRequests(x, requests[x]))
-                            )
-                        }
+                let askUserToResume = function() {
+                    return new Promise((resolve) => {
+                        let resumeModal = $("#resume_modal");
+                        let resumeButton = $("#resume_button");
+                        resumeModal.css("display", "block");
+                        resumeButton.click(async function() {
+                            resumeModal.css("display", "none");
+                            await psynet.media.init();
+                            resolve();
+                        });
                     });
+                };
+
+                psynet.media.init = async function () {
+                    psynet.media.init_audio_context();
+
+                    if (psynet.media.audio_context.state == "suspended") {
+                        psynet.log.info(
+                            "Audio context is suspended, and can only be resumed " +
+                            "after a user interaction. Waiting for the participant to click 'Resume'."
+                        );
+                        await askUserToResume();
+                        psynet.media.init_audio_context();
+                    }
+                    let requests = psynet.media.requests;
+                    let media_types = Object.keys(requests);
+                    await Promise.all(
+                        media_types.map((x) => processRequests(x, requests[x]))
+                    );
                 };
 
                 let init_media_type = function (media_type) {
@@ -947,10 +775,10 @@
                         Object.keys(requests).map(function (id) {
                             let value = requests[id];
                             if (is_batch(value)) {
-                                preload_batch(id, value, media_type);
+                                return preload_batch(id, value, media_type);
                             } else {
                                 let url = value;
-                                preload_stimulus(id, url, media_type);
+                                return preload_stimulus(id, url, media_type);
                             }
                         })
                     );
@@ -982,7 +810,7 @@
                         file_id: stimulus_id
                     };
                     init_stimulus(stimulus_id, media_type);
-                    create_request(url, media_type, create_media_from_buffer[media_type], args);
+                    return create_request(url, media_type, create_media_from_buffer[media_type], args);
                 };
 
                 function report_request_error(url, status) {
@@ -1338,47 +1166,6 @@
 
                 psynet.page_loaded = false;
 
-                psynet.event_log = [];
-
-                psynet.event_listener_registry = {};
-
-                psynet.add_event_listener = function(type, func, provided_options) {
-                    // Lower priority values are executed first
-                    let options = {
-                        priority: 0.0
-                    };
-                    Object.assign(options, provided_options);
-
-                    if (!psynet.event_listener_registry.hasOwnProperty(type)) {
-                        psynet.event_listener_registry[type] = [];
-                    }
-                    psynet.event_listener_registry[type].push({
-                        func: func,
-                        priority: options.priority
-                    });
-                }
-
-                psynet.run_event_handlers = async function(event_type) {
-                    let handlers = psynet.event_listener_registry[event_type];
-                    if (handlers) {
-                        handlers.sort((a, b) => a.priority - b.priority);
-                        for (let i = 0; i < handlers.length; i++) {
-                            await handlers[i].func(); // ensures that all the handlers are executed in order
-                        }
-                    }
-                }
-
-                psynet.register_event = async function(event_type, info) {
-                    let time = new Date();
-                    let log_entry = {
-                        event_type: event_type,
-                        local_time: time,
-                        info: (info === undefined) ? null : info};
-                    psynet.event_log.push(log_entry);
-                    psynet.log.debug(event_type);
-                    await psynet.run_event_handlers(event_type);
-                }
-
                 let waitForPageLoad = function() {
                     return new Promise(resolve => {
                         window.addEventListener("load", () => resolve());
@@ -1388,29 +1175,20 @@
                 psynet.init_page = async function () {
                     console.log("Initialising page...");
 
-                    await Promise.all(
-                        waitForPageLoad(),
-                        psynet.media.init()
-                    );
-
-
-                    psynet.register_event("init_page");
                     psynet.register_error_handler();
-                    psynet.response.disable();
-                    psynet.submit.disable();
-                    psynet.response.wait_for("page_load");
-                    psynet.submit.wait_for("page_load");
-                    psynet.trial.wait_for("page_load");
-                    $('.wait-for-media-load').attr('disabled', 'disabled');
                     check_participant_id();
                     init_modal();
+
+                    psynet.response.disable();
+                    psynet.submit.disable();
+                    $('.wait-for-media-load').attr('disabled', 'disabled');
+
+                    await waitForPageLoad();
+
                     psynet.page_load_time = new Date();
-                    psynet.media.init();
-                    window.addEventListener("load", function() {
-                        psynet.register_event("page_load");
-                        psynet.trial.ready("page_load");
-                        psynet.page_loaded = true;
-                    })
+                    psynet.page_loaded = true;
+
+                    psynet.trial.init();
                 };
 
                 psynet.register_error_handler = function () {
@@ -1473,7 +1251,7 @@
                         "time_taken": (current_time - psynet.page_load_time) / 1000,
                         "platform": platform.toString(),
                         "download_speed_megabits_per_sec": psynet.estimate_download_speed(),
-                        "event_log": psynet.event_log
+                        "event_log": psynet.trial.event_log
                     };
 
                     if (metadata !== undefined) {
@@ -1495,7 +1273,6 @@
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
                     $( " .response, .submit " ).prop('disabled', true);
-                    psynet.register_event("submit_response");
 
                     json = prepare_json_submission(raw_answer, metadata);
 
@@ -1649,7 +1426,7 @@
 
             psynet.trial.onEvent(config.start, startProgressBar);
         }
-        psynet.media.register_on_loaded_routine(pageProgressBar);
+        psynet.trial.addRoutine("construct", pageProgressBar);
     </script>
 
 {% endmacro %}

@@ -603,14 +603,7 @@
     {% endif %}
 
     <script>
-        psynet.submit.wait_for("audio_meter");
-        setTimeout(
-            ()=> psynet.submit.ready("audio_meter"),
-            1000 * {{ config.min_time }}
-        );
-
         {% include "macros/control/audio_meter.js" %}
-
         audio_meter_control.init('{{ config.to_json() }}');
     </script>
 {% endmacro %}
@@ -815,28 +808,13 @@
             $("#btn-record-record").prop("disabled", false);
         });
 
-        psynet.response.wait_for("page_load_buffer");
-        psynet.submit.wait_for("recording_uploaded");
-
-        setTimeout(function() {
-            psynet.response.ready("page_load_buffer");
-            psynet.trial.ready("page_load_buffer");
-        }, 1000);
-
         function uploadToS3(blob, presignedUrl) {
             return new Promise(resolve => {
-                $("#record-upload").html("Uploading response...");
                 // TODO upload if LOCAL_S3
                 let xhr = new XMLHttpRequest();
                 xhr.open('PUT', presignedUrl, true);
-                psynet.log.debug("Presigned URL for upload to S3: " + presignedUrl);
 
                 xhr.onload = function(e) {
-                    psynet.log.debug("File uploaded successfully to presigned url.");
-                    psynet.submit.ready("recording_uploaded");
-                    $(".record-alert").hide();
-                    $("#record-upload").html("Ready to upload response.");
-                    $("#record-finish").show();
                     resolve(true);
                 };
 
@@ -865,9 +843,6 @@
         var hasRecorded = false;
         var recording_blob;
 
-        psynet.trial.wait_for("audio_recorder_ready");
-        psynet.response.wait_for("audio_recorder_ready");
-
         psynet.trial.onEvent("startRecording", function() {
             if (replayMode) {
                 psynet.audio.recording.play();
@@ -887,19 +862,21 @@
             if (!replayMode) {
                 await recorder.stop();
                 recording_blob = await getAudioRecording();
-                buffer = await psynet.media.blob_to_array_buffer(recording_blob);
+                let buffer = await psynet.media.blob_to_array_buffer(recording_blob);
                 psynet.media.add_extra_audio_stimulus(buffer, "recording");
             }
         });
 
         psynet.trial.onEvent("uploadStart", async function() {
             await uploadToS3(recording_blob, presignedUrl);
+            // We don't want to wait for the following line, not sure how to get round
+            // the linter complaining here.
             psynet.trial.registerEvent("uploadEnd", {url: presignedUrl});
         });
 
         psynet.trial.addRoutine("cleanup", () => recorder.stop());
 
-        psynet.media.register_on_loaded_routine(function() {
+        psynet.trial.addRoutine("construct", () => new Promise((resolve) => {
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
@@ -911,11 +888,10 @@
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
                 recorder = new Recorder(input);
-                psynet.register_event("audio_recorder_ready");
-                psynet.response.ready("audio_recorder_ready");
-                psynet.trial.ready("audio_recorder_ready");
-            })
-        });
+                psynet.trial.registerEvent("audioRecorderReady");
+                resolve();
+            });
+        }));
 
         retrieve_response = function() {
             return {
@@ -945,11 +921,6 @@
         <video id="video-control"></video>
     </div>
 
-{#    <div id="countdown-container">#}
-{#        Recording starts in #}
-{#        <span id="countdown">{{ config.start_delay | int }}</span> seconds!#}
-{#    </div>#}
-
     {{ null(config) }}
 
     <script>
@@ -968,30 +939,23 @@
         let recording_camera = recording_source == "camera" || recording_source == "both";
         let recording_screen = recording_source == "screen" || recording_source == "both";
 
-        psynet.trial.wait_for("page_load_buffer");
-        psynet.response.wait_for("page_load_buffer");
-        psynet.submit.wait_for("recording_uploaded");
-
         if (recording_camera) {
-            psynet.trial.wait_for("camera_recorder_ready");
-            psynet.response.wait_for("camera_recorder_ready");
-
             let cameraStream = null;
             var videoRecorder = null;
 
-            navigator.mediaDevices.getUserMedia({
-                audio: {{ config.record_audio | lower }},
-                video: true,
-            }).then(function (stream) {
-                psynet.log.debug("Initialising video recorder.");
-
-                cameraStream = stream;
-
-                psynet.response.ready("camera_recorder_ready");
-                psynet.trial.ready("camera_recorder_ready");
-            }).catch(function (error) {
-                console.error('Cannot start video recording:', error.name + ":", error.message);
-            });
+            psynet.trial.addRoutine("construct", () => new Promise((resolve, reject) => {
+                navigator.mediaDevices.getUserMedia({
+                    audio: {{ config.record_audio | lower }},
+                    video: true,
+                }).then(function (stream) {
+                    psynet.log.debug("Initialising video recorder.");
+                    cameraStream = stream;
+                    resolve();
+                }).catch(function (error) {
+                    psynet.error('Cannot start video recording:', error.name + ":", error.message);
+                    reject();
+                });
+            }));
 
             psynet.trial.addRoutine("prepare", () => {
                 if (!replayMode) {
@@ -1129,7 +1093,7 @@
                 promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
             }
             await Promise.all(promises);
-            psynet.trial.registerEvent("uploadFinish");
+            psynet.trial.registerEvent("uploadEnd");
         });
 
         function retrieve_response() {

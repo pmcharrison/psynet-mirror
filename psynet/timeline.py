@@ -474,7 +474,7 @@ class Page(Elt):
         self.events = {
             "trialStart": Event(),
             # "allowResponse": Event(is_triggered_by="trialStart", delay=0.0),
-            "allowSubmit": Event(is_triggered_by="trialStart", delay=0.0),
+            "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
             **({} if events is None else events),
         }
 

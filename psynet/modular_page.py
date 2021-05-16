@@ -1322,11 +1322,7 @@ class ModularPage(Page):
 class AudioMeterControl(Control):
     macro = "audio_meter"
 
-    def __init__(
-        self, min_time: float = 2.5, calibrate: bool = False, submit_button: bool = True
-    ):
-        assert min_time >= 0
-        self.min_time = min_time
+    def __init__(self, calibrate: bool = False, submit_button: bool = True):
         self.calibrate = calibrate
         self.submit_button = submit_button
         if calibrate:
@@ -1432,10 +1428,6 @@ class AudioMeterControl(Control):
                 }
             )
         )
-
-    @property
-    def metadata(self):
-        return {"min_time": self.min_time}
 
 
 class TappingAudioMeterControl(AudioMeterControl):
@@ -1823,7 +1815,7 @@ class RecordControl(Control):
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("trialStart"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["allowSubmit"] = Event(Trigger("recordEnd"))
+        events["submitEnable"] = Event(Trigger("recordEnd"))
 
 
 class AudioRecordControl(RecordControl):
