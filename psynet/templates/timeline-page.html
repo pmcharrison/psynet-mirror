@@ -387,14 +387,16 @@
 
                         let event = trial.events[id];
 
-                        for (const handler of event.handlers) {
-                            trial.pendingEventHandlers.add(id);
-                            await handler();
-                            trial.pendingEventHandlers.remove(id);
-                        }
+                        if (event !== undefined) {
+                            for (const handler of event.handlers) {
+                                trial.pendingEventHandlers.add(id);
+                                await handler();
+                                trial.pendingEventHandlers.remove(id);
+                            }
 
-                        for (const t of event.willTrigger) {
-                            trial.setTimer(t => t.fire(), t.delay * 1000);
+                            for (const toBeTriggered of event.willTrigger) {
+                                trial.setTimer(() => toBeTriggered.fire(), toBeTriggered.delay * 1000);
+                            }
                         }
                     };
 
@@ -505,7 +507,11 @@
                     };
 
                     trial.onEvent = function(id, handler) {
-                        trial.events[id].handlers.push(handler);
+                        let event = trial.events[id]
+                        if (event === undefined) {
+                            throw Error("Tried to register an event handler for '" + id + "', but this event hasn't been registered yet.");
+                        }
+                        event.handlers.push(handler);
                     };
 
                     trial.routineTypes = ["construct", "prepare", "cleanup"];
@@ -562,11 +568,18 @@
                         return psynet.media.audio_context.currentTime;
                     };
 
+                    trial.listEvents = function() {
+                        return Object.keys(trial.events);
+                    };
+
                     trial.initEvents();
                     trial.initRoutines();
-                    trial.onEvent("trialEnd", () => trial.stop());
 
-                    return trial
+                    if (trial.listEvents().includes("trialEnd")) {
+                        trial.onEvent("trialEnd", () => trial.stop());
+                    }
+
+                    return trial;
                 }
 
                 psynet.trial = Trial();
@@ -1521,4 +1534,75 @@
 {% macro progress_bar(config) %}
     Progress bar goes here :-)
     Hey!
+
+    <style>
+        #page-progress-bar {
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        .page-progress-bar-segment {
+            -webkit-transition: none;
+            -moz-transition: none;
+            -ms-transition: none;
+            -o-transition: none;
+            transition: none;
+        }
+    </style>
+
+    <div id="page-progress-bar" class="progress"></div>
+
+    <script>
+        pageProgressBar = function() {
+            let config = {{ config | tojson }};
+            let opacities = {light: 0.25, medium: 0.6, dark: 1.0};
+            let addBarSegment = function (color, opacity) {
+                let segment = $("<div/>", {
+                    "class": "progress-bar page-progress-bar-segment",
+                    role: "progressbar",
+                    style: "width: 0%; opacity: " + opacity + "; background-color: " + color + ";",
+                    "aria-valuenow": "0",
+                    "aria-valuemin": "0",
+                    "aria-valuemax": "100"
+                });
+                $("#page-progress-bar").append(segment);
+                segment.setWidth = function (percent) {
+                    segment.css("width", percent + "%");
+                    segment.attr("aria-valuenow", percent);
+                };
+                return segment;
+            }
+            config.stages.forEach((stage) => stage.html = {});
+            config.stages.forEach((stage) => {
+                stage.html.past = addBarSegment(stage.color, opacities.dark);
+            });
+            config.stages.forEach((stage) => {
+                stage.html.future = addBarSegment(stage.color, opacities.light);
+            });
+            let bound = function(x, min, max) {
+                return Math.max(min, Math.min(x, max));
+            };
+            config.stages.forEach((stage) => {
+                stage.update = function(elapsed) {
+                    let proportionOfStageComplete = bound((elapsed - stage.time[0]) / stage.duration, 0, 1);
+                    let proportionOfBarComplete = (proportionOfStageComplete * stage.duration) / config.duration;
+                    stage.html.past.setWidth(100 * proportionOfBarComplete);
+                    let proportionOfStageIncomplete = 1 - proportionOfStageComplete;
+                    let proportionOfBarIncomplete = (proportionOfStageIncomplete * stage.duration) / config.duration
+                    stage.html.future.setWidth(100 * proportionOfBarIncomplete);
+                };
+            });
+            let startTime = null;
+            let startProgressBar = function () {
+                startTime = psynet.trial.getGlobalTime();
+            }
+            psynet.trial.onEvent(config.start, startProgressBar);
+            let update = function () {
+                let elapsed = psynet.trial.getGlobalTime() - startTime;
+                config.stages.forEach((s) => s.update(elapsed));
+            };
+            setInterval(update, 5);
+        }
+        psynet.media.register_on_loaded_routine(pageProgressBar);
+    </script>
+
 {% endmacro %}

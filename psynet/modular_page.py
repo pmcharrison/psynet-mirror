@@ -1058,13 +1058,14 @@ class TextControl(Control):
 class Stage(dict):
     def __init__(
         self,
+        time: List,
         description: str,
-        start: float,
-        colour: str,
+        color: str,
     ):
+        self["time"] = time
+        self["duration"] = time[1] - time[0]
         self["description"] = description
-        self["start"] = start
-        self["colour"] = colour
+        self["color"] = color
 
 
 class Bar(dict):
@@ -1078,7 +1079,35 @@ class Bar(dict):
         self["start"] = start
 
         if stages is None:
-            self["stages"] = [Stage(description="", start=0.0, colour="grey")]
+            stages = [Stage(description="", start=0.0, color="grey")]
+
+        self["stages"] = stages
+
+        self.validate()
+
+    def validate(self):
+        stages = self["stages"]
+        for i in range(len(stages)):
+            stage = self["stages"][i]
+            start_time = stage["time"][0]
+            if i == 0:
+                if start_time != 0.0:
+                    raise ValueError(
+                        "The first stage in the progress bar must have a start time of 0.0."
+                    )
+            else:
+                prev_stage = self["stages"][i - 1]
+                prev_stage_end_time = prev_stage["time"][1]
+                if start_time != prev_stage_end_time:
+                    raise ValueError(
+                        f"The start time of stage {i} did not match the end time of the previous stage."
+                    )
+            if i == len(stages) - 1:
+                end_time = stage["time"][1]
+                if end_time != self["duration"]:
+                    raise ValueError(
+                        "The final stage must have an end time equal to the progress bar's duration."
+                    )
 
 
 class ModularPage(Page):
