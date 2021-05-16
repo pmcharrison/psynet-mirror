@@ -810,7 +810,6 @@
         });
 
         let recorderControls = {{ config.controls | lower }};
-        let recordWindow = {{ config.record_window | tojson }};
         let replayMode = false;
         let loop = {{ config.loop_playback | tojson }};
 
@@ -818,20 +817,20 @@
             psynet.submit.register_on_ready_routine(() => $("#next_button").click());
         {% endif %}
 
-        psynet.trial.addEvent("startRecording", recordWindow[0], function () {
+        psynet.trial.onEvent("recordStart", function () {
             if (!replayMode) {
                 $(".record-alert").hide();
                 $("#record-active").show();
             }
         });
 
-        psynet.trial.addEvent("endRecording", recordWindow[1], function() {
+        psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
                 hasRecorded = true;
             }
         });
 
-        psynet.add_event_listener("endRecording", function() {
+        psynet.add_event_listener("recordEnd", function() {
             $("#btn-record-play-recording").attr("disabled", false);
             $("#btn-record-play-all").attr("disabled", false);
             $("#btn-record-upload").prop("disabled", false);
@@ -857,11 +856,13 @@
             }
         });
 
+        /*
         psynet.trial.onEvent("trialEnd", function() {
             if (loop) {
                 psynet.trial.start();
             }
         });
+        */
 
         let initProgressBar = function(startTime) {
             let bars = [

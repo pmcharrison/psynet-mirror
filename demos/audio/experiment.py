@@ -227,7 +227,6 @@ example_listen_then_record_page = join(
             text="""
             Here we play audio then activate the recorder afterwards.
             """,
-            response_enable_trigger="audioFinish",
             play_window=[0, 2.5],
         ),
         AudioRecordControl(

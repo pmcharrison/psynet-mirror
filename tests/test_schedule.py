@@ -112,3 +112,36 @@ def test_events_audio_record():
             "once": True,
         },
     }
+
+
+# def test_audio():
+#     from psynet.modular_page import VideoRecordControl
+#
+#     page = ModularPage(
+#         "record_page",
+#         AudioPrompt(
+#             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+#             text="""
+#                 This page plays audio and records video alongside.
+#                 It'll work best if you wear headphones.
+#                 The red portion of the progress bar identifies the period when the video
+#                 will be recording.
+#                 """,
+#             play_window=[0, 4.6],
+#             fade_in=0.2,
+#         ),
+#         VideoRecordControl(
+#             duration=4.6,
+#             s3_bucket="audio-record-demo",
+#             recording_source="camera",
+#             show_preview=True,
+#             show_meter=False,
+#             public_read=True,
+#             progress_bar=True,
+#             controls=True,
+#             loop_playback=False,
+#         ),
+#         time_estimate=5,
+#         auto_start_trial=False,
+#     )
+#     breakpoint()

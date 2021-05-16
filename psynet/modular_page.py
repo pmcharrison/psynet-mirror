@@ -1055,6 +1055,32 @@ class TextControl(Control):
         }
 
 
+class Stage(dict):
+    def __init__(
+        self,
+        description: str,
+        start: float,
+        colour: str,
+    ):
+        self["description"] = description
+        self["start"] = start
+        self["colour"] = colour
+
+
+class Bar(dict):
+    def __init__(
+        self,
+        duration,
+        start="trialStart",
+        stages: Optional[List] = None,
+    ):
+        self["duration"] = duration
+        self["start"] = start
+
+        if stages is None:
+            self["stages"] = [Stage(description="", start=0.0, colour="grey")]
+
+
 class ModularPage(Page):
     """
     The :class:`~psynet.modular_page.ModularPage`
@@ -1093,6 +1119,9 @@ class ModularPage(Page):
         :class:`~psynet.modular_page.Control`
         objects instead.
 
+    progress_bar
+        Optional :class:`~psynet.modular_page.Bar` progress bar to display.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1105,6 +1134,7 @@ class ModularPage(Page):
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[List] = None,
+        progress_bar: Optional[Bar] = None,
         **kwargs,
     ):
         if media is None:
@@ -1127,7 +1157,15 @@ class ModularPage(Page):
         {{{{ {self.prompt_macro}(prompt_config) }}}}
 
         <p class="vspace"></p>
+        """
 
+        if progress_bar is not None:
+            template_str += """
+            {{ progress_bar(progress_bar_config) }}
+            <p class="vspace"></p>
+            """
+
+        template_str += f"""
         {{{{ {self.control_macro}(control_config) }}}}
 
         {{% endblock %}}
@@ -1138,7 +1176,11 @@ class ModularPage(Page):
             label=label,
             time_estimate=time_estimate,
             template_str=template_str,
-            template_arg={"prompt_config": prompt, "control_config": control},
+            template_arg={
+                "prompt_config": prompt,
+                "control_config": control,
+                "progress_bar_config": progress_bar,
+            },
             media=all_media,
             events=events,
             **kwargs,
@@ -1691,12 +1733,11 @@ class Slider:
         self.slider_id = slider_id
 
 
-class AudioRecordControl(Control):
+class RecordControl(Control):
     """
-    Records audio from a participant.
-
-    Parameters
-    ----------
+    Generic class for recording controls. Cannot be instantiated directly.
+    See :class:`~psynet.modular_page.AudioRecordControl`
+    and :class:`~psynet.modular_page.VideoRecordControl`.
 
     duration
         Duration of the desired recording, in seconds.
@@ -1706,9 +1747,6 @@ class AudioRecordControl(Control):
     s3_bucket
         Name of the S3 bucket to which the recording should be uploaded.
 
-    show_meter
-        Whether an audio meter should be displayed, so as to help the participant
-        to calibrate their volume.
 
     public_read
         Whether the audio recording should be uploaded to the S3 bucket
@@ -1718,41 +1756,25 @@ class AudioRecordControl(Control):
         Whether the page should automatically advance to the next page
         once the audio recording has been uploaded.
 
-    controls
-        Whether to give the user controls for the recorder (default = ``False``).
-
-    loop_playback
-        Whether in-browser playback of the recording should have looping enabled by default
-        (default = ``False``). Ignored if ``controls`` is ``False``.
-
-    time_window
-        If not ``None``, a time window within which the recorder should record, specified as
-        ``[time_start, time_end]`` (seconds) where both numbers are less than or equal to ``duration``.
-        This is mainly useful for synchronising the recorder with other timed events in the PsyNet page.
+    show_meter
+        Whether an audio meter should be displayed, so as to help the participant
+        to calibrate their volume.
     """
-
-    macro = "audio_record"
 
     def __init__(
         self,
-        *,
         duration: float,
         s3_bucket: str,
-        show_meter: bool = False,
         public_read: bool = False,
         auto_advance: bool = False,
         progress_bar: bool = False,
-        controls: bool = False,
-        loop_playback: bool = False,
+        show_meter: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
-        self.show_meter = show_meter
         self.public_read = public_read
         self.auto_advance = auto_advance
         self.progress_bar = progress_bar
-        self.controls = controls
-        self.loop_playback = loop_playback
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)
@@ -1762,6 +1784,44 @@ class AudioRecordControl(Control):
     @property
     def metadata(self):
         return {}
+
+    def pre_render(self):
+        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
+        logger.info(f"Generated presigned url: {self.presigned_url}")
+
+    def update_events(self, events):
+        events["recordStart"] = Event(Trigger("trialStart"))
+        events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
+        events["allowSubmit"] = Event(Trigger("recordEnd"))
+
+
+class AudioRecordControl(RecordControl):
+    """
+    Records audio from a participant.
+
+    Parameters
+    ----------
+
+    controls
+        Whether to give the user controls for the recorder (default = ``False``).
+
+    loop_playback
+        Whether in-browser playback of the recording should have looping enabled by default
+        (default = ``False``). Ignored if ``controls`` is ``False``.
+
+    **kwargs
+        Further arguments passed to :class:`~psynet.modular_page.RecordControl`
+    """
+
+    macro = "audio_record"
+
+    def __init__(
+        self, *, controls: bool = False, loop_playback: bool = False, **kwargs
+    ):
+        super().__init__(**kwargs)
+
+        self.controls = controls
+        self.loop_playback = loop_playback
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
@@ -1782,31 +1842,13 @@ class AudioRecordControl(Control):
                 controls=True,
             ).render()
 
-    def pre_render(self):
-        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
-        logger.info(f"Generated presigned url: {self.presigned_url}")
 
-    def update_events(self, events):
-        events["audioRecordStart"] = Event(Trigger("trialStart"))
-        events["audioRecordEnd"] = Event(
-            Trigger("audioRecordStart", delay=self.duration)
-        )
-
-        events["allowSubmit"] = Event(Trigger("audioRecordEnd"))
-
-
-class VideoRecordControl(Control):
+class VideoRecordControl(RecordControl):
     """
     Records a video either by using the the camera or by capturing from the screen.
 
     Parameters
     ----------
-
-    s3_bucket
-        Name of the AWS S3 bucket to save the resulting file into.
-
-    duration
-        Duration of the video file in seconds.
 
     recording_source
         Specifies whether to record by using the camera and/or by capturing from the screen.
@@ -1817,20 +1859,11 @@ class VideoRecordControl(Control):
         Whether to record audio using the microphone.
         This setting only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
 
-    show_meter
-        Whether an `AudioMeterControl` should be displayed. Default: `False`.
-
     width
         Width of the video frame to be displayed. Default: "560px".
 
-    public_read
-        Whether the AWS S3 bucket's access permission is set to 'Public'. For reference see https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access.html
-
     show_preview
         Whether to show a preview of the video on the page. Default: `False`.
-
-    progress_bar
-        Whether to show a progress bar.
 
     controls
         Whether to provide controls for manipulating the recording.
@@ -1838,9 +1871,6 @@ class VideoRecordControl(Control):
     loop_playback
         Whether to loop playback by default (only relevant if ``controls=True``.
 
-    auto_advance
-        Whether the page should automatically advance to the next page
-        once the video recording has been uploaded.
     """
 
     macro = "video_record"
@@ -1848,42 +1878,26 @@ class VideoRecordControl(Control):
     def __init__(
         self,
         *,
-        s3_bucket: str,
-        duration: float,
         recording_source: str = "camera",
         record_audio: bool = True,
-        show_meter: bool = False,
         width: str = "300px",
-        public_read: bool = False,
         show_preview: bool = False,
-        progress_bar: bool = False,
         controls: bool = False,
         loop_playback: bool = False,
-        auto_advance: bool = False,
+        **kwargs,
     ):
-        self.duration = duration
-        self.s3_bucket = s3_bucket
+        super().__init__(**kwargs)
+
         self.recording_source = recording_source
         self.record_audio = record_audio
-        self.show_meter = show_meter
         self.width = width
-        self.public_read = public_read
         self.show_preview = show_preview
-        self.progress_bar = progress_bar
         self.controls = controls
         self.loop_playback = loop_playback
-        self.auto_advance = auto_advance
-
-        if show_meter:
-            self.meter = AudioMeterControl(submit_button=False)
-        else:
-            self.meter = None
+        self.presigned_url_camera = None
+        self.presigned_url_screen = None
 
         assert self.recording_source in ["camera", "screen", "both"]
-
-    @property
-    def metadata(self):
-        return {}
 
     def format_answer(self, raw_answer, **kwargs):
         return {
