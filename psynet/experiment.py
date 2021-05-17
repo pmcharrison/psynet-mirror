@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
 import rpdb
@@ -69,7 +70,7 @@ class Experiment(dallinger.experiment.Experiment):
                 "wage_per_hour": 12.0,         # Overriding an existing variable
             }
 
-    These variables can then be changed in the course of experiment, just like 
+    These variables can then be changed in the course of experiment, just like
     (e.g.) participant variables.
 
     ::
@@ -105,7 +106,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     soft_max_experiment_payment_email_sent : `bool`
         Whether an email to the experimenter has already been sent indicating the `soft_max_experiment_payment`
-        had been reached. Default: `False`. Once this is `True`, no more emails will be sent about 
+        had been reached. Default: `False`. Once this is `True`, no more emails will be sent about
         this payment limit being reached.
 
 
@@ -371,7 +372,16 @@ class Experiment(dallinger.experiment.Experiment):
             f"Recruitment ended. Maximum experiment payment "
             f"of {self.var.soft_max_experiment_payment}$ reached!"
         )
-        admin_notifier(config).send(**message)
+        try:
+            admin_notifier(config).send(**message)
+        except SMTPAuthenticationError as e:
+            logger.error(
+                f"SMTPAuthenticationError sending 'soft_max_experiment_payment' reached email: {e}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Unknown error sending 'soft_max_experiment_payment' reached email: {e}"
+            )
 
     def is_complete(self):
         return (not self.need_more_participants) and self.num_working_participants == 0

@@ -2,6 +2,7 @@
 
 import datetime
 import json
+from smtplib import SMTPAuthenticationError
 
 import dallinger.models
 from dallinger.config import get_config
@@ -270,7 +271,16 @@ class Participant(dallinger.models.Participant):
             f"Recruitment ended. Maximum amount paid to participant "
             f"with assignment_id '{self.assignment_id}' reached!"
         )
-        admin_notifier(config).send(**message)
+        try:
+            admin_notifier(config).send(**message)
+        except SMTPAuthenticationError as e:
+            logger.error(
+                f"SMTPAuthenticationError sending 'max_participant_payment' reached email: {e}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Unknown error sending 'max_participant_payment' reached email: {e}"
+            )
 
     @property
     def response(self):
