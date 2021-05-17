@@ -21,7 +21,7 @@ def exp_dir(root):
 
 @pytest.mark.usefixtures("exp_dir")
 class TestExp(object):
-    def test_default_variables(self, db_session):
+    def test_variables(self, db_session):
         from psynet.utils import import_local_experiment
 
         exp_class = import_local_experiment()["class"]
