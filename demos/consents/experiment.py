@@ -14,8 +14,6 @@ from psynet.timeline import Timeline
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    wage_per_hour = 12.0
-
     timeline = Timeline(
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),

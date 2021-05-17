@@ -29,7 +29,10 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
+    variables = {
+        "wage_per_hour": 12.0,
+        "new_variable": "some-value",
+    }
 
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),
