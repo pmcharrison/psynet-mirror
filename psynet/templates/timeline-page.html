@@ -176,6 +176,7 @@
     <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 
     <script>
+        {{ init_js_vars }}
         var psynet = (function () {
                 /**
                  * @namespace
@@ -1347,7 +1348,6 @@
 
     <script>
         psynet.init_page();
-        {{ init_js_vars }}
     </script>
 
     {% for x in scripts %}

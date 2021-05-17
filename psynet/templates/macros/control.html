@@ -809,6 +809,12 @@
             psynet.media.stop_all_audio();
         });
 
+        let supportedPrompts = ["audioPrompt"];
+        if (!supportedPrompts.includes(modular_page_components.prompt)) {
+            $("#btn-record-play-prompt").hide();
+            $("#btn-record-play-all").hide();
+        }
+
         psynet.trial.onEvent("trialStart", () => {
             if (psynet.audio.prompt) {
                 $("#btn-record-play-prompt").prop("disabled", false);

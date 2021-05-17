@@ -1167,6 +1167,9 @@ class ModularPage(Page):
     progress_bar
         Optional :class:`~psynet.modular_page.Bar` progress bar to display.
 
+    js_vars
+        Optional dictionary of arguments to instantiate as global Javascript variables.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1180,10 +1183,14 @@ class ModularPage(Page):
         media: Optional[MediaSpec] = None,
         events: Optional[List] = None,
         progress_bar: Optional[Bar] = None,
+        js_vars: Optional[dict] = None,
         **kwargs,
     ):
         if media is None:
             media = MediaSpec()
+
+        if js_vars is None:
+            js_vars = {}
 
         if not isinstance(prompt, Prompt):
             prompt = Prompt(prompt)
@@ -1228,6 +1235,13 @@ class ModularPage(Page):
             },
             media=all_media,
             events=events,
+            js_vars={
+                **js_vars,
+                "modular_page_components": {
+                    "prompt": self.prompt.macro,
+                    "control": self.control.macro,
+                },
+            },
             **kwargs,
         )
 
