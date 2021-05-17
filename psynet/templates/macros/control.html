@@ -793,7 +793,7 @@
             priority: 100 // ensures that this is only executed once all the media processing completes
         });
 
-        psynet.trial.addRoutine("cleanup", function() {
+        psynet.trial.onEvent("cleanup", function() {
             psynet.media.stop_all_audio();
         });
 
@@ -805,7 +805,7 @@
         });
         */
 
-        psynet.trial.addRoutine("prepare", () => {
+        psynet.trial.onEvent("prepare", () => {
             psynet.media.stop_all_audio();
         });
 
@@ -894,9 +894,9 @@
             }
         });
 
-        psynet.trial.addRoutine("cleanup", () => recorder.stop());
+        psynet.trial.onEvent("cleanup", () => recorder.stop());
 
-        psynet.trial.addRoutine("construct", () => new Promise((resolve) => {
+        psynet.trial.onEvent("construct", () => new Promise((resolve) => {
             navigator.mediaDevices.getUserMedia({
                 audio: {
                     autoGainControl: false,
@@ -963,7 +963,7 @@
             let cameraStream = null;
             var videoRecorder = null;
 
-            psynet.trial.addRoutine("construct", () => new Promise((resolve, reject) => {
+            psynet.trial.onEvent("construct", () => new Promise((resolve, reject) => {
                 navigator.mediaDevices.getUserMedia({
                     audio: {{ config.record_audio | lower }},
                     video: true,
@@ -977,7 +977,7 @@
                 });
             }));
 
-            psynet.trial.addRoutine("prepare", () => {
+            psynet.trial.onEvent("prepare", () => {
                 if (!replayMode) {
                     videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
                         mimeType: 'video/webm',
@@ -1013,11 +1013,11 @@
                 videoDisplayMode = "preview";
             }
 
-            psynet.trial.addRoutine("construct", async function() {
+            psynet.trial.onEvent("construct", async function() {
                 await loadCameraPreview();
             })
 
-            psynet.trial.addRoutine("prepare", async function() {
+            psynet.trial.onEvent("prepare", async function() {
                 // Prepare the video display
                 if (replayMode) {
                     await loadRecordedVideo();
@@ -1044,7 +1044,7 @@
                 }
             });
 
-            psynet.trial.addRoutine("cleanup", async function() {
+            psynet.trial.onEvent("cleanup", async function() {
                 let state = await videoRecorder.getState();
                 if (state != "inactive") {
                     await videoRecorder.stopRecording();
@@ -1073,7 +1073,7 @@
                 f({ video: true }).then(success).catch(error);
             }
 
-            psynet.trial.addRoutine("prepare", async function() {
+            psynet.trial.onEvent("prepare", async function() {
                 // Prepare the screen recorder
                 if (!replayMode) {
                     await prepareScreenRecorder();
@@ -1094,7 +1094,7 @@
                 }
             });
 
-            psynet.trial.addRoutine("cleanup", async function() {
+            psynet.trial.onEvent("cleanup", async function() {
                 let state = await screenRecorder.getState();
                 if (state != "inactive") {
                     await screenRecorder.stopRecording();

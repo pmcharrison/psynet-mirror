@@ -39,7 +39,9 @@ class Event(dict):
         delay=0.0,
         once=True,
     ):
-        if not isinstance(is_triggered_by, list):
+        if is_triggered_by is None:
+            is_triggered_by = []
+        elif not isinstance(is_triggered_by, list):
             is_triggered_by = [is_triggered_by]
 
         is_triggered_by = [
@@ -472,7 +474,9 @@ class Page(Elt):
         self.auto_start_trial = auto_start_trial
 
         self.events = {
-            "trialStart": Event(is_triggered_by=[]),
+            "trialConstruct": Event(is_triggered_by=None),
+            "trialPrepare": Event(is_triggered_by="trialConstruct"),
+            "trialStart": Event(is_triggered_by="trialPrepare"),
             "responseEnable": Event(is_triggered_by="trialStart", delay=0.0),
             "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
             **({} if events is None else events),

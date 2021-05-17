@@ -302,20 +302,12 @@
 
                 let Trial = function() {
                     let trial = {
-                        iteration: -1,
                         state: null,
-                        inProgress: false,
-                        startTime: null,
                         events: {},
                         timers: [],
                         event_log: [],
-                        get time() {
-                            if (this.inProgress) {
-                                return this.getGlobalTime() - this.startTime;
-                            } else {
-                                return null;
-                            }
-                        }
+                        inProgress: false,
+                        stopping: false
                     };
 
                     trial.reset = function() {
@@ -488,58 +480,6 @@
                         }
                     };
 
-                    trial.routines = {}
-
-                    trial.start = async function(provided_options) {
-                        /**
-                         * We call this function when we want to begin the trial.
-                         * It sets in motion the timeline of events.
-                         * Certain options can be provided in this call to determine
-                         * how the trial runs.
-                         *
-                         * trialStart determines the point at which to begin the trial.
-                         * By default, we start at the beginning, but if we set to
-                         * (for example) 3.5, this means that the trial will start
-                         * partway through, as if 3.5 seconds had already elapsed.
-                         * Similarly, trialStart determines the end of the trial;
-                         * by setting a lower value than the trial duration, we
-                         * can cause the trial to end early.
-                         */
-                        let options = {
-                            startAt: "trialStart"
-                        }
-                        Object.assign(options, provided_options);
-
-                        if (trial.inProgress) {
-                            await trial.stop();
-                        }
-
-                        await this.runRoutines("prepare");
-
-                        trial.iteration += 1;
-                        psynet.log.debug("*** Starting new trial, iteration " + trial.iteration);
-
-                        trial.startTime = trial.getGlobalTime();
-
-                        await trial.registerEvent(options.startAt);
-
-                        trial.inProgress = true;
-                    };
-
-                    trial.stop = async function() {
-                    /**
-                     * Stops the trial. Is idempotent (you can call it multiple times
-                     * with no bad side effects).
-                     */
-                        if (trial.inProgress) {
-                            trial.clearTimers();
-                            trial.inProgress = false;
-                            await this.pendingEventHandlers.waitFor({ignore: ["trialFinish"]});
-                            await this.runRoutines("cleanup");
-                            trial.reset();
-                        }
-                    };
-
                     trial.onEvent = function(id, handler, provided_options) {
                         // Lower priority values are executed first
                         let options = {
@@ -558,54 +498,6 @@
                         });
                     };
 
-                    trial.routineTypes = ["construct", "prepare", "cleanup"];
-
-                    trial.initRoutines = function() {
-                        this.routineTypes.forEach(function(type) {
-                            this.routines[type] = [];
-                        }, this);
-                    };
-
-                    trial.addRoutine = function(type, handler) {
-                        /**
-                         * Registers a function to be called at a particular part of the trial's timeline.
-                         * For now, only a few specific moments in the timeline are supported
-                         * (see the `type` argument). In the future, we want to merge this
-                         * with PsyNet's general event-management structure (psynet.addEventListener),
-                         * so that any PsyNet event can receive handlers in this way.
-                         *
-                         * Multiple functions can be registered through multiple calls.
-                         * These functions will be performed sequentially;
-                         * if a given function is asynchronous, then the process will wait until
-                         * completion before continuing to the next registered handler for this event.
-                         * Note that other events could occur in the meantime.
-                         *
-                         * @param type {string} The trigger for the handler.
-                         * Valid values are "construct", "prepare", "cleanup", and "finish".
-                         * Construct routines are run once, on page load.
-                         * Prepare routines are run at the beginning of each trial;
-                         * they will be rerun if the trial is restarted.
-                         * Cleanup routines are run when the trial stops, including when
-                         * the trial is stopped early.
-                         * Finish routines are run when the trial runs to completion.
-                         *
-                         * @param handler {function} Function to run.
-                         **/
-                        if (!this.routineTypes.includes(type)) {
-                            throw Error("Invalid routine type: " + type);
-                        }
-                        this.routines[type].push({
-                            handler: handler
-                        })
-                    };
-
-                    trial.runRoutines = async function(type) {
-                        for (const routine of this.routines[type]) {
-                            psynet.log.debug("Running " + type + " routine");
-                            await routine.handler();
-                        }
-                    };
-
                     trial.getGlobalTime = function() {
                         return psynet.media.audio_context.currentTime;
                     };
@@ -614,12 +506,34 @@
                         return Object.keys(trial.events);
                     };
 
-                    trial.initEvents();
-                    trial.initRoutines();
-
                     trial.init = async function() {
-                        await psynet.trial.runRoutines("construct");
-                        await psynet.trial.start();
+                        // Should only be called once, on page load
+                        trial.initEvents();
+                        trial.inProgress = true;
+                        await trial.registerEvent("trialConstruct");
+                    };
+
+                    trial.stop = async function() {
+                    /**
+                     * Can be called manually to stops the trial.
+                     * Is idempotent (you can call it multiple times
+                     * with no bad side effects).
+                     */
+                        if (trial.inProgress && !trial.stopping) {
+                            trial.stopping = true;
+                            trial.clearTimers();
+                            trial.inProgress = false;
+                            await this.pendingEventHandlers.waitFor();
+                            await trial.registerEvent("cleanup");
+                            trial.reset();
+                            trial.stopping = false;
+                        }
+                    };
+
+                    trial.restart = async function() {
+                        // Can be called manually at an arbitrary point to restart the trial
+                        await trial.stop();
+                        await trial.registerEvent("trialPrepare");
                     }
 
                     return trial;
@@ -627,10 +541,8 @@
 
                 psynet.trial = Trial();
 
-                psynet.trial.addRoutine("construct", async function() {
-                    psynet.log.info("Initialising media within the construct function");
+                psynet.trial.onEvent("construct", async function() {
                     await psynet.media.init();
-                    psynet.log.info("Finished initialising media");
                     $(".wait-for-media-load").removeAttr("disabled");
                 });
 
@@ -1438,7 +1350,7 @@
 
             psynet.trial.onEvent(config.start, startProgressBar);
         }
-        psynet.trial.addRoutine("construct", pageProgressBar);
+        psynet.trial.onEvent("construct", pageProgressBar);
     </script>
 
 {% endmacro %}
