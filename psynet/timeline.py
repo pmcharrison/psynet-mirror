@@ -60,9 +60,9 @@ class Event(dict):
 
 
 class Trigger(dict):
-    def __init__(self, event_id, delay=0.0):
-        assert isinstance(event_id, str)
-        super().__init__(eventId=event_id, delay=float(delay))
+    def __init__(self, triggering_event, delay=0.0):
+        assert isinstance(triggering_event, str)
+        super().__init__(triggeringEvent=triggering_event, delay=float(delay))
 
 
 def get_template(name):

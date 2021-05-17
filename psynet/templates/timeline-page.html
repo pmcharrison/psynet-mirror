@@ -331,10 +331,10 @@
 
                         event.isTriggeredBy.forEach((trigger) => {
                             trigger.fired = false;
-                            trigger.parent = event;
+                            trigger.triggeredEvent = event;
                             trigger.fire = function() {
                                 trigger.fired = true;
-                                trigger.parent.checkTriggers();
+                                trigger.triggeredEvent.checkTriggers();
                             }
                         });
                         event.checkTriggers = function() {
@@ -346,10 +346,10 @@
 
                         event.propagateTriggers = function() {
                             event.isTriggeredBy.forEach((trigger) => {
-                                let triggeringEvent = trial.events[trigger.eventId];
+                                let triggeringEvent = trial.events[trigger.triggeringEvent];
                                 if (!triggeringEvent) {
-                                    triggeringEvent = genericEvent(trigger.eventId);
-                                    trial.events[trigger.eventId] = triggeringEvent;
+                                    triggeringEvent = genericEvent(trigger.triggeringEvent);
+                                    trial.events[trigger.triggeringEvent] = triggeringEvent;
                                 }
 
                                 triggeringEvent.willTrigger.push(trigger);
@@ -384,6 +384,8 @@
                         Object.entries(rawEvents).forEach(([id, spec]) => trial.events[id] = Event(id, spec));
                         Object.values(trial.events).forEach((event) => event.propagateTriggers());
                     };
+
+                    trial.initEvents()
 
                     trial.setTimer = function(handler, timeout) {
                         trial.timers.push(setTimeout(handler, timeout));
@@ -496,6 +498,7 @@
                             func: handler,
                             priority: options.priority
                         });
+                        console.log("registering event " + id);
                     };
 
                     trial.getGlobalTime = function() {
@@ -508,8 +511,6 @@
 
                     trial.init = async function() {
                         // Should only be called once, on page load
-                        trial.initEvents();
-                        trial.inProgress = true;
                         await trial.registerEvent("trialConstruct");
                     };
 
@@ -541,9 +542,17 @@
 
                 psynet.trial = Trial();
 
-                psynet.trial.onEvent("construct", async function() {
+                psynet.trial.onEvent("trialConstruct", async function() {
                     await psynet.media.init();
                     $(".wait-for-media-load").removeAttr("disabled");
+                });
+
+                psynet.trial.onEvent("trialPrepare", function() {
+                    psynet.trial.inProgress = true;
+                });
+
+                psynet.trial.onEvent("trialStopped", function() {
+                    psynet.trial.inProgress = false;
                 });
 
                 psynet.submit = {
@@ -681,7 +690,7 @@
                 };
 
                 let init_media_type = function (media_type) {
-                    x = {};
+                    let x = {};
                     psynet.media.data[media_type] = x;
                     psynet[media_type] = x;
                 };
@@ -1085,7 +1094,7 @@
                 psynet.estimate_download_speed = function() {
                     // Returns estimated download speed in megabits/second
                     // (at the time of writing, this is capped at 10).
-                    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+                    let connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
                     return connection.downlink
                 }
 
@@ -1113,7 +1122,7 @@
                     psynet.page_load_time = new Date();
                     psynet.page_loaded = true;
 
-                    psynet.trial.init();
+                    setTimeout(() => psynet.trial.init(), 500);
                 };
 
                 psynet.register_error_handler = function () {
@@ -1137,8 +1146,8 @@
                     submit_generic_response(raw_answer, metadata, blobs, on_success_response, on_error_response);
                 };
 
-                on_success_response = function (request) {
-                    response = JSON.parse(request.response);
+                let on_success_response = function (request) {
+                    let response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
                         dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
@@ -1152,7 +1161,7 @@
                     }
                 };
 
-                on_error_response = function (request) {
+                let on_error_response = function (request) {
                     dallinger.error({
                         "data": {
                             "participant_id": dallinger.identity.participantId
@@ -1160,7 +1169,7 @@
                     });
                 };
 
-                add_blobs = function (form_data, blobs) {
+                let add_blobs = function (form_data, blobs) {
                     for (let [key, value] of Object.entries(blobs)) {
                         if (key === "json") {
                             throw Error("Blobs may not be named 'json'.");
@@ -1169,7 +1178,7 @@
                     }
                 };
 
-                prepare_json_submission = function (raw_answer, metadata) {
+                let prepare_json_submission = function (raw_answer, metadata) {
                     var current_time = new Date();
 
                     var all_metadata = {
@@ -1193,7 +1202,7 @@
                     });
                 };
 
-                submit_generic_response = function (raw_answer, metadata, blobs, on_success_response, on_error_response) {
+                let submit_generic_response = function (raw_answer, metadata, blobs, on_success_response, on_error_response) {
                     // raw_answer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
@@ -1350,7 +1359,7 @@
 
             psynet.trial.onEvent(config.start, startProgressBar);
         }
-        psynet.trial.onEvent("construct", pageProgressBar);
+        psynet.trial.onEvent("trialConstruct", pageProgressBar);
     </script>
 
 {% endmacro %}

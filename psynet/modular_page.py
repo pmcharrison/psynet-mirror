@@ -186,7 +186,7 @@ class AudioPrompt(Prompt):
         events["audioPromptStart"] = Event(
             is_triggered_by=[
                 Trigger(
-                    event_id="trialStart",
+                    triggering_event="trialStart",
                     delay=0,
                 )
             ]

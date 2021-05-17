@@ -53,7 +53,7 @@
         </div>
 
         <script>
-        psynet.trial.onEvent("construct", function() {
+        psynet.trial.onEvent("trialConstruct", function() {
             $(".audio-prompt-button").prop("disabled", false)
             $("#audio-prompt-play").on("click", function() {
                 psynet.media.stop_all_audio();
