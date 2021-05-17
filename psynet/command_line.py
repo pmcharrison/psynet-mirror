@@ -167,13 +167,15 @@ def estimate(mode):
     experiment_class = import_local_experiment()["class"]
     experiment = setup_experiment_variables(experiment_class)
     if mode in ["bonus", "both"]:
-        maximum_bonus = experiment_class.estimated_max_bonus(experiment.wage_per_hour)
+        maximum_bonus = experiment_class.estimated_max_bonus(
+            experiment.var.wage_per_hour
+        )
         dallinger_log(
             f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}."
         )
     if mode in ["time", "both"]:
         completion_time = experiment_class.estimated_completion_time(
-            experiment.wage_per_hour
+            experiment.var.wage_per_hour
         )
         dallinger_log(
             f"Estimated time to complete experiment: {format_seconds(completion_time)}."

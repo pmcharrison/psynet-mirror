@@ -6,6 +6,7 @@ import dallinger.experiment
 import rpdb
 from dallinger import db
 from dallinger.config import get_config
+from dallinger.experiment import scheduled_task
 from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -17,12 +18,12 @@ from pkg_resources import resource_filename
 from psynet import __version__, data
 
 from . import field
-from .field import VarStore, claim_var
+from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
 from .timeline import (
-    BackgroundTask,
+    DatabaseCheck,
     ExperimentSetupRoutine,
     FailedValidation,
     ParticipantFailRoutine,
@@ -30,7 +31,13 @@ from .timeline import (
     RecruitmentCriterion,
     Timeline,
 )
-from .utils import call_function, get_arg_from_dict, get_logger, serialise
+from .utils import (
+    call_function,
+    get_arg_from_dict,
+    get_logger,
+    pretty_log_dict,
+    serialise,
+)
 
 logger = get_logger()
 
@@ -48,8 +55,33 @@ class Experiment(dallinger.experiment.Experiment):
     """
     The main experiment class from which to inherit when building experiments.
 
+    There are a number of variables tied to an experiment all of which are documented below.
+    They have been assigned reasonable default values which can be overridden when defining an experiment
+    (see method ``_default_variables``). Also, they can be enriched with new variables in the following way:
+
+    ::
+
+        from psynet.experiment import Experiment
+
+        class Exp(psynet.Experiment):
+            variables = {
+                "new_variable": "some-value",  # Adding a new variable
+                "wage_per_hour": 12.0,         # Overriding an existing variable
+            }
+
+    These variables can then be changed in the course of experiment, just like 
+    (e.g.) participant variables.
+
+    ::
+
+        from psynet.timeline import CodeBlock
+
+        CodeBlock(lambda experiment: experiment.var.set("custom-variable", 42))
+
+    Default experiment variables accessible through `psynet.experiment.Experiment.var` are:
+
     max_participant_payment : `float`
-        The maximum payment in US dollars a participant can get. Default: `25.0`.
+        The maximum payment in US dollars a participant is allowed to get. Default: `25.0`.
 
     soft_max_experiment_payment : `float`
         The recruiting process stops if the amount of accumulated payments
@@ -58,6 +90,24 @@ class Experiment(dallinger.experiment.Experiment):
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
         at the bottom of the page.
+
+    min_browser_version : `str`
+        The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
+
+    wage_per_hour : `float`
+        The payment in US dollars the participant gets per hour. Default: `9.0`.
+
+    There are also a few experiment variables that are set automatically and that should,
+    in general, not be changed manually:
+
+    psynet_version : `str`
+        The version of the `psynet` package.
+
+    soft_max_experiment_payment_email_sent : `bool`
+        Whether an email to the experimenter has already been sent indicating the `soft_max_experiment_payment`
+        had been reached. Default: `False`. Once this is `True`, no more emails will be sent about 
+        this payment limit being reached.
+
 
     Parameters
     ----------
@@ -75,38 +125,13 @@ class Experiment(dallinger.experiment.Experiment):
 
     __extra_vars__ = {}
 
-    psynet_version = claim_var(
-        "psynet_version", __extra_vars__, use_default=True, default=__version__
-    )
-    min_browser_version = claim_var(
-        "min_browser_version", __extra_vars__, use_default=True, default="80.0"
-    )
-    max_participant_payment = claim_var(
-        "max_participant_payment", __extra_vars__, use_default=True, default=25.0
-    )
-    soft_max_experiment_payment = claim_var(
-        "soft_max_experiment_payment", __extra_vars__, use_default=True, default=1000.0
-    )
-    soft_max_experiment_payment_email_sent = claim_var(
-        "soft_max_experiment_payment_email_sent",
-        __extra_vars__,
-        use_default=True,
-        default=False,
-    )
-    wage_per_hour = claim_var(
-        "wage_per_hour", __extra_vars__, use_default=True, default=9.0
-    )
-    consent_audiovisual_recordings = claim_var(
-        "consent_audiovisual_recordings", __extra_vars__, use_default=True, default=True
-    )
-    show_bonus = claim_var("show_bonus", __extra_vars__, use_default=True, default=True)
-
+    variables = {}
     pre_deploy_routines = []
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        self._background_tasks = []
+        self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
 
@@ -116,6 +141,14 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         else:
             self.register_pre_deployment_routines()
+
+    @scheduled_task("interval", minutes=1, max_instances=1)
+    @staticmethod
+    def check_database():
+        exp_class = dallinger.experiment.load()
+        exp = exp_class.new(db.session)
+        for c in exp.database_checks:
+            c.run()
 
     @property
     def base_payment(self):
@@ -136,12 +169,8 @@ class Experiment(dallinger.experiment.Experiment):
     def register_recruitment_criterion(self, criterion):
         self.recruitment_criteria.append(criterion)
 
-    @property
-    def background_tasks(self):
-        return self._background_tasks
-
-    def register_background_task(self, task):
-        self._background_tasks.append(task)
+    def register_database_check(self, task):
+        self.database_checks.append(task)
 
     def register_pre_deployment_routines(self):
         for event in self.timeline.events:
@@ -193,23 +222,34 @@ class Experiment(dallinger.experiment.Experiment):
         self.setup_experiment_variables()
         db.session.commit()
 
+    @property
+    def _default_variables(self):
+        return {
+            "psynet_version": __version__,
+            "min_browser_version": "80.0",
+            "max_participant_payment": 25.0,
+            "soft_max_experiment_payment": 1000.0,
+            "soft_max_experiment_payment_email_sent": False,
+            "wage_per_hour": 9.0,
+            "show_bonus": True,
+        }
+
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
-        self.psynet_version = __version__
-        self.min_browser_version = "80.0"
-        self.max_participant_payment = 25.0
-        self.soft_max_experiment_payment = 1000.0
-        self.soft_max_experiment_payment_email_sent = False
-        self.wage_per_hour = 9.0
-        self.consent_audiovisual_recordings = True
-        self.show_bonus = True
+        variables = {**self._default_variables, **self.variables}
+        logger.info(
+            "Initializing experiment with variables \n" + pretty_log_dict(variables, 4)
+        )
+
+        for key, value in variables.items():
+            self.var.set(key, value)
 
     def load(self):
         for event in self.timeline.events:
             if isinstance(event, ExperimentSetupRoutine):
                 event.function(experiment=self)
-            if isinstance(event, BackgroundTask):
-                self.register_background_task(event.daemon)
+            if isinstance(event, DatabaseCheck):
+                self.register_database_check(event)
             if isinstance(event, ParticipantFailRoutine):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
@@ -223,9 +263,21 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def pre_deploy(cls):
+        cls.check_config()
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
+
+    @classmethod
+    def check_config(cls):
+        config = get_config()
+        if not config.ready:
+            config.load()
+        if not config.get("clock_on"):
+            # We force the clock to be on because it's necessary for the check_networks functionality.
+            raise RuntimeError(
+                "PsyNet requires the clock process to be enabled; please set clock_on = true in config.txt."
+            )
 
     def fail_participant(self, participant):
         logger.info(
@@ -260,7 +312,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def need_more_participants(self):
-        if self.amount_spent() >= self.soft_max_experiment_payment:
+        if self.amount_spent() >= self.var.soft_max_experiment_payment:
             self.ensure_soft_max_experiment_payment_email_sent()
             return False
 
@@ -289,7 +341,7 @@ class Experiment(dallinger.experiment.Experiment):
         return need_more
 
     def ensure_soft_max_experiment_payment_email_sent(self):
-        if not self.soft_max_experiment_payment_email_sent:
+        if not self.var.soft_max_experiment_payment_email_sent:
             self.send_email_max_payment_reached()
             self.var.soft_max_experiment_payment_email_sent = True
 
@@ -311,13 +363,13 @@ class Experiment(dallinger.experiment.Experiment):
         message = {
             "subject": "Maximum experiment payment reached.",
             "body": template.format(
-                soft_max_experiment_payment=self.soft_max_experiment_payment,
+                soft_max_experiment_payment=self.var.soft_max_experiment_payment,
                 app_id=config.get("id"),
             ),
         }
         logger.info(
             f"Recruitment ended. Maximum experiment payment "
-            f"of {self.soft_max_experiment_payment}$ reached!"
+            f"of {self.var.soft_max_experiment_payment}$ reached!"
         )
         admin_notifier(config).send(**message)
 
@@ -381,12 +433,12 @@ class Experiment(dallinger.experiment.Experiment):
             The possibly reduced bonus as a ``float``.
         """
         # check soft_max_experiment_payment
-        if self.amount_spent() + bonus >= self.soft_max_experiment_payment:
+        if self.amount_spent() + bonus >= self.var.soft_max_experiment_payment:
             self.ensure_soft_max_experiment_payment_email_sent()
         # check max_participant_payment
-        if participant.amount_paid() + bonus > self.max_participant_payment:
+        if participant.amount_paid() + bonus > self.var.max_participant_payment:
             reduced_bonus = round(
-                self.max_participant_payment - participant.amount_paid(), 2
+                self.var.max_participant_payment - participant.amount_paid(), 2
             )
             participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
             return reduced_bonus
@@ -471,6 +523,10 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/images/logo.svg",
             ),
             (
+                resource_filename("psynet", "resources/images/princeton-consent.png"),
+                "/static/images/princeton-consent.png",
+            ),
+            (
                 resource_filename("psynet", "resources/images/unity_logo.png"),
                 "/static/images/unity_logo.png",
             ),
@@ -487,6 +543,10 @@ class Experiment(dallinger.experiment.Experiment):
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
+            ),
+            (
+                resource_filename("psynet", "templates/error.html"),
+                "templates/error.html",
             ),
         ]
 
@@ -556,7 +616,7 @@ class Experiment(dallinger.experiment.Experiment):
             progress_info = {
                 "spending": {
                     "amount_spent": self.amount_spent(),
-                    "soft_max_experiment_payment": self.soft_max_experiment_payment,
+                    "soft_max_experiment_payment": self.var.soft_max_experiment_payment,
                 }
             }
             module_ids = request.args.getlist("module_ids[]")
@@ -587,9 +647,9 @@ class Experiment(dallinger.experiment.Experiment):
                         mode="time"
                     ),
                     "bonus_dollars": exp.timeline.estimated_time_credit.get_max(
-                        mode="bonus", wage_per_hour=exp.wage_per_hour
+                        mode="bonus", wage_per_hour=exp.var.wage_per_hour
                     ),
-                    "wage_per_hour": exp.wage_per_hour,
+                    "wage_per_hour": exp.var.wage_per_hour,
                     "base_payment": exp.base_payment,
                 }
             )

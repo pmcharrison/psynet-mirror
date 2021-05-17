@@ -1,5 +1,39 @@
 # Changelog
 
+# [1.14.0] Released on 2021-05-17
+
+#### Added
+- It is now possible to use `save_answer` to specify a participant variable
+in which the answer should be saved:
+
+```python
+from psynet.modular_page import ModularPage, Prompt, NumberControl
+
+ModularPage(
+    "weight",
+    Prompt("What is your weight in kg?"),
+    NumberControl(),
+    time_estimate=5,
+    save_answer="weight",
+)
+```
+
+The resulting answer can then be accessed, in this case, by `participant.var.weight`.
+
+- Implement consent pages as `Module`s to be added to an experiment `Timeline` (CAPRecruiterStandardConsent, CAPRecruiterAudiovisualConsent, MTurkStandardConsent, MTurkAudiovisualConsent, PrincetonConsent).
+
+#### Changed
+- Migrate background tasks to Dallinger's new `scheduled_task` API.
+This means that the tasks now run on the clock dyno,
+and are now robust to dyno restarts, app crashes etc.
+- Apply DRY principle to demo directories (delete redundant error.html and layout.html files).
+- Change the way experiment variables are set. For details on this important change, see the documentation at https://computational-audition-lab.gitlab.io/psynet/low_level/Experiment.html
+
+#### Fixed
+- Fix bug in non-adaptive experiments related to SQLAlchemy.
+- Prevent multiple instances of `check_database` from running simultaneously.
+
+
 # [1.13.1] Released on 2021-05-05
 
 #### Fixed
@@ -9,6 +43,7 @@
 - Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
 - Implement missing notify_duration_exceeded method for CAPRecruiter
 - Update Dallinger to v7.2.1
+
 
 # [1.13.0] Released on 2021-04-15
 

@@ -7,6 +7,7 @@
 import random
 
 import psynet.experiment
+from psynet.consent import MTurkStandardConsent
 from psynet.modular_page import PushButtonControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -85,9 +86,8 @@ class CustomNode(MCMCPNode):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
-
     timeline = Timeline(
+        MTurkStandardConsent(),
         MCMCPTrialMaker(
             id_="mcmcp_demo",
             network_class=CustomNetwork,

@@ -260,7 +260,7 @@ class Participant(dallinger.models.Participant):
             "subject": "Maximum experiment payment reached.",
             "body": template.format(
                 assignment_id=self.assignment_id,
-                max_participant_payment=experiment_class.max_participant_payment,
+                max_participant_payment=experiment_class.var.max_participant_payment,
                 requested_bonus=requested_bonus,
                 reduced_bonus=reduced_bonus,
                 app_id=config.get("id"),
@@ -398,14 +398,14 @@ class TimeCreditStore:
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
-        self.wage_per_hour = experiment.wage_per_hour
+        self.wage_per_hour = experiment.var.wage_per_hour
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
             mode="time"
         )
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=experiment.wage_per_hour
+            mode="bonus", wage_per_hour=experiment.var.wage_per_hour
         )
 
     def increment(self, value: float):

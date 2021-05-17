@@ -1,0 +1,71 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+  <style>
+    .main_div {
+      margin: 0;
+    }
+  </style>
+
+  <div class="main_div" style="padding-bottom: 100px;
+  ">
+    <noscript>
+        <h1>Warning: Javascript is not working on your browser</h1>
+        <p>The study will not work unless Javascript is enabled on your browser.</p>
+        <p>Please enable Javascript then refresh this page.</p>
+    </noscript>
+    <h1>Research Participant Consent Form</h1>
+    <hr>
+    <div class="consent_div text-justify">
+        <div class="text-left" style="font-size:18px">
+          <h2>Title of study: {{experiment_title}}</h2>
+          <p>
+              I have received written information about the study and the procedure of the study. I have read and understood all of the information completely. If I had questions concerning the upcoming study, they were answered completely and to my satisfaction by Mr Harin Lee.
+          </p>
+          <p>
+              I agree to the described collecting and processing of my age, gender, and country of birth. The recording and processing of these data are carried out in pseudonymized form by means of a code and do not contain my name. There is a coding list on paper that links my name to this number. The investigators are the only persons who have access to this coding list and who are thus able to link the collected data to my name. After completion of the research project, the coding list will be destroyed. From this point on, my data are anonymous, which means that they cannot be linked to my person any longer.
+          </p>
+          <p>
+              I understand that I am free to withdraw my consent to the collection and storage of my personal data without negative consequences. I have been informed that I may request deletion of all my data at any time. However, if the coding list has already been destroyed, it will no longer be possible to identify and thus to delete my data set.
+          </p>
+          <p>
+              The participant information sheet about the examination is part of this consent form. I have received a copy of the participant information sheet and of the consent form.
+          </p>
+  ​
+          <h4>Investigator</h4>
+          <p>
+              Harin Lee,
+              Max Planck Institut for Empirical Aesthetics,
+              Grüneburgweg 14,
+              60322 Frankfurt am Main,
+              harin.lee@ae.mpg.de
+          </p>
+  ​
+          <h4>Principal Investigator</h4>
+          <p>
+              Dr. Nori Jacoby,
+              Max Planck Institut for Empirical Aesthetics,
+              Grüneburgweg 14,
+              60322 Frankfurt am Main,
+              nori.jacoby@ae.mpg.de
+          </p>
+  ​
+          <h4> Consent </h4>
+          <p>
+              By consenting to participate, you acknowledge that you are 18 years or older,
+              have read this consent form, agree to its contents, and agree to take part
+              in this research. If you do not wish to consent, please close this page.
+          </p>
+        </div>
+        <hr>
+        <h4>Do you understand and consent to these terms?</h4>
+        <br>
+        <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page(true);" style="float: left;">
+          I agree
+        </button>
+        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.next_page(false);" style="float: right;">
+          No, thank you (return task)
+        </button>
+      </div>
+  </div>
+{% endblock %}
