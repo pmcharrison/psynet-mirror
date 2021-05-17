@@ -210,7 +210,11 @@ example_record_page = join(
             duration=3.0,
             stages=[
                 Stage([0.0, 3.0], "Recording...", "red"),
-                Stage([3.0, 3.0], "Finished recording.", "green"),
+                Stage(
+                    [3.0, 3.0],
+                    "Finished recording! Press 'Upload' to continue.",
+                    color="green",
+                ),
             ],
         ),
     ),
@@ -231,7 +235,7 @@ example_listen_then_record_page = join(
         AudioPrompt(
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
-            Here we play audio then activate the recorder afterwards.
+            Here we play audio then activate the recorder 1 second afterwards.
             """,
             play_window=[0, 2.5],
         ),
@@ -245,6 +249,19 @@ example_listen_then_record_page = join(
             auto_advance=True,
         ),
         time_estimate=5,
+        events={"recordStart": Event(is_triggered_by="audioPromptStart", delay=1.0)},
+        progress_bar=Bar(
+            duration=2.5,
+            stages=[
+                Stage([0.0, 1.5], "Waiting to record..."),
+                Stage([1.5, 2.5], "Recording...", "red"),
+                Stage(
+                    [2.5, 2.5],
+                    "Finished recording! Press 'Upload' to continue.",
+                    color="green",
+                ),
+            ],
+        ),
     ),
 )
 

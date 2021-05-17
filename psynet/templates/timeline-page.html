@@ -624,10 +624,6 @@
                     trial.initEvents();
                     trial.initRoutines();
 
-                    if (trial.listEvents().includes("trialEnd")) {
-                        trial.onEvent("trialEnd", () => trial.stop());
-                    }
-
                     trial.init = async function() {
                         await psynet.trial.runRoutines("construct");
                         await psynet.trial.start();

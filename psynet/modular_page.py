@@ -1070,12 +1070,8 @@ class TextControl(Control):
 
 
 class Stage(dict):
-    def __init__(
-        self,
-        time: List,
-        caption: str,
-        color: str,
-    ):
+    def __init__(self, time: List, caption: str, color: str = "rgb(49, 124, 246)"):
+        assert len(time) == 2
         self["time"] = time
         self["duration"] = time[1] - time[0]
         self["caption"] = caption
@@ -1093,9 +1089,7 @@ class Bar(dict):
         self["start"] = start
 
         if stages is None:
-            stages = [
-                Stage(time=[0.0, duration], caption="", color="rgb(49, 124, 246)")
-            ]
+            stages = [Stage(time=[0.0, duration], caption="")]
 
         self["stages"] = stages
 
@@ -1116,7 +1110,7 @@ class Bar(dict):
                 prev_stage_end_time = prev_stage["time"][1]
                 if start_time != prev_stage_end_time:
                     raise ValueError(
-                        f"The start time of stage {i} did not match the end time of the previous stage."
+                        f"The start time of stages[{i}] did not match the end time of the previous stage."
                     )
             if i == len(stages) - 1:
                 end_time = stage["time"][1]
