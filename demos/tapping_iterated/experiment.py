@@ -236,8 +236,6 @@ class CustomSource(AudioImitationChainSource):
 # Timeline
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
-
     timeline = Timeline(
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",

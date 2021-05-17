@@ -683,7 +683,7 @@ class Page(Event):
 
     def create_footer(self, experiment, participant):
         # pylint: disable=unused-argument
-        if not experiment.show_bonus:
+        if not experiment.var.show_bonus:
             return Footer([""])
         return Footer(
             [

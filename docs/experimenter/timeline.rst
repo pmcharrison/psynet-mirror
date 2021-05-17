@@ -115,7 +115,7 @@ using the CAP-Recruiter web application as the recruitment instrument, resp. In 
 or both of the corresponding consent pages can be added to the start of an experiment timeline, as appropriate.
 
 This should be enough to start experimenting with different kinds of page types.
-For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`modular_page` documentation.
+For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`ModularPage` documentation.
 
 Page makers
 -----------

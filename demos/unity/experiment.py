@@ -229,8 +229,6 @@ final_trial_maker = IslandTrialMaker(
 
 
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
-
     timeline = Timeline(
         CodeBlock(
             lambda participant: participant.var.set(

@@ -17,8 +17,6 @@ from psynet.timeline import Timeline
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
-
     timeline = Timeline(
         BasicDemography(),
         # It is a good practice to add the AttentionCheck in the middle of demographic questions, so its presence is

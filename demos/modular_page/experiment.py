@@ -46,8 +46,6 @@ class ColourText(Control):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
-
     timeline = Timeline(
         ModularPage(
             "text", prompt="This is an example of a simple text page.", time_estimate=5

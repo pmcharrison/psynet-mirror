@@ -366,3 +366,11 @@ def is_valid_html5_id(str):
     if not str or " " in str:
         return False
     return True
+
+
+def pretty_log_dict(dict, spaces_for_indentation=0):
+    return "\n".join(
+        " " * spaces_for_indentation
+        + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
+        for key, value in dict.items()
+    )

@@ -52,7 +52,7 @@
         }
         window.addEventListener("load", function() {
             console.log(platform.toString());
-            var min_browser_version = "{{ experiment.min_browser_version }}";
+            var min_browser_version = "{{ experiment.var.min_browser_version }}";
             if (platform.name != "Chrome") {
                 $("#consent").prop("disabled", true);
                 $("#consent").append("(please reload in Chrome first)");

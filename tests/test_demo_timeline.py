@@ -21,12 +21,13 @@ def exp_dir(root):
 
 @pytest.mark.usefixtures("exp_dir")
 class TestExp(object):
-    @pytest.fixture
-    def demo(self, db_session):  # , exp_config):
-        from psynet.demos.timeline.experiment import Exp
+    def test_default_variables(self, db_session):
+        from psynet.utils import import_local_experiment
 
-        instance = Exp(db_session)
-        yield instance
+        exp_class = import_local_experiment()["class"]
+        exp = exp_class.new(db_session)
+        assert exp.var.wage_per_hour == 12.0
+        assert exp.var.new_variable == "some-value"
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
@@ -247,7 +248,7 @@ class TestExp(object):
             # Final page
             assert driver.find_element_by_id("main-body").text == (
                 "That's the end of the experiment! In addition to your base payment of $0.10, "
-                "you will receive a bonus of $0.20 for the time you spent on the experiment. "
+                "you will receive a bonus of $0.27 for the time you spent on the experiment. "
                 'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
             )
 
