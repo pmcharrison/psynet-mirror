@@ -793,7 +793,7 @@
             priority: 100 // ensures that this is only executed once all the media processing completes
         });
 
-        psynet.trial.onEvent("cleanup", function() {
+        psynet.trial.onEvent("trialStop", function() {
             psynet.media.stop_all_audio();
         });
 
@@ -894,7 +894,7 @@
             }
         });
 
-        psynet.trial.onEvent("cleanup", () => recorder.stop());
+        psynet.trial.onEvent("trialStop", () => recorder.stop());
 
         psynet.trial.onEvent("construct", () => new Promise((resolve) => {
             navigator.mediaDevices.getUserMedia({
@@ -1044,7 +1044,7 @@
                 }
             });
 
-            psynet.trial.onEvent("cleanup", async function() {
+            psynet.trial.onEvent("trialStop", async function() {
                 let state = await videoRecorder.getState();
                 if (state != "inactive") {
                     await videoRecorder.stopRecording();
@@ -1094,7 +1094,7 @@
                 }
             });
 
-            psynet.trial.onEvent("cleanup", async function() {
+            psynet.trial.onEvent("trialStop", async function() {
                 let state = await screenRecorder.getState();
                 if (state != "inactive") {
                     await screenRecorder.stopRecording();

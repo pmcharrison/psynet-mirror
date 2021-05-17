@@ -479,6 +479,8 @@ class Page(Elt):
             "trialStart": Event(is_triggered_by="trialPrepare"),
             "responseEnable": Event(is_triggered_by="trialStart", delay=0.0),
             "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
+            "trialStop": Event(is_triggered_by=None),
+            "trialStopped": Event(is_triggered_by="trialStop"),
             **({} if events is None else events),
         }
 

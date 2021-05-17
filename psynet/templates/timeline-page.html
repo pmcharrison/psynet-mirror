@@ -524,7 +524,7 @@
                             trial.clearTimers();
                             trial.inProgress = false;
                             await this.pendingEventHandlers.waitFor();
-                            await trial.registerEvent("cleanup");
+                            await trial.registerEvent("trialStop");
                             trial.reset();
                             trial.stopping = false;
                         }
