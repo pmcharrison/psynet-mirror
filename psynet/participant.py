@@ -139,8 +139,6 @@ class Participant(dallinger.models.Participant):
         x = super().__json__()
         field.json_clean(x, details=True)
         field.json_add_extra_vars(x, self)
-        x["started_modules"] = self.started_modules
-        x["finished_modules"] = self.finished_modules
         del x["modules"]
         field.json_format_vars(x)
         return x
@@ -182,6 +180,11 @@ class Participant(dallinger.models.Participant):
         ]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
+
+    @property
+    @extra_var(__extra_vars__)
+    def current_module(self):
+        return None if not self.started_modules else self.started_modules[-1]
 
     def start_module(self, label):
         modules = self.modules.copy()

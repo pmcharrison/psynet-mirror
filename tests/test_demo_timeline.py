@@ -56,6 +56,7 @@ class TestExp(object):
             assert len(modules["introduction"]["time_finished"]) == 0
             assert participant.started_modules == ["introduction"]
             assert participant.finished_modules == []
+            assert participant.current_module == "introduction"
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
@@ -175,6 +176,7 @@ class TestExp(object):
                 "chocolate",
             ]
             assert participant.finished_modules == ["introduction", "weight"]
+            assert participant.current_module == "chocolate"
 
             assert (
                 driver.find_element_by_id("main-body").text
