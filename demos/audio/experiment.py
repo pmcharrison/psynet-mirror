@@ -296,7 +296,6 @@ example_record_with_audio_prompt = join(
             "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
         },
         time_estimate=5,
-        auto_start_trial=False,
     ),
     PageMaker(
         lambda participant: ModularPage(

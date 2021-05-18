@@ -1071,66 +1071,6 @@ class TextControl(Control):
         }
 
 
-class ProgressStage(dict):
-    def __init__(
-        self,
-        time: List,
-        caption: str,
-        color: str = "rgb(49, 124, 246)",
-        persistent: bool = False,
-    ):
-        assert len(time) == 2
-        self["time"] = time
-        self["duration"] = time[1] - time[0]
-        self["caption"] = caption
-        self["color"] = color
-        self["persistent"] = persistent
-
-
-class ProgressDisplay(dict):
-    def __init__(
-        self,
-        duration,
-        start="trialStart",
-        stages: Optional[List] = None,
-        show_bar: bool = True,
-    ):
-        self["duration"] = duration
-        self["start"] = start
-        self["show_bar"] = show_bar
-
-        if stages is None:
-            stages = [ProgressStage(time=[0.0, duration], caption="")]
-
-        self["stages"] = stages
-
-        self.validate()
-
-    def validate(self):
-        stages = self["stages"]
-        for i in range(len(stages)):
-            stage = self["stages"][i]
-            start_time = stage["time"][0]
-            if i == 0:
-                if start_time != 0.0:
-                    raise ValueError(
-                        "The first stage in the progress bar must have a start time of 0.0."
-                    )
-            else:
-                prev_stage = self["stages"][i - 1]
-                prev_stage_end_time = prev_stage["time"][1]
-                if start_time != prev_stage_end_time:
-                    raise ValueError(
-                        f"The start time of stages[{i}] did not match the end time of the previous stage."
-                    )
-            if i == len(stages) - 1:
-                end_time = stage["time"][1]
-                if end_time != self["duration"]:
-                    raise ValueError(
-                        "The final stage must have an end time equal to the progress bar's duration."
-                    )
-
-
 class ModularPage(Page):
     """
     The :class:`~psynet.modular_page.ModularPage`
@@ -1169,9 +1109,6 @@ class ModularPage(Page):
         :class:`~psynet.modular_page.Control`
         objects instead.
 
-    progress_display
-        Optional :class:`~psynet.modular_page.ProgressDisplay` object.
-
     js_vars
         Optional dictionary of arguments to instantiate as global Javascript variables.
 
@@ -1187,7 +1124,6 @@ class ModularPage(Page):
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[List] = None,
-        progress_display: Optional[ProgressDisplay] = None,
         js_vars: Optional[dict] = None,
         **kwargs,
     ):
@@ -1208,23 +1144,12 @@ class ModularPage(Page):
 
         {self.import_templates}
 
-        {{% block main_body %}}
-        {{{{ super() }}}}
-
+        {{% block above_progress_display %}}
         {{{{ {self.prompt_macro}(prompt_config) }}}}
+        {{% endblock %}}
 
-        <p class="vspace"></p>
-        """
-
-        if progress_display is not None:
-            template_str += """
-            {{ trial_progress_display(trial_progress_display_config) }}
-            <p class="vspace"></p>
-            """
-
-        template_str += f"""
+        {{% block below_progress_display %}}
         {{{{ {self.control_macro}(control_config) }}}}
-
         {{% endblock %}}
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
@@ -1236,7 +1161,6 @@ class ModularPage(Page):
             template_arg={
                 "prompt_config": prompt,
                 "control_config": control,
-                "trial_progress_display_config": progress_display,
             },
             media=all_media,
             events=events,
@@ -1823,14 +1747,12 @@ class RecordControl(Control):
         s3_bucket: str,
         public_read: bool = False,
         auto_advance: bool = False,
-        progress_display: bool = False,
         show_meter: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.public_read = public_read
         self.auto_advance = auto_advance
-        self.progress_display = progress_display
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)

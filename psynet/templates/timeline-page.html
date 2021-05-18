@@ -81,6 +81,42 @@
     <div id="main-body" style="padding: 5% 10% 5% 10%">
         {% block main_body %}
 
+            {% block above_progress_display %}
+            {% endblock %}
+
+            {% block trial_progress_display %}
+                <style>
+                    #trial-progress-bar {
+                        margin-top: 15px;
+                        margin-bottom: 15px;
+                        display: {% if trial_progress_display_config["show_bar"] %} flex {% else %} none {% endif %};
+                    }
+                    #trial-progress-caption {
+                        margin-top: 15px;
+                        margin-bottom: 15px;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-weight: bold;
+                    }
+                    .trial-progress-bar-segment {
+                        -webkit-transition: none;
+                        -moz-transition: none;
+                        -ms-transition: none;
+                        -o-transition: none;
+                        transition: none;
+                    }
+                </style>
+
+                <div id="trial-progress-bar" class="progress"></div>
+                <div id="trial-progress-caption">
+                    <span id="trial-progress-caption-contents">&nbsp;</span>
+                </div>
+            {% endblock %}
+
+            {% block below_progress_display %}
+            {% endblock %}
+
         {% endblock %}
 
         <span id="psynet-event-listener"></span>
@@ -326,7 +362,10 @@
                             delay: spec.delay,
                             once: spec.once,
                             handlers: [],
-                            happened: false
+                            happened: false,
+                            message: spec.message,
+                            message_color: spec.message_color,
+                            js: spec.js
                         };
 
                         event.isTriggeredBy.forEach((trigger) => {
@@ -340,7 +379,7 @@
                         event.checkTriggers = function() {
                             let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
                             if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.happened)) {
-                                trial.registerEvent(id);
+                                trial.setTimer(() => trial.registerEvent(id), event.delay * 1000);
                             }
                         };
 
@@ -466,6 +505,16 @@
 
                         if (event !== undefined) {
                             event.happened = true;
+
+                            if (event.message !== null) {
+                                psynet.trialProgress.setText(event.message, event.message_color);
+                            }
+
+                            debugger
+
+                            if (event.js !== null) {
+                                Function(unescape(event.js))();
+                            }
 
                             let handlers = event.handlers;
                             handlers.sort((a, b) => a.priority - b.priority);
@@ -1240,14 +1289,114 @@
                     request.send(formData);
                 };
 
-                // Aliases for easy typing
+                psynet.trialProgress = (() => {
+                    let config = {{ trial_progress_display_config | tojson }};
+                    let opacities = {light: 0.25, medium: 0.6, dark: 1.0};
+
+                    let init = function() {
+                        config.stages.forEach((stage) => stage.html = {});
+                        config.stages.forEach((stage) => {
+                            stage.html.past = addBarSegment(stage.color, opacities.dark);
+                        });
+                        config.stages.forEach((stage) => {
+                            stage.html.future = addBarSegment(stage.color, opacities.light);
+                        });
+                        config.stages.forEach((stage) => {
+                            stage.update = function(elapsed) {
+                                let proportionOfStageComplete = bound((elapsed - stage.time[0]) / stage.duration, 0, 1);
+                                let proportionOfBarComplete = (proportionOfStageComplete * stage.duration) / config.duration;
+                                stage.html.past.setWidth(100 * proportionOfBarComplete);
+                                let proportionOfStageIncomplete = 1 - proportionOfStageComplete;
+                                let proportionOfBarIncomplete = (proportionOfStageIncomplete * stage.duration) / config.duration
+                                stage.html.future.setWidth(100 * proportionOfBarIncomplete);
+                                if (proportionOfStageComplete > 0) {
+                                    if (stage.persistent || proportionOfStageComplete < 1) {
+                                        activeStage = stage;
+                                    } else {
+                                        activeStage = null;
+                                    }
+                                }
+                            };
+                        });
+                        {#setInterval(update, 5);#}
+                    };
+
+                    let bound = function(x, min, max) {
+                        return Math.max(min, Math.min(x, max));
+                    };
+
+                    let addBarSegment = function (color, opacity) {
+                        let bar = $("#trial-progress-bar");
+                        let segment = $("<div/>", {
+                            "class": "progress-bar trial-progress-bar-segment",
+                            role: "progressbar",
+                            style: "width: 0%; opacity: " + opacity + "; background-color: " + color + ";",
+                            "aria-valuenow": "0",
+                            "aria-valuemin": "0",
+                            "aria-valuemax": "100"
+                        });
+                        bar.append(segment);
+                        segment.setWidth = function (percent) {
+                            segment.css("width", percent + "%");
+                            segment.attr("aria-valuenow", percent);
+                        };
+                        return segment;
+                    };
+
+                    let activeStage = config.stages[0];
+                    let startTime = null;
+
+                    let start = function () {
+                        startTime = psynet.trial.getGlobalTime();
+                    };
+
+                    let stop = function() {
+                        startTime = null;
+                        activeStage = null;
+                    };
+
+                    let setText = function(content, color) {
+                        let text = $("#trial-progress-caption-contents");
+                        text.text(content);
+                        if (color) {
+                            text.css("color", color);
+                        }
+                    };
+
+                    let resetText = function() {
+                        let text = $("#trial-progress-caption-contents");
+                        text.html("&nbsp;");
+                    };
+
+                    let update = function() {
+                        let elapsed = startTime !== null ? psynet.trial.getGlobalTime() - startTime : 0.0
+                        config.stages.forEach((s) => s.update(elapsed));
+                        if (config.stages.length > 0) {
+                            if (activeStage) {
+                                setText(activeStage.caption, activeStage.color);
+                            } else {
+                                resetText();
+                            }
+                        }
+                    };
+
+                    psynet.trial.onEvent("trialConstruct", init, {priority: 1000});
+                    psynet.trial.onEvent(config.start, start);
+                    psynet.trial.onEvent("trialStopped", stop);
+
+                    return {
+                        setText: setText,
+                        start: start,
+                        stop: stop
+                    };
+                })();
+
                 psynet.audio = psynet.media.data.audio;
                 psynet.image = psynet.media.data.image;
                 psynet.video = psynet.media.data.video;
 
                 return psynet
-            }
-            ()
+            }()
         )
     </script>
 
@@ -1256,7 +1405,6 @@
 {% block libs %}
     {{ super() }}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.5/platform.min.js" type="text/javascript"></script>
-
 {% endblock %}
 
 {% block scripts %}
@@ -1273,114 +1421,3 @@
     {% endfor %}
 
 {% endblock %}
-
-{% macro trial_progress_display(config) %}
-    <style>
-        #trial-progress-bar {
-            margin-top: 15px;
-            margin-bottom: 15px;
-            display: {% if config["show_bar"] %} flex {% else %} none {% endif %};
-        }
-        #trial-progress-caption {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-        }
-        .trial-progress-bar-segment {
-            -webkit-transition: none;
-            -moz-transition: none;
-            -ms-transition: none;
-            -o-transition: none;
-            transition: none;
-        }
-    </style>
-
-    <div id="trial-progress-bar" class="progress"></div>
-    <div id="trial-progress-caption">
-        <span id="trial-progress-caption-contents">&nbsp;</span>
-    </div>
-
-    <script>
-        trialProgressDisplay = function() {
-            let config = {{ config | tojson }};
-            let opacities = {light: 0.25, medium: 0.6, dark: 1.0};
-            let addBarSegment = function (color, opacity) {
-                let segment = $("<div/>", {
-                    "class": "progress-bar trial-progress-bar-segment",
-                    role: "progressbar",
-                    style: "width: 0%; opacity: " + opacity + "; background-color: " + color + ";",
-                    "aria-valuenow": "0",
-                    "aria-valuemin": "0",
-                    "aria-valuemax": "100"
-                });
-                $("#trial-progress-bar").append(segment);
-                segment.setWidth = function (percent) {
-                    segment.css("width", percent + "%");
-                    segment.attr("aria-valuenow", percent);
-                };
-                return segment;
-            }
-            config.stages.forEach((stage) => stage.html = {});
-            config.stages.forEach((stage) => {
-                stage.html.past = addBarSegment(stage.color, opacities.dark);
-            });
-            config.stages.forEach((stage) => {
-                stage.html.future = addBarSegment(stage.color, opacities.light);
-            });
-            let bound = function(x, min, max) {
-                return Math.max(min, Math.min(x, max));
-            };
-            let activeStage = config.stages[0];
-            config.stages.forEach((stage) => {
-                stage.update = function(elapsed) {
-                    let proportionOfStageComplete = bound((elapsed - stage.time[0]) / stage.duration, 0, 1);
-                    let proportionOfBarComplete = (proportionOfStageComplete * stage.duration) / config.duration;
-                    stage.html.past.setWidth(100 * proportionOfBarComplete);
-                    let proportionOfStageIncomplete = 1 - proportionOfStageComplete;
-                    let proportionOfBarIncomplete = (proportionOfStageIncomplete * stage.duration) / config.duration
-                    stage.html.future.setWidth(100 * proportionOfBarIncomplete);
-                    if (proportionOfStageComplete > 0) {
-                        if (stage.persistent || proportionOfStageComplete < 1) {
-                            activeStage = stage;
-                        } else {
-                            activeStage = null;
-                        }
-                    }
-                };
-            });
-
-            let startTime = null;
-
-            let startProgressDisplay = function () {
-                startTime = psynet.trial.getGlobalTime();
-            }
-
-            let resetProgressDisplay = function() {
-                startTime = null;
-                activeStage = null;
-            }
-
-            let caption = $("#trial-progress-caption-contents");
-
-            let update = function () {
-                let elapsed = startTime !== null ? psynet.trial.getGlobalTime() - startTime : 0.0
-                debugger
-                config.stages.forEach((s) => s.update(elapsed));
-                if (activeStage) {
-                    caption.text(activeStage.caption);
-                    caption.css("color", activeStage.color);
-                } else {
-                    caption.html("&nbsp;");
-                }
-            };
-
-            setInterval(update, 5);
-
-            psynet.trial.onEvent(config.start, startProgressDisplay);
-            psynet.trial.onEvent("trialStopped", resetProgressDisplay);
-        }
-        psynet.trial.onEvent("trialConstruct", trialProgressDisplay, {priority: 1000});
-    </script>
-
-{% endmacro %}

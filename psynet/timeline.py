@@ -35,9 +35,12 @@ class Event(dict):
     def __init__(
         self,
         is_triggered_by,
-        trigger_condition="all",
-        delay=0.0,
-        once=True,
+        trigger_condition: str = "all",
+        delay: float = 0.0,
+        once: bool = True,
+        message: Optional[str] = None,
+        message_color: str = "black",
+        js: Optional[str] = None,
     ):
         if is_triggered_by is None:
             is_triggered_by = []
@@ -53,6 +56,9 @@ class Event(dict):
             triggerCondition=trigger_condition,
             delay=delay,
             once=once,
+            message=message,
+            message_color=message_color,
+            js=js,
         )
 
     def add_trigger(self, trigger):
@@ -339,6 +345,66 @@ class MediaSpec:
         return json.dumps(self.data)
 
 
+class ProgressStage(dict):
+    def __init__(
+        self,
+        time: List,
+        caption: str,
+        color: str = "rgb(49, 124, 246)",
+        persistent: bool = False,
+    ):
+        assert len(time) == 2
+        self["time"] = time
+        self["duration"] = time[1] - time[0]
+        self["caption"] = caption
+        self["color"] = color
+        self["persistent"] = persistent
+
+
+class ProgressDisplay(dict):
+    def __init__(
+        self,
+        duration,
+        start="trialStart",
+        stages: Optional[List] = None,
+        show_bar: bool = True,
+    ):
+        self["duration"] = duration
+        self["start"] = start
+        self["show_bar"] = show_bar
+
+        if stages is None:
+            stages = [ProgressStage(time=[0.0, duration], caption="")]
+
+        self["stages"] = stages
+
+        self.validate()
+
+    def validate(self):
+        stages = self["stages"]
+        for i in range(len(stages)):
+            stage = self["stages"][i]
+            start_time = stage["time"][0]
+            if i == 0:
+                if start_time != 0.0:
+                    raise ValueError(
+                        "The first stage in the progress bar must have a start time of 0.0."
+                    )
+            else:
+                prev_stage = self["stages"][i - 1]
+                prev_stage_end_time = prev_stage["time"][1]
+                if start_time != prev_stage_end_time:
+                    raise ValueError(
+                        f"The start time of stages[{i}] did not match the end time of the previous stage."
+                    )
+            if i == len(stages) - 1:
+                end_time = stage["time"][1]
+                if end_time != self["duration"]:
+                    raise ValueError(
+                        "The final stage must have an end time equal to the progress bar's duration."
+                    )
+
+
 class Page(Elt):
     """
     The base class for pages, customised by passing values to the ``__init__``
@@ -406,10 +472,8 @@ class Page(Elt):
         and a link to the corresponding ``Response`` object is saved in ``participant.last_response_id``.
         If ``False``, these slots are left unchanged.
 
-    auto_start_trial:
-        If ``True`` (default), then the trial starts automatically once it's ready.
-        If ``False``, the trial must be started with ``psynet.trial.start()``.
-
+    progress_display
+        Optional :class:`~psynet.timeline.ProgressDisplay` object.
     """
 
     returns_time_credit = True
@@ -426,8 +490,8 @@ class Page(Elt):
         scripts: Optional[List] = None,
         css: Optional[List] = None,
         save_answer: bool = True,
-        auto_start_trial: bool = True,
         events: Optional[Dict] = None,
+        progress_display: Optional[ProgressDisplay] = None,
     ):
         if template_arg is None:
             template_arg = {}
@@ -465,7 +529,6 @@ class Page(Elt):
         assert isinstance(self.css, list)
 
         self.save_answer = save_answer
-        self.auto_start_trial = auto_start_trial
 
         self.events = {
             "trialConstruct": Event(is_triggered_by=None),
@@ -481,6 +544,10 @@ class Page(Elt):
             "trialStopped": Event(is_triggered_by="trialStop"),
             **({} if events is None else events),
         }
+
+        if progress_display is None:
+            progress_display = ProgressDisplay(duration=0.0, show_bar=False)
+        self.progress_display = progress_display
 
     @property
     def initial_download_progress(self):
@@ -671,8 +738,8 @@ class Page(Elt):
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
             "css": self.css,
-            "auto_start_trial": self.auto_start_trial,
             "events": self.events,
+            "trial_progress_display_config": self.progress_display,
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
 

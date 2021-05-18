@@ -142,6 +142,5 @@ def test_events_audio_record():
 #             loop_playback=False,
 #         ),
 #         time_estimate=5,
-#         auto_start_trial=False,
 #     )
 #     breakpoint()
