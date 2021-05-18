@@ -433,7 +433,7 @@ class Experiment(dallinger.experiment.Experiment):
         )
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
-            event = self.timeline.get_current_event(self, participant)
+            event = self.timeline.get_current_elt(self, participant)
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -673,7 +673,7 @@ class Experiment(dallinger.experiment.Experiment):
                     exp.init_participant(
                         participant_id, client_ip_address=get_client_ip_address()
                     )
-                page = exp.timeline.get_current_event(self, participant)
+                page = exp.timeline.get_current_elt(self, participant)
                 page.pre_render()
                 exp.save()
                 return page.render(exp, participant)

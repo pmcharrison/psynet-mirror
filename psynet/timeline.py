@@ -86,12 +86,6 @@ class Elt:
         # pylint: disable=unused-argument
         return self
 
-    # def get_position_in_timeline(self, timeline):
-    #     for i, event in enumerate(timeline):
-    #         if self == event:
-    #             return i
-    #     raise ValueError("Event not found in timeline.")
-
 
 class NullElt(Elt):
     def consume(self, experiment, participant):
@@ -153,11 +147,11 @@ class GoTo(Elt):
         return self.target
 
     def consume(self, experiment, participant):
-        # We subtract 1 because event_id will be incremented again when
+        # We subtract 1 because elt_id will be incremented again when
         # we return to the start of the advance page loop.
-        target_event = self.get_target(experiment, participant)
-        target_event_id = target_event.id
-        participant.event_id = target_event_id - 1
+        target_elt = self.get_target(experiment, participant)
+        target_elt_id = target_elt.id
+        participant.elt_id = target_elt_id - 1
 
 
 class ReactiveGoTo(GoTo):
@@ -953,7 +947,7 @@ class Timeline:
         elts = join(*args)
         self.elts = elts
         self.check_elts()
-        self.add_event_ids()
+        self.add_elt_ids()
         self.estimated_time_credit = CreditEstimate(self.elts)
 
     def check_elts(self):
@@ -993,7 +987,7 @@ class Timeline:
             )
 
     def check_modules(self):
-        modules = [x.label for x in self.events if isinstance(x, StartModule)]
+        modules = [x.label for x in self.elts if isinstance(x, StartModule)]
         counts = Counter(modules)
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
@@ -1002,18 +996,18 @@ class Timeline:
     def modules(self):
         return {
             "modules": [
-                {"id": event.module.id}
-                for event in self.events
-                if isinstance(event, StartModule)
+                {"id": elt.module.id}
+                for elt in self.elts
+                if isinstance(elt, StartModule)
             ]
         }
 
     def get_trial_maker(self, trial_maker_id):
-        events = self.events
+        elts = self.elts
         try:
             start = [
                 e
-                for e in events
+                for e in elts
                 if isinstance(e, StartModule) and e.label == trial_maker_id
             ][0]
         except IndexError:
@@ -1021,27 +1015,27 @@ class Timeline:
         trial_maker = start.module
         return trial_maker
 
-    def add_event_ids(self):
-        for i, event in enumerate(self.events):
-            event.id = i
-        for i, event in enumerate(self.events):
-            if event.id != i:
+    def add_elt_ids(self):
+        for i, elt in enumerate(self.elts):
+            elt.id = i
+        for i, elt in enumerate(self.elts):
+            if elt.id != i:
                 raise ValueError(
                     "Failed to set unique IDs for each element in the timeline "
-                    + f"(the element at 0-indexed position {i} ended up with the ID {event.id}). "
+                    + f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). "
                     + "This usually means that the same Python object instantiation is reused multiple times "
                     + "in the same timeline. This kind of reusing is not permitted, instead you should "
                     + "create a fresh instantiation of each element."
                 )
 
     def __len__(self):
-        return len(self.events)
+        return len(self.elts)
 
     def __getitem__(self, key):
-        return self.events[key]
+        return self.elts[key]
 
-    def get_current_event(self, experiment, participant, resolve=True):
-        n = participant.event_id
+    def get_current_elt(self, experiment, participant, resolve=True):
+        n = participant.elt_id
         N = len(self)
         if n >= N:
             raise ValueError(
@@ -1057,16 +1051,16 @@ class Timeline:
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            old_event = self.get_current_event(experiment, participant, resolve=False)
-            if old_event.returns_time_credit:
-                participant.time_credit.increment(old_event.time_estimate)
+            old_elt = self.get_current_elt(experiment, participant, resolve=False)
+            if old_elt.returns_time_credit:
+                participant.time_credit.increment(old_elt.time_estimate)
 
-            participant.event_id += 1
+            participant.elt_id += 1
 
-            new_event = self.get_current_event(experiment, participant, resolve=False)
-            new_event.consume(experiment, participant)
+            new_elt = self.get_current_elt(experiment, participant, resolve=False)
+            new_elt.consume(experiment, participant)
 
-            if isinstance(new_event, Page) or isinstance(new_event, PageMaker):
+            if isinstance(new_elt, Page) or isinstance(new_elt, PageMaker):
                 finished = True
 
     def estimated_max_bonus(self, wage_per_hour):
@@ -1077,9 +1071,9 @@ class Timeline:
 
 
 class CreditEstimate:
-    def __init__(self, events):
-        self._events = events
-        self._max_time = self._estimate_max_time(events)
+    def __init__(self, elts):
+        self._elts = elts
+        self._max_time = self._estimate_max_time(elts)
 
     def get_max(self, mode, wage_per_hour=None):
         if mode == "time":
@@ -1095,46 +1089,46 @@ class CreditEstimate:
                 "bonus": self.get_max(mode="bonus", wage_per_hour=wage_per_hour),
             }
 
-    def _estimate_max_time(self, events):
+    def _estimate_max_time(self, elts):
         pos = 0
         time_credit = 0.0
-        n_events = len(events)
+        n_elts = len(elts)
 
         while True:
-            if pos == n_events:
+            if pos == n_elts:
                 return time_credit
 
-            event = events[pos]
+            elt = elts[pos]
 
-            if event.returns_time_credit:
-                time_credit += event.time_estimate * event.expected_repetitions
+            if elt.returns_time_credit:
+                time_credit += elt.time_estimate * elt.expected_repetitions
 
-            if isinstance(event, StartFixTime):
-                pos = events.index(event.end_fix_time)
+            if isinstance(elt, StartFixTime):
+                pos = elts.index(elt.end_fix_time)
 
-            elif isinstance(event, EndFixTime):
-                time_credit += event.time_estimate * event.expected_repetitions
+            elif isinstance(elt, EndFixTime):
+                time_credit += elt.time_estimate * elt.expected_repetitions
                 pos += 1
 
-            elif isinstance(event, StartSwitch):
+            elif isinstance(elt, StartSwitch):
                 time_credit += max(
                     [
                         self._estimate_max_time(
-                            events[
-                                events.index(branch_start) : (
-                                    1 + events.index(event.end_switch)
+                            elts[
+                                elts.index(branch_start) : (
+                                    1 + elts.index(elt.end_switch)
                                 )
                             ]
                         )
-                        for key, branch_start in event.branch_start_events.items()
+                        for key, branch_start in elt.branch_start_elts.items()
                     ]
                 )
-                pos = events.index(event.end_switch)
+                pos = elts.index(elt.end_switch)
 
-            elif isinstance(event, EndSwitchBranch):
-                pos = events.index(event.target)
+            elif isinstance(elt, EndSwitchBranch):
+                pos = elts.index(elt.target)
 
-            elif isinstance(event, EndPage):
+            elif isinstance(elt, EndPage):
                 return time_credit
 
             else:
@@ -1303,7 +1297,7 @@ def while_loop(
     fix_time_credit=True,
 ):
     """
-    Loops a series of events while a given criterion is satisfied.
+    Loops a series of elts while a given criterion is satisfied.
     The criterion function is evaluated once at the beginning of each loop.
 
     Parameters
@@ -1318,7 +1312,7 @@ def while_loop(
         returning a Boolean.
 
     logic:
-        An event (or list of events) to display while ``condition`` returns ``True``.
+        An elt (or list of elts) to display while ``condition`` returns ``True``.
 
     expected_repetitions:
         The number of times the loop is expected to be seen by a given participant.
@@ -1334,7 +1328,7 @@ def while_loop(
     -------
 
     list
-        A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
+        A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
 
     start_while = StartWhile(label)
@@ -1345,7 +1339,7 @@ def while_loop(
 
     conditional_logic = join(logic, GoTo(start_while))
 
-    events = join(
+    elts = join(
         start_while,
         conditional(
             label,
@@ -1359,18 +1353,18 @@ def while_loop(
 
     if fix_time_credit:
         time_estimate = CreditEstimate(logic).get_max("time")
-        return fix_time(events, time_estimate)
+        return fix_time(elts, time_estimate)
     else:
-        return events
+        return elts
 
 
 def check_branches(branches):
     try:
         assert isinstance(branches, dict)
-        for branch_name, branch_events in branches.items():
-            assert isinstance(branch_events, Elt) or is_list_of(branch_events, Elt)
-            if isinstance(branch_events, Elt):
-                branches[branch_name] = [branch_events]
+        for branch_name, branch_elts in branches.items():
+            assert isinstance(branch_elts, Elt) or is_list_of(branch_elts, Elt)
+            if isinstance(branch_elts, Elt):
+                branches[branch_name] = [branch_elts]
         return branches
     except AssertionError:
         raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
@@ -1384,7 +1378,7 @@ def switch(
     log_chosen_branch: bool = True,
 ):
     """
-    Selects a series of events to display to the participant according to a
+    Selects a series of elts to display to the participant according to a
     certain condition.
 
     Parameters
@@ -1400,7 +1394,7 @@ def switch(
 
     branches:
         A dictionary indexed by the outputs of ``function``; each value should correspond
-        to an event (or list of events) that can be selected by ``function``.
+        to an elt (or list of elts) that can be selected by ``function``.
 
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of the branch taken.
@@ -1414,46 +1408,46 @@ def switch(
     -------
 
     list
-        A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
+        A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
 
     check_function_args(function, ("self", "experiment", "participant"), need_all=False)
     branches = check_branches(branches)
 
     all_branch_starts = dict()
-    all_events = []
+    all_elts = []
     end_switch = EndSwitch(label)
 
-    for branch_name, branch_events in branches.items():
+    for branch_name, branch_elts in branches.items():
         branch_start = StartSwitchBranch(branch_name)
         branch_end = EndSwitchBranch(branch_name, end_switch)
         all_branch_starts[branch_name] = branch_start
-        all_events = all_events + [branch_start] + branch_events + [branch_end]
+        all_elts = all_elts + [branch_start] + branch_elts + [branch_end]
 
     start_switch = StartSwitch(
         label,
         function,
-        branch_start_events=all_branch_starts,
+        branch_start_elts=all_branch_starts,
         end_switch=end_switch,
         log_chosen_branch=log_chosen_branch,
     )
-    combined_events = [start_switch] + all_events + [end_switch]
+    combined_elts = [start_switch] + all_elts + [end_switch]
 
     if fix_time_credit:
         time_estimate = max(
             [
-                CreditEstimate(branch_events).get_max("time")
-                for branch_events in branches.values()
+                CreditEstimate(branch_elts).get_max("time")
+                for branch_elts in branches.values()
             ]
         )
-        return fix_time(combined_events, time_estimate)
+        return fix_time(combined_elts, time_estimate)
     else:
-        return combined_events
+        return combined_elts
 
 
 class StartSwitch(ReactiveGoTo):
     def __init__(
-        self, label, function, branch_start_events, end_switch, log_chosen_branch=True
+        self, label, function, branch_start_elts, end_switch, log_chosen_branch=True
     ):
         if log_chosen_branch:
 
@@ -1463,11 +1457,11 @@ class StartSwitch(ReactiveGoTo):
                 participant.append_branch_log(log_entry)
                 return val
 
-            super().__init__(function_2, targets=branch_start_events)
+            super().__init__(function_2, targets=branch_start_elts)
         else:
-            super().__init__(function, targets=branch_start_events)
+            super().__init__(function, targets=branch_start_elts)
         self.label = label
-        self.branch_start_events = branch_start_events
+        self.branch_start_elts = branch_start_elts
         self.end_switch = end_switch
         self.log_chosen_branch = log_chosen_branch
 
@@ -1484,8 +1478,8 @@ class StartSwitchBranch(NullElt):
 
 
 class EndSwitchBranch(GoTo):
-    def __init__(self, name, final_event):
-        super().__init__(target=final_event)
+    def __init__(self, name, final_elt):
+        super().__init__(target=final_elt)
         self.name = name
 
 
@@ -1498,7 +1492,7 @@ def conditional(
     log_chosen_branch: bool = True,
 ):
     """
-    Executes a series of events if and only if a certain condition is satisfied.
+    Executes a series of elts if and only if a certain condition is satisfied.
 
     Parameters
     ----------
@@ -1512,10 +1506,10 @@ def conditional(
         returning a Boolean.
 
     logic_if_true:
-        An event (or list of events) to display if ``condition`` returns ``True``.
+        An elt (or list of elts) to display if ``condition`` returns ``True``.
 
     logic_if_false:
-        An optional event (or list of events) to display if ``condition`` returns ``False``.
+        An optional elt (or list of elts) to display if ``condition`` returns ``False``.
 
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of whether
@@ -1529,7 +1523,7 @@ def conditional(
     -------
 
     list
-        A list of events that can be embedded in a timeline using :func:`psynet.timeline.join`.
+        A list of elts that can be embedded in a timeline using :func:`psynet.timeline.join`.
     """
     return switch(
         label,
@@ -1556,10 +1550,10 @@ class EndConditional(ConditionalElt):
     pass
 
 
-def fix_time(events, time_estimate):
+def fix_time(elts, time_estimate):
     end_fix_time = EndFixTime(time_estimate)
     start_fix_time = StartFixTime(time_estimate, end_fix_time)
-    return join(start_fix_time, events, end_fix_time)
+    return join(start_fix_time, elts, end_fix_time)
 
 
 def multiply_expected_repetitions(logic, factor: float):
@@ -1567,8 +1561,8 @@ def multiply_expected_repetitions(logic, factor: float):
     if isinstance(logic, Elt):
         logic.multiply_expected_repetitions(factor)
     else:
-        for event in logic:
-            event.multiply_expected_repetitions(factor)
+        for elt in logic:
+            elt.multiply_expected_repetitions(factor)
     return logic
 
 
@@ -1590,20 +1584,18 @@ class Footer:
 
 class Module:
     default_id = None
-    default_events = None
+    default_elts = None
 
     def __init__(self, id_: str = None, *args):
-        events = join(*args)
+        elts = join(*args)
 
         if self.default_id is None and id_ is None:
             raise ValueError("Either one of <default_id> or <id_> must not be none.")
-        if self.default_events is None and events is None:
-            raise ValueError(
-                "Either one of <default_events> or <events> must not be none."
-            )
+        if self.default_elts is None and elts is None:
+            raise ValueError("Either one of <default_elts> or <elts> must not be none.")
 
         self.id = id_ if id_ is not None else self.default_id
-        self.events = events if events is not None else self.default_events
+        self.elts = elts if elts is not None else self.default_elts
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
@@ -1662,7 +1654,7 @@ class Module:
         return finished_participants
 
     def resolve(self):
-        return join(StartModule(self.id, module=self), self.events, EndModule(self.id))
+        return join(StartModule(self.id, module=self), self.elts, EndModule(self.id))
 
     def visualize(self):
         phase = self.phase if hasattr(self, "phase") else None
