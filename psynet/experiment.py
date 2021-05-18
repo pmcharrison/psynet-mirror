@@ -144,9 +144,9 @@ class Experiment(dallinger.experiment.Experiment):
         self._background_tasks.append(task)
 
     def register_pre_deployment_routines(self):
-        for event in self.timeline.events:
-            if isinstance(event, PreDeployRoutine):
-                self.pre_deploy_routines.append(event)
+        for elt in self.timeline.elts:
+            if isinstance(elt, PreDeployRoutine):
+                self.pre_deploy_routines.append(elt)
 
     @classmethod
     def new(cls, session):
@@ -205,15 +205,15 @@ class Experiment(dallinger.experiment.Experiment):
         self.show_bonus = True
 
     def load(self):
-        for event in self.timeline.events:
-            if isinstance(event, ExperimentSetupRoutine):
-                event.function(experiment=self)
-            if isinstance(event, BackgroundTask):
-                self.register_background_task(event.daemon)
-            if isinstance(event, ParticipantFailRoutine):
-                self.register_participant_fail_routine(event)
-            if isinstance(event, RecruitmentCriterion):
-                self.register_recruitment_criterion(event)
+        for elt in self.timeline.elts:
+            if isinstance(elt, ExperimentSetupRoutine):
+                elt.function(experiment=self)
+            if isinstance(elt, BackgroundTask):
+                self.register_background_task(elt.daemon)
+            if isinstance(elt, ParticipantFailRoutine):
+                self.register_participant_fail_routine(elt)
+            if isinstance(elt, RecruitmentCriterion):
+                self.register_recruitment_criterion(elt)
 
         tab_title = "Timeline"
         if all(tab_title != tab.title for tab in dashboard_tabs):

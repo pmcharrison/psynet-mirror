@@ -93,7 +93,7 @@ class GMSI(Module):
         else:
             questions = question_data()
 
-        self.events = join(
+        self.elts = join(
             info_page,
             [
                 GMSIPage(
@@ -108,7 +108,7 @@ class GMSI(Module):
             ],
             self.save_scores,
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     @property
     def save_scores(self):

@@ -140,7 +140,7 @@ def wait_while(
     -------
 
     list :
-        A list of test events suitable for inclusion in a PsyNet timeline.
+        A list of test elts suitable for inclusion in a PsyNet timeline.
     """
     assert expected_wait >= 0
     assert check_interval > 0

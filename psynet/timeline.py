@@ -950,26 +950,26 @@ class EndPage(PageMaker):
 
 class Timeline:
     def __init__(self, *args):
-        events = join(*args)
-        self.events = events
-        self.check_events()
+        elts = join(*args)
+        self.elts = elts
+        self.check_elts()
         self.add_event_ids()
-        self.estimated_time_credit = CreditEstimate(self.events)
+        self.estimated_time_credit = CreditEstimate(self.elts)
 
-    def check_events(self):
-        assert isinstance(self.events, list)
-        assert len(self.events) > 0
-        if not isinstance(self.events[-1], EndPage):
+    def check_elts(self):
+        assert isinstance(self.elts, list)
+        assert len(self.elts) > 0
+        if not isinstance(self.elts[-1], EndPage):
             raise ValueError("The final element in the timeline must be an EndPage.")
         self.check_for_time_estimate()
         self.check_start_fix_times()
         self.check_modules()
 
     def check_for_time_estimate(self):
-        for i, event in enumerate(self.events):
+        for i, elt in enumerate(self.elts):
             if (
-                isinstance(event, Page) or isinstance(event, PageMaker)
-            ) and event.time_estimate is None:
+                isinstance(elt, Page) or isinstance(elt, PageMaker)
+            ) and elt.time_estimate is None:
                 raise ValueError(
                     f"Element {i} of the timeline was missing a time_estimate value."
                 )
@@ -977,11 +977,11 @@ class Timeline:
     def check_start_fix_times(self):
         try:
             _fix_time = False
-            for i, event in enumerate(self.events):
-                if isinstance(event, StartFixTime):
+            for i, elt in enumerate(self.elts):
+                if isinstance(elt, StartFixTime):
                     assert not _fix_time
                     _fix_time = True
-                elif isinstance(event, EndFixTime):
+                elif isinstance(elt, EndFixTime):
                     assert _fix_time
                     _fix_time = False
         except AssertionError:

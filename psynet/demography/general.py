@@ -18,14 +18,14 @@ class BasicDemography(Module):
         label="basic_demography",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             Gender(),
             Age(),
             CountryOfBirth(),
             CountryOfResidence(),
             FormalEducation(),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class Language(Module):
@@ -34,7 +34,7 @@ class Language(Module):
         label="language",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             MotherTongue(),
             MoreThanOneLanguage(),
             conditional(
@@ -43,7 +43,7 @@ class Language(Module):
                 LanguagesInOrderOfProficiency(),
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class BasicMusic(Module):
@@ -52,12 +52,12 @@ class BasicMusic(Module):
         label="basic_music",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             YearsOfFormalTraining(),
             HoursOfDailyMusicListening(),
             MoneyFromPlayingMusic(),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class Dance(Module):
@@ -66,7 +66,7 @@ class Dance(Module):
         label="dance",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             DanceSociallyOrProfessionally(),
             conditional(
                 "dance_socially_or_professionally",
@@ -76,7 +76,7 @@ class Dance(Module):
                 LastTimeDanced(),
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class SpeechDisorders(Module):
@@ -85,11 +85,11 @@ class SpeechDisorders(Module):
         label="speech_disorders",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             SpeechLanguageTherapy(),
             DiagnosedWithDyslexia(),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class Income(Module):
@@ -98,10 +98,10 @@ class Income(Module):
         label="income",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             HouseholdIncomePerYear(),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class ExperimentFeedback(Module):
@@ -110,12 +110,12 @@ class ExperimentFeedback(Module):
         label="feedback",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             LikedExperiment(),
             FoundExperimentDifficult(),
             EncounteredTechnicalProblems(),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 # Basic demography #

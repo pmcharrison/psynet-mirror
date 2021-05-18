@@ -64,7 +64,7 @@ class REPPVolumeCalibrationMusic(Module):
         filename_image: str = "REPP-image_rules.png",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             InfoPage(
                 Markup(
                     f"""
@@ -106,7 +106,7 @@ class REPPVolumeCalibrationMusic(Module):
                 time_estimate=time_estimate_per_trial,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class VolumeTestControlMarkers(AudioMeterControl):
@@ -145,7 +145,7 @@ class REPPVolumeCalibrationMarkers(Module):
         filename_image: str = "REPP-image_rules.png",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             InfoPage(
                 Markup(
                     f"""
@@ -188,7 +188,7 @@ class REPPVolumeCalibrationMarkers(Module):
                 time_estimate=time_estimate_per_trial,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class TappingTestAudioMeter(AudioMeterControl):
@@ -225,7 +225,7 @@ class REPPTappingCalibration(Module):
         filename_image: str = "tapping_instructions.jpg",
     ):
         self.label = label
-        self.events = ModularPage(
+        self.elts = ModularPage(
             self.label,
             Markup(
                 f"""
@@ -241,7 +241,7 @@ class REPPTappingCalibration(Module):
             TappingTestAudioMeter(min_time=min_time_before_submitting, calibrate=False),
             time_estimate=time_estimate_per_trial,
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class JSONSerializer(json.JSONEncoder):
@@ -299,7 +299,7 @@ class REPPMarkersCheck(Module):
         num_trials: int = 3,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(num_trials, media_url, filename_image),
             self.trial_maker(
                 media_url,
@@ -309,7 +309,7 @@ class REPPMarkersCheck(Module):
                 self.audio_filenames,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     audio_filenames = ["audio1.wav", "audio2.wav", "audio3.wav"]
 
@@ -517,7 +517,7 @@ class LanguageVocabularyTest(Module):
         num_trials: float = 7,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(
                 media_url,
@@ -528,7 +528,7 @@ class LanguageVocabularyTest(Module):
                 self.words,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     words = [
         "bell",
@@ -696,7 +696,7 @@ class LexTaleTest(Module):
         num_trials: float = 12,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(hide_after, num_trials),
             self.trial_maker(
                 media_url,
