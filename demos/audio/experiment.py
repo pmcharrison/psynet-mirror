@@ -210,11 +210,6 @@ example_record_page = join(
             duration=3.0,
             stages=[
                 Stage([0.0, 3.0], "Recording...", "red"),
-                Stage(
-                    [3.0, 3.0],
-                    "Finished recording! Press 'Upload' to continue.",
-                    color="green",
-                ),
             ],
         ),
     ),
@@ -237,7 +232,7 @@ example_listen_then_record_page = join(
             text="""
             Here we play audio then activate the recorder 1 second afterwards.
             """,
-            play_window=[0, 2.5],
+            play_window=[0, 5.0],
         ),
         AudioRecordControl(
             duration=1.5,
@@ -251,15 +246,11 @@ example_listen_then_record_page = join(
         time_estimate=5,
         events={"recordStart": Event(is_triggered_by="audioPromptStart", delay=1.0)},
         progress_bar=Bar(
-            duration=2.5,
+            duration=5.0,
             stages=[
                 Stage([0.0, 1.5], "Waiting to record..."),
-                Stage([1.5, 2.5], "Recording...", "red"),
-                Stage(
-                    [2.5, 2.5],
-                    "Finished recording! Press 'Upload' to continue.",
-                    color="green",
-                ),
+                Stage([1.5, 3.0], "Recording...", "red"),
+                Stage([3.0, 5.0], "Finished recording.", "green", persistent=True),
             ],
         ),
     ),

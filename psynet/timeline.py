@@ -479,7 +479,11 @@ class Page(Elt):
             "trialStart": Event(is_triggered_by="trialPrepare"),
             "responseEnable": Event(is_triggered_by="trialStart", delay=0.0),
             "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
-            "trialStop": Event(is_triggered_by=None),
+            "trialFinish": Event(
+                is_triggered_by=None
+            ),  # only called when trial comes to a natural end
+            "trialFinished": Event(is_triggered_by="trialFinish"),
+            "trialStop": Event(is_triggered_by=None),  # only called at premature end
             "trialStopped": Event(is_triggered_by="trialStop"),
             **({} if events is None else events),
         }

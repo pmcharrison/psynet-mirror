@@ -59,7 +59,7 @@
                 psynet.media.stop_all_audio();
                 let sound = psynet.audio.prompt.play(audio_prompt_player_options);
                 sound.source.addEventListener("ended", () => {
-                    psynet.trial.registerEvent("audioPromptEnd");
+                    psynet.trial.registerEvent("promptEnd");
                 });
             });
             $("#audio-prompt-stop").on("click", function() {
@@ -73,10 +73,10 @@
     {% endif %}
 
     <script>
-        psynet.trial.onEvent("audioPromptStart", function() {
+        psynet.trial.onEvent("promptStart", function() {
             let sound = psynet.audio.prompt.play(audio_prompt_player_options);
             sound.source.addEventListener("ended", function() {
-                psynet.trial.registerEvent("audioPromptEnd");
+                psynet.trial.registerEvent("promptEnd");
             });
         })
 
@@ -87,12 +87,12 @@
     {{ simple(config) }}
     <video id="prompt_video" src="{{ config.url }}" style="width: {{ config.width }}" alt="Video not found" controls></video>
     <script>
-        psynet.trial.onEvent("videoPromptStart", function() {
+        psynet.trial.onEvent("promptStart", function() {
             let options = {{ config.js_play_options | tojson }}; // TODO - aren't these options being ignored?
             psynet.log.debug(options)
             let visual = document.getElementById('prompt_video');
             visual.play()
-            visual.addEventListener("ended", () => psynet.trial.registerEvent("videoPromptEnd"));
+            visual.addEventListener("ended", () => psynet.trial.registerEvent("promptEnd"));
         });
     </script>
 {% endmacro %}

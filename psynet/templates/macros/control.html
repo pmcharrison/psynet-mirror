@@ -746,7 +746,6 @@
 
             $("#btn-record-stop").on("click", function() {
                 psynet.trial.stop();
-                psynet.media.stop_all_audio();
             });
 
             $("#record-loop-input").on("change", function(event) {
@@ -797,7 +796,7 @@
             psynet.media.stop_all_audio();
         });
 
-        psynet.trial.onEvent("trialStopped", function() {
+        psynet.trial.onEvent("trialFinished", function() {
             if (loop) {
                 psynet.trial.restart();
             }
@@ -876,7 +875,7 @@
                 await recorder.stop();
                 recording_blob = await getAudioRecording();
                 let buffer = await psynet.media.blob_to_array_buffer(recording_blob);
-                psynet.media.add_extra_audio_stimulus(buffer, "recording");
+                await psynet.media.add_extra_audio_stimulus(buffer, "recording");
             }
         });
 

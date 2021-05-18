@@ -521,6 +521,7 @@
                      * with no bad side effects).
                      */
                         if (trial.inProgress && !trial.stopping) {
+                            console.log("stopping trial")
                             trial.stopping = true;
                             trial.clearTimers();
                             trial.inProgress = false;
@@ -534,6 +535,7 @@
                     trial.restart = async function() {
                         // Can be called manually at an arbitrary point to restart the trial
                         await trial.stop();
+                        trial.reset();
                         await trial.registerEvent("trialPrepare");
                     }
 
@@ -549,6 +551,10 @@
 
                 psynet.trial.onEvent("trialPrepare", function() {
                     psynet.trial.inProgress = true;
+                });
+
+                psynet.trial.onEvent("trialFinished", function() {
+                    psynet.trial.inProgress = false;
                 });
 
                 psynet.trial.onEvent("trialStopped", function() {
@@ -1334,32 +1340,45 @@
                     let proportionOfBarIncomplete = (proportionOfStageIncomplete * stage.duration) / config.duration
                     stage.html.future.setWidth(100 * proportionOfBarIncomplete);
                     if (proportionOfStageComplete > 0) {
-                        activeStage = stage;
+                        if (stage.persistent || proportionOfStageComplete < 1) {
+                            activeStage = stage;
+                        } else {
+                            activeStage = null;
+                        }
                     }
                 };
             });
 
             let startTime = null;
+
             let startProgressBar = function () {
                 startTime = psynet.trial.getGlobalTime();
+            }
+
+            let resetProgressBar = function() {
+                startTime = null;
+                activeStage = null;
             }
 
             let caption = $("#page-progress-bar-caption-contents");
 
             let update = function () {
-                if (startTime) {
-                    let elapsed = psynet.trial.getGlobalTime() - startTime;
-                    config.stages.forEach((s) => s.update(elapsed));
+                let elapsed = startTime? psynet.trial.getGlobalTime() - startTime : 0.0
+                config.stages.forEach((s) => s.update(elapsed));
+                if (activeStage) {
                     caption.text(activeStage.caption);
                     caption.css("color", activeStage.color);
+                } else {
+                    caption.html("&nbsp;");
                 }
             };
 
             setInterval(update, 5);
 
             psynet.trial.onEvent(config.start, startProgressBar);
+            psynet.trial.onEvent("trialStopped", resetProgressBar);
         }
-        psynet.trial.onEvent("trialConstruct", pageProgressBar);
+        psynet.trial.onEvent("trialConstruct", pageProgressBar, {priority: 1000});
     </script>
 
 {% endmacro %}

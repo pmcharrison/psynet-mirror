@@ -183,7 +183,7 @@ class AudioPrompt(Prompt):
     def update_events(self, events):
         super().update_events(events)
 
-        events["audioPromptStart"] = Event(
+        events["promptStart"] = Event(
             is_triggered_by=[
                 Trigger(
                     triggering_event="trialStart",
@@ -192,7 +192,8 @@ class AudioPrompt(Prompt):
             ]
         )
 
-        events["audioPromptEnd"] = Event(is_triggered_by=[])
+        events["promptEnd"] = Event(is_triggered_by=[])
+        events["trialFinish"].add_trigger(Trigger("promptEnd"))
 
 
 class VideoPrompt(Prompt):
@@ -283,7 +284,7 @@ class VideoPrompt(Prompt):
     def update_events(self, events):
         super().update_events(events)
 
-        events["videoPromptStart"] = Event(
+        events["promptStart"] = Event(
             is_triggered_by=[
                 Trigger(
                     event_id="trialStart",
@@ -292,7 +293,8 @@ class VideoPrompt(Prompt):
             ]
         )
 
-        events["videoPromptEnd"] = Event(is_triggered_by=[])
+        events["promptEnd"] = Event(is_triggered_by=[])
+        events["trialFinish"].add_trigger(Trigger("promptEnd"))
 
 
 class ImagePrompt(Prompt):
@@ -1070,12 +1072,19 @@ class TextControl(Control):
 
 
 class Stage(dict):
-    def __init__(self, time: List, caption: str, color: str = "rgb(49, 124, 246)"):
+    def __init__(
+        self,
+        time: List,
+        caption: str,
+        color: str = "rgb(49, 124, 246)",
+        persistent: bool = False,
+    ):
         assert len(time) == 2
         self["time"] = time
         self["duration"] = time[1] - time[0]
         self["caption"] = caption
         self["color"] = color
+        self["persistent"] = persistent
 
 
 class Bar(dict):
@@ -1888,6 +1897,10 @@ class AudioRecordControl(RecordControl):
                 controls=True,
             ).render()
 
+    def update_events(self, events):
+        super().update_events(events)
+        events["trialFinish"].add_trigger(Trigger("recordEnd"))
+
 
 class VideoRecordControl(RecordControl):
     """
@@ -1989,6 +2002,10 @@ class VideoRecordControl(RecordControl):
         if self.recording_source in ["screen", "both"]:
             self.presigned_url_screen = generate_presigned_url(self.s3_bucket, "webm")
             logger.info(f"Generated presigned url: {self.presigned_url_screen}")
+
+    def update_events(self, events):
+        super().update_events(events)
+        events["trialFinish"].add_trigger(Trigger("recordEnd"))
 
 
 class VideoSliderControl(Control):
