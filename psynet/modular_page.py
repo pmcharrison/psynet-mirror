@@ -1071,7 +1071,7 @@ class TextControl(Control):
         }
 
 
-class Stage(dict):
+class ProgressStage(dict):
     def __init__(
         self,
         time: List,
@@ -1087,18 +1087,20 @@ class Stage(dict):
         self["persistent"] = persistent
 
 
-class Bar(dict):
+class ProgressDisplay(dict):
     def __init__(
         self,
         duration,
         start="trialStart",
         stages: Optional[List] = None,
+        show_bar: bool = True,
     ):
         self["duration"] = duration
         self["start"] = start
+        self["show_bar"] = show_bar
 
         if stages is None:
-            stages = [Stage(time=[0.0, duration], caption="")]
+            stages = [ProgressStage(time=[0.0, duration], caption="")]
 
         self["stages"] = stages
 
@@ -1167,8 +1169,8 @@ class ModularPage(Page):
         :class:`~psynet.modular_page.Control`
         objects instead.
 
-    progress_bar
-        Optional :class:`~psynet.modular_page.Bar` progress bar to display.
+    progress_display
+        Optional :class:`~psynet.modular_page.ProgressDisplay` object.
 
     js_vars
         Optional dictionary of arguments to instantiate as global Javascript variables.
@@ -1185,7 +1187,7 @@ class ModularPage(Page):
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[List] = None,
-        progress_bar: Optional[Bar] = None,
+        progress_display: Optional[ProgressDisplay] = None,
         js_vars: Optional[dict] = None,
         **kwargs,
     ):
@@ -1214,9 +1216,9 @@ class ModularPage(Page):
         <p class="vspace"></p>
         """
 
-        if progress_bar is not None:
+        if progress_display is not None:
             template_str += """
-            {{ progress_bar(progress_bar_config) }}
+            {{ trial_progress_display(trial_progress_display_config) }}
             <p class="vspace"></p>
             """
 
@@ -1234,7 +1236,7 @@ class ModularPage(Page):
             template_arg={
                 "prompt_config": prompt,
                 "control_config": control,
-                "progress_bar_config": progress_bar,
+                "trial_progress_display_config": progress_display,
             },
             media=all_media,
             events=events,
@@ -1821,14 +1823,14 @@ class RecordControl(Control):
         s3_bucket: str,
         public_read: bool = False,
         auto_advance: bool = False,
-        progress_bar: bool = False,
+        progress_display: bool = False,
         show_meter: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.public_read = public_read
         self.auto_advance = auto_advance
-        self.progress_bar = progress_bar
+        self.progress_display = progress_display
 
         if show_meter:
             self.meter = AudioMeterControl(submit_button=False)

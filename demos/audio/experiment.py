@@ -5,9 +5,9 @@ from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
-    Bar,
     ModularPage,
-    Stage,
+    ProgressDisplay,
+    ProgressStage,
     TappingAudioMeterControl,
     VideoPrompt,
     VideoRecordControl,
@@ -201,15 +201,15 @@ example_record_page = join(
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
-            progress_bar=True,
+            progress_display=True,
             controls=True,
             auto_advance=True,
         ),
         time_estimate=5,
-        progress_bar=Bar(
+        progress_bar=ProgressDisplay(
             duration=3.0,
             stages=[
-                Stage([0.0, 3.0], "Recording...", "red"),
+                ProgressStage([0.0, 3.0], "Recording...", "red"),
             ],
         ),
     ),
@@ -239,18 +239,20 @@ example_listen_then_record_page = join(
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
-            progress_bar=True,
+            progress_display=True,
             controls=True,
             auto_advance=True,
         ),
         time_estimate=5,
         events={"recordStart": Event(is_triggered_by="audioPromptStart", delay=1.0)},
-        progress_bar=Bar(
+        progress_display=ProgressDisplay(
             duration=5.0,
             stages=[
-                Stage([0.0, 1.5], "Waiting to record..."),
-                Stage([1.5, 3.0], "Recording...", "red"),
-                Stage([3.0, 5.0], "Finished recording.", "green", persistent=True),
+                ProgressStage([0.0, 1.5], "Waiting to record..."),
+                ProgressStage([1.5, 3.0], "Recording...", "red"),
+                ProgressStage(
+                    [3.0, 5.0], "Finished recording.", "green", persistent=True
+                ),
             ],
         ),
     ),
@@ -281,12 +283,12 @@ example_record_with_audio_prompt = join(
             controls=True,
             loop_playback=False,
         ),
-        progress_bar=Bar(
+        progress_display=ProgressDisplay(
             duration=4.6,
             stages=[
-                Stage([0.0, 2.6], "Waiting to record...", color="grey"),
-                Stage([2.6, 4.0], "Recording!", color="red"),
-                Stage([4.0, 4.6], "Recording finished.", color="green"),
+                ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
+                ProgressStage([2.6, 4.0], "Recording!", color="red"),
+                ProgressStage([4.0, 4.6], "Recording finished.", color="green"),
             ],
         ),
         events={

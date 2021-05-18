@@ -1274,19 +1274,20 @@
 
 {% endblock %}
 
-{% macro progress_bar(config) %}
+{% macro trial_progress_display(config) %}
     <style>
-        #page-progress-bar {
+        #trial-progress-bar {
             margin-top: 15px;
             margin-bottom: 15px;
+            display: {% if config["show_bar"] %} flex {% else %} none {% endif %};
         }
-        #page-progress-bar-caption {
+        #trial-progress-caption {
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
         }
-        .page-progress-bar-segment {
+        .trial-progress-bar-segment {
             -webkit-transition: none;
             -moz-transition: none;
             -ms-transition: none;
@@ -1295,25 +1296,25 @@
         }
     </style>
 
-    <div id="page-progress-bar" class="progress"></div>
-    <div id="page-progress-bar-caption">
-        <span id="page-progress-bar-caption-contents">&nbsp;</span>
+    <div id="trial-progress-bar" class="progress"></div>
+    <div id="trial-progress-caption">
+        <span id="trial-progress-caption-contents">&nbsp;</span>
     </div>
 
     <script>
-        pageProgressBar = function() {
+        trialProgressDisplay = function() {
             let config = {{ config | tojson }};
             let opacities = {light: 0.25, medium: 0.6, dark: 1.0};
             let addBarSegment = function (color, opacity) {
                 let segment = $("<div/>", {
-                    "class": "progress-bar page-progress-bar-segment",
+                    "class": "progress-bar trial-progress-bar-segment",
                     role: "progressbar",
                     style: "width: 0%; opacity: " + opacity + "; background-color: " + color + ";",
                     "aria-valuenow": "0",
                     "aria-valuemin": "0",
                     "aria-valuemax": "100"
                 });
-                $("#page-progress-bar").append(segment);
+                $("#trial-progress-bar").append(segment);
                 segment.setWidth = function (percent) {
                     segment.css("width", percent + "%");
                     segment.attr("aria-valuenow", percent);
@@ -1351,19 +1352,20 @@
 
             let startTime = null;
 
-            let startProgressBar = function () {
+            let startProgressDisplay = function () {
                 startTime = psynet.trial.getGlobalTime();
             }
 
-            let resetProgressBar = function() {
+            let resetProgressDisplay = function() {
                 startTime = null;
                 activeStage = null;
             }
 
-            let caption = $("#page-progress-bar-caption-contents");
+            let caption = $("#trial-progress-caption-contents");
 
             let update = function () {
-                let elapsed = startTime? psynet.trial.getGlobalTime() - startTime : 0.0
+                let elapsed = startTime !== null ? psynet.trial.getGlobalTime() - startTime : 0.0
+                debugger
                 config.stages.forEach((s) => s.update(elapsed));
                 if (activeStage) {
                     caption.text(activeStage.caption);
@@ -1375,10 +1377,10 @@
 
             setInterval(update, 5);
 
-            psynet.trial.onEvent(config.start, startProgressBar);
-            psynet.trial.onEvent("trialStopped", resetProgressBar);
+            psynet.trial.onEvent(config.start, startProgressDisplay);
+            psynet.trial.onEvent("trialStopped", resetProgressDisplay);
         }
-        psynet.trial.onEvent("trialConstruct", pageProgressBar, {priority: 1000});
+        psynet.trial.onEvent("trialConstruct", trialProgressDisplay, {priority: 1000});
     </script>
 
 {% endmacro %}

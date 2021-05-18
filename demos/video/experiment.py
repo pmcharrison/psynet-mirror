@@ -28,7 +28,7 @@ video_record_page = join(
             public_read=True,
             show_preview=True,
             controls=True,
-            progress_bar=True,
+            progress_display=True,
         ),
         time_estimate=5,
     ),
