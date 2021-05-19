@@ -78,37 +78,6 @@ example_preloading = InfoPage(
     ],
 )
 
-example_on_loaded = InfoPage(
-    flask.Markup(
-        """
-        <p>
-            This page demonstrates the use of the media on_loaded routine,
-            whereby you can register a function to be called once
-            the page's media has finished loading.
-            Here, we make an 'alert' box appear.
-        </p>
-        """
-    ),
-    time_estimate=5,
-    media=MediaSpec(
-        audio={
-            "bier": "/static/audio/bier.wav",
-            "batch": {
-                "url": "/static/audio/file_concatenated.mp3",
-                "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
-                "type": "batch",
-            },
-        }
-    ),
-    scripts=[
-        """
-        psynet.trial.onEvent("trialStart", function() {
-            alert("The trial is starting now!");
-        });
-        """
-    ],
-)
-
 example_audio_meter = ModularPage(
     "audio_meter",
     """
@@ -333,7 +302,6 @@ class Exp(psynet.experiment.Experiment):
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
         example_preloading,
-        example_on_loaded,
         SuccessfulEndPage(),
     )
 
