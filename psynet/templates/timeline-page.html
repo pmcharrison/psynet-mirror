@@ -510,8 +510,6 @@
                                 psynet.trialProgress.setText(event.message, event.message_color);
                             }
 
-                            debugger
-
                             if (event.js !== null) {
                                 Function(unescape(event.js))();
                             }
@@ -547,7 +545,6 @@
                             func: handler,
                             priority: options.priority
                         });
-                        console.log("registering event " + id);
                     };
 
                     trial.getGlobalTime = function() {
@@ -1318,7 +1315,7 @@
                                 }
                             };
                         });
-                        {#setInterval(update, 5);#}
+                        setInterval(update, 5);
                     };
 
                     let bound = function(x, min, max) {

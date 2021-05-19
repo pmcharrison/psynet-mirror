@@ -531,6 +531,16 @@ class Page(Elt):
         self.save_answer = save_answer
 
         self.events = {
+            **self.prepare_default_events(),
+            **({} if events is None else events),
+        }
+
+        if progress_display is None:
+            progress_display = ProgressDisplay(duration=0.0, show_bar=False)
+        self.progress_display = progress_display
+
+    def prepare_default_events(self):
+        return {
             "trialConstruct": Event(is_triggered_by=None),
             "trialPrepare": Event(is_triggered_by="trialConstruct"),
             "trialStart": Event(is_triggered_by="trialPrepare"),
@@ -542,12 +552,7 @@ class Page(Elt):
             "trialFinished": Event(is_triggered_by="trialFinish"),
             "trialStop": Event(is_triggered_by=None),  # only called at premature end
             "trialStopped": Event(is_triggered_by="trialStop"),
-            **({} if events is None else events),
         }
-
-        if progress_display is None:
-            progress_display = ProgressDisplay(duration=0.0, show_bar=False)
-        self.progress_display = progress_display
 
     @property
     def initial_download_progress(self):

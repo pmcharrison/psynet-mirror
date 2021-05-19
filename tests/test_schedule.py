@@ -137,7 +137,7 @@ def test_events_audio_record():
 #             show_preview=True,
 #             show_meter=False,
 #             public_read=True,
-#             progress_bar=True,
+#             progress_display=True,
 #             controls=True,
 #             loop_playback=False,
 #         ),

@@ -741,10 +741,11 @@
             });
 
             $("#btn-record-play-recording").on("click", function() {
-                psynet.audio.recording.play();
+                playRecording();
             });
 
             $("#btn-record-stop").on("click", function() {
+                psynet.media.stop_all_audio();
                 psynet.trial.stop();
             });
 
@@ -806,7 +807,7 @@
             psynet.media.stop_all_audio();
         });
 
-        let supportedPrompts = ["audioPrompt"];
+        let supportedPrompts = ["audio"];
         if (!supportedPrompts.includes(modular_page_components.prompt)) {
             $("#btn-record-play-prompt").hide();
             $("#btn-record-play-all").hide();
@@ -854,6 +855,10 @@
         var recorder;
         var hasRecorded = false;
         var recording_blob;
+
+        var playRecording = async function() {
+            await psynet.audio.recording.play();
+        }
 
         psynet.trial.onEvent("recordStart", function() {
             if (replayMode) {
@@ -974,7 +979,12 @@
                 });
             }));
 
+            psynet.trial.onEvent("trialConstruct", async function() {
+                await loadCameraPreview();
+            })
+
             psynet.trial.onEvent("trialPrepare", () => {
+                // Prepare recorder
                 if (!replayMode) {
                     videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
                         mimeType: 'video/webm',
@@ -982,6 +992,17 @@
                     videoRecorder.stream = cameraStream;
                 }
             });
+
+            psynet.trial.onEvent("trialPrepare", async function() {
+                // Prepare preview
+                await loadCameraPreview();
+            });
+
+            var playRecording = async function() {
+                await loadRecordedVideo();
+                videoPlayer.play();
+                videoPlayer.addEventListener("ended", loadCameraPreview, {once: true});
+            };
 
             let videoDisplayMode = null;
 
@@ -1010,31 +1031,16 @@
                 videoDisplayMode = "preview";
             }
 
-            psynet.trial.onEvent("trialConstruct", async function() {
-                await loadCameraPreview();
-            })
-
-            psynet.trial.onEvent("trialPrepare", async function() {
-                // Prepare the video display
-                if (replayMode) {
-                    await loadRecordedVideo();
-                } else {
-                    await loadCameraPreview();
-                }
-            });
-
             psynet.trial.onEvent("recordStart", async function() {
                 if (replayMode) {
-                    await videoPlayer.play();
+                    await playRecording();
                 } else {
                     await videoRecorder.startRecording(videoRecorder.stream);
                 }
             });
 
             psynet.trial.onEvent("recordEnd", async function() {
-                if (replayMode) {
-                    await videoPlayer.pause();
-                } else {
+                if (!replayMode) {
                     await videoRecorder.stopRecording();
                     psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
                     await videoRecorder.reset();

@@ -6,14 +6,20 @@ from psynet.modular_page import (
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
-    ProgressDisplay,
-    ProgressStage,
     TappingAudioMeterControl,
     VideoPrompt,
     VideoRecordControl,
 )
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import Event, MediaSpec, PageMaker, Timeline, join
+from psynet.timeline import (
+    Event,
+    MediaSpec,
+    PageMaker,
+    ProgressDisplay,
+    ProgressStage,
+    Timeline,
+    join,
+)
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -201,12 +207,11 @@ example_record_page = join(
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
-            progress_display=True,
             controls=True,
             auto_advance=True,
         ),
         time_estimate=5,
-        progress_bar=ProgressDisplay(
+        progress_display=ProgressDisplay(
             duration=3.0,
             stages=[
                 ProgressStage([0.0, 3.0], "Recording...", "red"),
@@ -235,30 +240,29 @@ example_listen_then_record_page = join(
             play_window=[0, 5.0],
         ),
         AudioRecordControl(
-            duration=1.5,
+            duration=1.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
-            progress_display=True,
             controls=True,
             auto_advance=True,
         ),
         time_estimate=5,
-        events={"recordStart": Event(is_triggered_by="audioPromptStart", delay=1.0)},
+        events={"recordStart": Event(is_triggered_by="promptStart", delay=3.0)},
         progress_display=ProgressDisplay(
             duration=5.0,
             stages=[
-                ProgressStage([0.0, 1.5], "Waiting to record..."),
-                ProgressStage([1.5, 3.0], "Recording...", "red"),
+                ProgressStage([0.0, 3.0], "Waiting to record..."),
+                ProgressStage([3.0, 4.0], "Recording...", "red"),
                 ProgressStage(
-                    [3.0, 5.0], "Finished recording.", "green", persistent=True
+                    [4.0, 5.0], "Finished recording.", "green", persistent=True
                 ),
             ],
         ),
     ),
 )
 
-example_record_with_audio_prompt = join(
+example_record_audio_video = join(
     ModularPage(
         "record_page",
         AudioPrompt(
@@ -323,9 +327,9 @@ class Exp(psynet.experiment.Experiment):
         # example_audio_page_2,
         # example_audio_page_3,
         # example_audio_meter,
-        example_record_page,
-        example_listen_then_record_page,
-        example_record_with_audio_prompt,
+        # example_record_page,
+        # example_listen_then_record_page,
+        # example_record_audio_video,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
         example_preloading,

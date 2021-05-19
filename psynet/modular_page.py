@@ -287,7 +287,7 @@ class VideoPrompt(Prompt):
         events["promptStart"] = Event(
             is_triggered_by=[
                 Trigger(
-                    event_id="trialStart",
+                    triggering_event="trialStart",
                     delay=0,
                 )
             ]
@@ -1174,11 +1174,11 @@ class ModularPage(Page):
             **kwargs,
         )
 
-        self.update_events(self.events)
-
-    def update_events(self, events):
+    def prepare_default_events(self):
+        events = super().prepare_default_events()
         self.prompt.update_events(events)
         self.control.update_events(events)
+        return events
 
     @property
     def prompt_macro(self):
