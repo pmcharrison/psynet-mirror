@@ -53,7 +53,7 @@ audio_meter_control.init = function(json) {
     this.message_timer = null;
 
     var audio_meter_control = this;
-    psynet.trial.onEvent("construct",function() {
+    psynet.trial.onEvent("trialConstruct",function() {
         audio_meter_control.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
         audio_meter_control.audioContext = psynet.media.audio_context;
         return new Promise((resolve) => {
