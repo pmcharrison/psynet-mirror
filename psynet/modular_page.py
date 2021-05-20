@@ -359,6 +359,11 @@ class ImagePrompt(Prompt):
     def metadata(self):
         return {"text": self.text, "url": self.url, "hide_after": self.hide_after}
 
+    def update_events(self, events):
+        events["promptEnd"] = Event(
+            is_triggered_by="promptStart", delay=self.hide_after
+        )
+
 
 class ColourPrompt(Prompt):
     """
