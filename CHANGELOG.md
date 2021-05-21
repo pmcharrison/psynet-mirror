@@ -1,5 +1,9 @@
 # Changelog
 
+#### Changed
+
+- `psynet debug` now warns the user if the app title is too long.
+
 # [1.14.0] Released on 2021-05-17
 
 #### Added

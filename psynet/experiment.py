@@ -279,6 +279,11 @@ class Experiment(dallinger.experiment.Experiment):
             raise RuntimeError(
                 "PsyNet requires the clock process to be enabled; please set clock_on = true in config.txt."
             )
+        n_char_title = len(config.get("title"))
+        if n_char_title > 128:
+            raise RuntimeError(
+                f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
+            )
 
     def fail_participant(self, participant):
         logger.info(
