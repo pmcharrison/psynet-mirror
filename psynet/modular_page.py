@@ -320,6 +320,10 @@ class ImagePrompt(Prompt):
         the disadvantage of this is that other page content may move
         once the image loads.
 
+    show_after
+        Specifies the time in seconds when the image will be displayed, calculated relative to the start of the trial.
+        Defaults to 0.0.
+
     hide_after
         If not ``None``, specifies a time in seconds after which the image should be hidden.
 
@@ -340,6 +344,7 @@ class ImagePrompt(Prompt):
         text: Union[str, Markup],
         width: str,
         height: str,
+        show_after: float = 0.0,
         hide_after: Optional[float] = None,
         margin_top: str = "0px",
         margin_bottom: str = "0px",
@@ -349,6 +354,7 @@ class ImagePrompt(Prompt):
         self.url = url
         self.width = width
         self.height = height
+        self.show_after = show_after
         self.hide_after = hide_after
         self.margin_top = margin_top
         self.margin_bottom = margin_bottom
@@ -357,12 +363,22 @@ class ImagePrompt(Prompt):
 
     @property
     def metadata(self):
-        return {"text": self.text, "url": self.url, "hide_after": self.hide_after}
+        return {
+            "text": self.text,
+            "url": self.url,
+            "show_after": self.show_after,
+            "hide_after": self.hide_after,
+        }
 
     def update_events(self, events):
-        events["promptEnd"] = Event(
-            is_triggered_by="promptStart", delay=self.hide_after
+        events["promptStart"] = Event(
+            is_triggered_by="trialStart", delay=self.show_after
         )
+
+        if self.hide_after is not None:
+            events["promptEnd"] = Event(
+                is_triggered_by="promptStart", delay=self.hide_after
+            )
 
 
 class ColourPrompt(Prompt):

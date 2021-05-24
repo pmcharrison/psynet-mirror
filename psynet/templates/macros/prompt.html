@@ -100,7 +100,7 @@
 
 {% macro image(config) %}
     <style>
-        #prompt_image {
+        #prompt-image {
             width: {{ config.width }};
             height: {{ config.height }};
             display: block;
@@ -108,31 +108,22 @@
             margin-right: auto;
             margin-top: {{ config.margin_top}};
             margin-bottom: {{ config.margin_bottom}};
+            opacity: 0;
         }
     </style>
 
-    <img id="prompt_image" src="{{ config.url }}" alt="Image not found">
+    <img id="prompt-image" src="{{ config.url }}" alt="Image not found">
 
     <script>
-        var prompt_image = $("#prompt_image").get(0);
+        let promptImage = $("#prompt-image").get(0);
 
-        psynet.trial.onEvent("trialConstruct", () => psynet.waitForEventListener(prompt_image, "load"));
-
-        hide_prompt_image = function() {
-            psynet.log.debug("Hiding prompt image.");
-            prompt_image.style.opacity = 0;
-        }
-
-        hide_prompt_image_countdown = function() {
-            psynet.log.debug("Counting down until prompt image hide...");
-            setTimeout(hide_prompt_image, {{ 1000 * config.hide_after }});
-        }
-
-        if (prompt_image.complete) {
-            hide_prompt_image_countdown();
-        } else {
-            prompt_image.addEventListener("load", hide_prompt_image_countdown);
-        }
+        psynet.trial.onEvent("trialConstruct", () => {
+            if (!promptImage.complete) {
+                psynet.waitForEventListener(promptImage, "load");
+            }
+        });
+        psynet.trial.onEvent("promptStart", () => promptImage.style.opacity = 1);
+        psynet.trial.onEvent("promptEnd", () => promptImage.style.opacity = 0);
     </script>
 
     {{ simple(config) }}

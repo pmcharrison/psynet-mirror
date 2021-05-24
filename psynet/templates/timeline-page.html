@@ -284,6 +284,12 @@
                     return total / numbers.length;
                 };
 
+                psynet.waitForEventListener = async function(target, type) {
+                    await new Promise((resolve) => {
+                       target.addEventListener(type, () => resolve(), {once: true});
+                    });
+                };
+
                 class PsyNetError extends Error {
                     constructor(message) {
                         super(message);

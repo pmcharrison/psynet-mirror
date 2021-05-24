@@ -1041,8 +1041,8 @@ class ColorBlindnessTest(Module):
                     ImagePrompt(
                         self.definition["url"],
                         "Write down the number in the image.",
-                        width="410px",
-                        height="403px",
+                        width="350px",
+                        height="344px",
                         hide_after=hide_after,
                         margin_bottom="15px",
                         text_align="center",
