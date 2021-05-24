@@ -482,6 +482,31 @@ class Page(Elt):
         and a link to the corresponding ``Response`` object is saved in ``participant.last_response_id``.
         If ``False``, these slots are left unchanged.
 
+    events:
+        An optional dictionary of event specifications for the page.
+        This determines the timing of various Javascript events that happen on the page.
+        Each key of this dictionary corresponds to a particular event.
+        Each value should then correspond to an object of class :class:`~psynet.timeline.Event`.
+        The :class:`~psynet.timeline.Event` object specifies how the event is triggered by other events.
+        For example, if I want to define an event that occurs 3 seconds after the trial starts,
+        I would write ``events={"myEvent": Event(is_triggered_by="trialStart", delay=3.0)}``.
+        Useful standard events to know are
+        ``trialStart`` (start of the trial),
+        ``promptStart`` (start of the prompt),
+        ``promptEnd`` (end of the prompt),
+        ``recordStart`` (beginning of a recording),
+        ``recordEnd`` (end of a recording,
+        ``responseEnable`` (enables the response options),
+        and ``submitEnable`` (enables the user to submit their response).
+        Typically these events and their triggers are set to sensible defaults, but the user is welcome to modify
+        these defaults through this mechanism.
+        Users constructing custom modular page
+        :class:`~psynet.modular_page.Prompt}`
+        and
+        :class:`~psynet.modular_page.Control}`
+        classes are encouraged instead to write custom ``update_events`` methods for
+        these classes.
+
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
     """
