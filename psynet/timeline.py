@@ -768,7 +768,6 @@ def multi_page_maker(
 
     function
         Function to generate the pages, taking the arguments ``experiment`` and ``participant``.
-        Should always return a list of pages of length ``num_pages``.
 
     expected_num_pages
         Expected number of pages to be returned in the output of ``function``.
