@@ -57,7 +57,7 @@ class CustomTrial(AudioImitationChainTrial):
             time_estimate=5,
         )
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         import singing_extract
 
         raw = singing_extract.analyze(
@@ -112,11 +112,11 @@ class CustomNetwork(AudioImitationChainNetwork):
 class CustomNode(AudioImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         melodies = [trial.analysis["midi"] for trial in trials]
         return [mean(x) for x in zip(*melodies)]
 
-    def synthesise_target(self, output_file):
+    def synthesize_target(self, output_file):
         import singing_extract
 
         midis = self.definition

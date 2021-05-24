@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.0.0]
+#### Added
+- Added support for video imitation chains and camera/screen record trials. 
+
+#### Changed
+- Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), `summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), and all prompts and pre-screening tasks involving `colour` (now `color`). 
+
 #### Updated
 - Migrated background tasks to Dallinger's new `scheduled_task` API.
 This means that the tasks now run on the clock dyno,

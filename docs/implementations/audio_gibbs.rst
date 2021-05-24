@@ -27,7 +27,7 @@ You can define a custom Audio Gibbs sampling experiment through the following st
 2. Decide on a vector of free parameters that will define the parameter space
    for your chains. This vector will be represented as a list;
    for example, one might use a list of three integers
-   identifying an RGB colour (e.g. ``[255, 25, 0]``).
+   identifying an RGB color (e.g. ``[255, 25, 0]``).
    Take the length of this vector and save it in the
    :attr:``~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`` attribute
    for your custom :class:`~psynet.trial.audio_gibbs.AudioGibbsNetwork` class.

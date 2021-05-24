@@ -26,26 +26,26 @@ def make_mcmcp_trial(cls, experiment, node, participant, answer):
     return t
 
 
-def summarise_trials(trial_class, experiment_object, node, participant, answers):
+def summarize_trials(trial_class, experiment_object, node, participant, answers):
     trials = [
         make_mcmcp_trial(
             trial_class, experiment_object, node, participant=participant, answer=answer
         )
         for answer in answers
     ]
-    return node.summarise_trials(trials, experiment_object, participant)
+    return node.summarize_trials(trials, experiment_object, participant)
 
 
 @pytest.mark.usefixtures(
     "demo_mcmcp"
 )  # we can replace this with the MCMCP demo eventually
-def test_summarise(experiment_module, experiment_object, participant):
+def test_summarize(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
 
     trial_class = experiment_module.CustomTrial
 
     assert (
-        summarise_trials(
+        summarize_trials(
             trial_class,
             experiment_object,
             node,
@@ -56,7 +56,7 @@ def test_summarise(experiment_module, experiment_object, participant):
     )
 
     assert (
-        summarise_trials(
+        summarize_trials(
             trial_class,
             experiment_object,
             node,
@@ -67,7 +67,7 @@ def test_summarise(experiment_module, experiment_object, participant):
     )
 
     assert (
-        summarise_trials(
+        summarize_trials(
             trial_class,
             experiment_object,
             node,
@@ -82,7 +82,7 @@ def test_summarise(experiment_module, experiment_object, participant):
     )
 
     assert (
-        summarise_trials(
+        summarize_trials(
             trial_class,
             experiment_object,
             node,
@@ -97,7 +97,7 @@ def test_summarise(experiment_module, experiment_object, participant):
     )
 
     assert (
-        summarise_trials(
+        summarize_trials(
             trial_class,
             experiment_object,
             node,

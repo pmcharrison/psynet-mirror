@@ -861,10 +861,10 @@ class DebugResponsePage(PageMaker):
     """
 
     def __init__(self):
-        super().__init__(self.summarise_last_response, time_estimate=0)
+        super().__init__(self.summarize_last_response, time_estimate=0)
 
     @staticmethod
-    def summarise_last_response(participant):
+    def summarize_last_response(participant):
         response = participant.response
         if response is None:
             return InfoPage("No response found to display.")

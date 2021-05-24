@@ -272,7 +272,7 @@ class AudioGibbsTrial(GibbsTrial):
             return (
                 (Markup(escape(main)) if isinstance(main, str) else main)
                 + Markup("<pre style='overflow: scroll; max-height: 50vh;'>")
-                + Markup(escape(json.dumps(self.summarise(), indent=4)))
+                + Markup(escape(json.dumps(self.summarize(), indent=4)))
                 + Markup("</pre>")
             )
 
@@ -321,9 +321,9 @@ class AudioGibbsTrial(GibbsTrial):
     def vector_ranges(self):
         return self.network.vector_ranges
 
-    def summarise(self):
+    def summarize(self):
         return {
-            **super().summarise(),
+            **super().summarize(),
             "trial_id": self.id,
             "start_value": self.initial_vector[self.active_index],
             "vector_range": self.vector_ranges[self.active_index],

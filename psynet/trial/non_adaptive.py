@@ -740,7 +740,7 @@ class NonAdaptiveTrial(Trial):
         """
         return {**self.stimulus.definition, **self.stimulus_version.definition}
 
-    def summarise(self):
+    def summarize(self):
         return {
             "participant_group": self.participant_group,
             "phase": self.phase,
