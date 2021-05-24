@@ -1,16 +1,55 @@
 # Changelog
 
-#### Changed
+# [2.0.0]
 
+#### Added
+- Added support for video imitation chains and camera/screen record trials.
+- Added a new system for organizing the timing of front-end events.
+The API for some `Prompt` and `Control` elements has changed
+somewhat as a result.
+- Added `ProgressDisplay` functionality, which visualizes the 
+current progress in the trial with text messages and/or
+progress bars. 
+
+#### Changed
+- Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
+`summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), and all prompts and pre-screening tasks involving `colour` (now `color`).
 - The output format for `TimedPushButtonControl` has now changed to use 
 camel case consistently, e.g. writing `buttonId` instead of `button_id`.
 This reflects the camel case formatting conventions of the trial
-scheduler and the JS front-end.
+scheduler and the JS front-end. 
+
+#### Updated
+- Migrated background tasks to Dallinger's new `scheduled_task` API.
+This means that the tasks now run on the clock dyno,
+and are now robust to dyno restarts, app crashes etc. 
+
+# [1.13.1] Released on 2021-05-05
+
+#### Fixed
+- Fix name attribute default value for RadioButtonControl, DropdownControl, and CheckboxControl
+- Fix some deprecation warnings in tests
+- Update black, isort, and flake8 versions in pre-commit hook config
+- Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
+- Implement missing notify_duration_exceeded method for CAPRecruiter
+- Update Dallinger to v7.2.1
+
+# [1.13.0] Released on 2021-04-15
 
 #### Added
-
+- Video and screen recording
+- Unity integration including a WebGL demo.
+- Filter options for customising stimulus, stimulus version, and network selection.
+- Integration of external recruiter with new CapRecruiter classes.
 - Add `auto_advance` option to `AudioRecordControl`. 
+
+#### Fixed
 - Update for compatibility with SQLAlchemy v1.4.
+
+#### Updated
+- Pin to Dallinger v7.2.0
+- Replace deprecated `Page` classes with `ModularPage` class.
+
 
 # [1.12.0] Released on 2021-02-22
 

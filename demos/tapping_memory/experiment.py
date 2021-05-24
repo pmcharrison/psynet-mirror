@@ -86,7 +86,7 @@ class CustomTrial(AudioImitationChainTrial):
             time_estimate=TIME_ESTIMATE_PER_TRIAL,
         )
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "tapping extraction"
 
@@ -130,11 +130,11 @@ class CustomNetwork(AudioImitationChainNetwork):
 class CustomNode(AudioImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["list_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
 
-    def synthesise_target(self, output_file):
+    def synthesize_target(self, output_file):
         random_seed = self.definition
         stim_onsets = tapping.make_stimulus_onsets_from_seed(
             random_seed, repeats=PARAMS["REPEATS"]

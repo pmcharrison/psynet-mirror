@@ -892,8 +892,10 @@
         psynet.trial.onEvent("trialStop", () => recorder.stop());
 
         psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
+            let channelCount = {{ config.num_channels }};
             navigator.mediaDevices.getUserMedia({
                 audio: {
+                    channelCount: channelCount,
                     autoGainControl: false,
                     echoCancellation: false,
                     noiseSuppression: false
@@ -902,7 +904,7 @@
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
-                recorder = new Recorder(input);
+                recorder = new Recorder(input, channelCount);
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
             });

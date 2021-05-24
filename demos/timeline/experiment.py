@@ -1,14 +1,15 @@
 from datetime import datetime
 
 import psynet.experiment
-from psynet.modular_page import NumberControl, Prompt, TimedPushButtonControl
-from psynet.page import (
-    InfoPage,
+from psynet.modular_page import (
     ModularPage,
-    NAFCPage,
-    SuccessfulEndPage,
-    TextInputPage,
+    NumberControl,
+    Prompt,
+    PushButtonControl,
+    TextControl,
+    TimedPushButtonControl,
 )
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import (
     CodeBlock,
     Module,
@@ -40,8 +41,11 @@ class Exp(psynet.experiment.Experiment):
                 ),
                 time_estimate=5,
             ),
-            TextInputPage(
-                "message", "Write me a message!", time_estimate=5, one_line=False
+            ModularPage(
+                "message",
+                "Write me a message!",
+                control=TextControl(one_line=False),
+                time_estimate=5,
             ),
             PageMaker(
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
@@ -77,12 +81,11 @@ class Exp(psynet.experiment.Experiment):
         ),
         Module(
             "chocolate",
-            NAFCPage(
-                label="chocolate",
-                prompt="Do you like chocolate?",
-                choices=["Yes", "No"],
+            ModularPage(
+                "chocolate",
+                Prompt("Do you like chocolate?"),
+                control=PushButtonControl(["Yes", "No"]),
                 time_estimate=3,
-                arrange_vertically=True,
             ),
             conditional(
                 "like_chocolate",
@@ -101,10 +104,10 @@ class Exp(psynet.experiment.Experiment):
             lambda experiment, participant: participant.answer == "Yes",
             Module(
                 "loop",
-                NAFCPage(
-                    label="loop_nafc",
-                    prompt="Would you like to stay in this loop?",
-                    choices=["Yes", "No"],
+                ModularPage(
+                    "loop_nafc",
+                    Prompt("Would you like to stay in this loop?"),
+                    control=PushButtonControl(["Yes", "No"], arrange_vertically=False),
                     time_estimate=3,
                 ),
             ),
@@ -123,16 +126,20 @@ class Exp(psynet.experiment.Experiment):
             multi_page_maker(
                 "example_multi_page_maker",
                 lambda participant: [
-                    NAFCPage(
+                    ModularPage(
                         "mp1",
-                        f"Participant {participant.id}, choose a shape:",
-                        ["Square", "Circle"],
+                        Prompt(f"Participant {participant.id}, choose a shape:"),
+                        control=PushButtonControl(
+                            ["Square", "Circle"], arrange_vertically=False
+                        ),
                         time_estimate=5,
                     ),
-                    NAFCPage(
+                    ModularPage(
                         "mp2",
-                        f"Participant {participant.id}, choose a chord:",
-                        ["Major", "Minor"],
+                        Prompt(f"Participant {participant.id}, choose a chord:"),
+                        control=PushButtonControl(
+                            ["Major", "Minor"], arrange_vertically=False
+                        ),
                         time_estimate=5,
                     ),
                 ],
@@ -152,28 +159,30 @@ class Exp(psynet.experiment.Experiment):
             ),
         ),
         Module(
-            "colour",
-            NAFCPage(
-                label="test_nafc",
-                prompt="What's your favourite colour?",
-                choices=["Red", "Green", "Blue"],
+            "color",
+            ModularPage(
+                "test_nafc",
+                Prompt("What's your favourite color?"),
+                control=PushButtonControl(
+                    ["Red", "Green", "Blue"], arrange_vertically=False
+                ),
                 time_estimate=5,
             ),
             CodeBlock(
                 lambda experiment, participant: participant.var.new(
-                    "favourite_colour", participant.answer
+                    "favourite_color", participant.answer
                 )
             ),
             switch(
-                "colour",
+                "color",
                 lambda experiment, participant: participant.answer,
                 branches={
-                    "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
+                    "Red": InfoPage("Red is a nice color, wait 1s.", time_estimate=1),
                     "Green": InfoPage(
-                        "Green is quite a nice colour, wait 2s.", time_estimate=2
+                        "Green is quite a nice color, wait 2s.", time_estimate=2
                     ),
                     "Blue": InfoPage(
-                        "Blue is an unpleasant colour, wait 3s.", time_estimate=3
+                        "Blue is an unpleasant color, wait 3s.", time_estimate=3
                     ),
                 },
                 fix_time_credit=False,

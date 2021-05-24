@@ -8,7 +8,7 @@ from .modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
-    ColourPrompt,
+    ColorPrompt,
     ImagePrompt,
     ModularPage,
     NAFCControl,
@@ -408,7 +408,7 @@ class REPPMarkersCheck(Module):
             def gives_feedback(self, experiment, participant):
                 return self.position == 0
 
-            def analyse_recording(self, audio_file: str, output_plot: str):
+            def analyze_recording(self, audio_file: str, output_plot: str):
                 import tapping_extract as tapping
 
                 params = (
@@ -937,7 +937,7 @@ class AttentionCheck(Module):
 class ColorBlindnessTest(Module):
     """
     The color blindness test checks the participant's ability to perceive
-    colours. In each trial an image is presented which contains a number and the
+    colors. In each trial an image is presented which contains a number and the
     participant must enter the number that is shown into a text box. The image
     disappears after 3 seconds by default, which can be adjusted by providing a different
     value in the ``hide_after`` parameter.
@@ -1076,7 +1076,7 @@ class ColorBlindnessTest(Module):
 
 class ColorVocabularyTest(Module):
     """
-    The color vocabulary test checks the participant's ability to name colours. In each trial, a
+    The color vocabulary test checks the participant's ability to name colors. In each trial, a
     colored box is presented and the participant must choose from a set of colors which color is
     displayed in the box. The colors which are presented can be freely chosen by providing an
     optional ``colors`` parameter. See the documentation for further details.
@@ -1172,7 +1172,7 @@ class ColorVocabularyTest(Module):
             def show_trial(self, experiment, participant):
                 return ModularPage(
                     "color_vocabulary_trial",
-                    ColourPrompt(
+                    ColorPrompt(
                         self.definition["target_hsl"],
                         "Which color is shown in the box?",
                         text_align="center",

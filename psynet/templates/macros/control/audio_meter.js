@@ -90,10 +90,10 @@ audio_meter_control.onMicrophoneGranted = function(stream) {
     });
 }
 
-audio_meter_control.show_message = function(message, colour) {
+audio_meter_control.show_message = function(message, color) {
     this.audio_meter_text.innerHTML = message;
-    this.audio_meter_text.style.color = colour;
-    this.canvasContext.fillStyle = colour;
+    this.audio_meter_text.style.color = color;
+    this.canvasContext.fillStyle = color;
 
     clearTimeout(this.message_timer);
 

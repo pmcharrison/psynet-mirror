@@ -1,3 +1,4 @@
+import itertools
 import json
 import os
 from typing import Dict, List, Optional, Union
@@ -9,7 +10,7 @@ from flask import Markup
 
 from .media import generate_presigned_url
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
-from .utils import get_logger, strip_url_parameters
+from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
 
 logger = get_logger()
 
@@ -381,25 +382,25 @@ class ImagePrompt(Prompt):
             )
 
 
-class ColourPrompt(Prompt):
+class ColorPrompt(Prompt):
     """
-    Displays a colour to the participant.
+    Displays a color to the participant.
 
     Parameters
     ----------
 
-    colour
-        Colour to show, specified as a list of HSL values.
+    color
+        Color to show, specified as a list of HSL values.
 
     text
         Text to display to the participant. This can either be a string
         for plain text, or an HTML specification from ``flask.Markup``.
 
     width
-        CSS width specification for the colour box (default ``'200px'``).
+        CSS width specification for the color box (default ``'200px'``).
 
     height
-        CSS height specification for the colour box (default ``'200px'``).
+        CSS height specification for the color box (default ``'200px'``).
 
     text_align
         CSS alignment of the text.
@@ -408,19 +409,19 @@ class ColourPrompt(Prompt):
 
     def __init__(
         self,
-        colour: List[float],
+        color: List[float],
         text: Union[str, Markup],
         width: str = "200px",
         height: str = "200px",
         text_align: str = "left",
     ):
-        assert isinstance(colour, list)
+        assert isinstance(color, list)
         super().__init__(text=text, text_align=text_align)
-        self.hsl = colour
+        self.hsl = color
         self.width = width
         self.height = height
 
-    macro = "colour"
+    macro = "color"
 
     @property
     def metadata(self):
@@ -586,6 +587,12 @@ class OptionControl(Control):
         assert isinstance(self.labels, list)
         assert len(self.choices) == len(self.labels)
 
+    def validate_name(self, name):
+        if not isinstance(name, str):
+            raise ValueError("name must be a string")
+        if not is_valid_html5_id(name):
+            raise ValueError("name must be a valid HTML5 id")
+
     @property
     def metadata(self):
         return {
@@ -598,7 +605,7 @@ class OptionControl(Control):
 
 class CheckboxControl(OptionControl):
     """
-    This control interface solicits a multiple-choice response from the participant using chekboxes.
+    This control interface solicits a multiple-choice response from the participant using checkboxes.
 
     Parameters
     ----------
@@ -631,12 +638,13 @@ class CheckboxControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
-        name: str = "",
+        name: str = "checkboxes",
         arrange_vertically: bool = True,
         force_selection: bool = False,
         show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
@@ -715,11 +723,12 @@ class DropdownControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
-        name: str = "",
+        name: str = "dropdown",
         force_selection: bool = True,
         default_text="Select an option",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.force_selection = force_selection
         self.default_text = default_text
@@ -960,12 +969,13 @@ class RadioButtonControl(OptionControl):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "cursor: pointer;",
-        name: str = "",
+        name: str = "radiobuttons",
         arrange_vertically: bool = True,
         force_selection: bool = True,
         show_reset_button: str = "never",
     ):
         super().__init__(choices, labels, style)
+        self.validate_name(name)
         self.name = name
         self.arrange_vertically = arrange_vertically
         self.force_selection = force_selection
@@ -1530,13 +1540,47 @@ class SliderControl(Control):
         self.template_args = template_args
         self.minimal_time = minimal_time
 
+        self.snap_values = self.format_snap_values(
+            snap_values, min_value, max_value, num_steps
+        )
+
         js_vars = {}
-        js_vars["snap_values"] = snap_values
+        js_vars["snap_values"] = self.snap_values
         js_vars["minimal_interactions"] = minimal_interactions
         js_vars["continuous_updates"] = continuous_updates
         self.js_vars = js_vars
 
     macro = "slider"
+
+    def format_snap_values(self, snap_values, min_value, max_value, num_steps):
+        if snap_values is None:
+            return linspace(min_value, max_value, num_steps)
+        elif isinstance(snap_values, int):
+            return linspace(min_value, max_value, snap_values)
+        else:
+            for x in snap_values:
+                assert isinstance(x, (float, int))
+                assert x >= min_value
+                assert x <= max_value
+            return sorted(snap_values)
+
+    def validate(self, response, **kwargs):
+        if self.input_type != "HTML5_range_slider":
+            raise NotImplementedError(
+                'Currently "HTML5_range_slider" is the only supported `input_type`'
+            )
+
+        if self.max_value <= self.min_value:
+            raise ValueError("`max_value` must be larger than `min_value`")
+
+        if self.start_value > self.max_value or self.start_value < self.min_value:
+            raise ValueError(
+                "`start_value` (= %f) must be between `min_value` (=%f) and `max_value` (=%f)"
+                % (self.start_value, self.min_value, self.max_value)
+            )
+
+        if self.js_vars["minimal_interactions"] < 0:
+            raise ValueError("`minimal_interactions` cannot be negative!")
 
     @property
     def metadata(self):
@@ -1663,6 +1707,38 @@ class AudioSliderControl(SliderControl):
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
     ):
+        if isinstance(num_steps, str):
+            if num_steps == "num_sounds":
+                num_steps = len(sound_locations)
+            else:
+                raise ValueError(f"Invalid value of num_steps: {num_steps}")
+
+        if isinstance(snap_values, str):
+            if snap_values == "sound_locations":
+                snap_values = list(sound_locations.values())
+            else:
+                raise ValueError(f"Invalid value of snap_values: {snap_values}")
+
+        # Check if all stimuli specified in `sound_locations` are
+        # also preloaded before the participant can start the trial
+        IDs_sound_locations = [ID for ID, _ in sound_locations.items()]
+        IDs_media = []
+        for key, value in audio.items():
+            if isinstance(audio[key], dict) and "ids" in audio[key]:
+                IDs_media.append(audio[key]["ids"])
+            elif isinstance(audio[key], str):
+                IDs_media.append(key)
+            else:
+                raise NotImplementedError(
+                    "Currently we only support batch files or single files"
+                )
+        IDs_media = list(itertools.chain.from_iterable(IDs_media))
+
+        if not any([i in IDs_media for i in IDs_sound_locations]):
+            raise ValueError(
+                "All stimulus IDs you specify in `sound_locations` need to be defined in `media` too."
+            )
+
         super().__init__(
             label=label,
             start_value=start_value,
@@ -1672,20 +1748,17 @@ class AudioSliderControl(SliderControl):
             slider_id=slider_id,
             reverse_scale=reverse_scale,
             directional=directional,
+            snap_values=snap_values,
+            minimal_interactions=minimal_interactions,
+            minimal_time=minimal_time,
         )
+
         self.sound_locations = sound_locations
         self.autoplay = autoplay
         self.snap_values = snap_values
         self.audio = audio
-
-        js_vars = {}
-        js_vars["sound_locations"] = self.sound_locations
-        js_vars["autoplay"] = self.autoplay
-        js_vars["snap_values"] = self.snap_values
-        js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["minimal_time"] = minimal_time
-
-        self.js_vars = js_vars
+        self.js_vars["sound_locations"] = sound_locations
+        self.js_vars["autoplay"] = autoplay
 
     macro = "audio_slider"
 
@@ -1825,6 +1898,9 @@ class AudioRecordControl(RecordControl):
         Whether in-browser playback of the recording should have looping enabled by default
         (default = ``False``). Ignored if ``controls`` is ``False``.
 
+    num_channels
+        The number of channels used to record the audio. Default is mono (`num_channels=1`).
+
     **kwargs
         Further arguments passed to :class:`~psynet.modular_page.RecordControl`
     """
@@ -1832,16 +1908,24 @@ class AudioRecordControl(RecordControl):
     macro = "audio_record"
 
     def __init__(
-        self, *, controls: bool = False, loop_playback: bool = False, **kwargs
+        self,
+        *,
+        controls: bool = False,
+        loop_playback: bool = False,
+        num_channels: int = 1,
+        **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.controls = controls
         self.loop_playback = loop_playback
+        self.num_channels = num_channels
 
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
         return {
+            "origin": "AudioRecordControl",
+            "supports_record_trial": True,
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
             "url": strip_url_parameters(raw_answer),
@@ -1865,7 +1949,8 @@ class AudioRecordControl(RecordControl):
 
 class VideoRecordControl(RecordControl):
     """
-    Records a video either by using the the camera or by capturing from the screen.
+    Records a video either by using the the camera or by capturing from the screen. Output format
+    for both screen and camera recording is ``.webm``.
 
     Parameters
     ----------
@@ -1920,6 +2005,8 @@ class VideoRecordControl(RecordControl):
         assert self.recording_source in ["camera", "screen", "both"]
 
     def format_answer(self, raw_answer, **kwargs):
+        camera_key = os.path.basename(urlparse(raw_answer["camera"]).path)
+        screen_key = os.path.basename(urlparse(raw_answer["screen"]).path)
         return {
             "s3_bucket": self.s3_bucket,
             "camera_url": strip_url_parameters(raw_answer["camera"])
@@ -1929,6 +2016,10 @@ class VideoRecordControl(RecordControl):
             if raw_answer is not None
             else None,
             "duration_sec": self.duration,
+            "origin": "VideoRecordControl",
+            "supports_record_trial": True,
+            "camera_key": camera_key,
+            "screen_key": screen_key,
             "recording_source": self.recording_source,
             "record_audio": self.record_audio,
         }

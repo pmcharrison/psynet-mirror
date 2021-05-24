@@ -10,7 +10,7 @@ from flask import Markup, escape
 
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
-from ..page import AudioSliderPage
+from ..modular_page import AudioSliderControl, ModularPage
 from ..timeline import MediaSpec
 from ..utils import get_logger, get_object_from_module, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsSource, GibbsTrial, GibbsTrialMaker
@@ -242,22 +242,26 @@ class AudioGibbsTrial(GibbsTrial):
         start_value = self.initial_vector[self.active_index]
         vector_range = self.vector_ranges[self.active_index]
 
-        return AudioSliderPage(
+        return ModularPage(
             "gibbs_audio_trial",
             self._get_prompt(experiment, participant),
-            sound_locations=self.sound_locations,
-            start_value=start_value,
-            min_value=vector_range[0],
-            max_value=vector_range[1],
-            num_steps="num_sounds" if self.snap_slider_before_release else 10000,
-            snap_values="sound_locations" if self.snap_slider else None,
-            autoplay=self.autoplay,
-            reverse_scale=self.reverse_scale,
-            directional=False,
-            time_estimate=5,
+            control=AudioSliderControl(
+                "slider_control",
+                audio=self.media.audio,
+                sound_locations=self.sound_locations,
+                start_value=start_value,
+                min_value=vector_range[0],
+                max_value=vector_range[1],
+                num_steps="num_sounds" if self.snap_slider_before_release else 10000,
+                snap_values="sound_locations" if self.snap_slider else None,
+                autoplay=self.autoplay,
+                reverse_scale=self.reverse_scale,
+                directional=False,
+                minimal_interactions=self.minimal_interactions,
+                minimal_time=self.minimal_time,
+            ),
             media=self.media,
-            minimal_interactions=self.minimal_interactions,
-            minimal_time=self.minimal_time,
+            time_estimate=5,
         )
 
     def _get_prompt(self, experiment, participant):
@@ -268,7 +272,7 @@ class AudioGibbsTrial(GibbsTrial):
             return (
                 (Markup(escape(main)) if isinstance(main, str) else main)
                 + Markup("<pre style='overflow: scroll; max-height: 50vh;'>")
-                + Markup(escape(json.dumps(self.summarise(), indent=4)))
+                + Markup(escape(json.dumps(self.summarize(), indent=4)))
                 + Markup("</pre>")
             )
 
@@ -317,9 +321,9 @@ class AudioGibbsTrial(GibbsTrial):
     def vector_ranges(self):
         return self.network.vector_ranges
 
-    def summarise(self):
+    def summarize(self):
         return {
-            **super().summarise(),
+            **super().summarize(),
             "trial_id": self.id,
             "start_value": self.initial_vector[self.active_index],
             "vector_range": self.vector_ranges[self.active_index],

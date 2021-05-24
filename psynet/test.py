@@ -64,7 +64,7 @@ def bot_class(headless=None):
         def sign_off(self):
             try:
                 logger.info("Clicked submit questionnaire button.")
-                self.driver.switch_to_window(self.driver.window_handles[0])
+                self.driver.switch_to.window(self.driver.window_handles[0])
                 self.driver.set_window_size(1024, 768)
                 logger.info("Switched back to initial window.")
                 return True
@@ -85,7 +85,7 @@ def bot_class(headless=None):
             if headless:
                 chrome_options.add_argument("--headless")
 
-            return webdriver.Chrome(chrome_options=chrome_options)
+            return webdriver.Chrome(options=chrome_options)
 
     return PYTEST_BOT_CLASS
 

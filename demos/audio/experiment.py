@@ -255,6 +255,7 @@ example_record_audio_video = join(
             public_read=True,
             controls=True,
             loop_playback=False,
+            auto_advance=True,
         ),
         progress_display=ProgressDisplay(
             duration=4.6,
@@ -292,13 +293,13 @@ example_record_audio_video = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        # example_audio_page,
-        # example_audio_page_2,
-        # example_audio_page_3,
-        # example_audio_meter,
-        # example_record_page,
-        # example_listen_then_record_page,
-        # example_record_audio_video,
+        example_audio_page,
+        example_audio_page_2,
+        example_audio_page_3,
+        example_audio_meter,
+        example_record_page,
+        example_listen_then_record_page,
+        example_record_audio_video,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
         example_preloading,

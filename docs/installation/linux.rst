@@ -168,7 +168,7 @@ Install additional Python packages
 
 .. code-block:: bash
 
-    pip install -r dev-requirements.txt
+    pip install -e .[dev]
 
 Install the Git pre-commit hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

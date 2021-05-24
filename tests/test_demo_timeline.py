@@ -205,11 +205,11 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             check_text(
-                driver, "main-body", "What's your favourite colour? Red Green Blue"
+                driver, "main-body", "What's your favourite color? Red Green Blue"
             )
             next_page(driver, "Red")
 
-            check_text(driver, "main-body", "Red is a nice colour, wait 1s. Next")
+            check_text(driver, "main-body", "Red is a nice color, wait 1s. Next")
             next_page(driver, "next_button")
 
             # Final page

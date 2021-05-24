@@ -10,7 +10,8 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
-from psynet.page import InfoPage, NAFCPage, SliderPage, SuccessfulEndPage
+from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
+from psynet.page import InfoPage, Prompt, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
@@ -27,7 +28,7 @@ TARGETS = ["tree", "rock", "carrot", "banana"]
 COLORS = ["red", "green", "blue"]
 
 
-class ColorSliderPage(SliderPage):
+class ColorSliderPage(ModularPage):
     def __init__(
         self,
         label: str,
@@ -53,20 +54,23 @@ class ColorSliderPage(SliderPage):
             "hidden_inputs": hidden_inputs,
         }
         super().__init__(
+            label,
+            Prompt(prompt),
+            control=SliderControl(
+                label=label,
+                start_value=starting_values[selected_idx],
+                min_value=0,
+                max_value=255,
+                slider_id=COLORS[selected_idx],
+                reverse_scale=reverse_scale,
+                directional=directional,
+                template_filename="color-slider.html",
+                template_args={
+                    "hidden_inputs": hidden_inputs,
+                },
+                continuous_updates=True,
+            ),
             time_estimate=time_estimate,
-            template_filename="color-slider.html",
-            label=label,
-            prompt=prompt,
-            start_value=starting_values[selected_idx],
-            min_value=0,
-            max_value=255,
-            slider_id=COLORS[selected_idx],
-            reverse_scale=reverse_scale,
-            directional=directional,
-            template_arg={
-                "hidden_inputs": hidden_inputs,
-            },
-            continuous_updates=True,
         )
 
     def metadata(self, **kwargs):
@@ -145,6 +149,12 @@ class CustomTrialMaker(GibbsTrialMaker):
         else:
             return max(0.0, score)
 
+    def custom_network_filter(self, candidates, participant):
+        # As an example, let's make the participant join networks
+        # in order of increasing network ID.
+        candidates.sort(key=lambda x: x.id)
+        return [candidates[0]]
+
 
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
@@ -181,10 +191,10 @@ class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
 
     timeline = Timeline(
-        NAFCPage(
+        ModularPage(
             "choose_network",
-            "What participant group would you like to join?",
-            ["A", "B"],
+            Prompt("What participant group would you like to join?"),
+            control=PushButtonControl(["A", "B"], arrange_vertically=False),
             time_estimate=5,
         ),
         CodeBlock(

@@ -4,15 +4,15 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with sha: 93ba9748c5b2124519e0930a8aafa1a6
+# Compiled from a requirement.txt file with sha: 21cfb491ac4c193e2b9c20c00daa790d
 #
 -e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
     # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
-boto3==1.17.39
+boto3==1.17.51
     # via dallinger
-botocore==1.20.39
+botocore==1.20.51
     # via
     #   boto3
     #   s3transfer
@@ -28,17 +28,16 @@ click==7.1.2
     # via
     #   dallinger
     #   flask
+    #   pip-tools
     #   psynet
     #   rq
-dallinger==7.1.0
-    # via
-    #   -r requirements.txt
-    #   psynet
+dallinger==7.2.0
+    # via psynet
 datetime==4.3
     # via psynet
 dominate==2.6.0
     # via psynet
-faker==7.0.0
+faker==8.0.0
     # via dallinger
 flask-crossdomain==0.1
     # via dallinger
@@ -102,15 +101,19 @@ numpy==1.20.2
     #   statsmodels
 packaging==20.9
     # via build
-pandas==1.2.3
+pandas==1.2.4
     # via
     #   psynet
     #   statsmodels
 patsy==0.5.1
     # via statsmodels
 pep517==0.10.0
-    # via build
+    # via
+    #   build
+    #   pip-tools
 pexpect==4.8.0
+    # via dallinger
+pip-tools==6.0.1
     # via dallinger
 praat-parselmouth==0.4.0
     # via psynet
@@ -145,9 +148,9 @@ requests==2.25.1
     # via dallinger
 rpdb==0.1.6
     # via psynet
-rq==1.7.0
+rq==1.8.0
     # via dallinger
-s3transfer==0.3.6
+s3transfer==0.3.7
     # via boto3
 scipy==1.6.2
     # via
@@ -164,7 +167,7 @@ six==1.15.0
     #   sqlalchemy-postgres-copy
 sqlalchemy-postgres-copy==0.5.0
     # via dallinger
-sqlalchemy==1.4.3
+sqlalchemy==1.4.7
     # via
     #   dallinger
     #   sqlalchemy-postgres-copy
@@ -209,4 +212,5 @@ zope.interface==5.3.0
     #   gevent
 
 # The following packages are considered to be unsafe in a requirements file:
+# pip
 # setuptools

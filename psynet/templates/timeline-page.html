@@ -134,7 +134,7 @@
                             <li>Check that your internet connection is working.</li>
                             <li>If the above doesn't help,
                                 <a
-                                href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant_id }}%29"
+                                href="mailto:{{ contact_email_on_error }}?Subject=Problem%20with%20experiment%20%28App%20ID%3A%20{{ app_id }}%2C%20Worker%20ID%3A%20{{ worker_id }}%2C%20Participant%20ID%3A%20{{ participant.id }}%29"
                                 target="_top">send us an email</a>
                                 with the following information:
                                 <ol>
@@ -221,6 +221,7 @@
 
                 var psynet = {
                     media: {},
+                    page: {},
                     utils: {}
                 };
 
@@ -1205,7 +1206,7 @@
                     psynet.page_load_time = new Date();
                     psynet.page_loaded = true;
 
-                    setTimeout(() => psynet.trial.init(), 500);
+                    setTimeout(() => psynet.trial.init(), 25);
                 };
 
                 psynet.register_error_handler = function () {
@@ -1233,7 +1234,16 @@
                     let response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
-                        dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                        let should_refresh_page = !(
+                            response.page.attributes && psynet.page.attributes &&
+                            response.page.attributes.session_id == psynet.page.attributes.session_id
+                        );
+                        if (should_refresh_page) {
+                            dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.assignmentId);
+                        } else {
+                            psynet.page = response.page;
+                            psynet.register_event("page_updated");
+                        }
                     } else if (response.submission === "rejected") {
                         psynet.log.debug("Response rejected.");
                         alert(response.message);
@@ -1242,6 +1252,18 @@
                     } else {
                         throw Error("Received a malformed response.");
                     }
+                };
+
+                on_page_updated = function(event) {
+                    console.log("Dispatched 'on_page_updated' event. Sending data to Unity:\nattributes:" + psynet.page.attributes + "\ncontents:" + psynet.page.contents);
+                    unityInstance.SendMessage(
+                        "PsynetObj",
+                        "GetData",
+                        JSON.stringify({
+                            attributes: psynet.page.attributes,
+                            contents: psynet.page.contents,
+                        })
+                    );
                 };
 
                 let on_error_response = function (request) {
@@ -1415,6 +1437,7 @@
                     psynet.trial.onEvent("trialConstruct", init, {priority: 1000});
                     psynet.trial.onEvent(config.start, start);
                     psynet.trial.onEvent("trialStopped", stop);
+                    psynet.trial.onEvent("pageUpdated", on_page_updated);
 
                     return {
                         setText: setText,

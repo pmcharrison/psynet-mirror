@@ -9,7 +9,8 @@ import re
 from statistics import mean
 
 import psynet.experiment
-from psynet.page import InfoPage, SuccessfulEndPage, TextInputPage
+from psynet.modular_page import ModularPage, Prompt, TextControl
+from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNetwork,
@@ -28,8 +29,21 @@ logger = get_logger()
 ##########################################################################################
 
 
-class FixedDigitInputPage(TextInputPage):
-    num_digits = 7
+class FixedDigitInputPage(ModularPage):
+    def __init__(
+        self,
+        label: str,
+        prompt: str,
+    ):
+        self.num_digits = 7
+
+        super().__init__(
+            label,
+            Prompt(prompt),
+            control=TextControl(
+                label,
+            ),
+        )
 
     def format_answer(self, raw_answer, **kwargs):
         try:
@@ -67,7 +81,7 @@ class CustomNetwork(ImitationChainNetwork):
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         def get_answer(trial):
             # Slices the list to get the answers from the second and third pages, then take the mean
             return mean(trial.answer[1:])

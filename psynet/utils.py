@@ -381,3 +381,9 @@ def strip_url_parameters(url):
         query=None,
         fragment=None,
     ).geturl()
+
+
+def is_valid_html5_id(str):
+    if not str or " " in str:
+        return False
+    return True
