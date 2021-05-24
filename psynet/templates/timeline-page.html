@@ -528,6 +528,7 @@
                     trial.logEvent = function(id, info) {
                         let time = new Date();
                         trial.eventLog.push({
+                            // underscores because we are passing to Python
                             eventType: id,
                             localTime: time,
                             info: info
@@ -1267,7 +1268,7 @@
                         "time_taken": (current_time - psynet.page_load_time) / 1000,
                         "platform": platform.toString(),
                         "download_speed_megabits_per_sec": psynet.estimate_download_speed(),
-                        "eventLog": psynet.trial.eventLog
+                        "event_log": psynet.trial.eventLog
                     };
 
                     if (metadata !== undefined) {
