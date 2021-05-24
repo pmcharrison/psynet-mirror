@@ -412,6 +412,35 @@
                             event.resetTriggers();
                         };
 
+                        event.showMessage = function() {
+                            if (event.message !== null) {
+                                psynet.trialProgress.setText(event.message, event.message_color);
+                            }
+                        };
+
+                        event.runJS = function() {
+                            if (event.js !== null) {
+                                Function(unescape(event.js))();
+                            }
+                        };
+
+                        event.runHandlers = async function() {
+                            let handlers = event.handlers;
+                            handlers.sort((a, b) => a.priority - b.priority);
+
+                            for (const handler of handlers) {
+                                trial.pendingEventHandlers.add(id);
+                                await handler.func();
+                                trial.pendingEventHandlers.remove(id);
+                            }
+                        };
+
+                        event.hitTriggers = function() {
+                            for (const toBeTriggered of event.willTrigger) {
+                                trial.setTimer(() => toBeTriggered.fire(), toBeTriggered.delay * 1000);
+                            }
+                        };
+
                         return event;
                     };
 
@@ -496,42 +525,37 @@
                         };
                     })();
 
-                    trial.registerEvent = async function(id, info) {
-                        trial.state = id;
-
+                    trial.logEvent = function(id, info) {
                         let time = new Date();
                         trial.eventLog.push({
                             eventType: id,
                             localTime: time,
-                            info: (info === undefined) ? null : info
+                            info: info
                         });
                         psynet.log.debug(id);
+                    }
+
+                    trial.registerEvent = async function(id, providedOptions) {
+                        let options = {
+                            info: null,
+                            once: false
+                        };
+                        Object.assign(options, providedOptions);
 
                         let event = trial.events[id];
+                        if (event !== undefined && event.happened && options.once) {
+                            return;
+                        }
+
+                        trial.state = id;
+                        trial.logEvent(id, options.info);
 
                         if (event !== undefined) {
                             event.happened = true;
-
-                            if (event.message !== null) {
-                                psynet.trialProgress.setText(event.message, event.message_color);
-                            }
-
-                            if (event.js !== null) {
-                                Function(unescape(event.js))();
-                            }
-
-                            let handlers = event.handlers;
-                            handlers.sort((a, b) => a.priority - b.priority);
-
-                            for (const handler of handlers) {
-                                trial.pendingEventHandlers.add(id);
-                                await handler.func();
-                                trial.pendingEventHandlers.remove(id);
-                            }
-
-                            for (const toBeTriggered of event.willTrigger) {
-                                trial.setTimer(() => toBeTriggered.fire(), toBeTriggered.delay * 1000);
-                            }
+                            event.showMessage();
+                            event.runJS();
+                            await event.runHandlers();
+                            event.hitTriggers();
                         }
                     };
 

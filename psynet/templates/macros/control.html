@@ -91,8 +91,7 @@
         let buttonTimers = {};
 
         clicked_button = function(button, id) {
-            let info = {buttonId: id};
-            psynet.trial.registerEvent("pushButtonClicked", info);
+            psynet.trial.registerEvent("pushButtonClicked", {info: {buttonId: id}});
 
             {% if config.timed == true %}
                 let buttonHighlightDuration = {{ config.button_highlight_duration }};
@@ -883,7 +882,7 @@
                 await uploadToS3(recording_blob, presignedUrl);
                 // We don't want to wait for the following line, not sure how to get round
                 // the linter complaining here.
-                psynet.trial.registerEvent("uploadEnd", {url: presignedUrl});
+                psynet.trial.registerEvent("uploadEnd", {info: {url: presignedUrl}});
             } catch(e) {
                 psynet.trial.registerEvent("uploadFail");
                 throw e;

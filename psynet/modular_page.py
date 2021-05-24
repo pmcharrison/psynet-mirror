@@ -1796,7 +1796,7 @@ class RecordControl(Control):
         logger.info(f"Generated presigned url: {self.presigned_url}")
 
     def update_events(self, events):
-        events["recordStart"] = Event(Trigger("trialStart"))
+        events["recordStart"] = Event(Trigger("responseEnable"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
         events["submitEnable"] = Event(Trigger("uploadEnd"))
         events["uploadEnd"] = Event(is_triggered_by=[])
