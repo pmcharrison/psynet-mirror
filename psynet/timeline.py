@@ -1449,7 +1449,10 @@ class StartSwitch(ReactiveGoTo):
         if log_chosen_branch:
 
             def function_2(experiment, participant):
-                val = function(experiment, participant)
+                val = call_function(
+                    function,
+                    {"experiment": experiment, "participant": participant},
+                )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
                 return val

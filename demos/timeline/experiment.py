@@ -39,7 +39,7 @@ class Exp(psynet.experiment.Experiment):
         Module(
             "introduction",
             PageMaker(
-                lambda experiment, participant: InfoPage(
+                lambda: InfoPage(
                     f"The current time is {datetime.now().strftime('%H:%M:%S')}."
                 ),
                 time_estimate=5,
@@ -94,7 +94,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             conditional(
                 "like_chocolate",
-                lambda experiment, participant: participant.answer == "Yes",
+                lambda participant: participant.answer == "Yes",
                 InfoPage("It's nice to hear that you like chocolate!", time_estimate=5),
                 InfoPage(
                     "I'm sorry to hear that you don't like chocolate...",
@@ -103,10 +103,10 @@ class Exp(psynet.experiment.Experiment):
                 fix_time_credit=False,
             ),
         ),
-        CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
+        CodeBlock(lambda participant: participant.set_answer("Yes")),
         while_loop(
             "example_loop",
-            lambda experiment, participant: participant.answer == "Yes",
+            lambda participant: participant.answer == "Yes",
             Module(
                 "loop",
                 ModularPage(
@@ -174,13 +174,13 @@ class Exp(psynet.experiment.Experiment):
                 time_estimate=5,
             ),
             CodeBlock(
-                lambda experiment, participant: participant.var.new(
+                lambda participant: participant.var.new(
                     "favourite_colour", participant.answer
                 )
             ),
             switch(
                 "colour",
-                lambda experiment, participant: participant.answer,
+                lambda participant: participant.answer,
                 branches={
                     "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
                     "Green": InfoPage(
