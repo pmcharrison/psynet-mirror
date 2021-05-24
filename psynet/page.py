@@ -19,6 +19,7 @@ from .modular_page import (
 from .timeline import (
     CodeBlock,
     EndPage,
+    Event,
     Page,
     PageMaker,
     get_template,
@@ -800,7 +801,12 @@ class VolumeCalibration(ModularPage):
         self._min_time = min_time
         self._url = url
         super().__init__(
-            "volume_calibration", prompt=self._prompt, time_estimate=time_estimate
+            "volume_calibration",
+            prompt=self._prompt,
+            time_estimate=time_estimate,
+            events={
+                "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
+            },
         )
 
     @property
@@ -821,6 +827,4 @@ class VolumeCalibration(ModularPage):
 
     @property
     def _prompt(self):
-        return AudioPrompt(
-            self._url, self._text, loop=True, submit_enable_delay=self._min_time
-        )
+        return AudioPrompt(self._url, self._text, loop=True)
