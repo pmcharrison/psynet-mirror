@@ -874,8 +874,7 @@ class TimedPushButtonControl(PushButtonControl):
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
-        event_log = {**kwargs}["metadata"]["event_log"]
-        return event_log
+        return {**kwargs}["metadata"]["eventLog"]
 
     def visualize_response(self, answer, response, trial):
         html = tags.div()

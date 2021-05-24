@@ -88,19 +88,19 @@
     {% endif %}
 
     <script>
-        let button_timers = {};
+        let buttonTimers = {};
 
         clicked_button = function(button, id) {
-            let info = {button_id: id};
-            psynet.register_event("push_button_clicked", info);
+            let info = {buttonId: id};
+            psynet.trial.registerEvent("pushButtonClicked", info);
 
             {% if config.timed == true %}
-                let button_highlight_duration = {{ config.button_highlight_duration }};
-                if (button_timers[id] !== undefined) {
-                    clearTimeout(button_timers[id]);
+                let buttonHighlightDuration = {{ config.button_highlight_duration }};
+                if (buttonTimers[id] !== undefined) {
+                    clearTimeout(buttonTimers[id]);
                 }
-                highlight_button(button);
-                button_timers[id] = setTimeout(unhighlight_button, button_highlight_duration * 1000, button);
+                highlightButton(button);
+                buttonTimers[id] = setTimeout(unhighlightButton, buttonHighlightDuration * 1000, button);
             {% else %}
                 psynet.response.disable();
                 psynet.submit.disable();
@@ -108,12 +108,12 @@
             {% endif %}
         }
 
-        highlight_button = function(button) {
+        highlightButton = function(button) {
             button.classList.remove("btn-primary");
             button.classList.add("btn-success");
         }
 
-        unhighlight_button = function(button) {
+        unhighlightButton = function(button) {
             button.classList.add("btn-primary");
             button.classList.remove("btn-success");
         }

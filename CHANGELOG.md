@@ -1,5 +1,12 @@
 # Changelog
 
+#### Changed
+
+- The output format for `TimedPushButtonControl` has now changed to use 
+camel case consistently, e.g. writing `buttonId` instead of `button_id`.
+This reflects the camel case formatting conventions of the trial
+scheduler and the JS front-end.
+
 #### Added
 
 - Add `auto_advance` option to `AudioRecordControl`. 

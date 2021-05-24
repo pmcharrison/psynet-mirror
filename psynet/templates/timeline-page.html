@@ -347,7 +347,7 @@
                         state: null,
                         events: {},
                         timers: [],
-                        event_log: [],
+                        eventLog: [],
                         inProgress: false,
                         stopping: false
                     };
@@ -500,9 +500,9 @@
                         trial.state = id;
 
                         let time = new Date();
-                        trial.event_log.push({
-                            event_type: id,
-                            local_time: time,
+                        trial.eventLog.push({
+                            eventType: id,
+                            localTime: time,
                             info: (info === undefined) ? null : info
                         });
                         psynet.log.debug(id);
@@ -1243,7 +1243,7 @@
                         "time_taken": (current_time - psynet.page_load_time) / 1000,
                         "platform": platform.toString(),
                         "download_speed_megabits_per_sec": psynet.estimate_download_speed(),
-                        "event_log": psynet.trial.event_log
+                        "eventLog": psynet.trial.eventLog
                     };
 
                     if (metadata !== undefined) {
@@ -1359,10 +1359,14 @@
                     };
 
                     let setText = function(content, color) {
-                        let text = $("#trial-progress-caption-contents");
-                        text.text(content);
-                        if (color) {
-                            text.css("color", color);
+                        if (content == "") {
+                            resetText();
+                        } else {
+                            let text = $("#trial-progress-caption-contents");
+                            text.text(content);
+                            if (color) {
+                                text.css("color", color);
+                            }
                         }
                     };
 
