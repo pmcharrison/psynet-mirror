@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from cached_property import cached_property
 from dallinger.bots import BotBase
@@ -11,6 +12,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from .utils import wait_until
 
 logger = logging.getLogger(__file__)
+
+
+def check_text(driver, element_id, value):
+    element = driver.find_element_by_id(element_id)
+
+    def sanitize(x):
+        pattern = re.compile(r"\s+")
+        return re.sub(pattern, " ", x)
+
+    assert sanitize(element.text) == sanitize(value)
 
 
 def bot_class(headless=None):
