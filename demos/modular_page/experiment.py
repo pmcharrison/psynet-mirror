@@ -76,7 +76,6 @@ class Exp(psynet.experiment.Experiment):
                 text="""
             This page illustrates the timed push button control combined with an audio prompt.
             """,
-                prevent_response=False,
             ),
             TimedPushButtonControl(choices=["A", "B", "C"], arrange_vertically=False),
             time_estimate=5,

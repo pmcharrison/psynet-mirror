@@ -98,7 +98,6 @@ class REPPVolumeCalibrationMusic(Module):
                 """
                     ),
                     loop=True,
-                    submit_enable_delay=min_time_before_submitting,
                 ),
                 VolumeTestControlMusic(
                     min_time=min_time_before_submitting, calibrate=False
@@ -180,7 +179,6 @@ class REPPVolumeCalibrationMarkers(Module):
                 """
                     ),
                     loop=True,
-                    submit_enable_delay=min_time_before_submitting,
                 ),
                 VolumeTestControlMarkers(
                     min_time=min_time_before_submitting, calibrate=False
@@ -369,7 +367,6 @@ class REPPMarkersCheck(Module):
                             <h4>Please remain silent while we play a sound and record it</h4>
                             """
                         ),
-                        prevent_response=False,
                     ),
                     AudioRecordControl(
                         duration=self.definition["duration_sec"],

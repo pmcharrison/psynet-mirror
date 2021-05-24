@@ -1299,9 +1299,12 @@ class ModularPage(Page):
 class AudioMeterControl(Control):
     macro = "audio_meter"
 
-    def __init__(self, calibrate: bool = False, submit_button: bool = True):
+    def __init__(
+        self, calibrate: bool = False, submit_button: bool = True, min_time: float = 0.0
+    ):
         self.calibrate = calibrate
         self.submit_button = submit_button
+        self.min_time = min_time
         if calibrate:
             self.sliders = MultiSliderControl(
                 [
@@ -1405,6 +1408,12 @@ class AudioMeterControl(Control):
                 }
             )
         )
+
+    def update_events(self, events):
+        events["audioMeterMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.min_time
+        )
+        events["submitEnable"].add_trigger("audioMeterMinimalTime")
 
 
 class TappingAudioMeterControl(AudioMeterControl):

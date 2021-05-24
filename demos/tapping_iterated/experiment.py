@@ -98,7 +98,6 @@ class CustomTrial(AudioImitationChainTrial):
                             </script>
                             """
                 ),
-                prevent_response=False,
                 start_delay=0.5,
             ),
             AudioRecordControl(
