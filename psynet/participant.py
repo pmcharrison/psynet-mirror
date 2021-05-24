@@ -2,6 +2,7 @@
 
 import datetime
 import json
+from smtplib import SMTPAuthenticationError
 
 import dallinger.models
 from dallinger.config import get_config
@@ -138,8 +139,6 @@ class Participant(dallinger.models.Participant):
         x = super().__json__()
         field.json_clean(x, details=True)
         field.json_add_extra_vars(x, self)
-        x["started_modules"] = self.started_modules
-        x["finished_modules"] = self.finished_modules
         del x["modules"]
         field.json_format_vars(x)
         return x
@@ -181,6 +180,11 @@ class Participant(dallinger.models.Participant):
         ]
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
+
+    @property
+    @extra_var(__extra_vars__)
+    def current_module(self):
+        return None if not self.started_modules else self.started_modules[-1]
 
     def start_module(self, label):
         modules = self.modules.copy()
@@ -260,7 +264,7 @@ class Participant(dallinger.models.Participant):
             "subject": "Maximum experiment payment reached.",
             "body": template.format(
                 assignment_id=self.assignment_id,
-                max_participant_payment=experiment_class.max_participant_payment,
+                max_participant_payment=experiment_class.var.max_participant_payment,
                 requested_bonus=requested_bonus,
                 reduced_bonus=reduced_bonus,
                 app_id=config.get("id"),
@@ -270,7 +274,16 @@ class Participant(dallinger.models.Participant):
             f"Recruitment ended. Maximum amount paid to participant "
             f"with assignment_id '{self.assignment_id}' reached!"
         )
-        admin_notifier(config).send(**message)
+        try:
+            admin_notifier(config).send(**message)
+        except SMTPAuthenticationError as e:
+            logger.error(
+                f"SMTPAuthenticationError sending 'max_participant_payment' reached email: {e}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Unknown error sending 'max_participant_payment' reached email: {e}"
+            )
 
     @property
     def response(self):
@@ -398,14 +411,14 @@ class TimeCreditStore:
         self.is_fixed = False
         self.pending_credit = 0.0
         self.max_pending_credit = 0.0
-        self.wage_per_hour = experiment.wage_per_hour
+        self.wage_per_hour = experiment.var.wage_per_hour
 
         experiment_estimated_time_credit = experiment.timeline.estimated_time_credit
         self.experiment_max_time_credit = experiment_estimated_time_credit.get_max(
             mode="time"
         )
         self.experiment_max_bonus = experiment_estimated_time_credit.get_max(
-            mode="bonus", wage_per_hour=experiment.wage_per_hour
+            mode="bonus", wage_per_hour=experiment.var.wage_per_hour
         )
 
     def increment(self, value: float):

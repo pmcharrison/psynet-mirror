@@ -1,0 +1,163 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+<style>
+  .main_div {
+    margin: 0;
+    font-size: 18px;
+  }
+
+  .center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+  }
+</style>
+
+<script>
+  var experiment_metadata = null;
+  window.addEventListener("load", function() {
+    dallinger.get("/metadata").done(function(resp) {
+      let duration_in_minutes = (resp.duration_seconds / 60).toFixed(0)
+      $("#duration_minutes").text(duration_in_minutes + (duration_in_minutes == 1 ? ' minute' : ' minutes'));
+      $("#total_estimated_payment").text(
+        "$" + ((resp.duration_seconds / 3600) * {{ experiment.var.wage_per_hour }}).toFixed(2) + ' in total'
+      );
+    });
+  });
+</script>
+
+<img src="/static/images/princeton-consent.png" alt="Princeton University adult consent form" style="width:450px" class="center">
+<div class="main_div" style="padding-bottom: 100px;">
+  <div class="consent_div text-justify">
+    <p>
+        TITLE OF RESEARCH: <i>Computational Cognitive Science</i> <br><br>
+        PRINCIPAL INVESTIGATOR: Thomas Griffiths <br><br>
+        PRINCIPAL INVESTIGATOR’S DEPARTMENT: <i>Psychology</i>
+    </p>
+    <p>
+        You are being invited to take part in a research study. Before you decide to participate in this study, it is
+        important that you understand why the research is being done and what it will involve. Please take the
+        time to read the following information carefully. Please ask the researcher if there is anything that is not
+        clear or if you need more information.
+    </p>
+
+    <h2>Purpose of the research:</h2>
+    <p>
+        This project aims to collect data that can be used to evaluate formal accounts of causal learning,
+        categorization, and language learning and to track how knowledge about these areas is transformed when
+        passed from person to person.
+    </p>
+
+    <h2>Study Procedures:</h2>
+    <p>
+        You will be presented with a visual stimulus and will then be asked to make one or more judgments about
+        that information, or decisions based upon it. In some cases you will be asked to provide explanations or
+        justifications for your responses, typically in the form of a short paragraph. The task will not involve
+        deception or emotionally disturbing materials - just simple questions about categories, causal
+        relationships, and languages. <br>
+        The task you will perform will be one or more of the following: 1. Being shown a set of members of a
+        category, and then asked to indicate which other objects are likely to belong to the category. 2. Being
+        presented a sequence of pictures or sounds, and being asked to predict the next item in the sequence. 3.
+        Being told a set of words in a language, and then making judgments about whether other words belong to
+        the language. 4. Being shown statistical information about the interaction of causes and effects, and then
+        making judgments about the causal relationships involved. 5. Observing a set of events or reading a
+        description or information, and then evaluating the probability of events or statements. 6. Being presented
+        with one or more visual puzzles and re-arranging elements on a screen to solve them.  7. Being presented
+        with visual stimuli and making a quantitative or qualitative judgment on the basis of said stimuli. 8.
+        Interacting with one or more participants about shared stimuli using a chat box. 9. Making a decision
+        about an action to take based on quantitative or qualitative information.
+    </p>
+
+    <p>
+        The answers you provide in the task may be used as stimuli for future participants. However, data that would identify you will not be shared with other participants.
+    </p>
+
+    <p>
+        Your total expected time commitment for this study is: <span id="duration_minutes" style="font-weight: bold"></span>.
+    </p>
+
+    <h2>Benefits and Risks: </h2>
+
+    <p>
+        There are no direct benefits to you as a participant; however, by furthering our understanding of human
+        cognition, this research will benefit society by helping with the development of automated systems that
+        can better solve problems that are computationally challenging, but that people can solve easily with little
+        formal guidance. <br>
+        Risks associated with participation in this study are minimal. You may feel slight discomfort answering
+        some questions, but you may refrain from answering any questions that make you uncomfortable and may
+        withdraw your participation at any time even after completing the experiment without penalty.
+    </p>
+
+    <h2>Confidentiality: </h2>
+    <p>
+        We will not be asking for any personally identifying information, and we will handle responses as
+        confidentially as possible. Your name, or your Worker IDs will never be tied to your responses on this
+        survey. However, we cannot guarantee the confidentiality of information transmitted over the Internet. To
+        minimize this risk, data containing anything that might be personally identifiable (e.g. Worker IDs) will
+        be encrypted on transfer and storage and will only be accessible to qualified lab personnel. We will be
+        keeping data collected as part of this experiment indefinitely. This anonymized data (containing neither
+        Worker IDs nor IP addresses) may be shared with the scientific community and corporate sponsors. At the
+        end of the survey you may be asked if you would like to provide your email or MTurk ID to be contacted
+        to participate in future studies., If you choose to provide this information, you may be contacted for
+        participation in future studies.
+    </p>
+
+    <h2>Compensation: </h2>
+    <p>
+        For your participation, you will receive approximately <span style="font-weight: bold">&#36;{{ "{:.2f}".format(experiment.var.wage_per_hour) }}
+        per hour</span>. Based on the estimated time to complete the experiment that amounts to
+        <span id="total_estimated_payment" style="font-weight: bold;"></span>. If you are on Mturk or Prolific and for any reason you do
+        not complete the study (e.g. technical difficulties, or a desire to stop), we will only be able to pay you if
+        you send an email through MTurk/Prolific, or by emailing the researcher, at cocosci-lab@princeton.edu.
+        If you have any questions about the study, feel free to contact the researcher or the Principal Investigator,
+        Thomas Griffiths, at tomg@princeton.edu.
+    </p>
+
+    <h2>Who to contact with questions:</h2>
+    <ol>
+        <li>PRINCIPAL INVESTIGATOR: <br><br>
+            Dr. Thomas Griffiths,<br>
+            tomg@princeton.edu <br><br>
+        </li>
+
+        <li>If you have questions regarding your rights as a research subject, or if problems arise which you do
+            not feel you can discuss with the Investigator, please contact the Institutional Review Board at: <br><br>
+            Assistant Director,<br>
+            Research Integrity and Assurance,<br>
+            Phone: (609) 258-8543,<br>
+            Email: irb@princeton.edu <br>
+        </li>
+    </ol>
+
+    <p>
+        I understand the information that was presented and that:
+        <ol>
+            <li>
+                My participation is voluntary, and I may withdraw my consent and discontinue participation in the project at any time.
+                My refusal to participate will not result in any penalty.
+            </li>
+            <li>
+                I do not waive any legal rights or release Princeton University, its agents, or you from liability for negligence.
+            </li>
+        </ol>
+    </p>
+
+    <p>
+        I hereby give my consent to be the subject of your research.
+    </p>
+    <p>
+        <span style="font-weight: bold">
+            This study has been approved by the Institutional Review Board for Human Subjects
+        </span>
+    </p>
+    <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page(true);" style="float: left;">
+        I agree
+    </button>
+    <button type="button" class="btn btn-danger btn-lg" onClick="psynet.next_page(false);" style="float: right;">
+        No, thank you (return task)
+    </button>
+  </div>
+</div>
+{% endblock %}

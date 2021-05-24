@@ -29,14 +29,17 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    consent_audiovisual_recordings = False
+    variables = {
+        "wage_per_hour": 12.0,
+        "new_variable": "some-value",
+    }
 
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),
         Module(
             "introduction",
             PageMaker(
-                lambda experiment, participant: InfoPage(
+                lambda: InfoPage(
                     f"The current time is {datetime.now().strftime('%H:%M:%S')}."
                 ),
                 time_estimate=5,
@@ -46,6 +49,7 @@ class Exp(psynet.experiment.Experiment):
                 "Write me a message!",
                 control=TextControl(one_line=False),
                 time_estimate=5,
+                save_answer=True,
             ),
             PageMaker(
                 lambda participant: InfoPage(f"Your message: {participant.answer}"),
@@ -59,10 +63,11 @@ class Exp(psynet.experiment.Experiment):
                 Prompt("What is your weight in kg?"),
                 NumberControl(),
                 time_estimate=5,
+                save_answer="weight",
             ),
             PageMaker(
                 lambda participant: InfoPage(
-                    f"Your weight is {participant.answer} kg."
+                    f"Your weight is {participant.var.weight} kg."
                 ),
                 time_estimate=5,
             ),
@@ -89,7 +94,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             conditional(
                 "like_chocolate",
-                lambda experiment, participant: participant.answer == "Yes",
+                lambda participant: participant.answer == "Yes",
                 InfoPage("It's nice to hear that you like chocolate!", time_estimate=5),
                 InfoPage(
                     "I'm sorry to hear that you don't like chocolate...",
@@ -98,10 +103,10 @@ class Exp(psynet.experiment.Experiment):
                 fix_time_credit=False,
             ),
         ),
-        CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
+        CodeBlock(lambda participant: participant.set_answer("Yes")),
         while_loop(
             "example_loop",
-            lambda experiment, participant: participant.answer == "Yes",
+            lambda participant: participant.answer == "Yes",
             Module(
                 "loop",
                 ModularPage(
@@ -169,13 +174,13 @@ class Exp(psynet.experiment.Experiment):
                 time_estimate=5,
             ),
             CodeBlock(
-                lambda experiment, participant: participant.var.new(
+                lambda participant: participant.var.new(
                     "favourite_color", participant.answer
                 )
             ),
             switch(
                 "color",
-                lambda experiment, participant: participant.answer,
+                lambda participant: participant.answer,
                 branches={
                     "Red": InfoPage("Red is a nice color, wait 1s.", time_estimate=1),
                     "Green": InfoPage(

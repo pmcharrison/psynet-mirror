@@ -113,6 +113,28 @@ but for some reason this can elicit subtle bugs that will
 probably interfere with your experiment.
 Let us know if you work out what the problem is and how to fix it.
 
+
+Experiment variables
+~~~~~~~~~~~~~~~~~~~~
+
+There are a couple of variables tied to an experiment all of which are documented
+in the :class:`~psynet.experiment.Experiment` class. They have been assigned reasonable default values which can be
+overridden. Also, they can be enriched with new variables in the following way:
+
+::
+
+    from psynet.experiment import Experiment
+
+    class SomeExperiment(psynet.Experiment):
+        variables = {
+            "new_variable": "some-value",  # Adding a new variable
+            "wage_per_hour": 12.0,         # Overriding an existing variable
+        }
+
+Experiment variables of an instance of ``Experiment`` can be accessed through the ``var`` property like
+``experiment.var.wage_per_hour``. Similarly they can also be set like ``experiment.var.set("wage_per_hour", 12.0)``.
+
+
 The participant class
 ---------------------
 

@@ -21,12 +21,13 @@ def exp_dir(root):
 
 @pytest.mark.usefixtures("exp_dir")
 class TestExp(object):
-    @pytest.fixture
-    def demo(self, db_session):  # , exp_config):
-        from psynet.demos.timeline.experiment import Exp
+    def test_variables(self, db_session):
+        from psynet.utils import import_local_experiment
 
-        instance = Exp(db_session)
-        yield instance
+        exp_class = import_local_experiment()["class"]
+        exp = exp_class.new(db_session)
+        assert exp.var.wage_per_hour == 12.0
+        assert exp.var.new_variable == "some-value"
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):
@@ -52,6 +53,7 @@ class TestExp(object):
             assert len(modules["introduction"]["time_finished"]) == 0
             assert participant.started_modules == ["introduction"]
             assert participant.finished_modules == []
+            assert participant.current_module == "introduction"
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
@@ -99,6 +101,10 @@ class TestExp(object):
 
             db_session.commit()
             participant = Participant.query.filter_by(id=1).one()
+
+            assert (
+                participant.var.weight == "78.5"
+            )  # ideally, NumberControl should really return a number, not a string!
 
             event_log = participant.last_response.metadata["event_log"]
             event_ids = [e["eventType"] for e in event_log]
@@ -152,6 +158,7 @@ class TestExp(object):
                 "chocolate",
             ]
             assert participant.finished_modules == ["introduction", "weight"]
+            assert participant.current_module == "chocolate"
 
             check_text(driver, "main-body", "Do you like chocolate? Yes No")
             next_page(driver, "Yes")
@@ -218,7 +225,7 @@ class TestExp(object):
                 "main-body",
                 (
                     "That's the end of the experiment! In addition to your base payment of $0.10, "
-                    "you will receive a bonus of $0.20 for the time you spent on the experiment. "
+                    "you will receive a bonus of $0.27 for the time you spent on the experiment. "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
             )
