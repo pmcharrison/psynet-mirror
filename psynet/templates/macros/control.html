@@ -401,27 +401,15 @@
         {% autoescape off %}
         var snap_values = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
         var minimal_interactions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
-        var minimal_time = {% if config.js_vars.minimal_time is none %}null{% else %}{{ config.js_vars.minimal_time }}{% endif %} ;
         var continuous_updates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
         var slider_id = '{{ config.slider_id }}';
         {% endautoescape %}
 
         // This is called each time
+        // To do - refactor this using psynet.trial.onEvent
         on_slider_event = function (event_type) {
 
         };
-
-        if (minimal_interactions > 0) {
-            psynet.submit.wait_for("slider_minimal_interactions");
-        }
-
-        psynet.submit.wait_for("slider_minimal_time");
-
-        psynet.response.register_on_ready_routine(function() {
-            setTimeout(function() {
-                psynet.submit.ready("slider_minimal_time");
-            }, minimal_time * 1000);
-        });
 
         // Metadata collection
         var slider = document.getElementById(slider_id);
@@ -432,6 +420,7 @@
             slider.log = [];
         }
 
+        // To do - refactor this into psynet.trial.eventLog
         slider.update_log = function() {
             if (!continuous_updates) {
                 slider.log.push({
@@ -456,15 +445,11 @@
             }
         };
 
-        // Save initial position
-        slider.initialise = function () {
-            psynet.log.debug('Slider page is loaded.');
+        psynet.trial.onEvent("prepare", () => {
             snap_slider();
             on_slider_event('initialise');
             slider.update_log();
-        };
-
-        psynet.response.register_on_ready_routine(slider.initialise);
+        })
 
         var slider_listener;
 
@@ -474,15 +459,24 @@
             slider_listener = "change";
         }
 
-        slider.addEventListener(slider_listener, function () {
-            snap_slider();
-            slider.interaction_count += 1;
-            if (slider.interaction_count >= minimal_interactions) {
-                psynet.submit.ready("slider_minimal_interactions");
+        let hadMinimalInteractions = false;
+        let checkMinimalInteractions = function() {
+            if (slider.interaction_count >= minimal_interactions && !hadMinimalInteractions) {
+                hadMinimalInteractions = true;
+                psynet.trial.registerEvent("sliderMinimalInteractions");
             }
-            on_slider_event('slider_changed');
-            slider.update_log();
-        }, false);
+        }
+
+        psynet.trial.onEvent("trialConstruct", () => {
+            checkMinimalInteractions();
+            slider.addEventListener(slider_listener, function () {
+                snap_slider();
+                slider.interaction_count += 1;
+                checkMinimalInteractions();
+                on_slider_event('slider_changed');
+                slider.update_log();
+            }, false);
+        });
 
         submit = function () {
             psynet.response.disable();
@@ -1274,14 +1268,6 @@
             window.requestAnimationFrame(update_video_from_slider);
         }
         update_video_from_slider();
-
-        var minimal_time = parseFloat("{{ config.minimal_time }}");
-        psynet.submit.wait_for("slider_minimal_time");
-        psynet.response.register_on_ready_routine(function() {
-            setTimeout(function() {
-                psynet.submit.ready("slider_minimal_time");
-            }, minimal_time * 1000);
-        });
 
         retrieve_response = function() {
             return {

@@ -193,7 +193,7 @@ class AudioPrompt(Prompt):
         )
 
         events["promptEnd"] = Event(is_triggered_by=[])
-        events["trialFinish"].add_trigger(Trigger("promptEnd"))
+        events["trialFinish"].add_trigger("promptEnd")
 
 
 class VideoPrompt(Prompt):
@@ -294,7 +294,7 @@ class VideoPrompt(Prompt):
         )
 
         events["promptEnd"] = Event(is_triggered_by=[])
-        events["trialFinish"].add_trigger(Trigger("promptEnd"))
+        events["trialFinish"].add_trigger("promptEnd")
 
 
 class ImagePrompt(Prompt):
@@ -1519,11 +1519,11 @@ class SliderControl(Control):
         self.input_type = input_type
         self.template_filename = template_filename
         self.template_args = template_args
+        self.minimal_time = minimal_time
 
         js_vars = {}
         js_vars["snap_values"] = snap_values
         js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["minimal_time"] = minimal_time
         js_vars["continuous_updates"] = continuous_updates
         self.js_vars = js_vars
 
@@ -1546,6 +1546,14 @@ class SliderControl(Control):
             "template_args": self.template_args,
             "js_vars": self.js_vars,
         }
+
+    def update_events(self, events):
+        events["sliderMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.minimal_time
+        )
+        events["submitEnable"].add_triggers(
+            "sliderMinimalInteractions", "sliderMinimalTime"
+        )
 
 
 class AudioSliderControl(SliderControl):
@@ -1843,7 +1851,7 @@ class AudioRecordControl(RecordControl):
 
     def update_events(self, events):
         super().update_events(events)
-        events["trialFinish"].add_trigger(Trigger("recordEnd"))
+        events["trialFinish"].add_trigger("recordEnd")
 
 
 class VideoRecordControl(RecordControl):
@@ -1949,7 +1957,7 @@ class VideoRecordControl(RecordControl):
 
     def update_events(self, events):
         super().update_events(events)
-        events["trialFinish"].add_trigger(Trigger("recordEnd"))
+        events["trialFinish"].add_trigger("recordEnd")
 
 
 class VideoSliderControl(Control):
@@ -1968,7 +1976,7 @@ class VideoSliderControl(Control):
         directional: bool = True,
         hide_slider: bool = False,
     ):
-        assert 0 <= starting_value and starting_value <= 1
+        assert 0 <= starting_value <= 1
 
         self.url = url
         self.file_type = file_type
@@ -2010,3 +2018,11 @@ class VideoSliderControl(Control):
             ).render()
         )
         return html
+
+    def update_events(self, events):
+        events["sliderMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.minimal_time
+        )
+        events["submitEnable"].add_triggers(
+            "sliderMinimalTime",
+        )

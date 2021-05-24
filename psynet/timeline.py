@@ -62,7 +62,17 @@ class Event(dict):
         )
 
     def add_trigger(self, trigger):
-        self["isTriggeredBy"].append(trigger)
+        if isinstance(trigger, str):
+            t = Trigger(triggering_event=trigger)
+        elif isinstance(trigger, Trigger):
+            t = trigger
+        else:
+            raise ValueError("trigger must be an object of class str or Trigger.")
+        self["isTriggeredBy"].append(t)
+
+    def add_triggers(self, *args):
+        for arg in args:
+            self.add_trigger(arg)
 
 
 class Trigger(dict):
