@@ -368,25 +368,25 @@ class ImagePrompt(Prompt):
         return {"text": self.text, "url": self.url, "hide_after": self.hide_after}
 
 
-class ColourPrompt(Prompt):
+class ColorPrompt(Prompt):
     """
-    Displays a colour to the participant.
+    Displays a color to the participant.
 
     Parameters
     ----------
 
-    colour
-        Colour to show, specified as a list of HSL values.
+    color
+        Color to show, specified as a list of HSL values.
 
     text
         Text to display to the participant. This can either be a string
         for plain text, or an HTML specification from ``flask.Markup``.
 
     width
-        CSS width specification for the colour box (default ``'200px'``).
+        CSS width specification for the color box (default ``'200px'``).
 
     height
-        CSS height specification for the colour box (default ``'200px'``).
+        CSS height specification for the color box (default ``'200px'``).
 
     text_align
         CSS alignment of the text.
@@ -395,19 +395,19 @@ class ColourPrompt(Prompt):
 
     def __init__(
         self,
-        colour: List[float],
+        color: List[float],
         text: Union[str, Markup],
         width: str = "200px",
         height: str = "200px",
         text_align: str = "left",
     ):
-        assert isinstance(colour, list)
+        assert isinstance(color, list)
         super().__init__(text=text, text_align=text_align)
-        self.hsl = colour
+        self.hsl = color
         self.width = width
         self.height = height
 
-    macro = "colour"
+    macro = "color"
 
     @property
     def metadata(self):
@@ -1871,6 +1871,7 @@ class AudioRecordControl(Control):
         filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "origin": "AudioRecordControl",
+            "supports_record_trial": True,
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
             "url": strip_url_parameters(raw_answer),
@@ -1894,7 +1895,8 @@ class AudioRecordControl(Control):
 
 class VideoRecordControl(Control):
     """
-    Records a video either by using the the camera or by capturing from the screen.
+    Records a video either by using the the camera or by capturing from the screen. Output format
+    for both screen and camera recording is ``.webm``.
 
     Parameters
     ----------
@@ -2007,6 +2009,8 @@ class VideoRecordControl(Control):
         return {}
 
     def format_answer(self, raw_answer, **kwargs):
+        camera_key = os.path.basename(urlparse(raw_answer["camera"]).path)
+        screen_key = os.path.basename(urlparse(raw_answer["screen"]).path)
         return {
             "s3_bucket": self.s3_bucket,
             "camera_url": strip_url_parameters(raw_answer["camera"])
@@ -2016,6 +2020,10 @@ class VideoRecordControl(Control):
             if raw_answer is not None
             else None,
             "duration_sec": self.duration,
+            "origin": "VideoRecordControl",
+            "supports_record_trial": True,
+            "camera_key": camera_key,
+            "screen_key": screen_key,
             "recording_source": self.recording_source,
             "record_audio": self.record_audio,
         }

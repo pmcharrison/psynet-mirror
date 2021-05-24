@@ -237,13 +237,13 @@ class TestExp(object):
 
             assert (
                 driver.find_element_by_id("main-body").text
-                == "What's your favourite colour?\nRed\nGreen\nBlue"
+                == "What's your favourite color?\nRed\nGreen\nBlue"
             )
             next_page(driver, "Red")
 
             assert (
                 driver.find_element_by_id("main-body").text
-                == "Red is a nice colour, wait 1s.\nNext"
+                == "Red is a nice color, wait 1s.\nNext"
             )
             next_page(driver, "next_button")
 

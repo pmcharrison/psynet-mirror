@@ -44,7 +44,7 @@ class CustomTrial(NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
-        dump = escape(json.dumps(self.summarise(), indent=4))
+        dump = escape(json.dumps(self.summarize(), indent=4))
         text = Markup(
             f"""
             <p>

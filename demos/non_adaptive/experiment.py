@@ -109,7 +109,7 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
             return candidates
 
     def custom_stimulus_version_filter(self, candidates, participant):
-        # If the participant has answered at least three trials, make the text colour red.
+        # If the participant has answered at least three trials, make the text color red.
         trials = self.get_participant_trials(participant)
         complete_trials = [t for t in trials if t.complete]
         if participant.var.custom_filters and len(complete_trials) >= 3:
