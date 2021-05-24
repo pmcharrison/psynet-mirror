@@ -4,7 +4,14 @@ import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import ModularPage, VideoPrompt, VideoRecordControl
 from psynet.page import SuccessfulEndPage, UnsuccessfulEndPage
-from psynet.timeline import PageMaker, PreDeployRoutine, Timeline, conditional, join
+from psynet.timeline import (
+    PageMaker,
+    PreDeployRoutine,
+    ProgressDisplay,
+    Timeline,
+    conditional,
+    join,
+)
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -28,9 +35,9 @@ video_record_page = join(
             public_read=True,
             show_preview=True,
             controls=True,
-            progress_display=True,
         ),
         time_estimate=5,
+        progress_display=ProgressDisplay(duration=5.0),
     ),
     conditional(
         "video_record_page",
@@ -52,34 +59,6 @@ video_record_page = join(
                         Click <a href="{participant.answer["screen_url"]}">this link</a> to download the corresponding screen recording.
                     """
                 ),
-                width="400px",
-            ),
-        ),
-        time_estimate=5,
-    ),
-    ModularPage(
-        "screen_record_page",
-        "This page lets you record a video of your screen.",
-        VideoRecordControl(
-            s3_bucket=bucket_name,
-            duration=5.0,
-            recording_source="screen",
-            record_audio=False,
-            public_read=True,
-        ),
-        time_estimate=5,
-    ),
-    conditional(
-        "screen_record_page",
-        lambda experiment, participant: participant.answer["screen_url"] is None,
-        UnsuccessfulEndPage(failure_tags=["screen_record_page"]),
-    ),
-    PageMaker(
-        lambda participant: ModularPage(
-            "screen_playback",
-            VideoPrompt(
-                participant.answer["screen_url"],
-                "Here's the screen recording you just made.",
                 width="400px",
             ),
         ),

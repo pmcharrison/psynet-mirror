@@ -958,17 +958,16 @@
             let cameraStream = null;
             var videoRecorder = null;
 
-            psynet.trial.onEvent("trialConstruct", () => new Promise((resolve, reject) => {
+            psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
                 navigator.mediaDevices.getUserMedia({
                     audio: {{ config.record_audio | lower }},
                     video: true,
-                }).then(function (stream) {
+                }).then((stream) => {
                     psynet.log.debug("Initialising video recorder.");
                     cameraStream = stream;
                     resolve();
-                }).catch(function (error) {
-                    psynet.error('Cannot start video recording:', error.name + ":", error.message);
-                    reject();
+                }).catch((error) => {
+                    throw new Error('Cannot start video recording:', error.name + ":", error.message);
                 });
             }));
 
@@ -977,17 +976,15 @@
             })
 
             psynet.trial.onEvent("trialPrepare", () => {
-                // Prepare recorder
                 if (!replayMode) {
                     videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
-                        mimeType: 'video/webm',
+                        mimeType: "video/webm",
                     });
                     videoRecorder.stream = cameraStream;
                 }
             });
 
             psynet.trial.onEvent("trialPrepare", async function() {
-                // Prepare preview
                 await loadCameraPreview();
             });
 
@@ -1055,24 +1052,23 @@
         let screenStream = null;
 
         if (recording_screen) {
-            let prepareScreenRecorder = function() {
-                let success = function(stream) {
+            psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
+                navigator.mediaDevices.getDisplayMedia({
+                    video: true
+                }).then((stream => {
                     screenStream = stream;
-                    screenRecorder = new RecordRTCPromisesHandler(screenStream, {mimeType: 'video/webm'});
-                    screenRecorder.stream = screenStream;
                     resolve(true);
-                }
-                let error = function(error) {
-                    throw new Error("Unable to capture your screen." + error.name + ":" + error.message);
-                }
-                let f = navigator.mediaDevices.getDisplayMedia ? navigator.mediaDevices.getDisplayMedia : navigator.getDisplayMedia;
-                f({ video: true }).then(success).catch(error);
-            }
+                })).catch((error) => {
+                    throw new Error("Unable to capture your screen. " + error.name + ":" + error.message);
+                });
+            }));
 
-            psynet.trial.onEvent("trialPrepare", async function() {
-                // Prepare the screen recorder
+            psynet.trial.onEvent("trialPrepare", () => {
                 if (!replayMode) {
-                    await prepareScreenRecorder();
+                    screenRecorder = new RecordRTCPromisesHandler(screenStream, {
+                        mimeType: 'video/webm'
+                    });
+                    screenRecorder.stream = screenStream;
                 }
             });
 
