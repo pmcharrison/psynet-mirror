@@ -1750,9 +1750,9 @@ class Module:
         elts = join(*args)
 
         if self.default_id is None and id_ is None:
-            raise ValueError("Either one of <default_id> or <id_> must not be none.")
+            raise ValueError("Either one of <default_id> or <id_> must not be None.")
         if self.default_elts is None and elts is None:
-            raise ValueError("Either one of <default_elts> or <elts> must not be none.")
+            raise ValueError("Either one of <default_elts> or <elts> must not be None.")
 
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
