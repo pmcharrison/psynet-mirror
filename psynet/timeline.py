@@ -358,7 +358,7 @@ class ProgressStage(dict):
     def __init__(
         self,
         time: List,
-        caption: str,
+        caption: str = "",
         color: str = "rgb(49, 124, 246)",
         persistent: bool = False,
     ):
@@ -383,7 +383,7 @@ class ProgressDisplay(dict):
         self["show_bar"] = show_bar
 
         if stages is None:
-            stages = [ProgressStage(time=[0.0, duration], caption="")]
+            stages = [ProgressStage(time=[0.0, duration])]
 
         self["stages"] = stages
 
