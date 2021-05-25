@@ -6,7 +6,7 @@ import time
 import pytest
 
 from psynet.participant import Participant, get_participant
-from psynet.test import bot_class, check_text, next_page
+from psynet.test import assert_text, bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -38,7 +38,7 @@ class TestExp(object):
 
             assert get_participant(1).modules == {}
 
-            check_text(driver, "main-body", "Welcome to the experiment! Next")
+            assert_text(driver, "main-body", "Welcome to the experiment! Next")
             next_page(driver, "next_button")
 
             # Page 1
@@ -64,14 +64,14 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 2
-            check_text(driver, "main-body", "Write me a message! Next")
+            assert_text(driver, "main-body", "Write me a message! Next")
             text_input = driver.find_element_by_id("text_input")
             text_input.send_keys("Hello! I am a robot.")
-            check_text(driver, "next_button", "Next")
+            assert_text(driver, "next_button", "Next")
             next_page(driver, "next_button")
 
             # Page 3
-            check_text(driver, "main-body", "Your message: Hello! I am a robot. Next")
+            assert_text(driver, "main-body", "Your message: Hello! I am a robot. Next")
             next_page(driver, "next_button")
 
             db_session.commit()
@@ -89,14 +89,14 @@ class TestExp(object):
             ]
 
             # Page 4
-            check_text(driver, "main-body", "What is your weight in kg? Next")
+            assert_text(driver, "main-body", "What is your weight in kg? Next")
             text_input = driver.find_element_by_id("number_input")
             text_input.send_keys("78.5")
-            check_text(driver, "next_button", "Next")
+            assert_text(driver, "next_button", "Next")
             next_page(driver, "next_button")
 
             # Page 5
-            check_text(driver, "main-body", "Your weight is 78.5 kg. Next")
+            assert_text(driver, "main-body", "Your weight is 78.5 kg. Next")
             next_page(driver, "next_button")
 
             db_session.commit()
@@ -160,23 +160,23 @@ class TestExp(object):
             assert participant.finished_modules == ["introduction", "weight"]
             assert participant.current_module == "chocolate"
 
-            check_text(driver, "main-body", "Do you like chocolate? Yes No")
+            assert_text(driver, "main-body", "Do you like chocolate? Yes No")
             next_page(driver, "Yes")
 
             # Page 8
-            check_text(
+            assert_text(
                 driver, "main-body", "It's nice to hear that you like chocolate! Next"
             )
             next_page(driver, "next_button")
 
             # Loop
-            check_text(
+            assert_text(
                 driver, "main-body", "Would you like to stay in this loop? Yes No"
             )
 
             for _ in range(3):
                 next_page(driver, "Yes")
-                check_text(
+                assert_text(
                     driver, "main-body", "Would you like to stay in this loop? Yes No"
                 )
 
@@ -187,40 +187,40 @@ class TestExp(object):
             assert len(modules["loop"]["time_started"]) == 4
             assert len(modules["loop"]["time_finished"]) == 4
 
-            check_text(
+            assert_text(
                 driver,
                 "main-body",
                 "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer. Next",
             )
             next_page(driver, "next_button")
 
-            check_text(
+            assert_text(
                 driver, "main-body", "Participant 1, choose a shape: Square Circle"
             )
             next_page(driver, "Square")
 
-            check_text(
+            assert_text(
                 driver, "main-body", "Participant 1, choose a chord: Major Minor"
             )
             next_page(driver, "Minor")
 
-            check_text(
+            assert_text(
                 driver,
                 "main-body",
                 "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor']. Next",
             )
             next_page(driver, "next_button")
 
-            check_text(
+            assert_text(
                 driver, "main-body", "What's your favourite color? Red Green Blue"
             )
             next_page(driver, "Red")
 
-            check_text(driver, "main-body", "Red is a nice color, wait 1s. Next")
+            assert_text(driver, "main-body", "Red is a nice color, wait 1s. Next")
             next_page(driver, "next_button")
 
             # Final page
-            check_text(
+            assert_text(
                 driver,
                 "main-body",
                 (

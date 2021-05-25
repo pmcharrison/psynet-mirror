@@ -14,7 +14,7 @@ from .utils import wait_until
 logger = logging.getLogger(__file__)
 
 
-def check_text(driver, element_id, value):
+def assert_text(driver, element_id, value):
     element = driver.find_element_by_id(element_id)
 
     def sanitize(x):

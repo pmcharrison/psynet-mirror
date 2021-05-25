@@ -5,7 +5,7 @@ from collections import Counter
 import pytest
 
 from psynet.participant import Participant
-from psynet.test import bot_class, check_text, next_page
+from psynet.test import assert_text, bot_class, next_page
 from psynet.trial.non_adaptive import (
     NonAdaptiveNetwork,
     NonAdaptiveTrial,
@@ -40,18 +40,18 @@ class TestExp:
             # Do you want to enable custom stimulus filters?
             next_page(driver, "No")
 
-            check_text(driver, "trial-position", "Trial 1")
+            assert_text(driver, "trial-position", "Trial 1")
             next_page(driver, "A little")
 
             trial = NonAdaptiveTrial.query.filter_by(id=1).one()
             assert trial.answer == "A little"
 
-            check_text(driver, "trial-position", "Trial 2")
+            assert_text(driver, "trial-position", "Trial 2")
 
             next_page(driver, "Very much")
             trial = NonAdaptiveTrial.query.filter_by(id=2).one()
             assert trial.answer == "Very much"
-            check_text(driver, "trial-position", "Trial 3")
+            assert_text(driver, "trial-position", "Trial 3")
 
             num_remaining_trials = 4
             num_repeat_trials = 3
@@ -59,7 +59,7 @@ class TestExp:
             for _ in range(num_remaining_trials + num_repeat_trials):
                 next_page(driver, "Very much")
 
-            check_text(
+            assert_text(
                 driver,
                 "main-body",
                 "You finished the animal questions! Your score was 0. Next",
