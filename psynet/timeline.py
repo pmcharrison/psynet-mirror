@@ -31,6 +31,64 @@ logger = get_logger()
 
 
 class Event(dict):
+    """
+    Defines an event that occurs on the front-end for a given page.
+    This event is triggered once custom conditions are satisfied;
+    it can then trigger future events to occur.
+    One can define custom JS code to be run when these events execute
+    in one of two ways.
+    One approach is to register this custom JS code by writing something
+    like this:
+
+    ::
+
+        psynet.trial.onEvent("myEventId", function() {
+            // custom code goes here
+        });
+
+    A second approach is to add JS code directly to the ``js`` argument
+    of the present function.
+
+    The resulting object should be passed to the ``events`` parameter in
+    :class:`~psynet.timeline.Page`.
+
+    Parameters
+    ----------
+
+    is_triggered_by:
+        Defines the triggers for the present event.
+        A trigger can be specified either as a string corresponding to an event ID,
+        for example ``"trialStart"``, or as an object of class :class:`~psynet.timeline.Trigger`.
+        The latter case is more flexible because it allows a particular trigger to be delayed
+        by a specified number of seconds.
+        Multiple triggers can be defined by instead passing a list of these strings
+        or :class:`~psynet.timeline.Trigger` objects.
+
+    trigger_condition:
+        If this is set to ``"all"`` (default), then all triggers must be satisfied before the
+        event will be cued. If this is set to ``"any"``, then the event will be cued when
+        any one of these triggers occurred.
+
+    delay:
+        Determines the time interval (in seconds) between the trigger condition being satisfied
+        and the event being triggered (default = 0.0).
+
+    once:
+        If ``True`` (default), then the event will only be cued once, at the point when the
+        trigger condition is first satisfied. If ``False``, then the event will be recued
+        each time one of the triggers is hit again.
+
+    message:
+        Optional message to display when this event occurs.
+
+    message_color:
+        CSS color specification for the message.
+
+    js:
+        Optional Javascript code to execute when the event occurs.
+
+    """
+
     def __init__(
         self,
         is_triggered_by,
