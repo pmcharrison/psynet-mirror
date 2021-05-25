@@ -135,7 +135,7 @@ class Event(dict):
 class Trigger(dict):
     def __init__(self, triggering_event, delay=0.0):
         assert isinstance(triggering_event, str)
-        super().__init__(triggeringEvent=triggering_event, delay=float(delay))
+        super().__init__(triggering_event=triggering_event, delay=float(delay))
 
 
 def get_template(name):

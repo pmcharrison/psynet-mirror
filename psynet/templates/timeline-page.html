@@ -363,7 +363,6 @@
                     let Event = function(id, spec) {
                         let event = {
                             id: id,
-                            isTriggeredBy: spec.is_triggered_by,
                             willTrigger: [],
                             triggerCondition: spec.trigger_condition,
                             delay: spec.delay,
@@ -374,15 +373,20 @@
                             messageColor: spec.message_color,
                             js: spec.js
                         };
-
-                        event.isTriggeredBy.forEach((trigger) => {
-                            trigger.fired = false;
-                            trigger.triggeredEvent = event;
+                        event.isTriggeredBy = spec.is_triggered_by.map((t) => {
+                            let trigger = {
+                                delay: t.delay,
+                                triggeringEvent: t.triggering_event,
+                                fired: false,
+                                triggeredEvent: event
+                            };
                             trigger.fire = function() {
                                 trigger.fired = true;
                                 trigger.triggeredEvent.checkTriggers();
-                            }
+                            };
+                            return trigger
                         });
+
                         event.checkTriggers = function() {
                             let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
                             if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.happened)) {
@@ -447,8 +451,8 @@
 
                     let genericEvent = function(id) {
                         return Event(id, {
-                            isTriggeredBy: [],
-                            triggerCondition: "all",
+                            is_triggered_by: [],
+                            trigger_condition: "all",
                             delay: 0.0,
                             once: false
                         });
