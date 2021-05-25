@@ -981,7 +981,9 @@ class Timeline:
                 "Nested 'fix-time' constructs detected. This typically means you have "
                 "nested conditionals or while loops with fix_time_credit=True. "
                 "Such constructs cannot be nested; instead you should choose one level "
-                "at which to set fix_time_credit=True."
+                "at which to set fix_time_credit=True. An example where this error might "
+                "occur is when you put a TrialMaker within a switch. In this case, "
+                "make sure to set `fix_time_credit=False` within that switch."
             )
 
     def check_modules(self):
@@ -1360,12 +1362,19 @@ def check_branches(branches):
     try:
         assert isinstance(branches, dict)
         for branch_name, branch_events in branches.items():
-            assert isinstance(branch_events, Event) or is_list_of(branch_events, Event)
+            assert isinstance(branch_events, (Event, Module)) or is_list_of(
+                branch_events, Event
+            )
+
+            from .trial.main import TrialMaker
+
             if isinstance(branch_events, Event):
                 branches[branch_name] = [branch_events]
+            elif isinstance(branch_events, TrialMaker):
+                branches[branch_name] = branch_events.resolve()
         return branches
     except AssertionError:
-        raise TypeError("<branches> must be a dict of (lists of) Event objects.")
+        raise TypeError("<branches> must be a dict of (lists of) Event/Module objects.")
 
 
 def switch(

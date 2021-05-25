@@ -158,3 +158,22 @@ def test_estimate_credit__while_loop__switch__fix_time_false():
         expected_repetitions=5,
     )
     assert CreditEstimate(e).get_max("time") == 50
+
+
+def test_switch_with_trial_maker():
+    tm_1 = new_trial_maker(id_="tm-1")
+    tm_2 = new_trial_maker(id_="tm-2")
+    timeline = Timeline(
+        switch(
+            "test",
+            lambda experiment, participant: participant.var.switch,
+            {
+                "a": tm_1,
+                "b": tm_2,
+            },
+            fix_time_credit=False,
+        ),
+        SuccessfulEndPage(),
+    )
+    assert timeline.get_trial_maker("tm-1") == tm_1
+    assert timeline.get_trial_maker("tm-2") == tm_2
