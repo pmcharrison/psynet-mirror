@@ -499,7 +499,7 @@ class Page(Elt):
         ``promptStart`` (start of the prompt),
         ``promptEnd`` (end of the prompt),
         ``recordStart`` (beginning of a recording),
-        ``recordEnd`` (end of a recording,
+        ``recordEnd`` (end of a recording),
         ``responseEnable`` (enables the response options),
         and ``submitEnable`` (enables the user to submit their response).
         Typically these events and their triggers are set to sensible defaults, but the user is welcome to modify
