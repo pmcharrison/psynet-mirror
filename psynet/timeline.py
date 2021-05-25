@@ -502,8 +502,8 @@ class Page(Elt):
         ``recordEnd`` (end of a recording),
         ``responseEnable`` (enables the response options),
         and ``submitEnable`` (enables the user to submit their response).
-        Typically these events and their triggers are set to sensible defaults, but the user is welcome to modify
-        these defaults through this mechanism.
+        These events and their triggers are set to sensible defaults,
+        but the user is welcome to modify them for greater customization.
         Users constructing custom modular page
         :class:`~psynet.modular_page.Prompt}`
         and
