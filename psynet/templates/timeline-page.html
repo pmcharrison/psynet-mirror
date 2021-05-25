@@ -363,15 +363,15 @@
                     let Event = function(id, spec) {
                         let event = {
                             id: id,
-                            isTriggeredBy: spec.isTriggeredBy,
+                            isTriggeredBy: spec.is_triggered_by,
                             willTrigger: [],
-                            triggerCondition: spec.triggerCondition,
+                            triggerCondition: spec.trigger_condition,
                             delay: spec.delay,
                             once: spec.once,
                             handlers: [],
                             happened: false,
                             message: spec.message,
-                            message_color: spec.message_color,
+                            messageColor: spec.message_color,
                             js: spec.js
                         };
 
@@ -415,7 +415,7 @@
 
                         event.showMessage = function() {
                             if (event.message !== null) {
-                                psynet.trialProgress.setText(event.message, event.message_color);
+                                psynet.trialProgress.setText(event.message, event.messageColor);
                             }
                         };
 

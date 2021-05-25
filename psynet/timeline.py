@@ -51,8 +51,8 @@ class Event(dict):
         ]
 
         super().__init__(
-            isTriggeredBy=is_triggered_by,
-            triggerCondition=trigger_condition,
+            is_triggered_by=is_triggered_by,
+            trigger_condition=trigger_condition,
             delay=delay,
             once=once,
             message=message,
@@ -67,7 +67,7 @@ class Event(dict):
             t = trigger
         else:
             raise ValueError("trigger must be an object of class str or Trigger.")
-        self["isTriggeredBy"].append(t)
+        self["is_triggered_by"].append(t)
 
     def add_triggers(self, *args):
         for arg in args:
