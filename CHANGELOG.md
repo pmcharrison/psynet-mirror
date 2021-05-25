@@ -10,6 +10,7 @@ somewhat as a result.
 - Added `ProgressDisplay` functionality, which visualizes the 
 current progress in the trial with text messages and/or
 progress bars. 
+- Added `controls`, `muted`, and `hide_when_finished` arguments to `VideoPrompt`. 
 
 #### Changed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
@@ -18,10 +19,10 @@ progress bars.
 camel case consistently, e.g. writing `buttonId` instead of `button_id`.
 This reflects the camel case formatting conventions of the trial
 scheduler and the JS front-end. 
-
-#### Changed
-
 - `psynet debug` now warns the user if the app title is too long.
+
+#### Fixed
+- `play_window` now works in `VideoPrompt`. 
 
 # [1.14.0] Released on 2021-05-17
 

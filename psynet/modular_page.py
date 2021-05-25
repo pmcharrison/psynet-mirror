@@ -211,9 +211,6 @@ class VideoPrompt(Prompt):
         Text to display to the participant. This can either be a string
         for plain text, or an HTML specification from ``flask.Markup``.
 
-    loop
-        Whether the video should loop back to the beginning after finishing.
-
     text_align
         CSS alignment of the text.
 
@@ -223,12 +220,20 @@ class VideoPrompt(Prompt):
     play_window
         An optional two-element list identifying the time window in the video file that
         should be played.
-        If the first element is ``None``, then the video file is played from the beginning;
-        otherwise, the video file starts playback from this timepoint (in seconds)
-        (note that negative numbers will not be accepted here).
-        If the second element is ``None``, then the video file is played until the end;
-        otherwise, the video file finishes playback at this timepoint (in seconds).
-        The behaviour is undefined when the time window extends past the end of the video file.
+        If a list is provided, the first element must be a number specifying the timepoint in seconds
+        at which the video should begin.
+        The second element may then either be ``None``, in which case the video is played until the end,
+        or a number specifying the timepoint in seconds at which the video should end.
+
+    controls
+        Determines whether the user should be given controls for manipulating video playback.
+
+    muted
+        If ``True``, then the video will be muted (i.e. it will play without audio).
+        The default is ``False``.
+
+    hide_when_finished
+        If ``True`` (default), the video will disappear once it has finished playing.
 
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
@@ -238,26 +243,31 @@ class VideoPrompt(Prompt):
         self,
         url: str,
         text: Union[str, Markup],
-        loop: bool = False,
         text_align="left",
         width: str = "560px",
         play_window: Optional[List] = None,
+        controls: bool = False,
+        muted: bool = False,
+        hide_when_finished: bool = True,
         **kwargs,
     ):
         if play_window is None:
-            play_window = [None, None]
+            play_window = [0.0, None]
         assert len(play_window) == 2
-
-        if play_window[0] is not None and play_window[0] < 0:
-            raise ValueError("play_window[0] may not be less than 0")
+        assert play_window[0] is not None
+        assert play_window[0] >= 0.0
 
         super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
-        self.loop = loop
         self.width = width
         self.play_window = play_window
 
-        self.js_play_options = dict(loop=loop, start=play_window[0], end=play_window[1])
+        self.js_play_options = dict(
+            start_at=play_window[0],
+            muted=muted,
+            controls=controls,
+            hide_when_finished=hide_when_finished,
+        )
 
     macro = "video"
 
@@ -291,10 +301,16 @@ class VideoPrompt(Prompt):
                     triggering_event="trialStart",
                     delay=0,
                 )
-            ]
+            ],
+            once=True,
         )
 
-        events["promptEnd"] = Event(is_triggered_by=[])
+        events["promptEnd"] = Event(is_triggered_by=None, once=True)
+
+        if self.play_window[1] is not None:
+            duration = self.play_window[1] - self.play_window[0]
+            events["promptEnd"].add_trigger("promptStart", delay=duration)
+
         events["trialFinish"].add_trigger("promptEnd")
 
 

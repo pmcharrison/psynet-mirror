@@ -118,9 +118,9 @@ class Event(dict):
             js=js,
         )
 
-    def add_trigger(self, trigger):
+    def add_trigger(self, trigger, **kwargs):
         if isinstance(trigger, str):
-            t = Trigger(triggering_event=trigger)
+            t = Trigger(triggering_event=trigger, **kwargs)
         elif isinstance(trigger, Trigger):
             t = trigger
         else:
