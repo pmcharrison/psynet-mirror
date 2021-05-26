@@ -8,7 +8,7 @@ class Chord(dict):
         pitches,
         duration="default",
         silence="default",
-        timbre="default",  # <-- rename this as timbre?
+        timbre="default",
     ):
         super().__init__(
             pitches=pitches,
