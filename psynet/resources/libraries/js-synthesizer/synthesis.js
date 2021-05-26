@@ -1,16 +1,21 @@
 const ADDITIVE_TYPES = ["additive", "harmonic", "stretched", "compressed", "pure"]
 
+let TIMERS = [];
+
 play_stimulus = function (stimulus) {
   note_list = stimulus["notes"]
   var n = note_list.length;
   var onsets = new Array(n).fill(0);
+
+  TIMERS.forEach(clearTimeout);
+  TIMERS = [];
 
   for (i = 0; i < n; i ++) {
     note = note_list[i];
     if (i < n - 1) {
       onsets[i + 1] = onsets[i] + note["duration"] + note["silence"]; //2
     }
-    play_note_with_delay(ACTIVE_NODES, stimulus, note, 1000 * onsets[i]);
+    TIMERS.push(play_note_with_delay(ACTIVE_NODES, stimulus, note, 1000 * onsets[i]));
   }
 }
 
@@ -208,7 +213,7 @@ util_2d_array = function(M,N) {
 }
 
 play_note_with_delay = function(active_nodes, stimulus, note, delay) {
-  setTimeout(function() {
+  return setTimeout(function() {
     play_note(active_nodes, stimulus, note);
   }, delay);
 };
