@@ -253,6 +253,6 @@
             await sleep(0.5);
         });
 
-        psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus), 500);
+        psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus));
     </script>
 {% endmacro %}
