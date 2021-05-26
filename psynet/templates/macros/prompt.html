@@ -201,3 +201,58 @@
     {{ simple(config) }}
     {{ graphic_(config) }}
 {% endmacro %}
+
+
+{% macro js_synth(config) %}
+    {{ simple(config) }}
+
+    <script type="text/javascript" src="/static/scripts/js-synthesizer/Tone.js"></script>
+    <script type="text/javascript" src="/static/scripts/js-synthesizer/tonejs-ui.js"></script>
+    <script type="text/javascript" src="/static/scripts/js-synthesizer/instruments.js"></script>
+    <script type="text/javascript" src="/static/scripts/js-synthesizer/synthesis.js"></script>
+
+    <script>
+        let stimulus = {{ config.stimulus | tojson }};
+        let options = {{ config.options | tojson }};
+
+        var DEFAULT_PARAMS = {
+            "attack": 0.2, // Attack phase duration in seconds
+            "decay": 0.1, // Decay phase duration in seconds
+            "sustain_amp": 0.8, // Amplitude fraction to decay to relative to max amplitude
+            "duration": 1, // Overall pitch duration in seconds
+            "NH_max": 10, // Maximum number of partial harmonics per tone
+            "NH": 10, // Actual number of partial harmonics to use
+            "NP_max": 3, // Maximum number of pitches in a chord
+            "type": "harmonic", // Synthesis type
+            "inharmonicity": 2, // 2 is the harmonic series
+            "NSH_max": 4, // Maximum number of octave transpositions used to create a Shepard tower (runs from -NSH to NSH).
+                    // With NH=10 harmonics, can go up to NSH=5 without crashing, though it's too small for inversion invariance.
+                    // Can do pure with NSH=10 by setting NH=1, then harmonic = pure or NSH=10 and NH = 4 (recovers Nori's chords)
+            "NSH": 0, // Actual number of octave transpositions to use
+            "rolloff": 3, // Roll-off in units of dB/octave
+            "reg": 0.1, // regularizer for internal use
+        }
+        DEFAULT_PARAMS.NH_max = options.max_num_harmonics;
+        DEFAULT_PARAMS.NSH_max = options.max_num_octave_transpositions;
+
+        let LOADED_INSTRUMENTS = {};
+        let ACTIVE_NODES;
+
+        let sleep = async function(time) {
+            await new Promise((resolve) => {
+                setTimeout(() => resolve(), time * 1000);
+            });
+        }
+
+        psynet.trial.onEvent("trialConstruct", async function() {
+            await Tone.start();
+            for (const i of options.instruments) {
+                LOADED_INSTRUMENTS[i] = await load_sampler(i);
+            }
+            ACTIVE_NODES = generate_additive_nodes(options);
+            await sleep(0.5);
+        });
+
+        psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus), 500);
+    </script>
+{% endmacro %}

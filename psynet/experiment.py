@@ -560,6 +560,10 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
+                resource_filename("psynet", "resources/libraries/js-synthesizer"),
+                "/static/scripts/js-synthesizer",
+            ),
+            (
                 resource_filename("psynet", "templates/error.html"),
                 "templates/error.html",
             ),

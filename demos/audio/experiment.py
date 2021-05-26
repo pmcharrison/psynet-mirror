@@ -2,6 +2,7 @@ import flask
 
 import psynet.experiment
 from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent
+from psynet.js_synth import InstrumentTimbre, JSSynth, Note
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -24,6 +25,36 @@ from psynet.timeline import (
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+example_js_synth_1 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "The JS synthesizer uses by default a harmonic complex tone as the timbre.",
+        [
+            Note(60),
+            Note(64),
+            Note(67),
+        ],
+    ),
+    time_estimate=5,
+)
+
+example_js_synth_2 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "It is also possible to select various instrument sounds, for example the piano.",
+        [
+            Note(60),
+            Note(63),
+            Note(67),
+        ],
+        timbre=InstrumentTimbre("piano"),
+        default_duration=0.5,
+        default_silence=0.25,
+    ),
+    time_estimate=5,
+)
+
 
 example_preloading = InfoPage(
     flask.Markup(
@@ -296,6 +327,8 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),
+        example_js_synth_1,
+        example_js_synth_2,
         example_audio_page,
         example_audio_page_2,
         example_audio_page_3,
