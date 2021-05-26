@@ -380,17 +380,17 @@
                                 fired: false,
                                 triggeredEvent: event
                             };
-                            trigger.fire = function() {
+                            trigger.fire = function(info) {
                                 trigger.fired = true;
-                                trigger.triggeredEvent.checkTriggers();
+                                trigger.triggeredEvent.checkTriggers(info);
                             };
                             return trigger
                         });
 
-                        event.checkTriggers = function() {
+                        event.checkTriggers = function(info) {
                             let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
                             if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.happened)) {
-                                trial.setTimer(() => trial.registerEvent(id), event.delay * 1000);
+                                trial.setTimer(() => trial.registerEvent(id, {info: info}), event.delay * 1000);
                             }
                         };
 
@@ -423,26 +423,27 @@
                             }
                         };
 
-                        event.runJS = function() {
+                        event.runJS = function(info) {
                             if (event.js !== null) {
-                                Function(unescape(event.js))();
+                                debugger
+                                Function("info", unescape(event.js))(info);
                             }
                         };
 
-                        event.runHandlers = async function() {
+                        event.runHandlers = async function(info) {
                             let handlers = event.handlers;
                             handlers.sort((a, b) => a.priority - b.priority);
 
                             for (const handler of handlers) {
                                 trial.pendingEventHandlers.add(id);
-                                await handler.func();
+                                await handler.func(info);
                                 trial.pendingEventHandlers.remove(id);
                             }
                         };
 
-                        event.hitTriggers = function() {
+                        event.hitTriggers = function(info) {
                             for (const toBeTriggered of event.willTrigger) {
-                                trial.setTimer(() => toBeTriggered.fire(), toBeTriggered.delay * 1000);
+                                trial.setTimer(() => toBeTriggered.fire(info), toBeTriggered.delay * 1000);
                             }
                         };
 
@@ -559,9 +560,9 @@
                         if (event !== undefined) {
                             event.happened = true;
                             event.showMessage();
-                            event.runJS();
-                            await event.runHandlers();
-                            event.hitTriggers();
+                            event.runJS(options.info);
+                            await event.runHandlers(options.info);
+                            event.hitTriggers(options.info);
                         }
                     };
 

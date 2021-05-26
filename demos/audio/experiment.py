@@ -8,6 +8,7 @@ from psynet.modular_page import (
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
+    SliderControl,
     TappingAudioMeterControl,
     VideoPrompt,
     VideoRecordControl,
@@ -53,6 +54,35 @@ example_js_synth_2 = ModularPage(
         default_silence=0.25,
     ),
     time_estimate=5,
+)
+
+example_js_synth_3 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "We can manipulate individual notes with a slider.",
+        [
+            Note(60),
+            Note(63),
+            Note(67),
+        ],
+        timbre=InstrumentTimbre("piano"),
+        default_duration=0.5,
+        default_silence=0.25,
+    ),
+    SliderControl(label="slider", start_value=63, min_value=57, max_value=70),
+    time_estimate=5,
+    events={
+        "playMelody": Event(
+            is_triggered_by="sliderChange",
+            js="stimulus.notes[1].pitches = [info.outputValue]; psynet.trial.restart();",
+        ),
+        "disableSlider": Event(
+            is_triggered_by="promptStart", js="slider.disabled = true;"
+        ),
+        "enableSlider": Event(
+            is_triggered_by="promptEnd", js="slider.disabled = false;"
+        ),
+    },
 )
 
 
@@ -329,6 +359,7 @@ class Exp(psynet.experiment.Experiment):
         MTurkAudiovisualConsent(),
         example_js_synth_1,
         example_js_synth_2,
+        example_js_synth_3,
         example_audio_page,
         example_audio_page_2,
         example_audio_page_3,
