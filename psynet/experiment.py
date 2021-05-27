@@ -279,6 +279,12 @@ class Experiment(dallinger.experiment.Experiment):
             raise RuntimeError(
                 "PsyNet requires the clock process to be enabled; please set clock_on = true in config.txt."
             )
+
+        if config.get("disable_when_duration_exceeded"):
+            raise RuntimeError(
+                "PsyNet requires disable_when_duration_exceeded = False; please set disable_when_duration_exceeded = False in config.txt."
+            )
+
         n_char_title = len(config.get("title"))
         if n_char_title > 128:
             raise RuntimeError(
