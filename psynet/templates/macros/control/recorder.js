@@ -36,14 +36,14 @@ function _classCallCheck(instance, Constructor) {
 }
 
 var Recorder = exports.Recorder = (function () {
-    function Recorder(source, cfg) {
+    function Recorder(source, numChannels, cfg) {
         var _this = this;
 
         _classCallCheck(this, Recorder);
 
         this.config = {
             bufferLen: 4096,
-            numChannels: 1, // NORI CHANGED THIS TO HAVE ALWAYS A MONO FILE!!!
+            numChannels: numChannels,
             mimeType: 'audio/wav'
         };
         this.recording = false;

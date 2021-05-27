@@ -123,7 +123,7 @@ def node(db_session, network):
             n for n in nodes if not isinstance(n, Source) and n.definition is not None
         ][0]
     else:
-        raise RuntimeError("Unrecognised ACTIVE_EXPERIMENT: " + ACTIVE_EXPERIMENT)
+        raise RuntimeError("Unrecognized ACTIVE_EXPERIMENT: " + ACTIVE_EXPERIMENT)
 
 
 @pytest.fixture

@@ -49,7 +49,7 @@ class Participant(dallinger.models.Participant):
     id : int
         The participant's unique ID.
 
-    event_id : int
+    elt_id : int
         Represents the participant's position in the timeline.
         Should not be modified directly.
         Stored in the database as ``property1``.
@@ -110,7 +110,7 @@ class Participant(dallinger.models.Participant):
     __mapper_args__ = {"polymorphic_identity": "participant"}
     __extra_vars__ = {}
 
-    event_id = field.claim_field("event_id", __extra_vars__, int)
+    elt_id = field.claim_field("elt_id", __extra_vars__, int)
     page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
     complete = field.claim_field("complete", __extra_vars__, bool)
     answer = field.claim_field("answer", __extra_vars__, object)
@@ -210,7 +210,7 @@ class Participant(dallinger.models.Participant):
         return self
 
     def initialise(self, experiment, client_ip_address: str):
-        self.event_id = -1
+        self.elt_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0
@@ -312,7 +312,7 @@ class Participant(dallinger.models.Participant):
         return TimeCreditStore(self)
 
     def append_branch_log(self, entry: str):
-        # We need to create a new list otherwise the change may not be recognised
+        # We need to create a new list otherwise the change may not be recognized
         # by SQLAlchemy(?)
         if (
             not isinstance(entry, list)

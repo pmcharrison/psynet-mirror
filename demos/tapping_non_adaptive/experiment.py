@@ -212,7 +212,7 @@ stimulus_music_set = StimulusSet(
 class TapTrialAnalysis(AudioRecordTrial, NonAdaptiveTrial):
     __mapper_args__ = {"polymorphic_identity": "analysis_trial_metronome"}
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         temp_file = self.info
         with open(temp_file, "r") as file:
             info_stimulus = json.load(file)
@@ -312,7 +312,6 @@ class TapTrial(TapTrialAnalysis):
                     </script>
                     """
                 ),
-                prevent_response=False,
                 start_delay=0.5,
             ),
             AudioRecordControl(

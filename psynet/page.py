@@ -19,6 +19,7 @@ from .modular_page import (
 from .timeline import (
     CodeBlock,
     EndPage,
+    Event,
     Page,
     PageMaker,
     get_template,
@@ -237,7 +238,7 @@ def wait_while(
     -------
 
     list :
-        A list of test events suitable for inclusion in a PsyNet timeline.
+        A list of test elts suitable for inclusion in a PsyNet timeline.
     """
     assert expected_wait >= 0
     assert check_interval > 0
@@ -878,10 +879,10 @@ class DebugResponsePage(PageMaker):
     """
 
     def __init__(self):
-        super().__init__(self.summarise_last_response, time_estimate=0)
+        super().__init__(self.summarize_last_response, time_estimate=0)
 
     @staticmethod
-    def summarise_last_response(participant):
+    def summarize_last_response(participant):
         response = participant.response
         if response is None:
             return InfoPage("No response found to display.")
@@ -914,7 +915,12 @@ class VolumeCalibration(ModularPage):
         self._min_time = min_time
         self._url = url
         super().__init__(
-            "volume_calibration", prompt=self._prompt, time_estimate=time_estimate
+            "volume_calibration",
+            prompt=self._prompt,
+            time_estimate=time_estimate,
+            events={
+                "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
+            },
         )
 
     @property
@@ -935,6 +941,4 @@ class VolumeCalibration(ModularPage):
 
     @property
     def _prompt(self):
-        return AudioPrompt(
-            self._url, self._text, loop=True, enable_submit_after=self._min_time
-        )
+        return AudioPrompt(self._url, self._text, loop=True)

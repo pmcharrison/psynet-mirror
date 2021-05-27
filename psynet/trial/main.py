@@ -663,7 +663,7 @@ class TrialMaker(Module):
         Users are invited to override this.
 
     introduction
-        An optional event or list of events to execute prior to beginning the trial loop.
+        An optional event or list of elts to execute prior to beginning the trial loop.
 
     give_end_feedback_passed : bool
         If ``True``, then participants who pass the final performance check
@@ -722,7 +722,7 @@ class TrialMaker(Module):
         self.target_num_participants = target_num_participants
         self.num_repeat_trials = num_repeat_trials
 
-        events = join(
+        elts = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
             ParticipantFailRoutine(
                 self.with_namespace(), self.participant_fail_routine
@@ -740,7 +740,7 @@ class TrialMaker(Module):
             else None,
         )
         label = self.with_namespace()
-        super().__init__(label, events)
+        super().__init__(label, elts)
 
     participant_progress_threshold = 0.1
 
@@ -1157,7 +1157,7 @@ class TrialMaker(Module):
         Returns
         -------
 
-        An event (:class:`~psynet.timeline.Event`) or a list of events.
+        An :class:`~psynet.timeline.Elt` or a list of :class:`~psynet.timeline.Elt`s.
         """
         return join(UnsuccessfulEndPage(failure_tags=["performance_check"]))
 

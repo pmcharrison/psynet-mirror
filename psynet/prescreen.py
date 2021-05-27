@@ -8,7 +8,7 @@ from .modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
-    ColourPrompt,
+    ColorPrompt,
     ImagePrompt,
     ModularPage,
     NAFCControl,
@@ -64,7 +64,7 @@ class REPPVolumeCalibrationMusic(Module):
         filename_image: str = "REPP-image_rules.png",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             InfoPage(
                 Markup(
                     f"""
@@ -98,7 +98,6 @@ class REPPVolumeCalibrationMusic(Module):
                 """
                     ),
                     loop=True,
-                    enable_submit_after=min_time_before_submitting,
                 ),
                 VolumeTestControlMusic(
                     min_time=min_time_before_submitting, calibrate=False
@@ -106,7 +105,7 @@ class REPPVolumeCalibrationMusic(Module):
                 time_estimate=time_estimate_per_trial,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class VolumeTestControlMarkers(AudioMeterControl):
@@ -145,7 +144,7 @@ class REPPVolumeCalibrationMarkers(Module):
         filename_image: str = "REPP-image_rules.png",
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             InfoPage(
                 Markup(
                     f"""
@@ -180,7 +179,6 @@ class REPPVolumeCalibrationMarkers(Module):
                 """
                     ),
                     loop=True,
-                    enable_submit_after=min_time_before_submitting,
                 ),
                 VolumeTestControlMarkers(
                     min_time=min_time_before_submitting, calibrate=False
@@ -188,7 +186,7 @@ class REPPVolumeCalibrationMarkers(Module):
                 time_estimate=time_estimate_per_trial,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class TappingTestAudioMeter(AudioMeterControl):
@@ -225,7 +223,7 @@ class REPPTappingCalibration(Module):
         filename_image: str = "tapping_instructions.jpg",
     ):
         self.label = label
-        self.events = ModularPage(
+        self.elts = ModularPage(
             self.label,
             Markup(
                 f"""
@@ -241,7 +239,7 @@ class REPPTappingCalibration(Module):
             TappingTestAudioMeter(min_time=min_time_before_submitting, calibrate=False),
             time_estimate=time_estimate_per_trial,
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class JSONSerializer(json.JSONEncoder):
@@ -299,7 +297,7 @@ class REPPMarkersCheck(Module):
         num_trials: int = 3,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(num_trials, media_url, filename_image),
             self.trial_maker(
                 media_url,
@@ -309,7 +307,7 @@ class REPPMarkersCheck(Module):
                 self.audio_filenames,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     audio_filenames = ["audio1.wav", "audio2.wav", "audio3.wav"]
 
@@ -369,8 +367,6 @@ class REPPMarkersCheck(Module):
                             <h4>Please remain silent while we play a sound and record it</h4>
                             """
                         ),
-                        prevent_response=False,
-                        start_delay=0.5,
                     ),
                     AudioRecordControl(
                         duration=self.definition["duration_sec"],
@@ -412,7 +408,7 @@ class REPPMarkersCheck(Module):
             def gives_feedback(self, experiment, participant):
                 return self.position == 0
 
-            def analyse_recording(self, audio_file: str, output_plot: str):
+            def analyze_recording(self, audio_file: str, output_plot: str):
                 import tapping_extract as tapping
 
                 params = (
@@ -518,7 +514,7 @@ class LanguageVocabularyTest(Module):
         num_trials: float = 7,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(
                 media_url,
@@ -529,7 +525,7 @@ class LanguageVocabularyTest(Module):
                 self.words,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     words = [
         "bell",
@@ -697,7 +693,7 @@ class LexTaleTest(Module):
         num_trials: float = 12,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(hide_after, num_trials),
             self.trial_maker(
                 media_url,
@@ -941,7 +937,7 @@ class AttentionCheck(Module):
 class ColorBlindnessTest(Module):
     """
     The color blindness test checks the participant's ability to perceive
-    colours. In each trial an image is presented which contains a number and the
+    colors. In each trial an image is presented which contains a number and the
     participant must enter the number that is shown into a text box. The image
     disappears after 3 seconds by default, which can be adjusted by providing a different
     value in the ``hide_after`` parameter.
@@ -1042,8 +1038,8 @@ class ColorBlindnessTest(Module):
                     ImagePrompt(
                         self.definition["url"],
                         "Write down the number in the image.",
-                        width="410px",
-                        height="403px",
+                        width="350px",
+                        height="344px",
                         hide_after=hide_after,
                         margin_bottom="15px",
                         text_align="center",
@@ -1080,7 +1076,7 @@ class ColorBlindnessTest(Module):
 
 class ColorVocabularyTest(Module):
     """
-    The color vocabulary test checks the participant's ability to name colours. In each trial, a
+    The color vocabulary test checks the participant's ability to name colors. In each trial, a
     colored box is presented and the participant must choose from a set of colors which color is
     displayed in the box. The colors which are presented can be freely chosen by providing an
     optional ``colors`` parameter. See the documentation for further details.
@@ -1176,7 +1172,7 @@ class ColorVocabularyTest(Module):
             def show_trial(self, experiment, participant):
                 return ModularPage(
                     "color_vocabulary_trial",
-                    ColourPrompt(
+                    ColorPrompt(
                         self.definition["target_hsl"],
                         "Which color is shown in the box?",
                         text_align="center",

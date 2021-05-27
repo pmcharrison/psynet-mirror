@@ -3,8 +3,8 @@ import os
 import shutil
 import struct
 import tempfile
+import uuid
 from pathlib import Path
-from uuid import uuid4
 
 import boto3
 import botocore.errorfactory
@@ -93,7 +93,7 @@ def prepare_s3_bucket_for_presigned_urls(
 def generate_presigned_url(bucket_name: str, file_extension: str):
     return new_s3_client().generate_presigned_url(
         "put_object",
-        Params={"Bucket": bucket_name, "Key": f"{str(uuid4())}.{file_extension}"},
+        Params={"Bucket": bucket_name, "Key": f"{str(uuid.uuid4())}.{file_extension}"},
     )
 
 

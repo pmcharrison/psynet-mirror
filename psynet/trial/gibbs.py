@@ -162,7 +162,7 @@ class GibbsTrial(ChainTrial):
         new[self.active_index] = self.answer
         return new
 
-    def summarise(self):
+    def summarize(self):
         return {
             "trial_id": self.id,
             "node_id": self.origin.id,
@@ -201,27 +201,27 @@ class GibbsNode(ChainNode):
         return x[0]
 
     # mean, median, kernel
-    summarise_trials_method = "mean"
+    summarize_trials_method = "mean"
 
-    def summarise_trial_dimension(self, observations):
-        method = self.summarise_trials_method
-        logger.debug("Summarising observations using method %s...", method)
+    def summarize_trial_dimension(self, observations):
+        method = self.summarize_trials_method
+        logger.debug("Summarizing observations using method %s...", method)
 
-        self.var.summarise_trial_method = method
+        self.var.summarize_trial_method = method
 
         if method == "mean":
             return mean(observations)
         elif method == "median":
             return median(observations)
         elif method == "kernel_mode":
-            return self.kernel_summarise(observations, method="mode")
+            return self.kernel_summarize(observations, method="mode")
         else:
             raise NotImplementedError
 
     # can be a number, or normal_reference, cv_ml, cv_ls (see https://www.statsmodels.org/devel/generated/statsmodels.nonparametric.kernel_density.KDEMultivariate.html)
     kernel_width = "cv_ls"
 
-    def kernel_summarise(self, observations, method):
+    def kernel_summarize(self, observations, method):
         assert isinstance(observations, list)
 
         kernel_width = self.kernel_width
@@ -250,16 +250,16 @@ class GibbsNode(ChainNode):
         else:
             raise NotImplementedError
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         """
-        This method summarises the answers to the provided trials.
+        This method summarizes the answers to the provided trials.
         The default method averages over all the provided parameter vectors,
         and will typically not need to be overridden.
 
         Parameters
         ----------
         trials
-            Trials to be summarised. By default only trials that are completed
+            Trials to be summarized. By default only trials that are completed
             (i.e. have received a response) and processed
             (i.e. aren't waiting for an asynchronous process)
             are provided here.
@@ -288,12 +288,12 @@ class GibbsNode(ChainNode):
             and ``active_index`` is an integer identifying which was the
             free parameter.
         """
-        self.var.summarise_trials_used = [t.id for t in trials]
+        self.var.summarize_trials_used = [t.id for t in trials]
         active_index = trials[0].active_index
         observations = [t.updated_vector[active_index] for t in trials]
 
-        summary = self.summarise_trial_dimension(observations)
-        self.var.summarise_trials_output = summary
+        summary = self.summarize_trial_dimension(observations)
+        self.var.summarize_trials_output = summary
 
         vector = trials[0].updated_vector.copy()
         vector[active_index] = summary

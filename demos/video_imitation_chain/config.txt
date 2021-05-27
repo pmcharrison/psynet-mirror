@@ -1,0 +1,36 @@
+[Launch mode]
+mode = sandbox
+
+[Payment information]
+title = Video Imitation Chain
+base_payment = 0.10
+
+[Recruitment strategy]
+auto_recruit = true
+lifetime = 2
+duration = 1
+us_only = false
+approve_requirement = 95
+ad_group = Game
+browser_exclude_rule = MSIE, mobile, tablet
+dashboard_password = capcapcap2021!
+dashboard_user = cap
+
+[Advert metadata]
+description = In this study, you will be imitating different gestures in a video recording. 
+keywords = non_adaptive
+contact_email_on_error = computational.audition+online_running@gmail.com
+organization_name = Max Planck Institute for Empirical Aesthetics
+
+[Database]
+database_url = postgresql://postgres@localhost/dallinger
+database_size = standard-2
+
+[Server]
+# Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
+dyno_type = performance-m
+num_dynos_web = 1
+num_dynos_worker = 3
+redis_size = premium-3
+host = 0.0.0.0
+clock_on = true

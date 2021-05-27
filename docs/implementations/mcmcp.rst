@@ -26,7 +26,7 @@ You can define a custom MCMCP experiment through the following steps:
    
 2. Decide on a set of free parameters that will define the parameter space
    for your chains. For example, one might use a tuple of three integers
-   identifying an RGB colour (e.g. ``(255, 25, 0)``).
+   identifying an RGB color (e.g. ``(255, 25, 0)``).
    Implement a subclass of :class:`~psynet.trial.mcmcp.MCMCPSource`
    with a custom :meth:`~psynet.trial.mcmcp.MCMCPSource.generate_seed` method
    for generating the starting free parameter values for an MCMCP chain.
@@ -56,21 +56,21 @@ You can define a custom MCMCP experiment through the following steps:
    and generate a proposed new set of free parameter values
    in the neighbourhood of these original values.
 
-5. (Optional) Add a custom :meth:`~psynet.trial.mcmcp.MCMCPNode.summarise_trials` method
+5. (Optional) Add a custom :meth:`~psynet.trial.mcmcp.MCMCPNode.summarize_trials` method
    to the :class:`~psynet.trial.mcmcp.MCMCPNode` class defined in the previous step.
    This new method should take a list of completed 
    :class:`~psynet.trial.mcmcp.MCMCPTrial` objects as input 
-   and summarise the elicited answers,
+   and summarize the elicited answers,
    which can be found in the :attr:`~psynet.trial.answer` attribute
    of each :class:`~psynet.trial.mcmcp.MCMCPTrial` object.
    In conventional MCMCP, there is just one :class:`~psynet.trial.mcmcp.MCMCPTrial`
    per :class:`~psynet.trial.mcmcp.MCMCPNode`,
-   and :meth:`~psynet.trial.mcmcp.MCMCPNode.summarise_trials` just returns
+   and :meth:`~psynet.trial.mcmcp.MCMCPNode.summarize_trials` just returns
    the stimulus that was selected by the participant.
    This behaviour is implemented in the default implementation.
    However, if one wishes to increase the number of trials per node,
    then one will have to implement a custom 
-   :meth:`~psynet.trial.mcmcp.MCMCPNode.summarise_trials` method.
+   :meth:`~psynet.trial.mcmcp.MCMCPNode.summarize_trials` method.
    
 6. Create an instance of :class:`~psynet.trial.mcmcp.MCMCPMaker`,
    filling in its constructor parameter list

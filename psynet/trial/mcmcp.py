@@ -120,10 +120,10 @@ class MCMCPNode(ChainNode):
         """
         raise NotImplementedError
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         """
         (Abstract method, to be overridden)
-        This method should summarise the answers to the provided trials.
+        This method should summarize the answers to the provided trials.
         A default method is implemented for cases when there is
         just one trial per node; in this case, the method extracts and returns
         the parameter values for the chosen stimulus, following the standard
@@ -134,7 +134,7 @@ class MCMCPNode(ChainNode):
         ----------
 
         trials
-            Trials to be summarised. By default only trials that are completed
+            Trials to be summarized. By default only trials that are completed
             (i.e. have received a response) and processed
             (i.e. aren't waiting for an asynchronous process)
             are provided here.
