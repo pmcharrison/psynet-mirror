@@ -35,11 +35,12 @@ This means that the tasks now run on the clock dyno,
 and are now robust to dyno restarts, app crashes etc.
 - Apply DRY principle to demo directories (delete redundant error.html and layout.html files).
 - Change the way experiment variables are set. For details on this important change, see the documentation at https://computational-audition-lab.gitlab.io/psynet/low_level/Experiment.html
+- PsyNet now uses the `experiment_routes` and `dashboard_tab` functionality 
+implemented in Dallinger v7.3.0.
 
 #### Fixed
 - Fix bug in non-adaptive experiments related to SQLAlchemy.
 - Prevent multiple instances of `check_database` from running simultaneously.
-
 
 # [1.13.1] Released on 2021-05-05
 

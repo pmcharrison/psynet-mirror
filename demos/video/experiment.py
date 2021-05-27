@@ -122,6 +122,3 @@ video_record_page = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(video_record_page, SuccessfulEndPage())
-
-
-extra_routes = Exp().extra_routes()
