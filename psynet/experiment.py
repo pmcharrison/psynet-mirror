@@ -7,13 +7,12 @@ import dallinger.experiment
 import rpdb
 from dallinger import db
 from dallinger.config import get_config
-from dallinger.experiment import scheduled_task
-from dallinger.experiment_server.dashboard import dashboard, dashboard_tabs
+from dallinger.experiment import experiment_route, scheduled_task
+from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
-from flask import Blueprint, jsonify, render_template, request
-from flask_login import login_required
+from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
 
 from psynet import __version__, data
@@ -255,12 +254,6 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_participant_fail_routine(event)
             if isinstance(event, RecruitmentCriterion):
                 self.register_recruitment_criterion(event)
-
-        tab_title = "Timeline"
-        if all(tab_title != tab.title for tab in dashboard_tabs):
-            dashboard_tabs.insert_after_route(
-                tab_title, "dashboard.timeline", "dashboard.monitoring"
-            )
 
     @classmethod
     def pre_deploy(cls):
@@ -526,6 +519,10 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_files(cls):
         return [
             (
+                resource_filename("psynet", "templates"),
+                "/templates",
+            ),
+            (
                 resource_filename("psynet", "resources/favicon.ico"),
                 "/static/favicon.ico",
             ),
@@ -565,247 +562,260 @@ class Experiment(dallinger.experiment.Experiment):
             ),
         ]
 
-    def extra_routes(self):
-        # pylint: disable=unused-variable
+    @dashboard_tab("Timeline", after_route="monitoring")
+    @classmethod
+    def dashboard_timeline(cls):
+        exp = cls.new(db.session)
+        panes = exp.monitoring_panels()
 
-        routes = Blueprint(
-            "extra_routes",
-            __name__,
-            template_folder="templates",
-            static_folder="static",
+        return render_template(
+            "dashboard_timeline.html",
+            title="Timeline modules",
+            panes=panes,
+            timeline_modules=json.dumps(exp.timeline.modules(), default=serialise),
         )
 
-        if not hasattr(dashboard, "timeline"):
-            dashboard.timeline = True
-
-            @dashboard.route("/timeline")
-            @login_required
-            def timeline():
-                exp = self.new(db.session)
-                panes = exp.monitoring_panels()
-
-                return render_template(
-                    "dashboard_timeline.html",
-                    title="Timeline modules",
-                    panes=panes,
-                    timeline_modules=json.dumps(
-                        exp.timeline.modules(), default=serialise
-                    ),
-                )
-
-        @routes.route("/get_participant_info_for_debug_mode", methods=["GET"])
-        def get_participant_info_for_debug_mode():
-            config = get_config()
-            if not config.get("mode") == "debug":
-                return error_response()
-
-            participant = Participant.query.first()
-            json_data = {
-                "id": participant.id,
-                "assignment_id": participant.assignment_id,
-                "page_uuid": participant.page_uuid,
-            }
-            logger.debug(
-                f"Returning from /get_participant_info_for_debug_mode: {json_data}"
-            )
-            return json.dumps(json_data, default=serialise)
-
-        @routes.route("/export", methods=["GET"])
-        def export():
-            class_name = request.args.get("class_name")
-            exported_data = data.export(class_name)
-            return json.dumps(exported_data, default=serialise)
-
-        @routes.route("/module/<module_id>", methods=["GET"])
-        def get_module_details_as_rendered_html(module_id):
-            trial_maker = self.timeline.get_trial_maker(module_id)
-            return trial_maker.visualize()
-
-        @routes.route("/module/<module_id>/tooltip", methods=["GET"])
-        def get_module_tooltip_as_rendered_html(module_id):
-            trial_maker = self.timeline.get_trial_maker(module_id)
-            return trial_maker.visualize_tooltip()
-
-        @routes.route("/module/progress_info", methods=["GET"])
-        def get_progress_info():
-            progress_info = {
-                "spending": {
-                    "amount_spent": self.amount_spent(),
-                    "soft_max_experiment_payment": self.var.soft_max_experiment_payment,
-                }
-            }
-            module_ids = request.args.getlist("module_ids[]")
-            for module_id in module_ids:
-                trial_maker = self.timeline.get_trial_maker(module_id)
-                progress_info.update(trial_maker.get_progress_info())
-
-            return jsonify(progress_info)
-
-        @routes.route("/start", methods=["GET"])
-        def route_start():
-            return render_template("start.html")
-
-        @routes.route("/debugger/<password>", methods=["GET"])
-        def route_debugger(password):
-            if password == "my-secure-password-195762":
-                self.new(db.session)
-                rpdb.set_trace()
-                return success_response()
+    @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
+    @staticmethod
+    def get_participant_info_for_debug_mode():
+        config = get_config()
+        if not config.get("mode") == "debug":
             return error_response()
 
-        @routes.route("/metadata", methods=["GET"])
-        def get_metadata():
-            exp = self.new(db.session)
-            return jsonify(
-                {
-                    "duration_seconds": exp.timeline.estimated_time_credit.get_max(
-                        mode="time"
-                    ),
-                    "bonus_dollars": exp.timeline.estimated_time_credit.get_max(
-                        mode="bonus", wage_per_hour=exp.var.wage_per_hour
-                    ),
-                    "wage_per_hour": exp.var.wage_per_hour,
-                    "base_payment": exp.base_payment,
-                }
-            )
-
-        @routes.route("/node/<int:node_id>/fail", methods=["GET", "POST"])
-        def fail_node(node_id):
-            from dallinger.models import Node
-
-            node = Node.query.filter_by(id=node_id).one()
-            node.fail()
-            db.session.commit()
-            return success_response()
-
-        @routes.route("/info/<int:info_id>/fail", methods=["GET", "POST"])
-        def fail_info(info_id):
-            from dallinger.models import Info
-
-            info = Info.query.filter_by(id=info_id).one()
-            info.fail()
-            db.session.commit()
-            return success_response()
-
-        @routes.route("/network/<int:network_id>/grow", methods=["GET", "POST"])
-        def grow_network(network_id):
-            from .trial.main import TrialNetwork
-
-            network = TrialNetwork.query.filter_by(id=network_id).one()
-            trial_maker = self.timeline.get_trial_maker(network.trial_maker_id)
-            trial_maker._grow_network(network, participant=None, experiment=self)
-            db.session.commit()
-            return success_response()
-
-        @routes.route(
-            "/network/<int:network_id>/call_async_post_grow_network",
-            methods=["GET", "POST"],
+        participant = Participant.query.first()
+        json_data = {
+            "id": participant.id,
+            "assignment_id": participant.assignment_id,
+            "page_uuid": participant.page_uuid,
+        }
+        logger.debug(
+            f"Returning from /get_participant_info_for_debug_mode: {json_data}"
         )
-        def call_async_post_grow_network(network_id):
-            from .trial.main import TrialNetwork, call_async_post_grow_network
+        return json.dumps(json_data, default=serialise)
 
-            network = TrialNetwork.query.filter_by(id=network_id).one()
-            network.queue_async_process(call_async_post_grow_network)
-            db.session.commit()
+    @experiment_route("/export", methods=["GET"])
+    @staticmethod
+    def export():
+        class_name = request.args.get("class_name")
+        exported_data = data.export(class_name)
+        return json.dumps(exported_data, default=serialise)
+
+    @experiment_route("/module/<module_id>", methods=["GET"])
+    @classmethod
+    def get_module_details_as_rendered_html(cls, module_id):
+        exp = cls.new(db.session)
+        trial_maker = exp.timeline.get_trial_maker(module_id)
+        return trial_maker.visualize()
+
+    @experiment_route("/module/<module_id>/tooltip", methods=["GET"])
+    @classmethod
+    def get_module_tooltip_as_rendered_html(cls, module_id):
+        exp = cls.new(db.session)
+        trial_maker = exp.timeline.get_trial_maker(module_id)
+        return trial_maker.visualize_tooltip()
+
+    @experiment_route("/module/progress_info", methods=["GET"])
+    @classmethod
+    def get_progress_info(cls):
+        exp = cls.new(db.session)
+        progress_info = {
+            "spending": {
+                "amount_spent": exp.amount_spent(),
+                "soft_max_experiment_payment": exp.var.soft_max_experiment_payment,
+            }
+        }
+        module_ids = request.args.getlist("module_ids[]")
+        for module_id in module_ids:
+            trial_maker = exp.timeline.get_trial_maker(module_id)
+            progress_info.update(trial_maker.get_progress_info())
+
+        return jsonify(progress_info)
+
+    @experiment_route("/start", methods=["GET"])
+    @staticmethod
+    def route_start():
+        return render_template("start.html")
+
+    @experiment_route("/debugger/<password>", methods=["GET"])
+    @classmethod
+    def route_debugger(cls, password):
+        exp = cls.new(db.session)
+        if password == "my-secure-password-195762":
+            exp.new(db.session)
+            rpdb.set_trace()
             return success_response()
+        return error_response()
 
-        def get_client_ip_address():
-            if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
-                return request.environ["REMOTE_ADDR"]
-            else:
-                return request.environ["HTTP_X_FORWARDED_FOR"]
+    @experiment_route("/metadata", methods=["GET"])
+    @classmethod
+    def get_metadata(cls):
+        exp = cls.new(db.session)
+        return jsonify(
+            {
+                "duration_seconds": exp.timeline.estimated_time_credit.get_max(
+                    mode="time"
+                ),
+                "bonus_dollars": exp.timeline.estimated_time_credit.get_max(
+                    mode="bonus", wage_per_hour=exp.var.wage_per_hour
+                ),
+                "wage_per_hour": exp.var.wage_per_hour,
+                "base_payment": exp.base_payment,
+            }
+        )
 
-        @routes.route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
-        def route_timeline(participant_id, assignment_id):
-            from dallinger.experiment_server.utils import error_page
+    @experiment_route("/node/<int:node_id>/fail", methods=["GET", "POST"])
+    @staticmethod
+    def fail_node(node_id):
+        from dallinger.models import Node
 
-            exp = self.new(db.session)
-            participant = get_participant(participant_id)
-            mode = request.args.get("mode")
+        node = Node.query.filter_by(id=node_id).one()
+        node.fail()
+        db.session.commit()
+        return success_response()
 
-            if participant.assignment_id != assignment_id:
-                logger.error(
-                    f"Mismatch between provided assignment_id ({assignment_id})  "
-                    + f"and actual assignment_id {participant.assignment_id} "
-                    f"for participant {participant_id}."
-                )
-                msg = (
-                    "There was a problem authenticating your session, "
-                    + "did you switch browsers? Unfortunately this is not currently "
-                    + "supported by our system."
-                )
-                return error_page(participant=participant, error_text=msg)
+    @experiment_route("/info/<int:info_id>/fail", methods=["GET", "POST"])
+    @staticmethod
+    def fail_info(info_id):
+        from dallinger.models import Info
 
-            else:
-                if not participant.initialised:
-                    exp.init_participant(
-                        participant_id, client_ip_address=get_client_ip_address()
-                    )
-                page = exp.timeline.get_current_event(self, participant)
-                page.pre_render()
-                exp.save()
-                if mode == "json":
-                    return jsonify(page.__json__(participant))
-                return page.render(exp, participant)
+        info = Info.query.filter_by(id=info_id).one()
+        info.fail()
+        db.session.commit()
+        return success_response()
 
-        @routes.route("/response", methods=["POST"])
-        def route_response():
-            exp = self.new(db.session)
-            json_data = json.loads(request.values["json"])
-            blobs = request.files.to_dict()
+    @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
+    @classmethod
+    def grow_network(cls, network_id):
+        exp = cls.new(db.session)
+        from .trial.main import TrialNetwork
 
-            participant_id = get_arg_from_dict(json_data, "participant_id")
-            page_uuid = get_arg_from_dict(json_data, "page_uuid")
-            raw_answer = get_arg_from_dict(
-                json_data, "raw_answer", use_default=True, default=None
+        network = TrialNetwork.query.filter_by(id=network_id).one()
+        trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
+        trial_maker._grow_network(network, participant=None, experiment=exp)
+        db.session.commit()
+        return success_response()
+
+    @experiment_route(
+        "/network/<int:network_id>/call_async_post_grow_network",
+        methods=["GET", "POST"],
+    )
+    @staticmethod
+    def call_async_post_grow_network(network_id):
+        from .trial.main import TrialNetwork, call_async_post_grow_network
+
+        network = TrialNetwork.query.filter_by(id=network_id).one()
+        network.queue_async_process(call_async_post_grow_network)
+        db.session.commit()
+        return success_response()
+
+    @staticmethod
+    def get_client_ip_address():
+        if request.environ.get("HTTP_X_FORWARDED_FOR") is None:
+            return request.environ["REMOTE_ADDR"]
+        else:
+            return request.environ["HTTP_X_FORWARDED_FOR"]
+
+    @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_timeline(cls, participant_id, assignment_id):
+        from dallinger.experiment_server.utils import error_page
+
+        exp = cls.new(db.session)
+        participant = get_participant(participant_id)
+        mode = request.args.get("mode")
+
+        if participant.assignment_id != assignment_id:
+            logger.error(
+                f"Mismatch between provided assignment_id ({assignment_id})  "
+                + f"and actual assignment_id {participant.assignment_id} "
+                f"for participant {participant_id}."
             )
-            metadata = get_arg_from_dict(json_data, "metadata")
-            client_ip_address = get_client_ip_address()
-
-            res = exp.process_response(
-                participant_id,
-                raw_answer,
-                blobs,
-                metadata,
-                page_uuid,
-                client_ip_address,
+            msg = (
+                "There was a problem authenticating your session, "
+                + "did you switch browsers? Unfortunately this is not currently "
+                + "supported by our system."
             )
+            return error_page(participant=participant, error_text=msg)
 
+        else:
+            if not participant.initialised:
+                exp.init_participant(
+                    participant_id, client_ip_address=cls.get_client_ip_address()
+                )
+            page = exp.timeline.get_current_event(exp, participant)
+            page.pre_render()
             exp.save()
-            return res
+            if mode == "json":
+                return jsonify(page.__json__(participant))
+            return page.render(exp, participant)
 
-        @routes.route(
-            "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
+    @experiment_route("/response", methods=["POST"])
+    @classmethod
+    def route_response(cls):
+        exp = cls.new(db.session)
+        json_data = json.loads(request.values["json"])
+        blobs = request.files.to_dict()
+
+        participant_id = get_arg_from_dict(json_data, "participant_id")
+        page_uuid = get_arg_from_dict(json_data, "page_uuid")
+        raw_answer = get_arg_from_dict(
+            json_data, "raw_answer", use_default=True, default=None
         )
-        def log(level, participant_id, assignment_id):
-            participant = get_participant(participant_id)
-            message = request.values["message"]
+        metadata = get_arg_from_dict(json_data, "metadata")
+        client_ip_address = cls.get_client_ip_address()
 
-            if participant.assignment_id != assignment_id:
-                logger.warning(
-                    "Received wrong assignment_id for participant %i "
-                    "(expected %s, got %s).",
-                    participant_id,
-                    participant.assignment_id,
-                    assignment_id,
-                )
+        res = exp.process_response(
+            participant_id,
+            raw_answer,
+            blobs,
+            metadata,
+            page_uuid,
+            client_ip_address,
+        )
 
-            assert level in ["warning", "info", "error"]
+        exp.save()
+        return res
 
-            string = f"[CLIENT {participant_id}]: {message}"
+    @experiment_route(
+        "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
+    )
+    @staticmethod
+    def http_log(level, participant_id, assignment_id):
+        participant = get_participant(participant_id)
+        message = request.values["message"]
 
-            if level == "info":
-                logger.info(string)
-            elif level == "warning":
-                logger.warning(string)
-            elif level == "error":
-                logger.error(string)
-            else:
-                raise RuntimeError("This shouldn't happen.")
+        if participant.assignment_id != assignment_id:
+            logger.warning(
+                "Received wrong assignment_id for participant %i "
+                "(expected %s, got %s).",
+                participant_id,
+                participant.assignment_id,
+                assignment_id,
+            )
 
-            return success_response()
+        assert level in ["warning", "info", "error"]
 
-        return routes
+        string = f"[CLIENT {participant_id}]: {message}"
+
+        if level == "info":
+            logger.info(string)
+        elif level == "warning":
+            logger.warning(string)
+        elif level == "error":
+            logger.error(string)
+        else:
+            raise RuntimeError("This shouldn't happen.")
+
+        return success_response()
+
+    @staticmethod
+    def extra_routes():
+        raise RuntimeError(
+            "\n\n"
+            + "Due to a recent update, the following line is no longer required in PsyNet experiments:\n\n"
+            + "extra_routes = Exp().extra_routes()\n\n"
+            + "Please delete it from your experiment.py file and try again.\n"
+        )
 
 
 class ExperimentNetwork(Network):

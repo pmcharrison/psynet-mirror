@@ -38,6 +38,3 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

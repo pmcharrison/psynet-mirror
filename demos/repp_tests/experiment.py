@@ -37,6 +37,3 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You passed the recording test! Congratulations.", time_estimate=3),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

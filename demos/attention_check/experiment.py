@@ -26,6 +26,3 @@ class Exp(psynet.experiment.Experiment):
         Dance(),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

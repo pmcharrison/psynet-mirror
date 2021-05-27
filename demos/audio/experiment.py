@@ -246,6 +246,3 @@ class Exp(psynet.experiment.Experiment):
         example_on_loaded,
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

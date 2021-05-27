@@ -136,6 +136,3 @@ class Exp(psynet.experiment.Experiment):
 
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()
