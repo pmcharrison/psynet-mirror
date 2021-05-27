@@ -81,7 +81,7 @@ class CustomNetwork(ImitationChainNetwork):
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         def get_answer(trial):
             # Slices the list to get the answers from the second and third pages, then take the mean
             return mean(trial.answer[1:])

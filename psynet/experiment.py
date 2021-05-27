@@ -173,9 +173,9 @@ class Experiment(dallinger.experiment.Experiment):
         self.database_checks.append(task)
 
     def register_pre_deployment_routines(self):
-        for event in self.timeline.events:
-            if isinstance(event, PreDeployRoutine):
-                self.pre_deploy_routines.append(event)
+        for elt in self.timeline.elts:
+            if isinstance(elt, PreDeployRoutine):
+                self.pre_deploy_routines.append(elt)
 
     @classmethod
     def new(cls, session):
@@ -245,15 +245,15 @@ class Experiment(dallinger.experiment.Experiment):
             self.var.set(key, value)
 
     def load(self):
-        for event in self.timeline.events:
-            if isinstance(event, ExperimentSetupRoutine):
-                event.function(experiment=self)
-            if isinstance(event, DatabaseCheck):
-                self.register_database_check(event)
-            if isinstance(event, ParticipantFailRoutine):
-                self.register_participant_fail_routine(event)
-            if isinstance(event, RecruitmentCriterion):
-                self.register_recruitment_criterion(event)
+        for elt in self.timeline.elts:
+            if isinstance(elt, ExperimentSetupRoutine):
+                elt.function(experiment=self)
+            if isinstance(elt, DatabaseCheck):
+                self.register_database_check(elt)
+            if isinstance(elt, ParticipantFailRoutine):
+                self.register_participant_fail_routine(elt)
+            if isinstance(elt, RecruitmentCriterion):
+                self.register_recruitment_criterion(elt)
 
     @classmethod
     def pre_deploy(cls):
@@ -487,7 +487,7 @@ class Experiment(dallinger.experiment.Experiment):
         )
         participant = get_participant(participant_id)
         if page_uuid == participant.page_uuid:
-            event = self.timeline.get_current_event(self, participant)
+            event = self.timeline.get_current_elt(self, participant)
             response = event.process_response(
                 raw_answer=raw_answer,
                 blobs=blobs,
@@ -512,7 +512,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     def response_approved(self, participant):
         logger.debug("The response was approved.")
-        page = self.timeline.get_current_event(self, participant)
+        page = self.timeline.get_current_elt(self, participant)
         return success_response(submission="approved", page=page.__json__(participant))
 
     def response_rejected(self, message):
@@ -748,7 +748,7 @@ class Experiment(dallinger.experiment.Experiment):
                 exp.init_participant(
                     participant_id, client_ip_address=cls.get_client_ip_address()
                 )
-            page = exp.timeline.get_current_event(exp, participant)
+            page = exp.timeline.get_current_elt(exp, participant)
             page.pre_render()
             exp.save()
             if mode == "json":

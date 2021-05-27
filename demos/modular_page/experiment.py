@@ -29,17 +29,17 @@ class HelloPrompt(Prompt):
     external_template = "custom-prompts.html"
 
 
-class ColourText(Control):
-    macro = "colour_text_area"
+class ColorText(Control):
+    macro = "color_text_area"
     external_template = "custom-controls.html"
 
-    def __init__(self, colour):
+    def __init__(self, color):
         super().__init__()
-        self.colour = colour
+        self.color = color
 
     @property
     def metadata(self):
-        return {"colour": self.colour}
+        return {"color": self.color}
 
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
@@ -73,11 +73,7 @@ class Exp(psynet.experiment.Experiment):
                 url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
                 text="""
             This page illustrates the timed push button control combined with an audio prompt.
-            The submit button is enabled after 3.0 seconds.
             """,
-                prevent_response=False,
-                start_delay=0.5,
-                enable_submit_after=3.0,
             ),
             TimedPushButtonControl(choices=["A", "B", "C"], arrange_vertically=False),
             time_estimate=5,
@@ -114,12 +110,12 @@ class Exp(psynet.experiment.Experiment):
             prompt=Prompt(
                 """\
                 This is an example of a custom control interface, defined in the class
-                'ColourText' and the template 'custom-controls.html'.
-                Note how you can customise the background colour by changing the input
-                to 'ColourText'.\
+                'ColorText' and the template 'custom-controls.html'.
+                Note how you can customise the background color by changing the input
+                to 'ColorText'.\
             """
             ),
-            control=ColourText("aquamarine"),
+            control=ColorText("aquamarine"),
             time_estimate=5,
         ),
         DebugResponsePage(),

@@ -1,11 +1,31 @@
 # Changelog
 
-#### Changed
+# [2.0.0]
 
+#### Added
+- Added support for video imitation chains and camera/screen record trials.
+- Added a new system for organizing the timing of front-end events.
+The API for some `Prompt` and `Control` elements has changed
+somewhat as a result.
+- Added `ProgressDisplay` functionality, which visualizes the 
+current progress in the trial with text messages and/or
+progress bars. 
+- Added `controls`, `muted`, and `hide_when_finished` arguments to `VideoPrompt`. 
+
+#### Changed
+- Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
+`summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), and all prompts and pre-screening tasks involving `colour` (now `color`).
+- The output format for `TimedPushButtonControl` has now changed to use 
+camel case consistently, e.g. writing `buttonId` instead of `button_id`.
+This reflects the camel case formatting conventions of the trial
+scheduler and the JS front-end. 
 - PsyNet now forces `disable_when_duration_exceeded = False` in `config.txt`.
 This is done to avoid a rare bug where recruitment would be shut down erroneously
 in long-running experiments. 
 - `psynet debug` now warns the user if the app title is too long.
+
+#### Fixed
+- `play_window` now works in `VideoPrompt`. 
 
 # [1.14.0] Released on 2021-05-17
 
@@ -51,7 +71,6 @@ implemented in Dallinger v7.3.0.
 - Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
 - Implement missing notify_duration_exceeded method for CAPRecruiter
 - Update Dallinger to v7.2.1
-
 
 # [1.13.0] Released on 2021-04-15
 

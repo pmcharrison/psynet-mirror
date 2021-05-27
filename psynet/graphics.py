@@ -654,6 +654,12 @@ class GraphicPrompt(GraphicMixin, Prompt):
             )
         return True
 
+    def update_events(self, events):
+        if self.prevent_control_response:
+            events["responseEnable"].add_trigger("graphicPromptEnableResponse")
+        if self.prevent_control_submit:
+            events["submitEnable"].add_trigger("graphicPromptEnableSubmit")
+
 
 class GraphicControl(GraphicMixin, Control):
     """

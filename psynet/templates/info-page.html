@@ -1,7 +1,9 @@
 {% extends "timeline-page.html" %}
 
-{% block main_body %}
+{% block above_progress_display %}
     {{content}}
-    
+{% endblock %}
+
+{% block below_progress_display %}
     {{next_button()}}
 {% endblock %}

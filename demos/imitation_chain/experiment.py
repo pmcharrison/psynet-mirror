@@ -79,7 +79,7 @@ class CustomNetwork(ImitationChainNetwork):
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, paricipant):
+    def summarize_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
 
 

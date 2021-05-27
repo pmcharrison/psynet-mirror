@@ -171,10 +171,10 @@ class Exp(psynet.experiment.Experiment):
             ),
         ),
         Module(
-            "colour",
+            "color",
             ModularPage(
                 "test_nafc",
-                Prompt("What's your favourite colour?"),
+                Prompt("What's your favourite color?"),
                 control=PushButtonControl(
                     ["Red", "Green", "Blue"], arrange_vertically=False
                 ),
@@ -182,19 +182,19 @@ class Exp(psynet.experiment.Experiment):
             ),
             CodeBlock(
                 lambda participant: participant.var.new(
-                    "favourite_colour", participant.answer
+                    "favourite_color", participant.answer
                 )
             ),
             switch(
-                "colour",
+                "color",
                 lambda participant: participant.answer,
                 branches={
-                    "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
+                    "Red": InfoPage("Red is a nice color, wait 1s.", time_estimate=1),
                     "Green": InfoPage(
-                        "Green is quite a nice colour, wait 2s.", time_estimate=2
+                        "Green is quite a nice color, wait 2s.", time_estimate=2
                     ),
                     "Blue": InfoPage(
-                        "Blue is an unpleasant colour, wait 3s.", time_estimate=3
+                        "Blue is an unpleasant color, wait 3s.", time_estimate=3
                     ),
                 },
                 fix_time_credit=False,
