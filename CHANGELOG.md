@@ -11,6 +11,9 @@ somewhat as a result.
 current progress in the trial with text messages and/or
 progress bars. 
 - Added `controls`, `muted`, and `hide_when_finished` arguments to `VideoPrompt`. 
+- PsyNet now requires a `language` argument in config.txt.
+- New function: `psynet.utils.get_language`, which returns the language
+specified in config.txt.
 
 #### Changed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
