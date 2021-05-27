@@ -18,7 +18,7 @@ disable_when_duration_exceeded = False
 
 [Advert metadata]
 description = This app demos two pre-screening tasks to assess language skills: lextale test for English proficient and a basic vocabulary test implemented in five languages.
-keywords = non_adaptive
+keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

@@ -7,7 +7,7 @@
 
 import psynet.experiment
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.prescreen import HeadphoneCheck
+from psynet.prescreen import HeadphoneTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
@@ -21,7 +21,7 @@ from psynet.timeline import Timeline
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         VolumeCalibration(),
-        HeadphoneCheck(),
+        HeadphoneTest(),
         InfoPage(
             "You passed the headphone screening task! Congratulations.", time_estimate=3
         ),

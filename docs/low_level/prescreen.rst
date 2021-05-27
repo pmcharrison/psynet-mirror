@@ -1,11 +1,11 @@
 Prescreen
 #########
 
-==============
-AttentionCheck
-==============
+=============
+AttentionTest
+=============
 
-.. autoclass:: psynet.prescreen.AttentionCheck
+.. autoclass:: psynet.prescreen.AttentionTest
     :members:
 
 ==================
@@ -22,11 +22,11 @@ ColorVocabularyTest
 .. autoclass:: psynet.prescreen.ColorVocabularyTest
     :members:
 
-==============
-HeadphoneCheck
-==============
+=============
+HeadphoneTest
+=============
 
-.. autoclass:: psynet.prescreen.HeadphoneCheck
+.. autoclass:: psynet.prescreen.HeadphoneTest
     :members:
 
 ======================
@@ -43,11 +43,11 @@ LexTaleTest
 .. autoclass:: psynet.prescreen.LexTaleTest
     :members:
 
-================
-REPPMarkersCheck
-================
+===============
+REPPMarkersTest
+===============
 
-.. autoclass:: psynet.prescreen.REPPMarkersCheck
+.. autoclass:: psynet.prescreen.REPPMarkersTest
     :members:
 
 ======================

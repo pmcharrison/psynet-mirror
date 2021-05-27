@@ -3,7 +3,7 @@ mode = sandbox
 language = en
 
 [Payment information]
-title = Non adaptive tapping demo
+title = Static experiment demo
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -17,8 +17,8 @@ browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Advert metadata]
-description = This is a demo of a non adaptive tapping experiment.
-keywords = tapping
+description = This app demos a static experiment.
+keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

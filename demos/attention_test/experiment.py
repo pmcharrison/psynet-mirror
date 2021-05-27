@@ -5,7 +5,7 @@
 import psynet.experiment
 from psynet.demography.general import BasicDemography, Dance, HearingLoss
 from psynet.page import SuccessfulEndPage
-from psynet.prescreen import AttentionCheck
+from psynet.prescreen import AttentionTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
@@ -19,9 +19,9 @@ from psynet.timeline import Timeline
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         BasicDemography(),
-        # It is a good practice to add the AttentionCheck in the middle of demographic questions, so its presence is
+        # It is a good practice to add the AttentionTest in the middle of demographic questions, so its presence is
         # not too obvious
-        AttentionCheck(),
+        AttentionTest(),
         HearingLoss(),
         Dance(),
         SuccessfulEndPage(),

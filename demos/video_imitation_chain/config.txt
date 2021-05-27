@@ -18,7 +18,7 @@ dashboard_user = cap
 
 [Advert metadata]
 description = In this study, you will be imitating different gestures in a video recording. 
-keywords = non_adaptive
+keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

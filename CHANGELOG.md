@@ -15,13 +15,22 @@ progress bars.
 - New function: `psynet.utils.get_language`, which returns the language
 specified in config.txt.
 
-#### Changed
+#### Renamed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
-`summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), and all prompts and pre-screening tasks involving `colour` (now `color`).
+`summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), 
+and all prompts and pre-screening tasks involving `colour` (now `color`).
 - The output format for `TimedPushButtonControl` has now changed to use 
 camel case consistently, e.g. writing `buttonId` instead of `button_id`.
 This reflects the camel case formatting conventions of the trial
-scheduler and the JS front-end. 
+scheduler and the JS front-end.
+- Renamed `REPPMarkersCheck` -> `REPPMarkersTest`.
+- Renamed `AttentionCheck` -> `AttentionTest`.
+- Renamed `HeadphoneCheck` -> `HeadphoneTest`.
+- Renamed `active_balancing_across_chains` -> `balance_across_chains`.
+- Renamed `NonAdaptive` -> `Static`.
+
+
+#### Changed
 - PsyNet now forces `disable_when_duration_exceeded = False` in `config.txt`.
 This is done to avoid a rare bug where recruitment would be shut down erroneously
 in long-running experiments. 
@@ -62,7 +71,7 @@ and are now robust to dyno restarts, app crashes etc.
 implemented in Dallinger v7.3.0.
 
 #### Fixed
-- Fix bug in non-adaptive experiments related to SQLAlchemy.
+- Fix bug in static experiments related to SQLAlchemy.
 - Prevent multiple instances of `check_database` from running simultaneously.
 
 # [1.13.1] Released on 2021-05-05
@@ -123,7 +132,7 @@ implemented in Dallinger v7.3.0.
 - Added `NumberControl`, `SliderControl`, `AudioSliderControl` controls.
 - Added new `directional` attribute to `Slider`.
 - Added optional reset button to `CheckboxControl` and `RadioButtonControl`.
-- Added new pre-screenings `AttentionCheck`, `LanguageVocabularyTest`, `LexTaleTest`, `REPPMarkersCheck`, `REPPTappingCalibration`, `REPPVolumeCalibrationMarkers`, and `REPPVolumeCalibrationMusic`.
+- Added new pre-screenings `AttentionTest`, `LanguageVocabularyTest`, `LexTaleTest`, `REPPMarkersTest`, `REPPTappingCalibration`, `REPPVolumeCalibrationMarkers`, and `REPPVolumeCalibrationMusic`.
 - Added demos for new pre-screenings.
 - Added favicon.ico.
 

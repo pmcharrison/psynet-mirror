@@ -3,7 +3,7 @@ mode = sandbox
 language = en
 
 [Payment information]
-title = Headphone check demo
+title = Static tapping demo
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -17,8 +17,8 @@ browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Advert metadata]
-description = This app demos the headphone check implementation.
-keywords = non_adaptive
+description = This is a demo of a static tapping experiment.
+keywords = tapping
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

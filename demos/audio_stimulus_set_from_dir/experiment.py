@@ -6,11 +6,7 @@ import psynet.experiment
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
-    stimulus_set_from_dir,
-)
+from psynet.trial.static import StaticTrial, StaticTrialMaker, stimulus_set_from_dir
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -40,7 +36,7 @@ experiment_stimuli = stimulus_set_from_dir(
 # _stimulus_sets directory - this needs to be accessible by Heroku.
 
 
-class CustomTrial(NonAdaptiveTrial):
+class CustomTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
@@ -68,7 +64,7 @@ class CustomTrial(NonAdaptiveTrial):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         InfoPage("We begin with the practice trials.", time_estimate=5),
-        NonAdaptiveTrialMaker(
+        StaticTrialMaker(
             id_="audio_practice",
             trial_class=CustomTrial,
             phase="practice",
@@ -78,7 +74,7 @@ class Exp(psynet.experiment.Experiment):
             recruit_mode="num_participants",
         ),
         InfoPage("We continue with the experiment trials.", time_estimate=5),
-        NonAdaptiveTrialMaker(
+        StaticTrialMaker(
             id_="audio_experiment",
             trial_class=CustomTrial,
             phase="experiment",
