@@ -102,7 +102,7 @@ class Exp(psynet.experiment.Experiment):
             num_chains_per_experiment=10,  # set to None if chain_type="within"
             num_iterations_per_chain=2,
             trials_per_node=1,
-            active_balancing_across_chains=True,
+            balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             fail_trials_on_participant_performance_check=True,

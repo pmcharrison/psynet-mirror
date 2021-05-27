@@ -66,7 +66,7 @@ def new_trial_maker(**kwarg):
         num_chains_per_participant=None,
         num_chains_per_experiment=5,
         trials_per_node=1,
-        active_balancing_across_chains=True,
+        balance_across_chains=True,
         check_performance_at_end=True,
         check_performance_every_trial=False,
         recruit_mode="num_trials",

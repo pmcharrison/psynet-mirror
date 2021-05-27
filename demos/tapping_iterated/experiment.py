@@ -15,7 +15,7 @@ import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import (  # REPPMarkersCheck,
+from psynet.prescreen import (
     JSONSerializer,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
@@ -247,7 +247,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
         REPPTappingCalibration(),  # calibrate tapping
-        # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
+        # REPPMarkersTest(), # pre-screening filtering participants based on recording test (markers)
         InfoPage(
             Markup(
                 f"""
@@ -285,7 +285,7 @@ class Exp(psynet.experiment.Experiment):
             num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
             num_chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,
-            active_balancing_across_chains=False,
+            balance_across_chains=False,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             propagate_failure=False,

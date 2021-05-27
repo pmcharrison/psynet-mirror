@@ -134,7 +134,7 @@ class TestSandbox:
         )
 
 
-@pytest.mark.usefixtures("demo_non_adaptive")
+@pytest.mark.usefixtures("demo_static")
 class TestEstimate:
     @pytest.fixture
     def estimate(self):
@@ -160,7 +160,7 @@ class TestEstimate:
         import_local_experiment.assert_called_once()
 
 
-@pytest.mark.usefixtures("demo_non_adaptive")
+@pytest.mark.usefixtures("demo_static")
 class TestExport:
     @pytest.fixture
     def export(self):

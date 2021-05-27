@@ -16,8 +16,8 @@ browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Advert metadata]
-description = This app demos a non-adaptive experiment.
-keywords = non_adaptive
+description = This app demos a simple audio slider.
+keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 

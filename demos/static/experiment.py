@@ -12,9 +12,9 @@ import psynet.experiment
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
+from psynet.trial.static import (
+    StaticTrial,
+    StaticTrialMaker,
     StimulusSet,
     StimulusSpec,
     StimulusVersionSpec,
@@ -46,7 +46,7 @@ stimulus_set = StimulusSet(
 )
 
 
-class AnimalTrial(NonAdaptiveTrial):
+class AnimalTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "animal_trial"}
 
     # num_pages = 2
@@ -83,7 +83,7 @@ class AnimalTrial(NonAdaptiveTrial):
     #     return InfoPage(f"You responded '{self.answer}'.")
 
 
-class AnimalTrialMaker(NonAdaptiveTrialMaker):
+class AnimalTrialMaker(StaticTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
         score = 0

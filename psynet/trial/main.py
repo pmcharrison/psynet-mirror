@@ -124,7 +124,7 @@ class AsyncProcessOwner:
         class definitions from the experiment directory, these may cause downstream problems.
         For safety, any such arguments should be pickled first (using pickle.dumps),
         then the function should run import_local_experiment(), then the arguments should be unpickled
-        (see trial.non_adaptive for an example).
+        (see trial.static for an example).
         """
         process_id = str(uuid4())
         self.push_async_process(process_id)

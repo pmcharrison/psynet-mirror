@@ -68,23 +68,23 @@ A pre-screening task can then be included in an experiment as follows:
     extra_routes = Exp().extra_routes()
 
 
-For more advanced examples, please refer to the source code of the three non-adaptive pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneCheck` presented above or continue to the next section where we provide some boilerplate code for building non-adaptive pre-screening tasks.
+For more advanced examples, please refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneTest` presented above or continue to the next section where we provide some boilerplate code for building static pre-screening tasks.
 
-Non-adaptive pre-screening tasks (Boilerplate code)
+Static pre-screening tasks (Boilerplate code)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-In this section we provide code snippets for building non-adaptive pre-screening tasks utilizing :class:`~psynet.trial.main.TrialMaker` and :class:`~psynet.trial.non_adaptive.StimulusSet`.
+In this section we provide code snippets for building static pre-screening tasks utilizing :class:`~psynet.trial.main.TrialMaker` and :class:`~psynet.trial.static.StimulusSet`.
 
-A non-adaptive pre-screening task is a class which inherits from :class:`~psynet.trial.Module`, e.g.:
+A static pre-screening task inherits from :class:`~psynet.trial.Module`, e.g.:
 
 ::
 
     from psynet.timeline import Module, join
 
-    class SomeNonAdaptivePrescreeningTask(Module):
+    class SomeStaticPrescreeningTask(Module):
         def __init__(
             self,
-            label = "some_non-adaptive_prescreening_task",
+            label = "some_static_prescreening_task",
             time_estimate_per_trial: float = 5.0,
             performance_threshold: int = 4,
         ):
@@ -119,14 +119,14 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
 
 ::
 
-    from psynet.trial.non_adaptive import NonAdaptiveTrialMaker
+    from psynet.trial.static import StaticTrialMaker
 
     def trial_maker(
             self,
             time_estimate_per_trial: float,
             performance_threshold: int
         ):
-        class SomeNonAdaptivePrescreeningTrialMaker(NonAdaptiveTrialMaker):
+        class SomeStaticPrescreeningTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 # Calculate values for ``score`` and ``passed``
                 return {
@@ -134,8 +134,8 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
                     "passed": passed
                 }
 
-        return SomeNonAdaptivePrescreeningTrialMaker(
-            id_="some_non-adaptive_prescreening_trials",
+        return SomeStaticPrescreeningTrialMaker(
+            id_="some_static_prescreening_trials",
             trial_class=self.trial(time_estimate_per_trial),
             phase="some_prescreening_phase",
             stimulus_set=self.get_stimulus_set(),
@@ -144,26 +144,26 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
             fail_trials_on_premature_exit=False
         )
 
-Normally non-adaptive experiments will fail participant trials if they leave the experiment early,
+Normally static experiments will fail participant trials if they leave the experiment early,
 so that the final dataset only comprises participants who completed the whole experiment.
 However, this logic doesn't apply to pre-screening tasks, where we are not trying to collect
 a specific quota of data. We therefore disable this behavior, setting
 ``fail_trials_on_premature_exit=False`` in the above code.
 
-The :meth:`trial` method returns a :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.page.ModularPage` e.g.:
+The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` which implements :meth:`~psynet.trial.main.show_trial` that in turn returns a :class:`~psynet.page.ModularPage` e.g.:
 
 ::
 
     from psynet.page import ModularPage
-    from psynet.trial.non_adaptive import NonAdaptiveTrial
+    from psynet.trial.static import StaticTrial
 
     def trial(self, time_estimate: float):
-        class SomeNonAdaptivePrescreeningTrial(NonAdaptiveTrial):
+        class SomeStaticPrescreeningTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "some_prescreening_trial"}
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
-                    "some_non-adaptive_prescreening_trial",
+                    "some_static_prescreening_trial",
                     # Define what is presented to the participant and how participants
                     # may respond utilizing the two principal ``ModularPage``
                     # components ``Prompt`` and ``Control``.
@@ -176,13 +176,13 @@ The :meth:`trial` method returns a :class:`~psynet.trial.non_adaptive.NonAdaptiv
                     # ),
                     time_estimate=time_estimate
                 )
-        return SomeNonAdaptivePrescreeningTrial
+        return SomeStaticPrescreeningTrial
 
-The :meth:`get_stimulus_set` method returns a :class:`~psynet.trial.non_adaptive.StimulusSet`,  e.g.:
+The :meth:`get_stimulus_set` method returns a :class:`~psynet.trial.static.StimulusSet`,  e.g.:
 
 ::
 
-    from psynet.trial.non_adaptive import StimulusSet, StimulusSpec
+    from psynet.trial.static import StimulusSet, StimulusSpec
 
     def get_stimulus_set(self):
         stimuli = []
@@ -190,4 +190,4 @@ The :meth:`get_stimulus_set` method returns a :class:`~psynet.trial.non_adaptive
         # the ``StimulusSet`` constructor.
         return StimulusSet("some_prescreening_task", stimuli)
 
-For concrete implementations, refer to the source code of the three non-adaptive pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneCheck`.
+For concrete implementations, refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneTest`.

@@ -14,7 +14,7 @@ at increasing levels of specificity:
 
 3. `Experiments where the networks take the form of chains`_.
 
-4. `Specific paradigms`_ such as generic non-adaptive experiments,
+4. `Specific paradigms`_ such as generic static experiments,
    *Markov Chain Monte Carlo with People*, *iterated reproduction*,
    and *Gibbs sampling*.
 
@@ -181,4 +181,4 @@ We hope to extend this list over time through user contributions.
 
 * :ref:`Audio Gibbs Sampling with People <audio_gibbs>`
 
-* :ref:`Non-adaptive experiments <non_adaptive>`
+* :ref:`Static experiments <static>`

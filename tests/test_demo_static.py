@@ -6,26 +6,21 @@ import pytest
 
 from psynet.participant import Participant
 from psynet.test import assert_text, bot_class, next_page
-from psynet.trial.non_adaptive import (
-    NonAdaptiveNetwork,
-    NonAdaptiveTrial,
-    Stimulus,
-    StimulusVersion,
-)
+from psynet.trial.static import StaticNetwork, StaticTrial, Stimulus, StimulusVersion
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_non_adaptive")
+@pytest.mark.usefixtures("demo_static")
 class TestExp:
     def test_exp(self, bot_recruits, db_session, trial_maker):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
 
-            networks = NonAdaptiveNetwork.query.all()
+            networks = StaticNetwork.query.all()
             stimuli = Stimulus.query.all()
             stimulus_versions = StimulusVersion.query.all()
 
@@ -43,13 +38,13 @@ class TestExp:
             assert_text(driver, "trial-position", "Trial 1")
             next_page(driver, "A little")
 
-            trial = NonAdaptiveTrial.query.filter_by(id=1).one()
+            trial = StaticTrial.query.filter_by(id=1).one()
             assert trial.answer == "A little"
 
             assert_text(driver, "trial-position", "Trial 2")
 
             next_page(driver, "Very much")
-            trial = NonAdaptiveTrial.query.filter_by(id=2).one()
+            trial = StaticTrial.query.filter_by(id=2).one()
             assert trial.answer == "Very much"
             assert_text(driver, "trial-position", "Trial 3")
 
@@ -65,7 +60,7 @@ class TestExp:
                 "You finished the animal questions! Your score was 0. Next",
             )
 
-            trials = NonAdaptiveTrial.query.all()
+            trials = StaticTrial.query.all()
 
             trials_by_block = Counter(
                 [

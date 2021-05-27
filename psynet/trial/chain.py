@@ -1045,7 +1045,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         in the chain before another chain will be added.
         Most paradigms have this equal to 1.
 
-    active_balancing_across_chains
+    balance_across_chains
         Whether trial selection should be actively balanced across chains,
         such that trials are preferentially sourced from chains with
         fewer valid trials.
@@ -1157,7 +1157,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         num_chains_per_participant: Optional[int],
         num_chains_per_experiment: Optional[int],
         trials_per_node: int,
-        active_balancing_across_chains: bool,
+        balance_across_chains: bool,
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         recruit_mode: str,
@@ -1219,7 +1219,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.num_iterations_per_chain = num_iterations_per_chain
         self.num_nodes_per_chain = num_iterations_per_chain + 1
         self.trials_per_node = trials_per_node
-        self.active_balancing_across_chains = active_balancing_across_chains
+        self.balance_across_chains = balance_across_chains
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
@@ -1363,7 +1363,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         random.shuffle(networks)
 
-        if self.active_balancing_across_chains:
+        if self.balance_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
 
         return networks

@@ -8,9 +8,9 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import PreDeployRoutine, Timeline
-from psynet.trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
+from psynet.trial.static import (
+    StaticTrial,
+    StaticTrialMaker,
     StimulusSet,
     StimulusSpec,
     StimulusVersionSpec,
@@ -57,15 +57,15 @@ stimuli = [
 ]
 
 stimulus_set = StimulusSet(
-    "non_adaptive_audio",
+    "static_audio",
     stimuli,
     version="v3",
-    s3_bucket="non-adaptive-audio-demo-stimuli",
+    s3_bucket="static-audio-demo-stimuli",
 )
-recordings_s3_bucket = "non-adaptive-audio-demo-stimuli-recordings"
+recordings_s3_bucket = "static-audio-demo-stimuli-recordings"
 
 
-class CustomTrial(NonAdaptiveTrial):
+class CustomTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
@@ -123,8 +123,8 @@ class Exp(psynet.experiment.Experiment):
             """,
             time_estimate=5,
         ),
-        NonAdaptiveTrialMaker(
-            id_="non_adaptive_audio",
+        StaticTrialMaker(
+            id_="static_audio",
             trial_class=CustomTrial,
             phase="experiment",
             stimulus_set=stimulus_set,
