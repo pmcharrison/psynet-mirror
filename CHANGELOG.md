@@ -2,6 +2,9 @@
 
 #### Changed
 
+- PsyNet now forces `disable_when_duration_exceeded = False` in `config.txt`.
+This is done to avoid a rare bug where recruitment would be shut down erroneously
+in long-running experiments. 
 - `psynet debug` now warns the user if the app title is too long.
 
 # [1.14.0] Released on 2021-05-17

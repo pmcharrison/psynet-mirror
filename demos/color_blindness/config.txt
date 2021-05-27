@@ -13,6 +13,7 @@ us_only = true
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
+disable_when_duration_exceeded = False
 
 [Advert metadata]
 description = This app demos the color blindness test implementation.
