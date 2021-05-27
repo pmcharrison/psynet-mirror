@@ -34,6 +34,7 @@ from .timeline import (
 from .utils import (
     call_function,
     get_arg_from_dict,
+    get_language,
     get_logger,
     pretty_log_dict,
     serialise,
@@ -182,6 +183,11 @@ class Experiment(dallinger.experiment.Experiment):
         return cls(session)
 
     @classmethod
+    def extra_parameters(cls):
+        config = get_config()
+        config.register("language", str)
+
+    @classmethod
     def amount_spent(cls):
         return sum(
             [
@@ -267,6 +273,7 @@ class Experiment(dallinger.experiment.Experiment):
         config = get_config()
         if not config.ready:
             config.load()
+
         if not config.get("clock_on"):
             # We force the clock to be on because it's necessary for the check_networks functionality.
             raise RuntimeError(
@@ -282,6 +289,14 @@ class Experiment(dallinger.experiment.Experiment):
         if n_char_title > 128:
             raise RuntimeError(
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
+            )
+
+        try:
+            get_language()
+        except KeyError:
+            raise RuntimeError(
+                "Please set a language in config.txt, for example 'language = en'. "
+                + "You can put this in the '[Server]' section."
             )
 
     def fail_participant(self, participant):

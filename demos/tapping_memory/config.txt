@@ -1,5 +1,6 @@
 [Launch mode]
 mode = sandbox
+language = en
 
 [Payment information]
 title = Tapping from memory demo

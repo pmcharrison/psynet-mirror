@@ -13,7 +13,7 @@ from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
-from dallinger.config import get_config
+from dallinger.config import config, get_config
 from sqlalchemy.sql import func
 
 
@@ -395,3 +395,18 @@ def pretty_log_dict(dict, spaces_for_indentation=0):
         + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
         for key, value in dict.items()
     )
+
+
+def get_language():
+    """
+    Returns the language selected in config.txt.
+    Throws a KeyError if no such language is specified.
+
+    Returns
+    -------
+
+    A string, for example "en".
+    """
+    if not config.ready:
+        config.load()
+    return config.get("language")

@@ -1,5 +1,6 @@
 [Launch mode]
 mode = sandbox
+language = en
 
 [Payment information]
 title = The GMSI questionnaires demo with subscales 'Musical Training' and 'Singing Abilities'
