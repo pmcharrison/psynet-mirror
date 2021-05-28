@@ -14,6 +14,7 @@ progress bars.
 - PsyNet now requires a `language` argument in config.txt.
 - New function: `psynet.utils.get_language`, which returns the language
 specified in config.txt.
+- Added the ability to parallelize stimulus generation in `AudioGibbs` experiments.
 
 #### Renamed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
