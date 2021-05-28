@@ -277,12 +277,14 @@ class Experiment(dallinger.experiment.Experiment):
         if not config.get("clock_on"):
             # We force the clock to be on because it's necessary for the check_networks functionality.
             raise RuntimeError(
-                "PsyNet requires the clock process to be enabled; please set clock_on = true in config.txt."
+                "PsyNet requires the clock process to be enabled; please set clock_on = true in the "
+                + "'[Server]' section of the config.txt."
             )
 
         if config.get("disable_when_duration_exceeded"):
             raise RuntimeError(
-                "PsyNet requires disable_when_duration_exceeded = False; please set disable_when_duration_exceeded = False in config.txt."
+                "PsyNet requires disable_when_duration_exceeded = False; please set disable_when_duration_exceeded = False "
+                + " in the '[Recruitment strategy]' section of the config.txt."
             )
 
         n_char_title = len(config.get("title"))
