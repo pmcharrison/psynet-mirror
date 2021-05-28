@@ -60,6 +60,7 @@ class CustomVideoRecordControl(VideoRecordControl):
             duration=5.0,
             s3_bucket="video-screen-recording-dev",
             recording_source="camera",
+            audio_num_channels=2,
             controls=True,
             public_read=True,
             show_preview=True,
@@ -211,6 +212,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

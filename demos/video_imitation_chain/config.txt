@@ -15,6 +15,7 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 dashboard_password = capcapcap2021!
 dashboard_user = cap
+disable_when_duration_exceeded = False
 
 [Advert metadata]
 description = In this study, you will be imitating different gestures in a video recording. 
@@ -34,3 +35,4 @@ num_dynos_worker = 3
 redis_size = premium-3
 host = 0.0.0.0
 clock_on = true
+language = en

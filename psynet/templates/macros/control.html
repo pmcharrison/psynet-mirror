@@ -955,10 +955,18 @@
         if (recordingCamera) {
             let cameraStream = null;
             var videoRecorder = null;
+            let audioSettings = null; 
+
+            if ({{ config.record_audio | lower }}) {
+                audioSettings = { 
+                    channelCount: {{ config.audio_num_channels }} 
+                };
+            }
+            else { audioSettings = false; }
 
             psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
                 navigator.mediaDevices.getUserMedia({
-                    audio: {{ config.record_audio | lower }},
+                    audio: audioSettings,
                     video: true,
                 }).then((stream) => {
                     psynet.log.debug("Initialising video recorder.");
