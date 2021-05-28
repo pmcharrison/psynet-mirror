@@ -728,7 +728,7 @@
             $("#btn-record-play-prompt").on("click", function() {
                 psynet.trial.stop();
                 let options = psynet.utils.shallow_copy(audioPromptPlayerOptions);
-                options.loop = loop;
+                options.loop = loopRecorder;
                 psynet.media.stop_all_audio();
                 psynet.audio.prompt.play(options);
             });
@@ -743,7 +743,7 @@
             });
 
             $("#record-loop-input").on("change", function(event) {
-                loop = event.target.checked;
+                loopRecorder = event.target.checked;
             });
 
             $("#btn-record-upload").on("click", function() {
