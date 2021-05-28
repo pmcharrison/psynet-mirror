@@ -123,6 +123,9 @@ class AudioPrompt(Prompt):
     fade_in
         Fade-in duration for the audio (defaults to ``0.0``).
 
+    fade_out
+        Fade-out duration for the audio (defaults to ``0.0``).
+
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
     """
@@ -136,6 +139,7 @@ class AudioPrompt(Prompt):
         play_window: Optional[List] = None,
         controls: bool = False,
         fade_in: float = 0.0,
+        fade_out: float = 0.0,
         **kwargs,
     ):
         if play_window is None:
@@ -156,6 +160,7 @@ class AudioPrompt(Prompt):
             start=play_window[0],
             end=play_window[1],
             fade_in=fade_in,
+            fade_out=fade_out,
         )
 
     macro = "audio"

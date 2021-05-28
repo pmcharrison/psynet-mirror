@@ -15,6 +15,7 @@ progress bars.
 - New function: `psynet.utils.get_language`, which returns the language
 specified in config.txt.
 - Added the ability to parallelize stimulus generation in `AudioGibbs` experiments.
+- Added `fade_out` option to `AudioPrompt`.
 
 #### Renamed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
