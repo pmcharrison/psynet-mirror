@@ -803,12 +803,12 @@
             $("#btn-record-play-all").hide();
         }
 
-        psynet.trial.onEvent("trialStart", () => {
+        psynet.trial.onEvent("trialConstruct", () => {
             if (psynet.audio.prompt) {
                 $("#btn-record-play-prompt").prop("disabled", false);
             }
             $("#btn-record-record").prop("disabled", false);
-        });
+        }, {priority: - 1000});
 
         function uploadToS3(blob, presignedUrl) {
             return new Promise(resolve => {
