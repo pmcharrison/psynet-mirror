@@ -945,7 +945,7 @@
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        let videoPlayer = document.getElementById('video-control');
+        let videoPreviewPlayer = document.getElementById('video-control');
         let screenVideo = document.getElementById('screen-recording');
 
         let recordingSource = "{{ config.recording_source | lower }}";
@@ -996,8 +996,8 @@
 
             var playRecording = async function() {
                 await loadRecordedVideo();
-                videoPlayer.play();
-                videoPlayer.addEventListener("ended", loadCameraPreview, {once: true});
+                videoPreviewPlayer.play();
+                videoPreviewPlayer.addEventListener("ended", loadCameraPreview, {once: true});
             };
 
             let videoDisplayMode = null;
@@ -1006,12 +1006,12 @@
                 if (videoDisplayMode == "playback") {
                     return;
                 }
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
+                videoPreviewPlayer.src = null;
+                videoPreviewPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
-                videoPlayer.src = URL.createObjectURL(blob);
-                videoPlayer.muted = false;
-                await videoPlayer.pause();
+                videoPreviewPlayer.src = URL.createObjectURL(blob);
+                videoPreviewPlayer.muted = false;
+                await videoPreviewPlayer.pause();
                 videoDisplayMode = "playback";
             }
 
@@ -1019,11 +1019,11 @@
                 if (videoDisplayMode == "preview") {
                     return;
                 }
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
-                setSrcObject(cameraStream, videoPlayer);
-                videoPlayer.muted = true;
-                await videoPlayer.play();
+                videoPreviewPlayer.src = null;
+                videoPreviewPlayer.srcObject = null;
+                setSrcObject(cameraStream, videoPreviewPlayer);
+                videoPreviewPlayer.muted = true;
+                await videoPreviewPlayer.play();
                 videoDisplayMode = "preview";
             }
 
