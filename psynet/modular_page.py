@@ -1980,6 +1980,10 @@ class VideoRecordControl(RecordControl):
         Whether to record audio using the microphone.
         This setting only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
 
+    audio_num_channels
+        The number of channels used to record the audio (if enabled by `record_audio`). Default is
+        mono (`audio_num_channels=1`).
+
     width
         Width of the video frame to be displayed. Default: "560px".
 
@@ -2001,6 +2005,7 @@ class VideoRecordControl(RecordControl):
         *,
         recording_source: str = "camera",
         record_audio: bool = True,
+        audio_num_channels: int = 1,
         width: str = "300px",
         show_preview: bool = False,
         controls: bool = False,
@@ -2011,12 +2016,16 @@ class VideoRecordControl(RecordControl):
 
         self.recording_source = recording_source
         self.record_audio = record_audio
+        self.audio_num_channels = audio_num_channels
         self.width = width
         self.show_preview = show_preview
         self.controls = controls
         self.loop_playback = loop_playback
         self.presigned_url_camera = None
         self.presigned_url_screen = None
+
+        if self.record_audio is False:
+            self.audio_num_channels = 0
 
         assert self.recording_source in ["camera", "screen", "both"]
 
