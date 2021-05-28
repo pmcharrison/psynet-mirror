@@ -243,6 +243,9 @@ example_record_audio_video = join(
             It'll work best if you wear headphones.
             The red portion of the progress bar identifies the period when the video
             will be recording.
+            Note how we overrode the 'trialPrepare' event, meaning that the
+            trial does not start itself automatically, but waits for
+            user initiation.
             """,
             play_window=[0, 4.6],
             fade_in=0.2,
@@ -267,6 +270,7 @@ example_record_audio_video = join(
             ],
         ),
         events={
+            "trialPrepare": Event(is_triggered_by=None),
             "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
             "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
         },
