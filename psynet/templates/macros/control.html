@@ -766,7 +766,7 @@
 
         let recorderControls = {{ config.controls | lower }};
         let replayMode = false;
-        let loop = {{ config.loop_playback | tojson }};
+        let loopRecorder = {{ config.loop_playback | tojson }};
 
         psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
@@ -788,7 +788,7 @@
         });
 
         psynet.trial.onEvent("trialFinished", function() {
-            if (loop) {
+            if (loopRecorder) {
                 psynet.trial.restart();
             }
         });
