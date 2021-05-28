@@ -49,6 +49,8 @@ class CustomNetwork(AudioGibbsNetwork):
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
 
+    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
+
     def make_definition(self):
         return {"target": self.balance_across_networks(TARGETS)}
 
