@@ -725,9 +725,9 @@
                 psynet.trial.restart();
             });
 
-            $("#btn-record-play-prompt").on("click", function() {
-                psynet.trial.stop();
-                psynet.media.stop_all_audio();
+            $("#btn-record-play-prompt").on("click", async function() {
+                await psynet.trial.stop();
+                await psynet.media.stop_all_audio();
                 let options = {
                     loop: loopRecorder
                 };
