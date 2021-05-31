@@ -25,6 +25,8 @@ from .utils import (
     format_datetime_string,
     get_logger,
     merge_dicts,
+    serialise,
+    unserialise_datetime,
 )
 
 logger = get_logger()
@@ -1509,6 +1511,7 @@ def while_loop(
     condition: Callable,
     logic,
     expected_repetitions: int,
+    max_loop_time: float = None,
     fix_time_credit=True,
 ):
     """
@@ -1534,6 +1537,10 @@ def while_loop(
         This doesn't have to be completely accurate, but it is used for estimating the length
         of the total experiment.
 
+    max_loop_time:
+        The maximum time in seconds for staying in the loop. Once exceeded, the participant is
+        is presented the ``UnsuccessfulEndPage``. Default: None.
+
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of whether
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
@@ -1554,8 +1561,43 @@ def while_loop(
 
     conditional_logic = join(logic, GoTo(start_while))
 
+    def with_namespace(x=None):
+        prefix = f"__{label}__{x}"
+        if x is None:
+            return prefix
+        return f"{prefix}__{x}"
+
+    if max_loop_time is not None:
+        max_loop_time_condition = (
+            lambda participant, experiment: (
+                datetime.now()
+                - unserialise_datetime(
+                    participant.var.get(with_namespace("loop_start_time"))
+                )
+            ).seconds
+            > max_loop_time
+        )
+    else:
+        max_loop_time_condition = lambda participant, experiment: False  # noqa: E731
+
+    from .page import UnsuccessfulEndPage
+
     elts = join(
+        CodeBlock(
+            lambda participant: participant.var.set(
+                with_namespace("loop_start_time"), serialise(datetime.now())
+            )
+        ),
         start_while,
+        conditional(
+            "max_loop_time_condition",
+            lambda participant, experiment: call_function(
+                max_loop_time_condition,
+                {"participant": participant, "experiment": experiment},
+            ),
+            UnsuccessfulEndPage(),
+            fix_time_credit=False,
+        ),
         conditional(
             label,
             condition,
