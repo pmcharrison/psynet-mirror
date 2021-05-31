@@ -65,8 +65,6 @@ To accelerate the development process of Unity experiments experiment authors ca
           SuccessfulEndPage()
       )
 
-  extra_routes = UnityExperiment().extra_routes()
-
 By calling the JavaScript function ``psynet.next_page()`` the user can advance to a follow-up page. ``psynet.next_page()`` takes following arguments:
 
 raw_answer

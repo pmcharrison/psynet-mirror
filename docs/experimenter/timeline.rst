@@ -234,8 +234,6 @@ Following this method, here's a complete definition of a simple experiment:
             SuccessfulEndPage()
         )
 
-    extra_routes = CustomExp().extra_routes()
-
 It is generally wise to build up the test logic in small pieces. For example:
 
 ::
@@ -264,8 +262,6 @@ It is generally wise to build up the test logic in small pieces. For example:
     )
 
     timeline = Timeline(intro, test, SuccessfulEndPage())
-
-    extra_routes = Exp().extra_routes()
 
 Here we used the :func:`psynet.timeline.join` function to join
 two events into a list (more than two events can also be joined).

@@ -65,8 +65,6 @@ A pre-screening task can then be included in an experiment as follows:
             SuccessfulEndPage()
         )
 
-    extra_routes = Exp().extra_routes()
-
 
 For more advanced examples, please refer to the source code of the three static pre-screening tasks :class:`~psynet.prescreen.ColorVocabularyTest`, :class:`~psynet.prescreen.ColorVocabularyTest`, and :class:`~psynet.prescreen.HeadphoneTest` presented above or continue to the next section where we provide some boilerplate code for building static pre-screening tasks.
 

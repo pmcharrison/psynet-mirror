@@ -56,8 +56,6 @@ class UnityExperiment(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage()
     )
-
-extra_routes = UnityExperiment().extra_routes()
 ```
 
 By calling the JavaScript function ``psynet.next_page()`` the user can advance to a follow-up page. If this page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``page_updated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. This information is accessible through attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container to hold the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ```
