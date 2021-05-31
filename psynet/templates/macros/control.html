@@ -804,7 +804,7 @@
         }
 
         psynet.trial.onEvent("trialConstruct", () => {
-            if (psynet.audio.prompt) {
+            if (psynet.audio.prompt || psynet.video.prompt) {
                 $("#btn-record-play-prompt").prop("disabled", false);
             }
             $("#btn-record-record").prop("disabled", false);
