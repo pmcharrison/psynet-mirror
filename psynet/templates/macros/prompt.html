@@ -97,14 +97,15 @@
             display: flex;
             justify-content: center;
         }
-        #prompt-video {
+        #prompt {
             padding-top: 25px;
             padding-bottom: 25px;
+            visibility: hidden;
         }
     </style>
 
     <div id="prompt-video-container">
-        <video id="prompt-video" src="{{ config.url }}" style="width: {{ config.width }}" alt="Video not found" controls></video>
+        <video id="prompt" style="width: {{ config.width }}" alt="Video not found" controls></video>
     </div>
 
     <script>
@@ -115,7 +116,7 @@
         let controls = options.controls;
         let hideWhenFinished = options.hide_when_finished;
 
-        let videoPlayer = document.getElementById('prompt-video');
+        let videoPlayer = document.getElementById('prompt');
         videoPlayer.muted = muted;
         videoPlayer.controls = controls;
 
@@ -132,10 +133,13 @@
 
         psynet.page.prompt.play = function(providedOptions) {
             videoPlayer.currentTime = startAt;
-            let duration = endAt - startAt;
             showVideo();
             videoPlayer.play();
-            videoStopTimer = setTimeout(psynet.page.prompt.stop, duration * 1000);
+            if (endAt !== null) {
+                console.assert(startAt !== null);
+                let duration = endAt - startAt
+                videoStopTimer = setTimeout(psynet.page.prompt.stop, duration * 1000);
+            }
         };
         psynet.page.prompt.stop = function() {
             clearTimeout(videoStopTimer);
