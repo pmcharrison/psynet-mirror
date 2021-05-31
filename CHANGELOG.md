@@ -1,20 +1,20 @@
 # Changelog
 
-# [2.0.0]
+# [2.0.0] Released on 2021-05-31
 
 #### Added
 - Added support for video imitation chains and camera/screen record trials.
 - Added a new system for organizing the timing of front-end events.
-The API for some `Prompt` and `Control` elements has changed
-somewhat as a result.
-- Added `ProgressDisplay` functionality, which visualizes the 
-current progress in the trial with text messages and/or
+The API for some `Prompt` and `Control` elements has changed somewhat as a result.
+- Added `ProgressDisplay` functionality, which visualizes the  current progress in the trial with text messages and/or
 progress bars. 
 - Added `controls`, `muted`, and `hide_when_finished` arguments to `VideoPrompt`. 
 - PsyNet now requires a `language` argument in config.txt.
 - New function: `psynet.utils.get_language`, which returns the language
 specified in config.txt.
 - Added the ability to parallelize stimulus generation in `AudioGibbs` experiments.
+- Added `current_module` to a participant's export data.
+- Allow for arbitrary number of audio record channels in `VideoRecordControl`.
 
 #### Renamed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
@@ -30,15 +30,23 @@ scheduler and the JS front-end.
 - Renamed `active_balancing_across_chains` -> `balance_across_chains`.
 - Renamed `NonAdaptive` -> `Static`.
 
+#### Fixed
+- make `play_window` work in `VideoPrompt`.
+- Add `try`/`except` blocks in case of an `SMTPAuthenticationError`/`Exception` when calling `admin_notifier()`.
+- Make `switch` work when a `TrialMaker` is given as a branch.
+- Add `max_wait_time` and `max_loop_time` to `wait_while` and `while_loop`,  resp., to prevent participants from waiting forever.
 
 #### Changed
 - PsyNet now forces `disable_when_duration_exceeded = False` in `config.txt`.
-This is done to avoid a rare bug where recruitment would be shut down erroneously
-in long-running experiments. 
+This is done to avoid a rare bug where recruitment would be shut down erroneously in long-running experiments.
 - `psynet debug` now warns the user if the app title is too long.
+- Allow varying numbers of arguments in function argument of `StartSwitch`.
 
-#### Fixed
-- `play_window` now works in `VideoPrompt`. 
+#### BREAKING CHANGES
+- Ŕequired `language` argument in config.txt.
+- Ŕequired `disable_when_duration_exceeded = False` argument in config.txt
+- Various renamings, see section 'Renamed' above.
+
 
 # [1.14.0] Released on 2021-05-17
 
