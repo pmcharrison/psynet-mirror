@@ -32,7 +32,7 @@ The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module`
                 time_estimate_per_trial: float = 3.0,
             ):
             self.label = label
-            self.events = join(
+            self.elts = join(
                 ModularPage(
                     self.label,
                     Prompt("Do you have any kind of hearing impairment? (I.e., do you have any problems with your hearing?)"),
@@ -45,7 +45,7 @@ The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module`
                     UnsuccessfulEndPage(failure_tags=["hearing_impairment_check"])
                 )
             )
-            super().__init__(self.label, self.events)
+            super().__init__(self.label, self.elts)
 
 \* Another simple example would be a :class:`~psynet.page.ModularPage` with a :class:`~psynet.modular_page.TextControl` where the text provided by the participant is evaluated by some logic determining the positive/negative outcome.
 
@@ -87,11 +87,11 @@ A static pre-screening task inherits from :class:`~psynet.trial.Module`, e.g.:
             performance_threshold: int = 4,
         ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(performance_threshold)
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 Set reasonable defaults for ``time_estimate_per_trial`` and ``performance_threshold`` and assign a ``label``. Implement the four methods :meth:`instruction_page`, :meth:`trial_maker`, :meth:`trial`, and :meth:`get_stimulus_set`.

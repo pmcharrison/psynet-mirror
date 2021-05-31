@@ -25,7 +25,7 @@ class CAPRecruiterStandardConsent(Module):
         time_estimate: Optional[float] = 30,
     ):
         self.label = "cap-recruiter_standard_consent"
-        self.events = join(
+        self.elts = join(
             self.CAPRecruiterStandardConsentPage(),
             conditional(
                 "cap-recruiter_standard_consent_conditional",
@@ -41,7 +41,7 @@ class CAPRecruiterStandardConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     class CAPRecruiterStandardConsentPage(Page):
         """
@@ -83,7 +83,7 @@ class CAPRecruiterAudiovisualConsent(Module):
         time_estimate: Optional[float] = 30,
     ):
         self.label = "cap-recruiter_audiovisual_consent"
-        self.events = join(
+        self.elts = join(
             self.CAPRecruiterAudiovisualConsentPage(),
             conditional(
                 "cap-recruiter_audiovisual_consent_conditional",
@@ -105,7 +105,7 @@ class CAPRecruiterAudiovisualConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     class CAPRecruiterAudiovisualConsentPage(Page):
         """
@@ -155,7 +155,7 @@ class MTurkStandardConsent(Module):
         time_estimate: Optional[float] = 30,
     ):
         self.label = "mturk_standard_consent"
-        self.events = join(
+        self.elts = join(
             self.MTurkStandardConsentPage(),
             conditional(
                 "mturk_standard_consent_conditional",
@@ -170,7 +170,7 @@ class MTurkStandardConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     class MTurkStandardConsentPage(Page):
         """
@@ -212,7 +212,7 @@ class MTurkAudiovisualConsent(Module):
         time_estimate: Optional[float] = 30,
     ):
         self.label = "mturk_audiovisual_consent"
-        self.events = join(
+        self.elts = join(
             self.MTurkAudiovisualConsentPage(),
             conditional(
                 "mturk_audiovisual_consent_conditional",
@@ -228,7 +228,7 @@ class MTurkAudiovisualConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     class MTurkAudiovisualConsentPage(Page):
         """
@@ -273,7 +273,7 @@ class PrincetonConsent(Module):
         time_estimate: Optional[float] = 30,
     ):
         self.label = "princeton_consent"
-        self.events = join(
+        self.elts = join(
             self.PrincetonConsentPage(),
             conditional(
                 "princeton_consent_conditional",
@@ -286,7 +286,7 @@ class PrincetonConsent(Module):
                 )
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     class PrincetonConsentPage(Page):
         """

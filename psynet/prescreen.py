@@ -698,7 +698,7 @@ class LexTaleTest(Module):
                 num_trials,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     def instruction_page(self, hide_after, num_trials):
         return InfoPage(
@@ -866,7 +866,7 @@ class AttentionTest(Module):
             f'{prompt_1_explanation}{prompt_1_next_page if self.pages == 2 else ""}'
         )
         self.prompt_2 = prompt_2
-        self.events = join(
+        self.elts = join(
             ModularPage(
                 label="attention_test_1",
                 prompt=Markup(f"""{self.prompt_1_text}"""),
@@ -926,7 +926,7 @@ class AttentionTest(Module):
                 UnsuccessfulEndPage(failure_tags=["attention_test_2"]),
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class ColorBlindnessTest(Module):
@@ -967,13 +967,13 @@ class ColorBlindnessTest(Module):
         hide_after: float = 3.0,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(hide_after),
             self.trial_maker(
                 media_url, time_estimate_per_trial, performance_threshold, hide_after
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     def instruction_page(self, hide_after):
         if hide_after is None:
@@ -1106,13 +1106,13 @@ class ColorVocabularyTest(Module):
     ):
         self.label = label
         self.colors = self.colors if colors is None else colors
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(
                 time_estimate_per_trial, performance_threshold, self.colors
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     colors = [
         ("turquoise", [174, 72, 56]),
@@ -1228,11 +1228,11 @@ class HeadphoneTest(Module):
         performance_threshold: int = 4,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     def instruction_page(self):
         return InfoPage(
