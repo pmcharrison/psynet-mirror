@@ -27,7 +27,7 @@ You can define a custom Gibbs sampling experiment through the following steps:
 2. Decide on a vector of free parameters that will define the parameter space
    for your chains. This vector will be represented as a list;
    for example, one might use a list of three integers
-   identifying an RGB colour (e.g. ``[255, 25, 0]``).
+   identifying an RGB color (e.g. ``[255, 25, 0]``).
    Take the length of this vector and save it in the ``vector_length`` class attribute
    for your custom :class:`~psynet.trial.gibbs.GibbsNetwork` class.
    
@@ -43,7 +43,7 @@ You can define a custom Gibbs sampling experiment through the following steps:
    This :meth:`~psynet.trial.gibbs.GibbsTrial.show_trial` method
    should produce an object of 
    class :class:`~psynet.timeline.Page` [1]_
-   that presents the participant with some dynamic stimulus (e.g. a colour
+   that presents the participant with some dynamic stimulus (e.g. a color
    or a looping audio sample) that jointly
    
    a) Embodies the fixed network parameter, e.g. ``"forest"``, found in ``trial.network.definition``;

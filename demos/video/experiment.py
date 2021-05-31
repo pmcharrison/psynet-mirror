@@ -4,7 +4,16 @@ import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import ModularPage, VideoPrompt, VideoRecordControl
 from psynet.page import SuccessfulEndPage, UnsuccessfulEndPage
-from psynet.timeline import PageMaker, PreDeployRoutine, Timeline, conditional, join
+from psynet.timeline import (
+    Event,
+    MediaSpec,
+    PageMaker,
+    PreDeployRoutine,
+    ProgressDisplay,
+    Timeline,
+    conditional,
+    join,
+)
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -19,6 +28,50 @@ video_record_page = join(
         {"bucket_name": bucket_name, "public_read": True, "create_new_bucket": True},
     ),
     ModularPage(
+        "simple_video_prompt",
+        VideoPrompt(
+            "/static/flower.mp4",
+            flask.Markup(
+                """
+            <h3>Example video prompt:</h3>
+            <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
+            """
+            ),
+        ),
+        time_estimate=5,
+    ),
+    ModularPage(
+        "video_play_window",
+        VideoPrompt(
+            "/static/flower.mp4",
+            flask.Markup(
+                """
+            <h3>Example video prompt with play window:</h3>
+            <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
+            """
+            ),
+            play_window=[3, 4],
+        ),
+        time_estimate=5,
+    ),
+    ModularPage(
+        "video_plus_audio",
+        VideoPrompt(
+            "/static/birds.mp4",
+            "Here we play a video, muted, alongside an audio file.",
+            muted=True,
+        ),
+        time_estimate=5,
+        media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
+        events={
+            "playSoundtrack": Event(
+                is_triggered_by="promptStart",
+                delay=0.0,
+                js="psynet.audio.soundtrack.play()",
+            )
+        },
+    ),
+    ModularPage(
         "video_record_page",
         "This page lets you record video and sound from camera and microphone while also doing a simultaneous screen recording.",
         VideoRecordControl(
@@ -26,9 +79,11 @@ video_record_page = join(
             duration=5.0,
             recording_source="both",
             public_read=True,
-            start_delay=5.0,
+            show_preview=True,
+            controls=True,
         ),
         time_estimate=5,
+        progress_display=ProgressDisplay(duration=5.0),
     ),
     conditional(
         "video_record_page",
@@ -55,65 +110,6 @@ video_record_page = join(
         ),
         time_estimate=5,
     ),
-    ModularPage(
-        "screen_record_page",
-        "This page lets you record a video of your screen.",
-        VideoRecordControl(
-            s3_bucket=bucket_name,
-            duration=5.0,
-            recording_source="screen",
-            record_audio=False,
-            public_read=True,
-        ),
-        time_estimate=5,
-    ),
-    conditional(
-        "screen_record_page",
-        lambda experiment, participant: participant.answer["screen_url"] is None,
-        UnsuccessfulEndPage(failure_tags=["screen_record_page"]),
-    ),
-    PageMaker(
-        lambda participant: ModularPage(
-            "screen_playback",
-            VideoPrompt(
-                participant.answer["screen_url"],
-                "Here's the screen recording you just made.",
-                width="400px",
-            ),
-        ),
-        time_estimate=5,
-    ),
-    ModularPage(
-        "camera_record_page_with_playback_and_manual_upload_and_recording_restart",
-        "This page lets you record a video with your camera and play it back before upload. Clicking the 'Restart recording' button discards the last recording and records a new one.",
-        VideoRecordControl(
-            s3_bucket=bucket_name,
-            duration=5.0,
-            recording_source="camera",
-            show_preview=True,
-            playback_before_upload=True,
-            allow_restart=True,
-            start_delay=2.0,
-            public_read=True,
-        ),
-        time_estimate=5,
-    ),
-    conditional(
-        "camera_record_page",
-        lambda experiment, participant: participant.answer["camera_url"] is None,
-        UnsuccessfulEndPage(failure_tags=["camera_record_page"]),
-    ),
-    PageMaker(
-        lambda participant: ModularPage(
-            "screen_playback",
-            VideoPrompt(
-                participant.answer["camera_url"],
-                "Here's the camera recording you just made.",
-                width="400px",
-            ),
-        ),
-        time_estimate=5,
-    ),
 )
 
 
@@ -122,6 +118,3 @@ video_record_page = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(video_record_page, SuccessfulEndPage())
-
-
-extra_routes = Exp().extra_routes()

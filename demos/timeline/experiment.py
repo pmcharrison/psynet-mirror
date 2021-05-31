@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from dallinger.experiment import experiment_route
+
 import psynet.experiment
 from psynet.modular_page import (
     ModularPage,
@@ -34,12 +36,17 @@ class Exp(psynet.experiment.Experiment):
         "new_variable": "some-value",
     }
 
+    @experiment_route("/custom_route", methods=["POST", "GET"])
+    @classmethod
+    def custom_route(cls):
+        return f"A custom route for {cls.__name__}."
+
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),
         Module(
             "introduction",
             PageMaker(
-                lambda experiment, participant: InfoPage(
+                lambda: InfoPage(
                     f"The current time is {datetime.now().strftime('%H:%M:%S')}."
                 ),
                 time_estimate=5,
@@ -94,7 +101,7 @@ class Exp(psynet.experiment.Experiment):
             ),
             conditional(
                 "like_chocolate",
-                lambda experiment, participant: participant.answer == "Yes",
+                lambda participant: participant.answer == "Yes",
                 InfoPage("It's nice to hear that you like chocolate!", time_estimate=5),
                 InfoPage(
                     "I'm sorry to hear that you don't like chocolate...",
@@ -103,10 +110,10 @@ class Exp(psynet.experiment.Experiment):
                 fix_time_credit=False,
             ),
         ),
-        CodeBlock(lambda experiment, participant: participant.set_answer("Yes")),
+        CodeBlock(lambda participant: participant.set_answer("Yes")),
         while_loop(
             "example_loop",
-            lambda experiment, participant: participant.answer == "Yes",
+            lambda participant: participant.answer == "Yes",
             Module(
                 "loop",
                 ModularPage(
@@ -164,30 +171,30 @@ class Exp(psynet.experiment.Experiment):
             ),
         ),
         Module(
-            "colour",
+            "color",
             ModularPage(
                 "test_nafc",
-                Prompt("What's your favourite colour?"),
+                Prompt("What's your favourite color?"),
                 control=PushButtonControl(
                     ["Red", "Green", "Blue"], arrange_vertically=False
                 ),
                 time_estimate=5,
             ),
             CodeBlock(
-                lambda experiment, participant: participant.var.new(
-                    "favourite_colour", participant.answer
+                lambda participant: participant.var.new(
+                    "favourite_color", participant.answer
                 )
             ),
             switch(
-                "colour",
-                lambda experiment, participant: participant.answer,
+                "color",
+                lambda participant: participant.answer,
                 branches={
-                    "Red": InfoPage("Red is a nice colour, wait 1s.", time_estimate=1),
+                    "Red": InfoPage("Red is a nice color, wait 1s.", time_estimate=1),
                     "Green": InfoPage(
-                        "Green is quite a nice colour, wait 2s.", time_estimate=2
+                        "Green is quite a nice color, wait 2s.", time_estimate=2
                     ),
                     "Blue": InfoPage(
-                        "Blue is an unpleasant colour, wait 3s.", time_estimate=3
+                        "Blue is an unpleasant color, wait 3s.", time_estimate=3
                     ),
                 },
                 fix_time_credit=False,
@@ -195,6 +202,3 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

@@ -2,6 +2,7 @@
 
 import datetime
 import json
+from smtplib import SMTPAuthenticationError
 
 import dallinger.models
 from dallinger.config import get_config
@@ -48,7 +49,7 @@ class Participant(dallinger.models.Participant):
     id : int
         The participant's unique ID.
 
-    event_id : int
+    elt_id : int
         Represents the participant's position in the timeline.
         Should not be modified directly.
         Stored in the database as ``property1``.
@@ -109,7 +110,7 @@ class Participant(dallinger.models.Participant):
     __mapper_args__ = {"polymorphic_identity": "participant"}
     __extra_vars__ = {}
 
-    event_id = field.claim_field("event_id", __extra_vars__, int)
+    elt_id = field.claim_field("elt_id", __extra_vars__, int)
     page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
     complete = field.claim_field("complete", __extra_vars__, bool)
     answer = field.claim_field("answer", __extra_vars__, object)
@@ -138,8 +139,6 @@ class Participant(dallinger.models.Participant):
         x = super().__json__()
         field.json_clean(x, details=True)
         field.json_add_extra_vars(x, self)
-        x["started_modules"] = self.started_modules
-        x["finished_modules"] = self.finished_modules
         del x["modules"]
         field.json_format_vars(x)
         return x
@@ -182,6 +181,11 @@ class Participant(dallinger.models.Participant):
         modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
         return [m[0] for m in modules]
 
+    @property
+    @extra_var(__extra_vars__)
+    def current_module(self):
+        return None if not self.started_modules else self.started_modules[-1]
+
     def start_module(self, label):
         modules = self.modules.copy()
         try:
@@ -206,7 +210,7 @@ class Participant(dallinger.models.Participant):
         return self
 
     def initialise(self, experiment, client_ip_address: str):
-        self.event_id = -1
+        self.elt_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0
@@ -270,7 +274,16 @@ class Participant(dallinger.models.Participant):
             f"Recruitment ended. Maximum amount paid to participant "
             f"with assignment_id '{self.assignment_id}' reached!"
         )
-        admin_notifier(config).send(**message)
+        try:
+            admin_notifier(config).send(**message)
+        except SMTPAuthenticationError as e:
+            logger.error(
+                f"SMTPAuthenticationError sending 'max_participant_payment' reached email: {e}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Unknown error sending 'max_participant_payment' reached email: {e}"
+            )
 
     @property
     def response(self):
@@ -299,7 +312,7 @@ class Participant(dallinger.models.Participant):
         return TimeCreditStore(self)
 
     def append_branch_log(self, entry: str):
-        # We need to create a new list otherwise the change may not be recognised
+        # We need to create a new list otherwise the change may not be recognized
         # by SQLAlchemy(?)
         if (
             not isinstance(entry, list)

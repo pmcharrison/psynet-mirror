@@ -9,7 +9,7 @@ from dominate.util import raw
 from flask import Markup
 
 from .media import generate_presigned_url
-from .timeline import FailedValidation, MediaSpec, Page, is_list_of
+from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
 
 logger = get_logger()
@@ -83,6 +83,9 @@ class Prompt:
     def pre_render(self):
         pass
 
+    def update_events(self, events):
+        pass
+
 
 class AudioPrompt(Prompt):
     """
@@ -101,22 +104,6 @@ class AudioPrompt(Prompt):
     loop
         Whether the audio should loop back to the beginning after finishing.
 
-    prevent_response
-        Whether the participant should be prevented from interacting with the
-        response controls until the audio is finished.
-
-    prevent_submit
-        Whether the participant should be prevented from submitting their final
-        response until the audio is finished.
-
-    enable_submit_after
-        If not ``None``, sets a time interval in seconds after which the response
-        options will be enabled.
-
-    start_delay
-        Delay in seconds before the sound should start playing, counting from
-        the media load event.
-
     text_align
         CSS alignment of the text.
 
@@ -129,6 +116,15 @@ class AudioPrompt(Prompt):
         If the second element is ``None``, then the audio file is played until the end;
         otherwise, the audio file finishes playback at this timepoint (in seconds).
         The behaviour is undefined when the time window extends past the end of the audio file.
+
+    controls
+        Whether to give the user playback controls (default = ``False``).
+
+    fade_in
+        Fade-in duration for the audio (defaults to ``0.0``).
+
+    kwargs
+        Passed to :class:`~psynet.modular_page.Prompt`.
     """
 
     def __init__(
@@ -136,12 +132,11 @@ class AudioPrompt(Prompt):
         url: str,
         text: Union[str, Markup],
         loop: bool = False,
-        prevent_response: bool = True,
-        prevent_submit: bool = True,
-        enable_submit_after: Optional[float] = None,
-        start_delay=0.0,
         text_align="left",
         play_window: Optional[List] = None,
+        controls: bool = False,
+        fade_in: float = 0.0,
+        **kwargs,
     ):
         if play_window is None:
             play_window = [None, None]
@@ -150,16 +145,18 @@ class AudioPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        super().__init__(text=text, text_align=text_align)
+        super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
-        self.prevent_response = prevent_response
-        self.prevent_submit = prevent_submit
-        self.enable_submit_after = enable_submit_after
         self.loop = loop
-        self.start_delay = start_delay
         self.play_window = play_window
+        self.controls = controls
 
-        self.js_play_options = dict(loop=loop, start=play_window[0], end=play_window[1])
+        self.js_play_options = dict(
+            loop=loop,
+            start=play_window[0],
+            end=play_window[1],
+            fade_in=fade_in,
+        )
 
     macro = "audio"
 
@@ -184,6 +181,21 @@ class AudioPrompt(Prompt):
         )
         return html
 
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["promptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    triggering_event="trialStart",
+                    delay=0,
+                )
+            ]
+        )
+
+        events["promptEnd"] = Event(is_triggered_by=[])
+        events["trialFinish"].add_trigger("promptEnd")
+
 
 class VideoPrompt(Prompt):
     """
@@ -199,25 +211,6 @@ class VideoPrompt(Prompt):
         Text to display to the participant. This can either be a string
         for plain text, or an HTML specification from ``flask.Markup``.
 
-    loop
-        Whether the video should loop back to the beginning after finishing.
-
-    prevent_response
-        Whether the participant should be prevented from interacting with the
-        response controls until the video is finished.
-
-    prevent_submit
-        Whether the participant should be prevented from submitting their final
-        response until the video is finished.
-
-    enable_submit_after
-        If not ``None``, sets a time interval in seconds after which the response
-        options will be enabled.
-
-    start_delay
-        Delay in seconds before the video should start playing, counting from
-        the media load event.
-
     text_align
         CSS alignment of the text.
 
@@ -227,45 +220,54 @@ class VideoPrompt(Prompt):
     play_window
         An optional two-element list identifying the time window in the video file that
         should be played.
-        If the first element is ``None``, then the video file is played from the beginning;
-        otherwise, the video file starts playback from this timepoint (in seconds)
-        (note that negative numbers will not be accepted here).
-        If the second element is ``None``, then the video file is played until the end;
-        otherwise, the video file finishes playback at this timepoint (in seconds).
-        The behaviour is undefined when the time window extends past the end of the video file.
+        If a list is provided, the first element must be a number specifying the timepoint in seconds
+        at which the video should begin.
+        The second element may then either be ``None``, in which case the video is played until the end,
+        or a number specifying the timepoint in seconds at which the video should end.
+
+    controls
+        Determines whether the user should be given controls for manipulating video playback.
+
+    muted
+        If ``True``, then the video will be muted (i.e. it will play without audio).
+        The default is ``False``.
+
+    hide_when_finished
+        If ``True`` (default), the video will disappear once it has finished playing.
+
+    kwargs
+        Passed to :class:`~psynet.modular_page.Prompt`.
     """
 
     def __init__(
         self,
         url: str,
         text: Union[str, Markup],
-        loop: bool = False,
-        prevent_response: bool = True,
-        prevent_submit: bool = True,
-        enable_submit_after: Optional[float] = None,
-        start_delay=0.0,
         text_align="left",
         width: str = "560px",
         play_window: Optional[List] = None,
+        controls: bool = False,
+        muted: bool = False,
+        hide_when_finished: bool = True,
+        **kwargs,
     ):
         if play_window is None:
-            play_window = [None, None]
+            play_window = [0.0, None]
         assert len(play_window) == 2
+        assert play_window[0] is not None
+        assert play_window[0] >= 0.0
 
-        if play_window[0] is not None and play_window[0] < 0:
-            raise ValueError("play_window[0] may not be less than 0")
-
-        super().__init__(text=text, text_align=text_align)
+        super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
-        self.prevent_response = prevent_response
-        self.prevent_submit = prevent_submit
-        self.enable_submit_after = enable_submit_after
-        self.loop = loop
-        self.start_delay = start_delay
         self.width = width
         self.play_window = play_window
 
-        self.js_play_options = dict(loop=loop, start=play_window[0], end=play_window[1])
+        self.js_play_options = dict(
+            start_at=play_window[0],
+            muted=muted,
+            controls=controls,
+            hide_when_finished=hide_when_finished,
+        )
 
     macro = "video"
 
@@ -289,6 +291,27 @@ class VideoPrompt(Prompt):
             ).render()
         )
         return html
+
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["promptStart"] = Event(
+            is_triggered_by=[
+                Trigger(
+                    triggering_event="trialStart",
+                    delay=0,
+                )
+            ],
+            once=True,
+        )
+
+        events["promptEnd"] = Event(is_triggered_by=None, once=True)
+
+        if self.play_window[1] is not None:
+            duration = self.play_window[1] - self.play_window[0]
+            events["promptEnd"].add_trigger("promptStart", delay=duration)
+
+        events["trialFinish"].add_trigger("promptEnd")
 
 
 class ImagePrompt(Prompt):
@@ -314,6 +337,10 @@ class ImagePrompt(Prompt):
         the disadvantage of this is that other page content may move
         once the image loads.
 
+    show_after
+        Specifies the time in seconds when the image will be displayed, calculated relative to the start of the trial.
+        Defaults to 0.0.
+
     hide_after
         If not ``None``, specifies a time in seconds after which the image should be hidden.
 
@@ -334,6 +361,7 @@ class ImagePrompt(Prompt):
         text: Union[str, Markup],
         width: str,
         height: str,
+        show_after: float = 0.0,
         hide_after: Optional[float] = None,
         margin_top: str = "0px",
         margin_bottom: str = "0px",
@@ -343,6 +371,7 @@ class ImagePrompt(Prompt):
         self.url = url
         self.width = width
         self.height = height
+        self.show_after = show_after
         self.hide_after = hide_after
         self.margin_top = margin_top
         self.margin_bottom = margin_bottom
@@ -351,28 +380,43 @@ class ImagePrompt(Prompt):
 
     @property
     def metadata(self):
-        return {"text": self.text, "url": self.url, "hide_after": self.hide_after}
+        return {
+            "text": self.text,
+            "url": self.url,
+            "show_after": self.show_after,
+            "hide_after": self.hide_after,
+        }
+
+    def update_events(self, events):
+        events["promptStart"] = Event(
+            is_triggered_by="trialStart", delay=self.show_after
+        )
+
+        if self.hide_after is not None:
+            events["promptEnd"] = Event(
+                is_triggered_by="promptStart", delay=self.hide_after
+            )
 
 
-class ColourPrompt(Prompt):
+class ColorPrompt(Prompt):
     """
-    Displays a colour to the participant.
+    Displays a color to the participant.
 
     Parameters
     ----------
 
-    colour
-        Colour to show, specified as a list of HSL values.
+    color
+        Color to show, specified as a list of HSL values.
 
     text
         Text to display to the participant. This can either be a string
         for plain text, or an HTML specification from ``flask.Markup``.
 
     width
-        CSS width specification for the colour box (default ``'200px'``).
+        CSS width specification for the color box (default ``'200px'``).
 
     height
-        CSS height specification for the colour box (default ``'200px'``).
+        CSS height specification for the color box (default ``'200px'``).
 
     text_align
         CSS alignment of the text.
@@ -381,19 +425,19 @@ class ColourPrompt(Prompt):
 
     def __init__(
         self,
-        colour: List[float],
+        color: List[float],
         text: Union[str, Markup],
         width: str = "200px",
         height: str = "200px",
         text_align: str = "left",
     ):
-        assert isinstance(colour, list)
+        assert isinstance(color, list)
         super().__init__(text=text, text_align=text_align)
-        self.hsl = colour
+        self.hsl = color
         self.width = width
         self.height = height
 
-    macro = "colour"
+    macro = "color"
 
     @property
     def metadata(self):
@@ -525,6 +569,9 @@ class Control:
         return ""
 
     def pre_render(self):
+        pass
+
+    def update_events(self, events):
         pass
 
 
@@ -852,8 +899,7 @@ class TimedPushButtonControl(PushButtonControl):
         self.button_highlight_duration = button_highlight_duration
 
     def format_answer(self, raw_answer, **kwargs):
-        event_log = {**kwargs}["metadata"]["event_log"]
-        return event_log
+        return {**kwargs}["metadata"]["event_log"]
 
     def visualize_response(self, answer, response, trial):
         html = tags.div()
@@ -1109,6 +1155,9 @@ class ModularPage(Page):
         :class:`~psynet.modular_page.Control`
         objects instead.
 
+    js_vars
+        Optional dictionary of arguments to instantiate as global Javascript variables.
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1120,10 +1169,15 @@ class ModularPage(Page):
         control: Control = NullControl(),
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
+        events: Optional[List] = None,
+        js_vars: Optional[dict] = None,
         **kwargs,
     ):
         if media is None:
             media = MediaSpec()
+
+        if js_vars is None:
+            js_vars = {}
 
         if not isinstance(prompt, Prompt):
             prompt = Prompt(prompt)
@@ -1136,15 +1190,12 @@ class ModularPage(Page):
 
         {self.import_templates}
 
-        {{% block main_body %}}
-        {{{{ super() }}}}
-
+        {{% block above_progress_display %}}
         {{{{ {self.prompt_macro}(prompt_config) }}}}
+        {{% endblock %}}
 
-        <p class="vspace"></p>
-
+        {{% block below_progress_display %}}
         {{{{ {self.control_macro}(control_config) }}}}
-
         {{% endblock %}}
         """
         all_media = MediaSpec.merge(media, prompt.media, control.media)
@@ -1153,10 +1204,27 @@ class ModularPage(Page):
             label=label,
             time_estimate=time_estimate,
             template_str=template_str,
-            template_arg={"prompt_config": prompt, "control_config": control},
+            template_arg={
+                "prompt_config": prompt,
+                "control_config": control,
+            },
             media=all_media,
+            events=events,
+            js_vars={
+                **js_vars,
+                "modular_page_components": {
+                    "prompt": self.prompt.macro,
+                    "control": self.control.macro,
+                },
+            },
             **kwargs,
         )
+
+    def prepare_default_events(self):
+        events = super().prepare_default_events()
+        self.prompt.update_events(events)
+        self.control.update_events(events)
+        return events
 
     @property
     def prompt_macro(self):
@@ -1258,12 +1326,11 @@ class AudioMeterControl(Control):
     macro = "audio_meter"
 
     def __init__(
-        self, min_time: float = 2.5, calibrate: bool = False, submit_button: bool = True
+        self, calibrate: bool = False, submit_button: bool = True, min_time: float = 0.0
     ):
-        assert min_time >= 0
-        self.min_time = min_time
         self.calibrate = calibrate
         self.submit_button = submit_button
+        self.min_time = min_time
         if calibrate:
             self.sliders = MultiSliderControl(
                 [
@@ -1368,9 +1435,11 @@ class AudioMeterControl(Control):
             )
         )
 
-    @property
-    def metadata(self):
-        return {"min_time": self.min_time}
+    def update_events(self, events):
+        events["audioMeterMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.min_time
+        )
+        events["submitEnable"].add_trigger("audioMeterMinimalTime")
 
 
 class TappingAudioMeterControl(AudioMeterControl):
@@ -1485,6 +1554,7 @@ class SliderControl(Control):
         self.input_type = input_type
         self.template_filename = template_filename
         self.template_args = template_args
+        self.minimal_time = minimal_time
 
         self.snap_values = self.format_snap_values(
             snap_values, min_value, max_value, num_steps
@@ -1493,7 +1563,6 @@ class SliderControl(Control):
         js_vars = {}
         js_vars["snap_values"] = self.snap_values
         js_vars["minimal_interactions"] = minimal_interactions
-        js_vars["minimal_time"] = minimal_time
         js_vars["continuous_updates"] = continuous_updates
         self.js_vars = js_vars
 
@@ -1546,6 +1615,14 @@ class SliderControl(Control):
             "template_args": self.template_args,
             "js_vars": self.js_vars,
         }
+
+    def update_events(self, events):
+        events["sliderMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.minimal_time
+        )
+        events["submitEnable"].add_triggers(
+            "sliderMinimalInteractions", "sliderMinimalTime"
+        )
 
 
 class AudioSliderControl(SliderControl):
@@ -1762,12 +1839,11 @@ class Slider:
         self.slider_id = slider_id
 
 
-class AudioRecordControl(Control):
+class RecordControl(Control):
     """
-    This control interface solicits an audio recording from the participant.
-
-    Parameters
-    ----------
+    Generic class for recording controls. Cannot be instantiated directly.
+    See :class:`~psynet.modular_page.AudioRecordControl`
+    and :class:`~psynet.modular_page.VideoRecordControl`.
 
     duration
         Duration of the desired recording, in seconds.
@@ -1777,9 +1853,6 @@ class AudioRecordControl(Control):
     s3_bucket
         Name of the S3 bucket to which the recording should be uploaded.
 
-    show_meter
-        Whether an audio meter should be displayed, so as to help the participant
-        to calibrate their volume.
 
     public_read
         Whether the audio recording should be uploaded to the S3 bucket
@@ -1788,22 +1861,22 @@ class AudioRecordControl(Control):
     auto_advance
         Whether the page should automatically advance to the next page
         once the audio recording has been uploaded.
-    """
 
-    macro = "audio_record"
+    show_meter
+        Whether an audio meter should be displayed, so as to help the participant
+        to calibrate their volume.
+    """
 
     def __init__(
         self,
-        *,
         duration: float,
         s3_bucket: str,
-        show_meter: bool = False,
         public_read: bool = False,
         auto_advance: bool = False,
+        show_meter: bool = False,
     ):
         self.duration = duration
         self.s3_bucket = s3_bucket
-        self.show_meter = show_meter
         self.public_read = public_read
         self.auto_advance = auto_advance
 
@@ -1816,9 +1889,59 @@ class AudioRecordControl(Control):
     def metadata(self):
         return {}
 
+    def pre_render(self):
+        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
+        logger.info(f"Generated presigned url: {self.presigned_url}")
+
+    def update_events(self, events):
+        events["recordStart"] = Event(Trigger("responseEnable"))
+        events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
+        events["submitEnable"] = Event(Trigger("uploadEnd"))
+        events["uploadEnd"] = Event(is_triggered_by=[])
+
+
+class AudioRecordControl(RecordControl):
+    """
+    Records audio from a participant.
+
+    Parameters
+    ----------
+
+    controls
+        Whether to give the user controls for the recorder (default = ``False``).
+
+    loop_playback
+        Whether in-browser playback of the recording should have looping enabled by default
+        (default = ``False``). Ignored if ``controls`` is ``False``.
+
+    num_channels
+        The number of channels used to record the audio. Default is mono (`num_channels=1`).
+
+    **kwargs
+        Further arguments passed to :class:`~psynet.modular_page.RecordControl`
+    """
+
+    macro = "audio_record"
+
+    def __init__(
+        self,
+        *,
+        controls: bool = False,
+        loop_playback: bool = False,
+        num_channels: int = 1,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+
+        self.controls = controls
+        self.loop_playback = loop_playback
+        self.num_channels = num_channels
+
     def format_answer(self, raw_answer, **kwargs):
         filename = os.path.basename(urlparse(raw_answer).path)
         return {
+            "origin": "AudioRecordControl",
+            "supports_record_trial": True,
             "s3_bucket": self.s3_bucket,
             "key": filename,  # Leave key for backward compatibility
             "url": strip_url_parameters(raw_answer),
@@ -1835,51 +1958,44 @@ class AudioRecordControl(Control):
                 controls=True,
             ).render()
 
-    def pre_render(self):
-        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
-        logger.info(f"Generated presigned url: {self.presigned_url}")
+    def update_events(self, events):
+        super().update_events(events)
+        events["trialFinish"].add_trigger("recordEnd")
 
 
-class VideoRecordControl(Control):
+class VideoRecordControl(RecordControl):
     """
-    Records a video either by using the the camera or by capturing from the screen.
+    Records a video either by using the the camera or by capturing from the screen. Output format
+    for both screen and camera recording is ``.webm``.
 
     Parameters
     ----------
 
-    s3_bucket
-        Name of the AWS S3 bucket to save the resulting file into.
-
-    duration
-        Duration of the video file in seconds.
-
     recording_source
-        Specifies whether to record by using the camera and/or by capturing from the screen. Possible values are 'camera', 'screen' and 'both'.
+        Specifies whether to record by using the camera and/or by capturing from the screen.
+        Possible values are 'camera', 'screen' and 'both'.
+        Default: 'camera'.
 
     record_audio
-        Whether to record audio using the microphone. This settings only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
+        Whether to record audio using the microphone.
+        This setting only applies when 'camera' or 'both' is chosen as `recording_source`. Default: `True`.
 
-    show_meter
-        Whether an `AudioMeterControl` should be displayed. Default: `False`.
+    audio_num_channels
+        The number of channels used to record the audio (if enabled by `record_audio`). Default is
+        mono (`audio_num_channels=1`).
 
     width
         Width of the video frame to be displayed. Default: "560px".
 
-    start_delay
-        Delay in seconds before the video starts recording, counting from
-        the media load event. A countdown is displayed if `start_delay` > 0. Default: 0.0.
-
-    public_read
-        Whether the AWS S3 bucket's access permission is set to 'Public'. For reference see https://docs.aws.amazon.com/AmazonS3/latest/user-guide/block-public-access.html
-
     show_preview
         Whether to show a preview of the video on the page. Default: `False`.
 
-    playback_before_upload
-        Whether to play back the recorded webcam video before it is uploaded.
+    controls
+        Whether to provide controls for manipulating the recording.
 
-    allow_restart
-         Whether to be able to manually restart the video recording.
+    loop_playback
+        Whether to loop playback by default (only relevant if ``controls=True``.
+
     """
 
     macro = "video_record"
@@ -1887,42 +2003,35 @@ class VideoRecordControl(Control):
     def __init__(
         self,
         *,
-        s3_bucket: str,
-        duration: float,
-        recording_source: str,
+        recording_source: str = "camera",
         record_audio: bool = True,
-        show_meter: bool = False,
-        width: str = "560px",
-        start_delay: float = 0.0,
-        public_read: bool = False,
+        audio_num_channels: int = 1,
+        width: str = "300px",
         show_preview: bool = False,
-        playback_before_upload: bool = False,
-        allow_restart: bool = False,
+        controls: bool = False,
+        loop_playback: bool = False,
+        **kwargs,
     ):
-        self.duration = duration
-        self.s3_bucket = s3_bucket
+        super().__init__(**kwargs)
+
         self.recording_source = recording_source
         self.record_audio = record_audio
-        self.show_meter = show_meter
+        self.audio_num_channels = audio_num_channels
         self.width = width
-        self.start_delay = start_delay
-        self.public_read = public_read
         self.show_preview = show_preview
-        self.playback_before_upload = playback_before_upload
-        self.allow_restart = allow_restart
+        self.controls = controls
+        self.loop_playback = loop_playback
+        self.presigned_url_camera = None
+        self.presigned_url_screen = None
 
-        if show_meter:
-            self.meter = AudioMeterControl(submit_button=False)
-        else:
-            self.meter = None
+        if self.record_audio is False:
+            self.audio_num_channels = 0
 
         assert self.recording_source in ["camera", "screen", "both"]
 
-    @property
-    def metadata(self):
-        return {}
-
     def format_answer(self, raw_answer, **kwargs):
+        camera_key = os.path.basename(urlparse(raw_answer["camera"]).path)
+        screen_key = os.path.basename(urlparse(raw_answer["screen"]).path)
         return {
             "s3_bucket": self.s3_bucket,
             "camera_url": strip_url_parameters(raw_answer["camera"])
@@ -1932,6 +2041,10 @@ class VideoRecordControl(Control):
             if raw_answer is not None
             else None,
             "duration_sec": self.duration,
+            "origin": "VideoRecordControl",
+            "supports_record_trial": True,
+            "camera_key": camera_key,
+            "screen_key": screen_key,
             "recording_source": self.recording_source,
             "record_audio": self.record_audio,
         }
@@ -1967,6 +2080,10 @@ class VideoRecordControl(Control):
             self.presigned_url_screen = generate_presigned_url(self.s3_bucket, "webm")
             logger.info(f"Generated presigned url: {self.presigned_url_screen}")
 
+    def update_events(self, events):
+        super().update_events(events)
+        events["trialFinish"].add_trigger("recordEnd")
+
 
 class VideoSliderControl(Control):
     macro = "video_slider"
@@ -1984,7 +2101,7 @@ class VideoSliderControl(Control):
         directional: bool = True,
         hide_slider: bool = False,
     ):
-        assert 0 <= starting_value and starting_value <= 1
+        assert 0 <= starting_value <= 1
 
         self.url = url
         self.file_type = file_type
@@ -2026,3 +2143,11 @@ class VideoSliderControl(Control):
             ).render()
         )
         return html
+
+    def update_events(self, events):
+        events["sliderMinimalTime"] = Event(
+            is_triggered_by="trialStart", delay=self.minimal_time
+        )
+        events["submitEnable"].add_triggers(
+            "sliderMinimalTime",
+        )

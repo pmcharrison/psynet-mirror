@@ -66,7 +66,7 @@ def new_trial_maker(**kwarg):
         num_chains_per_participant=None,
         num_chains_per_experiment=5,
         trials_per_node=1,
-        active_balancing_across_chains=True,
+        balance_across_chains=True,
         check_performance_at_end=True,
         check_performance_every_trial=False,
         recruit_mode="num_trials",
@@ -158,3 +158,22 @@ def test_estimate_credit__while_loop__switch__fix_time_false():
         expected_repetitions=5,
     )
     assert CreditEstimate(e).get_max("time") == 50
+
+
+def test_switch_with_trial_maker():
+    tm_1 = new_trial_maker(id_="tm-1")
+    tm_2 = new_trial_maker(id_="tm-2")
+    timeline = Timeline(
+        switch(
+            "test",
+            lambda experiment, participant: participant.var.switch,
+            {
+                "a": tm_1,
+                "b": tm_2,
+            },
+            fix_time_credit=False,
+        ),
+        SuccessfulEndPage(),
+    )
+    assert timeline.get_trial_maker("tm-1") == tm_1
+    assert timeline.get_trial_maker("tm-2") == tm_2

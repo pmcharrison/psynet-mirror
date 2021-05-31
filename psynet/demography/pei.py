@@ -31,7 +31,7 @@ class PEI(Module):
                 time_estimate=5,
             )
         self.label = label
-        self.events = join(
+        self.elts = join(
             info_page,
             PEI_01(),
             PEI_02(),
@@ -41,7 +41,7 @@ class PEI(Module):
             PEI_06(),
             PEI_07(),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class PEI_01(ModularPage):

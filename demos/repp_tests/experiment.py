@@ -7,7 +7,7 @@ import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
-    REPPMarkersCheck,
+    REPPMarkersTest,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
     REPPVolumeCalibrationMusic,
@@ -33,10 +33,7 @@ class Exp(psynet.experiment.Experiment):
         REPPVolumeCalibrationMarkers(),  # Volume calibration test for metronome: adjust right volume to be used with REPP when working with metronome stimuli
         REPPVolumeCalibrationMusic(),  # Volume calibration test for music: adjust right volume to be used with REPP when working with music sitmuli
         REPPTappingCalibration(),  # Calibration test 2: adjust tapping volume to be used with REPP
-        REPPMarkersCheck(),
+        REPPMarkersTest(),
         InfoPage("You passed the recording test! Congratulations.", time_estimate=3),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

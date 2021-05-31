@@ -22,7 +22,7 @@ The following subclasses of :class:`~psynet.modular_page.Prompt` exist:
 
 * :class:`~psynet.modular_page.ImagePrompt`
 
-* :class:`~psynet.modular_page.ColourPrompt`
+* :class:`~psynet.modular_page.ColorPrompt`
 
 Controls
 --------

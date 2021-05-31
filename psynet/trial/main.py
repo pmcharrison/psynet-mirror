@@ -124,7 +124,7 @@ class AsyncProcessOwner:
         class definitions from the experiment directory, these may cause downstream problems.
         For safety, any such arguments should be pickled first (using pickle.dumps),
         then the function should run import_local_experiment(), then the arguments should be unpickled
-        (see trial.non_adaptive for an example).
+        (see trial.static for an example).
         """
         process_id = str(uuid4())
         self.push_async_process(process_id)
@@ -663,7 +663,7 @@ class TrialMaker(Module):
         Users are invited to override this.
 
     introduction
-        An optional event or list of events to execute prior to beginning the trial loop.
+        An optional event or list of elts to execute prior to beginning the trial loop.
 
     give_end_feedback_passed : bool
         If ``True``, then participants who pass the final performance check
@@ -722,7 +722,7 @@ class TrialMaker(Module):
         self.target_num_participants = target_num_participants
         self.num_repeat_trials = num_repeat_trials
 
-        events = join(
+        elts = join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
             ParticipantFailRoutine(
                 self.with_namespace(), self.participant_fail_routine
@@ -740,7 +740,7 @@ class TrialMaker(Module):
             else None,
         )
         label = self.with_namespace()
-        super().__init__(label, events)
+        super().__init__(label, elts)
 
     participant_progress_threshold = 0.1
 
@@ -1157,7 +1157,7 @@ class TrialMaker(Module):
         Returns
         -------
 
-        An event (:class:`~psynet.timeline.Event`) or a list of events.
+        An :class:`~psynet.timeline.Elt` or a list of :class:`~psynet.timeline.Elt`s.
         """
         return join(UnsuccessfulEndPage(failure_tags=["performance_check"]))
 

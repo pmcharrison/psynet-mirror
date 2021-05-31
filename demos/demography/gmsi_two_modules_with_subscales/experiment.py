@@ -21,6 +21,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

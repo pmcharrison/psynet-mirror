@@ -203,7 +203,7 @@ class ChainNetwork(TrialNetwork):
 
         Suppose one wishes to have multiple networks in the experiment,
         each characterised by a different value of an attribute
-        (e.g. a different colour).
+        (e.g. a different color).
         One approach would be to sample randomly; however, this would not
         guarantee an even distribution of attribute values.
         In this case, a better approach is to use the
@@ -212,9 +212,9 @@ class ChainNetwork(TrialNetwork):
 
         ::
 
-            colours = ["red", "green", "blue"]
+            colors = ["red", "green", "blue"]
             return {
-                "colour": self.balance_across_networks(colours)
+                "color": self.balance_across_networks(colors)
             }
 
         See :meth:`psynet.trial.chain.ChainNetwork.balance_across_networks`
@@ -236,18 +236,18 @@ class ChainNetwork(TrialNetwork):
         Relies on the fact that network IDs are guaranteed to be consecutive.
         sequences of integers.
 
-        Suppose we wish to assign our networks to colours,
-        and we want to balance colour assignment across networks.
+        Suppose we wish to assign our networks to colors,
+        and we want to balance color assignment across networks.
         We might write the following:
 
         ::
 
-            colours = ["red", "green", "blue"]
-            chosen_colour = self.balance_across_networks(colours)
+            colors = ["red", "green", "blue"]
+            chosen_color = self.balance_across_networks(colors)
 
         In across-participant chain designs,
         :meth:`~psynet.trial.chain.ChainNetwork.balance_across_networks`
-        will ensure that the distribution of colours is maximally uniform across
+        will ensure that the distribution of colors is maximally uniform across
         the experiment by assigning
         the first network to red, the second network to green, the third to blue,
         then the fourth to red, the fifth to green, the sixth to blue,
@@ -392,8 +392,8 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
       which creates a node definition from the seed passed from the previous
       source or node in the chain;
 
-    * :meth:`~psynet.trial.chain.ChainNode.summarise_trials`,
-      which summarises the trials at a given node to produce a seed that can
+    * :meth:`~psynet.trial.chain.ChainNode.summarize_trials`,
+      which summarizes the trials at a given node to produce a seed that can
       be passed to the next node in the chain.
 
     Parameters
@@ -548,16 +548,16 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         """
         raise NotImplementedError
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         """
-        Summarises the trials at the node to produce a seed that can
+        Summarizes the trials at the node to produce a seed that can
         be passed to the next node in the chain.
 
         Parameters
         ----------
 
         trials
-            Trials to be summarised. By default only trials that are completed
+            Trials to be summarized. By default only trials that are completed
             (i.e. have received a response) and processed
             (i.e. aren't waiting for an asynchronous process)
             are provided here.
@@ -579,7 +579,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
 
     def create_seed(self, experiment, participant):
         trials = self.completed_and_processed_trials.all()
-        return self.summarise_trials(trials, experiment, participant)
+        return self.summarize_trials(trials, experiment, participant)
 
     degree = claim_field("degree", __extra_vars__, int)
     child_id = claim_field("child_id", __extra_vars__, int)
@@ -1037,7 +1037,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     num_nodes_per_chain
         [DEPRECATED; new code should use ``num_iterations_per_chain`` and leave this argument empty.]
         Maximum number of nodes in the chain before the chain is marked as full and no more nodes will be added.
-        The final node receives no participant trials, but instead summarises the state of the network.
+        The final node receives no participant trials, but instead summarizes the state of the network.
         So, ``num_nodes_per_chain`` is equal to ``1 + num_iterations_per_chain``.
 
     trials_per_node
@@ -1045,7 +1045,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         in the chain before another chain will be added.
         Most paradigms have this equal to 1.
 
-    active_balancing_across_chains
+    balance_across_chains
         Whether trial selection should be actively balanced across chains,
         such that trials are preferentially sourced from chains with
         fewer valid trials.
@@ -1157,7 +1157,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         num_chains_per_participant: Optional[int],
         num_chains_per_experiment: Optional[int],
         trials_per_node: int,
-        active_balancing_across_chains: bool,
+        balance_across_chains: bool,
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
         recruit_mode: str,
@@ -1219,7 +1219,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.num_iterations_per_chain = num_iterations_per_chain
         self.num_nodes_per_chain = num_iterations_per_chain + 1
         self.trials_per_node = trials_per_node
-        self.active_balancing_across_chains = active_balancing_across_chains
+        self.balance_across_chains = balance_across_chains
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
@@ -1363,7 +1363,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         random.shuffle(networks)
 
-        if self.active_balancing_across_chains:
+        if self.balance_across_chains:
             networks.sort(key=lambda network: network.num_completed_trials)
 
         return networks

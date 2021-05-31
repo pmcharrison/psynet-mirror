@@ -8,9 +8,19 @@ from psynet.modular_page import (
     AudioRecordControl,
     ModularPage,
     TappingAudioMeterControl,
+    VideoPrompt,
+    VideoRecordControl,
 )
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import MediaSpec, PageMaker, Timeline, join
+from psynet.timeline import (
+    Event,
+    MediaSpec,
+    PageMaker,
+    ProgressDisplay,
+    ProgressStage,
+    Timeline,
+    join,
+)
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -69,40 +79,11 @@ example_preloading = InfoPage(
     ],
 )
 
-example_on_loaded = InfoPage(
-    flask.Markup(
-        """
-        <p>
-            This page demonstrates the use of the media on_loaded routine,
-            whereby you can register a function to be called once
-            the page's media has finished loading.
-            Here, we make an 'alert' box appear.
-        </p>
-        """
-    ),
-    time_estimate=5,
-    media=MediaSpec(
-        audio={
-            "bier": "/static/audio/bier.wav",
-            "batch": {
-                "url": "/static/audio/file_concatenated.mp3",
-                "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
-                "type": "batch",
-            },
-        }
-    ),
-    scripts=[
-        """
-        psynet.media.register_on_loaded_routine(function() {
-            alert("Media has finished loading!");
-        });
-        """
-    ],
-)
-
 example_audio_meter = ModularPage(
     "audio_meter",
-    "This page shows an audio meter.",
+    """
+    This page shows an audio meter.
+    """,
     AudioMeterControl(calibrate=False),
     time_estimate=5,
 )
@@ -120,7 +101,6 @@ example_audio_meter_calibrate_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "The default meter parameters are designed to work well for music playback.",
         loop=True,
-        enable_submit_after=0,
     ),
     AudioMeterControl(calibrate=True),
     time_estimate=5,
@@ -132,9 +112,8 @@ example_audio_meter_with_audio = ModularPage(
         "/static/audio/train1.wav",
         "This page shows an audio meter alongside an audio stimulus.",
         loop=True,
-        enable_submit_after=2.5,
     ),
-    AudioMeterControl(min_time=2.5, calibrate=True),
+    AudioMeterControl(calibrate=True),
     time_estimate=5,
 )
 
@@ -157,6 +136,7 @@ example_audio_page = ModularPage(
     AudioPrompt(
         "/static/audio/bier.wav",
         "This page illustrates a simple audio page with one stimulus.",
+        loop=False,
     ),
     time_estimate=5,
 )
@@ -164,11 +144,26 @@ example_audio_page = ModularPage(
 example_audio_page_2 = ModularPage(
     "audio_page",
     AudioPrompt(
+        "/static/audio/bier.wav",
+        "This page adds audio playback controls.",
+        controls=True,
+        loop=False,
+    ),
+    time_estimate=5,
+)
+
+example_audio_page_3 = ModularPage(
+    "audio_page",
+    AudioPrompt(
         "/static/audio/train1.wav",
-        "This page illustrates a play window combined with a loop.",
+        """
+        This page illustrates a 'play window' combined with a loop.
+        By setting the play_window argument to [5, 9], we instruct PsyNet
+        to only play seconds 5-9 of the audio file.
+        """,
         play_window=[5, 9],
         loop=True,
-        enable_submit_after=2,
+        controls=True,
     ),
     time_estimate=5,
 )
@@ -176,14 +171,22 @@ example_audio_page_2 = ModularPage(
 example_record_page = join(
     ModularPage(
         "record_page",
-        "This page lets you record audio.",
+        "This page lets you record audio. Note that, in this version, you must click 'Upload' when finished.",
         AudioRecordControl(
             duration=3.0,
             s3_bucket="audio-record-demo",
             show_meter=True,
             public_read=True,
+            controls=True,
+            auto_advance=True,
         ),
         time_estimate=5,
+        progress_display=ProgressDisplay(
+            duration=3.0,
+            stages=[
+                ProgressStage([0.0, 3.0], "Recording...", "red"),
+            ],
+        ),
     ),
     PageMaker(
         lambda participant: ModularPage(
@@ -196,32 +199,90 @@ example_record_page = join(
     ),
 )
 
-example_record_with_audio_prompt = join(
+example_listen_then_record_page = join(
+    ModularPage(
+        "record_page",
+        AudioPrompt(
+            url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+            text="""
+            Here we play audio then activate the recorder 1 second afterwards.
+            """,
+            play_window=[0, 5.0],
+        ),
+        AudioRecordControl(
+            duration=1.0,
+            s3_bucket="audio-record-demo",
+            show_meter=True,
+            public_read=True,
+            controls=True,
+            auto_advance=True,
+        ),
+        time_estimate=5,
+        events={"recordStart": Event(is_triggered_by="promptStart", delay=3.0)},
+        progress_display=ProgressDisplay(
+            duration=5.0,
+            stages=[
+                ProgressStage([0.0, 3.0], "Waiting to record..."),
+                ProgressStage([3.0, 4.0], "Recording...", "red"),
+                ProgressStage(
+                    [4.0, 5.0], "Finished recording.", "green", persistent=True
+                ),
+            ],
+        ),
+    ),
+)
+
+example_record_audio_video = join(
     ModularPage(
         "record_page",
         AudioPrompt(
             # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
-            text="This page enables the recorder and plays the audio 0.5 seconds later.",
-            prevent_response=False,
-            start_delay=0.5,
-            enable_submit_after=5.5,
+            text="""
+            This page plays audio and records video after a couple of seconds.
+            It'll work best if you wear headphones.
+            The red portion of the progress bar identifies the period when the video
+            will be recording.
+            """,
+            play_window=[0, 4.6],
+            fade_in=0.2,
         ),
-        AudioRecordControl(
-            duration=5.0,
+        VideoRecordControl(
+            duration=2.0,
             s3_bucket="audio-record-demo",
-            show_meter=True,
+            recording_source="camera",
+            show_preview=True,
+            show_meter=False,
             public_read=True,
+            controls=True,
+            loop_playback=False,
             auto_advance=True,
         ),
+        progress_display=ProgressDisplay(
+            duration=4.6,
+            stages=[
+                ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
+                ProgressStage([2.6, 4.0], "Recording!", color="red"),
+                ProgressStage([4.0, 4.6], "Recording finished.", color="green"),
+            ],
+        ),
+        events={
+            "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
+            "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
+        },
         time_estimate=5,
     ),
     PageMaker(
         lambda participant: ModularPage(
             "playback",
-            AudioPrompt(
-                participant.answer["url"], "Here's the recording you just made."
+            VideoPrompt(
+                participant.answer["camera_url"], "Here's the recording you just made."
             ),
+            # You can alternatively use an AudioPrompt here to play back just the
+            # audio component of the recording.
+            # AudioPrompt(
+            #     participant.answer["camera_url"], "Here's the recording you just made."
+            # ),
         ),
         time_estimate=5,
     ),
@@ -237,15 +298,13 @@ class Exp(psynet.experiment.Experiment):
         MTurkAudiovisualConsent(),
         example_audio_page,
         example_audio_page_2,
-        example_record_with_audio_prompt,
-        example_record_page,
+        example_audio_page_3,
         example_audio_meter,
+        example_record_page,
+        example_listen_then_record_page,
+        example_record_audio_video,
         example_audio_meter_calibrate_with_audio,
         example_audio_meter_calibrate_with_tapping,
         example_preloading,
-        example_on_loaded,
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

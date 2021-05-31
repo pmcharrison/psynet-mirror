@@ -57,7 +57,7 @@ class CustomTrial(AudioImitationChainTrial):
             time_estimate=5,
         )
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         import singing_extract
 
         raw = singing_extract.analyze(
@@ -112,11 +112,11 @@ class CustomNetwork(AudioImitationChainNetwork):
 class CustomNode(AudioImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         melodies = [trial.analysis["midi"] for trial in trials]
         return [mean(x) for x in zip(*melodies)]
 
-    def synthesise_target(self, output_file):
+    def synthesize_target(self, output_file):
         import singing_extract
 
         midis = self.definition
@@ -185,7 +185,7 @@ class Exp(psynet.experiment.Experiment):
             num_chains_per_participant=None,
             num_chains_per_experiment=5,
             trials_per_node=1,
-            active_balancing_across_chains=True,
+            balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_trials",
@@ -197,6 +197,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

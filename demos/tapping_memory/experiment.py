@@ -86,7 +86,7 @@ class CustomTrial(AudioImitationChainTrial):
             time_estimate=TIME_ESTIMATE_PER_TRIAL,
         )
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "tapping extraction"
 
@@ -130,11 +130,11 @@ class CustomNetwork(AudioImitationChainNetwork):
 class CustomNode(AudioImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["list_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
 
-    def synthesise_target(self, output_file):
+    def synthesize_target(self, output_file):
         random_seed = self.definition
         stim_onsets = tapping.make_stimulus_onsets_from_seed(
             random_seed, repeats=PARAMS["REPEATS"]
@@ -206,7 +206,7 @@ class Exp(psynet.experiment.Experiment):
             num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
             num_chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,
-            active_balancing_across_chains=False,
+            balance_across_chains=False,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             propagate_failure=False,
@@ -219,6 +219,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

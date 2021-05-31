@@ -16,77 +16,135 @@
     {{ simple(config) }}
 
     <script>
-        {% if config.prevent_response is defined and config.prevent_response %}
-            psynet.response.wait_for("audio_prompt");
-        {% endif %}
+        var audioPromptPlayerOptions = {{ config.js_play_options | tojson }};
+    </script>
 
-        {% if config.prevent_submit is defined and config.prevent_submit %}
-            psynet.submit.wait_for("audio_prompt");
-        {% endif %}
+    {% if config.controls %}
+        <style>
+            #audio-prompt-controls {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding-top: 25px;
+            }
+            .audio-prompt-button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+            #audio-prompt-loop {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        </style>
 
-        psynet.media.register_on_loaded_routine(function() {
-            setTimeout(function() {
-                var options = {{ config.js_play_options | tojson }};
-                var sound = psynet.audio.prompt.play(options);
-                psynet.register_event("audio_play_start");
+        <div id="audio-prompt-controls">
+            <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
+                Play from start
+            </button>
+            <button id="audio-prompt-stop" type="button" class="btn audio-prompt-button btn-secondary btn-sm" disabled>
+                Stop
+            </button>
+            <div id="audio-prompt-loop">
+              <input id="audio-prompt-loop-input" type="checkbox" value="" {% if config.loop %} checked {% endif %}>
+              <label id="audio-prompt-loop-label" for="audio-prompt-loop-input">
+                Loop
+              </label>
+            </div>
+        </div>
 
-                sound.source.addEventListener("ended", function() {
-                    psynet.register_event("audio_play_end");
-                    {% if config.prevent_response %} psynet.response.ready("audio_prompt"); {% endif %}
-                    {% if config.prevent_submit %} psynet.submit.ready("audio_prompt"); {% endif %}
+        <script>
+        psynet.trial.onEvent("trialConstruct", function() {
+            $(".audio-prompt-button").prop("disabled", false)
+            $("#audio-prompt-play").on("click", function() {
+                psynet.media.stop_all_audio();
+                let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
+                sound.source.addEventListener("ended", () => {
+                    psynet.trial.registerEvent("promptEnd");
                 });
-
-                {% if config.enable_submit_after is not none %}
-                    setTimeout(
-                        ()=> psynet.submit.ready("audio_prompt"),
-                        1000 * {{ config.enable_submit_after }}
-                    );
-                {% endif %}
-            }, {{config.start_delay}} * 1000)
+            });
+            $("#audio-prompt-stop").on("click", function() {
+                psynet.media.stop_all_audio();
+            });
+            $("#audio-prompt-loop-input").on("change", function(event) {
+                audioPromptPlayerOptions.loop = event.target.checked;
+            });
         });
+        </script>
+    {% endif %}
+
+    <script>
+        psynet.trial.onEvent("promptStart", function() {
+            let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
+            sound.source.addEventListener("ended", function() {
+                psynet.trial.registerEvent("promptEnd");
+            });
+        })
+
     </script>
 {% endmacro %}
 
 {% macro video(config) %}
     {{ simple(config) }}
-    <video id="prompt_video" src="{{ config.url }}" style="width: {{ config.width }}" alt="Video not found" controls></video>
+
+    <style>
+        #prompt-video-container {
+            display: flex;
+            justify-content: center;
+        }
+        #prompt-video {
+            padding-top: 25px;
+            padding-bottom: 25px;
+        }
+    </style>
+
+    <div id="prompt-video-container">
+        <video id="prompt-video" src="{{ config.url }}" style="width: {{ config.width }}" alt="Video not found" controls></video>
+    </div>
+
     <script>
-        {% if config.prevent_response is defined and config.prevent_response %}
-            psynet.response.wait_for("video_prompt");
-        {% endif %}
+        let options = {{ config.js_play_options | tojson }};
+        let loop = options.loop;
+        let startAt = options.start_at;
+        let muted = options.muted;
+        let controls = options.controls;
+        let hideWhenFinished = options.hide_when_finished;
 
-        {% if config.prevent_submit is defined and config.prevent_submit %}
-            psynet.submit.wait_for("video_prompt");
-        {% endif %}
+        let videoPlayer = document.getElementById('prompt-video');
+        videoPlayer.muted = muted;
+        videoPlayer.controls = controls;
 
-        psynet.media.register_on_loaded_routine(function() {
-            setTimeout(function() {
-                var options = {{ config.js_play_options | tojson }};
-                psynet.log.debug(options)
-                var visual = document.getElementById('prompt_video');
-                visual.play()
-                psynet.register_event("video_play_start");
+        let hideVideo = function() {
+            videoPlayer.style.visibility = "hidden";
+        }
+        let showVideo = function() {
+            videoPlayer.style.visibility = "visible";
+        }
 
-                visual.addEventListener("ended", function() {
-                    psynet.register_event("video_play_end");
-                    {% if config.prevent_response %} psynet.response.ready("video_prompt"); {% endif %}
-                    {% if config.prevent_submit %} psynet.submit.ready("video_prompt"); {% endif %}
-                });
-                psynet.log.debug(psynet.submit)
-                {% if config.enable_submit_after is not none %}
-                    setTimeout(
-                        ()=> psynet.submit.ready("video_prompt"),
-                        1000 * {{ config.enable_submit_after }}
-                    );
-                {% endif %}
-            }, {{config.start_delay}} * 1000)
+        hideVideo();
+
+        psynet.trial.onEvent("trialPrepare", () => {
+            videoPlayer.currentTime = startAt;
+        });
+        psynet.trial.onEvent("promptStart", () => {
+            showVideo();
+            videoPlayer.play();
+        });
+        videoPlayer.addEventListener("ended", () => {
+            psynet.trial.registerEvent("promptEnd");
+        });
+        psynet.trial.onEvent("promptEnd", () => {
+            videoPlayer.pause();
+            if (hideWhenFinished) {
+                hideVideo();
+            }
         });
     </script>
 {% endmacro %}
 
+
 {% macro image(config) %}
     <style>
-        #prompt_image {
+        #prompt-image {
             width: {{ config.width }};
             height: {{ config.height }};
             display: block;
@@ -94,43 +152,34 @@
             margin-right: auto;
             margin-top: {{ config.margin_top}};
             margin-bottom: {{ config.margin_bottom}};
+            opacity: 0;
         }
     </style>
 
-    <img id="prompt_image" src="{{ config.url }}" alt="Image not found">
+    <img id="prompt-image" src="{{ config.url }}" alt="Image not found">
 
-    {% if config.hide_after is not none %}
-        <script>
-            var prompt_image = $("#prompt_image").get(0);
+    <script>
+        let promptImage = $("#prompt-image").get(0);
 
-            hide_prompt_image = function() {
-                psynet.log.debug("Hiding prompt image.");
-                prompt_image.style.opacity = 0;
+        psynet.trial.onEvent("trialConstruct", () => {
+            if (!promptImage.complete) {
+                psynet.waitForEventListener(promptImage, "load");
             }
-
-            hide_prompt_image_countdown = function() {
-                psynet.log.debug("Counting down until prompt image hide...");
-                setTimeout(hide_prompt_image, {{ 1000 * config.hide_after }});
-            }
-
-            if (prompt_image.complete) {
-                hide_prompt_image_countdown();
-            } else {
-                prompt_image.addEventListener("load", hide_prompt_image_countdown);
-            }
-        </script>
-    {% endif %}
+        });
+        psynet.trial.onEvent("promptStart", () => promptImage.style.opacity = 1);
+        psynet.trial.onEvent("promptEnd", () => promptImage.style.opacity = 0);
+    </script>
 
     {{ simple(config) }}
 {% endmacro %}
 
-{% macro colour(config) %}
+{% macro color(config) %}
     <style>
-        .colour-box-container {
+        .color-box-container {
             display: flex;
             justify-content: center;
         }
-        .colour-box {
+        .color-box {
             width: 200px;
             height: 200px;
             margin: 0px;
@@ -140,8 +189,8 @@
         }
     </style>
 
-    <div class="colour-box-container">
-        <div class="colour-box"></div>
+    <div class="color-box-container">
+        <div class="color-box"></div>
     </div>
 
     {{ simple(config) }}

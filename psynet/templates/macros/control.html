@@ -88,19 +88,18 @@
     {% endif %}
 
     <script>
-        let button_timers = {};
+        let buttonTimers = {};
 
         clicked_button = function(button, id) {
-            let info = {button_id: id};
-            psynet.register_event("push_button_clicked", info);
+            psynet.trial.registerEvent("pushButtonClicked", {info: {buttonId: id}});
 
             {% if config.timed == true %}
-                let button_highlight_duration = {{ config.button_highlight_duration }};
-                if (button_timers[id] !== undefined) {
-                    clearTimeout(button_timers[id]);
+                let buttonHighlightDuration = {{ config.button_highlight_duration }};
+                if (buttonTimers[id] !== undefined) {
+                    clearTimeout(buttonTimers[id]);
                 }
-                highlight_button(button);
-                button_timers[id] = setTimeout(unhighlight_button, button_highlight_duration * 1000, button);
+                highlightButton(button);
+                buttonTimers[id] = setTimeout(unhighlightButton, buttonHighlightDuration * 1000, button);
             {% else %}
                 psynet.response.disable();
                 psynet.submit.disable();
@@ -108,12 +107,12 @@
             {% endif %}
         }
 
-        highlight_button = function(button) {
+        highlightButton = function(button) {
             button.classList.remove("btn-primary");
             button.classList.add("btn-success");
         }
 
-        unhighlight_button = function(button) {
+        unhighlightButton = function(button) {
             button.classList.add("btn-primary");
             button.classList.remove("btn-success");
         }
@@ -401,27 +400,15 @@
         {% autoescape off %}
         var snap_values = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
         var minimal_interactions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
-        var minimal_time = {% if config.js_vars.minimal_time is none %}null{% else %}{{ config.js_vars.minimal_time }}{% endif %} ;
         var continuous_updates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
         var slider_id = '{{ config.slider_id }}';
         {% endautoescape %}
 
         // This is called each time
+        // To do - refactor this using psynet.trial.onEvent
         on_slider_event = function (event_type) {
 
         };
-
-        if (minimal_interactions > 0) {
-            psynet.submit.wait_for("slider_minimal_interactions");
-        }
-
-        psynet.submit.wait_for("slider_minimal_time");
-
-        psynet.response.register_on_ready_routine(function() {
-            setTimeout(function() {
-                psynet.submit.ready("slider_minimal_time");
-            }, minimal_time * 1000);
-        });
 
         // Metadata collection
         var slider = document.getElementById(slider_id);
@@ -432,6 +419,7 @@
             slider.log = [];
         }
 
+        // To do - refactor this into psynet.trial.eventLog
         slider.update_log = function() {
             if (!continuous_updates) {
                 slider.log.push({
@@ -456,15 +444,11 @@
             }
         };
 
-        // Save initial position
-        slider.initialise = function () {
-            psynet.log.debug('Slider page is loaded.');
+        psynet.trial.onEvent("prepare", () => {
             snap_slider();
             on_slider_event('initialise');
             slider.update_log();
-        };
-
-        psynet.response.register_on_ready_routine(slider.initialise);
+        })
 
         var slider_listener;
 
@@ -474,15 +458,24 @@
             slider_listener = "change";
         }
 
-        slider.addEventListener(slider_listener, function () {
-            snap_slider();
-            slider.interaction_count += 1;
-            if (slider.interaction_count >= minimal_interactions) {
-                psynet.submit.ready("slider_minimal_interactions");
+        let hadMinimalInteractions = false;
+        let checkMinimalInteractions = function() {
+            if (slider.interaction_count >= minimal_interactions && !hadMinimalInteractions) {
+                hadMinimalInteractions = true;
+                psynet.trial.registerEvent("sliderMinimalInteractions");
             }
-            on_slider_event('slider_changed');
-            slider.update_log();
-        }, false);
+        }
+
+        psynet.trial.onEvent("trialConstruct", () => {
+            checkMinimalInteractions();
+            slider.addEventListener(slider_listener, function () {
+                snap_slider();
+                slider.interaction_count += 1;
+                checkMinimalInteractions();
+                on_slider_event('slider_changed');
+                slider.update_log();
+            }, false);
+        });
 
         submit = function () {
             psynet.response.disable();
@@ -576,6 +569,12 @@
 {% endmacro %}
 
 {% macro audio_meter(config) %}
+    <style>
+        .audio_meter_block {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+    </style>
     <div class="audio_meter_block">
         <table style="width: 500px; padding: 10px">
             <tbody>
@@ -603,14 +602,7 @@
     {% endif %}
 
     <script>
-        psynet.submit.wait_for("audio_meter");
-        setTimeout(
-            ()=> psynet.submit.ready("audio_meter"),
-            1000 * {{ config.min_time }}
-        );
-
         {% include "macros/control/audio_meter.js" %}
-
         audio_meter_control.init('{{ config.to_json() }}');
     </script>
 {% endmacro %}
@@ -664,239 +656,468 @@
     </script>
 {% endmacro %}
 
-{% macro audio_record(config) %}
-
+{% macro generic_record(config) %}
     {% if config.show_meter %}
         {{ audio_meter(config.meter) }}
     {% endif %}
 
-    <style>
-        #record-status {
-            margin-top: 20px;
-            margin-bottom: 20px;
+
+    {% if config.controls %}
+        <style>
+            #record-controls {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding-bottom: 50px;
+            }
+            .record-button {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+            #record-loop {
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+        </style>
+
+        <div id="record-controls">
+            <button id="btn-record-record" type="button" class="btn record-button auto-reset record-control btn-danger btn-sm" disabled>
+                Record from start
+            </button>
+            <button id="btn-record-play-all" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
+                Play all
+            </button>
+            <button id="btn-record-play-prompt" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
+                Play prompt
+            </button>
+            <button id="btn-record-play-recording" type="button" class="btn record-button auto-reset record-control btn-primary btn-sm" disabled>
+                Play recording
+            </button>
+            <button id="btn-record-stop" type="button" class="btn record-button auto-reset record-control btn-secondary btn-sm">
+                Stop
+            </button>
+            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>
+                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
+                <span>Upload</span>
+            </button>
+            <div id="record-loop">
+                <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
+                <label>Loop</label>
+            </div>
+        </div>
+    {% endif %}
+
+    <script>
+        $(document).ready(function() {
+            $(".auto-reset").on("click", function() {
+                this.disabled = true;
+                setTimeout(() => this.disabled = false, 500);
+            });
+
+            $("#btn-record-record").on("click", function() {
+                replayMode = false;
+                psynet.trial.restart();
+            });
+
+            $("#btn-record-play-all").on("click", function() {
+                replayMode = true;
+                psynet.media.stop_all_audio();
+                psynet.trial.restart();
+            });
+
+            $("#btn-record-play-prompt").on("click", function() {
+                psynet.trial.stop();
+                let options = psynet.utils.shallow_copy(audioPromptPlayerOptions);
+                options.loop = loop;
+                psynet.media.stop_all_audio();
+                psynet.audio.prompt.play(options);
+            });
+
+            $("#btn-record-play-recording").on("click", function() {
+                playRecording();
+            });
+
+            $("#btn-record-stop").on("click", function() {
+                psynet.media.stop_all_audio();
+                psynet.trial.stop();
+            });
+
+            $("#record-loop-input").on("change", function(event) {
+                loop = event.target.checked;
+            });
+
+            $("#btn-record-upload").on("click", function() {
+                let spinner = $("#btn-record-upload-spinner");
+                let button = $(this);
+                button.prop("disabled", true);
+                let resetButton = function() {
+                    button.prop("disabled", true);
+                    spinner.hide();
+                }
+                spinner.show();
+                psynet.trial.registerEvent("uploadStart");
+                psynet.trial.onEvent("uploadEnd", () => {
+                    spinner.hide();
+                    $("#next_button").click()
+                });
+                psynet.trial.onEvent("uploadFail", resetButton);
+            });
+        });
+
+        let recorderControls = {{ config.controls | lower }};
+        let replayMode = false;
+        let loop = {{ config.loop_playback | tojson }};
+
+        psynet.trial.onEvent("recordEnd", function() {
+            if (!replayMode) {
+                hasRecorded = true;
+            }
+            $("#btn-record-play-recording").attr("disabled", false);
+            $("#btn-record-play-all").attr("disabled", false);
+            $("#btn-record-upload").prop("disabled", false);
+
+            if (!recorderControls) {
+                psynet.trial.registerEvent("uploadStart");
+            }
+        }, {
+            priority: -100 // ensures that this is only executed once all the media processing completes
+        });
+
+        psynet.trial.onEvent("trialStop", function() {
+            psynet.media.stop_all_audio();
+        });
+
+        psynet.trial.onEvent("trialFinished", function() {
+            if (loop) {
+                psynet.trial.restart();
+            }
+        });
+
+        psynet.trial.onEvent("trialPrepare", () => {
+            psynet.media.stop_all_audio();
+        });
+
+        let supportedPrompts = ["audio"];
+        if (!supportedPrompts.includes(modular_page_components.prompt)) {
+            $("#btn-record-play-prompt").hide();
+            $("#btn-record-play-all").hide();
         }
-    </style>
 
-    <div id="record-status">
-        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
-            Waiting to record...
-        </div>
+        psynet.trial.onEvent("trialStart", () => {
+            if (psynet.audio.prompt) {
+                $("#btn-record-play-prompt").prop("disabled", false);
+            }
+            $("#btn-record-record").prop("disabled", false);
+        });
 
-        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
-            Recording...
-        </div>
+        function uploadToS3(blob, presignedUrl) {
+            return new Promise(resolve => {
+                // TODO upload if LOCAL_S3
+                let xhr = new XMLHttpRequest();
+                xhr.open('PUT', presignedUrl, true);
 
-        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
-            Uploading finished.
-        </div>
+                xhr.onload = function(e) {
+                    resolve(true);
+                };
 
-        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading...
-        </div>
-    </div>
+                let wavFile = new File([blob], "s3_upload.wav")
+                xhr.send(wavFile);
+            });
+        };
+
+    </script>
+
+{% endmacro %}
+
+{% macro audio_record(config) %}
+    {{ generic_record(config) }}
 
     {{ null(config) }}
 
     <script>
         {% include "macros/control/recorder.js" %}
-        {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
         var presignedUrl = "{{ config.presigned_url }}";
         {% endautoescape %}
-        var recorder;
 
-        psynet.media.register_on_loaded_routine(function() {
+        var recorder;
+        var hasRecorded = false;
+        var recordingBlob;
+
+        var playRecording = async function() {
+            await psynet.audio.recording.play();
+        }
+
+        psynet.trial.onEvent("recordStart", function() {
+            if (replayMode) {
+                psynet.audio.recording.play();
+            } else {
+                recorder.clear();
+                recorder.record();
+            }
+        });
+
+        let getAudioRecording = function() {
+            return new Promise(resolve => {
+                recorder.exportWAV((blob) => resolve(blob));
+            });
+        }
+
+        psynet.trial.onEvent("recordEnd", async function() {
+            if (!replayMode) {
+                await recorder.stop();
+                recordingBlob = await getAudioRecording();
+                let buffer = await psynet.media.blob_to_array_buffer(recordingBlob);
+                await psynet.media.add_extra_audio_stimulus(buffer, "recording");
+            }
+        });
+
+        psynet.trial.onEvent("uploadStart", async function() {
+            try {
+                await uploadToS3(recordingBlob, presignedUrl);
+                // We don't want to wait for the following line, not sure how to get round
+                // the linter complaining here.
+                psynet.trial.registerEvent("uploadEnd", {info: {url: presignedUrl}});
+            } catch(e) {
+                psynet.trial.registerEvent("uploadFail");
+                throw e;
+            }
+        });
+
+        psynet.trial.onEvent("trialStop", () => recorder.stop());
+
+        psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
+            let channelCount = {{ config.num_channels }};
             navigator.mediaDevices.getUserMedia({
                 audio: {
+                    channelCount: channelCount,
                     autoGainControl: false,
                     echoCancellation: false,
                     noiseSuppression: false
                 },
                 video: false
             }).then(function(stream) {
-                psynet.log.debug("Initialising recorder.");
+                psynet.log.debug("Initialising audio recorder.");
                 let input = psynet.media.audio_context.createMediaStreamSource(stream);
-                recorder = new Recorder(input);
-                psynet.response.ready("recorder_ready")
-            })
-        });
-
-        psynet.response.wait_for("page_load_buffer");
-        psynet.response.wait_for("recorder_ready");
-        psynet.submit.wait_for("finished-recording");
-
-        setTimeout(function() {
-            psynet.response.ready("page_load_buffer");
-        }, 1000)
+                recorder = new Recorder(input, channelCount);
+                psynet.trial.registerEvent("audioRecorderReady");
+                resolve();
+            });
+        }));
 
         retrieve_response = function() {
             return {
                 raw_answer: presignedUrl
             }
         }
-
-        psynet.response.register_on_ready_routine(function() {
-            startAudioRecording();
-            setTimeout(endAudioRecording, 1000 * {{ config.duration }});
-        });
-
-        {% if config.auto_advance %}
-        psynet.submit.register_on_ready_routine(on_next_button);
-        {% endif %}
     </script>
 {% endmacro %}
 
-
 {% macro video_record(config) %}
-
-    {% if config.show_meter %}
-        {{ audio_meter(config.meter) }}
-    {% endif %}
+    {{ generic_record(config) }}
 
     <style>
-        #record-status {
-            margin-top: 20px;
-            margin-bottom: 20px;
+        #video-control-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #video-control {
+            display: {% if config.show_preview %} block {% else %} none {% endif %};
+            width: {{ config.width }};
+            margin: 10px
         }
     </style>
 
-    {% if config.recording_source == "camera" or config.recording_source == "both" %}
-        <video id="camera-recording" style="display: {% if config.show_preview %}block{% else %}none{% endif %}; width: {{ config.width }}"></video>
-        <video id="camera-playback" style="display: none; width: {{ config.width }}"></video>
-    {% endif %}
-    {% if config.recording_source == "screen" or config.recording_source == "both" %}
-        <video id="screen-recording" style="display: none;"></video>
-    {% endif %}
-
-    <div id="countdown-container" style="display: none;">Recording starts in <span id="countdown">{{ config.start_delay | int }}</span> seconds!</div>
-    <div id="record-status">
-        <div id="record-wait" class="alert record-alert alert-warning" role="alert" style="display: block;">
-            Waiting to record...
-        </div>
-
-        <div id="record-active" class="alert record-alert alert-danger" role="alert" style="display: none;">
-            Recording...
-        </div>
-
-        <div id="record-finish" class="alert record-alert alert-success" role="alert" style="display: none;">
-            Uploading finished.
-        </div>
-
-        <div id="record-upload" class="alert record-alert alert-warning" role="alert" style="display: none;">
-            Uploading...
-        </div>
+    <div id="video-control-container">
+        <video id="video-control"></video>
     </div>
 
-    <button id="camera-playback-button" type="button" class="btn btn-success btn-lg" style="display: none">
-        Playback
-    </button>
-    <button id="restart-recording-button" type="button" class="btn btn-primary btn-lg" style="display: none">
-        Restart recording
-    </button>
-    <button id="video-upload-button" type="button" class="btn btn-primary btn-lg" style="display: none">
-        Upload
-    </button>
     {{ null(config) }}
 
     <script>
         {% include "macros/control/RecordRTC.js" %}
         {% include "macros/control/adapter.js" %}
-        {% include "macros/control/recording.js" %}
 
         {% autoescape off %}
         psynet.media.presignedUrlCamera = "{{ config.presigned_url_camera }}";
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
-        var playback_before_upload = {{ config.playback_before_upload | lower }};
-        var allow_restart = {{ config.allow_restart | lower }};
-        var cameraVideo = document.getElementById('camera-recording');
-        var screenVideo = document.getElementById('screen-recording');
-        var screenRecorder;
-        var videoRecorder;
 
-        /*** Camera recording start***/
-        {% if config.recording_source == "camera" or config.recording_source == "both" %}
-            psynet.media.register_on_loaded_routine(function () {
+        let videoPlayer = document.getElementById('video-control');
+        let screenVideo = document.getElementById('screen-recording');
+
+        let recordingSource = "{{ config.recording_source | lower }}";
+        let recordingCamera = recordingSource == "camera" || recordingSource == "both";
+        let recordingScreen = recordingSource == "screen" || recordingSource == "both";
+
+        if (recordingCamera) {
+            let cameraStream = null;
+            var videoRecorder = null;
+            let audioSettings = null; 
+
+            if ({{ config.record_audio | lower }}) {
+                audioSettings = { 
+                    channelCount: {{ config.audio_num_channels }} 
+                };
+            }
+            else { audioSettings = false; }
+
+            psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
                 navigator.mediaDevices.getUserMedia({
-                    audio: {{ config.record_audio | lower }},
+                    audio: audioSettings,
                     video: true,
-                }).then(function (stream) {
+                }).then((stream) => {
                     psynet.log.debug("Initialising video recorder.");
+                    cameraStream = stream;
+                    resolve();
+                }).catch((error) => {
+                    throw new Error('Cannot start video recording:', error.name + ":", error.message);
+                });
+            }));
 
-                    // Display a live preview if video element is visible.
-                    setSrcObject(stream, cameraVideo);
+            psynet.trial.onEvent("trialConstruct", async function() {
+                await loadCameraPreview();
+            })
 
-                    // Start displaying the preview video and mute it to disable echoing.
-                    cameraVideo.play();
-                    cameraVideo.muted = true;
-
-                    videoRecorder = new RecordRTCPromisesHandler(stream, {
-                        mimeType: 'video/webm',
+            psynet.trial.onEvent("trialPrepare", () => {
+                if (!replayMode) {
+                    videoRecorder = new RecordRTCPromisesHandler(cameraStream, {
+                        mimeType: "video/webm",
                     });
+                    videoRecorder.stream = cameraStream;
+                }
+            });
 
-                    let startDelay = {{ config.start_delay }};
-                    if (startDelay > 0) {
-                        $('#countdown-container').show();
-                        startTimer(startDelay, $('#countdown-container'), $('#countdown'));
-                    }
-                    videoRecorder.stream = stream;
-                    psynet.response.ready("camera_recorder_ready")
-                }).catch(function (error) {
-                    console.error('Cannot start video recording:', error.name + ":", error.message);
-                    psynet.next_page();
+            psynet.trial.onEvent("trialPrepare", async function() {
+                await loadCameraPreview();
+            });
+
+            var playRecording = async function() {
+                await loadRecordedVideo();
+                videoPlayer.play();
+                videoPlayer.addEventListener("ended", loadCameraPreview, {once: true});
+            };
+
+            let videoDisplayMode = null;
+
+            async function loadRecordedVideo() {
+                if (videoDisplayMode == "playback") {
+                    return;
+                }
+                videoPlayer.src = null;
+                videoPlayer.srcObject = null;
+                let blob = psynet.media.data.videoBlob;
+                videoPlayer.src = URL.createObjectURL(blob);
+                videoPlayer.muted = false;
+                await videoPlayer.pause();
+                videoDisplayMode = "playback";
+            }
+
+            async function loadCameraPreview() {
+                if (videoDisplayMode == "preview") {
+                    return;
+                }
+                videoPlayer.src = null;
+                videoPlayer.srcObject = null;
+                setSrcObject(cameraStream, videoPlayer);
+                videoPlayer.muted = true;
+                await videoPlayer.play();
+                videoDisplayMode = "preview";
+            }
+
+            psynet.trial.onEvent("recordStart", async function() {
+                if (replayMode) {
+                    await playRecording();
+                } else {
+                    await videoRecorder.startRecording(videoRecorder.stream);
+                }
+            });
+
+            psynet.trial.onEvent("recordEnd", async function() {
+                if (!replayMode) {
+                    await videoRecorder.stopRecording();
+                    psynet.media.data["videoBlob"] = await videoRecorder.getBlob();
+                    await videoRecorder.reset();
+                }
+            });
+
+            psynet.trial.onEvent("trialStop", async function() {
+                let state = await videoRecorder.getState();
+                if (state != "inactive") {
+                    await videoRecorder.stopRecording();
+                }
+                await videoRecorder.reset();
+                await loadCameraPreview();
+            });
+        }
+
+        let screenBlob = null;
+        let screenRecorder = null;
+        let screenStream = null;
+
+        if (recordingScreen) {
+            psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
+                navigator.mediaDevices.getDisplayMedia({
+                    video: true
+                }).then((stream => {
+                    screenStream = stream;
+                    resolve(true);
+                })).catch((error) => {
+                    throw new Error("Unable to capture your screen. " + error.name + ":" + error.message);
                 });
+            }));
+
+            psynet.trial.onEvent("trialPrepare", () => {
+                if (!replayMode) {
+                    screenRecorder = new RecordRTCPromisesHandler(screenStream, {
+                        mimeType: 'video/webm'
+                    });
+                    screenRecorder.stream = screenStream;
+                }
             });
 
-            psynet.response.wait_for("camera_recorder_ready");
-        {% endif %}
-        /*** Camera recording end ***/
-
-        /*** Screen recording start ***/
-        {% if config.recording_source == "screen" or config.recording_source == "both" %}
-            captureScreen(function (screen) {
-                screenVideo.srcObject = screen;
-                screenRecorder = RecordRTC(screen, {
-                    type: 'video'
-                });
-
-                {% if config.recording_source == "both" %}
-                psynet.response.wait_for("camera_recorder_ready");
-                {% endif %}
-                screenRecorder.startRecording()
-                screenRecorder.screen = screen;
-
-                psynet.response.ready("screen_recorder_ready")
+            psynet.trial.onEvent("recordStart", function() {
+                if (!replayMode) {
+                    screenRecorder.startRecording();
+                }
             });
 
-            psynet.response.wait_for("screen_recorder_ready");
-        {% endif %}
-        /*** Screen recording end ***/
-
-        psynet.response.wait_for("page_load_buffer");
-        psynet.submit.wait_for("finished-recording");
-
-        setTimeout(function () {
-            psynet.response.ready("page_load_buffer");
-        }, 1000);
-
-        {% if config.recording_source == "camera" or config.recording_source == "both" %}
-            psynet.response.register_on_ready_routine(function () {
-                setTimeout(startCameraRecording, 1000 * {{ config.start_delay }});
-                setTimeout(function () {
-                    stopCameraRecording();
-                }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
+            psynet.trial.onEvent("recordEnd", async function() {
+                if (!replayMode) {
+                    await screenRecorder.stopRecording();
+                    psynet.media.data["screenBlob"] = await screenRecorder.getBlob();
+                    await screenRecorder.reset();
+                }
             });
-        {% endif %}
 
-        {% if config.recording_source == "screen" or config.recording_source == "both" %}
-            psynet.response.register_on_ready_routine(function () {
-                setTimeout(startScreenRecording, 1000 * {{ config.start_delay }});
-                setTimeout(function () {
-                    stopScreenRecording();
-                }, 1000 * ({{ config.duration }} + {{ config.start_delay }}));
+            psynet.trial.onEvent("trialStop", async function() {
+                let state = await screenRecorder.getState();
+                if (state != "inactive") {
+                    await screenRecorder.stopRecording();
+                }
+                await screenRecorder.reset();
             });
-        {% endif %}
+
+        }
+
+        psynet.trial.onEvent("uploadStart", async function() {
+            let promises = [];
+            if (recordingCamera) {
+                promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
+            }
+            if (recordingScreen) {
+                promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
+            }
+            try {
+                await Promise.all(promises);
+                psynet.trial.registerEvent("uploadEnd");
+            } catch(e) {
+                psynet.trial.registerEvent("uploadFail");
+                throw e;
+            }
+        });
 
         function retrieve_response() {
             return {
@@ -1048,14 +1269,6 @@
             window.requestAnimationFrame(update_video_from_slider);
         }
         update_video_from_slider();
-
-        var minimal_time = parseFloat("{{ config.minimal_time }}");
-        psynet.submit.wait_for("slider_minimal_time");
-        psynet.response.register_on_ready_routine(function() {
-            setTimeout(function() {
-                psynet.submit.ready("slider_minimal_time");
-            }, minimal_time * 1000);
-        });
 
         retrieve_response = function() {
             return {

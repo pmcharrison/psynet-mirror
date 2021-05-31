@@ -15,16 +15,16 @@ import psynet.experiment
 from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import (  # REPPMarkersCheck,
+from psynet.prescreen import (  # REPPMarkersTest,
     JSONSerializer,
     REPPTappingCalibration,
     REPPVolumeCalibrationMusic,
 )
 from psynet.timeline import PreDeployRoutine, Timeline, join
 from psynet.trial.audio import AudioRecordTrial
-from psynet.trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
+from psynet.trial.static import (
+    StaticTrial,
+    StaticTrialMaker,
     StimulusSet,
     StimulusSpec,
     StimulusVersionSpec,
@@ -209,10 +209,10 @@ stimulus_music_set = StimulusSet(
 ##########################################################################################
 # Experiment parts
 ##########################################################################################
-class TapTrialAnalysis(AudioRecordTrial, NonAdaptiveTrial):
+class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "analysis_trial_metronome"}
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         temp_file = self.info
         with open(temp_file, "r") as file:
             info_stimulus = json.load(file)
@@ -312,7 +312,6 @@ class TapTrial(TapTrialAnalysis):
                     </script>
                     """
                 ),
-                prevent_response=False,
                 start_delay=0.5,
             ),
             AudioRecordControl(
@@ -363,7 +362,7 @@ ISO_tapping = join(
         ),
         time_estimate=10,
     ),
-    NonAdaptiveTrialMaker(
+    StaticTrialMaker(
         id_="ISO_tapping",
         trial_class=TapTrialISO,
         phase="ISO_tapping",
@@ -394,7 +393,7 @@ music_tapping = join(
         ),
         time_estimate=5,
     ),
-    NonAdaptiveTrialMaker(
+    StaticTrialMaker(
         id_="music_tapping",
         trial_class=TapTrialMusic,
         phase="music_tapping",
@@ -421,7 +420,7 @@ class Exp(psynet.experiment.Experiment):
                 "create_new_bucket": True,
             },
         ),
-        PreDeployRoutine(  # bucket for REPPMarkersCheck
+        PreDeployRoutine(  # bucket for REPPMarkersTest
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
             {
@@ -431,7 +430,7 @@ class Exp(psynet.experiment.Experiment):
             },  # s3 bucket to store markers check recordings
         ),
         REPPVolumeCalibrationMusic(),  # calibrate volume with music
-        # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
+        # REPPMarkersTest(), # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(),  # calibrate tapping
         ISO_tapping,
         music_tapping,
@@ -441,6 +440,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

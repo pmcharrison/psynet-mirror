@@ -1,6 +1,6 @@
 import logging
 import os
-import time
+import re
 
 from cached_property import cached_property
 from dallinger.bots import BotBase
@@ -9,7 +9,19 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from .utils import wait_until
+
 logger = logging.getLogger(__file__)
+
+
+def assert_text(driver, element_id, value):
+    element = driver.find_element_by_id(element_id)
+
+    def sanitize(x):
+        pattern = re.compile(r"\s+")
+        return re.sub(pattern, " ", x)
+
+    assert sanitize(element.text) == sanitize(value)
 
 
 def bot_class(headless=None):
@@ -79,22 +91,30 @@ def bot_class(headless=None):
 
 
 def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.0):
-    old_id = driver.execute_script("return page_uuid")
-    button = driver.find_element_by_id(button_id)
-    button.click()
-    if finished:
-        return
-    waited = 0.0
-    while waited < max_wait:
-        time.sleep(poll_interval)
-        new_id = driver.execute_script("return page_uuid")
+    def get_uuid():
+        return driver.execute_script("return page_uuid")
+
+    def click_button():
+        button = driver.find_element_by_id(button_id)
+        button.click()
+
+    def is_page_ready():
         page_loaded = driver.execute_script("return psynet.page_loaded")
-        if new_id != old_id and page_loaded:
-            return
-        waited += poll_interval
-    raise RuntimeError(
-        f"Waited for {max_wait} s but the page still hasn't loaded ("
-        f"old UUID = {old_id}, "
-        f"current UUID = {new_id}, "
-        f"psynet.page_loaded = {page_loaded})."
+        response_enabled = driver.execute_script(
+            "return psynet.trial.events.responseEnable.happened"
+        )
+        return page_loaded and response_enabled
+
+    wait_until(
+        is_page_ready,
+        max_wait=5.0,
+        error_message="Page never became ready.",
     )
+    old_uuid = get_uuid()
+    click_button()
+    if not finished:
+        wait_until(
+            lambda: is_page_ready() and get_uuid() != old_uuid,
+            max_wait=5.0,
+            error_message="Failed to load new page.",
+        )

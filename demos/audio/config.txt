@@ -1,8 +1,9 @@
 [Launch mode]
 mode = sandbox
+language = en
 
 [Payment information]
-title = Monitor preview
+title = Audio demo
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -13,9 +14,10 @@ us_only = true
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
+disable_when_duration_exceeded = False
 
 [Advert metadata]
-description = This app is for previewing the monitor page.
+description = This app demos audio functionality.
 keywords = monitor
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics

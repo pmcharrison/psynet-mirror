@@ -5,38 +5,22 @@ from collections import Counter
 import pytest
 
 from psynet.participant import Participant
-from psynet.test import bot_class, next_page
-from psynet.trial.non_adaptive import (
-    NonAdaptiveNetwork,
-    NonAdaptiveTrial,
-    Stimulus,
-    StimulusVersion,
-)
+from psynet.test import assert_text, bot_class, next_page
+from psynet.trial.static import StaticNetwork, StaticTrial, Stimulus, StimulusVersion
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
-# @pytest.fixture(scope="class")
-# def exp_dir(root):
-#     global EXPERIMENT_MODULE
-#     os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/non_adaptive"))
-#
-#     import psynet.utils
-#     EXPERIMENT_MODULE = psynet.utils.import_local_experiment().get("module")
-#
-#     yield
-#     os.chdir(root)
 
-
-@pytest.mark.usefixtures("demo_non_adaptive")
+@pytest.mark.usefixtures("demo_static")
 class TestExp:
     def test_exp(self, bot_recruits, db_session, trial_maker):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
 
-            networks = NonAdaptiveNetwork.query.all()
+            networks = StaticNetwork.query.all()
             stimuli = Stimulus.query.all()
             stimulus_versions = StimulusVersion.query.all()
 
@@ -51,18 +35,18 @@ class TestExp:
             # Do you want to enable custom stimulus filters?
             next_page(driver, "No")
 
-            assert driver.find_element_by_id("trial-position").text == "Trial 1"
+            assert_text(driver, "trial-position", "Trial 1")
             next_page(driver, "A little")
 
-            trial = NonAdaptiveTrial.query.filter_by(id=1).one()
+            trial = StaticTrial.query.filter_by(id=1).one()
             assert trial.answer == "A little"
 
-            assert driver.find_element_by_id("trial-position").text == "Trial 2"
+            assert_text(driver, "trial-position", "Trial 2")
 
             next_page(driver, "Very much")
-            trial = NonAdaptiveTrial.query.filter_by(id=2).one()
+            trial = StaticTrial.query.filter_by(id=2).one()
             assert trial.answer == "Very much"
-            assert driver.find_element_by_id("trial-position").text == "Trial 3"
+            assert_text(driver, "trial-position", "Trial 3")
 
             num_remaining_trials = 4
             num_repeat_trials = 3
@@ -70,12 +54,13 @@ class TestExp:
             for _ in range(num_remaining_trials + num_repeat_trials):
                 next_page(driver, "Very much")
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "You finished the animal questions! Your score was 0.\nNext"
+            assert_text(
+                driver,
+                "main-body",
+                "You finished the animal questions! Your score was 0. Next",
             )
 
-            trials = NonAdaptiveTrial.query.all()
+            trials = StaticTrial.query.all()
 
             trials_by_block = Counter(
                 [
@@ -100,7 +85,7 @@ class TestExp:
                 1,
                 1,
                 1,
-            ]  # no stimuli comes twice
+            ]  # no stimulus comes twice
 
             assert len([t for t in trials if t.is_repeat_trial]) == 3  # 3 repeat trials
 

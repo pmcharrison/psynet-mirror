@@ -13,7 +13,7 @@ from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
 import pandas as pd
-from dallinger.config import get_config
+from dallinger.config import config, get_config
 from sqlalchemy.sql import func
 
 
@@ -350,6 +350,27 @@ def json_to_data_frame(json_data):
     return data_frame
 
 
+def wait_until(condition, max_wait, poll_interval=0.5, error_message=None):
+    if condition():
+        return True
+    else:
+        waited = 0.0
+        while waited <= max_wait:
+            time.sleep(poll_interval)
+            waited += poll_interval
+            if condition():
+                return True
+        if error_message is None:
+            error_message = (
+                "Condition was not satisfied within the required time interval."
+            )
+        raise RuntimeError(error_message)
+
+
+def wait_while(condition, **kwargs):
+    wait_until(lambda: not condition(), **kwargs)
+
+
 def strip_url_parameters(url):
     parse_result = urlparse(url)
     return ParseResult(
@@ -374,3 +395,18 @@ def pretty_log_dict(dict, spaces_for_indentation=0):
         + "{}: {}".format(key, (f'"{value}"' if isinstance(value, str) else value))
         for key, value in dict.items()
     )
+
+
+def get_language():
+    """
+    Returns the language selected in config.txt.
+    Throws a KeyError if no such language is specified.
+
+    Returns
+    -------
+
+    A string, for example "en".
+    """
+    if not config.ready:
+        config.load()
+    return config.get("language")

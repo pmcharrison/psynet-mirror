@@ -190,7 +190,7 @@ trial_maker = CustomTrialMaker(
     num_chains_per_participant=None,  # set to None if chain_type="across"
     num_chains_per_experiment=4,  # set to None if chain_type="within"
     trials_per_node=1,
-    active_balancing_across_chains=True,
+    balance_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
@@ -217,6 +217,3 @@ class Exp(psynet.experiment.Experiment):
 
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

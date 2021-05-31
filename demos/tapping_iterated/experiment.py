@@ -15,7 +15,7 @@ import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import (  # REPPMarkersCheck,
+from psynet.prescreen import (
     JSONSerializer,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
@@ -88,8 +88,8 @@ class CustomTrial(AudioImitationChainTrial):
                             Trial number {position} out of {NUM_TRIALS_PARTICIPANT}  trials.
                             <script>
                             show_message = function(message, color_box) {{
-                            document.getElementById("record-active").textContent=message
-                            document.getElementById("record-active").style.backgroundColor = color_box
+                            document.getElementById("msg-record-active").textContent=message
+                            document.getElementById("msg-record-active").style.backgroundColor = color_box
                             }}
                             psynet.response.register_on_ready_routine(function() {{
                             message_to_display=[{{"msg":"WAIT IN SILENCE", "time":10, "color": "pink"}},{{"msg":">>>>>>>> START TAPPING! >>>>>>>>", "time":3150,  "color": "lightgreen"}},{{"msg":"STOP TAPPING!", "time":{time_last_JS_text_ms}, "color": "pink"}}]
@@ -98,7 +98,6 @@ class CustomTrial(AudioImitationChainTrial):
                             </script>
                             """
                 ),
-                prevent_response=False,
                 start_delay=0.5,
             ),
             AudioRecordControl(
@@ -107,7 +106,7 @@ class CustomTrial(AudioImitationChainTrial):
             time_estimate=TIME_ESTIMATE_PER_TRIAL,
         )
 
-    def analyse_recording(self, audio_file: str, output_plot: str):
+    def analyze_recording(self, audio_file: str, output_plot: str):
         info_stimulus = self.origin.var.info_stimulus
 
         title_in_graph = "tapping extraction"
@@ -188,11 +187,11 @@ class CustomNetwork(AudioImitationChainNetwork):
 class CustomNode(AudioImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, participant):
+    def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["list_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
 
-    def synthesise_target(self, output_file):
+    def synthesize_target(self, output_file):
         random_seed = self.definition
         stim_onsets = tapping.make_stimulus_onsets_from_seed(
             random_seed, repeats=PARAMS["REPEATS"]
@@ -248,7 +247,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
         REPPTappingCalibration(),  # calibrate tapping
-        # REPPMarkersCheck(), # pre-screening filtering participants based on recording test (markers)
+        # REPPMarkersTest(), # pre-screening filtering participants based on recording test (markers)
         InfoPage(
             Markup(
                 f"""
@@ -286,7 +285,7 @@ class Exp(psynet.experiment.Experiment):
             num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
             num_chains_per_experiment=None,  # set to None if chain_type="within"
             trials_per_node=1,
-            active_balancing_across_chains=False,
+            balance_across_chains=False,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             propagate_failure=False,
@@ -299,6 +298,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

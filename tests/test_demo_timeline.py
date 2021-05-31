@@ -6,7 +6,7 @@ import time
 import pytest
 
 from psynet.participant import Participant, get_participant
-from psynet.test import bot_class, next_page
+from psynet.test import assert_text, bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -38,10 +38,7 @@ class TestExp(object):
 
             assert get_participant(1).modules == {}
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Welcome to the experiment!\nNext"
-            )
+            assert_text(driver, "main-body", "Welcome to the experiment! Next")
             next_page(driver, "next_button")
 
             # Page 1
@@ -56,6 +53,7 @@ class TestExp(object):
             assert len(modules["introduction"]["time_finished"]) == 0
             assert participant.started_modules == ["introduction"]
             assert participant.finished_modules == []
+            assert participant.current_module == "introduction"
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
@@ -66,53 +64,39 @@ class TestExp(object):
             next_page(driver, "next_button")
 
             # Page 2
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Write me a message!\nNext"
-            )
+            assert_text(driver, "main-body", "Write me a message! Next")
             text_input = driver.find_element_by_id("text_input")
             text_input.send_keys("Hello! I am a robot.")
-            button = driver.find_element_by_id("next_button")
-            assert button.text == "Next"
+            assert_text(driver, "next_button", "Next")
             next_page(driver, "next_button")
 
             # Page 3
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Your message: Hello! I am a robot.\nNext"
-            )
+            assert_text(driver, "main-body", "Your message: Hello! I am a robot. Next")
             next_page(driver, "next_button")
 
             db_session.commit()
             participant = Participant.query.filter_by(id=1).one()
 
             event_log = participant.last_response.metadata["event_log"]
-            event_ids = [e["event_type"] for e in event_log]
+            event_ids = [e["eventType"] for e in event_log]
+
             assert event_ids == [
-                "init_page",
-                "media_load",
-                "page_load",
-                "response_ready",
-                "submit_ready",
-                "submit_response",
+                "trialConstruct",
+                "trialPrepare",
+                "trialStart",
+                "responseEnable",
+                "submitEnable",
             ]
 
             # Page 4
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "What is your weight in kg?\nNext"
-            )
+            assert_text(driver, "main-body", "What is your weight in kg? Next")
             text_input = driver.find_element_by_id("number_input")
             text_input.send_keys("78.5")
-            button = driver.find_element_by_id("next_button")
-            assert button.text == "Next"
+            assert_text(driver, "next_button", "Next")
             next_page(driver, "next_button")
 
             # Page 5
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Your weight is 78.5 kg.\nNext"
-            )
+            assert_text(driver, "main-body", "Your weight is 78.5 kg. Next")
             next_page(driver, "next_button")
 
             db_session.commit()
@@ -123,14 +107,13 @@ class TestExp(object):
             )  # ideally, NumberControl should really return a number, not a string!
 
             event_log = participant.last_response.metadata["event_log"]
-            event_ids = [e["event_type"] for e in event_log]
+            event_ids = [e["eventType"] for e in event_log]
             assert event_ids == [
-                "init_page",
-                "media_load",
-                "page_load",
-                "response_ready",
-                "submit_ready",
-                "submit_response",
+                "trialConstruct",
+                "trialPrepare",
+                "trialStart",
+                "responseEnable",
+                "submitEnable",
             ]
 
             # Page 6
@@ -148,15 +131,15 @@ class TestExp(object):
             db_session.commit()
             participant = Participant.query.filter_by(id=1).one()
             buttons = [
-                e["info"]["button_id"]
+                e["info"]["buttonId"]
                 for e in participant.answer
-                if e["event_type"] == "push_button_clicked"
+                if e["eventType"] == "pushButtonClicked"
             ]
             assert buttons == ["A", "C", "A"]
 
             event_log = participant.response.metadata["event_log"]
             assert (
-                len([e for e in event_log if e["event_type"] == "push_button_clicked"])
+                len([e for e in event_log if e["eventType"] == "pushButtonClicked"])
                 == 3
             )
 
@@ -175,31 +158,26 @@ class TestExp(object):
                 "chocolate",
             ]
             assert participant.finished_modules == ["introduction", "weight"]
+            assert participant.current_module == "chocolate"
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Do you like chocolate?\nYes\nNo"
-            )
+            assert_text(driver, "main-body", "Do you like chocolate? Yes No")
             next_page(driver, "Yes")
 
             # Page 8
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "It's nice to hear that you like chocolate!\nNext"
+            assert_text(
+                driver, "main-body", "It's nice to hear that you like chocolate! Next"
             )
             next_page(driver, "next_button")
 
             # Loop
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Would you like to stay in this loop?\nYes\nNo"
+            assert_text(
+                driver, "main-body", "Would you like to stay in this loop? Yes No"
             )
 
             for _ in range(3):
                 next_page(driver, "Yes")
-                assert (
-                    driver.find_element_by_id("main-body").text
-                    == "Would you like to stay in this loop?\nYes\nNo"
+                assert_text(
+                    driver, "main-body", "Would you like to stay in this loop? Yes No"
                 )
 
             next_page(driver, "No")
@@ -209,47 +187,47 @@ class TestExp(object):
             assert len(modules["loop"]["time_started"]) == 4
             assert len(modules["loop"]["time_finished"]) == 4
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer.\nNext"
+            assert_text(
+                driver,
+                "main-body",
+                "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer. Next",
             )
             next_page(driver, "next_button")
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Participant 1, choose a shape:\nSquare\nCircle"
+            assert_text(
+                driver, "main-body", "Participant 1, choose a shape: Square Circle"
             )
             next_page(driver, "Square")
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Participant 1, choose a chord:\nMajor\nMinor"
+            assert_text(
+                driver, "main-body", "Participant 1, choose a chord: Major Minor"
             )
             next_page(driver, "Minor")
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor'].\nNext"
+            assert_text(
+                driver,
+                "main-body",
+                "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor']. Next",
             )
             next_page(driver, "next_button")
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "What's your favourite colour?\nRed\nGreen\nBlue"
+            assert_text(
+                driver, "main-body", "What's your favourite color? Red Green Blue"
             )
             next_page(driver, "Red")
 
-            assert (
-                driver.find_element_by_id("main-body").text
-                == "Red is a nice colour, wait 1s.\nNext"
-            )
+            assert_text(driver, "main-body", "Red is a nice color, wait 1s. Next")
             next_page(driver, "next_button")
 
             # Final page
-            assert driver.find_element_by_id("main-body").text == (
-                "That's the end of the experiment! In addition to your base payment of $0.10, "
-                "you will receive a bonus of $0.27 for the time you spent on the experiment. "
-                'Thank you for taking part.\nPlease click "Finish" to complete the HIT.\nFinish'
+            assert_text(
+                driver,
+                "main-body",
+                (
+                    "That's the end of the experiment! In addition to your base payment of $0.10, "
+                    "you will receive a bonus of $0.27 for the time you spent on the experiment. "
+                    'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
+                ),
             )
 
             next_page(driver, "next_button", finished=True)

@@ -79,7 +79,7 @@ class CustomNetwork(ImitationChainNetwork):
 class CustomNode(ImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
-    def summarise_trials(self, trials: list, experiment, paricipant):
+    def summarize_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
 
 
@@ -119,7 +119,7 @@ class Exp(psynet.experiment.Experiment):
             num_chains_per_participant=1,
             num_chains_per_experiment=None,
             trials_per_node=1,
-            active_balancing_across_chains=True,
+            balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_participants",
@@ -132,6 +132,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

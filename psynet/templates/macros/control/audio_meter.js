@@ -53,14 +53,16 @@ audio_meter_control.init = function(json) {
     this.message_timer = null;
 
     var audio_meter_control = this;
-    psynet.media.register_on_loaded_routine(function() {
+    psynet.trial.onEvent("trialConstruct",function() {
         audio_meter_control.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
         audio_meter_control.audioContext = psynet.media.audio_context;
-
-        navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-        .then(function(stream) {
-            audio_meter_control.onMicrophoneGranted(stream);
-        })
+        return new Promise((resolve) => {
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            .then(function(stream) {
+                audio_meter_control.onMicrophoneGranted(stream);
+                resolve();
+            });
+        });
     });
     setTimeout(function() {
         audio_meter_control.audio_meter_text.style.display = "block";
@@ -84,14 +86,14 @@ audio_meter_control.onMicrophoneGranted = function(stream) {
     // kick off the visual updating
     var audio_meter_control = this;
     window.requestAnimationFrame(function(time) {
-        audio_meter_control.onLevelChange(time)
+        audio_meter_control.onLevelChange(time);
     });
 }
 
-audio_meter_control.show_message = function(message, colour) {
+audio_meter_control.show_message = function(message, color) {
     this.audio_meter_text.innerHTML = message;
-    this.audio_meter_text.style.color = colour;
-    this.canvasContext.fillStyle = colour;
+    this.audio_meter_text.style.color = color;
+    this.canvasContext.fillStyle = color;
 
     clearTimeout(this.message_timer);
 
@@ -146,7 +148,7 @@ audio_meter_control.onLevelChange = function(time) {
     // set up the next visual callback
     var audio_meter_control = this;
     this.rafID = window.requestAnimationFrame(function(time) {
-        audio_meter_control.onLevelChange(time)
+        audio_meter_control.onLevelChange(time);
     });
 }
 

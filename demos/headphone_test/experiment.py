@@ -1,11 +1,13 @@
+# pylint: disable=unused-import,abstract-method,unused-argument,no-member
+
 ##########################################################################################
 # Imports
 ##########################################################################################
 
+
 import psynet.experiment
-from psynet.demography.general import BasicDemography, Dance, HearingLoss
-from psynet.page import SuccessfulEndPage
-from psynet.prescreen import AttentionCheck
+from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
+from psynet.prescreen import HeadphoneTest
 from psynet.timeline import Timeline
 
 ##########################################################################################
@@ -18,14 +20,10 @@ from psynet.timeline import Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        BasicDemography(),
-        # It is a good practice to add the AttentionCheck in the middle of demographic questions, so its presence is
-        # not too obvious
-        AttentionCheck(),
-        HearingLoss(),
-        Dance(),
+        VolumeCalibration(),
+        HeadphoneTest(),
+        InfoPage(
+            "You passed the headphone screening task! Congratulations.", time_estimate=3
+        ),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

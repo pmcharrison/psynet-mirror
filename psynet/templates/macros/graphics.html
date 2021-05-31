@@ -38,14 +38,6 @@
             ];
             let cursor_location = null;
 
-            {% if config.prevent_control_response %}
-                psynet.response.wait_for("graphic_" + id);
-            {% endif %}
-
-            {% if config.prevent_control_submit %}
-                psynet.submit.wait_for("graphic_" + id);
-            {% endif %}
-
             paper.setViewBox(0, 0, blueprint_dim[0], blueprint_dim[1], true);
             paper.setSize("100%", "100%");
 
@@ -80,11 +72,11 @@
                         {% endif %}
 
                         {% if frame.activate_control_response %}
-                            psynet.response.ready("graphic_" + id);
+                            psynet.trial.registerEvent("graphicPromptEnableResponse", {once: true});
                         {% endif %}
 
                         {% if frame.activate_control_submit %}
-                            psynet.submit.ready("graphic_" + id);
+                            psynet.trial.registerEvent("graphicPromptEnableSubmit", {once: true});
                         {% endif %}
 
                         {% for object in frame.objects %}
@@ -195,7 +187,7 @@
             };
 
             if (frames.length > 0) {
-                psynet.media.register_on_loaded_routine(start_sequence);
+                psynet.trial.onEvent("trialStart", start_sequence);
             }
         })();
 

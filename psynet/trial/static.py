@@ -44,16 +44,16 @@ def filter_for_completed_trials(x):
 
 
 def query_all_completed_trials():
-    return filter_for_completed_trials(NonAdaptiveTrial.query)
+    return filter_for_completed_trials(StaticTrial.query)
 
 
 class Stimulus(TrialNode, HasDefinition):
     """
-    A stimulus class for non-adaptive experiments.
+    A stimulus class for static experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
-    of :class:`~psynet.trial.non_adaptive.StimulusSpec`.
+    of :class:`~psynet.trial.static.StimulusSpec`.
 
     Attributes
     ----------
@@ -61,7 +61,7 @@ class Stimulus(TrialNode, HasDefinition):
     definition : dict
         A dictionary containing the parameter values for the stimulus.
         This excludes any parameters defined by the
-        :class:`~psynet.trial.non_adaptive.StimulusVersion` class.
+        :class:`~psynet.trial.static.StimulusVersion` class.
 
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
@@ -132,9 +132,9 @@ class Stimulus(TrialNode, HasDefinition):
 
 class StimulusSpec:
     """
-    Defines a stimulus for a non-adaptive experiment.
+    Defines a stimulus for a static experiment.
     Will be translated to a database-backed
-    :class:`~psynet.trial.non_adaptive.Stimulus` instance.
+    :class:`~psynet.trial.static.Stimulus` instance.
 
     Parameters
     ----------
@@ -148,7 +148,7 @@ class StimulusSpec:
 
     version_specs
         A list of
-        :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
+        :class:`~psynet.trial.static.StimulusVersionSpec`
         objects, defining different forms that the stimulus can take.
 
     participant_group
@@ -222,13 +222,13 @@ class StimulusSpec:
 
 class StimulusVersion(TrialNode, HasDefinition):
     """
-    A stimulus version class for non-adaptive experiments.
+    A stimulus version class for static experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class;
     intended to be nested within the
-    :class:`~psynet.trial.non_adaptive.Stimulus` class.
+    :class:`~psynet.trial.static.Stimulus` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
-    of :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`.
+    of :class:`~psynet.trial.static.StimulusVersionSpec`.
 
     Attributes
     ----------
@@ -236,10 +236,10 @@ class StimulusVersion(TrialNode, HasDefinition):
     definition : dict
         A dictionary containing the parameter values for the stimulus version.
         This excludes any parameters defined by the parent
-        :class:`~psynet.trial.non_adaptive.Stimulus` class.
+        :class:`~psynet.trial.static.Stimulus` class.
 
     stimulus : Stimulus
-        The parent :class:`~psynet.trial.non_adaptive.Stimulus` object.
+        The parent :class:`~psynet.trial.static.Stimulus` object.
 
     stimulus_id : int
         The ID of the parent stimulus object. Stored as ``property1`` in the database.
@@ -307,11 +307,11 @@ class StimulusVersion(TrialNode, HasDefinition):
 
 class StimulusVersionSpec:
     """
-    Defines a stimulus version for a non-adaptive experiment.
+    Defines a stimulus version for a static experiment.
     Will be translated to a database-backed
-    :class:`~psynet.trial.non_adaptive.StimulusVersion` instance,
+    :class:`~psynet.trial.static.StimulusVersion` instance,
     which will be nested within a
-    :class:`~psynet.trial.non_adaptive.Stimulus` instance.
+    :class:`~psynet.trial.static.Stimulus` instance.
 
     Parameters
     ----------
@@ -319,7 +319,7 @@ class StimulusVersionSpec:
     definition
         A dictionary of parameters defining the stimulus version.
         Should not include any parameters already defined in
-        the parent :class:`~psynet.trial.non_adaptive.StimulusSpec` instance.
+        the parent :class:`~psynet.trial.static.StimulusSpec` instance.
     """
 
     def __init__(self, definition):
@@ -364,25 +364,25 @@ class StimulusVersionSpec:
 
 class StimulusSet:
     """
-    Defines a stimulus set for a non-adaptive experiment.
+    Defines a stimulus set for a static experiment.
     This stimulus set is defined as a collection of
-    :class:`~psynet.trial.non_adaptive.StimulusSpec`
-    and :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
+    :class:`~psynet.trial.static.StimulusSpec`
+    and :class:`~psynet.trial.static.StimulusVersionSpec`
     objects, which are translated to database-backed
-    :class:`~psynet.trial.non_adaptive.Stimulus`
-    and :class:`~psynet.trial.non_adaptive.StimulusVersion`
+    :class:`~psynet.trial.static.Stimulus`
+    and :class:`~psynet.trial.static.StimulusVersion`
     objects respectively.
 
     Parameters
     ----------
 
     stimulus_specs: list
-        A list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
+        A list of :class:`~psynet.trial.static.StimulusSpec` objects,
         with these objects potentially containing
-        :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
+        :class:`~psynet.trial.static.StimulusVersionSpec` objects.
         These objects must all correspond to the same experiment phase
         (se the ``phase`` attribute of the
-        :class:`~psynet.trial.non_adaptive.StimulusSpec` objects).
+        :class:`~psynet.trial.static.StimulusSpec` objects).
     """
 
     def __init__(
@@ -618,7 +618,7 @@ class NetworkSpec:
     def create_network(
         self, trial_maker_id, experiment, target_num_trials_per_stimulus
     ):
-        network = NonAdaptiveNetwork(
+        network = StaticNetwork(
             trial_maker_id=trial_maker_id,
             phase=self.phase,
             participant_group=self.participant_group,
@@ -631,9 +631,9 @@ class NetworkSpec:
         db.session.commit()
 
 
-class NonAdaptiveTrial(Trial):
+class StaticTrial(Trial):
     """
-    A Trial class for non-adaptive experiments.
+    A Trial class for static experiments.
 
     Attributes
     ----------
@@ -666,17 +666,17 @@ class NonAdaptiveTrial(Trial):
         A dictionary of parameters defining the trial.
         This dictionary combines the dictionaries of the
         respective
-        :class:`~psynet.trial.non_adaptive.StimulusSpec`
+        :class:`~psynet.trial.static.StimulusSpec`
         and
-        :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`
+        :class:`~psynet.trial.static.StimulusVersionSpec`
         objects.
 
     stimulus_version
-        The corresponding :class:`~psynet.trial.non_adaptive.StimulusVersion`
+        The corresponding :class:`~psynet.trial.static.StimulusVersion`
         object.
 
     stimulus
-        The corresponding :class:`~psynet.trial.non_adaptive.Stimulus`
+        The corresponding :class:`~psynet.trial.static.Stimulus`
         object.
 
     phase
@@ -689,7 +689,7 @@ class NonAdaptiveTrial(Trial):
         The block in which the trial is situated.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "non_adaptive_trial"}
+    __mapper_args__ = {"polymorphic_identity": "static_trial"}
     __extra_vars__ = Trial.__extra_vars__.copy()
 
     stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
@@ -733,13 +733,13 @@ class NonAdaptiveTrial(Trial):
     def make_definition(self, experiment, participant):
         """
         Combines the definitions of the associated
-        :class:`~psynet.trial.non_adaptive.Stimulus`
-        and :class:`~psynet.trial.non_adaptive.StimulusVersion`
+        :class:`~psynet.trial.static.Stimulus`
+        and :class:`~psynet.trial.static.StimulusVersion`
         objects.
         """
         return {**self.stimulus.definition, **self.stimulus_version.definition}
 
-    def summarise(self):
+    def summarize(self):
         return {
             "participant_group": self.participant_group,
             "phase": self.phase,
@@ -752,34 +752,34 @@ class NonAdaptiveTrial(Trial):
         }
 
 
-class NonAdaptiveTrialMaker(NetworkTrialMaker):
+class StaticTrialMaker(NetworkTrialMaker):
     """
-    Administers a sequence of trials in a non-adaptive experiment.
+    Administers a sequence of trials in a static experiment.
     The class is intended for use with the
-    :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` helper class.
+    :class:`~psynet.trial.static.StaticTrial` helper class.
     which should be customised to show the relevant stimulus
     for the experimental paradigm.
     The user must also define their stimulus set
     using the following built-in classes:
 
-    * :class:`~psynet.trial.non_adaptive.StimulusSet`;
+    * :class:`~psynet.trial.static.StimulusSet`;
 
-    * :class:`~psynet.trial.non_adaptive.StimulusSpec`;
+    * :class:`~psynet.trial.static.StimulusSpec`;
 
-    * :class:`~psynet.trial.non_adaptive.StimulusVersionSpec`;
+    * :class:`~psynet.trial.static.StimulusVersionSpec`;
 
-    In particular, a :class:`~psynet.trial.non_adaptive.StimulusSet`
-    contains a list of :class:`~psynet.trial.non_adaptive.StimulusSpec` objects,
+    In particular, a :class:`~psynet.trial.static.StimulusSet`
+    contains a list of :class:`~psynet.trial.static.StimulusSpec` objects,
     which in turn contains a list of
-    :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` objects.
+    :class:`~psynet.trial.static.StimulusVersionSpec` objects.
 
     The user may also override the following methods, if desired:
 
-    * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_block_order`;
+    * :meth:`~psynet.trial.static.StaticTrialMaker.choose_block_order`;
       chooses the order of blocks in the experiment. By default the blocks
       are ordered randomly.
 
-    * :meth:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker.choose_participant_group`;
+    * :meth:`~psynet.trial.static.StaticTrialMaker.choose_participant_group`;
       assigns the participant to a group. By default the participant is assigned
       to a random group.
 
@@ -798,7 +798,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     trial_class
         The class object for trials administered by this maker
-        (should subclass :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`).
+        (should subclass :class:`~psynet.trial.static.StaticTrial`).
 
     phase
         Arbitrary label for this phase of the experiment, e.g.
@@ -974,7 +974,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
-            network_class=NonAdaptiveNetwork,
+            network_class=StaticNetwork,
             phase=phase,
             time_estimate_per_trial=time_estimate_per_trial,
             expected_num_trials=expected_num_trials,
@@ -1124,7 +1124,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def experiment_setup_routine(self, experiment):
         """
-        All networks for the non-adaptive experiment are set up at the beginning of
+        All networks for the static experiment are set up at the beginning of
         data collection.
         """
         if self.num_networks == 0:
@@ -1199,11 +1199,11 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
     def find_networks(self, participant, experiment, ignore_async_processes=False):
         # pylint: disable=protected-access
         block_order = participant.var.get(self.with_namespace("block_order"))
-        networks = NonAdaptiveNetwork.query.filter_by(
+        networks = StaticNetwork.query.filter_by(
             trial_maker_id=self.id,
             participant_group=participant.get_participant_group(self.id),
             phase=self.phase,
-        ).filter(NonAdaptiveNetwork.block.in_(block_order))
+        ).filter(StaticNetwork.block.in_(block_order))
         if not ignore_async_processes:
             networks = networks.filter_by(awaiting_async_process=False)
         networks = networks.all()
@@ -1212,7 +1212,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
 
     def grow_network(self, network, participant, experiment):
         """
-        Does nothing, because networks never get expanded in a non-adaptive experiment.
+        Does nothing, because networks never get expanded in a static experiment.
         """
         return False
 
@@ -1277,7 +1277,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         Parameters
         ----------
         candidates:
-            The current list of candidate stimuli as defined by the built-in non-adaptive procedure.
+            The current list of candidate stimuli as defined by the built-in static experiment procedure.
 
         participant:
             The current participant.
@@ -1297,7 +1297,7 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         Parameters
         ----------
         candidates:
-            The current list of candidate stimulus versions as defined by the built-in non-adaptive procedure.
+            The current list of candidate stimulus versions as defined by the built-in static experiment procedure.
 
         participant:
             The current participant.
@@ -1342,8 +1342,8 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         # New version:
         n_trials_all_stimuli = filter_for_completed_trials(
             db.session.query(
-                NonAdaptiveTrial.stimulus_id, func.count(NonAdaptiveTrial.id)
-            ).group_by(NonAdaptiveTrial.stimulus_id)
+                StaticTrial.stimulus_id, func.count(StaticTrial.id)
+            ).group_by(StaticTrial.stimulus_id)
         ).all()
         n_trials_all_stimuli = {x[0]: x[1] for x in n_trials_all_stimuli}
 
@@ -1390,9 +1390,9 @@ class NonAdaptiveTrialMaker(NetworkTrialMaker):
         return random.choice(candidates)
 
 
-class NonAdaptiveNetwork(TrialNetwork):
+class StaticNetwork(TrialNetwork):
     """
-    A :class:`~psynet.trial.main.TrialNetwork` class for non-adaptive experiments.
+    A :class:`~psynet.trial.main.TrialNetwork` class for static experiments.
     The user should not have to engage with this class directly,
     except through the network visualisation tool and through
     analysing the resulting data.
@@ -1401,24 +1401,24 @@ class NonAdaptiveNetwork(TrialNetwork):
     1. At the top level of the hierarchy, different networks correspond to different
        combinations of participant group and block.
        If the same experiment contains many
-       :class:`~psynet.trial.non_adaptive.NonAdaptiveTrialMaker` objects
-       with different associated :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial`
+       :class:`~psynet.trial.static.StaticTrialMaker` objects
+       with different associated :class:`~psynet.trial.static.StaticTrial`
        classes,
        then networks will also be differentiated by the names of these
-       :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` classes.
+       :class:`~psynet.trial.static.StaticTrial` classes.
 
     2. Within a given network, the first level of the hierarchy is the
-       :class:`~psynet.trial.non_adaptive.Stimulus` class.
+       :class:`~psynet.trial.static.Stimulus` class.
        These objects subclass the Dallinger :class:`~dallinger.models.Node` class,
-       and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusSpec` instances.
+       and are generated directly from :class:`~psynet.trial.static.StimulusSpec` instances.
 
-    3. Nested within :class:`~psynet.trial.non_adaptive.Stimulus` objects
-       are :class:`~psynet.trial.non_adaptive.StimulusVersion` objects.
+    3. Nested within :class:`~psynet.trial.static.Stimulus` objects
+       are :class:`~psynet.trial.static.StimulusVersion` objects.
        These also subclass the Dallinger :class:`~dallinger.models.Node` class,
-       and are generated directly from :class:`~psynet.trial.non_adaptive.StimulusVersionSpec` instances.
+       and are generated directly from :class:`~psynet.trial.static.StimulusVersionSpec` instances.
 
-    4. Nested within :class:`~psynet.trial.non_adaptive.StimulusVersion` objects
-       are :class:`~psynet.trial.non_adaptive.NonAdaptiveTrial` objects.
+    4. Nested within :class:`~psynet.trial.static.StimulusVersion` objects
+       are :class:`~psynet.trial.static.StaticTrial` objects.
        These objects subclass the Dallinger :class:`~dallinger.models.Info` class.
 
     Attributes
@@ -1430,7 +1430,7 @@ class NonAdaptiveNetwork(TrialNetwork):
 
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
-        This should always be ``False`` for non-adaptive experiments.
+        This should always be ``False`` for static experiments.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
@@ -1469,7 +1469,7 @@ class NonAdaptiveNetwork(TrialNetwork):
 
     # pylint: disable=abstract-method
 
-    __mapper_args__ = {"polymorphic_identity": "non_adaptive_network"}
+    __mapper_args__ = {"polymorphic_identity": "static_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     participant_group = claim_field("participant_group", __extra_vars__, str)

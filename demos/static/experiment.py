@@ -12,9 +12,9 @@ import psynet.experiment
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
+from psynet.trial.static import (
+    StaticTrial,
+    StaticTrialMaker,
     StimulusSet,
     StimulusSpec,
     StimulusVersionSpec,
@@ -46,7 +46,7 @@ stimulus_set = StimulusSet(
 )
 
 
-class AnimalTrial(NonAdaptiveTrial):
+class AnimalTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "animal_trial"}
 
     # num_pages = 2
@@ -83,7 +83,7 @@ class AnimalTrial(NonAdaptiveTrial):
     #     return InfoPage(f"You responded '{self.answer}'.")
 
 
-class AnimalTrialMaker(NonAdaptiveTrialMaker):
+class AnimalTrialMaker(StaticTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
         score = 0
@@ -109,7 +109,7 @@ class AnimalTrialMaker(NonAdaptiveTrialMaker):
             return candidates
 
     def custom_stimulus_version_filter(self, candidates, participant):
-        # If the participant has answered at least three trials, make the text colour red.
+        # If the participant has answered at least three trials, make the text color red.
         trials = self.get_participant_trials(participant)
         complete_trials = [t for t in trials if t.complete]
         if participant.var.custom_filters and len(complete_trials) >= 3:
@@ -164,6 +164,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()
