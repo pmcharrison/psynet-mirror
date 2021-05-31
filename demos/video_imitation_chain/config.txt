@@ -1,5 +1,6 @@
 [Launch mode]
 mode = sandbox
+language = en
 
 [Payment information]
 title = Video Imitation Chain
@@ -35,4 +36,3 @@ num_dynos_worker = 3
 redis_size = premium-3
 host = 0.0.0.0
 clock_on = true
-language = en
