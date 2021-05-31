@@ -63,7 +63,7 @@
                 });
             });
             $("#audio-prompt-stop").on("click", function() {
-                psynet.media.stop_all_audio();
+                psynet.page.prompt.stop;
             });
             $("#audio-prompt-loop-input").on("change", function(event) {
                 audioPromptPlayerOptions.loop = event.target.checked;
@@ -73,13 +73,19 @@
     {% endif %}
 
     <script>
-        psynet.trial.onEvent("promptStart", function() {
-            let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
+        psynet.page.prompt.play = function(providedOptions) {
+            let options = psynet.utils.deep_copy(audioPromptPlayerOptions);
+            Object.assign(options, providedOptions);
+
+            let sound = psynet.audio.prompt.play(options);
             sound.source.addEventListener("ended", function() {
                 psynet.trial.registerEvent("promptEnd");
             });
-        })
+        }
 
+        psynet.page.prompt.stop = psynet.media.stop_all_audio;
+
+        psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
     </script>
 {% endmacro %}
 
@@ -104,6 +110,7 @@
     <script>
         let options = {{ config.js_play_options | tojson }};
         let startAt = options.start_at;
+        let endAt = options.end_at;
         let muted = options.muted;
         let controls = options.controls;
         let hideWhenFinished = options.hide_when_finished;
@@ -121,22 +128,34 @@
 
         hideVideo();
 
-        psynet.trial.onEvent("trialPrepare", () => {
+        let videoStopTimer = null;
+
+        psynet.page.prompt.play = function(providedOptions) {
             videoPlayer.currentTime = startAt;
-        });
-        psynet.trial.onEvent("promptStart", () => {
+            let duration = endAt - startAt;
             showVideo();
             videoPlayer.play();
-        });
-        videoPlayer.addEventListener("ended", () => {
-            psynet.trial.registerEvent("promptEnd");
-        });
-        psynet.trial.onEvent("promptEnd", () => {
+            videoStopTimer = setTimeout(psynet.page.prompt.stop, duration * 1000);
+        };
+        psynet.page.prompt.stop = function() {
+            clearTimeout(videoStopTimer);
             videoPlayer.pause();
             if (hideWhenFinished) {
                 hideVideo();
             }
+        };
+
+        psynet.trial.onEvent("trialPrepare", () => {
+            videoPlayer.currentTime = startAt;
         });
+        psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
+
+        videoPlayer.addEventListener("ended", () => {
+            psynet.trial.registerEvent("promptEnd");
+        });
+
+        psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
+        psynet.trial.onEvent("promptEnd", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
 

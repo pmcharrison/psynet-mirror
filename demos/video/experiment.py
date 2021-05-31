@@ -2,7 +2,12 @@ import flask
 
 import psynet.experiment
 from psynet.media import prepare_s3_bucket_for_presigned_urls
-from psynet.modular_page import ModularPage, VideoPrompt, VideoRecordControl
+from psynet.modular_page import (
+    AudioRecordControl,
+    ModularPage,
+    VideoPrompt,
+    VideoRecordControl,
+)
 from psynet.page import SuccessfulEndPage, UnsuccessfulEndPage
 from psynet.timeline import (
     Event,
@@ -27,42 +32,67 @@ video_record_page = join(
         prepare_s3_bucket_for_presigned_urls,
         {"bucket_name": bucket_name, "public_read": True, "create_new_bucket": True},
     ),
-    ModularPage(
-        "simple_video_prompt",
-        VideoPrompt(
-            "/static/flower.mp4",
-            flask.Markup(
-                """
-            <h3>Example video prompt:</h3>
-            <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
-            """
-            ),
-        ),
-        time_estimate=5,
-    ),
-    ModularPage(
-        "video_play_window",
-        VideoPrompt(
-            "/static/flower.mp4",
-            flask.Markup(
-                """
-            <h3>Example video prompt with play window:</h3>
-            <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
-            """
-            ),
-            play_window=[3, 4],
-        ),
-        time_estimate=5,
-    ),
+    # ModularPage(
+    #     "simple_video_prompt",
+    #     VideoPrompt(
+    #         "/static/flower.mp4",
+    #         flask.Markup(
+    #             """
+    #         <h3>Example video prompt:</h3>
+    #         <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
+    #         """
+    #         ),
+    #     ),
+    #     time_estimate=5,
+    # ),
+    # ModularPage(
+    #     "video_play_window",
+    #     VideoPrompt(
+    #         "/static/flower.mp4",
+    #         flask.Markup(
+    #             """
+    #         <h3>Example video prompt with play window:</h3>
+    #         <p><a href="https://commons.wikimedia.org/wiki/File:Water_lily_opening_bloom_20fps.ogv">SecretDisc</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0">CC BY-SA 3.0</a>, via Wikimedia Commons</p>
+    #         """
+    #         ),
+    #         play_window=[3, 4],
+    #     ),
+    #     time_estimate=5,
+    # ),
+    # ModularPage(
+    #     "video_plus_audio",
+    #     VideoPrompt(
+    #         "/static/birds.mp4",
+    #         "Here we play a video, muted, alongside an audio file.",
+    #         muted=True,
+    #     ),
+    #     time_estimate=5,
+    #     media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
+    #     events={
+    #         "playSoundtrack": Event(
+    #             is_triggered_by="promptStart",
+    #             delay=0.0,
+    #             js="psynet.audio.soundtrack.play()",
+    #         )
+    #     },
+    # ),
     ModularPage(
         "video_plus_audio",
         VideoPrompt(
-            "/static/birds.mp4",
-            "Here we play a video, muted, alongside an audio file.",
+            "https://psynet.s3.amazonaws.com/tests/video-sync-test.webm",
+            """
+            Here's a second version, where the video and audio both come from the same original recording.
+            If everything is working properly, the video and the audio should be well-synchronized.
+            """,
             muted=True,
+            play_window=[12, None],
         ),
         time_estimate=5,
-        media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
+        media=MediaSpec(
+            audio={
+                "soundtrack": "https://psynet.s3.amazonaws.com/tests/video-sync-test.wav"
+            }
+        ),
         events={
             "playSoundtrack": Event(
                 is_triggered_by="promptStart",
@@ -70,6 +100,22 @@ video_record_page = join(
                 js="psynet.audio.soundtrack.play()",
             )
         },
+    ),
+    ModularPage(
+        "video_plus_audio_record",
+        VideoPrompt(
+            "/static/birds.mp4",
+            "Here we play a video and instruct the user to record a response.",
+            muted=True,
+            play_window=[0, 4],
+        ),
+        AudioRecordControl(
+            controls=True,
+            duration=4.0,
+            s3_bucket=bucket_name,
+        ),
+        time_estimate=5,
+        progress_display=ProgressDisplay(duration=4.0),
     ),
     ModularPage(
         "video_record_page",
