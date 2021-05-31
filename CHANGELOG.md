@@ -15,6 +15,7 @@ specified in config.txt.
 - Added the ability to parallelize stimulus generation in `AudioGibbs` experiments.
 - Added `current_module` to a participant's export data.
 - Allow for arbitrary number of audio record channels in `VideoRecordControl`.
+- Update Dallinger to v7.4.0.
 
 #### Renamed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
