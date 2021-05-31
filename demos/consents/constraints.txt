@@ -4,23 +4,23 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with sha: 21cfb491ac4c193e2b9c20c00daa790d
+# Compiled from a requirement.txt file with md5sum: 21cfb491ac4c193e2b9c20c00daa790d
 #
 -e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
     # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
-boto3==1.17.70
+boto3==1.17.84
     # via dallinger
-botocore==1.20.70
+botocore==1.20.84
     # via
     #   boto3
     #   s3transfer
-build==0.3.1.post1
+build==0.4.0
     # via dallinger
 cached-property==1.5.2
     # via dallinger
-certifi==2020.12.5
+certifi==2021.5.30
     # via requests
 chardet==4.0.0
     # via requests
@@ -31,13 +31,13 @@ click==7.1.2
     #   pip-tools
     #   psynet
     #   rq
-dallinger==7.2.1
+dallinger==7.4.0
     # via psynet
 datetime==4.3
     # via psynet
 dominate==2.6.0
     # via psynet
-faker==8.1.3
+faker==8.4.0
     # via dallinger
 flask-crossdomain==0.1
     # via dallinger
@@ -45,9 +45,9 @@ flask-login==0.5.0
     # via dallinger
 flask-sockets==0.2.1
     # via dallinger
-flask-wtf==0.14.3
+flask-wtf==0.15.1
     # via dallinger
-flask==1.1.2
+flask==1.1.4
     # via
     #   dallinger
     #   flask-crossdomain
@@ -71,9 +71,11 @@ greenlet==1.1.0
     #   sqlalchemy
 gunicorn==20.1.0
     # via dallinger
+heroku3==4.2.3
+    # via dallinger
 idna==2.10
     # via requests
-importlib-resources==5.1.2
+importlib-resources==5.1.4
     # via psynet
 itsdangerous==1.1.0
     # via
@@ -85,9 +87,11 @@ jmespath==0.10.0
     # via
     #   boto3
     #   botocore
+joblib==1.0.1
+    # via psynet
 localconfig==1.1.3
     # via dallinger
-markupsafe==1.1.1
+markupsafe==2.0.1
     # via
     #   jinja2
     #   wtforms
@@ -133,6 +137,7 @@ python-dateutil==2.8.1
     # via
     #   botocore
     #   faker
+    #   heroku3
     #   pandas
 pytz==2021.1
     # via
@@ -145,10 +150,12 @@ redis==3.5.3
     #   dallinger
     #   rq
 requests==2.25.1
-    # via dallinger
+    # via
+    #   dallinger
+    #   heroku3
 rpdb==0.1.6
     # via psynet
-rq==1.8.0
+rq==1.8.1
     # via dallinger
 s3transfer==0.4.2
     # via boto3
@@ -167,7 +174,7 @@ six==1.16.0
     #   sqlalchemy-postgres-copy
 sqlalchemy-postgres-copy==0.5.0
     # via dallinger
-sqlalchemy==1.4.15
+sqlalchemy==1.4.17
     # via
     #   dallinger
     #   sqlalchemy-postgres-copy
@@ -175,6 +182,8 @@ statsmodels==0.12.2
     # via psynet
 tabulate==0.8.9
     # via dallinger
+termcolor==1.1.0
+    # via yaspin
 text-unidecode==1.3
     # via faker
 timeago==1.0.15
@@ -191,7 +200,7 @@ ua-parser==0.10.0
     # via
     #   dallinger
     #   user-agents
-urllib3==1.26.4
+urllib3==1.26.5
     # via
     #   botocore
     #   requests
@@ -202,8 +211,10 @@ werkzeug==1.0.1
     # via flask
 wtforms==2.3.3
     # via flask-wtf
-yaspin==1.5.0
+yaspin==2.0.0
     # via psynet
+zipp==3.4.1
+    # via importlib-resources
 zope.event==4.5.0
     # via gevent
 zope.interface==5.4.0
