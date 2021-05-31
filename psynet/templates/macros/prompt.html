@@ -81,7 +81,9 @@
 
             let sound = psynet.audio.prompt.play(options);
             sound.source.addEventListener("ended", function() {
-                psynet.trial.registerEvent("promptEnd");
+                if (!sound.manually_stopped) {
+                    psynet.trial.registerEvent("promptEnd");
+                }
             });
         };
 

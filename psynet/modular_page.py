@@ -198,7 +198,7 @@ class AudioPrompt(Prompt):
             ]
         )
 
-        events["promptEnd"] = Event(is_triggered_by=[])
+        events["promptEnd"] = Event(is_triggered_by=[], once=False)
         events["trialFinish"].add_trigger("promptEnd")
 
 
@@ -311,7 +311,7 @@ class VideoPrompt(Prompt):
             once=True,
         )
 
-        events["promptEnd"] = Event(is_triggered_by=None, once=True)
+        events["promptEnd"] = Event(is_triggered_by=None, once=False)
 
         events["trialFinish"].add_trigger("promptEnd")
 
@@ -1898,7 +1898,7 @@ class RecordControl(Control):
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("responseEnable"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["submitEnable"] = Event(Trigger("uploadEnd"))
+        events["submitEnable"].add_triggers("uploadEnd")
         events["uploadEnd"] = Event(is_triggered_by=[])
 
 

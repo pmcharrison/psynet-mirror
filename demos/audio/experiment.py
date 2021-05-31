@@ -205,7 +205,7 @@ example_listen_then_record_page = join(
         AudioPrompt(
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
-            Here we play audio then activate the recorder 1 second afterwards.
+            Here we play audio then activate the recorder 3 seconds afterwards.
             """,
             play_window=[0, 5.0],
         ),
@@ -218,7 +218,7 @@ example_listen_then_record_page = join(
             auto_advance=True,
         ),
         time_estimate=5,
-        events={"recordStart": Event(is_triggered_by="promptStart", delay=3.0)},
+        events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
             duration=5.0,
             stages=[

@@ -116,6 +116,19 @@ video_record_page = join(
         ),
         time_estimate=5,
         progress_display=ProgressDisplay(duration=4.0),
+        media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
+        events={
+            "playSoundtrack": Event(
+                is_triggered_by="promptStart",
+                delay=0.0,
+                js="psynet.audio.soundtrack.play()",
+            ),
+            "stopSoundtrack": Event(
+                is_triggered_by="promptStart",
+                delay=4.0,
+                js="psynet.audio.soundtrack.stop()",
+            ),
+        },
     ),
     ModularPage(
         "video_record_page",
