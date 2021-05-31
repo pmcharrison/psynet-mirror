@@ -59,7 +59,9 @@
                 psynet.media.stop_all_audio();
                 let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
                 sound.source.addEventListener("ended", () => {
-                    psynet.trial.registerEvent("promptEnd");
+                    if (!sound.manually_stopped) {
+                        psynet.trial.registerEvent("promptEnd");
+                    }
                 });
             });
             $("#audio-prompt-stop").on("click", function() {
@@ -81,11 +83,12 @@
             sound.source.addEventListener("ended", function() {
                 psynet.trial.registerEvent("promptEnd");
             });
-        }
+        };
 
         psynet.page.prompt.stop = psynet.media.stop_all_audio;
 
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
+        psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
 
@@ -138,14 +141,30 @@
             if (endAt !== null) {
                 console.assert(startAt !== null);
                 let duration = endAt - startAt
-                videoStopTimer = setTimeout(psynet.page.prompt.stop, duration * 1000);
+                videoStopTimer = setTimeout(
+                    () => psynet.page.prompt.stop({manual: false}),
+                    duration * 1000
+                );
             }
         };
-        psynet.page.prompt.stop = function() {
+
+        videoPlayer.addEventListener("ended", () => psynet.page.prompt.stop({manual: false}));
+
+        psynet.page.prompt.stop = function(providedOptions) {
+            let options = {
+                manual: true
+            };
+            Object.assign(options, providedOptions);
+
             clearTimeout(videoStopTimer);
             videoPlayer.pause();
+            videoPlayer.manuallyStopped = options.manual;
+
             if (hideWhenFinished) {
                 hideVideo();
+            }
+            if (!options.manual) {
+                psynet.trial.registerEvent("promptEnd");
             }
         };
 
@@ -153,13 +172,7 @@
             videoPlayer.currentTime = startAt;
         });
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
-
-        videoPlayer.addEventListener("ended", () => {
-            psynet.trial.registerEvent("promptEnd");
-        });
-
         psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
-        psynet.trial.onEvent("promptEnd", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
 
