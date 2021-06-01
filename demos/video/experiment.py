@@ -95,7 +95,7 @@ video_record_page = join(
         },
     ),
     ModularPage(
-        "video_plus_audio",
+        "video_plus_audio_record",
         VideoPrompt(
             "https://psynet.s3.amazonaws.com/tests/video-sync-test.webm",
             """
@@ -120,7 +120,7 @@ video_record_page = join(
         },
     ),
     ModularPage(
-        "video_plus_audio_record",
+        "video_plus_video_record",
         VideoPrompt(
             "/static/birds.mp4",
             "Here we play a video and instruct the user to record an audio response.",
