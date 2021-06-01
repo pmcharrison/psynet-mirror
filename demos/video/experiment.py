@@ -15,6 +15,7 @@ from psynet.timeline import (
     PageMaker,
     PreDeployRoutine,
     ProgressDisplay,
+    ProgressStage,
     Timeline,
     conditional,
     join,
@@ -23,8 +24,25 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-
 bucket_name = "video-screen-recording-dev"
+
+
+class CustomProgressDisplay(ProgressDisplay):
+    def __init__(self):
+        super().__init__(
+            duration=4.0 + 3.0,  # Duration of record is 4 seconds.
+            stages=[
+                ProgressStage([0.0, 1.0], "Recording in 3...", color="grey"),
+                ProgressStage([1.0, 2.0], "Recording in 2...", color="grey"),
+                ProgressStage([2.0, 3.0], "Recording in 1...", color="grey"),
+                ProgressStage([3.0, 4.0 + 3.0], "Recording!", color="red"),
+            ],
+        )
+
+
+def make_js_fade_string(fade_duration):
+    return "{fade_in: %s, fade_out: %s}" % (fade_duration, fade_duration)
+
 
 video_record_page = join(
     PreDeployRoutine(
@@ -105,7 +123,7 @@ video_record_page = join(
         "video_plus_audio_record",
         VideoPrompt(
             "/static/birds.mp4",
-            "Here we play a video and instruct the user to record a response.",
+            "Here we play a video and instruct the user to record an audio response.",
             muted=True,
             play_window=[0, 4],
         ),
@@ -122,6 +140,43 @@ video_record_page = join(
                 is_triggered_by="promptStart",
                 delay=0.0,
                 js="psynet.audio.soundtrack.play()",
+            ),
+            "stopSoundtrack": Event(
+                is_triggered_by="promptStart",
+                delay=4.0,
+                js="psynet.audio.soundtrack.stop()",
+            ),
+        },
+    ),
+    ModularPage(
+        "video_plus_audio_record",
+        VideoPrompt(
+            url="/static/birds.mp4",
+            text="""
+            Here we play a video and instruct the user to record a video response after a countdown.
+            The soundtrack also has an 0.5 second fade-in and fade-out.
+            """,
+            muted=True,
+            play_window=[0, 4],
+        ),
+        VideoRecordControl(
+            controls=True, duration=4.0, s3_bucket=bucket_name, show_preview=True
+        ),
+        time_estimate=5,
+        progress_display=CustomProgressDisplay(),
+        media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
+        events={
+            "trialPrepare": Event(is_triggered_by=None),
+            "promptStart": Event(
+                is_triggered_by="trialStart", delay=3.0
+            ),  # Countdown of 3 seconds.
+            "recordStart": Event(
+                is_triggered_by="trialStart", delay=3.0
+            ),  # Countdown of 3 seconds.
+            "playSoundtrack": Event(
+                is_triggered_by="promptStart",
+                delay=0.0,
+                js=f"psynet.audio.soundtrack.play({make_js_fade_string(fade_duration=0.5)})",
             ),
             "stopSoundtrack": Event(
                 is_triggered_by="promptStart",
