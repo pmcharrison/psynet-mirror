@@ -78,29 +78,29 @@ class HarmonicTimbre(ADSRTimbre):
     num_harmonics:
         Number of harmonics.
 
-    rolloff:
+    roll_off:
         Roll-off in units of dB/octave
     """
 
     def __init__(
         self,
         num_harmonics=10,
-        rolloff=12.0,
+        roll_off=12.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.num_harmonics = num_harmonics
-        self.roll_off = rolloff
+        self.roll_off = roll_off
 
         self["type"] = "harmonic"
-        self["NH"] = num_harmonics
-        self["rolloff"] = rolloff
+        self["num_harmonics"] = num_harmonics
+        self["roll_off"] = roll_off
 
 
 class CompressedTimbre(ADSRTimbre):
     """
-    Compressed harmonic timbre (inharmonicity coefficient of 1.9)
+    Compressed harmonic timbre (inharmonicity/octave_definition coefficient of 1.9)
 
     Parameters
     ----------
@@ -108,30 +108,30 @@ class CompressedTimbre(ADSRTimbre):
     num_harmonics:
         Number of harmonics.
 
-    rolloff:
+    roll_off:
         Roll-off in units of dB/octave
     """
 
     def __init__(
         self,
         num_harmonics=10,
-        rolloff=12.0,
+        roll_off=12.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.num_harmonics = num_harmonics
-        self.rolloff = rolloff
+        self.roll_off = roll_off
 
         self["type"] = "compressed"
-        self["NH"] = num_harmonics
-        self["NH_max"] = 30
-        self["rolloff"] = rolloff
+        self["num_harmonics"] = num_harmonics
+        self["max_num_harmonics"] = 30
+        self["roll_off"] = roll_off
 
 
 class StretchedTimbre(ADSRTimbre):
     """
-    Stretched harmonic timbre (inharmonicity coefficient of 2.1)
+    Stretched harmonic timbre (inharmonicity/octave_definition coefficient of 2.1)
 
     Parameters
     ----------
@@ -139,25 +139,25 @@ class StretchedTimbre(ADSRTimbre):
     num_harmonics:
         Number of harmonics.
 
-    rolloff:
+    roll_off:
         Roll-off in units of dB/octave
     """
 
     def __init__(
         self,
         num_harmonics=10,
-        rolloff=12.0,
+        roll_off=12.0,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
         self.num_harmonics = num_harmonics
-        self.rolloff = rolloff
+        self.roll_off = roll_off
 
         self["type"] = "stretched"
-        self["NH"] = num_harmonics
-        self["NH_max"] = num_harmonics
-        self["rolloff"] = rolloff
+        self["num_harmonics"] = num_harmonics
+        self["max_num_harmonics"] = num_harmonics
+        self["roll_off"] = roll_off
 
 
 class ShepardTimbre(ADSRTimbre):
@@ -171,7 +171,7 @@ class ShepardTimbre(ADSRTimbre):
         self.num_harmonics = 1
         self.num_octave_transpositions = num_octave_transpositions
 
-        self["NSH"] = num_octave_transpositions
+        self["num_octave_transpositions"] = num_octave_transpositions
 
 
 class InstrumentTimbre(Timbre):
@@ -189,7 +189,7 @@ class InstrumentTimbre(Timbre):
             "trumpet",
         ]
         self["type"] = type
-        self["NSH"] = 1  # <-- should not be necessary
+        self["num_octave_transpositions"] = 0  # <-- should not be necessary
 
 
 class JSSynth(Prompt):

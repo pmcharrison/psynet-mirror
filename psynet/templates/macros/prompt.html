@@ -220,20 +220,20 @@
             "decay": 0.1, // Decay phase duration in seconds
             "sustain_amp": 0.8, // Amplitude fraction to decay to relative to max amplitude
             "duration": 1, // Overall pitch duration in seconds
-            "NH_max": 10, // Maximum number of partial harmonics per tone
-            "NH": 10, // Actual number of partial harmonics to use
-            "NP_max": 3, // Maximum number of pitches in a chord
+            "max_num_harmonics": 10, // Maximum number of partial harmonics per tone
+            "num_harmonics": 10, // Actual number of partial harmonics to use
+            "max_num_pitches": 3, // Maximum number of pitches in a chord
             "type": "harmonic", // Synthesis type
-            "inharmonicity": 2, // 2 is the harmonic series
-            "NSH_max": 4, // Maximum number of octave transpositions used to create a Shepard tower (runs from -NSH to NSH).
-                    // With NH=10 harmonics, can go up to NSH=5 without crashing, though it's too small for inversion invariance.
-                    // Can do pure with NSH=10 by setting NH=1, then harmonic = pure or NSH=10 and NH = 4 (recovers Nori's chords)
-            "NSH": 0, // Actual number of octave transpositions to use
-            "rolloff": 3, // Roll-off in units of dB/octave
+            "octave_definition": 2, // 2 is the harmonic series
+            "max_num_octave_transpositions": 4, // Maximum number of octave transpositions used to create a Shepard tower (runs from -num_octave_transpositions to num_octave_transpositions).
+            "num_octave_transpositions": 0, // Actual number of octave transpositions to use
+            "roll_off": 3, // Roll-off in units of dB/octave,
+            "shepard_center": 65.5, // Center of the gaussian weights used in octave transpositions
+            "shepard_width": 8.2, // Width of the gaussian weights used in octave transpositions
             "reg": 0.1, // regularizer for internal use
         }
-        DEFAULT_PARAMS.NH_max = options.max_num_harmonics;
-        DEFAULT_PARAMS.NSH_max = options.max_num_octave_transpositions;
+        DEFAULT_PARAMS.max_num_harmonics = options.max_num_harmonics;
+        DEFAULT_PARAMS.max_num_octave_transpositions = options.max_num_octave_transpositions;
 
         let LOADED_INSTRUMENTS = {};
         let ACTIVE_NODES;

@@ -164,18 +164,18 @@ trial_maker = CustomTrialMaker(
     source_class=CustomSource,
     phase="experiment",  # can be whatever you like
     time_estimate_per_trial=5,
-    chain_type="across",  # can be "within" or "across"
-    num_trials_per_participant=4,
-    num_iterations_per_chain=2,
-    num_chains_per_participant=None,  # set to None if chain_type="across"
-    num_chains_per_experiment=8,  # set to None if chain_type="within"
+    chain_type="within",  # can be "within" or "across"
+    num_trials_per_participant=10,
+    num_iterations_per_chain=10,
+    num_chains_per_participant=1,  # set to None if chain_type="across"
+    num_chains_per_experiment=None,  # set to None if chain_type="within"
     trials_per_node=1,
     active_balancing_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_trials",
-    target_num_participants=None,
+    recruit_mode="num_participants",
+    target_num_participants=5,
     num_repeat_trials=3,
 )
 
