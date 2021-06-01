@@ -27,19 +27,6 @@ logger = get_logger()
 bucket_name = "video-screen-recording-dev"
 
 
-class CustomProgressDisplay(ProgressDisplay):
-    def __init__(self):
-        super().__init__(
-            duration=4.0 + 3.0,  # Duration of record is 4 seconds.
-            stages=[
-                ProgressStage([0.0, 1.0], "Recording in 3...", color="grey"),
-                ProgressStage([1.0, 2.0], "Recording in 2...", color="grey"),
-                ProgressStage([2.0, 3.0], "Recording in 1...", color="grey"),
-                ProgressStage([3.0, 4.0 + 3.0], "Recording!", color="red"),
-            ],
-        )
-
-
 def make_js_fade_string(fade_duration):
     return "{fade_in: %s, fade_out: %s}" % (fade_duration, fade_duration)
 
@@ -158,21 +145,26 @@ video_record_page = join(
             """,
             muted=True,
             play_window=[0, 4],
+            width="180px",
         ),
         VideoRecordControl(
             controls=True, duration=4.0, s3_bucket=bucket_name, show_preview=True
         ),
         time_estimate=5,
-        progress_display=CustomProgressDisplay(),
+        progress_display=ProgressDisplay(
+            duration=4.0 + 3.0,  # Duration of record is 4 seconds.
+            stages=[
+                ProgressStage([0.0, 1.0], "Recording in 3...", color="grey"),
+                ProgressStage([1.0, 2.0], "Recording in 2...", color="grey"),
+                ProgressStage([2.0, 3.0], "Recording in 1...", color="grey"),
+                ProgressStage([3.0, 4.0 + 3.0], "Recording!", color="red"),
+            ],
+        ),
         media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
         events={
             "trialPrepare": Event(is_triggered_by=None),
-            "promptStart": Event(
-                is_triggered_by="trialStart", delay=3.0
-            ),  # Countdown of 3 seconds.
-            "recordStart": Event(
-                is_triggered_by="trialStart", delay=3.0
-            ),  # Countdown of 3 seconds.
+            "promptStart": Event(is_triggered_by="trialStart", delay=3.0),
+            "recordStart": Event(is_triggered_by="trialStart", delay=3.0),
             "playSoundtrack": Event(
                 is_triggered_by="promptStart",
                 delay=0.0,

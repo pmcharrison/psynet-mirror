@@ -733,11 +733,12 @@
             $("#btn-record-play-recording").on("click", async function() {
                 await psynet.media.stop_all_audio();
                 await psynet.trial.stop();
-                playRecording();
+                await psynet.page.control.playRecording();
             });
 
-            $("#btn-record-stop").on("click", function() {
-                psynet.trial.stop();
+            $("#btn-record-stop").on("click", async function() {
+                await psynet.trial.stop();
+                await psynet.page.control.stopRecordingPlayback();
             });
 
             $("#record-loop-input").on("change", function(event) {
@@ -843,8 +844,12 @@
         var hasRecorded = false;
         var recordingBlob;
 
-        var playRecording = async function() {
+        psynet.page.control.playRecording = async function() {
             await psynet.audio.recording.play();
+        }
+
+        psynet.page.control.stopRecordingPlayback = async function() {
+            await psynet.media.stop_all_audio();
         }
 
         psynet.trial.onEvent("recordStart", function() {
@@ -992,11 +997,15 @@
                 await loadCameraPreview();
             });
 
-            var playRecording = async function() {
+            psynet.page.control.playRecording = async function() {
                 await loadRecordedVideo();
                 videoPreviewPlayer.play();
                 videoPreviewPlayer.addEventListener("ended", loadCameraPreview, {once: true});
             };
+
+            psynet.page.control.stopRecordingPlayback = async function() {
+                loadCameraPreview();
+            }
 
             let videoDisplayMode = null;
 
@@ -1027,7 +1036,7 @@
 
             psynet.trial.onEvent("recordStart", async function() {
                 if (replayMode) {
-                    await playRecording();
+                    await psynet.page.control.playRecording();
                 } else {
                     await videoRecorder.startRecording(videoRecorder.stream);
                 }
