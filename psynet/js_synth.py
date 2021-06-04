@@ -256,7 +256,7 @@ class JSSynth(Prompt):
         options = dict(
             max_num_pitches=0,
             max_num_harmonics=10,  # <-- we should be able to decrease it to 0 but it fails with the piano
-            max_num_octave_transpositions=4,
+            max_num_octave_transpositions=0, # Change this value to 4 if you want to use shepard tones
             instruments=[],
         )
 
