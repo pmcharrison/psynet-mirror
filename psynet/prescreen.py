@@ -1,5 +1,6 @@
 import json
 import random
+import os
 
 import numpy as np
 from flask import Markup
@@ -25,6 +26,16 @@ from .trial.non_adaptive import (
     StimulusSet,
     StimulusSpec,
 )
+from .utils import LANGUAGE
+import gettext
+
+
+## Load translation
+
+locale_path=os.path.dirname(__file__)+"/locale"
+filename = os.path.basename(__file__)[:-3]
+lang = gettext.translation(filename, localedir=locale_path, languages=[LANGUAGE])
+lang.install()
 
 
 class VolumeTestControlMusic(AudioMeterControl):
@@ -1242,14 +1253,12 @@ class HeadphoneCheck(Module):
     def instruction_page(self):
         return InfoPage(
             Markup(
-                """
-            <p>We will now perform a quick test to check that you are wearing headphones.</p>
-            <p>
-                In each trial, you will hear three sounds separated by silences.
-                Your task will be to judge
-                <strong>which sound was softest (quietest).</strong>
-            </p>
-            """
+            "<p>"+_("We will now perform a quick test to check that you are wearing headphones.")+
+            "</p>"+
+            "<p>"+
+                _("In each trial, you will hear three sounds separated by silences.")+
+                "%s <strong>%s</strong>"%(_("Your task will be to judge"), _("which sound was softest (quietest)."))+
+            "</p>"
             ),
             time_estimate=10,
         )
@@ -1286,7 +1295,7 @@ class HeadphoneCheck(Module):
                     "headphone_trial",
                     AudioPrompt(
                         self.definition["url"],
-                        "Which sound was softest (quietest) -- 1, 2, or 3?",
+                        _("Which sound was softest (quietest) -- 1, 2, or 3?"),
                     ),
                     PushButtonControl(["1", "2", "3"]),
                     time_estimate=time_estimate,

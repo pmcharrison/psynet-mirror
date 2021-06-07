@@ -3,6 +3,7 @@ import json
 import warnings
 from math import ceil
 from typing import List, Optional, Union
+import os
 
 from flask import Markup, escape
 
@@ -28,8 +29,20 @@ from .timeline import (
 )
 from .utils import get_logger, linspace
 
+from .utils import LANGUAGE
+import gettext
+
+
 logger = get_logger()
 warnings.simplefilter("always", DeprecationWarning)
+
+
+## Load translation
+
+locale_path=os.path.dirname(__file__)+"/locale"
+filename = os.path.basename(__file__)[:-3]
+lang = gettext.translation(filename, localedir=locale_path, languages=[LANGUAGE])
+lang.install()
 
 
 class InfoPage(Page):
@@ -926,17 +939,13 @@ class VolumeCalibration(ModularPage):
     @property
     def _text(self):
         return Markup(
-            """
-            <p>
-                Please listen to the following sound and adjust your
-                computer's output volume until it is at a comfortable level.
-            </p>
-            <p>
-                If you can't hear anything, there may be a problem with your
-                playback configuration or your internet connection.
-                You can refresh the page to try loading the audio again.
-            </p>
-            """
+            "<p>"+
+                _("""Please listen to the following sound and adjust your computer's output volume until it is at a comfortable level.""")+
+            "</p>"+
+            "<p>"+
+                _("If you can't hear anything, there may be a problem with your playback configuration or your internet connection.")+
+                _("You can refresh the page to try loading the audio again.")+
+            "</p>"
         )
 
     @property
