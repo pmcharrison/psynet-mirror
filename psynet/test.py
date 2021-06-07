@@ -19,7 +19,7 @@ def assert_text(driver, element_id, value):
 
     def sanitize(x):
         pattern = re.compile(r"\s+")
-        return re.sub(pattern, " ", x)
+        return re.sub(pattern, " ", x).strip()
 
     if sanitize(element.text) != sanitize(value):
         raise AssertionError(
