@@ -34,7 +34,6 @@ from .timeline import (
 from .utils import (
     call_function,
     get_arg_from_dict,
-    get_language,
     get_logger,
     pretty_log_dict,
     serialise,
@@ -184,8 +183,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def extra_parameters(cls):
-        config = get_config()
-        config.register("language", str)
+        # Disabled the addition of the language parameter, because this is now getting added to Dallinger core
+        # config = get_config()
+        # config.register("language", str)
+        pass
 
     @classmethod
     def amount_spent(cls):
@@ -293,13 +294,14 @@ class Experiment(dallinger.experiment.Experiment):
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
             )
 
-        try:
-            get_language()
-        except KeyError:
-            raise RuntimeError(
-                "Please set a language in config.txt, for example 'language = en'. "
-                + "You can put this in the '[Server]' section."
-            )
+        # Disabled for now, while we wait to see how Dallinger implements the new language config option.
+        # try:
+        #     get_language()
+        # except KeyError:
+        #     raise RuntimeError(
+        #         "Please set a language in config.txt, for example 'language = en'. "
+        #         + "You can put this in the '[Server]' section."
+        #     )
 
     def fail_participant(self, participant):
         logger.info(
