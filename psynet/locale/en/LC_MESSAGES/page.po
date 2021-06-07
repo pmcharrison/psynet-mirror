@@ -1,0 +1,39 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-06-05 11:41+0200\n"
+"PO-Revision-Date: 2021-06-07 09:47+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.3\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: en\n"
+
+#: page.py:48
+msgid "Test translation!"
+msgstr "Δοκιμή μετάφρασης!"
+
+#: page.py:930
+msgid ""
+"Please listen to the following sound and adjust your computer's output "
+"volume until it is at a comfortable level."
+msgstr ""
+
+#: page.py:933
+msgid ""
+"If you can't hear anything, there may be a problem with your playback "
+"configuration or your internet connection."
+msgstr ""
+
+#: page.py:934
+msgid "You can refresh the page to try loading the audio again."
+msgstr ""
