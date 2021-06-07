@@ -87,11 +87,16 @@ class AnimalTrialMaker(StaticTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
         score = 0
+        failed = False
         for trial in participant_trials:
             if trial.answer == "Not at all":
+                failed = True
+            else:
                 score += 1
-        passed = score == 0
-        return {"score": score, "passed": passed}
+        return {"score": score, "passed": not failed}
+
+    def compute_bonus(self, score, passed):
+        return score * 0.1
 
     give_end_feedback_passed = True
 
