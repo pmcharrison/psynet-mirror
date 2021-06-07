@@ -99,11 +99,16 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
         button.click()
 
     def is_page_ready():
-        page_loaded = driver.execute_script("return psynet.page_loaded")
-        response_enabled = driver.execute_script(
-            "return psynet.trial.events.responseEnable.happened"
-        )
-        return page_loaded and response_enabled
+        psynet_loaded = driver.execute_script("return psynet != undefined")
+        if psynet_loaded:
+            page_loaded = driver.execute_script("return psynet.page_loaded")
+            if page_loaded:
+                response_enabled = driver.execute_script(
+                    "return psynet.trial.events.responseEnable.happened"
+                )
+                if response_enabled:
+                    return True
+        return False
 
     wait_until(
         is_page_ready,

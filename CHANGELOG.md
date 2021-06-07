@@ -1,5 +1,9 @@
 # Changelog
 
+#### Fixed
+
+- Improved robustness of browser-based regression tests.
+
 # [2.0.0] Released on 2021-05-31
 
 #### Added
