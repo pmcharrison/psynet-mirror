@@ -1,5 +1,13 @@
 # Changelog
 
+#### Added
+- Added `fade_out` option to `AudioPrompt`.
+
+#### Fixed
+- Improved robustness of browser-based regression tests.
+- Fixed incorrect performance bonus assignment for trialmakers initialized with `check_performance_every_trial = True`. 
+- Improved robustness of browser-based regression tests.
+
 # [2.0.0] Released on 2021-05-31
 
 #### Added
@@ -44,8 +52,8 @@ This is done to avoid a rare bug where recruitment would be shut down erroneousl
 - Allow varying numbers of arguments in function argument of `StartSwitch`.
 
 #### BREAKING CHANGES
-- Ŕequired `language` argument in config.txt.
-- Ŕequired `disable_when_duration_exceeded = False` argument in config.txt
+- Required `language` argument in config.txt.
+- Required `disable_when_duration_exceeded = False` argument in config.txt
 - Various renamings, see section 'Renamed' above.
 
 

@@ -14,7 +14,6 @@ PsyNet Documentation
    :maxdepth: 2
    :caption: Installation
 
-   installation/basic
    installation/macos
    installation/linux
 

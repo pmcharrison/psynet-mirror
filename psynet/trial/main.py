@@ -1254,6 +1254,8 @@ class TrialMaker(Module):
         return join(UnsuccessfulEndPage(failure_tags=["performance_check"]))
 
     def _check_performance_logic(self, type):
+        assert type in ["trial", "end"]
+
         def eval_checks(experiment, participant):
             participant_trials = self.get_participant_trials(participant)
             results = self.performance_check(
@@ -1261,14 +1263,16 @@ class TrialMaker(Module):
                 participant=participant,
                 participant_trials=participant_trials,
             )
-            bonus = self.compute_bonus(**results)
+
             assert isinstance(results["passed"], bool)
             participant.var.set(self.with_namespace("performance_check"), results)
-            participant.var.set(self.with_namespace("performance_bonus"), bonus)
-            participant.inc_performance_bonus(bonus)
-            return results["passed"]
 
-        assert type in ["trial", "end"]
+            if type == "end":
+                bonus = self.compute_bonus(**results)
+                participant.var.set(self.with_namespace("performance_bonus"), bonus)
+                participant.inc_performance_bonus(bonus)
+
+            return results["passed"]
 
         logic = switch(
             "performance_check",
@@ -1864,6 +1868,8 @@ class NetworkTrialMaker(TrialMaker):
         """
         Computes the bonus to allocate to the participant at the end of a phase
         on the basis of the results of the final performance check.
+        Note: if `check_performance_at_end = False`, then this function will not be run
+        and the bonus will not be assigned.
         """
         return 0.0
 

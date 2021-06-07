@@ -157,11 +157,11 @@ example_audio_page_3 = ModularPage(
     AudioPrompt(
         "/static/audio/train1.wav",
         """
-        This page illustrates a 'play window' combined with a loop.
-        By setting the play_window argument to [5, 9], we instruct PsyNet
-        to only play seconds 5-9 of the audio file.
+        This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
         """,
         play_window=[5, 9],
+        fade_in=0.75,
+        fade_out=0.75,
         loop=True,
         controls=True,
     ),
