@@ -407,6 +407,6 @@ def get_language():
 
     A string, for example "en".
     """
-    if not config.ready:
-        config.load()
+    # if not config.ready:
+    config.load()
     return config.get("language")
