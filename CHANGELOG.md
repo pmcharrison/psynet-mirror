@@ -3,6 +3,10 @@
 #### Added
 - Added `fade_out` option to `AudioPrompt`.
 
+#### Fixed
+- The CLI commands are now prefaced with validation tests to make sure that
+  errors are caught earlier and with more informative error messages.
+
 # [2.0.0] Released on 2021-05-31
 
 #### Added

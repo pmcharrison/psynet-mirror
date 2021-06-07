@@ -10,6 +10,7 @@ from dallinger.command_line import data as dallinger_data
 from dallinger.command_line import debug as dallinger_debug
 from dallinger.command_line import deploy as dallinger_deploy
 from dallinger.command_line import log as dallinger_log
+from dallinger.command_line import require_exp_directory as validate_exp_directory
 from dallinger.command_line import sandbox as dallinger_sandbox
 from dallinger.command_line import verify_id as dallinger_verify_id
 from dallinger.models import (
@@ -70,6 +71,7 @@ def psynet():
 # prepare #
 ###########
 @psynet.command()
+@validate_exp_directory
 @click.option("--force", is_flag=True, help="Force override of cache.")
 def prepare(force):
     """
@@ -90,6 +92,7 @@ def prepare(force):
 # debug #
 #########
 @psynet.command()
+@validate_exp_directory
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--bot", is_flag=True, help="Use bot to complete experiment")
 @click.option(
@@ -117,6 +120,7 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
 # deploy #
 ##########
 @psynet.command()
+@validate_exp_directory
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
@@ -135,6 +139,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
 # sandbox #
 ###########
 @psynet.command()
+@validate_exp_directory
 @click.option("--verbose", is_flag=True, help="Verbose mode")
 @click.option("--app", default=None, help="Experiment id")
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
@@ -153,6 +158,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
 # estimate #
 ############
 @psynet.command()
+@validate_exp_directory
 @click.option(
     "--mode",
     default="both",
