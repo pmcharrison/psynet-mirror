@@ -21,7 +21,16 @@ def assert_text(driver, element_id, value):
         pattern = re.compile(r"\s+")
         return re.sub(pattern, " ", x)
 
-    assert sanitize(element.text) == sanitize(value)
+    if sanitize(element.text) != sanitize(value):
+        raise AssertionError(
+            f"""
+            assert_text found some unexpected text.
+
+            Expected: {sanitize(value)}
+
+            Found: {sanitize(element.text)}
+            """
+        )
 
 
 def bot_class(headless=None):
@@ -99,7 +108,9 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
         button.click()
 
     def is_page_ready():
-        psynet_loaded = driver.execute_script("return psynet != undefined")
+        psynet_loaded = driver.execute_script(
+            "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
+        )
         if psynet_loaded:
             page_loaded = driver.execute_script("return psynet.page_loaded")
             if page_loaded:
