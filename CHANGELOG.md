@@ -4,6 +4,7 @@
 - Added `fade_out` option to `AudioPrompt`.
 
 #### Fixed
+- Improved robustness of browser-based regression tests.
 - The CLI commands are now prefaced with validation tests to make sure that
   errors are caught earlier and with more informative error messages.
 

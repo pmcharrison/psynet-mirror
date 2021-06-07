@@ -1,6 +1,5 @@
 [Launch mode]
 mode = sandbox
-language = en
 
 [Payment information]
 title = Consent pages demo
