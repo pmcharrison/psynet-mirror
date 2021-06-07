@@ -24,7 +24,7 @@ def assert_text(driver, element_id, value):
     if sanitize(element.text) != sanitize(value):
         raise AssertionError(
             f"""
-            assert_text found some unexpected text.
+            Found some unexpected HTML text.
 
             Expected: {sanitize(value)}
 
