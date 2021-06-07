@@ -1,6 +1,8 @@
 # Changelog
 
 #### Added
+- Added new support for trial-level answer scoring and performance bonuses, 
+  via the `Trial.score_answer` and `Trial.compute_bonus` methods.
 - Added `fade_out` option to `AudioPrompt`.
 
 #### Fixed

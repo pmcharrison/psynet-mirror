@@ -450,7 +450,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
 
     def _on_finalized(self):
         self.score = self.score_answer(answer=self.answer, definition=self.definition)
-        self.allocate_bonus()
+        self._allocate_bonus()
 
     def _allocate_bonus(self):
         bonus = self.compute_bonus(score=self.score)
