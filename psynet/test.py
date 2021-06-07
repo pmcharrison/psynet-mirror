@@ -21,7 +21,16 @@ def assert_text(driver, element_id, value):
         pattern = re.compile(r"\s+")
         return re.sub(pattern, " ", x)
 
-    assert sanitize(element.text) == sanitize(value)
+    if sanitize(element.text) != sanitize(value):
+        raise AssertionError(
+            f"""
+            assert_text found some unexpected text.
+
+            Expected: {sanitize(value)}
+
+            Found: {sanitize(element.text)}
+            """
+        )
 
 
 def bot_class(headless=None):
