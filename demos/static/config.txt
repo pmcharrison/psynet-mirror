@@ -1,6 +1,6 @@
 [Launch mode]
 mode = sandbox
-language = en
+# language = en
 
 [Payment information]
 title = Static experiment demo
