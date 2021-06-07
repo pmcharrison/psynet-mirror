@@ -540,8 +540,8 @@ class TrialMaker(Module):
       this sequence of trials, intended to initialise the participant's state.
       Make sure you call ``super().init_participant`` when overriding this.
 
-    * :meth:`~psynet.trial.main.TrialMaker.finalise_trial`
-      (optional), which finalises the trial after the participant
+    * :meth:`~psynet.trial.main.TrialMaker.finalize_trial`
+      (optional), which finalizes the trial after the participant
       has given their response.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`
@@ -1071,12 +1071,12 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
 
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def finalize_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         """
         This function is run after the participant completes the trial.
         It can be optionally customised, for example to add some more postprocessing.
-        If you override this, make sure you call ``super().finalise_trial(...)``
+        If you override this, make sure you call ``super().finalize_trial(...)``
         somewhere in your new method.
 
 
@@ -1288,10 +1288,10 @@ class TrialMaker(Module):
         trial = self._get_current_trial(participant)
         participant.answer = self.postprocess_answer(answer, trial, participant)
 
-    def _finalise_trial(self, experiment, participant):
+    def _finalize_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
         answer = participant.answer
-        self.finalise_trial(
+        self.finalize_trial(
             answer=answer, trial=trial, experiment=experiment, participant=participant
         )
 
@@ -1354,7 +1354,7 @@ class TrialMaker(Module):
                         accumulate_answers=self.trial_class.accumulate_answers,
                     ),
                     CodeBlock(self._postprocess_answer),
-                    CodeBlock(self._finalise_trial),
+                    CodeBlock(self._finalize_trial),
                     self._construct_feedback_logic(),
                     self._check_performance_logic(type="trial")
                     if self.check_performance_every_trial
@@ -1707,9 +1707,9 @@ class NetworkTrialMaker(TrialMaker):
         db.session.commit()
         return trial
 
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def finalize_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use,no-member
-        super().finalise_trial(answer, trial, experiment, participant)
+        super().finalize_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
             trial.queue_async_process(call_async_post_trial)
             db.session.commit()

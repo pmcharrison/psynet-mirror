@@ -1138,9 +1138,9 @@ class EndPage(PageMaker):
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
-        self.finalise_participant(experiment, participant)
+        self.finalize_participant(experiment, participant)
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         """
         Executed when the participant completes the experiment.
 
