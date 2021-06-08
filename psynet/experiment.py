@@ -31,7 +31,7 @@ from .timeline import (
     RecruitmentCriterion,
     Timeline,
 )
-from .utils import (
+from .utils import (  # get_language,
     call_function,
     get_arg_from_dict,
     get_logger,
@@ -564,6 +564,14 @@ class Experiment(dallinger.experiment.Experiment):
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
+            ),
+            (
+                resource_filename("psynet", "resources/libraries/js-synthesizer"),
+                "/static/scripts/js-synthesizer",
+            ),
+            (
+                resource_filename("psynet", "resources/libraries/Tonejs"),
+                "/static/scripts/Tonejs",
             ),
             (
                 resource_filename("psynet", "templates/error.html"),

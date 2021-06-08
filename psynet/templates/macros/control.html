@@ -468,6 +468,32 @@
 
         psynet.trial.onEvent("trialConstruct", () => {
             checkMinimalInteractions();
+
+            slider.addEventListener("input", function() {
+                // Triggered whenever the slider slides to a new value
+                if (slider_listener == "input") {
+                    snap_slider();
+                    on_slider_event("slider_changed");
+                    slider.update_log();
+                }
+            });
+
+            slider.addEventListener("change", function() {
+                // Triggered whenever the slider is released on a new value
+                if (slider_listener == "change") {
+                    snap_slider();
+                    on_slider_event("slider_changed");
+                    slider.update_log();
+                }
+                slider.interaction_count += 1;
+                checkMinimalInteractions();
+                psynet.trial.registerEvent("sliderChange", {
+                    info: {
+                        outputValue: slider.value
+                    }
+                });
+            });
+
             slider.addEventListener(slider_listener, function () {
                 snap_slider();
                 slider.interaction_count += 1;

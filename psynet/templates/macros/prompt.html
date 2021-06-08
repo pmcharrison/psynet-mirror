@@ -201,3 +201,66 @@
     {{ simple(config) }}
     {{ graphic_(config) }}
 {% endmacro %}
+
+
+{% macro js_synth(config) %}
+    {{ simple(config) }}
+
+    <script type="text/javascript" src="/static/scripts/Tonejs/Tone.js"></script>
+    <script type="text/javascript" src="/static/scripts/js-synthesizer/instruments.js"></script>
+    <script type="text/javascript" src="/static/scripts/js-synthesizer/synthesis.js"></script>
+
+    <script>
+        let stimulus = {{ config.stimulus | tojson }};
+        let options = {{ config.options | tojson }};
+
+        var DEFAULT_PARAMS = { // Default parameters to use if not otherwise specified by backend.
+            "attack": 0.2, // Attack phase duration in seconds
+            "decay": 0.1, // Decay phase duration in seconds
+            "sustain_amp": 0.8, // Amplitude fraction to decay to relative to max amplitude
+            "release": 1, // Release phase duration in seconds
+            "duration": 1.33, // Overall tone duration in seconds
+            "attackCurve": "linear", // Amplitude curve profile for attack portion
+            "decayCurve": "exponential", // Amplitude curve profile for decay portion
+            "releaseCurve": "exponential", // Amplitude curve profile for release portion
+            "max_num_harmonics": 10, // Maximum number of partial harmonics per tone
+            "num_harmonics": 10, // Actual number of partial harmonics to use
+            "max_num_pitches": 3, // Maximum number of pitches in a chord
+            "type": "harmonic", // Synthesis type
+            "octave_definition": 2, // 2 is the harmonic series
+            "max_num_octave_transpositions": 4, // Maximum number of octave transpositions used to create a Shepard tower (runs from -num_octave_transpositions to num_octave_transpositions).
+            "num_octave_transpositions": 0, // Actual number of octave transpositions to use
+            "roll_off": 3, // Roll-off in units of dB/octave,
+            "shepard_center": 65.5, // Center of the gaussian weights used in octave transpositions
+            "shepard_width": 8.2, // Width of the gaussian weights used in octave transpositions         
+        }
+        DEFAULT_PARAMS.max_num_harmonics = options.max_num_harmonics;
+        DEFAULT_PARAMS.max_num_octave_transpositions = options.max_num_octave_transpositions;
+        DEFAULT_PARAMS.max_num_pitches = options.max_num_pitches;
+
+        let LOADED_INSTRUMENTS = {};
+        let ACTIVE_NODES;
+
+        let sleep = async function(time) {
+            await new Promise((resolve) => {
+                setTimeout(() => resolve(), time * 1000);
+            });
+        }
+
+        psynet.trial.onEvent("trialConstruct", async function() {
+            await Tone.start();
+            for (const i of options.instruments) {
+                LOADED_INSTRUMENTS[i] = await load_sampler(i);
+            }
+            if (options["max_num_pitches"] > 0) {
+                ACTIVE_NODES = generate_additive_nodes(options);
+            } else {
+                ACTIVE_NODES = [];
+            }
+            
+            await sleep(0.5);
+        });
+
+        psynet.trial.onEvent("promptStart", () => play_stimulus(stimulus));
+    </script>
+{% endmacro %}
