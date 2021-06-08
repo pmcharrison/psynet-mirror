@@ -221,7 +221,10 @@
 
                 var psynet = {
                     media: {},
-                    page: {},
+                    page: {
+                        prompt: {},
+                        control: {}
+                    },
                     utils: {}
                 };
 
@@ -607,7 +610,6 @@
                      * with no bad side effects).
                      */
                         if (trial.inProgress && !trial.stopping) {
-                            console.log("stopping trial")
                             trial.stopping = true;
                             trial.clearTimers();
                             trial.inProgress = false;
@@ -618,11 +620,17 @@
                         }
                     };
 
-                    trial.restart = async function() {
+                    trial.restart = async function(providedOptions) {
                         // Can be called manually at an arbitrary point to restart the trial
+                        let options = {
+                            from: "trialPrepare"
+                        };
+                        Object.assign(options, providedOptions);
+
                         await trial.stop();
                         trial.reset();
-                        await trial.registerEvent("trialPrepare");
+                        trial.inProgress = true;
+                        await trial.registerEvent(options.from);
                     }
 
                     return trial;

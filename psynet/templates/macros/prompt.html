@@ -46,7 +46,7 @@
             </button>
             <div id="audio-prompt-loop">
               <input id="audio-prompt-loop-input" type="checkbox" value="" {% if config.loop %} checked {% endif %}>
-              <label id="audio-prompt-loop-label" for="audio-prompt-loop-input">
+              <label id="audio-prompt-loop-label" for="audio-prompt-loop-input" style="cursor: pointer;">
                 Loop
               </label>
             </div>
@@ -59,11 +59,13 @@
                 psynet.media.stop_all_audio();
                 let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
                 sound.source.addEventListener("ended", () => {
-                    psynet.trial.registerEvent("promptEnd");
+                    if (!sound.manually_stopped) {
+                        psynet.trial.registerEvent("promptEnd");
+                    }
                 });
             });
             $("#audio-prompt-stop").on("click", function() {
-                psynet.media.stop_all_audio();
+                psynet.page.prompt.stop;
             });
             $("#audio-prompt-loop-input").on("change", function(event) {
                 audioPromptPlayerOptions.loop = event.target.checked;
@@ -73,13 +75,22 @@
     {% endif %}
 
     <script>
-        psynet.trial.onEvent("promptStart", function() {
-            let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
-            sound.source.addEventListener("ended", function() {
-                psynet.trial.registerEvent("promptEnd");
-            });
-        })
+        psynet.page.prompt.play = function(providedOptions) {
+            let options = psynet.utils.deep_copy(audioPromptPlayerOptions);
+            Object.assign(options, providedOptions);
 
+            let sound = psynet.audio.prompt.play(options);
+            sound.source.addEventListener("ended", function() {
+                if (!sound.manually_stopped) {
+                    psynet.trial.registerEvent("promptEnd");
+                }
+            });
+        };
+
+        psynet.page.prompt.stop = psynet.media.stop_all_audio;
+
+        psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
+        psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
 
@@ -91,25 +102,26 @@
             display: flex;
             justify-content: center;
         }
-        #prompt-video {
+        #prompt {
             padding-top: 25px;
             padding-bottom: 25px;
+            visibility: hidden;
         }
     </style>
 
     <div id="prompt-video-container">
-        <video id="prompt-video" src="{{ config.url }}" style="width: {{ config.width }}" alt="Video not found" controls></video>
+        <video id="prompt" style="width: {{ config.width }}" alt="Video not found" controls></video>
     </div>
 
     <script>
         let options = {{ config.js_play_options | tojson }};
-        let loop = options.loop;
         let startAt = options.start_at;
+        let endAt = options.end_at;
         let muted = options.muted;
         let controls = options.controls;
         let hideWhenFinished = options.hide_when_finished;
 
-        let videoPlayer = document.getElementById('prompt-video');
+        let videoPlayer = document.getElementById('prompt');
         videoPlayer.muted = muted;
         videoPlayer.controls = controls;
 
@@ -122,22 +134,47 @@
 
         hideVideo();
 
-        psynet.trial.onEvent("trialPrepare", () => {
+        let videoStopTimer = null;
+
+        psynet.page.prompt.play = function(providedOptions) {
             videoPlayer.currentTime = startAt;
-        });
-        psynet.trial.onEvent("promptStart", () => {
             showVideo();
             videoPlayer.play();
-        });
-        videoPlayer.addEventListener("ended", () => {
-            psynet.trial.registerEvent("promptEnd");
-        });
-        psynet.trial.onEvent("promptEnd", () => {
+            if (endAt !== null) {
+                console.assert(startAt !== null);
+                let duration = endAt - startAt
+                videoStopTimer = setTimeout(
+                    () => psynet.page.prompt.stop({manual: false}),
+                    duration * 1000
+                );
+            }
+        };
+
+        videoPlayer.addEventListener("ended", () => psynet.page.prompt.stop({manual: false}));
+
+        psynet.page.prompt.stop = function(providedOptions) {
+            let options = {
+                manual: true
+            };
+            Object.assign(options, providedOptions);
+
+            clearTimeout(videoStopTimer);
             videoPlayer.pause();
+            videoPlayer.manuallyStopped = options.manual;
+
             if (hideWhenFinished) {
                 hideVideo();
             }
+            if (!options.manual) {
+                psynet.trial.registerEvent("promptEnd");
+            }
+        };
+
+        psynet.trial.onEvent("trialPrepare", () => {
+            videoPlayer.currentTime = startAt;
         });
+        psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
+        psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
     </script>
 {% endmacro %}
 
