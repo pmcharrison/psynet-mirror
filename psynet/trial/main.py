@@ -470,7 +470,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     def score_answer(self, answer, definition):
         """
         Scores the participant's answer. At the point that this method is called,
-        any pending asynchronous processes should already have been complicated.
+        any pending asynchronous processes should already have been completed.
 
         Parameters
         ----------
