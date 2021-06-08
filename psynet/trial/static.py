@@ -1057,12 +1057,12 @@ class StaticTrialMaker(NetworkTrialMaker):
             + num_repeat_trials
         )
 
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def finalize_trial(self, answer, trial, experiment, participant):
         """
-        This calls the base class's ``finalise_trial`` method,
+        This calls the base class's ``finalize_trial`` method,
         then increments the number of completed stimuli in the phase and the block.
         """
-        super().finalise_trial(answer, trial, experiment, participant)
+        super().finalize_trial(answer, trial, experiment, participant)
         self.increment_completed_stimuli_in_phase_and_block(
             participant, trial.block, trial.stimulus_id
         )

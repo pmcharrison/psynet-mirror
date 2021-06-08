@@ -1426,6 +1426,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             return None
         return head
 
-    def finalise_trial(self, answer, trial, experiment, participant):
-        super().finalise_trial(answer, trial, experiment, participant)
+    def finalize_trial(self, answer, trial, experiment, participant):
+        super().finalize_trial(answer, trial, experiment, participant)
         self.add_to_participated_networks(participant, trial.network_id)

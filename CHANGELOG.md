@@ -1,9 +1,13 @@
 # Changelog
 
 #### Added
+- Added new support for trial-level answer scoring and performance bonuses, 
+  via the `Trial.score_answer` and `Trial.compute_bonus` methods.
 - Added `fade_out` option to `AudioPrompt`.
 
 #### Fixed
+- Improved robustness of browser-based regression tests.
+- Fixed incorrect performance bonus assignment for trial makers initialized with `check_performance_every_trial = True`. 
 - Improved robustness of browser-based regression tests.
 
 # [2.0.0] Released on 2021-05-31

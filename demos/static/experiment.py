@@ -82,16 +82,32 @@ class AnimalTrial(StaticTrial):
     # def show_feedback(self, experiment, participant):
     #     return InfoPage(f"You responded '{self.answer}'.")
 
+    def score_answer(self, answer, definition):
+        if answer == "Not at all":
+            return 0.0
+        return 1.0
+
+    def compute_bonus(self, score):
+        # Here we give the participant 1 cent per point immediately after each trial.
+        return 0.01 * score
+
 
 class AnimalTrialMaker(StaticTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
         """Should return a tuple (score: float, passed: bool)"""
         score = 0
+        failed = False
         for trial in participant_trials:
             if trial.answer == "Not at all":
+                failed = True
+            else:
                 score += 1
-        passed = score == 0
-        return {"score": score, "passed": passed}
+        return {"score": score, "passed": not failed}
+
+    def compute_bonus(self, score, passed):
+        # At the end of the trial maker, we give the participant 1 dollar for each point.
+        # This is combined with their trial-level performance bonus to give their overall performance bonus.
+        return 1.0 * score
 
     give_end_feedback_passed = True
 

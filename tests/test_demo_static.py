@@ -57,7 +57,7 @@ class TestExp:
             assert_text(
                 driver,
                 "main-body",
-                "You finished the animal questions! Your score was 0. Next",
+                "You finished the animal questions! Your score was 9. Next",
             )
 
             trials = StaticTrial.query.all()
@@ -103,6 +103,18 @@ class TestExp:
                 assert t.trial_maker_id == "animals"
 
             next_page(driver, "next_button")
+
+            assert_text(
+                driver,
+                "main-body",
+                """
+                That\'s the end of the experiment! In addition to your base payment of $0.10,
+                you will receive a bonus of $0.12 for the time you spent on the experiment.
+                You have also been awarded a performance bonus of $9.09! Thank you for taking part.
+                Please click "Finish" to complete the HIT. Finish
+                """,
+            )
+
             next_page(driver, "next_button", finished=True)
 
     def test_custom_filters(self, bot_recruits, db_session, trial_maker):
