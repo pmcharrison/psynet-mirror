@@ -182,13 +182,6 @@ class Experiment(dallinger.experiment.Experiment):
         return cls(session)
 
     @classmethod
-    def extra_parameters(cls):
-        # Disabled the addition of the language parameter, because this is now getting added to Dallinger core
-        # config = get_config()
-        # config.register("language", str)
-        pass
-
-    @classmethod
     def amount_spent(cls):
         return sum(
             [
@@ -293,15 +286,6 @@ class Experiment(dallinger.experiment.Experiment):
             raise RuntimeError(
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
             )
-
-        # Disabled for now, while we wait to see how Dallinger implements the new language config option.
-        # try:
-        #     get_language()
-        # except KeyError:
-        #     raise RuntimeError(
-        #         "Please set a language in config.txt, for example 'language = en'. "
-        #         + "You can put this in the '[Server]' section."
-        #     )
 
     def fail_participant(self, participant):
         logger.info(
