@@ -198,7 +198,7 @@ class AudioPrompt(Prompt):
             ]
         )
 
-        events["promptEnd"] = Event(is_triggered_by=[])
+        events["promptEnd"] = Event(is_triggered_by=[], once=False)
         events["trialFinish"].add_trigger("promptEnd")
 
 
@@ -269,6 +269,7 @@ class VideoPrompt(Prompt):
 
         self.js_play_options = dict(
             start_at=play_window[0],
+            end_at=play_window[1],
             muted=muted,
             controls=controls,
             hide_when_finished=hide_when_finished,
@@ -310,11 +311,7 @@ class VideoPrompt(Prompt):
             once=True,
         )
 
-        events["promptEnd"] = Event(is_triggered_by=None, once=True)
-
-        if self.play_window[1] is not None:
-            duration = self.play_window[1] - self.play_window[0]
-            events["promptEnd"].add_trigger("promptStart", delay=duration)
+        events["promptEnd"] = Event(is_triggered_by=None, once=False)
 
         events["trialFinish"].add_trigger("promptEnd")
 
@@ -1901,7 +1898,7 @@ class RecordControl(Control):
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("responseEnable"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["submitEnable"] = Event(Trigger("uploadEnd"))
+        events["submitEnable"].add_triggers("uploadEnd")
         events["uploadEnd"] = Event(is_triggered_by=[])
 
 

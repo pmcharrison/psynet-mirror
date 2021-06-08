@@ -283,7 +283,7 @@ example_listen_then_record_page = join(
         AudioPrompt(
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
-            Here we play audio then activate the recorder 1 second afterwards.
+            Here we play audio then activate the recorder 3 seconds afterwards.
             """,
             play_window=[0, 5.0],
         ),
@@ -296,7 +296,7 @@ example_listen_then_record_page = join(
             auto_advance=True,
         ),
         time_estimate=5,
-        events={"recordStart": Event(is_triggered_by="promptStart", delay=3.0)},
+        events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
             duration=5.0,
             stages=[
@@ -310,6 +310,7 @@ example_listen_then_record_page = join(
     ),
 )
 
+
 example_record_audio_video = join(
     ModularPage(
         "record_page",
@@ -321,6 +322,10 @@ example_record_audio_video = join(
             It'll work best if you wear headphones.
             The red portion of the progress bar identifies the period when the video
             will be recording.
+            Note how we overrode the 'trialPrepare' event, meaning that the
+            trial does not start itself automatically;
+            instead the trial only starts once the user explicitly presses the
+            'Start recording' button.
             """,
             play_window=[0, 4.6],
             fade_in=0.2,
@@ -345,6 +350,7 @@ example_record_audio_video = join(
             ],
         ),
         events={
+            "trialPrepare": Event(is_triggered_by=None),
             "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
             "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
         },

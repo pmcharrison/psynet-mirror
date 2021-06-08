@@ -65,6 +65,9 @@ class Event(dict):
         by a specified number of seconds.
         Multiple triggers can be defined by instead passing a list of these strings
         or :class:`~psynet.timeline.Trigger` objects.
+        Alternatively, one can pass ``None``, in which case the event won't be triggered automatically,
+        but instead will only be triggered if/when ``psynet.trial.registerEvent`` is called
+        in the Javascript front-end.
 
     trigger_condition:
         If this is set to ``"all"`` (default), then all triggers must be satisfied before the
@@ -76,8 +79,8 @@ class Event(dict):
         and the event being triggered (default = 0.0).
 
     once:
-        If ``True`` (default), then the event will only be cued once, at the point when the
-        trigger condition is first satisfied. If ``False``, then the event will be recued
+        If ``True``, then the event will only be cued once, at the point when the
+        trigger condition is first satisfied. If ``False`` (default), then the event will be recued
         each time one of the triggers is hit again.
 
     message:
@@ -96,7 +99,7 @@ class Event(dict):
         is_triggered_by,
         trigger_condition: str = "all",
         delay: float = 0.0,
-        once: bool = True,
+        once: bool = False,
         message: Optional[str] = None,
         message_color: str = "black",
         js: Optional[str] = None,
@@ -653,11 +656,11 @@ class Page(Elt):
 
     def prepare_default_events(self):
         return {
-            "trialConstruct": Event(is_triggered_by=None),
-            "trialPrepare": Event(is_triggered_by="trialConstruct"),
-            "trialStart": Event(is_triggered_by="trialPrepare"),
-            "responseEnable": Event(is_triggered_by="trialStart", delay=0.0),
-            "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
+            "trialConstruct": Event(is_triggered_by=None, once=True),
+            "trialPrepare": Event(is_triggered_by="trialConstruct", once=True),
+            "trialStart": Event(is_triggered_by="trialPrepare", once=True),
+            "responseEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
+            "submitEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
             "trialFinish": Event(
                 is_triggered_by=None
             ),  # only called when trial comes to a natural end
