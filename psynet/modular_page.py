@@ -1170,11 +1170,11 @@ class ModularPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: Prompt,
+        prompt: Union[str, Prompt],
         control: Control = NullControl(),
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
-        events: Optional[List] = None,
+        events: Optional[dict] = None,
         js_vars: Optional[dict] = None,
         **kwargs,
     ):
