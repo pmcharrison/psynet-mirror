@@ -1,0 +1,39 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-06-05 11:28+0200\n"
+"PO-Revision-Date: 2021-06-09 17:01+0900\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Poedit 2.4.3\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"Last-Translator: \n"
+"Language: ko\n"
+
+#: prescreen.py:1245
+msgid "We will now perform a quick test to check that you are wearing headphones."
+msgstr "짧은 테스트로 당신이 헤드폰을 사용하고 있는지 확인 해보겠습니다."
+
+#: prescreen.py:1248
+msgid "In each trial, you will hear three sounds separated by silences."
+msgstr "각 페이지에서 당신은 한가지 소리를 3번 들을 것입니다."
+
+#: prescreen.py:1249
+msgid "Your task will be to judge"
+msgstr "당신은 그 중"
+
+#: prescreen.py:1249
+msgid "which sound was softest (quietest)."
+msgstr "가장 작은 소리를 고르면 됩니다."
+
+#: prescreen.py:1287
+msgid "Which sound was softest (quietest) -- 1, 2, or 3?"
+msgstr "1,2,3번중 어떤 소리가 가장 작았나요?"
