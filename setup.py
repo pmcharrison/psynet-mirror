@@ -41,6 +41,7 @@ setuptools.setup(
         "statsmodels",
         "yaspin",
         "praat-parselmouth",
+	"python-gettext"
     ],
     extras_require={
         "dev": [
