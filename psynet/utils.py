@@ -17,7 +17,7 @@ from dallinger.config import get_config
 from sqlalchemy.sql import func
 
 ## HARD CODED LANGUAGE PARAMETER
-LANGUAGE = "en"
+LANGUAGE = "ko"
 print("***")
 print("LANGUAGE =",LANGUAGE)
 print("***")
