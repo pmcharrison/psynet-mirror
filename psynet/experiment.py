@@ -87,6 +87,11 @@ class Experiment(dallinger.experiment.Experiment):
         The recruiting process stops if the amount of accumulated payments
         (incl. bonuses) in US dollars exceedes this value. Default: `1000.0`.
 
+    hard_max_experiment_payment : `float`
+        Guarantees that in an experiment no more is spent than the value assigned.
+        Bonuses are not paid from the point this value is reached and a record of the amount
+        of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
+
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
         at the bottom of the page.
@@ -102,6 +107,11 @@ class Experiment(dallinger.experiment.Experiment):
 
     psynet_version : `str`
         The version of the `psynet` package.
+
+    hard_max_experiment_payment_email_sent : `bool`
+        Whether an email to the experimenter has already been sent indicating the `hard_max_experiment_payment`
+        had been reached. Default: `False`. Once this is `True`, no more emails will be sent about
+        this payment limit being reached.
 
     soft_max_experiment_payment_email_sent : `bool`
         Whether an email to the experimenter has already been sent indicating the `soft_max_experiment_payment`
@@ -228,6 +238,8 @@ class Experiment(dallinger.experiment.Experiment):
             "psynet_version": __version__,
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
+            "hard_max_experiment_payment": 1100.0,
+            "hard_max_experiment_payment_email_sent": False,
             "soft_max_experiment_payment": 1000.0,
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
@@ -348,17 +360,19 @@ class Experiment(dallinger.experiment.Experiment):
                 need_more = True
         return need_more
 
-    def ensure_soft_max_experiment_payment_email_sent(self):
-        if not self.var.soft_max_experiment_payment_email_sent:
-            self.send_email_max_payment_reached()
-            self.var.soft_max_experiment_payment_email_sent = True
+    def ensure_hard_max_experiment_payment_email_sent(self):
+        if not self.var.hard_max_experiment_payment_email_sent:
+            self.send_email_hard_max_payment_reached()
+            self.var.hard_max_experiment_payment_email_sent = True
 
-    def send_email_max_payment_reached(self):
+    def send_email_hard_max_payment_reached(self):
         config = get_config()
         template = """Dear experimenter,
 
             This is an automated email from PsyNet. You are receiving this email because
-            the total amount spent in the experiment has reached the maximum of {soft_max_experiment_payment}$. Recruitment ended.
+            the total amount spent in the experiment has reached the HARD maximum of ${hard_max_experiment_payment}.
+            Working participants' bonuses will not be paid out. Instead, the amount of unpaid
+            bonus is saved in the participant's `unpaid_bonus` variable.
 
             The application id is: {app_id}
 
@@ -369,7 +383,50 @@ class Experiment(dallinger.experiment.Experiment):
             The PsyNet developers.
             """
         message = {
-            "subject": "Maximum experiment payment reached.",
+            "subject": "HARD maximum experiment payment reached.",
+            "body": template.format(
+                hard_max_experiment_payment=self.var.hard_max_experiment_payment,
+                app_id=config.get("id"),
+            ),
+        }
+        logger.info(
+            f"HARD maximum experiment payment "
+            f"of ${self.var.hard_max_experiment_payment} reached!"
+        )
+        try:
+            admin_notifier(config).send(**message)
+        except SMTPAuthenticationError as e:
+            logger.error(
+                f"SMTPAuthenticationError sending 'hard_max_experiment_payment' reached email: {e}"
+            )
+        except Exception as e:
+            logger.error(
+                f"Unknown error sending 'hard_max_experiment_payment' reached email: {e}"
+            )
+
+    def ensure_soft_max_experiment_payment_email_sent(self):
+        if not self.var.soft_max_experiment_payment_email_sent:
+            self.send_email_soft_max_payment_reached()
+            self.var.soft_max_experiment_payment_email_sent = True
+
+    def send_email_soft_max_payment_reached(self):
+        config = get_config()
+        template = """Dear experimenter,
+
+            This is an automated email from PsyNet. You are receiving this email because
+            the total amount spent in the experiment has reached the soft maximum of ${soft_max_experiment_payment}.
+            Recruitment ended.
+
+            The application id is: {app_id}
+
+            To see the logs, use the command "dallinger logs --app {app_id}"
+            To pause the app, use the command "dallinger hibernate --app {app_id}"
+            To destroy the app, use the command "dallinger destroy --app {app_id}"
+
+            The PsyNet developers.
+            """
+        message = {
+            "subject": "Soft maximum experiment payment reached.",
             "body": template.format(
                 soft_max_experiment_payment=self.var.soft_max_experiment_payment,
                 app_id=config.get("id"),
@@ -377,7 +434,7 @@ class Experiment(dallinger.experiment.Experiment):
         }
         logger.info(
             f"Recruitment ended. Maximum experiment payment "
-            f"of {self.var.soft_max_experiment_payment}$ reached!"
+            f"of ${self.var.soft_max_experiment_payment} reached!"
         )
         try:
             admin_notifier(config).send(**message)
@@ -449,9 +506,20 @@ class Experiment(dallinger.experiment.Experiment):
         :returns:
             The possibly reduced bonus as a ``float``.
         """
+
+        # check hard_max_experiment_payment
+        if (
+            self.var.hard_max_experiment_payment_email_sent
+            or self.amount_spent() + self.outstanding_base_payments() + bonus
+            > self.var.hard_max_experiment_payment
+        ):
+            participant.var.set("unpaid_bonus", bonus)
+            self.ensure_hard_max_experiment_payment_email_sent()
+
         # check soft_max_experiment_payment
         if self.amount_spent() + bonus >= self.var.soft_max_experiment_payment:
             self.ensure_soft_max_experiment_payment_email_sent()
+
         # check max_participant_payment
         if participant.amount_paid() + bonus > self.var.max_participant_payment:
             reduced_bonus = round(
@@ -460,6 +528,9 @@ class Experiment(dallinger.experiment.Experiment):
             participant.send_email_max_payment_reached(self, bonus, reduced_bonus)
             return reduced_bonus
         return bonus
+
+    def outstanding_base_payments(self):
+        return self.num_working_participants * self.base_payment
 
     def init_participant(self, participant_id, client_ip_address):
         logger.info(
@@ -639,6 +710,7 @@ class Experiment(dallinger.experiment.Experiment):
             "spending": {
                 "amount_spent": exp.amount_spent(),
                 "soft_max_experiment_payment": exp.var.soft_max_experiment_payment,
+                "hard_max_experiment_payment": exp.var.hard_max_experiment_payment,
             }
         }
         module_ids = request.args.getlist("module_ids[]")
