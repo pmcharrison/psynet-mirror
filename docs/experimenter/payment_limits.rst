@@ -18,8 +18,8 @@ All limits are implemented as `class attributes` and can be overriden in the def
 
     class Exp(psynet.experiment.Experiment):
         variables = {
-            "max_participant_payment": 1hard_max_experiment_payment0.0,
-            "": 550.0,
+            "max_participant_payment": 10.0,
+            "hard_max_experiment_payment": 550.0,
             "soft_max_experiment_payment": 500.0,
         }
 
