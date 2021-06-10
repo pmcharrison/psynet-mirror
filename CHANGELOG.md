@@ -8,7 +8,6 @@
 #### Fixed
 - Improved robustness of browser-based regression tests.
 - Fixed incorrect performance bonus assignment for trial makers initialized with `check_performance_every_trial = True`. 
-- Improved robustness of browser-based regression tests.
 - Various bugfixes in audio-visual playback/recording interfaces.
 
 # [2.0.0] Released on 2021-05-31
