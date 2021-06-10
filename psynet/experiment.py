@@ -31,10 +31,9 @@ from .timeline import (
     RecruitmentCriterion,
     Timeline,
 )
-from .utils import (
+from .utils import (  # get_language,
     call_function,
     get_arg_from_dict,
-    get_language,
     get_logger,
     pretty_log_dict,
     serialise,
@@ -183,11 +182,6 @@ class Experiment(dallinger.experiment.Experiment):
         return cls(session)
 
     @classmethod
-    def extra_parameters(cls):
-        config = get_config()
-        config.register("language", str)
-
-    @classmethod
     def amount_spent(cls):
         return sum(
             [
@@ -291,14 +285,6 @@ class Experiment(dallinger.experiment.Experiment):
         if n_char_title > 128:
             raise RuntimeError(
                 f"The maximum title length is 128 characters (current = {n_char_title}), please fix this in config.txt."
-            )
-
-        try:
-            get_language()
-        except KeyError:
-            raise RuntimeError(
-                "Please set a language in config.txt, for example 'language = en'. "
-                + "You can put this in the '[Server]' section."
             )
 
     def fail_participant(self, participant):
@@ -578,6 +564,14 @@ class Experiment(dallinger.experiment.Experiment):
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
+            ),
+            (
+                resource_filename("psynet", "resources/libraries/js-synthesizer"),
+                "/static/scripts/js-synthesizer",
+            ),
+            (
+                resource_filename("psynet", "resources/libraries/Tonejs"),
+                "/static/scripts/Tonejs",
             ),
             (
                 resource_filename("psynet", "templates/error.html"),

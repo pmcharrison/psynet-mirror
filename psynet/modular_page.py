@@ -123,6 +123,9 @@ class AudioPrompt(Prompt):
     fade_in
         Fade-in duration for the audio (defaults to ``0.0``).
 
+    fade_out
+        Fade-out duration for the audio (defaults to ``0.0``).
+
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
     """
@@ -136,6 +139,7 @@ class AudioPrompt(Prompt):
         play_window: Optional[List] = None,
         controls: bool = False,
         fade_in: float = 0.0,
+        fade_out: float = 0.0,
         **kwargs,
     ):
         if play_window is None:
@@ -156,6 +160,7 @@ class AudioPrompt(Prompt):
             start=play_window[0],
             end=play_window[1],
             fade_in=fade_in,
+            fade_out=fade_out,
         )
 
     macro = "audio"
@@ -193,7 +198,7 @@ class AudioPrompt(Prompt):
             ]
         )
 
-        events["promptEnd"] = Event(is_triggered_by=[])
+        events["promptEnd"] = Event(is_triggered_by=[], once=False)
         events["trialFinish"].add_trigger("promptEnd")
 
 
@@ -264,6 +269,7 @@ class VideoPrompt(Prompt):
 
         self.js_play_options = dict(
             start_at=play_window[0],
+            end_at=play_window[1],
             muted=muted,
             controls=controls,
             hide_when_finished=hide_when_finished,
@@ -305,11 +311,7 @@ class VideoPrompt(Prompt):
             once=True,
         )
 
-        events["promptEnd"] = Event(is_triggered_by=None, once=True)
-
-        if self.play_window[1] is not None:
-            duration = self.play_window[1] - self.play_window[0]
-            events["promptEnd"].add_trigger("promptStart", delay=duration)
+        events["promptEnd"] = Event(is_triggered_by=None, once=False)
 
         events["trialFinish"].add_trigger("promptEnd")
 
@@ -1165,11 +1167,11 @@ class ModularPage(Page):
     def __init__(
         self,
         label: str,
-        prompt: Prompt,
+        prompt: Union[str, Prompt],
         control: Control = NullControl(),
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
-        events: Optional[List] = None,
+        events: Optional[dict] = None,
         js_vars: Optional[dict] = None,
         **kwargs,
     ):
@@ -1896,7 +1898,7 @@ class RecordControl(Control):
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("responseEnable"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["submitEnable"] = Event(Trigger("uploadEnd"))
+        events["submitEnable"].add_triggers("uploadEnd")
         events["uploadEnd"] = Event(is_triggered_by=[])
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+# [2.1.0] Released on 2021-06-10
+
+#### Added
+- Added new support for trial-level answer scoring and performance bonuses, 
+  via the `Trial.score_answer` and `Trial.compute_bonus` methods.
+- Added `fade_out` option to `AudioPrompt`.
+
+#### Fixed
+- Improved robustness of browser-based regression tests.
+- Fixed incorrect performance bonus assignment for trial makers initialized with `check_performance_every_trial = True`. 
+- Various bugfixes in audio-visual playback/recording interfaces.
+- Reverted the new language config.txt parameter, which was causing problems in various situations.
+  This functionality will be reinstated in the upcoming Dallinger release.
+
 # [2.0.0] Released on 2021-05-31
 
 #### Added
@@ -44,8 +58,8 @@ This is done to avoid a rare bug where recruitment would be shut down erroneousl
 - Allow varying numbers of arguments in function argument of `StartSwitch`.
 
 #### BREAKING CHANGES
-- Ŕequired `language` argument in config.txt.
-- Ŕequired `disable_when_duration_exceeded = False` argument in config.txt
+- Required `language` argument in config.txt.
+- Required `disable_when_duration_exceeded = False` argument in config.txt
 - Various renamings, see section 'Renamed' above.
 
 

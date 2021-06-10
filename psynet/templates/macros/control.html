@@ -444,7 +444,7 @@
             }
         };
 
-        psynet.trial.onEvent("prepare", () => {
+        psynet.trial.onEvent("trialPrepare", () => {
             snap_slider();
             on_slider_event('initialise');
             slider.update_log();
@@ -468,6 +468,32 @@
 
         psynet.trial.onEvent("trialConstruct", () => {
             checkMinimalInteractions();
+
+            slider.addEventListener("input", function() {
+                // Triggered whenever the slider slides to a new value
+                if (slider_listener == "input") {
+                    snap_slider();
+                    on_slider_event("slider_changed");
+                    slider.update_log();
+                }
+            });
+
+            slider.addEventListener("change", function() {
+                // Triggered whenever the slider is released on a new value
+                if (slider_listener == "change") {
+                    snap_slider();
+                    on_slider_event("slider_changed");
+                    slider.update_log();
+                }
+                slider.interaction_count += 1;
+                checkMinimalInteractions();
+                psynet.trial.registerEvent("sliderChange", {
+                    info: {
+                        outputValue: slider.value
+                    }
+                });
+            });
+
             slider.addEventListener(slider_listener, function () {
                 snap_slider();
                 slider.interaction_count += 1;
@@ -701,8 +727,10 @@
                 <span>Upload</span>
             </button>
             <div id="record-loop">
-                <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
-                <label>Loop</label>
+                <label style="cursor: pointer;">
+                    <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
+                    Loop
+                </label>
             </div>
         </div>
     {% endif %}
@@ -725,25 +753,24 @@
                 psynet.trial.restart();
             });
 
-            $("#btn-record-play-prompt").on("click", function() {
-                psynet.trial.stop();
-                let options = psynet.utils.shallow_copy(audioPromptPlayerOptions);
-                options.loop = loop;
-                psynet.media.stop_all_audio();
-                psynet.audio.prompt.play(options);
+            $("#btn-record-play-prompt").on("click", async function() {
+                await psynet.media.stop_all_audio();
+                await psynet.trial.restart({from: "promptStart"});
             });
 
-            $("#btn-record-play-recording").on("click", function() {
-                playRecording();
+            $("#btn-record-play-recording").on("click", async function() {
+                await psynet.media.stop_all_audio();
+                await psynet.trial.stop();
+                await psynet.page.control.playRecording();
             });
 
-            $("#btn-record-stop").on("click", function() {
-                psynet.media.stop_all_audio();
-                psynet.trial.stop();
+            $("#btn-record-stop").on("click", async function() {
+                await psynet.trial.stop();
+                await psynet.page.control.stopRecordingPlayback();
             });
 
             $("#record-loop-input").on("change", function(event) {
-                loop = event.target.checked;
+                loopRecorder = event.target.checked;
             });
 
             $("#btn-record-upload").on("click", function() {
@@ -766,7 +793,7 @@
 
         let recorderControls = {{ config.controls | lower }};
         let replayMode = false;
-        let loop = {{ config.loop_playback | tojson }};
+        let loopRecorder = {{ config.loop_playback | tojson }};
 
         psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
@@ -788,7 +815,7 @@
         });
 
         psynet.trial.onEvent("trialFinished", function() {
-            if (loop) {
+            if (loopRecorder) {
                 psynet.trial.restart();
             }
         });
@@ -797,18 +824,18 @@
             psynet.media.stop_all_audio();
         });
 
-        let supportedPrompts = ["audio"];
+        let supportedPrompts = ["audio", "video"];
         if (!supportedPrompts.includes(modular_page_components.prompt)) {
             $("#btn-record-play-prompt").hide();
             $("#btn-record-play-all").hide();
         }
 
-        psynet.trial.onEvent("trialStart", () => {
-            if (psynet.audio.prompt) {
+        psynet.trial.onEvent("trialConstruct", () => {
+            if (psynet.audio.prompt || psynet.video.prompt) {
                 $("#btn-record-play-prompt").prop("disabled", false);
             }
             $("#btn-record-record").prop("disabled", false);
-        });
+        }, {priority: - 1000});
 
         function uploadToS3(blob, presignedUrl) {
             return new Promise(resolve => {
@@ -845,8 +872,12 @@
         var hasRecorded = false;
         var recordingBlob;
 
-        var playRecording = async function() {
+        psynet.page.control.playRecording = async function() {
             await psynet.audio.recording.play();
+        }
+
+        psynet.page.control.stopRecordingPlayback = async function() {
+            await psynet.media.stop_all_audio();
         }
 
         psynet.trial.onEvent("recordStart", function() {
@@ -945,7 +976,7 @@
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        let videoPlayer = document.getElementById('video-control');
+        let videoPreviewPlayer = document.getElementById('video-control');
         let screenVideo = document.getElementById('screen-recording');
 
         let recordingSource = "{{ config.recording_source | lower }}";
@@ -994,11 +1025,15 @@
                 await loadCameraPreview();
             });
 
-            var playRecording = async function() {
+            psynet.page.control.playRecording = async function() {
                 await loadRecordedVideo();
-                videoPlayer.play();
-                videoPlayer.addEventListener("ended", loadCameraPreview, {once: true});
+                videoPreviewPlayer.play();
+                videoPreviewPlayer.addEventListener("ended", loadCameraPreview, {once: true});
             };
+
+            psynet.page.control.stopRecordingPlayback = async function() {
+                loadCameraPreview();
+            }
 
             let videoDisplayMode = null;
 
@@ -1006,12 +1041,12 @@
                 if (videoDisplayMode == "playback") {
                     return;
                 }
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
+                videoPreviewPlayer.src = null;
+                videoPreviewPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
-                videoPlayer.src = URL.createObjectURL(blob);
-                videoPlayer.muted = false;
-                await videoPlayer.pause();
+                videoPreviewPlayer.src = URL.createObjectURL(blob);
+                videoPreviewPlayer.muted = false;
+                await videoPreviewPlayer.pause();
                 videoDisplayMode = "playback";
             }
 
@@ -1019,17 +1054,17 @@
                 if (videoDisplayMode == "preview") {
                     return;
                 }
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
-                setSrcObject(cameraStream, videoPlayer);
-                videoPlayer.muted = true;
-                await videoPlayer.play();
+                videoPreviewPlayer.src = null;
+                videoPreviewPlayer.srcObject = null;
+                setSrcObject(cameraStream, videoPreviewPlayer);
+                videoPreviewPlayer.muted = true;
+                await videoPreviewPlayer.play();
                 videoDisplayMode = "preview";
             }
 
             psynet.trial.onEvent("recordStart", async function() {
                 if (replayMode) {
-                    await playRecording();
+                    await psynet.page.control.playRecording();
                 } else {
                     await videoRecorder.startRecording(videoRecorder.stream);
                 }
@@ -1044,11 +1079,13 @@
             });
 
             psynet.trial.onEvent("trialStop", async function() {
-                let state = await videoRecorder.getState();
-                if (state != "inactive") {
-                    await videoRecorder.stopRecording();
+                if (videoRecorder !== null) {
+                    let state = await videoRecorder.getState();
+                    if (state != "inactive") {
+                        await videoRecorder.stopRecording();
+                    }
+                    await videoRecorder.reset();
                 }
-                await videoRecorder.reset();
                 await loadCameraPreview();
             });
         }

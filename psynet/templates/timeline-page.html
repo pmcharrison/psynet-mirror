@@ -221,7 +221,10 @@
 
                 var psynet = {
                     media: {},
-                    page: {},
+                    page: {
+                        prompt: {},
+                        control: {}
+                    },
                     utils: {}
                 };
 
@@ -380,17 +383,17 @@
                                 fired: false,
                                 triggeredEvent: event
                             };
-                            trigger.fire = function() {
+                            trigger.fire = function(info) {
                                 trigger.fired = true;
-                                trigger.triggeredEvent.checkTriggers();
+                                trigger.triggeredEvent.checkTriggers(info);
                             };
                             return trigger
                         });
 
-                        event.checkTriggers = function() {
+                        event.checkTriggers = function(info) {
                             let allTriggersFired = event.isTriggeredBy.every((trigger) => trigger.fired);
-                            if ((event.triggerCondition == "any" || allTriggersFired) && (!event.once || !event.happened)) {
-                                trial.setTimer(() => trial.registerEvent(id), event.delay * 1000);
+                            if ((event.triggerCondition == "any" || allTriggersFired) && (!(event.once && event.happened))) {
+                                trial.setTimer(() => trial.registerEvent(id, {info: info}), event.delay * 1000);
                             }
                         };
 
@@ -423,13 +426,14 @@
                             }
                         };
 
-                        event.runJS = function() {
+                        event.runJS = function(info) {
                             if (event.js !== null) {
-                                Function(unescape(event.js))();
+                                debugger
+                                Function("info", unescape(event.js))(info);
                             }
                         };
 
-                        event.runHandlers = async function() {
+                        event.runHandlers = async function(info) {
                             let handlers = event.handlers;
 
                             // Sort in order of decreasing priority
@@ -437,14 +441,14 @@
 
                             for (const handler of handlers) {
                                 trial.pendingEventHandlers.add(id);
-                                await handler.func();
+                                await handler.func(info);
                                 trial.pendingEventHandlers.remove(id);
                             }
                         };
 
-                        event.hitTriggers = function() {
+                        event.hitTriggers = function(info) {
                             for (const target of event.toBeTriggered) {
-                                trial.setTimer(() => target.fire(), target.delay * 1000);
+                                trial.setTimer(() => target.fire(info), target.delay * 1000);
                             }
                         };
 
@@ -562,9 +566,9 @@
                         if (event !== undefined) {
                             event.happened = true;
                             event.showMessage();
-                            event.runJS();
-                            await event.runHandlers();
-                            event.hitTriggers();
+                            event.runJS(options.info);
+                            await event.runHandlers(options.info);
+                            event.hitTriggers(options.info);
                         }
                     };
 
@@ -606,7 +610,6 @@
                      * with no bad side effects).
                      */
                         if (trial.inProgress && !trial.stopping) {
-                            console.log("stopping trial")
                             trial.stopping = true;
                             trial.clearTimers();
                             trial.inProgress = false;
@@ -617,11 +620,17 @@
                         }
                     };
 
-                    trial.restart = async function() {
+                    trial.restart = async function(providedOptions) {
                         // Can be called manually at an arbitrary point to restart the trial
+                        let options = {
+                            from: "trialPrepare"
+                        };
+                        Object.assign(options, providedOptions);
+
                         await trial.stop();
                         trial.reset();
-                        await trial.registerEvent("trialPrepare");
+                        trial.inProgress = true;
+                        await trial.registerEvent(options.from);
                     }
 
                     return trial;
@@ -925,6 +934,7 @@
                         out.play = function (provided_options) {
                             let options = {
                                 fade_in: 0.0,
+                                fade_out: 0.0,
                                 start_delay: 0.01,
                                 gain: 1,
                                 loop: false,
@@ -953,12 +963,12 @@
                             sound.source.connect(sound.gain_node);
                             sound.gain_node.connect(psynet.media.audio_context.destination);
 
-                            sound.source.start(this.start_time, start, duration);
-
                             sound.gain_node.gain.setValueAtTime(
                                 0.001,
-                                psynet.media.audio_context.currentTime + options.start_delay
+                                sound.start_time
                             );
+
+                            sound.source.start(sound.start_time, start, duration);
 
                             if (options.gain > 1e-10) {
                                 sound.gain_node.gain.exponentialRampToValueAtTime(
@@ -967,16 +977,24 @@
                                 );
                             }
 
+                            let stopTimer = setTimeout(
+                                () => sound.stop({fade_out: options.fade_out, manual: false}),
+                                1000 * (options.start_delay + sound.duration - options.fade_out)
+                            );
+
                             sound.stop = function (provided_options) {
                                 let options = {
-                                    fade_out: 0.05
+                                    fade_out: sound.options.fade_out,
+                                    manual: true
                                 };
 
                                 Object.assign(options, provided_options);
 
+                                clearTimeout(stopTimer);
+
                                 psynet.log.debug("Stopping audio " + sound.stimulus_id + ".");
 
-                                sound.manually_stopped = true;
+                                sound.manually_stopped = options.manual;
 
                                 let gain_now = sound.gain_node.gain.value;
                                 let time_now = psynet.media.audio_context.currentTime;
@@ -986,7 +1004,7 @@
                                     sound.gain_node.gain.exponentialRampToValueAtTime(0.001, time_now + options.fade_out);
                                 }
 
-                                return new Promise((resolve, reject) => {
+                                return new Promise((resolve) => {
                                     setTimeout(() => {
                                         sound.source.stop();
                                         resolve();
@@ -995,6 +1013,7 @@
                             }
 
                             sound.source.addEventListener("ended", function () {
+                                clearTimeout(stopTimer);
                                 psynet.log.debug("Finished sound with ID = " + sound.stimulus_id);
                                 psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
                                 if (sound.options.loop && !sound.manually_stopped) {

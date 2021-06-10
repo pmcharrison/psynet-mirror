@@ -2,11 +2,13 @@ import flask
 
 import psynet.experiment
 from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent
+from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
     AudioRecordControl,
     ModularPage,
+    SliderControl,
     TappingAudioMeterControl,
     VideoPrompt,
     VideoRecordControl,
@@ -24,6 +26,82 @@ from psynet.timeline import (
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+example_js_synth_1 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "The JS synthesizer uses by default a harmonic complex tone as the timbre.",
+        [
+            Note(60),
+            Note(64),
+            Note(67),
+            Rest(duration=1.0),
+            Note(59),
+            Note(62),
+            Note(67),
+        ],
+    ),
+    time_estimate=5,
+)
+
+example_js_synth_2 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "It is also possible to select various instrument sounds, for example the piano.",
+        [
+            Note(60),
+            Note(63),
+            Note(67),
+        ],
+        timbre=InstrumentTimbre("piano"),
+        default_duration=0.5,
+        default_silence=0.25,
+    ),
+    time_estimate=5,
+)
+
+example_js_synth_3 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "We can manipulate individual notes with a slider.",
+        [
+            Note(60),
+            Note(63),
+            Note(67),
+        ],
+        timbre=InstrumentTimbre("piano"),
+        default_duration=0.5,
+        default_silence=0.25,
+    ),
+    SliderControl(label="slider", start_value=63, min_value=57, max_value=70),
+    time_estimate=5,
+    events={
+        "playMelody": Event(
+            is_triggered_by="sliderChange",
+            js="stimulus.notes[1].pitches = [info.outputValue]; psynet.trial.restart();",
+        ),
+        "disableSlider": Event(
+            is_triggered_by="promptStart", js="slider.disabled = true;"
+        ),
+        "enableSlider": Event(
+            is_triggered_by="promptEnd", js="slider.disabled = false;"
+        ),
+    },
+)
+
+example_js_synth_4 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "These chords are played with Shepard tones.",
+        [
+            Chord([60, 64, 67]),
+            Chord([59, 62, 67]),
+            Chord([60, 64, 67]),
+        ],
+        timbre=ShepardTimbre(),
+    ),
+    time_estimate=5,
+)
 
 example_preloading = InfoPage(
     flask.Markup(
@@ -157,11 +235,11 @@ example_audio_page_3 = ModularPage(
     AudioPrompt(
         "/static/audio/train1.wav",
         """
-        This page illustrates a 'play window' combined with a loop.
-        By setting the play_window argument to [5, 9], we instruct PsyNet
-        to only play seconds 5-9 of the audio file.
+        This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
         """,
         play_window=[5, 9],
+        fade_in=0.75,
+        fade_out=0.75,
         loop=True,
         controls=True,
     ),
@@ -205,7 +283,7 @@ example_listen_then_record_page = join(
         AudioPrompt(
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
-            Here we play audio then activate the recorder 1 second afterwards.
+            Here we play audio then activate the recorder 3 seconds afterwards.
             """,
             play_window=[0, 5.0],
         ),
@@ -218,7 +296,7 @@ example_listen_then_record_page = join(
             auto_advance=True,
         ),
         time_estimate=5,
-        events={"recordStart": Event(is_triggered_by="promptStart", delay=3.0)},
+        events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
             duration=5.0,
             stages=[
@@ -232,6 +310,7 @@ example_listen_then_record_page = join(
     ),
 )
 
+
 example_record_audio_video = join(
     ModularPage(
         "record_page",
@@ -243,6 +322,10 @@ example_record_audio_video = join(
             It'll work best if you wear headphones.
             The red portion of the progress bar identifies the period when the video
             will be recording.
+            Note how we overrode the 'trialPrepare' event, meaning that the
+            trial does not start itself automatically;
+            instead the trial only starts once the user explicitly presses the
+            'Start recording' button.
             """,
             play_window=[0, 4.6],
             fade_in=0.2,
@@ -267,6 +350,7 @@ example_record_audio_video = join(
             ],
         ),
         events={
+            "trialPrepare": Event(is_triggered_by=None),
             "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
             "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
         },
@@ -296,6 +380,10 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),
+        example_js_synth_1,
+        example_js_synth_2,
+        example_js_synth_3,
+        example_js_synth_4,
         example_audio_page,
         example_audio_page_2,
         example_audio_page_3,

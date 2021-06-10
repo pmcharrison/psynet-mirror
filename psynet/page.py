@@ -274,7 +274,7 @@ class SuccessfulEndPage(EndPage):
     Indicates a successful end to the experiment.
     """
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         participant.complete = True
 
 
@@ -296,7 +296,7 @@ class UnsuccessfulEndPage(EndPage):
         super().__init__()
         self.failure_tags = failure_tags
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         if self.failure_tags:
             assert isinstance(self.failure_tags, list)
             participant.append_failure_tags(*self.failure_tags)
@@ -314,7 +314,7 @@ class RejectedConsentPage(EndPage):
     def __init__(self, failure_tags: Optional[List] = None):
         super().__init__()
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         experiment.fail_participant(participant)
         if experiment.need_more_participants:
             experiment.recruiter.recruit(n=1)

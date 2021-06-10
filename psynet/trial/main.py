@@ -186,6 +186,13 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     :meth:`~psynet.trial.main.Trial.async_post_trial` method
     if they wish to implement asynchronous trial processing.
 
+    They may also override the
+    :meth:`~psynet.trial.main.Trial.score_answer` method
+    if they wish to implement trial-level scoring;
+    for scoring methods that work by analyzing multiple trials at the same time
+    (e.g., test-retest correlations), see the trial maker method
+    :meth:`~psynet.trial.main.TrialMaker.performance_check`.
+
     This class subclasses the :class:`~dallinger.models.Info` class from Dallinger,
     hence can be found in the ``Info`` table in the database.
     It inherits this class's methods, which the user is welcome to use
@@ -241,7 +248,13 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     complete : bool
         Whether the trial has been completed (i.e. received a response
         from the participant). The user should not typically change this directly.
-        Stored in ``property2`` in the database.
+
+    finalized : bool
+        Whether the trial has been finalized. This is a stronger condition than ``complete``;
+        in particular, a trial is only marked as finalized once its async processes
+        have completed (if it has any).
+        One day we might extend this to include arbitrary conditions,
+        for example waiting for another user to evaluate that trial, or similar.
 
     answer : Object
         The response returned by the participant. This is serialised
@@ -301,7 +314,10 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     # Properties ###
     participant_id = claim_field("participant_id", __extra_vars__, int)
     complete = claim_field("complete", __extra_vars__, bool)
+    finalized = claim_field("finalized", __extra_vars__, bool)
     is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
+    score = claim_field("score", __extra_vars__, float)
+    bonus = claim_field("bonus", __extra_vars__, float)
 
     answer = claim_var("answer", __extra_vars__, use_default=True)
     propagate_failure = claim_var("propagate_failure", __extra_vars__, use_default=True)
@@ -412,11 +428,87 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     ):
         super().__init__(origin=node)
         self.complete = False
+        self.finalized = False
         self.awaiting_async_process = False
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
         self.definition = self.make_definition(experiment, participant)
+        self.score = None
+
+    def mark_as_finalized(self):
+        """
+        Marks a trial as finalized. This means that all relevant data has been stored from the
+        participant's response, and any pending asynchronous processes have completed.
+        """
+        if self.finalized:
+            raise RuntimeError(
+                f"Tried to mark trial {self.id} as finalized, but it was already finalized."
+            )
+        self.finalized = True
+        self._on_finalized()
+
+    def _on_finalized(self):
+        self.score = self.score_answer(answer=self.answer, definition=self.definition)
+        self._allocate_bonus()
+
+    def _allocate_bonus(self):
+        bonus = self.compute_bonus(score=self.score)
+        assert isinstance(bonus, (float, int))
+        self._log_bonus(bonus)
+        self.bonus = bonus
+        self.participant.inc_performance_bonus(bonus)
+
+    def _log_bonus(self, bonus):
+        logger.info(
+            "Allocating a performance bonus of $%.2f to participant %i for trial %i.",
+            bonus,
+            self.participant.id,
+            self.id,
+        )
+
+    def score_answer(self, answer, definition):
+        """
+        Scores the participant's answer. At the point that this method is called,
+        any pending asynchronous processes should already have been completed.
+
+        Parameters
+        ----------
+        answer :
+            The answer provided to the trial.
+
+        definition :
+            The trial's definition
+
+        Returns
+        -------
+
+        A numeric score quantifying the participant's success, where positive numbers are better.
+        Alternatively, ``None`` indicating no score.
+        """
+        return None
+
+    def compute_bonus(self, score):
+        """
+        Computes a bonus to allocate to the participant as a reward for the current trial.
+        By default, no bonus is given.
+        Note: this trial-level bonus system is complementary to the trial-maker-level bonus system,
+        which computes an overall bonus for the participant at the end of a trial maker.
+        It is possible to use these two bonus systems independently or simultaneously.
+        See :meth:`~psynet.trial.main.TrialMaker.compute_bonus` for more details.
+
+        Parameters
+        ----------
+
+        score:
+            The score achieved by the participant, as computed by :meth:`~psynet.trial.main.Trial.score_answer`.
+
+        Returns
+        -------
+
+        The resulting bonus, typically in dollars.
+        """
+        return 0.0
 
     def json_data(self):
         x = super().json_data()
@@ -540,8 +632,8 @@ class TrialMaker(Module):
       this sequence of trials, intended to initialise the participant's state.
       Make sure you call ``super().init_participant`` when overriding this.
 
-    * :meth:`~psynet.trial.main.TrialMaker.finalise_trial`
-      (optional), which finalises the trial after the participant
+    * :meth:`~psynet.trial.main.TrialMaker.finalize_trial`
+      (optional), which finalizes the trial after the participant
       has given their response.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`
@@ -1071,12 +1163,12 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
 
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def finalize_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use
         """
         This function is run after the participant completes the trial.
         It can be optionally customised, for example to add some more postprocessing.
-        If you override this, make sure you call ``super().finalise_trial(...)``
+        If you override this, make sure you call ``super().finalize_trial(...)``
         somewhere in your new method.
 
 
@@ -1162,6 +1254,8 @@ class TrialMaker(Module):
         return join(UnsuccessfulEndPage(failure_tags=["performance_check"]))
 
     def _check_performance_logic(self, type):
+        assert type in ["trial", "end"]
+
         def eval_checks(experiment, participant):
             participant_trials = self.get_participant_trials(participant)
             results = self.performance_check(
@@ -1169,14 +1263,16 @@ class TrialMaker(Module):
                 participant=participant,
                 participant_trials=participant_trials,
             )
-            bonus = self.compute_bonus(**results)
+
             assert isinstance(results["passed"], bool)
             participant.var.set(self.with_namespace("performance_check"), results)
-            participant.var.set(self.with_namespace("performance_bonus"), bonus)
-            participant.inc_performance_bonus(bonus)
-            return results["passed"]
 
-        assert type in ["trial", "end"]
+            if type == "end":
+                bonus = self.compute_bonus(**results)
+                participant.var.set(self.with_namespace("performance_bonus"), bonus)
+                participant.inc_performance_bonus(bonus)
+
+            return results["passed"]
 
         logic = switch(
             "performance_check",
@@ -1288,12 +1384,14 @@ class TrialMaker(Module):
         trial = self._get_current_trial(participant)
         participant.answer = self.postprocess_answer(answer, trial, participant)
 
-    def _finalise_trial(self, experiment, participant):
+    def _finalize_trial(self, experiment, participant):
         trial = self._get_current_trial(participant)
         answer = participant.answer
-        self.finalise_trial(
+        self.finalize_trial(
             answer=answer, trial=trial, experiment=experiment, participant=participant
         )
+        if not trial.awaiting_async_process:
+            trial.mark_as_finalized()
 
     def _get_current_trial(self, participant):
         trial_id = participant.var.current_trial
@@ -1354,7 +1452,7 @@ class TrialMaker(Module):
                         accumulate_answers=self.trial_class.accumulate_answers,
                     ),
                     CodeBlock(self._postprocess_answer),
-                    CodeBlock(self._finalise_trial),
+                    CodeBlock(self._finalize_trial),
                     self._construct_feedback_logic(),
                     self._check_performance_logic(type="trial")
                     if self.check_performance_every_trial
@@ -1707,9 +1805,9 @@ class NetworkTrialMaker(TrialMaker):
         db.session.commit()
         return trial
 
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def finalize_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use,no-member
-        super().finalise_trial(answer, trial, experiment, participant)
+        super().finalize_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
             trial.queue_async_process(call_async_post_trial)
             db.session.commit()
@@ -1770,6 +1868,8 @@ class NetworkTrialMaker(TrialMaker):
         """
         Computes the bonus to allocate to the participant at the end of a phase
         on the basis of the results of the final performance check.
+        Note: if `check_performance_at_end = False`, then this function will not be run
+        and the bonus will not be assigned.
         """
         return 0.0
 
@@ -2067,6 +2167,7 @@ def call_async_post_trial(trial_id, process_id):
             trial.async_post_trial()
             trial.pop_async_process(process_id)
             trial_maker._grow_network(trial.network, trial.participant, experiment)
+            trial.mark_as_finalized()
         else:
             logger.info(
                 "Skipping async process %s as it is no longer queued.", process_id
