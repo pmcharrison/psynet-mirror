@@ -1,5 +1,10 @@
 # Changelog
 
+# [2.1.1] Released on 2021-06-10
+
+#### Fixed
+- Fixed incorrect version number.
+
 # [2.1.0] Released on 2021-06-10
 
 #### Added
