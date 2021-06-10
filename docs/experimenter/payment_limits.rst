@@ -10,7 +10,7 @@ To increase robustness regarding payments, e.g. in the case of coding errors, tw
 
 * :attr:`~psynet.experiment.Experiment.var.soft_max_experiment_payment` which sets a soft limit on how much the experiment can cost overall. Once the amount of accumulated payments (incl. bonuses) in US dollars exceedes the limit the recruiting process stops. It is a soft limit in the sense that the limit can still be exceeded to a certain extent. The default is $1000.00.
 
-Both limits are implemented as `class attributes` and can be overriden in the definition of the ``Experiment`` class of an experiment by assigning some ``float`` value, e.g.:
+Both limits are implemented as `class attributes` and can be overridden in the definition of the ``Experiment`` class of an experiment by assigning some ``float`` value, e.g.:
 
 ::
 
