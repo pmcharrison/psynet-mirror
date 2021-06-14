@@ -25,6 +25,8 @@ from .utils import (
     format_datetime_string,
     get_logger,
     merge_dicts,
+    serialise,
+    unserialise_datetime,
 )
 
 logger = get_logger()
@@ -63,6 +65,9 @@ class Event(dict):
         by a specified number of seconds.
         Multiple triggers can be defined by instead passing a list of these strings
         or :class:`~psynet.timeline.Trigger` objects.
+        Alternatively, one can pass ``None``, in which case the event won't be triggered automatically,
+        but instead will only be triggered if/when ``psynet.trial.registerEvent`` is called
+        in the Javascript front-end.
 
     trigger_condition:
         If this is set to ``"all"`` (default), then all triggers must be satisfied before the
@@ -74,18 +79,18 @@ class Event(dict):
         and the event being triggered (default = 0.0).
 
     once:
-        If ``True`` (default), then the event will only be cued once, at the point when the
-        trigger condition is first satisfied. If ``False``, then the event will be recued
+        If ``True``, then the event will only be cued once, at the point when the
+        trigger condition is first satisfied. If ``False`` (default), then the event will be recued
         each time one of the triggers is hit again.
 
     message:
-        Optional message to display when this event occurs.
+        Optional message to display when this event occurs (default = ``""``).
 
     message_color:
-        CSS color specification for the message.
+        CSS color specification for the message (default = ``"black"``).
 
     js:
-        Optional Javascript code to execute when the event occurs.
+        Optional Javascript code to execute when the event occurs (default = ``None``).
 
     """
 
@@ -94,7 +99,7 @@ class Event(dict):
         is_triggered_by,
         trigger_condition: str = "all",
         delay: float = 0.0,
-        once: bool = True,
+        once: bool = False,
         message: Optional[str] = None,
         message_color: str = "black",
         js: Optional[str] = None,
@@ -449,8 +454,7 @@ class ProgressDisplay(dict):
 
     def validate(self):
         stages = self["stages"]
-        for i in range(len(stages)):
-            stage = self["stages"][i]
+        for i, stage in enumerate(stages):
             start_time = stage["time"][0]
             if i == 0:
                 if start_time != 0.0:
@@ -458,7 +462,7 @@ class ProgressDisplay(dict):
                         "The first stage in the progress bar must have a start time of 0.0."
                     )
             else:
-                prev_stage = self["stages"][i - 1]
+                prev_stage = stages[i - 1]
                 prev_stage_end_time = prev_stage["time"][1]
                 if start_time != prev_stage_end_time:
                     raise ValueError(
@@ -562,12 +566,11 @@ class Page(Elt):
         and ``submitEnable`` (enables the user to submit their response).
         These events and their triggers are set to sensible defaults,
         but the user is welcome to modify them for greater customization.
-        Users constructing custom modular page
-        :class:`~psynet.modular_page.Prompt}`
+        See also the ``update_events`` methods of
+        :class:`~psynet.modular_page.Prompt`
         and
-        :class:`~psynet.modular_page.Control}`
-        classes are encouraged instead to write custom ``update_events`` methods for
-        these classes.
+        :class:`~psynet.modular_page.Control`,
+        which provide alternative ways to customize event sequences for modular pages.
 
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
@@ -653,11 +656,11 @@ class Page(Elt):
 
     def prepare_default_events(self):
         return {
-            "trialConstruct": Event(is_triggered_by=None),
-            "trialPrepare": Event(is_triggered_by="trialConstruct"),
-            "trialStart": Event(is_triggered_by="trialPrepare"),
-            "responseEnable": Event(is_triggered_by="trialStart", delay=0.0),
-            "submitEnable": Event(is_triggered_by="trialStart", delay=0.0),
+            "trialConstruct": Event(is_triggered_by=None, once=True),
+            "trialPrepare": Event(is_triggered_by="trialConstruct", once=True),
+            "trialStart": Event(is_triggered_by="trialPrepare", once=True),
+            "responseEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
+            "submitEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
             "trialFinish": Event(
                 is_triggered_by=None
             ),  # only called when trial comes to a natural end
@@ -903,10 +906,9 @@ class Page(Elt):
         # pylint: disable=unused-argument
         if not experiment.var.show_bonus:
             return Footer([""])
+        bonus = participant.time_credit.estimate_bonus() + participant.performance_bonus
         return Footer(
-            [
-                f"Estimated bonus: <strong>&#36;{participant.time_credit.estimate_bonus():.2f}</strong>"
-            ],
+            [f"Estimated bonus: <strong>&#36;{bonus:.2f}</strong>"],
             escape=False,
         )
 
@@ -1138,9 +1140,9 @@ class EndPage(PageMaker):
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
-        self.finalise_participant(experiment, participant)
+        self.finalize_participant(experiment, participant)
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         """
         Executed when the participant completes the experiment.
 
@@ -1198,7 +1200,9 @@ class Timeline:
                 "Nested 'fix-time' constructs detected. This typically means you have "
                 "nested conditionals or while loops with fix_time_credit=True. "
                 "Such constructs cannot be nested; instead you should choose one level "
-                "at which to set fix_time_credit=True."
+                "at which to set fix_time_credit=True. An example where this error might "
+                "occur is when you put a TrialMaker within a switch. In this case, "
+                "make sure to set `fix_time_credit=False` within that switch."
             )
 
     def check_modules(self):
@@ -1509,6 +1513,7 @@ def while_loop(
     condition: Callable,
     logic,
     expected_repetitions: int,
+    max_loop_time: float = None,
     fix_time_credit=True,
 ):
     """
@@ -1534,6 +1539,10 @@ def while_loop(
         This doesn't have to be completely accurate, but it is used for estimating the length
         of the total experiment.
 
+    max_loop_time:
+        The maximum time in seconds for staying in the loop. Once exceeded, the participant is
+        is presented the ``UnsuccessfulEndPage``. Default: None.
+
     fix_time_credit:
         Whether participants should receive the same time credit irrespective of whether
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
@@ -1554,8 +1563,43 @@ def while_loop(
 
     conditional_logic = join(logic, GoTo(start_while))
 
+    def with_namespace(x=None):
+        prefix = f"__{label}__{x}"
+        if x is None:
+            return prefix
+        return f"{prefix}__{x}"
+
+    if max_loop_time is not None:
+        max_loop_time_condition = (
+            lambda participant, experiment: (
+                datetime.now()
+                - unserialise_datetime(
+                    participant.var.get(with_namespace("loop_start_time"))
+                )
+            ).seconds
+            > max_loop_time
+        )
+    else:
+        max_loop_time_condition = lambda participant, experiment: False  # noqa: E731
+
+    from .page import UnsuccessfulEndPage
+
     elts = join(
+        CodeBlock(
+            lambda participant: participant.var.set(
+                with_namespace("loop_start_time"), serialise(datetime.now())
+            )
+        ),
         start_while,
+        conditional(
+            "max_loop_time_condition",
+            lambda participant, experiment: call_function(
+                max_loop_time_condition,
+                {"participant": participant, "experiment": experiment},
+            ),
+            UnsuccessfulEndPage(),
+            fix_time_credit=False,
+        ),
         conditional(
             label,
             condition,
@@ -1577,12 +1621,18 @@ def check_branches(branches):
     try:
         assert isinstance(branches, dict)
         for branch_name, branch_elts in branches.items():
-            assert isinstance(branch_elts, Elt) or is_list_of(branch_elts, Elt)
+            assert isinstance(branch_elts, (Elt, Module)) or is_list_of(
+                branch_elts, Elt
+            )
             if isinstance(branch_elts, Elt):
                 branches[branch_name] = [branch_elts]
+            elif isinstance(branch_elts, Module):
+                branches[branch_name] = branch_elts.resolve()
         return branches
     except AssertionError:
-        raise TypeError("<branches> must be a dict of (lists of) Elt objects.")
+        raise TypeError(
+            "<branches> must be a dict of Modules or (lists of) Elt objects."
+        )
 
 
 def switch(

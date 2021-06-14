@@ -27,7 +27,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger==7.3.0",
+        "dallinger==7.4.0",
         "click",
         "datetime",
         "dominate",
@@ -41,7 +41,8 @@ setuptools.setup(
         "statsmodels",
         "yaspin",
         "praat-parselmouth",
-	"python-gettext"
+        "python-gettext"
+        "joblib"  # Library used for internal parallelization of for loops
     ],
     extras_require={
         "dev": [

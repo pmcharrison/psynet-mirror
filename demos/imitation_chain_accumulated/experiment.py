@@ -128,12 +128,12 @@ class Exp(psynet.experiment.Experiment):
             phase="experiment",
             time_estimate_per_trial=5,
             chain_type="within",
-            num_nodes_per_chain=5,
+            num_iterations_per_chain=5,
             num_trials_per_participant=5,
             num_chains_per_participant=1,
             num_chains_per_experiment=None,
             trials_per_node=1,
-            active_balancing_across_chains=True,
+            balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             recruit_mode="num_participants",
@@ -146,6 +146,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

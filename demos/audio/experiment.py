@@ -2,7 +2,7 @@ import flask
 
 import psynet.experiment
 from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent
-from psynet.js_synth import InstrumentTimbre, JSSynth, Note
+from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -34,6 +34,10 @@ example_js_synth_1 = ModularPage(
         [
             Note(60),
             Note(64),
+            Note(67),
+            Rest(duration=1.0),
+            Note(59),
+            Note(62),
             Note(67),
         ],
     ),
@@ -85,6 +89,19 @@ example_js_synth_3 = ModularPage(
     },
 )
 
+example_js_synth_4 = ModularPage(
+    "js_synth",
+    JSSynth(
+        "These chords are played with Shepard tones.",
+        [
+            Chord([60, 64, 67]),
+            Chord([59, 62, 67]),
+            Chord([60, 64, 67]),
+        ],
+        timbre=ShepardTimbre(),
+    ),
+    time_estimate=5,
+)
 
 example_preloading = InfoPage(
     flask.Markup(
@@ -218,11 +235,11 @@ example_audio_page_3 = ModularPage(
     AudioPrompt(
         "/static/audio/train1.wav",
         """
-        This page illustrates a 'play window' combined with a loop.
-        By setting the play_window argument to [5, 9], we instruct PsyNet
-        to only play seconds 5-9 of the audio file.
+        This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
         """,
         play_window=[5, 9],
+        fade_in=0.75,
+        fade_out=0.75,
         loop=True,
         controls=True,
     ),
@@ -266,7 +283,7 @@ example_listen_then_record_page = join(
         AudioPrompt(
             url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
-            Here we play audio then activate the recorder 1 second afterwards.
+            Here we play audio then activate the recorder 3 seconds afterwards.
             """,
             play_window=[0, 5.0],
         ),
@@ -278,8 +295,20 @@ example_listen_then_record_page = join(
             controls=True,
             auto_advance=True,
         ),
+        progress_display=ProgressDisplay(
+            duration=4.6,
+            stages=[
+                ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
+                ProgressStage([2.6, 4.0], "Recording!", color="red"),
+                ProgressStage([4.0, 4.6], "Recording finished.", color="green"),
+            ],
+        ),
+        events={
+            "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
+            "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
+        },
         time_estimate=5,
-        events={"recordStart": Event(is_triggered_by="promptStart", delay=3.0)},
+        events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
             duration=5.0,
             stages=[
@@ -293,6 +322,7 @@ example_listen_then_record_page = join(
     ),
 )
 
+
 example_record_audio_video = join(
     ModularPage(
         "record_page",
@@ -304,6 +334,10 @@ example_record_audio_video = join(
             It'll work best if you wear headphones.
             The red portion of the progress bar identifies the period when the video
             will be recording.
+            Note how we overrode the 'trialPrepare' event, meaning that the
+            trial does not start itself automatically;
+            instead the trial only starts once the user explicitly presses the
+            'Start recording' button.
             """,
             play_window=[0, 4.6],
             fade_in=0.2,
@@ -328,6 +362,7 @@ example_record_audio_video = join(
             ],
         ),
         events={
+            "trialPrepare": Event(is_triggered_by=None),
             "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
             "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
         },
@@ -372,6 +407,3 @@ class Exp(psynet.experiment.Experiment):
         example_preloading,
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

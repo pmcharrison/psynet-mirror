@@ -2,7 +2,9 @@ import errno
 import json
 import os
 import shutil
+import subprocess
 import sys
+from shutil import rmtree, which
 
 import click
 import requests
@@ -26,6 +28,7 @@ from dallinger.models import (
 from dallinger.utils import get_base_url
 from yaspin import yaspin
 
+from psynet import __path__ as psynet_path
 from psynet import __version__
 
 from .utils import (
@@ -129,6 +132,40 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+
+
+########
+# docs #
+########
+@psynet.command()
+@click.option(
+    "--force-rebuild",
+    "-f",
+    is_flag=True,
+    help="Force complete rebuild by deleting the '_build' directory",
+)
+def docs(force_rebuild):
+    docs_dir = os.path.join(psynet_path[0], "..", "docs")
+    docs_build_dir = os.path.join(docs_dir, "_build")
+    try:
+        os.chdir(docs_dir)
+    except FileNotFoundError as e:
+        dallinger_log(
+            "There was an error building the documentation. Be sure to have activated your 'psynet' virtual environment."
+        )
+        raise SystemExit(e)
+    if os.path.exists(docs_build_dir) and force_rebuild:
+        rmtree(docs_build_dir)
+    os.chdir(docs_dir)
+    subprocess.run(["make", "html"])
+    if which("xdg-open") is not None:
+        open_command = "xdg-open"
+    else:
+        open_command = "open"
+    subprocess.run(
+        [open_command, os.path.join(docs_build_dir, "html/index.html")],
+        stdout=subprocess.DEVNULL,
+    )
 
 
 ###########

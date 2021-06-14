@@ -20,12 +20,7 @@ from .modular_page import (
 from .page import InfoPage, UnsuccessfulEndPage
 from .timeline import CodeBlock, Module, conditional, join
 from .trial.audio import AudioRecordTrial
-from .trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
-    StimulusSet,
-    StimulusSpec,
-)
+from .trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
 from .utils import LANGUAGE
 import gettext
 
@@ -36,7 +31,6 @@ locale_path=os.path.dirname(__file__)+"/locale"
 filename = os.path.basename(__file__)[:-3]
 lang = gettext.translation(filename, localedir=locale_path, languages=[LANGUAGE])
 lang.install()
-
 
 class VolumeTestControlMusic(AudioMeterControl):
     decay = {"display": 0.1, "high": 0.1, "low": 0.1}
@@ -267,9 +261,9 @@ class JSONSerializer(json.JSONEncoder):
             return super(JSONSerializer, self).default(obj)
 
 
-class REPPMarkersCheck(Module):
+class REPPMarkersTest(Module):
     """
-    This markers check is used to determine whether participants are using hardware
+    This markers test is used to determine whether participants are using hardware
     and software that meets the technical requirements of REPP, such as
     malfunctioning speakers or microphones, or the use of strong noise-cancellation
     technologies. To make the most out of it, the markers check should be used at the
@@ -348,7 +342,7 @@ class REPPMarkersCheck(Module):
         num_trials: float,
         audio_filenames: list,
     ):
-        class MarkersTrialMaker(NonAdaptiveTrialMaker):
+        class MarkersTrialMaker(StaticTrialMaker):
             give_end_feedback_passed = False
             performance_check_type = "performance"
             performance_check_threshold = performance_threshold
@@ -363,7 +357,7 @@ class REPPMarkersCheck(Module):
         )
 
     def trial(self, time_estimate: float):
-        class RecordMarkersTrial(AudioRecordTrial, NonAdaptiveTrial):
+        class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "markers_test_trial"}
 
             def show_trial(self, experiment, participant):
@@ -579,7 +573,7 @@ class LanguageVocabularyTest(Module):
         num_trials: float,
         words: list,
     ):
-        class LanguageVocabularyTrialMaker(NonAdaptiveTrialMaker):
+        class LanguageVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a tuple (score: float, passed: bool)"""
                 score = 0
@@ -600,7 +594,7 @@ class LanguageVocabularyTest(Module):
         )
 
     def trial(self, time_estimate: float):
-        class LanguageVocabularyTrial(NonAdaptiveTrial):
+        class LanguageVocabularyTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "language_vocabulary_trial"}
 
             def show_trial(self, experiment, participant):
@@ -714,7 +708,7 @@ class LexTaleTest(Module):
                 num_trials,
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     def instruction_page(self, hide_after, num_trials):
         return InfoPage(
@@ -739,7 +733,7 @@ class LexTaleTest(Module):
         hide_after: float,
         num_trials: float,
     ):
-        class LextaleTrialMaker(NonAdaptiveTrialMaker):
+        class LextaleTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a tuple (score: float, passed: bool)"""
                 score = 0
@@ -760,7 +754,7 @@ class LexTaleTest(Module):
         )
 
     def trial(self, time_estimate: float, hide_after: float):
-        class LextaleTrial(NonAdaptiveTrial):
+        class LextaleTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "lextale_trial"}
 
             def show_trial(self, experiment, participant):
@@ -811,23 +805,23 @@ class LexTaleTest(Module):
         )
 
 
-class AttentionCheck(Module):
+class AttentionTest(Module):
     """
-    This is an attention check aimed to identify and remove participants who are not paying attention or following
-    the instructions. The attention check has 2 pages and researchers can choose whether to display the two pages or not,
+    This is an attention test aimed to identify and remove participants who are not paying attention or following
+    the instructions. The attention test has 2 pages and researchers can choose whether to display the two pages or not,
     and which information to display in each page. Researchers can also choose the conditions to exclude particiapnts (determined by ``fail_on``).
 
     Parameters
     ----------
     label : string, optional
-        The label of the AttentionCheck check, default: "attention_check".
+        The label of the AttentionTest module, default: "attention_test".
 
     pages : int, optional
         Whether to display only the first or both pages. Possible values: 1 and 2. Default: 2.
 
     fail_on: str, optional
-        The condition for the AttentionCheck check to fail.
-        Possible values: "attention_check_1", "attention_check_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "attention_check_1".
+        The condition for the AttentionTest check to fail.
+        Possible values: "attention_test_1", "attention_test_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "attention_test_1".
 
     prompt_1_explanation: str, optional
         The text (including HTML code) to display in the first part of the first paragraph of the first page. Default: "Research on personality has identified characteristic sets of behaviours and cognitive patterns that evolve from biological and enviromental factors. To show that you are paying attention to the experiment, please ignore the question below and select the 'Next' button instead."
@@ -838,7 +832,7 @@ class AttentionCheck(Module):
     prompt_2: str, optional
         The text to display on the second page. Default: "What is your favourite color?".
 
-    attention_check_2_word: str, optional
+    attention_test_2_word: str, optional
         The word that the user has to enter on the second page. Default: "attention".
 
     time_estimate_per_trial : float, optional
@@ -847,23 +841,23 @@ class AttentionCheck(Module):
 
     def __init__(
         self,
-        label: str = "attention_check",
+        label: str = "attention_test",
         pages: int = 2,
-        fail_on: str = "attention_check_1",
+        fail_on: str = "attention_test_1",
         prompt_1_explanation: str = """
         Research on personality has identified characteristic sets of behaviours and cognitive patterns that
         evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
         please ignore the question below and select the 'Next' button instead.""",
         prompt_1_main: str = "As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient.",
         prompt_2="What is your favourite color?",
-        attention_check_2_word="attention",
+        attention_test_2_word="attention",
         time_estimate_per_trial: float = 5.0,
     ):
         assert pages in [1, 2]
-        assert not (pages == 1 and fail_on in ["attention_check_2", "both"])
+        assert not (pages == 1 and fail_on in ["attention_test_2", "both"])
         assert fail_on in [
-            "attention_check_1",
-            "attention_check_2",
+            "attention_test_1",
+            "attention_test_2",
             "any",
             "both",
             None,
@@ -872,19 +866,19 @@ class AttentionCheck(Module):
         self.label = label
         self.pages = pages
         self.fail_on = fail_on
-        self.attention_check_2_word = attention_check_2_word
+        self.attention_test_2_word = attention_test_2_word
 
         prompt_1_next_page = f""" Also, you must ignore
-        the question asked in the next page, and type "{attention_check_2_word}" in the box.
+        the question asked in the next page, and type "{attention_test_2_word}" in the box.
         <br><br>
         {prompt_1_main}"""
         self.prompt_1_text = (
             f'{prompt_1_explanation}{prompt_1_next_page if self.pages == 2 else ""}'
         )
         self.prompt_2 = prompt_2
-        self.events = join(
+        self.elts = join(
             ModularPage(
-                label="attention_check_1",
+                label="attention_test_1",
                 prompt=Markup(f"""{self.prompt_1_text}"""),
                 control=RadioButtonControl(
                     [1, 2, 3, 4, 5, 6, 7, 0],
@@ -909,9 +903,9 @@ class AttentionCheck(Module):
                 "exclude_check_1",
                 lambda experiment, participant: (
                     participant.answer is not None
-                    and self.fail_on in ["attention_check_1", "any"]
+                    and self.fail_on in ["attention_test_1", "any"]
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_check_1"]),
+                UnsuccessfulEndPage(failure_tags=["attention_test_1"]),
             ),
             CodeBlock(
                 lambda experiment, participant: participant.var.new(
@@ -919,10 +913,10 @@ class AttentionCheck(Module):
                 )
             ),
             conditional(
-                "attention_check_2",
+                "attention_test_2",
                 lambda experiment, participant: self.pages == 2,
                 ModularPage(
-                    label="attention_check_2",
+                    label="attention_test_2",
                     prompt=self.prompt_2,
                     control=TextControl(width="300px"),
                     time_estimate=time_estimate_per_trial,
@@ -933,16 +927,16 @@ class AttentionCheck(Module):
                 lambda experiment, participant: (
                     self.pages == 2
                     and fail_on is not None
-                    and participant.answer.lower() != self.attention_check_2_word
+                    and participant.answer.lower() != self.attention_test_2_word
                     and (
-                        self.fail_on in ["attention_check_2", "any"]
+                        self.fail_on in ["attention_test_2", "any"]
                         or not participant.var.first_check_passed
                     )
                 ),
-                UnsuccessfulEndPage(failure_tags=["attention_check_2"]),
+                UnsuccessfulEndPage(failure_tags=["attention_test_2"]),
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
 
 class ColorBlindnessTest(Module):
@@ -983,13 +977,13 @@ class ColorBlindnessTest(Module):
         hide_after: float = 3.0,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(hide_after),
             self.trial_maker(
                 media_url, time_estimate_per_trial, performance_threshold, hide_after
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     def instruction_page(self, hide_after):
         if hide_after is None:
@@ -1019,7 +1013,7 @@ class ColorBlindnessTest(Module):
         performance_threshold: int,
         hide_after: float,
     ):
-        class ColorBlindnessTrialMaker(NonAdaptiveTrialMaker):
+        class ColorBlindnessTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a tuple (score: float, passed: bool)"""
                 score = 0
@@ -1040,7 +1034,7 @@ class ColorBlindnessTest(Module):
         )
 
     def trial(self, time_estimate: float, hide_after: float):
-        class ColorBlindnessTrial(NonAdaptiveTrial):
+        class ColorBlindnessTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "color_blindness_trial"}
 
             def show_trial(self, experiment, participant):
@@ -1122,13 +1116,13 @@ class ColorVocabularyTest(Module):
     ):
         self.label = label
         self.colors = self.colors if colors is None else colors
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(
                 time_estimate_per_trial, performance_threshold, self.colors
             ),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     colors = [
         ("turquoise", [174, 72, 56]),
@@ -1156,7 +1150,7 @@ class ColorVocabularyTest(Module):
     def trial_maker(
         self, time_estimate_per_trial: float, performance_threshold: int, colors: list
     ):
-        class ColorVocabularyTrialMaker(NonAdaptiveTrialMaker):
+        class ColorVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a tuple (score: float, passed: bool)"""
                 score = 0
@@ -1177,7 +1171,7 @@ class ColorVocabularyTest(Module):
         )
 
     def trial(self, time_estimate: float):
-        class ColorVocabularyTrial(NonAdaptiveTrial):
+        class ColorVocabularyTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "color_vocabulary_trial"}
 
             def show_trial(self, experiment, participant):
@@ -1213,9 +1207,9 @@ class ColorVocabularyTest(Module):
         return StimulusSet("color_vocabulary", stimuli)
 
 
-class HeadphoneCheck(Module):
+class HeadphoneTest(Module):
     """
-    The headphone check makes sure that the participant is wearing headphones. In each trial,
+    The headphone test makes sure that the participant is wearing headphones. In each trial,
     three sounds separated by silences are played and the participent's must judge which sound
     was the softest (quietest). See the documentation for further details.
 
@@ -1223,7 +1217,7 @@ class HeadphoneCheck(Module):
     ----------
 
     label : string, optional
-        The label for the color headphone check, default: "headphone_check".
+        The label for the color headphone check, default: "headphone_test".
 
     media : string, optional
         The url under which the images to be displayed can be referenced, default:
@@ -1238,17 +1232,17 @@ class HeadphoneCheck(Module):
 
     def __init__(
         self,
-        label="headphone_check",
+        label="headphone_test",
         media_url: str = "https://s3.amazonaws.com/headphone-check",
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
     ):
         self.label = label
-        self.events = join(
+        self.elts = join(
             self.instruction_page(),
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
-        super().__init__(self.label, self.events)
+        super().__init__(self.label, self.elts)
 
     def instruction_page(self):
         return InfoPage(
@@ -1266,7 +1260,7 @@ class HeadphoneCheck(Module):
     def trial_maker(
         self, media_url: str, time_estimate_per_trial: float, performance_threshold: int
     ):
-        class HeadphoneTrialMaker(NonAdaptiveTrialMaker):
+        class HeadphoneTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a tuple (score: float, passed: bool)"""
                 score = 0
@@ -1277,7 +1271,7 @@ class HeadphoneCheck(Module):
                 return {"score": score, "passed": passed}
 
         return HeadphoneTrialMaker(
-            id_="headphone_check_trials",
+            id_="headphone_test_trials",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
@@ -1287,7 +1281,7 @@ class HeadphoneCheck(Module):
         )
 
     def trial(self, time_estimate: float):
-        class HeadphoneTrial(NonAdaptiveTrial):
+        class HeadphoneTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "headphone_trial"}
 
             def show_trial(self, experiment, participant):
@@ -1305,7 +1299,7 @@ class HeadphoneCheck(Module):
 
     def get_stimulus_set(self, media_url: str):
         return StimulusSet(
-            "headphone_check",
+            "headphone_test",
             [
                 StimulusSpec(
                     definition={

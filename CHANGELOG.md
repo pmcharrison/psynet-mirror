@@ -1,25 +1,72 @@
 # Changelog
 
-# [2.0.0]
+# [2.1.1] Released on 2021-06-10
+
+#### Fixed
+- Fixed incorrect version number.
+
+# [2.1.0] Released on 2021-06-10
+
+#### Added
+- Added new support for trial-level answer scoring and performance bonuses, 
+  via the `Trial.score_answer` and `Trial.compute_bonus` methods.
+- Added `fade_out` option to `AudioPrompt`.
+
+#### Fixed
+- Improved robustness of browser-based regression tests.
+- Fixed incorrect performance bonus assignment for trial makers initialized with `check_performance_every_trial = True`. 
+- Various bugfixes in audio-visual playback/recording interfaces.
+- Reverted the new language config.txt parameter, which was causing problems in various situations.
+  This functionality will be reinstated in the upcoming Dallinger release.
+
+# [2.0.0] Released on 2021-05-31
 
 #### Added
 - Added support for video imitation chains and camera/screen record trials.
 - Added a new system for organizing the timing of front-end events.
-The API for some `Prompt` and `Control` elements has changed
-somewhat as a result.
-- Added `ProgressDisplay` functionality, which visualizes the 
-current progress in the trial with text messages and/or
+The API for some `Prompt` and `Control` elements has changed somewhat as a result.
+- Added `ProgressDisplay` functionality, which visualizes the  current progress in the trial with text messages and/or
 progress bars. 
 - Added `controls`, `muted`, and `hide_when_finished` arguments to `VideoPrompt`. 
+- PsyNet now requires a `language` argument in config.txt.
+- New function: `psynet.utils.get_language`, which returns the language
+specified in config.txt.
+- Added the ability to parallelize stimulus generation in `AudioGibbs` experiments.
+- Added `current_module` to a participant's export data.
+- Allow for arbitrary number of audio record channels in `VideoRecordControl`.
+- Update Dallinger to v7.4.0.
 
-#### Changed
+#### Renamed
 - Changed several methods from English to US spelling: `synthesise_target` (now `synthesize_target`), 
-`summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), and all prompts and pre-screening tasks involving `colour` (now `color`).
+`summarise_trial` (now `summarize_trial`), `analyse_trial` (now `analyze_trial`), 
+and all prompts and pre-screening tasks involving `colour` (now `color`).
 - The output format for `TimedPushButtonControl` has now changed to use 
 camel case consistently, e.g. writing `buttonId` instead of `button_id`.
 This reflects the camel case formatting conventions of the trial
-scheduler and the JS front-end. 
+scheduler and the JS front-end.
+- Renamed `REPPMarkersCheck` -> `REPPMarkersTest`.
+- Renamed `AttentionCheck` -> `AttentionTest`.
+- Renamed `HeadphoneCheck` -> `HeadphoneTest`.
+- Renamed `active_balancing_across_chains` -> `balance_across_chains`.
+- Renamed `NonAdaptive` -> `Static`.
+
+#### Fixed
+- make `play_window` work in `VideoPrompt`.
+- Add `try`/`except` blocks in case of an `SMTPAuthenticationError`/`Exception` when calling `admin_notifier()`.
+- Make `switch` work when a `TrialMaker` is given as a branch.
+- Add `max_wait_time` and `max_loop_time` to `wait_while` and `while_loop`,  resp., to prevent participants from waiting forever.
+
+#### Changed
+- PsyNet now forces `disable_when_duration_exceeded = False` in `config.txt`.
+This is done to avoid a rare bug where recruitment would be shut down erroneously in long-running experiments.
 - `psynet debug` now warns the user if the app title is too long.
+- Allow varying numbers of arguments in function argument of `StartSwitch`.
+
+#### BREAKING CHANGES
+- Required `language` argument in config.txt.
+- Required `disable_when_duration_exceeded = False` argument in config.txt
+- Various renamings, see section 'Renamed' above.
+
 
 #### Fixed
 - `play_window` now works in `VideoPrompt`. 
@@ -52,11 +99,12 @@ This means that the tasks now run on the clock dyno,
 and are now robust to dyno restarts, app crashes etc.
 - Apply DRY principle to demo directories (delete redundant error.html and layout.html files).
 - Change the way experiment variables are set. For details on this important change, see the documentation at https://computational-audition-lab.gitlab.io/psynet/low_level/Experiment.html
+- PsyNet now uses the `experiment_routes` and `dashboard_tab` functionality 
+implemented in Dallinger v7.3.0.
 
 #### Fixed
-- Fix bug in non-adaptive experiments related to SQLAlchemy.
+- Fix bug in static experiments related to SQLAlchemy.
 - Prevent multiple instances of `check_database` from running simultaneously.
-
 
 # [1.13.1] Released on 2021-05-05
 
@@ -116,7 +164,7 @@ and are now robust to dyno restarts, app crashes etc.
 - Added `NumberControl`, `SliderControl`, `AudioSliderControl` controls.
 - Added new `directional` attribute to `Slider`.
 - Added optional reset button to `CheckboxControl` and `RadioButtonControl`.
-- Added new pre-screenings `AttentionCheck`, `LanguageVocabularyTest`, `LexTaleTest`, `REPPMarkersCheck`, `REPPTappingCalibration`, `REPPVolumeCalibrationMarkers`, and `REPPVolumeCalibrationMusic`.
+- Added new pre-screenings `AttentionTest`, `LanguageVocabularyTest`, `LexTaleTest`, `REPPMarkersTest`, `REPPTappingCalibration`, `REPPVolumeCalibrationMarkers`, and `REPPVolumeCalibrationMusic`.
 - Added demos for new pre-screenings.
 - Added favicon.ico.
 

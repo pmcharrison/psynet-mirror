@@ -185,7 +185,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
     for usage instructions.
     """
 
-    def finalise_trial(self, answer, trial, experiment, participant):
+    def finalize_trial(self, answer, trial, experiment, participant):
         """
         Modifies ``answer`` so as to store three values:
 
@@ -200,7 +200,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
             "role": trial.definition["ordered"][position]["role"],
             "value": trial.definition["ordered"][position]["value"],
         }
-        super().finalise_trial(answer, trial, experiment, participant)
+        super().finalize_trial(answer, trial, experiment, participant)
 
     def get_answer_for_consistency_check(self, trial):
         role = trial.answer["role"]

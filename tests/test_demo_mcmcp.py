@@ -34,6 +34,8 @@ class TestExp:
         exp = exp_class.new(db_session)
         assert exp.var.min_browser_version == "80.0"
         assert exp.var.max_participant_payment == 25.0
+        assert exp.var.hard_max_experiment_payment == 1100.0
+        assert exp.var.hard_max_experiment_payment_email_sent is False
         assert exp.var.soft_max_experiment_payment == 1000.0
         assert exp.var.soft_max_experiment_payment_email_sent is False
         assert exp.var.wage_per_hour == 9.0

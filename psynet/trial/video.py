@@ -61,7 +61,7 @@ class CameraImitationChainNode(MediaImitationChainNode):
 
 class CameraImitationChainSource(MediaImitationChainSource):
     """
-    A Source class for imitation chains.
+    A Source class for camera imitation chains.
     """
 
     __mapper_args__ = {"polymorphic_identity": "video_imitation_chain_source"}

@@ -444,7 +444,7 @@
             }
         };
 
-        psynet.trial.onEvent("prepare", () => {
+        psynet.trial.onEvent("trialPrepare", () => {
             snap_slider();
             on_slider_event('initialise');
             slider.update_log();
@@ -727,8 +727,10 @@
                 <span>Upload</span>
             </button>
             <div id="record-loop">
-                <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
-                <label>Loop</label>
+                <label style="cursor: pointer;">
+                    <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
+                    Loop
+                </label>
             </div>
         </div>
     {% endif %}
@@ -751,25 +753,24 @@
                 psynet.trial.restart();
             });
 
-            $("#btn-record-play-prompt").on("click", function() {
-                psynet.trial.stop();
-                let options = psynet.utils.shallow_copy(audio_prompt_player_options);
-                options.loop = loop;
-                psynet.media.stop_all_audio();
-                psynet.audio.prompt.play(options);
+            $("#btn-record-play-prompt").on("click", async function() {
+                await psynet.media.stop_all_audio();
+                await psynet.trial.restart({from: "promptStart"});
             });
 
-            $("#btn-record-play-recording").on("click", function() {
-                playRecording();
+            $("#btn-record-play-recording").on("click", async function() {
+                await psynet.media.stop_all_audio();
+                await psynet.trial.stop();
+                await psynet.page.control.playRecording();
             });
 
-            $("#btn-record-stop").on("click", function() {
-                psynet.media.stop_all_audio();
-                psynet.trial.stop();
+            $("#btn-record-stop").on("click", async function() {
+                await psynet.trial.stop();
+                await psynet.page.control.stopRecordingPlayback();
             });
 
             $("#record-loop-input").on("change", function(event) {
-                loop = event.target.checked;
+                loopRecorder = event.target.checked;
             });
 
             $("#btn-record-upload").on("click", function() {
@@ -792,15 +793,12 @@
 
         let recorderControls = {{ config.controls | lower }};
         let replayMode = false;
-        let loop = {{ config.loop_playback | tojson }};
+        let loopRecorder = {{ config.loop_playback | tojson }};
 
         psynet.trial.onEvent("recordEnd", function() {
             if (!replayMode) {
                 hasRecorded = true;
             }
-        });
-
-        psynet.trial.onEvent("recordEnd", function() {
             $("#btn-record-play-recording").attr("disabled", false);
             $("#btn-record-play-all").attr("disabled", false);
             $("#btn-record-upload").prop("disabled", false);
@@ -809,7 +807,7 @@
                 psynet.trial.registerEvent("uploadStart");
             }
         }, {
-            priority: 100 // ensures that this is only executed once all the media processing completes
+            priority: -100 // ensures that this is only executed once all the media processing completes
         });
 
         psynet.trial.onEvent("trialStop", function() {
@@ -817,7 +815,7 @@
         });
 
         psynet.trial.onEvent("trialFinished", function() {
-            if (loop) {
+            if (loopRecorder) {
                 psynet.trial.restart();
             }
         });
@@ -826,19 +824,18 @@
             psynet.media.stop_all_audio();
         });
 
-        let supportedPrompts = ["audio"];
+        let supportedPrompts = ["audio", "video"];
         if (!supportedPrompts.includes(modular_page_components.prompt)) {
             $("#btn-record-play-prompt").hide();
             $("#btn-record-play-all").hide();
         }
 
-        psynet.trial.onEvent("trialStart", () => {
-            if (psynet.audio.prompt) {
+        psynet.trial.onEvent("trialConstruct", () => {
+            if (psynet.audio.prompt || psynet.video.prompt) {
                 $("#btn-record-play-prompt").prop("disabled", false);
-
             }
             $("#btn-record-record").prop("disabled", false);
-        });
+        }, {priority: - 1000});
 
         function uploadToS3(blob, presignedUrl) {
             return new Promise(resolve => {
@@ -873,10 +870,14 @@
 
         var recorder;
         var hasRecorded = false;
-        var recording_blob;
+        var recordingBlob;
 
-        var playRecording = async function() {
+        psynet.page.control.playRecording = async function() {
             await psynet.audio.recording.play();
+        }
+
+        psynet.page.control.stopRecordingPlayback = async function() {
+            await psynet.media.stop_all_audio();
         }
 
         psynet.trial.onEvent("recordStart", function() {
@@ -897,15 +898,15 @@
         psynet.trial.onEvent("recordEnd", async function() {
             if (!replayMode) {
                 await recorder.stop();
-                recording_blob = await getAudioRecording();
-                let buffer = await psynet.media.blob_to_array_buffer(recording_blob);
+                recordingBlob = await getAudioRecording();
+                let buffer = await psynet.media.blob_to_array_buffer(recordingBlob);
                 await psynet.media.add_extra_audio_stimulus(buffer, "recording");
             }
         });
 
         psynet.trial.onEvent("uploadStart", async function() {
             try {
-                await uploadToS3(recording_blob, presignedUrl);
+                await uploadToS3(recordingBlob, presignedUrl);
                 // We don't want to wait for the following line, not sure how to get round
                 // the linter complaining here.
                 psynet.trial.registerEvent("uploadEnd", {info: {url: presignedUrl}});
@@ -975,20 +976,28 @@
         psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
         {% endautoescape %}
 
-        let videoPlayer = document.getElementById('video-control');
+        let videoPreviewPlayer = document.getElementById('video-control');
         let screenVideo = document.getElementById('screen-recording');
 
-        let recording_source = "{{ config.recording_source | lower }}";
-        let recording_camera = recording_source == "camera" || recording_source == "both";
-        let recording_screen = recording_source == "screen" || recording_source == "both";
+        let recordingSource = "{{ config.recording_source | lower }}";
+        let recordingCamera = recordingSource == "camera" || recordingSource == "both";
+        let recordingScreen = recordingSource == "screen" || recordingSource == "both";
 
-        if (recording_camera) {
+        if (recordingCamera) {
             let cameraStream = null;
             var videoRecorder = null;
+            let audioSettings = null; 
+
+            if ({{ config.record_audio | lower }}) {
+                audioSettings = { 
+                    channelCount: {{ config.audio_num_channels }} 
+                };
+            }
+            else { audioSettings = false; }
 
             psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
                 navigator.mediaDevices.getUserMedia({
-                    audio: {{ config.record_audio | lower }},
+                    audio: audioSettings,
                     video: true,
                 }).then((stream) => {
                     psynet.log.debug("Initialising video recorder.");
@@ -1016,11 +1025,15 @@
                 await loadCameraPreview();
             });
 
-            var playRecording = async function() {
+            psynet.page.control.playRecording = async function() {
                 await loadRecordedVideo();
-                videoPlayer.play();
-                videoPlayer.addEventListener("ended", loadCameraPreview, {once: true});
+                videoPreviewPlayer.play();
+                videoPreviewPlayer.addEventListener("ended", loadCameraPreview, {once: true});
             };
+
+            psynet.page.control.stopRecordingPlayback = async function() {
+                loadCameraPreview();
+            }
 
             let videoDisplayMode = null;
 
@@ -1028,12 +1041,12 @@
                 if (videoDisplayMode == "playback") {
                     return;
                 }
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
+                videoPreviewPlayer.src = null;
+                videoPreviewPlayer.srcObject = null;
                 let blob = psynet.media.data.videoBlob;
-                videoPlayer.src = URL.createObjectURL(blob);
-                videoPlayer.muted = false;
-                await videoPlayer.pause();
+                videoPreviewPlayer.src = URL.createObjectURL(blob);
+                videoPreviewPlayer.muted = false;
+                await videoPreviewPlayer.pause();
                 videoDisplayMode = "playback";
             }
 
@@ -1041,17 +1054,17 @@
                 if (videoDisplayMode == "preview") {
                     return;
                 }
-                videoPlayer.src = null;
-                videoPlayer.srcObject = null;
-                setSrcObject(cameraStream, videoPlayer);
-                videoPlayer.muted = true;
-                await videoPlayer.play();
+                videoPreviewPlayer.src = null;
+                videoPreviewPlayer.srcObject = null;
+                setSrcObject(cameraStream, videoPreviewPlayer);
+                videoPreviewPlayer.muted = true;
+                await videoPreviewPlayer.play();
                 videoDisplayMode = "preview";
             }
 
             psynet.trial.onEvent("recordStart", async function() {
                 if (replayMode) {
-                    await playRecording();
+                    await psynet.page.control.playRecording();
                 } else {
                     await videoRecorder.startRecording(videoRecorder.stream);
                 }
@@ -1066,11 +1079,13 @@
             });
 
             psynet.trial.onEvent("trialStop", async function() {
-                let state = await videoRecorder.getState();
-                if (state != "inactive") {
-                    await videoRecorder.stopRecording();
+                if (videoRecorder !== null) {
+                    let state = await videoRecorder.getState();
+                    if (state != "inactive") {
+                        await videoRecorder.stopRecording();
+                    }
+                    await videoRecorder.reset();
                 }
-                await videoRecorder.reset();
                 await loadCameraPreview();
             });
         }
@@ -1079,7 +1094,7 @@
         let screenRecorder = null;
         let screenStream = null;
 
-        if (recording_screen) {
+        if (recordingScreen) {
             psynet.trial.onEvent("trialConstruct", () => new Promise((resolve) => {
                 navigator.mediaDevices.getDisplayMedia({
                     video: true
@@ -1126,10 +1141,10 @@
 
         psynet.trial.onEvent("uploadStart", async function() {
             let promises = [];
-            if (recording_camera) {
+            if (recordingCamera) {
                 promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
             }
-            if (recording_screen) {
+            if (recordingScreen) {
                 promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
             }
             try {

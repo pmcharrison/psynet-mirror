@@ -22,6 +22,3 @@ class Exp(psynet.experiment.Experiment):
         PrincetonConsent(),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

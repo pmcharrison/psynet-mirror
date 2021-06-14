@@ -1,26 +1,7 @@
+from typing import List, Union
+
 from .modular_page import Prompt
 from .timeline import Event
-
-
-class Chord(dict):
-    def __init__(
-        self,
-        pitches,
-        duration="default",
-        silence="default",
-        timbre="default",
-    ):
-        super().__init__(
-            pitches=pitches,
-            duration=duration,
-            silence=silence,
-            channel=timbre,
-        )
-
-
-class Note(Chord):
-    def __init__(self, pitch, **kwargs):
-        super().__init__(pitches=[pitch], **kwargs)
 
 
 class Timbre(dict):
@@ -32,24 +13,67 @@ class Timbre(dict):
 class ADSRTimbre(Timbre):
     """
     ADSR timbre base class - not to be instantiated directly.
+
+    ADSR is an acronym for 'Attack, Decay, Sustain, Release'.
+    It is a well-known simple model for the temporal dynamics of an instrument sound.
+
+    Parameters
+    ----------
+
+    attack:
+        Duration of the 'attack' portion of the sound, in seconds.
+
+    decay:
+        Duration of the 'decay' portion of the sound, in seconds.
+
+    sustain_amp:
+        Amplitude of the 'sustain' portion of the sound, in seconds,
+        where '1' corresponds to the maximum amplitude of the sound
+        (as experienced at the transition between the 'attack' and
+        'decay' portions.
+
+    duration:
+        Duration of the tone, in seconds.
+
+    release:
+        Duration of the 'release' portion of the sound, in seconds.
     """
 
     def __init__(
         self,
-        attack=0.2,
-        decay=0.1,
-        sustain_amp=0.8,
-        duration=1.0,
+        attack: float = 0.2,
+        decay: float = 0.1,
+        sustain_amp: float = 0.8,
+        duration: float = 0.75,
+        release: float = 0.4,
     ):
         super().__init__(
             attack=attack,
             decay=decay,
             sustain_amp=sustain_amp,
             duration=duration,
+            release=release,
         )
 
 
 class AdditiveTimbre(ADSRTimbre):
+    """
+    Defines an additive timbre. An additive timbre is defined by a collection
+    of frequencies and corresponding amplitudes.
+
+    Parameters
+    ----------
+
+    frequencies:
+        A list of frequencies, expressed in units of the fundamental frequency.
+
+    amplitudes:
+        A list of amplitudes, where 1 is typically the amplitude of the fundamental frequency.
+
+    **kwargs:
+        Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
+    """
+
     def __init__(
         self,
         frequencies,
@@ -70,16 +94,20 @@ class AdditiveTimbre(ADSRTimbre):
 
 class HarmonicTimbre(ADSRTimbre):
     """
-    Harmonic timbre
+    Defines a simple harmonic timbre, where all the frequencies are at integer multiples of one another,
+    and the amplitudes decline predictably with increasing harmonic number.
 
     Parameters
     ----------
 
     num_harmonics:
-        Number of harmonics.
+        Number of harmonics; defaults to 10.
 
     roll_off:
-        Roll-off in units of dB/octave
+        Roll-off of the harmonic amplitudes in units of dB/octave; defaults to 12.0.
+
+    **kwargs:
+        Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
     """
 
     def __init__(
@@ -100,16 +128,20 @@ class HarmonicTimbre(ADSRTimbre):
 
 class CompressedTimbre(ADSRTimbre):
     """
-    Compressed harmonic timbre (inharmonicity/octave_definition coefficient of 1.9)
+    This is like the :class:`~psynet.js_synth.HarmonicTimbre`, except with the frequencies compressed slightly,
+    such that the octave corresponds to a frequency ratio of 1.9 rather than 2.0.
 
     Parameters
     ----------
 
     num_harmonics:
-        Number of harmonics.
+        Number of harmonics; defaults to 10.
 
     roll_off:
-        Roll-off in units of dB/octave
+        Roll-off of the harmonic amplitudes in units of dB/octave; defaults to 12.0.
+
+    **kwargs:
+        Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
     """
 
     def __init__(
@@ -125,22 +157,26 @@ class CompressedTimbre(ADSRTimbre):
 
         self["type"] = "compressed"
         self["num_harmonics"] = num_harmonics
-        self["max_num_harmonics"] = 30
+        self["max_num_harmonics"] = 10
         self["roll_off"] = roll_off
 
 
 class StretchedTimbre(ADSRTimbre):
     """
-    Stretched harmonic timbre (inharmonicity/octave_definition coefficient of 2.1)
+    This is like the :class:`~psynet.js_synth.HarmonicTimbre`, except with the frequencies stretched slightly,
+    such that the octave corresponds to a frequency ratio of 2.0 rather than 1.9.
 
     Parameters
     ----------
 
     num_harmonics:
-        Number of harmonics.
+        Number of harmonics; defaults to 10.
 
     roll_off:
-        Roll-off in units of dB/octave
+        Roll-off of the harmonic amplitudes in units of dB/octave; defaults to 12.0.
+
+    **kwargs:
+        Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
     """
 
     def __init__(
@@ -161,20 +197,58 @@ class StretchedTimbre(ADSRTimbre):
 
 
 class ShepardTimbre(ADSRTimbre):
+    """
+    Defines a Shepard tone timbre. Shepard tones are generated by introducing octave transpositions
+    for each of the partials provided in a given additive synthesis. Concretely, each of the specified
+    partials (e.g. in a harmonic complex tone) is augmented by 2 * num_octave_transpositions octaves,
+    positioned symmetrically around each partial frequency. The octave transpositions are weighted using
+    Gaussian weights. By default the Gaussian mean is set to 65.5 semitones and has a standard deviation
+    of 8.2 semitones.
+
+    Parameters
+    ----------
+
+    num_octave_transpositions:
+        Number of octave transpositions to use in the Shepard synthesis; defaults to 4.
+
+    shepard_center:
+        The mean of the Gaussian weights used in the Shepard synthesis; defaults to 65.5.
+
+    shepard_width:
+        The standard deviation of the Gaussian weights used in the Shepard synthesis; defaults to 8.2.
+
+    **kwargs:
+        Extra parameters to pass to :class:`~psynet.js_synth.ADSRTimbre`.
+    """
+
     def __init__(
         self,
         num_octave_transpositions=4,
+        shepard_center=65.5,
+        shepard_width=8.2,
         **kwargs,
     ):
         super().__init__(**kwargs)
 
-        self.num_harmonics = 1
+        self["num_harmonics"] = 1
         self.num_octave_transpositions = num_octave_transpositions
-
         self["num_octave_transpositions"] = num_octave_transpositions
+        self.shepard_center = shepard_center
+        self["shepard_center"] = shepard_center
+        self.shepard_width = shepard_width
+        self["shepard_width"] = shepard_width
 
 
 class InstrumentTimbre(Timbre):
+    """
+    Defines an instrument timbre. The timbre is constructed using the Sampler class of Tone.js with samples
+    taken from the MIDI.js Soundfont database (https://github.com/gleitz/midi-js-soundfonts). The Tone.js
+    sampler is provided a note-to-sample dictionary which it then uses to synthesize tones for any
+    required pitch. This is done by pitch-shifting the nearest pitch sample in the dictionary to the
+    desired value, allowing for continuous pitch manipulation.
+    For specific implementation details, see (https://github.com/Tonejs/Tone.js/blob/c313bc6/Tone/instrument/Sampler.ts#L297).
+    """
+
     def __init__(self, type):
         super().__init__()
         assert type in [
@@ -189,12 +263,112 @@ class InstrumentTimbre(Timbre):
             "trumpet",
         ]
         self["type"] = type
-        self["num_octave_transpositions"] = 0  # <-- should not be necessary
+        self["num_octave_transpositions"] = 0
+
+
+class Chord(dict):
+    """
+    A chord is a collection of notes to be played to the user.
+    Chords can be played using the :class:`~psynet.js_synth.JSSynth` control.
+
+    Parameters
+    ----------
+
+    pitches:
+        A list of pitches to be played, with each pitch expressed as a number on the MIDI scale,
+        where 60 corresponds to middle C (C4) and integer values correspond to semitones.
+
+    duration:
+        The duration of the chord, in seconds.
+        If left to its default value (`"default"`), then the chord's duration will instead be inherited
+        from the ``default_duration`` argument provided to :class:`~psynet.js_synth.JSSynth`.
+
+    silence:
+        The length of silence to have after the chord, in seconds.
+        If left to its default value (`"default"`), then the chord's duration will instead be inherited
+        from the ``default_silence`` argument provided to :class:`~psynet.js_synth.JSSynth`.
+
+    timbre:
+        The timbre with which to play the chord, specified as a string.
+        There are three different configurations that one can use:
+        - Leave both ``timbre`` arguments at their default values of ``"default"``. In this case the chord
+          will be played with a standard harmonic complex tone.
+        - Set the ``timbre`` argument in :class:`~psynet.js_synth.JSSynth` to a customized timbre,
+          for example ``InstrumentTimbre("piano"), while leaving the timbre argument in :class:`~psynet.js_synth.Chord`
+          to its default value. In this case the chord will be played with the customized timbre.
+        - Set the ``timbre`` argument in :class:`~psynet.js_synth.JSSynth` to a dictionary of customized timbres,
+          and select from this dictionary by specifying an appropriate key in the ``timbre`` argument
+          of the :class:`~psynet.js_synth.Chord` object. This provides a way to move between multiple timbres
+          in the same sequence.
+    """
+
+    def __init__(
+        self,
+        pitches: List[float],
+        duration: Union[float, str] = "default",
+        silence: Union[float, str] = "default",
+        timbre: str = "default",
+    ):
+        super().__init__(
+            pitches=pitches,
+            duration=duration,
+            silence=silence,
+            channel=timbre,
+        )
+
+
+class Note(Chord):
+    """
+    A convenience wrapper for :class:`~psynet.js_synth.Chord` where each chord only contains one note.
+    This is useful for writing melodies.
+
+    Parameters
+    ----------
+
+    pitch:
+        The note's pitch, expressed as a number on the MIDI scale,
+        where 60 corresponds to middle C (C4) and integer values correspond to semitones.
+
+    **kwargs:
+        Further options passed to :class:`~psynet.js_synth.Chord`.
+    """
+
+    def __init__(self, pitch: float, **kwargs):
+        assert isinstance(pitch, (float, int))
+        super().__init__(pitches=[pitch], **kwargs)
+
+
+class Rest(Chord):
+    """
+    A convenience wrapper for :class:`~psynet.js_synth.Chord` that defines a rest,
+    i.e., a silence of a specified duration.
+
+    Parameters
+    ----------
+
+    duration:
+        Duration of the rest (in seconds).
+    """
+
+    def __init__(self, duration: Union[float, int]):
+        assert isinstance(duration, (float, int))
+        super().__init__(pitches=[], duration=duration, silence=0.0)
 
 
 class JSSynth(Prompt):
     """ "
     JS synthesizer.
+    This uses a Javascript library ('js-synthesizer')written by Raja Marjieh,
+    which itself depends heavily on the Tone.JS library.
+    The API for this synthesizer should be considered experimental and potentially subject to change.
+
+    The synthesizer allows for playing sequences of arbitrary notes or chords.
+    Only a limited form of polyphony is supported: specifically, the synthesizer can play chords,
+    but all the notes in an individual chord must start and end at the same time.
+
+    Note: due to a limitation of the underlying library, performance will suffer drastically
+    if you try and combine Shepard tones with harmonic tones in the same sequence.
+
 
     Parameters
     ----------
@@ -255,8 +429,8 @@ class JSSynth(Prompt):
 
         options = dict(
             max_num_pitches=0,
-            max_num_harmonics=10,  # <-- we should be able to decrease it to 0 but it fails with the piano
-            max_num_octave_transpositions=0, # Change this value to 4 if you want to use shepard tones
+            max_num_harmonics=1,
+            max_num_octave_transpositions=0,
             instruments=[],
         )
 

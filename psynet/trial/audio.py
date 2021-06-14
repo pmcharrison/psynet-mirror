@@ -57,7 +57,7 @@ class AudioImitationChainNode(MediaImitationChainNode):
 
 class AudioImitationChainSource(MediaImitationChainSource):
     """
-    A Source class for imitation chains.
+    A Source class for audio imitation chains.
     """
 
     __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_source"}

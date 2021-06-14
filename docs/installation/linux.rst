@@ -107,7 +107,7 @@ In the example below Dallinger is cloned into the user's home directory, but you
    git clone https://github.com/Dallinger/Dallinger
    cd Dallinger
    pip install -r dev-requirements.txt
-   pip install --editable .[data]
+   pip install --editable '.[data]'
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -168,7 +168,7 @@ Install additional Python packages
 
 .. code-block:: bash
 
-    pip install -e .[dev]
+    pip install -e '.[dev]'
 
 Install the Git pre-commit hook
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

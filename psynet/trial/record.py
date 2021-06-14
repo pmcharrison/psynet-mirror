@@ -155,7 +155,7 @@ class RecordTrial:
             A dictionary of analysis information to be saved in the trial's ``analysis`` slot.
             This dictionary must include the boolean attribute ``failed``, determining
             whether the trial is to be failed.
-            The following optional terms are also recognised by PsyNet:
+            The following optional terms are also recognized by PsyNet:
 
             - ``no_plot_generated``: Set this to ``True`` if the function did not generate any output plot,
               and this will tell PsyNet not to try uploading the output plot to S3.
@@ -222,7 +222,7 @@ class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
 
 class MediaImitationChainNode(ImitationChainNode):
     """
-    A Node class for imitation chains.
+    A Node class for media imitation chains.
     Users must override the
     :meth:`~psynet.trial.audio.MediaImitationChainNode.synthesize_target` method.
     """
@@ -243,7 +243,7 @@ class MediaImitationChainNode(ImitationChainNode):
 
 class MediaImitationChainSource(ImitationChainSource):
     """
-    A Source class for imitation chains.
+    A Source class for media imitation chains.
     """
 
     __mapper_args__ = {"polymorphic_identity": "media_imitation_chain_source"}
@@ -251,7 +251,7 @@ class MediaImitationChainSource(ImitationChainSource):
 
 class MediaImitationChainTrialMaker(ImitationChainTrialMaker):
     """
-    A TrialMaker class for imitation chains;
+    A TrialMaker class for media imitation chains;
     see the documentation for
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.

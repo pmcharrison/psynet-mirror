@@ -74,6 +74,3 @@ class CustomExp(psynet.experiment.Experiment):
         make_example(example_3),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = CustomExp().extra_routes()

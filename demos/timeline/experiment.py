@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from dallinger.experiment import experiment_route
+
 import psynet.experiment
 from psynet.modular_page import (
     ModularPage,
@@ -33,6 +35,11 @@ class Exp(psynet.experiment.Experiment):
         "wage_per_hour": 12.0,
         "new_variable": "some-value",
     }
+
+    @experiment_route("/custom_route", methods=["POST", "GET"])
+    @classmethod
+    def custom_route(cls):
+        return f"A custom route for {cls.__name__}."
 
     timeline = Timeline(
         InfoPage("Welcome to the experiment!", time_estimate=5),
@@ -195,6 +202,3 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
-
-
-extra_routes = Exp().extra_routes()

@@ -32,7 +32,7 @@ The color vocabulary test checks the participant's ability to name colors. In ea
 Headphone check
 ---------------
 
-The headphone check makes sure that the participant is wearing headphones. In each trial, three sounds separated by silences are played and the participent's must judge which sound was the softest (quietest). See the documentation for :class:`~psynet.prescreen.HeadphoneCheck` for further details.
+The headphone check makes sure that the participant is wearing headphones. In each trial, three sounds separated by silences are played and the participent's must judge which sound was the softest (quietest). See the documentation for :class:`~psynet.prescreen.HeadphoneTest` for further details.
 
-.. image:: ../_static/images/headphone_check.png
+.. image:: ../_static/images/headphone_test.png
   :alt: Headphone check

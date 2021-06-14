@@ -44,3 +44,5 @@ pages:
     paths:
     - public
     - public/low_level
+  only:
+  - master

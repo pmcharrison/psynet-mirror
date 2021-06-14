@@ -215,6 +215,7 @@ def wait_while(
     condition,
     expected_wait: float,
     check_interval: float = 2.0,
+    max_wait_time: float = 20.0,
     wait_page=WaitPage,
     log_message: Optional[str] = None,
 ):
@@ -239,6 +240,9 @@ def wait_while(
 
     check_interval
         How often should the browser check the condition, in seconds.
+
+    max_wait_time
+        The participant's maximum waiting time in seconds. Default: 20.0.
 
     wait_page
         The wait page that should be displayed to the participant;
@@ -267,8 +271,14 @@ def wait_while(
     else:
         logic = join(CodeBlock(log), _wait_page)
 
-    return while_loop(
-        "wait_while", condition, logic=logic, expected_repetitions=expected_repetitions
+    return join(
+        while_loop(
+            "wait_while",
+            condition,
+            logic=logic,
+            expected_repetitions=expected_repetitions,
+            max_loop_time=max_wait_time,
+        ),
     )
 
 
@@ -277,7 +287,7 @@ class SuccessfulEndPage(EndPage):
     Indicates a successful end to the experiment.
     """
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         participant.complete = True
 
 
@@ -299,7 +309,7 @@ class UnsuccessfulEndPage(EndPage):
         super().__init__()
         self.failure_tags = failure_tags
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         if self.failure_tags:
             assert isinstance(self.failure_tags, list)
             participant.append_failure_tags(*self.failure_tags)
@@ -317,7 +327,7 @@ class RejectedConsentPage(EndPage):
     def __init__(self, failure_tags: Optional[List] = None):
         super().__init__()
 
-    def finalise_participant(self, experiment, participant):
+    def finalize_participant(self, experiment, participant):
         experiment.fail_participant(participant)
         if experiment.need_more_participants:
             experiment.recruiter.recruit(n=1)

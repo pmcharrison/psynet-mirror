@@ -7,12 +7,7 @@ from typing import List, Optional
 import psynet.experiment
 from psynet.page import SuccessfulEndPage, UnityPage
 from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.non_adaptive import (
-    NonAdaptiveTrial,
-    NonAdaptiveTrialMaker,
-    StimulusSet,
-    StimulusSpec,
-)
+from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -118,7 +113,7 @@ class UnityQuestionPage(UnityPage):
 
 
 # In this case the trial comprises multiple pages, each corresponding to an island.
-class IslandTrial(NonAdaptiveTrial):
+class IslandTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "island_trial"}
     num_pages = NUMBER_OF_ISLANDS
     accumulate_answers = True
@@ -159,7 +154,7 @@ class FinalIslandTrial(IslandTrial):
         return kwargs["participant"].get_participant_group("FinalIslands")
 
 
-class IslandTrialMaker(NonAdaptiveTrialMaker):
+class IslandTrialMaker(StaticTrialMaker):
     response_timeout_sec = 1000
 
     def compute_bonus(self, score, passed):
@@ -260,6 +255,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

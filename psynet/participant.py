@@ -127,6 +127,7 @@ class Participant(dallinger.models.Participant):
     )
     base_payment = claim_var("base_payment", __extra_vars__)
     performance_bonus = claim_var("performance_bonus", __extra_vars__)
+    unpaid_bonus = claim_var("unpaid_bonus", __extra_vars__)
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
     client_ip_address = claim_var(
         "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
@@ -214,6 +215,7 @@ class Participant(dallinger.models.Participant):
         self.complete = False
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0
+        self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = client_ip_address
         self.initialised = True
@@ -312,7 +314,7 @@ class Participant(dallinger.models.Participant):
         return TimeCreditStore(self)
 
     def append_branch_log(self, entry: str):
-        # We need to create a new list otherwise the change may not be recognised
+        # We need to create a new list otherwise the change may not be recognized
         # by SQLAlchemy(?)
         if (
             not isinstance(entry, list)

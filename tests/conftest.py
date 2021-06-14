@@ -14,10 +14,10 @@ warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 
 @pytest.fixture(scope="class")
-def demo_non_adaptive(root):
+def demo_static(root):
     global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "non_adaptive"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/non_adaptive"))
+    ACTIVE_EXPERIMENT = "static"
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/static"))
     import psynet.utils
 
     psynet.utils.import_local_experiment()
@@ -78,9 +78,6 @@ def demo_multi_page_maker(root):
     ACTIVE_EXPERIMENT = None
 
 
-# @pytest.mark.usefixtures("demo_non_adaptive_dir")
-
-
 @pytest.fixture
 def experiment_module(db_session):
     import psynet.utils
@@ -123,7 +120,7 @@ def node(db_session, network):
             n for n in nodes if not isinstance(n, Source) and n.definition is not None
         ][0]
     else:
-        raise RuntimeError("Unrecognised ACTIVE_EXPERIMENT: " + ACTIVE_EXPERIMENT)
+        raise RuntimeError("Unrecognized ACTIVE_EXPERIMENT: " + ACTIVE_EXPERIMENT)
 
 
 @pytest.fixture
@@ -136,7 +133,7 @@ def network(db_session, experiment_module):
 
 @pytest.fixture
 def trial_class(experiment_module):
-    if ACTIVE_EXPERIMENT == "non_adaptive":
+    if ACTIVE_EXPERIMENT == "static":
         return experiment_module.AnimalTrial
     elif ACTIVE_EXPERIMENT == "iterated_singing":
         return experiment_module.CustomTrial
@@ -144,7 +141,7 @@ def trial_class(experiment_module):
 
 @pytest.fixture
 def trial_maker(experiment_module):
-    if ACTIVE_EXPERIMENT == "non_adaptive":
+    if ACTIVE_EXPERIMENT == "static":
         return experiment_module.trial_maker
     else:
         raise NotImplementedError

@@ -49,6 +49,8 @@ class CustomNetwork(AudioGibbsNetwork):
     vector_ranges = [RANGE for _ in range(DIMENSIONS)]
     granularity = GRANULARITY
 
+    n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
+
     def make_definition(self):
         return {"target": self.balance_across_networks(TARGETS)}
 
@@ -106,7 +108,7 @@ trial_maker = CustomTrialMaker(
     num_chains_per_participant=3,  # set to None if chain_type="across"
     num_chains_per_experiment=None,  # set to None if chain_type="within"
     trials_per_node=1,
-    active_balancing_across_chains=True,
+    balance_across_chains=True,
     check_performance_at_end=True,
     check_performance_every_trial=False,
     propagate_failure=False,
@@ -136,6 +138,3 @@ class Exp(psynet.experiment.Experiment):
 
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
-
-
-extra_routes = Exp().extra_routes()

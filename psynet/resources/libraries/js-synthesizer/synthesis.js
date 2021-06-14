@@ -4,6 +4,7 @@ class AdditiveComplexTone {
     this.max_num_harmonics = specs["max_num_harmonics"];
     this.attack = specs["attack"];
     this.decay = specs["decay"];
+    this.release = specs["release"];
     this.duration = specs["duration"];
     this.sustain_amp = specs["sustain_amp"];
     this.type = "additive";
@@ -144,10 +145,10 @@ play_stimulus = function (stimulus) {
 }
 
 play_note = function (active_nodes, stimulus, note_dict, time) {
-    var note = {...note_dict}
-    var pitches = note["pitches"]
-    var N = pitches.length
-    var specs = stimulus["channels"][note["channel"]]["synth"]
+    let note = {...note_dict};
+    let pitches = note["pitches"];
+    let N = pitches.length;
+    let specs = {...stimulus["channels"][note["channel"]]["synth"]};
 
     specs["duration"] = note["duration"]
 
@@ -233,7 +234,9 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time){
   ampEnv.attack = synth.attack;
   ampEnv.decay = synth.decay;
   ampEnv.sustain = synth.sustain_amp;
-  ampEnv.release = synth.duration - synth.attack - synth.decay;
+  ampEnv.release = synth.release;
+
+  console.assert(synth.duration - synth.attack - synth.decay - synth.release > 0, "The sum of attack, decay and release phases cannot exceed the full duration of the tone!")
 
   for (i = 0; i < specs["max_num_pitches"]; i++){
     freq = freqs[i]
@@ -262,20 +265,21 @@ custom_timbre_synth = function(active_nodes,freqs,synth,specs,time){
 
     }
   }
-  ampEnv.triggerAttackRelease((synth.attack + synth.decay) * (1 + specs["reg"]), time)
+  ampEnv.triggerAttackRelease(synth.duration - synth.release, time)
 }
 
 generate_additive_nodes = function(options){
   var control_nodes = {}
   var ampEnv = new Tone.AmplitudeEnvelope({
-    "attackCurve" : "linear",
-    "releaseCurve" : "exponential"
+    "attackCurve" : DEFAULT_PARAMS["attackCurve"],
+    "decayCurve": DEFAULT_PARAMS["decayCurve"],
+    "releaseCurve" : DEFAULT_PARAMS["releaseCurve"]
   }).toDestination();
 
   for (i = 0; i < DEFAULT_PARAMS["max_num_pitches"]; i++){
-    var tone_nodes = util.array(2*DEFAULT_PARAMS["max_num_octave_transpositions"]+1,DEFAULT_PARAMS["max_num_harmonics"])
-    for (j=0;j<2*DEFAULT_PARAMS["max_num_octave_transpositions"]+1;j++){
-      for (k=0;k<DEFAULT_PARAMS["max_num_harmonics"];k++){
+    var tone_nodes = util.array(2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1, DEFAULT_PARAMS["max_num_harmonics"])
+    for (j = 0; j < 2 * DEFAULT_PARAMS["max_num_octave_transpositions"] + 1; j++){
+      for (k = 0; k < DEFAULT_PARAMS["max_num_harmonics"]; k++){
         var osc = new Tone.Oscillator({"type": "sine", "volume": -17});
         var gain = new Tone.Gain();
         osc.connect(gain).start();

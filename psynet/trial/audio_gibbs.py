@@ -26,7 +26,8 @@ class AudioGibbsNetwork(GibbsNetwork):
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`,
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_ranges`,
     and optionally
-    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`.
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.granularity`,
+    :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.n_jobs`.
     The user is also invited to override the
     :meth:`psynet.trial.chain.ChainNetwork.make_definition` method
     in situations where different chains are to have different properties
@@ -63,6 +64,13 @@ class AudioGibbsNetwork(GibbsNetwork):
         Must be overridden with a list with length equal to
         :attr:`~psynet.trial.audio_gibbs.AudioGibbsNetwork.vector_length`.
 
+    n_jobs : int
+        Integer indicating how many parallel processes should be used by an individual worker node
+        when generating the stimuli. Note that the final number of parallel processes may
+        be considerably more than this; suppose 4 networks are generating stimuli at the same time,
+        and we have 3 worker nodes, then the effective number of parallel processes will be 3 x 3 = 9.
+        Default is 1, corresponding to no parallelization.
+
     granularity : Union[int, str]
         When a new :class:`~psynet.trial.audio_gibbs.AudioGibbsNode`
         is created, a collection of stimuli are generated that
@@ -82,6 +90,7 @@ class AudioGibbsNetwork(GibbsNetwork):
     vector_length = 0
     vector_ranges = []
     granularity = 100
+    n_jobs = 1
 
     @property
     def synth_function(self):
@@ -165,6 +174,7 @@ class AudioGibbsNetwork(GibbsNetwork):
                     "chain_definition": self.definition,
                     "output_dir": individual_stimuli_dir,
                     "synth_function": self.synth_function,
+                    "n_jobs": self.n_jobs,
                 }
 
                 if granularity == "custom":
@@ -369,22 +379,37 @@ def make_audio_regular_intervals(
     chain_definition,
     output_dir,
     synth_function,
+    n_jobs,
 ):
-    stimuli = []
-    for _i, _value in enumerate(
-        linspace(range_to_sample[0], range_to_sample[1], granularity)
-    ):
+    values = linspace(range_to_sample[0], range_to_sample[1], granularity)
+
+    ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
+    files = [f"{_id}.wav" for _id in ids]
+    paths = [os.path.join(output_dir, _file) for _file in files]
+
+    def _synth(value, path):
         _vector = vector.copy()
-        _vector[active_index] = _value
-        _id = f"slider_stimulus_{_i}"
-        _file = f"{_id}.wav"
-        _path = os.path.join(output_dir, _file)
+        _vector[active_index] = value
         synth_function(
-            vector=_vector, output_path=_path, chain_definition=chain_definition
+            vector=_vector, output_path=path, chain_definition=chain_definition
         )
 
-        stimuli.append({"id": _id, "value": _value, "path": _path})
-    return stimuli
+    parallelize = n_jobs > 1
+    if parallelize:
+        from joblib import Parallel, delayed
+
+        logger.info("Using %d processes in parallel" % n_jobs)
+        Parallel(n_jobs=n_jobs)(
+            delayed(_synth)(_value, _path) for _value, _path in zip(values, paths)
+        )
+    else:
+        for _value, _path in zip(values, paths):
+            _synth(_value, _path)
+
+    return [
+        {"id": _id, "value": _value, "path": _path}
+        for _id, _value, _path in zip(ids, values, paths)
+    ]
 
 
 def make_audio_custom_intervals(

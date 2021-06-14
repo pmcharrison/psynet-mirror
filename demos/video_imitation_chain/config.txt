@@ -15,10 +15,11 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 dashboard_password = capcapcap2021!
 dashboard_user = cap
+disable_when_duration_exceeded = False
 
 [Advert metadata]
 description = In this study, you will be imitating different gestures in a video recording. 
-keywords = non_adaptive
+keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 
@@ -33,6 +34,4 @@ num_dynos_web = 1
 num_dynos_worker = 3
 redis_size = premium-3
 host = 0.0.0.0
-clock_on = false
-
-heroku_python_version = 3.7.9
+clock_on = true

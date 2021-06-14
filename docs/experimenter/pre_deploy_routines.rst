@@ -4,7 +4,8 @@
 Pre-deploy routines
 ===================
 
-The idea behind :class:`~psynet.timeline.PreDeployRoutine` is to allow for the definition of tasks to be performed before deployment and the start of the experiment. PreDeployRoutines are thought to be added (in any number) to the beginning of the timeline of an experiment. To demonstrate its usage, we included below an example of the definition of a :class:`~psynet.timeline.PreDeployRoutine` as used in the demo at ``demos/non_adaptive_audio`` which facilitates the one-time setup of an Amazon S3 bucket.
+The idea behind :class:`~psynet.timeline.PreDeployRoutine` is to allow for the definition of tasks to be performed before deployment and the start of the experiment. PreDeployRoutines are thought to be added (in any number) to the beginning of the timeline of an experiment. To demonstrate its usage, we included below an example of the definition of a :class:`~psynet.timeline.PreDeployRoutine`
+as used in the demo at ``demos/static`` which facilitates the one-time setup of an Amazon S3 bucket.
 
 ::
 
