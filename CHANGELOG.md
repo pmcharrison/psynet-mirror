@@ -1,7 +1,11 @@
 # Changelog
 
+#### Changed
+- Renamed the `media_url` property of `RecordTrial` to `recording_url` so as to not clash with the same method name in `StaticTrial`. 
+
 #### Fixed
 - Fixed bug with wrong `minimal_interactions` functionality of `SliderControl` due to duplicate event handling in `control.html`.
+- The renamed `recording_url` method incorrectly only returned camera urls. This was replaced with the correct `url` key. 
 
 # [2.1.1] Released on 2021-06-10
 
