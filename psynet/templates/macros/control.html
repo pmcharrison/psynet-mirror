@@ -493,14 +493,6 @@
                     }
                 });
             });
-
-            slider.addEventListener(slider_listener, function () {
-                snap_slider();
-                slider.interaction_count += 1;
-                checkMinimalInteractions();
-                on_slider_event('slider_changed');
-                slider.update_log();
-            }, false);
         });
 
         submit = function () {
