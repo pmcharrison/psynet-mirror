@@ -1,5 +1,8 @@
 # Changelog
 
+#### Fixed
+- Fixed bug with wrong `minimal_interactions` functionality of `SliderControl` due to duplicate event handling in `control.html`.
+
 # [2.1.1] Released on 2021-06-10
 
 #### Fixed
