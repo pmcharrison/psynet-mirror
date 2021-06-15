@@ -82,9 +82,9 @@ class RecordTrial:
 
     @property
     @extra_var(__extra_vars__)
-    def media_url(self):
+    def recording_url(self):
         if self.has_recording:
-            return self.recording_info["camera_url"]
+            return self.recording_info["url"]
 
     @property
     def visualization_html(self):
