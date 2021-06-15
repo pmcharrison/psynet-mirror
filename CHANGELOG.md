@@ -1,5 +1,11 @@
 # Changelog
 
+# [2.1.2] Released on 2021-06-15
+
+#### Fixed
+- Temporary hotfix for bonus/time estimation bug
+
+
 # [2.1.1] Released on 2021-06-10
 
 #### Fixed
