@@ -41,7 +41,7 @@ setuptools.setup(
         "statsmodels",
         "yaspin",
         "praat-parselmouth",
-        "python-gettext"
+        "python-gettext",
         "joblib"  # Library used for internal parallelization of for loops
     ],
     extras_require={

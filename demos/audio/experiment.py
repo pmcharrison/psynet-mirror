@@ -295,18 +295,6 @@ example_listen_then_record_page = join(
             controls=True,
             auto_advance=True,
         ),
-        progress_display=ProgressDisplay(
-            duration=4.6,
-            stages=[
-                ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
-                ProgressStage([2.6, 4.0], "Recording!", color="red"),
-                ProgressStage([4.0, 4.6], "Recording finished.", color="green"),
-            ],
-        ),
-        events={
-            "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
-            "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
-        },
         time_estimate=5,
         events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
@@ -395,6 +383,7 @@ class Exp(psynet.experiment.Experiment):
         example_js_synth_1,
         example_js_synth_2,
         example_js_synth_3,
+        example_js_synth_4,
         example_audio_page,
         example_audio_page_2,
         example_audio_page_3,
