@@ -6,6 +6,7 @@ from smtplib import SMTPAuthenticationError
 import dallinger.experiment
 import rpdb
 from dallinger import db
+from dallinger.command_line import log as dallinger_log
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
@@ -249,7 +250,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
         variables = {**self._default_variables, **self.variables}
-        logger.info(
+        dallinger_log(
             "Initializing experiment with variables \n" + pretty_log_dict(variables, 4)
         )
 
