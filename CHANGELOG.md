@@ -7,6 +7,13 @@
 - Fixed bug with wrong `minimal_interactions` functionality of `SliderControl` due to duplicate event handling in `control.html`.
 - The renamed `recording_url` method incorrectly only returned camera urls. This was replaced with the correct `url` key. 
 
+
+# [2.1.2] Released on 2021-06-15
+
+#### Fixed
+- Temporary hotfix for bonus/time estimation bug
+
+
 # [2.1.1] Released on 2021-06-10
 
 #### Fixed
