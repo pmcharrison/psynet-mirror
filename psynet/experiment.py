@@ -720,6 +720,23 @@ class Experiment(dallinger.experiment.Experiment):
 
         return jsonify(progress_info)
 
+    @experiment_route("/module/update_spending_limits", methods=["POST"])
+    @classmethod
+    def update_spending_limits(cls):
+        hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
+        soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
+        exp = cls.new(db.session)
+        exp.var.set("hard_max_experiment_payment", float(hard_max_experiment_payment))
+        exp.var.set("soft_max_experiment_payment", float(soft_max_experiment_payment))
+        logger.info(
+            f"Experiment variable 'hard_max_experiment_payment set' set to {hard_max_experiment_payment}."
+        )
+        logger.info(
+            f"Experiment variable 'soft_max_experiment_payment set' set to {soft_max_experiment_payment}."
+        )
+        db.session.commit()
+        return success_response()
+
     @experiment_route("/start", methods=["GET"])
     @staticmethod
     def route_start():
