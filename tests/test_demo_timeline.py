@@ -225,7 +225,7 @@ class TestExp(object):
                 "main-body",
                 (
                     "That's the end of the experiment! In addition to your base payment of $0.10, "
-                    "you will receive a bonus of $0.27 for the time you spent on the experiment. "
+                    "you will receive a bonus of $0.26 for the time you spent on the experiment. "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
             )
