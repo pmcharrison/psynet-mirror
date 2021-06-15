@@ -1113,7 +1113,9 @@ class EndPage(PageMaker):
                 template_arg={"content": self.get_content(participant)},
             )
 
-        super().__init__(f, time_estimate=3)
+        super().__init__(
+            f, time_estimate=0
+        )  # Temporary hotfix for time/bonus estimation bug introduced in d64c1ee505f6
 
     def get_content(self, participant):
         return flask.Markup(
