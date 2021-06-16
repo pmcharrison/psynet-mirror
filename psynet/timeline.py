@@ -1601,6 +1601,7 @@ def while_loop(
             ),
             UnsuccessfulEndPage(),
             fix_time_credit=False,
+            log_chosen_branch=False,
         ),
         conditional(
             label,

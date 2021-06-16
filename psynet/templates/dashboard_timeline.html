@@ -22,14 +22,46 @@
   </aside>
   <main class="flex-fill">
     <section id="spending">
-      <figure>
-        <div class="chart spending"></div>
-      </figure>
+      <div class="chart spending"></div>
+    </section>
+    <section id="change-spending-limits" style="display: none;">
+      <div style="width: max-content; float: right;">
+        <div style="float: right">
+          <label>
+            <span>
+              Hard max. limit in $
+              <a id="hard-max-experiment-payment-tooltip-link" href="#" class="" style="float: right; margin-left: 8px; font-weight: bold; font-family: monospace; margin-left: -25px; color: darkorange;">ⓘ</a>
+            </span>
+            <input type="text" id="hard-max-experiment-payment" class="form-control form-control-sm" placeholder="" aria-controls="database-table">
+          </label>
+          <br>
+          <input type="submit" id="update-spending-limits" value="Save" style="float: right; margin-bottom: 10px;">
+        </div>
+        <div style="float: right; margin-right: 20px;">
+          <label style="width: 160px">
+            <span>
+              Soft max. limit in $
+              <a id="soft-max-experiment-payment-tooltip-link" href="#" style="float: right; font-weight: bold; font-family: monospace; margin-left: -25px; color: darkorange;">ⓘ</a>
+            </span>
+            <input type="text" id="soft-max-experiment-payment" class="form-control form-control-sm" placeholder="" aria-controls="database-table">
+          </label>
+        </div>
+      </div>
+      <div id="hard-max-experiment-payment-tooltip" class="spending-limits-tooltip" style="z-index: 10; display: none; float: right;">
+        <b>Hard maximum spending limit</b>
+        <br>
+        Guarantees that in an experiment no more is spent than the value assigned.
+        Bonuses are not paid from the point this value is reached and a record of the amount
+        of unpaid bonus is kept in the participant's <span style="font-family: monospace;">unpaid_bonus</span> variable.
+      </div>
+      <div id="soft-max-experiment-payment-tooltip" class="spending-limits-tooltip" style="z-index: 10; display: none; float: right;">
+        <b>Soft maximum spending limit</b>
+        <br>
+        The recruiting process stops if the amount of accumulated payments (incl. bonuses) in US dollars exceedes this value.
+      </div>
     </section>
     <section id="timeline-modules">
-      <figure>
-        <div class="chart modules"></div>
-      </figure>
+      <div class="chart modules"></div>
     </section>
     <section id="details-pane">
       <h2>Details</h2>
@@ -39,7 +71,7 @@
   </main>
   </div>
   <script>
-    window.timeline_modules = {{ timeline_modules | safe }};
+    window.timelineModules = {{ timeline_modules | safe }};
   </script>
 {% endblock %}
 {% block libs %}
