@@ -6,7 +6,7 @@
 #
 # Compiled from a requirement.txt file with md5sum: 21cfb491ac4c193e2b9c20c00daa790d
 #
--e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
+git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
     # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
