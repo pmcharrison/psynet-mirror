@@ -1,6 +1,9 @@
 # CHANGELOG
 
-# [2.1.3] Released on 2021-06-16
+# [2.2.0] Released on 2021-06-16
+
+#### Added
+- Allow changing soft and hard spending limits from the dashboard.
 
 #### Changed
 - Renamed the `media_url` property of `RecordTrial` to `recording_url` so as to not clash with the same method name in `StaticTrial`. 
