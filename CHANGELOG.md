@@ -6,13 +6,15 @@
 #### Fixed
 - Fixed bug with wrong `minimal_interactions` functionality of `SliderControl` due to duplicate event handling in `control.html`.
 - The renamed `recording_url` method incorrectly only returned camera urls. This was replaced with the correct `url` key. 
-
+- Fixed issue where `max_loop_time_condition` would be logged to the participant table
+  every trial in a trial maker.
 
 # [2.1.2] Released on 2021-06-15
 
 #### Fixed
-- Temporary hotfix for bonus/time estimation bug
-
+- Hotfix for bonus/time estimation bug: `time_estimate` for `EndPage`
+  is now set to zero. This means that experiment estimated durations
+  (and corresponding bonuses) will decrease slighly.
 
 # [2.1.1] Released on 2021-06-10
 
