@@ -1,4 +1,6 @@
-# Changelog
+# CHANGELOG
+
+# [2.1.3] Released on 2021-06-16
 
 #### Changed
 - Renamed the `media_url` property of `RecordTrial` to `recording_url` so as to not clash with the same method name in `StaticTrial`. 
