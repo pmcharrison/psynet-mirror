@@ -1,5 +1,9 @@
 # CHANGELOG
 
+- PsyNet now includes a proper MANIFEST.in file, meaning that it can be installed without the `-e` flag.
+- It is now recommended to specify PsyNet in `requirements.txt` without the `-e` flag,
+  for compatibility with `dallinger docker debug`.
+
 # [2.3.0] Released on 2021-07-07
 
 #### Added
