@@ -6,6 +6,7 @@ from smtplib import SMTPAuthenticationError
 import dallinger.experiment
 import rpdb
 from dallinger import db
+from dallinger.command_line import log as dallinger_log
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
@@ -249,7 +250,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
         variables = {**self._default_variables, **self.variables}
-        logger.info(
+        dallinger_log(
             "Initializing experiment with variables \n" + pretty_log_dict(variables, 4)
         )
 
@@ -719,6 +720,23 @@ class Experiment(dallinger.experiment.Experiment):
             progress_info.update(trial_maker.get_progress_info())
 
         return jsonify(progress_info)
+
+    @experiment_route("/module/update_spending_limits", methods=["POST"])
+    @classmethod
+    def update_spending_limits(cls):
+        hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
+        soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
+        exp = cls.new(db.session)
+        exp.var.set("hard_max_experiment_payment", float(hard_max_experiment_payment))
+        exp.var.set("soft_max_experiment_payment", float(soft_max_experiment_payment))
+        logger.info(
+            f"Experiment variable 'hard_max_experiment_payment set' set to {hard_max_experiment_payment}."
+        )
+        logger.info(
+            f"Experiment variable 'soft_max_experiment_payment set' set to {soft_max_experiment_payment}."
+        )
+        db.session.commit()
+        return success_response()
 
     @experiment_route("/start", methods=["GET"])
     @staticmethod

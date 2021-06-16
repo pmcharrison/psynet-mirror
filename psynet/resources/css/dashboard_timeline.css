@@ -50,7 +50,7 @@ figure {
 }
 
 .progress:hover {
-    opacity: .65;
+    filter: brightness(90%);
 }
 
 .progress-bar {
@@ -70,6 +70,20 @@ figure {
 }
 
 ul.details {
-  list-style-type: none;
-  padding: 0px;
+    list-style-type: none;
+    padding: 0px;
+}
+
+.spending-limits-tooltip {
+    background-color: #fff8c4;
+    border: solid 2px #f2c779;
+    border-radius: 6px;
+    padding-top: 5px;
+    padding-right: 5px;
+    padding-bottom: 10px;
+    padding-left: 10px;
+    position: absolute;
+    left: 414px;
+    top: 37px;
+    width: 376px;
 }
