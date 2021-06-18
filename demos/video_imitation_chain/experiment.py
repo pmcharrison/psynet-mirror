@@ -6,11 +6,7 @@ import shutil
 import tempfile
 
 import psynet.experiment
-from psynet.media import (
-    download_from_s3,
-    make_bucket_public,
-    prepare_s3_bucket_for_presigned_urls,
-)
+from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioMeterControl,
     ModularPage,
@@ -161,11 +157,6 @@ class CustomNode(CameraImitationChainNode):
 ####################################################################################################
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        PreDeployRoutine(
-            "make_bucket_public",
-            make_bucket_public,
-            {"bucket_name": "video-screen-recording-dev"},
-        ),
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
