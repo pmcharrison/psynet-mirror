@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [2.2.1] Released on 2021-06-21
+
+#### Fixed
+- Fixed bug to make pre-deployment routines work again 
+
 # [2.2.0] Released on 2021-06-16
 
 #### Added
