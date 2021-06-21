@@ -8,6 +8,7 @@ from shutil import rmtree, which
 
 import click
 import requests
+from dallinger import db
 from dallinger.command_line import data as dallinger_data
 from dallinger.command_line import debug as dallinger_debug
 from dallinger.command_line import deploy as dallinger_deploy
@@ -84,7 +85,9 @@ def prepare(force):
         FLAGS.add("force")
     dallinger_log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
     experiment_class = import_local_experiment().get("class")
-    experiment_class.pre_deploy()
+    experiment_instance = experiment_class.new(db.session)
+    experiment_instance.pre_deploy()
+    db.session.commit()
     clean_sys_modules()
     return experiment_class
 
