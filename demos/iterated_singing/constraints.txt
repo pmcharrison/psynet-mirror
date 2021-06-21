@@ -6,7 +6,7 @@
 #
 # Compiled from a requirement.txt file with md5sum: 092ef49742dc2c85d367de2e6ca3367f
 #
-git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
+psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
     # via -r requirements.txt
 -e git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing-extract#egg=singing_extract
     # via -r requirements.txt
