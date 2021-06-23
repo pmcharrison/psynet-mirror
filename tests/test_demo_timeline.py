@@ -36,7 +36,7 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            assert get_participant(1).modules == {}
+            assert list(get_participant(1).modules.keys()) == ["no_consent"]
 
             assert_text(driver, "main-body", "Welcome to the experiment! Next")
             next_page(driver, "next_button")
@@ -44,15 +44,15 @@ class TestExp(object):
             # Page 1
             participant = get_participant(1)
             modules = participant.modules
-            assert list(modules.keys()) == ["introduction"]
+            assert list(modules.keys()) == ["no_consent", "introduction"]
             assert set(list(modules["introduction"].keys())) == {
                 "time_started",
                 "time_finished",
             }
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 0
-            assert participant.started_modules == ["introduction"]
-            assert participant.finished_modules == []
+            assert participant.started_modules == ["no_consent", "introduction"]
+            assert participant.finished_modules == ["no_consent"]
             assert participant.current_module == "introduction"
 
             assert re.search(
@@ -147,17 +147,27 @@ class TestExp(object):
             db_session.commit()
             participant = get_participant(1)
             modules = participant.modules
-            assert set(list(modules.keys())) == {"chocolate", "weight", "introduction"}
+            assert set(list(modules.keys())) == {
+                "no_consent",
+                "chocolate",
+                "weight",
+                "introduction",
+            }
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 1
             assert len(modules["chocolate"]["time_started"]) == 1
             assert len(modules["chocolate"]["time_finished"]) == 0
             assert participant.started_modules == [
+                "no_consent",
                 "introduction",
                 "weight",
                 "chocolate",
             ]
-            assert participant.finished_modules == ["introduction", "weight"]
+            assert participant.finished_modules == [
+                "no_consent",
+                "introduction",
+                "weight",
+            ]
             assert participant.current_module == "chocolate"
 
             assert_text(driver, "main-body", "Do you like chocolate? Yes No")

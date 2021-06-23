@@ -3,7 +3,15 @@ from typing import Optional
 from psynet.timeline import CodeBlock
 
 from .page import RejectedConsentPage
-from .timeline import Module, Page, conditional, get_template, join
+from .timeline import Elt, Module, NullElt, Page, conditional, get_template, join
+
+
+class Consent(Elt):
+    pass
+
+
+class NullConsent(Consent, NullElt):
+    pass
 
 
 #################
@@ -43,7 +51,7 @@ class CAPRecruiterStandardConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class CAPRecruiterStandardConsentPage(Page):
+    class CAPRecruiterStandardConsentPage(Page, Consent):
         """
         This page displays the CAP-Recruiter standard consent page.
 
@@ -107,7 +115,7 @@ class CAPRecruiterAudiovisualConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class CAPRecruiterAudiovisualConsentPage(Page):
+    class CAPRecruiterAudiovisualConsentPage(Page, Consent):
         """
         This page displays the CAP-Recruiter audiovisual consent page.
 
@@ -172,7 +180,7 @@ class MTurkStandardConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class MTurkStandardConsentPage(Page):
+    class MTurkStandardConsentPage(Page, Consent):
         """
         This page displays the MTurk standard consent page.
 
@@ -230,7 +238,7 @@ class MTurkAudiovisualConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class MTurkAudiovisualConsentPage(Page):
+    class MTurkAudiovisualConsentPage(Page, Consent):
         """
         This page displays the MTurk audiovisual consent page.
 
@@ -288,7 +296,7 @@ class PrincetonConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class PrincetonConsentPage(Page):
+    class PrincetonConsentPage(Page, Consent):
         """
         This page displays the Princeton University consent page.
 
@@ -310,3 +318,26 @@ class PrincetonConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"consent": raw_answer}
+
+
+##############
+# No consent #
+##############
+class NoConsent(Module):
+    """
+    The Princeton University consent form.
+
+    Parameters
+    ----------
+
+    time_estimate:
+        Time estimated for the page.
+    """
+
+    def __init__(
+        self,
+        time_estimate: Optional[float] = 0,
+    ):
+        self.label = "no_consent"
+        self.elts = join(NullConsent())
+        super().__init__(self.label, self.elts)
