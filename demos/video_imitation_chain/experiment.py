@@ -6,6 +6,7 @@ import shutil
 import tempfile
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioMeterControl,
@@ -157,6 +158,7 @@ class CustomNode(CameraImitationChainNode):
 ####################################################################################################
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,

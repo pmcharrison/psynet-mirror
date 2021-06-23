@@ -12,6 +12,7 @@ from flask import Markup
 from scipy.io import wavfile
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import JSONSerializer, REPPTappingCalibration
@@ -174,6 +175,7 @@ class CustomSource(AudioImitationChainSource):
 ##########################################################################################
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         REPPTappingCalibration(),  # calibrate tapping
         InfoPage(
             Markup(

@@ -6,6 +6,7 @@
 
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.graphics import (
     Animation,
     Circle,
@@ -37,6 +38,7 @@ from psynet.timeline import MediaSpec, Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         InfoPage(
             "Graphic components provide a way to display interactive visual animations to the participant.",
             time_estimate=5,
