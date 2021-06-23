@@ -18,7 +18,6 @@ from psynet.trial.graph import (
     GraphChainSource,
     GraphChainTrial,
     GraphChainTrialMaker,
-    generate_grid_json
 )
 from psynet.utils import get_logger
 
@@ -105,9 +104,9 @@ class CustomTrialMaker(GraphChainTrialMaker):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    variables = {
-        "network_structure": generate_grid_json(2),  # NEED TO HANDLE NAMESPACE IN TRIALMAKER
-    }
+    # variables = {
+    #     "network_structure": generate_grid_json(2),  # NEED TO HANDLE NAMESPACE IN TRIALMAKER
+    # }
     timeline = Timeline(
         CustomTrialMaker(
             id_="graph_demo",

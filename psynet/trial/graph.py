@@ -2,9 +2,13 @@
 
 from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
 import json
-from typing import Optional, Union
+from typing import Optional, Union, List
+from dallinger import db
 
 from trial.main import with_trial_maker_namespace
+# from .utils import (
+#     import_local_experiment,
+# )
 
 
 class GraphChainNetwork(ChainNetwork):
@@ -13,6 +17,43 @@ class GraphChainNetwork(ChainNetwork):
     """
 
     __mapper_args__ = {"polymorphic_identity": "graph_chain_network"}
+
+    def __init__(
+        self,
+        trial_maker_id: str,
+        source_class,
+        phase: str,
+        experiment,
+        chain_type: str,
+        vertex_id: int,  # Unique vertex id specifying the location of the network vertex within the graph
+        dependent_vertex_ids: List[int],  # vertices which the current vertex depends on (incoming)
+        trials_per_node: int,
+        target_num_nodes: int,
+        participant=None,
+        id_within_participant: Optional[int] = None,
+    ):
+        super().__init__(trial_maker_id, phase, experiment)
+        db.session.add(self)
+        db.session.commit()
+
+        if participant is not None:
+            self.id_within_participant = id_within_participant
+            self.participant_id = participant.id
+
+        self.chain_type = chain_type
+        self.trials_per_node = trials_per_node
+        self.target_num_nodes = target_num_nodes
+        # The last node in the chain doesn't receive any trials
+        self.target_num_trials = (target_num_nodes - 1) * trials_per_node
+        self.definition = self.make_definition()
+        self.participant_group = self.get_participant_group()
+        self.add_source(source_class, experiment, participant)
+        self.vertex_id = vertex_id
+        self.dependent_vertex_ids = dependent_vertex_ids
+
+        self.validate()
+
+        experiment.save()
 
     def make_definition(self):
         return {}
@@ -123,6 +164,22 @@ class GraphChainNode(ChainNode):
             return trials[0].answer
         raise NotImplementedError
 
+    @property
+    def ready_to_spawn(self):
+        parents = self.get_parent_nodes()
+        if (len(parents) < len(self.network.dependent_vertex_ids)):
+            return False
+        else:
+            all_parents_ready = all([self.is_ready(p) for p in parents])
+            current_vertex_ready = self.is_ready(self)
+            return all_parents_ready and current_vertex_ready
+
+    def get_parent_nodes(self):
+        return NotImplementedError  # CONTINUE HERE!
+
+    def is_ready(self, node):
+        return node.completed_and_processed_trials.count() >= node.target_num_trials
+
 
 class GraphChainSource(ChainSource):
     """
@@ -207,11 +264,39 @@ class GraphChainTrialMaker(ChainTrialMaker):
     def experiment_setup_routine(self, experiment):
         if self.num_networks == 0 and self.chain_type == "across":
             experiment.var.set(with_trial_maker_namespace(self.trial_maker_id, "network_structure"), self.network_structure)
-            self.create_networks_across(experiment) 
-            # CONTINUE HERE, NEED TO HANDLE HOW NETWORKS GET ASSIGNED TO VERTICES (SAMPLE W/O REP?),
-            # USE THAT TO HANDLE GET_PARENTS TO IMPLEMENT INSIDE READY_TO_SPAWN,
-            # FOLLOW DOCS FOR THE REST
-            # IMPLEMENT GRID DEMO AND MAKE SURE IT ALL WORKS
+            self.create_networks_across(experiment)
+
+    def create_networks_across(self, experiment):
+        network_structure = json.loads(self.network_structure)
+        vertices = network_structure["vertices"]
+        for i in range(self.num_chains_per_experiment):
+            vertex_id = vertices[i]
+            dependent_vertex_ids = self.get_dependent_vertex_ids(vertex_id, network_structure)
+            self.create_network(experiment, vertex_id, dependent_vertex_ids)
+
+    def create_network(self, experiment, vertex_id, dependent_vertex_ids, participant=None, id_within_participant=None):
+        network = self.network_class(
+            trial_maker_id=self.id,
+            source_class=self.source_class,
+            phase=self.phase,
+            experiment=experiment,
+            chain_type=self.chain_type,
+            vertex_id=vertex_id,
+            dependent_vertex_ids=dependent_vertex_ids,
+            trials_per_node=self.trials_per_node,
+            target_num_nodes=self.num_nodes_per_chain,
+            participant=participant,
+            id_within_participant=id_within_participant,
+        )
+        db.session.add(network)
+        db.session.commit()
+        self._grow_network(network, participant, experiment)
+        return network
+
+    def get_dependent_vertex_ids(target, network_structure):
+        edges = network_structure["edges"]
+        dependent_vertex_ids = [e["origin"] for e in edges if e["target"] == target]
+        return dependent_vertex_ids
 
 
 class GridChainTrialMaker(ChainTrialMaker):
