@@ -325,18 +325,12 @@ class PrincetonConsent(Module):
 ##############
 class NoConsent(Module):
     """
-    The Princeton University consent form.
-
-    Parameters
-    ----------
-
-    time_estimate:
-        Time estimated for the page.
+    An invisible consent for experiments without the need for the participant to give explicit consent.
     """
 
     def __init__(
         self,
-        time_estimate: Optional[float] = 0,
+        time_estimate=0,
     ):
         self.label = "no_consent"
         self.elts = join(NullConsent())

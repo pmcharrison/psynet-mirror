@@ -1,7 +1,7 @@
 import flask
 
 import psynet.experiment
-from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent, NoConsent
+from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
     AudioMeterControl,
@@ -378,7 +378,6 @@ example_record_audio_video = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        NoConsent(),
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),
         example_js_synth_1,
