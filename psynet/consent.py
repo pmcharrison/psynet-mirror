@@ -7,10 +7,23 @@ from .timeline import Elt, Module, NullElt, Page, conditional, get_template, joi
 
 
 class Consent(Elt):
+    """
+    Inherit from this class to mark a timeline element as being part of a consent form.
+    PsyNet requires you have at least one such element in your timeline,
+    to make sure you don't forget to include a consent form.
+    See ``CAPRecruiterAudiovisualConsentPage`` for an example.
+    If you're sure you want to omit the consent form, include a ``NoConsent``
+    element in your timeline.
+    """
+
     pass
 
 
-class NullConsent(Consent, NullElt):
+class NoConsent(Consent, NullElt):
+    """
+    If you want to have no consent form in your timeline, use this element as an empty placeholder.
+    """
+
     pass
 
 
@@ -318,20 +331,3 @@ class PrincetonConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"consent": raw_answer}
-
-
-##############
-# No consent #
-##############
-class NoConsent(Module):
-    """
-    An invisible consent for experiments without the need for the participant to give explicit consent.
-    """
-
-    def __init__(
-        self,
-        time_estimate=0,
-    ):
-        self.label = "no_consent"
-        self.elts = join(NullConsent())
-        super().__init__(self.label, self.elts)

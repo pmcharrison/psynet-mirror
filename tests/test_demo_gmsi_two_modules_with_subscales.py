@@ -54,7 +54,7 @@ class TestExp(object):
 
             participant = get_participant(1)
             modules = participant.modules
-            assert list(modules.keys()) == ["gmsi_1", "gmsi_2", "no_consent"]
+            assert list(modules.keys()) == ["gmsi_1", "gmsi_2"]
             assert set(list(modules["gmsi_1"].keys())) == {
                 "time_started",
                 "time_finished",
@@ -67,8 +67,8 @@ class TestExp(object):
             assert len(modules["gmsi_1"]["time_finished"]) == 1
             assert len(modules["gmsi_2"]["time_started"]) == 1
             assert len(modules["gmsi_2"]["time_finished"]) == 1
-            assert participant.started_modules == ["no_consent", "gmsi_1", "gmsi_2"]
-            assert participant.finished_modules == ["no_consent", "gmsi_1", "gmsi_2"]
+            assert participant.started_modules == ["gmsi_1", "gmsi_2"]
+            assert participant.finished_modules == ["gmsi_1", "gmsi_2"]
             assert participant.current_module == "gmsi_2"
             assert participant.var.gmsi_1["mean_scores_per_scale"] == {
                 "Singing Abilities": 1.0,

@@ -36,23 +36,21 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            assert list(get_participant(1).modules.keys()) == ["no_consent"]
-
             assert_text(driver, "main-body", "Welcome to the experiment! Next")
             next_page(driver, "next_button")
 
             # Page 1
             participant = get_participant(1)
             modules = participant.modules
-            assert list(modules.keys()) == ["no_consent", "introduction"]
+            assert list(modules.keys()) == ["introduction"]
             assert set(list(modules["introduction"].keys())) == {
                 "time_started",
                 "time_finished",
             }
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 0
-            assert participant.started_modules == ["no_consent", "introduction"]
-            assert participant.finished_modules == ["no_consent"]
+            assert participant.started_modules == ["introduction"]
+            assert participant.finished_modules == []
             assert participant.current_module == "introduction"
 
             assert re.search(
@@ -148,7 +146,6 @@ class TestExp(object):
             participant = get_participant(1)
             modules = participant.modules
             assert set(list(modules.keys())) == {
-                "no_consent",
                 "chocolate",
                 "weight",
                 "introduction",
@@ -158,13 +155,11 @@ class TestExp(object):
             assert len(modules["chocolate"]["time_started"]) == 1
             assert len(modules["chocolate"]["time_finished"]) == 0
             assert participant.started_modules == [
-                "no_consent",
                 "introduction",
                 "weight",
                 "chocolate",
             ]
             assert participant.finished_modules == [
-                "no_consent",
                 "introduction",
                 "weight",
             ]
