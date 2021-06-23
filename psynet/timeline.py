@@ -1176,6 +1176,7 @@ class Timeline:
             raise ValueError("The final element in the timeline must be an EndPage.")
         self.check_for_time_estimate()
         self.check_start_fix_times()
+        self.check_for_consent()
         self.check_modules()
 
     def check_for_time_estimate(self):
@@ -1213,7 +1214,6 @@ class Timeline:
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
             raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
-        self.check_for_consent()
 
     def check_for_consent(self):
         from psynet.consent import Consent
