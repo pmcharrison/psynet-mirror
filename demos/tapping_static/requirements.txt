@@ -1,4 +1,4 @@
 -e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
--e git+https://tapping_extract:NbfgRMYEujzRimHySJnV@gitlab.com/computational-audition-lab/tapping-mvp/tapping_extract@2dd9364524198685354bc511aac3055a796d9f99#egg=tapping_extract
+-e git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition-lab/repp@master#egg=repp
 docopt
 matplotlib

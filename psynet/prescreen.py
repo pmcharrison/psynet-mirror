@@ -11,13 +11,19 @@ from .modular_page import (
     ColorPrompt,
     ImagePrompt,
     ModularPage,
-    NAFCControl,
     PushButtonControl,
     RadioButtonControl,
     TextControl,
 )
 from .page import InfoPage, UnsuccessfulEndPage
-from .timeline import CodeBlock, Module, conditional, join
+from .timeline import (
+    CodeBlock,
+    Module,
+    ProgressDisplay,
+    ProgressStage,
+    conditional,
+    join,
+)
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
 
@@ -366,9 +372,25 @@ class REPPMarkersTest(Module):
                     AudioRecordControl(
                         duration=self.definition["duration_sec"],
                         s3_bucket="markers-check-recordings",
-                        public_read=False,
+                        public_read=True,
+                        show_meter=False,
+                        controls=False,
+                        auto_advance=False,
                     ),
                     time_estimate=time_estimate,
+                    progress_display=ProgressDisplay(
+                        duration=self.definition["duration_sec"],  # 12 seconds long
+                        # show_bar=False,
+                        stages=[
+                            ProgressStage([0.0, 11.5], "Recording...", "red"),
+                            ProgressStage(
+                                [11.5, 12],
+                                "Uploading, please wait...",
+                                "orange",
+                                persistent=True,
+                            ),
+                        ],
+                    ),
                 )
 
             def show_feedback(self, experiment, participant):
@@ -404,40 +426,30 @@ class REPPMarkersTest(Module):
                 return self.position == 0
 
             def analyze_recording(self, audio_file: str, output_plot: str):
-                import tapping_extract as tapping
+                from repp.analysis import REPPAnalysis
+                from repp.config import sms_tapping
 
-                params = (
-                    tapping.params_tech_music
-                )  # IMPORTANT - NEW PARAMETERS for TAPPING TECHNLOGY
+                info = {
+                    "markers_onsets": self.definition["markers_onsets"],
+                    "stim_shifted_onsets": self.definition["stim_shifted_onsets"],
+                    "onset_is_played": self.definition["onset_is_played"],
+                }
 
-                marker_onsets = self.definition["marker_onsets"]
-                shifted_onsets = self.definition["shifted_onsets"]
-                onsets_played = self.definition["onsets_played"]
-                # TODO
-                # duration_sec = self.definition["duration_sec"]
-
-                # analysis
                 title_in_graph = "Participant {}".format(self.participant_id)
-
-                tstats, tcontent = tapping.do_all_and_plot(
-                    audio_filename=audio_file,
-                    marker_onsets=marker_onsets,
-                    metronome_all_onsets=shifted_onsets,
-                    metronome_is_played=onsets_played,
-                    title_in_graph=title_in_graph,
-                    output_plot=output_plot,
-                    params=params,
+                analysis = REPPAnalysis(config=sms_tapping)
+                output, analysis, is_failed = analysis.do_analysis(
+                    info, audio_file, title_in_graph, output_plot
                 )
-                new_tcontent = json.dumps(tcontent, cls=JSONSerializer)
-                new_tstats = json.dumps(tstats, cls=JSONSerializer)
-                output_results = {"tstats": new_tstats, "tcontent": new_tcontent}
-                num_detected_markers = int(tstats["marker_detected"])
+                num_markers_detected = int(analysis["num_markers_detected"])
                 correct_answer = self.definition["correct_answer"]
 
+                output = json.dumps(output, cls=JSONSerializer)
+                analysis = json.dumps(analysis, cls=JSONSerializer)
                 return {
-                    "failed": correct_answer != num_detected_markers,
-                    "num_detected_markers": num_detected_markers,
-                    "output_results": output_results,
+                    "failed": correct_answer != num_markers_detected,
+                    "num_detected_markers": num_markers_detected,
+                    "output": output,
+                    "analysis": analysis,
                 }
 
         return RecordMarkersTrial
@@ -449,7 +461,7 @@ class REPPMarkersTest(Module):
                 StimulusSpec(
                     definition={
                         "stim_name": name,
-                        "marker_onsets": [
+                        "markers_onsets": [
                             2000.0,
                             2280.0,
                             2510.0,
@@ -457,8 +469,8 @@ class REPPMarkersTest(Module):
                             8830.022675736962,
                             9060.022675736962,
                         ],
-                        "shifted_onsets": [4500.0, 5000.0, 5500.0],
-                        "onsets_played": [True, True, True],
+                        "stim_shifted_onsets": [4500.0, 5000.0, 5500.0],
+                        "onset_is_played": [True, True, True],
                         "duration_sec": 12,
                         "url_audio": f"{media_url}/{name}",
                         "correct_answer": 6,
@@ -704,13 +716,13 @@ class LexTaleTest(Module):
         return InfoPage(
             Markup(
                 f"""
-            <h3>Lexical decision task</h3>
-            <p>In each trial, you will be presented with either an exisitng word in English or a fake word that does not exist.</p>
-           <p>
-                <b>Your task is to decide whether the word exists not.</b>
-                <br><br>Each word will disappear in {hide_after} seconds and you will see a total of {num_trials} words.
-            </p>
-            """
+                <h3>Lexical decision task</h3>
+                <p>In each trial, you will be presented with either an exisitng word in English or a fake word that does not exist.</p>
+                <p>
+                    <b>Your task is to decide whether the word exists not.</b>
+                    <br><br>Each word will disappear in {hide_after} seconds and you will see a total of {num_trials} words.
+                </p>
+                """
             ),
             time_estimate=5,
         )
@@ -759,7 +771,12 @@ class LexTaleTest(Module):
                         margin_bottom="15px",
                         text_align="center",
                     ),
-                    NAFCControl(["Yes", "No"], ["yes", "no"]),
+                    PushButtonControl(
+                        ["yes", "no"],
+                        ["yes", "no"],
+                        arrange_vertically=False,
+                        style="min-width: 150px; margin: 10px",
+                    ),
                     time_estimate=time_estimate,
                 )
 
