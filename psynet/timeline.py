@@ -748,6 +748,10 @@ class Page(Elt):
         else:
             participant.answer_is_fresh = False
 
+        participant.browser_platform = metadata.get(
+            "platform", "Browser platform info could not be retrieved."
+        )
+
         db.session.commit()
         return resp
 
