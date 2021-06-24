@@ -1,6 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
@@ -15,6 +16,7 @@ from psynet.timeline import PreDeployRoutine, Timeline
 # Experiment
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,

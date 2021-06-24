@@ -1,4 +1,5 @@
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.demography.general import (
     BasicDemography,
     BasicMusic,
@@ -24,6 +25,7 @@ from psynet.timeline import Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         BasicDemography(),
         Language(),
         BasicMusic(),

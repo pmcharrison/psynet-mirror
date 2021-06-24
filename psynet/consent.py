@@ -3,7 +3,28 @@ from typing import Optional
 from psynet.timeline import CodeBlock
 
 from .page import RejectedConsentPage
-from .timeline import Module, Page, conditional, get_template, join
+from .timeline import Elt, Module, NullElt, Page, conditional, get_template, join
+
+
+class Consent(Elt):
+    """
+    Inherit from this class to mark a timeline element as being part of a consent form.
+    PsyNet requires you have at least one such element in your timeline,
+    to make sure you don't forget to include a consent form.
+    See ``CAPRecruiterAudiovisualConsentPage`` for an example.
+    If you're sure you want to omit the consent form, include a ``NoConsent``
+    element in your timeline.
+    """
+
+    pass
+
+
+class NoConsent(Consent, NullElt):
+    """
+    If you want to have no consent form in your timeline, use this element as an empty placeholder.
+    """
+
+    pass
 
 
 #################
@@ -43,7 +64,7 @@ class CAPRecruiterStandardConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class CAPRecruiterStandardConsentPage(Page):
+    class CAPRecruiterStandardConsentPage(Page, Consent):
         """
         This page displays the CAP-Recruiter standard consent page.
 
@@ -107,7 +128,7 @@ class CAPRecruiterAudiovisualConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class CAPRecruiterAudiovisualConsentPage(Page):
+    class CAPRecruiterAudiovisualConsentPage(Page, Consent):
         """
         This page displays the CAP-Recruiter audiovisual consent page.
 
@@ -172,7 +193,7 @@ class MTurkStandardConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class MTurkStandardConsentPage(Page):
+    class MTurkStandardConsentPage(Page, Consent):
         """
         This page displays the MTurk standard consent page.
 
@@ -230,7 +251,7 @@ class MTurkAudiovisualConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class MTurkAudiovisualConsentPage(Page):
+    class MTurkAudiovisualConsentPage(Page, Consent):
         """
         This page displays the MTurk audiovisual consent page.
 
@@ -288,7 +309,7 @@ class PrincetonConsent(Module):
         )
         super().__init__(self.label, self.elts)
 
-    class PrincetonConsentPage(Page):
+    class PrincetonConsentPage(Page, Consent):
         """
         This page displays the Princeton University consent page.
 

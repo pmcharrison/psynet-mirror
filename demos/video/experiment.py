@@ -1,6 +1,7 @@
 import flask
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioRecordControl,
@@ -223,4 +224,4 @@ video_record_page = join(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    timeline = Timeline(video_record_page, SuccessfulEndPage())
+    timeline = Timeline(NoConsent(), video_record_page, SuccessfulEndPage())

@@ -10,6 +10,7 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
 from psynet.page import InfoPage, Prompt, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
@@ -189,6 +190,7 @@ trial_maker = CustomTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         ModularPage(
             "choose_network",
             Prompt("What participant group would you like to join?"),

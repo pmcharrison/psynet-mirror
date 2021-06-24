@@ -12,6 +12,7 @@ from repp.stimulus import REPPStimulus
 from repp.utils import save_json_to_file, save_samples_to_file
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -346,6 +347,7 @@ music_tapping = join(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
