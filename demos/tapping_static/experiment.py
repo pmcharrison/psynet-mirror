@@ -1,27 +1,34 @@
 # non_adapting tapping demo with isochronus tapping and beat synchronization to music
-
-##########################################################################################
-# Imports
-##########################################################################################
 import json
 import os
 
 import numpy as np
-import tapping_extract as tapping
 from flask import Markup
-from scipy.io import wavfile
+from repp.analysis import REPPAnalysis
+
+# repp imports
+from repp.config import sms_tapping
+from repp.stimulus import REPPStimulus
+from repp.utils import save_json_to_file, save_samples_to_file
 
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import (  # REPPMarkersTest,
+from psynet.prescreen import (
     JSONSerializer,
+    REPPMarkersTest,
     REPPTappingCalibration,
     REPPVolumeCalibrationMusic,
 )
-from psynet.timeline import PreDeployRoutine, Timeline, join
+from psynet.timeline import (
+    PreDeployRoutine,
+    ProgressDisplay,
+    ProgressStage,
+    Timeline,
+    join,
+)
 from psynet.trial.audio import AudioRecordTrial
 from psynet.trial.static import (
     StaticTrial,
@@ -31,99 +38,51 @@ from psynet.trial.static import (
     StimulusVersionSpec,
 )
 
-##########################################################################################
 # Global parameters
-##########################################################################################
 BUCKET_NAME = "sms-technology"
-PARAMS = (
-    tapping.params_tech_music
-)  # Parameters for isochronus and beat synchronization tasks
-FS = 44100
-
 NUM_PARTICIPANTS = 20
 DURATION_ESTIMATED_TRIAL = 40
-
+NUM_TRIALS_PER_PARTICIPANT = 2
 # failing criteria
 MIN_RAW_TAPS = 50
 MAX_RAW_TAPS = 200
 
 
-##########################################################################################
 # Stimuli
-##########################################################################################
 def as_native_type(x):
     if type(x).__module__ == np.__name__:
         return x.item()
     return x
 
 
-def create_metronome_from_onsets(stimulus_name, list_onsets):
-    # click = tapping.load_resample_file(fs,params['CLICK_FILENAME'], renormalize=1) # to load from file
-    click = tapping.load_click(PARAMS, FS)
-    stimulus, stimulus_onsets = tapping.make_stimulus_from_isi(FS, list_onsets, click)
-    onsets_played = np.array(stimulus_onsets) > -999  # everything!
-    (
-        procecssed_audio,
-        tt,
-        shifted_onsets,
-        marker_onsets,
-    ) = tapping.add_markers_to_audio_onsets(stimulus, stimulus_onsets, FS, PARAMS)
-    duration_rec_sec = len(procecssed_audio) / FS
-
-    info_stimulus = {
-        "stimulus_name": stimulus_name,
-        "duration_rec_sec": duration_rec_sec,
-        "stimulus_onsets": stimulus_onsets,
-        "onsets_played": onsets_played,
-        "shifted_onsets": shifted_onsets,
-        "marker_onsets": marker_onsets,
-    }
-    info_stimulus = json.dumps(info_stimulus, cls=JSONSerializer)
-    return procecssed_audio, info_stimulus
+def create_iso_stim(stim_name, stim_ioi):
+    stimulus = REPPStimulus(stim_name, config=sms_tapping)
+    stim_onsets = stimulus.make_onsets_from_ioi(stim_ioi)
+    stim_prepared, stim_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
+    info = json.dumps(stim_info, cls=JSONSerializer)
+    return stim_prepared, info
 
 
-def create_music_from_file(stimulus_name, music_audio_filename, onset_filename):
-    stimulus_onsets, onsets_played = tapping.read_music_onsets_from_file(onset_filename)
-    onsets_played = np.array(onsets_played)
-    stimulus = tapping.load_resample_file(FS, music_audio_filename)
-    (
-        procecssed_audio,
-        tt,
-        shifted_onsets,
-        marker_onsets,
-    ) = tapping.add_markers_to_audio_onsets(stimulus, stimulus_onsets, FS, PARAMS)
-    duration_rec_sec = len(procecssed_audio) / FS
-
-    info_stimulus = {
-        "stimulus_name": stimulus_name,
-        "duration_rec_sec": duration_rec_sec,
-        "stimulus_onsets": stimulus_onsets,
-        "onsets_played": onsets_played,
-        "shifted_onsets": shifted_onsets,
-        "marker_onsets": marker_onsets,
-    }
-    info_stimulus = json.dumps(info_stimulus, cls=JSONSerializer)
-    return procecssed_audio, info_stimulus
-
-
-def save_samples_to_file(samples, filename, fs):
-    wavfile.write(filename, rate=fs, data=np.array(samples, dtype=np.float32))
-
-
-def save_json_to_file(info, filename):
-    with open(filename, "w") as file:
-        file.write(info)
+def create_music_stim(stim_name, fs, audio_filename, onsets_filename):
+    stimulus = REPPStimulus(stim_name, config=sms_tapping)
+    stim, stim_onsets, onset_is_played = stimulus.load_stimulus_from_files(
+        fs, audio_filename, onsets_filename
+    )
+    stim_prepared, stim_info = stimulus.filter_and_add_markers(
+        stim, stim_onsets, onset_is_played
+    )
+    info = json.dumps(stim_info, cls=JSONSerializer)
+    return stim_prepared, info
 
 
 # Isochronus stimuli
 # ISO 800ms
-tempo_800_ms = np.repeat(800, 25)  # 30s
+tempo_800_ms = np.repeat(800, 15)
 tempo_800_ms = [as_native_type(value) for value in tempo_800_ms]
-
 # ISO 600ms
-tempo_600_ms = np.repeat(600, 33)  # 30s
+tempo_600_ms = np.repeat(600, 12)
 tempo_600_ms = [as_native_type(value) for value in tempo_600_ms]
-
+# stimuli lists
 iso_stimulus_onsets = [tempo_800_ms, tempo_600_ms]
 iso_stimulus_names = ["iso_800ms", "iso_600ms"]
 
@@ -136,28 +95,26 @@ class StimulusVersionSpecISO(StimulusVersionSpec):
     def generate_media(cls, definition, output_path):
         if not (os.path.exists(output_path) and os.path.isdir(output_path)):
             os.mkdir(output_path)
-        procecssed_audio, info_stimulus = create_metronome_from_onsets(
-            definition["stimulus_name"], definition["list_onsets"]
+        stim_prepared, info = create_iso_stim(
+            definition["stim_name"], definition["list_iois"]
         )
-        save_samples_to_file(procecssed_audio, output_path + "/audio.wav", FS)
-        save_json_to_file(info_stimulus, output_path + "/info_stimulus.json")
+        save_samples_to_file(stim_prepared, output_path + "/audio.wav", sms_tapping.FS)
+        save_json_to_file(info, output_path + "/info.json")
 
 
-stimulus_ISO = [
+stimulus_iso = [
     StimulusSpec(
         definition={},
         version_specs=[
-            StimulusVersionSpecISO(
-                definition={"stimulus_name": name, "list_onsets": onsets}
-            )
+            StimulusVersionSpecISO(definition={"stim_name": name, "list_iois": iois})
         ],
         phase="ISO_tapping",
     )
-    for name, onsets in zip(iso_stimulus_names, iso_stimulus_onsets)
+    for name, iois in zip(iso_stimulus_names, iso_stimulus_onsets)
 ]
 
 stimulus_ISO_set = StimulusSet(
-    "ISO_tapping", stimulus_ISO, version="v1", s3_bucket=BUCKET_NAME
+    "ISO_tapping", stimulus_iso, version="v1", s3_bucket=BUCKET_NAME
 )
 
 # Music stimuli
@@ -174,13 +131,14 @@ class CStimulusVersionSpecMusic(StimulusVersionSpec):
     def generate_media(cls, definition, output_path):
         if not (os.path.exists(output_path) and os.path.isdir(output_path)):
             os.mkdir(output_path)
-        procecssed_audio, info_stimulus = create_music_from_file(
-            definition["stimulus_name"],
-            definition["music_audio_filename"],
+        stim_prepared, info = create_music_stim(
+            definition["stim_name"],
+            sms_tapping.FS,
+            definition["audio_filename"],
             definition["onset_filename"],
         )
-        save_samples_to_file(procecssed_audio, output_path + "/audio.wav", FS)
-        save_json_to_file(info_stimulus, output_path + "/info_stimulus.json")
+        save_samples_to_file(stim_prepared, output_path + "/audio.wav", sms_tapping.FS)
+        save_json_to_file(info, output_path + "/info.json")
 
 
 stimulus_music = [
@@ -189,8 +147,8 @@ stimulus_music = [
         version_specs=[
             CStimulusVersionSpecMusic(
                 definition={
-                    "stimulus_name": name,
-                    "music_audio_filename": os.path.join("music", audio_file),
+                    "stim_name": name,
+                    "audio_filename": os.path.join("music", audio_file),
                     "onset_filename": os.path.join("music", onset_file),
                 }
             )
@@ -207,74 +165,37 @@ stimulus_music_set = StimulusSet(
 )
 
 
-##########################################################################################
 # Experiment parts
-##########################################################################################
 class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "analysis_trial_metronome"}
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         temp_file = self.info
         with open(temp_file, "r") as file:
-            info_stimulus = json.load(file)
-
-        marker_onsets = info_stimulus["marker_onsets"]
-        shifted_onsets = info_stimulus["shifted_onsets"]
-        onsets_played = info_stimulus["onsets_played"]
-
-        stimulus_name = info_stimulus["stimulus_name"]
+            info_pre = json.load(file)
+            info = json.loads(info_pre)
+        stim_name = info["stim_name"]
         title_in_graph = "Participant {}".format(self.participant_id)
-
-        tstats, tcontent = tapping.do_all_and_plot(
-            audio_filename=audio_file,
-            marker_onsets=marker_onsets,
-            metronome_all_onsets=shifted_onsets,
-            metronome_is_played=onsets_played,
-            title_in_graph=title_in_graph,
-            output_plot=output_plot,
-            params=PARAMS,
+        analysis = REPPAnalysis(config=sms_tapping)
+        output, analysis, is_failed = analysis.do_analysis(
+            info, audio_file, title_in_graph, output_plot
         )
-        new_tcontent = json.dumps(tcontent, cls=JSONSerializer)
-        new_tstats = json.dumps(tstats, cls=JSONSerializer)
-        output_results = {"tstats": new_tstats, "tcontent": new_tcontent}
-
-        markers_detected = (
-            tstats["marker_onsets"] == tstats["marker_detected"]
-        )  # TO DO: make marker plural in new tapping script version
-        markers_time_error = tstats["markers_OK"]
-        min_raw_taps = tstats["ratio_taps_to_metronomes"] > MIN_RAW_TAPS
-        max_raw_taps = tstats["ratio_taps_to_metronomes"] < MAX_RAW_TAPS
-
-        failed = not (
-            markers_detected and markers_time_error and min_raw_taps and max_raw_taps
-        )
-        options = [markers_detected, markers_time_error, min_raw_taps, max_raw_taps]
-        reasons = [
-            "not all markers detected",
-            "markers time error too large",
-            "too few detected taps",
-            "too many detected taps",
-        ]
-
-        if False in options:
-            index = options.index(False)
-            reason = reasons[index]
-        else:
-            reason = "all good"
-
+        output = json.dumps(output, cls=JSONSerializer)
+        analysis = json.dumps(analysis, cls=JSONSerializer)
         return {
-            "failed": failed,
-            "reason": reason,
-            "output_results": output_results,
-            "stimulus_name": stimulus_name,
+            "failed": is_failed["failed"],
+            "reason": is_failed["reason"],
+            "output": output,
+            "analysis": analysis,
+            "stim_name": stim_name,
         }
 
-    @property  # get info_stimulus stroed in json from s3
+    @property
     def info(self):
         temp_file = "tmp.json"
         remote_key = os.path.join(
             self.stimulus_version.remote_media_dir,
-            self.stimulus_version.media_id + "/info_stimulus.json",
+            self.stimulus_version.media_id + "/info.json",
         )
         download_from_s3(temp_file, self.s3_bucket, remote_key)
         return temp_file
@@ -284,49 +205,67 @@ class TapTrial(TapTrialAnalysis):
     __mapper_args__ = {"polymorphic_identity": "tap_trial"}
 
     def show_trial(self, experiment, participant):
-
         temp_file = self.info
         with open(temp_file, "r") as file:
-            info_stimulus = json.load(file)
-
-        duration_rec_sec = info_stimulus["duration_rec_sec"]
-        time_last_JS_text_ms = (duration_rec_sec * 1000) - (
-            PARAMS["MARKER_END_SLACK"] - 500
-        )  # markers end slack - start delay (0.5s)
-
+            info_pre = json.load(file)
+            info = json.loads(info_pre)
+        duration_rec = info["stim_duration"]
+        trial_number = self.position + 1
         return ModularPage(
-            "trial_practice_page",
+            "trial_main_page",
             AudioPrompt(
                 self.media_url + "/audio.wav",
                 Markup(
                     f"""
-                    <br><h3>Tap in time</h3>
-                    <script>
-                    show_message = function(message, color_box) {{
-                    document.getElementById("record-active").textContent=message
-                    document.getElementById("record-active").style.backgroundColor = color_box
-                    }}
-                    psynet.response.register_on_ready_routine(function() {{
-                    message_to_display=[{{"msg":"WAIT IN SILENCE", "time":10, "color": "pink"}},{{"msg":">>>>>>>> START TAPPING! >>>>>>>>", "time":3150,  "color": "lightgreen"}},{{"msg":"STOP TAPPING!", "time":{time_last_JS_text_ms}, "color": "pink"}}]
-                    for (let i=0;i<message_to_display.length;i++) {{
-                    setTimeout(function(){{ show_message(message_to_display[i].msg, message_to_display[i].color) }}, message_to_display[i].time); }}   }})
-                    </script>
+                    <br><h3>Tap in time with the metronome.</h3>
+                    Trial number {trial_number} out of {NUM_TRIALS_PER_PARTICIPANT}  trials.
                     """
                 ),
-                start_delay=0.5,
             ),
             AudioRecordControl(
-                duration=duration_rec_sec, s3_bucket=BUCKET_NAME, public_read=True
+                duration=duration_rec,
+                s3_bucket=BUCKET_NAME,
+                public_read=True,
+                show_meter=False,
+                controls=False,
+                auto_advance=False,
             ),
-            time_estimate=DURATION_ESTIMATED_TRIAL,
+            time_estimate=duration_rec + 5,
+            progress_display=ProgressDisplay(
+                duration=(duration_rec + 1),
+                show_bar=True,  # set to False to hide progress bar in movement
+                stages=[
+                    ProgressStage(
+                        [0.0, 3.5],
+                        "Wait in silence...",
+                        "red",
+                    ),
+                    ProgressStage(
+                        [3.5, (duration_rec - 6)],
+                        "START TAPPING!",
+                        "green",
+                    ),
+                    ProgressStage(
+                        [(duration_rec - 6), duration_rec],
+                        "Stop tapping and wait in silence...",
+                        "red",
+                    ),
+                    ProgressStage(
+                        [duration_rec, (duration_rec + 1)],
+                        "Uploading, please wait...",
+                        "orange",
+                        persistent=True,
+                    ),
+                ],
+            ),
         )
 
-    @property  # get info_stimulus stroed in json from s3
+    @property
     def info(self):
         temp_file = "tmp.json"
         remote_key = os.path.join(
             self.stimulus_version.remote_media_dir,
-            self.stimulus_version.media_id + "/info_stimulus.json",
+            self.stimulus_version.media_id + "/info.json",
         )
         download_from_s3(temp_file, self.stimulus_version.s3_bucket, remote_key)
         return temp_file
@@ -340,9 +279,7 @@ class TapTrialMusic(TapTrial):
     __mapper_args__ = {"polymorphic_identity": "tap_trial_music"}
 
 
-##########################################################################################
 # Tapping tasks
-##########################################################################################
 ISO_tapping = join(
     InfoPage(
         Markup(
@@ -407,13 +344,11 @@ music_tapping = join(
 )
 
 
-##########################################################################################
 # Experiment
-##########################################################################################
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
-        PreDeployRoutine(  # bucket for the experiment
+        PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
             {
@@ -432,7 +367,7 @@ class Exp(psynet.experiment.Experiment):
             },  # s3 bucket to store markers check recordings
         ),
         REPPVolumeCalibrationMusic(),  # calibrate volume with music
-        # REPPMarkersTest(), # pre-screening filtering participants based on recording test (markers)
+        REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(),  # calibrate tapping
         ISO_tapping,
         music_tapping,
