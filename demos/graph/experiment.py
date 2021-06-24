@@ -9,7 +9,7 @@ import re
 from statistics import mean
 
 import psynet.experiment
-from psynet.modular_page import ModularPage, Prompt, TextControl
+from psynet.modular_page import ModularPage, Prompt, TextControl, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.graph import (
@@ -17,7 +17,7 @@ from psynet.trial.graph import (
     GraphChainNode,
     GraphChainSource,
     GraphChainTrial,
-    GraphChainTrialMaker,
+    GridChainTrialMaker,
 )
 from psynet.utils import get_logger
 
@@ -66,7 +66,13 @@ class CustomTrial(GraphChainTrial):
     num_pages = 2
 
     def show_trial(self, experiment, participant):
-        page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
+        options = [option["content"] for option in self.definition]
+        page_1 = ModularPage(
+            "custom_trial",
+            Prompt("Choose one of the following 7-digit numbers which you'd like to memorize."),
+            PushButtonControl(options)
+        )
+        # page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
         page_2 = FixedDigitInputPage("number", "What was the number?")
 
         return [page_1, page_2]
@@ -89,8 +95,12 @@ class CustomSource(GraphChainSource):
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 
+    @staticmethod
+    def generate_class_seed():
+        return random.randint(0, 9999999)
 
-class CustomTrialMaker(GraphChainTrialMaker):
+
+class CustomTrialMaker(GridChainTrialMaker):
     response_timeout_sec = 60
     check_timeout_interval = 30
 
@@ -104,9 +114,6 @@ class CustomTrialMaker(GraphChainTrialMaker):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    # variables = {
-    #     "network_structure": generate_grid_json(2),  # NEED TO HANDLE NAMESPACE IN TRIALMAKER
-    # }
     timeline = Timeline(
         CustomTrialMaker(
             id_="graph_demo",
@@ -114,13 +121,13 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
+            grid_dimension=2,
             phase="experiment",
             time_estimate_per_trial=5,
-            chain_type="within",
+            chain_type="across",
             num_iterations_per_chain=5,
-            num_trials_per_participant=5,
-            num_chains_per_participant=1,
-            num_chains_per_experiment=None,
+            num_trials_per_participant=4,
+            num_chains_per_participant=None,
             trials_per_node=1,
             balance_across_chains=True,
             check_performance_at_end=False,
