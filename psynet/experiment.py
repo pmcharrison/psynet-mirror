@@ -150,8 +150,7 @@ class Experiment(dallinger.experiment.Experiment):
             if not self.setup_complete:
                 self.setup()
             self.load()
-        else:
-            self.register_pre_deployment_routines()
+        self.register_pre_deployment_routines()
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod

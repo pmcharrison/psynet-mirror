@@ -5,6 +5,7 @@
 ##########################################################################################
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import LanguageVocabularyTest, LexTaleTest
 from psynet.timeline import Timeline
@@ -16,8 +17,9 @@ from psynet.timeline import Timeline
 
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         LexTaleTest(  # Prescreen1: Lextale test for English proficiency
-            num_trials=7, performance_threshold=0
+            num_trials=8, performance_threshold=0
         ),  # this is set to 0 so everyone can pass the test, please increase for testing purposes
         InfoPage(
             "You passed the English proficiency test! Congratulations.", time_estimate=3

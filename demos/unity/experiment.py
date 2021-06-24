@@ -5,6 +5,7 @@ import random
 from typing import List, Optional
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.page import SuccessfulEndPage, UnityPage
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
@@ -225,6 +226,7 @@ final_trial_maker = IslandTrialMaker(
 
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         CodeBlock(
             lambda participant: participant.var.set(
                 "color_permutation", random.sample(POSSIBLE_WORLD_ORDERS, 1)[0]

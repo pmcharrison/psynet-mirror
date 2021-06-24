@@ -1,4 +1,5 @@
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import (
     CheckboxControl,
     DropdownControl,
@@ -18,6 +19,7 @@ logger = get_logger()
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         ModularPage(
             "response",
             prompt="This is an example of a push button page with vertically arranged buttons.",

@@ -1,26 +1,31 @@
 # Iterated tapping experiment, adapted from Jacoby & McDermott (2017)
-
-##########################################################################################
-# Imports
-##########################################################################################
 import json
 from statistics import mean
 
 import numpy as np
-import tapping_extract as tapping
 from flask import Markup
+
+# repp imports
+from repp.config import ConfigUpdater, sms_tapping
+from reppextension.iterated_tapping import (
+    REPPAnalysisItap,
+    REPPStimulusItap,
+    make_stim_onsets_from_ioi_seed,
+)
 from scipy.io import wavfile
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
     JSONSerializer,
+    REPPMarkersTest,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
 )
-from psynet.timeline import PreDeployRoutine, Timeline
+from psynet.timeline import PreDeployRoutine, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
     AudioImitationChainNetwork,
     AudioImitationChainNode,
@@ -33,15 +38,27 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-##########################################################################################
 # Global parameters
-##########################################################################################
 BUCKET_NAME = "iterated-tapping-demo"
-PARAMS = tapping.params_tech_iter  # Choose paramaters for this demo (iterated tapping)
-FS = 44100
+config = ConfigUpdater.create_config(
+    sms_tapping,
+    {
+        "LABEL": "iterated tapping",
+        "USE_CLICK_FILENAME": True,
+        "PLOTS_TO_DISPLAY": [4, 4],
+        "INTERVAL_RHYTHM": 3,
+        "REPEATS": 10,
+        "TOTAL_DURATION": 2000,
+        "PROB_NO_CHANGE": 1 / 3,
+        "MIN_RATIO": 150.0 / 1000.0,
+        "SLACK_RATIO": 0.95,
+        "IS_FIXED_DURATION": True,
+    },
+)
+TIME_ESTIMATE_PER_TRIAL = config.REPEATS * 3
+stimulus = REPPStimulusItap("itap", config=config)
+analysis_itap = REPPAnalysisItap(config=config)
 
-TIME_ESTIMATE_PER_TRIAL = PARAMS["REPEATS"] * 3
-CLICK = tapping.load_click(PARAMS, FS)
 
 # failing criteria
 PERCENT_BAD_TAPS = 50
@@ -50,13 +67,11 @@ MAX_RAW_TAPS = 200
 # within chains
 NUM_CHAINS_PER_PARTICIPANT = 2  # set to 4 for real experiments
 NUM_ITERATION_CHAIN = 5
-NUM_TRIALS_PARTICIPANT = 20
+NUM_TRIALS_PARTICIPANT = 4
 TOTAL_NUM_PARTICIPANTS = 50
 
 
-##########################################################################################
 # Experiment parts
-##########################################################################################
 def save_samples_to_file(samples, filename, fs):
     wavfile.write(filename, rate=fs, data=samples.astype(np.float32))
 
@@ -67,115 +82,94 @@ def as_native_type(x):
     return x
 
 
-class CustomTrial(AudioImitationChainTrial):
+class CustomTrialAnalysis(AudioImitationChainTrial):
+    __mapper_args__ = {"polymorphic_identity": "custom_trial_analysis"}
+
+    def analyze_recording(self, audio_file: str, output_plot: str):
+        info_stimulus = self.origin.var.info_stimulus
+        title_in_graph = "Participant {}".format(self.participant_id)
+        output, analysis, is_failed, output_iteration = analysis_itap.do_analysis(
+            info_stimulus,
+            info_stimulus["random_seed"],
+            audio_file,
+            title_in_graph,
+            output_plot,
+        )
+        new_seed = output_iteration["new_ioi_seed"]
+        old_seed = output_iteration["old_ioi_seed"]
+        failed = output_iteration["seed_needs_change"]
+        reason = output_iteration["seed_needs_change_reason"]
+        ratios_reps = output_iteration["resp_onsets_complete"]
+        ratios_reps = json.dumps(ratios_reps, cls=JSONSerializer)
+        output_iteration = json.dumps(output_iteration, cls=JSONSerializer)
+        ioi_new_seed = [as_native_type(value) for value in new_seed]
+        ioi_old_seed = [as_native_type(value) for value in old_seed]
+        return {
+            "failed": failed,
+            "reason": reason,
+            "ioi_new_seed": ioi_new_seed,
+            "ioi_old_seed": ioi_old_seed,
+            "ratios_reps": ratios_reps,
+            "output_iteration": output_iteration,
+        }
+
+
+class CustomTrial(CustomTrialAnalysis):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     def show_trial(self, experiment, participant):
         info_stimulus = self.origin.var.info_stimulus
-        duration_rec_sec = info_stimulus["duration_rec_sec"]
-        time_last_JS_text_ms = (duration_rec_sec * 1000) - (
-            PARAMS["MARKER_END_SLACK"] - 500
-        )  # markers end slack - start delay (0.5s)
-        position = self.position + 1
-
+        duration_rec_sec = info_stimulus["duration_rec"]
+        trial_number = self.position + 1
+        num_trials = NUM_TRIALS_PARTICIPANT if self.phase == "experiment" else 2
         return ModularPage(
             "tapping_page",
             AudioPrompt(
                 self.origin.target_url,
                 Markup(
                     f"""
-                            <h3>Tap in time with the rhythm</h3>
-                            Trial number {position} out of {NUM_TRIALS_PARTICIPANT}  trials.
-                            <script>
-                            show_message = function(message, color_box) {{
-                            document.getElementById("msg-record-active").textContent=message
-                            document.getElementById("msg-record-active").style.backgroundColor = color_box
-                            }}
-                            psynet.response.register_on_ready_routine(function() {{
-                            message_to_display=[{{"msg":"WAIT IN SILENCE", "time":10, "color": "pink"}},{{"msg":">>>>>>>> START TAPPING! >>>>>>>>", "time":3150,  "color": "lightgreen"}},{{"msg":"STOP TAPPING!", "time":{time_last_JS_text_ms}, "color": "pink"}}]
-                            for (let i=0;i<message_to_display.length;i++) {{
-                            setTimeout(function(){{ show_message(message_to_display[i].msg, message_to_display[i].color) }}, message_to_display[i].time); }}   }})
-                            </script>
-                            """
+                    <h3>Tap in time with the rhythm</h3>
+                    <i>Trial number {trial_number} out of {num_trials} trials.</i>
+                    """
                 ),
-                start_delay=0.5,
             ),
             AudioRecordControl(
-                duration=duration_rec_sec, s3_bucket=BUCKET_NAME, public_read=False
+                duration=duration_rec_sec,
+                s3_bucket=BUCKET_NAME,
+                public_read=True,
+                show_meter=False,
+                controls=False,
+                auto_advance=False,
             ),
-            time_estimate=TIME_ESTIMATE_PER_TRIAL,
+            time_estimate=duration_rec_sec + 5,
+            progress_display=ProgressDisplay(
+                duration=(duration_rec_sec + 1),
+                show_bar=True,  # set to False to hide progress bar in movement
+                stages=[
+                    ProgressStage(
+                        [0.0, 3.5],
+                        "Wait in silence...",
+                        "red",
+                    ),
+                    ProgressStage(
+                        [3.5, (duration_rec_sec - 6)],
+                        "START TAPPING!",
+                        "green",
+                    ),
+                    ProgressStage(
+                        [(duration_rec_sec - 6), duration_rec_sec],
+                        "Stop tapping and wait in silence...",
+                        "red",
+                    ),
+                    ProgressStage(
+                        [duration_rec_sec, (duration_rec_sec + 1)],
+                        "Uploading, please wait...",
+                        "orange",
+                        persistent=True,
+                    ),
+                ],
+            ),
         )
-
-    def analyze_recording(self, audio_file: str, output_plot: str):
-        info_stimulus = self.origin.var.info_stimulus
-
-        title_in_graph = "tapping extraction"
-        tstats, tcontent, titer = tapping.do_all_and_plot_iterative(
-            audio_file,
-            info_stimulus["marker_onsets"],
-            info_stimulus["shifted_onsets"],
-            info_stimulus["shifted_onsets_is_played"],
-            title_in_graph,
-            output_plot,
-            info_stimulus["random_seed"],
-            PARAMS,
-        )
-
-        new_seed = titer["new_seed"]
-        old_seed = titer["old_seed"]
-        new_titer = json.dumps(titer, cls=JSONSerializer)
-        new_tstats = json.dumps(tstats, cls=JSONSerializer)
-        list_new_seed = [as_native_type(value) for value in new_seed]
-        list_old_seed = [as_native_type(value) for value in old_seed]
-
-        output_results = {
-            "tstats": new_tstats,
-            "titer": new_titer,
-        }
-
-        markers_detected = (
-            tstats["marker_onsets"] == tstats["marker_detected"]
-        )  # TO DO: make marker plural in new tapping script version
-        markers_time_error = tstats["markers_OK"]
-        bad_taps = tstats["percent_of_bad_taps"] < PERCENT_BAD_TAPS
-        min_raw_taps = tstats["ratio_taps_to_metronomes"] > MIN_RAW_TAPS
-        max_raw_taps = tstats["ratio_taps_to_metronomes"] < MAX_RAW_TAPS
-
-        failed = not (
-            markers_detected
-            and markers_time_error
-            and bad_taps
-            and min_raw_taps
-            and max_raw_taps
-        )
-        options = [
-            markers_detected,
-            markers_time_error,
-            bad_taps,
-            min_raw_taps,
-            max_raw_taps,
-        ]
-        reasons = [
-            "not all markers detected",
-            "markers time error too large",
-            "too many bad taps",
-            "too few detected taps",
-            "too many detected taps",
-        ]
-
-        if False in options:
-            index = options.index(False)
-            reason = reasons[index]
-        else:
-            reason = "all good"
-
-        return {
-            "failed": failed,
-            "reason": reason,
-            "output_results": output_results,
-            "list_new_seed": list_new_seed,
-            "list_old_seed": list_old_seed,
-        }
 
 
 class CustomNetwork(AudioImitationChainNetwork):
@@ -188,54 +182,44 @@ class CustomNode(AudioImitationChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
     def summarize_trials(self, trials: list, experiment, participant):
-        new_rhythm = [trial.analysis["list_new_seed"] for trial in trials]
+        new_rhythm = [trial.analysis["ioi_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
 
     def synthesize_target(self, output_file):
         random_seed = self.definition
-        stim_onsets = tapping.make_stimulus_onsets_from_seed(
-            random_seed, repeats=PARAMS["REPEATS"]
-        )
-        stim = tapping.make_stimulus_from_onsets(FS, stim_onsets, CLICK)
-
-        (
-            procecssed_audio,
-            tt,
-            shifted_onsets,
-            marker_onsets,
-        ) = tapping.add_markers_to_audio_onsets(stim, stim_onsets, FS, PARAMS)
-        shifted_onsets_is_played = np.array(shifted_onsets) > -999  # everything!
+        stim_onsets = make_stim_onsets_from_ioi_seed(random_seed, config.REPEATS)
+        stim, stim_onset_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
         info_stimulus = {
-            "duration_rec_sec": len(procecssed_audio) / FS,
-            "marker_onsets": [as_native_type(value) for value in marker_onsets],
-            "shifted_onsets": [as_native_type(value) for value in shifted_onsets],
-            "shifted_onsets_is_played": [
-                as_native_type(value) for value in shifted_onsets_is_played
+            "duration_rec": len(stim) / config.FS,
+            "markers_onsets": [
+                as_native_type(value) for value in stim_onset_info["markers_onsets"]
+            ],
+            "stim_shifted_onsets": [
+                as_native_type(value)
+                for value in stim_onset_info["stim_shifted_onsets"]
+            ],
+            "onset_is_played": [
+                as_native_type(value) for value in stim_onset_info["onset_is_played"]
             ],
             "random_seed": random_seed,
         }
-
         self.var.info_stimulus = info_stimulus
-        save_samples_to_file(procecssed_audio, output_file, FS)
+        save_samples_to_file(stim, output_file, config.FS)
 
 
 class CustomSource(AudioImitationChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_seed(self, network, experiment, participant):
-        IOIseed_in_ms = tapping.randomize_onsets_from_simplex(
-            PARAMS["CLICKS"], PARAMS["TOT"], MIN_RATIO=PARAMS["MIN_RATIO"]
-        )
-        IOIseed_in_ms = [as_native_type(value) for value in IOIseed_in_ms]
-
-        return IOIseed_in_ms
+        ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
+        random_seed = [as_native_type(value) for value in ioi_seed]
+        return random_seed
 
 
-##########################################################################################
 # Timeline
-##########################################################################################
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
@@ -247,7 +231,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
         REPPTappingCalibration(),  # calibrate tapping
-        # REPPMarkersTest(), # pre-screening filtering participants based on recording test (markers)
+        REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
         InfoPage(
             Markup(
                 f"""

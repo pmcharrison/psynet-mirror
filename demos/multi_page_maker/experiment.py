@@ -1,4 +1,5 @@
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import PushButtonControl
 from psynet.page import CodeBlock, InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline, multi_page_maker
@@ -12,6 +13,7 @@ logger = get_logger()
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         ModularPage(
             "choose_number",
             Prompt("What number would you like to count to?"),

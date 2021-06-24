@@ -5,6 +5,7 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
+from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -144,6 +145,7 @@ class CustomSource(AudioImitationChainSource):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         VolumeCalibration(),
         ModularPage(
             "record_calibrate",

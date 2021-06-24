@@ -3,6 +3,7 @@ import json
 from flask import Markup
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, SliderControl
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline, join
@@ -69,6 +70,7 @@ example_3 = {
 
 class CustomExp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         make_example(example_1),
         make_example(example_2),
         make_example(example_3),

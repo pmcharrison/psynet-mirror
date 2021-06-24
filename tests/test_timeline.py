@@ -1,5 +1,6 @@
 import pytest
 
+from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CreditEstimate, MediaSpec, Timeline, switch, while_loop
 from psynet.trial.chain import (
@@ -80,7 +81,7 @@ def test_get_trial_maker():
     tm_1 = new_trial_maker(id_="tm-1")
     tm_2 = new_trial_maker(id_="tm-2")
     timeline = Timeline(
-        InfoPage("Hello", time_estimate=5), tm_1, tm_2, SuccessfulEndPage()
+        NoConsent(), InfoPage("Hello", time_estimate=5), tm_1, tm_2, SuccessfulEndPage()
     )
     assert timeline.get_trial_maker("tm-1") == tm_1
     assert timeline.get_trial_maker("tm-2") == tm_2
@@ -164,6 +165,7 @@ def test_switch_with_trial_maker():
     tm_1 = new_trial_maker(id_="tm-1")
     tm_2 = new_trial_maker(id_="tm-2")
     timeline = Timeline(
+        NoConsent(),
         switch(
             "test",
             lambda experiment, participant: participant.var.switch,

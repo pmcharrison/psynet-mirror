@@ -9,6 +9,7 @@ import re
 from statistics import mean
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
@@ -111,6 +112,7 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         InfoPage(
             """
             We will demonstrate a particular form of the imitation chain experiment where each

@@ -428,7 +428,6 @@
 
                         event.runJS = function(info) {
                             if (event.js !== null) {
-                                debugger
                                 Function("info", unescape(event.js))(info);
                             }
                         };

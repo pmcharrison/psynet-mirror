@@ -7,6 +7,7 @@
 from flask import Markup
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioPrompt,
     Control,
@@ -47,6 +48,7 @@ class ColorText(Control):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         ModularPage(
             "text", prompt="This is an example of a simple text page.", time_estimate=5
         ),

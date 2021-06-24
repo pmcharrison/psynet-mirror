@@ -3,6 +3,7 @@ import json
 from flask import Markup, escape
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import AudioSliderControl, ModularPage
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline, join
@@ -76,6 +77,7 @@ class CustomExp(psynet.experiment.Experiment):
     ids = [f"audio_{i}" for i in range(472)]
 
     timeline = Timeline(
+        NoConsent(),
         new_example(
             """
             Simple example where no slider snapping is performed. There is one stimulus

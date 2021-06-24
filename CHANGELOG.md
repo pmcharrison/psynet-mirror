@@ -1,4 +1,15 @@
-# Changelog
+# CHANGELOG
+
+# [2.2.1] Released on 2021-06-21
+
+#### Fixed
+- Fixed bug to make pre-deployment routines work again 
+
+# [2.2.0] Released on 2021-06-16
+
+#### Added
+- Add new experiment variable ``hard_max_experiment_payment`` which allows for setting a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` variable. Default is $1100.
+- Allow for changing the soft and hard spending limits from the dashboard's timeline tab. Clicking on the upper, green progress bar shows/hides the corresponding UI widgets.
 
 #### Changed
 - Renamed the `media_url` property of `RecordTrial` to `recording_url` so as to not clash with the same method name in `StaticTrial`. 
@@ -6,13 +17,15 @@
 #### Fixed
 - Fixed bug with wrong `minimal_interactions` functionality of `SliderControl` due to duplicate event handling in `control.html`.
 - The renamed `recording_url` method incorrectly only returned camera urls. This was replaced with the correct `url` key. 
-
+- Fixed issue where `max_loop_time_condition` would be logged to the participant table
+  every trial in a trial maker.
 
 # [2.1.2] Released on 2021-06-15
 
 #### Fixed
-- Temporary hotfix for bonus/time estimation bug
-
+- Hotfix for bonus/time estimation bug: `time_estimate` for `EndPage`
+  is now set to zero. This means that experiment estimated durations
+  (and corresponding bonuses) will decrease slighly.
 
 # [2.1.1] Released on 2021-06-10
 

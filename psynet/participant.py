@@ -105,6 +105,9 @@ class Participant(dallinger.models.Participant):
     answer_is_fresh : bool
         ``True`` if the current value of ``participant.answer`` (and similarly ``participant.last_response_id`` and
         ``participant.last_response``) comes from the last page that the participant saw, ``False`` otherwise.
+
+    browser_platform : str
+        Information about the participant's browser version and OS platform.
     """
 
     __mapper_args__ = {"polymorphic_identity": "participant"}
@@ -134,6 +137,9 @@ class Participant(dallinger.models.Participant):
     )
     answer_is_fresh = claim_var(
         "answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False
+    )
+    browser_platform = claim_var(
+        "browser_platform", __extra_vars__, use_default=True, default=lambda: ""
     )
 
     def __json__(self):
