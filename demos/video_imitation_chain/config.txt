@@ -20,7 +20,7 @@ disable_when_duration_exceeded = False
 [Advert metadata]
 description = In this study, you will be imitating different gestures in a video recording. 
 keywords = demo
-contact_email_on_error = computational.audition+online_running@gmail.com
+contact_email_on_error = cap-experiments@ae.mpg.de
 organization_name = Max Planck Institute for Empirical Aesthetics
 
 [Database]
