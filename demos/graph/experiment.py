@@ -7,6 +7,7 @@
 import random
 import re
 from statistics import mean
+import rpdb
 
 import psynet.experiment
 from psynet.modular_page import ModularPage, Prompt, TextControl, PushButtonControl
@@ -93,11 +94,11 @@ class CustomSource(GraphChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
     def generate_seed(self, network, experiment, participant):
-        return random.randint(0, 9999999)
+        return random.randint(1000000, 9999999)
 
     @staticmethod
     def generate_class_seed():
-        return random.randint(0, 9999999)
+        return random.randint(1000000, 9999999)
 
 
 class CustomTrialMaker(GridChainTrialMaker):
@@ -121,19 +122,19 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
-            grid_dimension=2,
+            grid_dimension=3,
             phase="experiment",
             time_estimate_per_trial=5,
             chain_type="across",
             num_iterations_per_chain=5,
-            num_trials_per_participant=4,
+            num_trials_per_participant=9,
             num_chains_per_participant=None,
             trials_per_node=1,
             balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
-            recruit_mode="num_participants",
-            target_num_participants=10,
+            recruit_mode="num_trials",
+            target_num_participants=None,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),

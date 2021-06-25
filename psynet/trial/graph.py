@@ -4,11 +4,11 @@ from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialM
 import json
 from typing import Optional, Union, List
 from dallinger import db
+from ..field import claim_field
+import rpdb
 
-from trial.main import with_trial_maker_namespace
-# from .utils import (
-#     import_local_experiment,
-# )
+# from psynet.trial.main import with_trial_maker_namespace
+from .main import TrialNetwork, with_trial_maker_namespace
 
 
 class GraphChainNetwork(ChainNetwork):
@@ -17,6 +17,7 @@ class GraphChainNetwork(ChainNetwork):
     """
 
     __mapper_args__ = {"polymorphic_identity": "graph_chain_network"}
+    __extra_vars__ = ChainNetwork.__extra_vars__.copy()
 
     def __init__(
         self,
@@ -31,8 +32,23 @@ class GraphChainNetwork(ChainNetwork):
         target_num_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
+        source_seed: Optional = None
     ):
-        super().__init__(trial_maker_id, phase, experiment)
+        # self.vertex_id = vertex_id
+        # self.dependent_vertex_ids = dependent_vertex_ids
+        # super().__init__(
+        #     trial_maker_id=trial_maker_id,
+        #     source_class=source_class,
+        #     phase=phase,
+        #     experiment=experiment,
+        #     chain_type=chain_type,
+        #     trials_per_node=trials_per_node,
+        #     target_num_nodes=target_num_nodes,
+        #     participant=participant,
+        #     id_within_participant=id_within_participant
+        # )
+
+        TrialNetwork.__init__(self, trial_maker_id, phase, experiment)
         db.session.add(self)
         db.session.commit()
 
@@ -43,20 +59,31 @@ class GraphChainNetwork(ChainNetwork):
         self.chain_type = chain_type
         self.trials_per_node = trials_per_node
         self.target_num_nodes = target_num_nodes
+        self.vertex_id = vertex_id
+        self.dependent_vertex_ids = dependent_vertex_ids
         # The last node in the chain doesn't receive any trials
         self.target_num_trials = (target_num_nodes - 1) * trials_per_node
         self.definition = self.make_definition()
         self.participant_group = self.get_participant_group()
-        self.add_source(source_class, experiment, participant)
-        self.vertex_id = vertex_id
-        self.dependent_vertex_ids = dependent_vertex_ids
+        self.source_seed = source_seed
+        self.add_source(source_class, experiment, source_seed, participant)
 
         self.validate()
 
         experiment.save()
 
+    def add_source(self, source_class, experiment, source_seed, participant=None):
+        source = source_class(self, experiment, source_seed, participant)
+        db.session.add(source)
+        self.add_node(source)
+        db.session.commit()
+
     def make_definition(self):
         return {}
+
+    vertex_id = claim_field("vertex_id", __extra_vars__, int)
+    dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
+    source_seed = claim_field("source_seed", __extra_vars__)
 
 
 class GraphChainTrial(ChainTrial):
@@ -97,11 +124,35 @@ class GraphChainNode(ChainNode):
     """
 
     __mapper_args__ = {"polymorphic_identity": "graph_chain_node"}
+    __extra_vars__ = ChainNode.__extra_vars__.copy()
+
+    def __init__(
+        self,
+        seed,
+        degree: int,
+        network,
+        experiment,
+        propagate_failure: bool,
+        vertex_id: int,
+        dependent_vertex_ids: List[int],
+        participant=None,
+    ):
+        # pylint: disable=unused-argument
+        self.vertex_id = vertex_id
+        self.dependent_vertex_ids = dependent_vertex_ids
+        super().__init__(
+            seed=seed,
+            degree=degree,
+            network=network,
+            experiment=experiment,
+            propagate_failure=propagate_failure,
+            participant=participant
+        )
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
         (Built-in)
-        In an graph chain, the next node in the chain
+        In a graph chain, the next node in the chain
         is a faithful reproduction of the previous iteration.
 
         Parameters
@@ -164,21 +215,35 @@ class GraphChainNode(ChainNode):
             return trials[0].answer
         raise NotImplementedError
 
+    vertex_id = claim_field("vertex_id", __extra_vars__, int)
+    dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
+
     @property
     def ready_to_spawn(self):
-        parents = self.get_parent_nodes()
-        if (len(parents) < len(self.network.dependent_vertex_ids)):
+        parents = self.get_parents()  # These are parent nodes from the same layer, to be passed to the next layer
+        if len(parents) == len(self.dependent_vertex_ids):  # Make sure all parents exist
+            all_parents_ready = all([p.is_complete() for p in parents])
+            current_vertex_ready = self.is_complete()
+            return (all_parents_ready and current_vertex_ready)
+        elif len(parents) < len(self.dependent_vertex_ids):
             return False
         else:
-            all_parents_ready = all([self.is_ready(p) for p in parents])
-            current_vertex_ready = self.is_ready(self)
-            return all_parents_ready and current_vertex_ready
+            raise ValueError("Invalid number of parent nodes!")
 
-    def get_parent_nodes(self):
-        return NotImplementedError  # CONTINUE HERE!
+    def get_parents(self):
+        trial_maker_id = self.network.trial_maker_id
+        degree = self.degree
+        nodes = GraphChainNode.query.all()
+        current_layer = [n for n in nodes if n.network.trial_maker_id == trial_maker_id and n.degree == degree]
+        parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
+        return parents
 
-    def is_ready(self, node):
-        return node.completed_and_processed_trials.count() >= node.target_num_trials
+    def is_complete(self):
+        return self.completed_and_processed_trials.count() >= self.target_num_trials
+
+    def create_seed(self, experiment, participant):
+        trials = self.completed_and_processed_trials.all()
+        return self.summarize_trials(trials, experiment, participant)
 
 
 class GraphChainSource(ChainSource):
@@ -187,9 +252,58 @@ class GraphChainSource(ChainSource):
     """
 
     __mapper_args__ = {"polymorphic_identity": "graph_chain_source"}
+    __extra_vars__ = ChainSource.__extra_vars__.copy()
 
-    def generate_seed(self, network, experiment, participant):
+    def __init__(
+            self,
+            network,
+            experiment,
+            # vertex_id,
+            # dependent_vertex_ids,
+            source_seed,
+            participant
+    ):
+        super().__init__(network, experiment, participant)
+        # self.source_vertex_id = vertex_id
+        # self.source_dependent_vertex_ids = dependent_vertex_ids
+        if source_seed is not None:
+            self.seed = source_seed
+
+    def generate_seed(self, network, experiment, participant):  # the seed of a source is a simple seed (e.g. stimulus) whereas the seed of a node is a bundle (belonging to a vertex and its neighbours)
         raise NotImplementedError
+
+    @staticmethod
+    def generate_class_seed():
+        raise NotImplementedError
+
+    # vertex_id = claim_field("source_vertex_id", __extra_vars__, int)
+    # dependent_vertex_ids = claim_field("source_dependent_vertex_ids", __extra_vars__)
+
+    # def get_parents(self):
+    #     trial_maker_id = self.network.trial_maker_id
+    #     nodes = GraphChainSource.query.all()
+    #     current_layer = [n for n in nodes if n.network.trial_maker_id == trial_maker_id]
+    #     try:
+    #         parents = [n for n in current_layer if n.vertex_id in n.dependent_vertex_ids]
+    #     except AttributeError:
+    #         parents = []
+    #     if len(parents) == 2:
+    #         rpdb.set_trace()
+    #     return parents
+
+    # @property
+    # def ready_to_spawn(self):
+    #     parents = self.get_parents()  # These are parent nodes from the same layer, to be passed to the next layer
+    #     try:
+    #         self.network.dependent_vertex_ids
+    #     except AttributeError:
+    #         return False
+    #     if len(parents) == len(self.network.dependent_vertex_ids):  # Make sure all parents exist
+    #         return True
+    #     elif len(parents) < len(self.network.dependent_vertex_ids):
+    #         return False
+    #     else:
+    #         raise ValueError("Invalid number of parent sources!")
 
 
 class GraphChainTrialMaker(ChainTrialMaker):
@@ -233,6 +347,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         if chain_type == "within":
             raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN NETS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
         num_chains_per_experiment = len(json.loads(network_structure)["vertices"])
+        self.network_structure = network_structure
         super().__init__(
             id_=id_,
             network_class=network_class,
@@ -263,18 +378,20 @@ class GraphChainTrialMaker(ChainTrialMaker):
 
     def experiment_setup_routine(self, experiment):
         if self.num_networks == 0 and self.chain_type == "across":
-            experiment.var.set(with_trial_maker_namespace(self.trial_maker_id, "network_structure"), self.network_structure)
+            experiment.var.set(with_trial_maker_namespace(self.id, "network_structure"), self.network_structure)
             self.create_networks_across(experiment)
 
     def create_networks_across(self, experiment):
         network_structure = json.loads(self.network_structure)
         vertices = network_structure["vertices"]
+        source_seeds = self.generate_source_seed_bundles()
         for i in range(self.num_chains_per_experiment):
             vertex_id = vertices[i]
+            source_seed = [seed["bundle"] for seed in source_seeds if seed["vertex_id"] == vertex_id][0]
             dependent_vertex_ids = self.get_dependent_vertex_ids(vertex_id, network_structure)
-            self.create_network(experiment, vertex_id, dependent_vertex_ids)
+            self.create_network(experiment, vertex_id, dependent_vertex_ids, source_seed)
 
-    def create_network(self, experiment, vertex_id, dependent_vertex_ids, participant=None, id_within_participant=None):
+    def create_network(self, experiment, vertex_id, dependent_vertex_ids, source_seed, participant=None, id_within_participant=None):
         network = self.network_class(
             trial_maker_id=self.id,
             source_class=self.source_class,
@@ -287,19 +404,80 @@ class GraphChainTrialMaker(ChainTrialMaker):
             target_num_nodes=self.num_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
+            source_seed=source_seed
         )
         db.session.add(network)
         db.session.commit()
         self._grow_network(network, participant, experiment)
         return network
 
-    def get_dependent_vertex_ids(target, network_structure):
+    def get_dependent_vertex_ids(self, target, network_structure):
         edges = network_structure["edges"]
         dependent_vertex_ids = [e["origin"] for e in edges if e["target"] == target]
         return dependent_vertex_ids
 
+    def grow_network(self, network, participant, experiment):
+        # We set participant = None because of Dallinger's constraint of not allowing participants
+        # to create nodes after they have finished working.
+        participant = None
+        head = network.head
+        if head.ready_to_spawn:
+            if head.degree > 0:
+                seed_bundle = self.create_seed_bundle(head, experiment, participant)
+            else:
+                seed_bundle = head.create_seed(experiment, participant)
+            node = self.node_class(
+                seed_bundle,
+                head.degree + 1,
+                network,
+                experiment,
+                self.propagate_failure,
+                network.vertex_id,
+                network.dependent_vertex_ids,
+                participant,
+            )
+            db.session.add(node)
+            network.add_node(node)
+            db.session.commit()
+            return True
+        return False
 
-class GridChainTrialMaker(ChainTrialMaker):
+    def create_seed_bundle(self, head, experiment, participant):
+        head_seed = head.create_seed(experiment, participant)
+        parents = head.get_parents()
+        bundle = [
+            {
+                "vertex_id": head.network.vertex_id,
+                "content": head_seed,
+                "is_center": True
+            }
+        ] + [
+            {
+                "vertex_id": p.network.vertex_id,
+                "content": p.create_seed(experiment, participant),  # might require some thought if participant becomes relevant
+                "is_center": False
+            }
+            for p in parents
+        ]
+        return bundle
+
+    def generate_source_seed_bundles(self):
+        network_structure = json.loads(self.network_structure)
+        vertices = network_structure["vertices"]
+        centers = [{"vertex_id": v, "content": self.source_class.generate_class_seed(), "is_center": True} for v in vertices]
+        bundles = []
+        for i in range(len(centers)):
+            center = centers[i]
+            dependent_vertex_ids = self.get_dependent_vertex_ids(center["vertex_id"], network_structure)
+            bundle = [center]
+            for j in dependent_vertex_ids:
+                content = [c["content"] for c in centers if c["vertex_id"] == j]
+                bundle = bundle + [{"vertex_id": j, "content": content[0], "is_center": False}]
+            bundles = bundles + [{"vertex_id": center["vertex_id"], "bundle": bundle}]
+        return bundles
+
+
+class GridChainTrialMaker(GraphChainTrialMaker):
     """
     A TrialMaker class for grid-type graph chains;
     see the documentation for
@@ -368,16 +546,16 @@ class GridChainTrialMaker(ChainTrialMaker):
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains
         )
 
-        def generate_grid_json(self, size):
-            vertices = [i for i in range(1, size**2 + 1)]
-            edges = []
-            for v in vertices:
-                if v % size != 0:
-                    edges = edges + [{"origin": v, "target": v + 1, "properties": {"type": "default"}}]
-                if (v - 1) % size != 0:
-                    edges = edges + [{"origin": v, "target": v - 1, "properties": {"type": "default"}}]
-                if (v + size) <= size ** 2:
-                    edges = edges + [{"origin": v, "target": v + size, "properties": {"type": "default"}}]
-                if (v - size) > 0:
-                    edges = edges + [{"origin": v, "target": v - size, "properties": {"type": "default"}}]
-            return json.dumps({"vertices": vertices, "edges": edges})
+    def generate_grid_json(self, size):
+        vertices = [i for i in range(1, size**2 + 1)]
+        edges = []
+        for v in vertices:
+            if v % size != 0:
+                edges = edges + [{"origin": v, "target": v + 1, "properties": {"type": "default"}}]
+            if (v - 1) % size != 0:
+                edges = edges + [{"origin": v, "target": v - 1, "properties": {"type": "default"}}]
+            if (v + size) <= size ** 2:
+                edges = edges + [{"origin": v, "target": v + size, "properties": {"type": "default"}}]
+            if (v - size) > 0:
+                edges = edges + [{"origin": v, "target": v - size, "properties": {"type": "default"}}]
+        return json.dumps({"vertices": vertices, "edges": edges})

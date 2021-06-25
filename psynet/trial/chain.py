@@ -1403,7 +1403,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant = None
         head = network.head
         if head.ready_to_spawn:
-            seed = head.create_seed(participant, experiment)
+            seed = head.create_seed(experiment, participant)
             node = self.node_class(
                 seed,
                 head.degree + 1,
