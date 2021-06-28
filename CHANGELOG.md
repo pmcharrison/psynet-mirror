@@ -333,7 +333,7 @@ used participant groups.
 
 #### Changes
 
-- Move pre-screening tasks into new prescreen module.
+**- Move pre-screening tasks into new prescreen module.**
 - Attempt to fix networks not growing after async post trial
 - Bugfix: Enable vertical arrangement of buttons in NAFCControl
 
