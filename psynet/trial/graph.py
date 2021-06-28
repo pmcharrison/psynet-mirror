@@ -13,7 +13,21 @@ from .main import TrialNetwork, with_trial_maker_namespace
 
 class GraphChainNetwork(ChainNetwork):
     """
-    A Network class for graph chains.
+    A Network class for graph chains. A graph chain corresponds to the evolution of
+    a vertex within a graph.
+
+    Parameters (for now stating the new ones)
+    ----------
+
+    vertex_id
+        The id of the vertex that the network is representing within the graph.
+
+    dependent_vertex_ids
+        A list of the vertex ids on which the current node depends (incoming edges).
+
+    source_seed
+        Source seed to use when initializing the graph in the trialmaker.
+
     """
 
     __mapper_args__ = {"polymorphic_identity": "graph_chain_network"}
@@ -26,27 +40,14 @@ class GraphChainNetwork(ChainNetwork):
         phase: str,
         experiment,
         chain_type: str,
-        vertex_id: int,  # Unique vertex id specifying the location of the network vertex within the graph
-        dependent_vertex_ids: List[int],  # vertices which the current vertex depends on (incoming)
+        vertex_id: int,
+        dependent_vertex_ids: List[int],
         trials_per_node: int,
         target_num_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
         source_seed: Optional = None
     ):
-        # self.vertex_id = vertex_id
-        # self.dependent_vertex_ids = dependent_vertex_ids
-        # super().__init__(
-        #     trial_maker_id=trial_maker_id,
-        #     source_class=source_class,
-        #     phase=phase,
-        #     experiment=experiment,
-        #     chain_type=chain_type,
-        #     trials_per_node=trials_per_node,
-        #     target_num_nodes=target_num_nodes,
-        #     participant=participant,
-        #     id_within_participant=id_within_participant
-        # )
 
         TrialNetwork.__init__(self, trial_maker_id, phase, experiment)
         db.session.add(self)
@@ -121,6 +122,15 @@ class GraphChainTrial(ChainTrial):
 class GraphChainNode(ChainNode):
     """
     A Node class for graph chains.
+
+    Parameters (for now stating the new ones)
+    ----------
+
+    vertex_id
+        The id of the vertex that the network is representing within the graph.
+
+    dependent_vertex_ids
+        A list of the vertex ids on which the current node depends (incoming edges).
     """
 
     __mapper_args__ = {"polymorphic_identity": "graph_chain_node"}
@@ -258,14 +268,10 @@ class GraphChainSource(ChainSource):
             self,
             network,
             experiment,
-            # vertex_id,
-            # dependent_vertex_ids,
             source_seed,
             participant
     ):
         super().__init__(network, experiment, participant)
-        # self.source_vertex_id = vertex_id
-        # self.source_dependent_vertex_ids = dependent_vertex_ids
         if source_seed is not None:
             self.seed = source_seed
 
@@ -276,35 +282,6 @@ class GraphChainSource(ChainSource):
     def generate_class_seed():
         raise NotImplementedError
 
-    # vertex_id = claim_field("source_vertex_id", __extra_vars__, int)
-    # dependent_vertex_ids = claim_field("source_dependent_vertex_ids", __extra_vars__)
-
-    # def get_parents(self):
-    #     trial_maker_id = self.network.trial_maker_id
-    #     nodes = GraphChainSource.query.all()
-    #     current_layer = [n for n in nodes if n.network.trial_maker_id == trial_maker_id]
-    #     try:
-    #         parents = [n for n in current_layer if n.vertex_id in n.dependent_vertex_ids]
-    #     except AttributeError:
-    #         parents = []
-    #     if len(parents) == 2:
-    #         rpdb.set_trace()
-    #     return parents
-
-    # @property
-    # def ready_to_spawn(self):
-    #     parents = self.get_parents()  # These are parent nodes from the same layer, to be passed to the next layer
-    #     try:
-    #         self.network.dependent_vertex_ids
-    #     except AttributeError:
-    #         return False
-    #     if len(parents) == len(self.network.dependent_vertex_ids):  # Make sure all parents exist
-    #         return True
-    #     elif len(parents) < len(self.network.dependent_vertex_ids):
-    #         return False
-    #     else:
-    #         raise ValueError("Invalid number of parent sources!")
-
 
 class GraphChainTrialMaker(ChainTrialMaker):
     """
@@ -312,6 +289,14 @@ class GraphChainTrialMaker(ChainTrialMaker):
     see the documentation for
     :class:`~psynet.trial.chain.ChainTrialMaker`
     for usage instructions.
+
+    Parameters
+    ----------
+
+    network_structure
+        A JSON representation of the graph structure to instantiate.
+        The representation consistes of a dictionary of vertices and edges.
+        E.g. {"vertices": [1,2], "edges": [{"origin": 1, "target": 2, "properties": {"type": "default"}}]}
     """
 
     def __init__(
@@ -345,7 +330,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         allow_revisiting_networks_in_across_chains: bool = False,
     ):
         if chain_type == "within":
-            raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN NETS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
+            raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN CHAINS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
         num_chains_per_experiment = len(json.loads(network_structure)["vertices"])
         self.network_structure = network_structure
         super().__init__(
