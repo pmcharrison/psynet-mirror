@@ -246,14 +246,61 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
         }
 
-    def setup_experiment_variables(self):
-        # Note: the experiment network must be setup first before we can set these variables.
-        variables = {**self._default_variables, **self.variables}
-        dallinger_log(
-            "Initializing experiment with variables \n" + pretty_log_dict(variables, 4)
+    @property
+    def description(self):
+        config = get_config()
+        return config.get("description")
+
+    @property
+    def ad_requirements(self):
+        return [
+            'The experiment can only be performed using a <span style="font-weight: bold;">laptop</span> (desktop computers are not allowed).',
+            'You should use an <span style="font-weight: bold;">updated Google Chrome</span> browser.',
+            'You should be sitting in a <span style="font-weight: bold;">quiet environment</span>.',
+            'You should be at least <span style="font-weight: bold;">18 years old</span>.',
+            'You should be a <span style="font-weight: bold;">fluent English speaker</span>.',
+        ]
+
+    @property
+    def ad_payment_information(self):
+        return f"""
+                We estimate that the task should take approximately <span style="font-weight: bold;">{round(self.estimated_duration_in_minutes)} minutes</span>. Upon completion of the full task,
+                <br>
+                you should receive a bonus of approximately
+                <span style="font-weight: bold;">${'{:.2f}'.format(self.estimated_bonus_in_dollars)}</span> depending on the
+                amount of work done.
+                <br>
+                In some cases, the experiment may finish early: this is not an error, and there is no need to write to us.
+                <br>
+                In this case you will be paid in proportion to the amount of the experiment that you completed.
+                """
+
+    @property
+    def variables_initial_values(self):
+        return {**self._default_variables, **self.variables}
+
+    @property
+    def estimated_duration_in_minutes(self):
+        return self.timeline.estimated_time_credit.get_max(mode="time") / 60
+
+    @property
+    def estimated_bonus_in_dollars(self):
+        return round(
+            self.timeline.estimated_time_credit.get_max(
+                mode="bonus",
+                wage_per_hour=self.variables_initial_values["wage_per_hour"],
+            ),
+            2,
         )
 
-        for key, value in variables.items():
+    def setup_experiment_variables(self):
+        # Note: the experiment network must be setup first before we can set these variables.
+        dallinger_log(
+            "Initializing experiment with variables \n"
+            + pretty_log_dict(self.variables_initial_values, 4)
+        )
+
+        for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
     def load(self):
@@ -751,23 +798,6 @@ class Experiment(dallinger.experiment.Experiment):
             rpdb.set_trace()
             return success_response()
         return error_response()
-
-    @experiment_route("/metadata", methods=["GET"])
-    @classmethod
-    def get_metadata(cls):
-        exp = cls.new(db.session)
-        return jsonify(
-            {
-                "duration_seconds": exp.timeline.estimated_time_credit.get_max(
-                    mode="time"
-                ),
-                "bonus_dollars": exp.timeline.estimated_time_credit.get_max(
-                    mode="bonus", wage_per_hour=exp.var.wage_per_hour
-                ),
-                "wage_per_hour": exp.var.wage_per_hour,
-                "base_payment": exp.base_payment,
-            }
-        )
 
     @experiment_route("/node/<int:node_id>/fail", methods=["GET", "POST"])
     @staticmethod

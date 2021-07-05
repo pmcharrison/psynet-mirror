@@ -15,7 +15,7 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
-[Advert metadata]
+[Ad metadata]
 description = This app demos two pre-screening tasks to assess language skills: lextale test for English proficient and a basic vocabulary test implemented in five languages.
 keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com

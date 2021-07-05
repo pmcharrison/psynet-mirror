@@ -377,6 +377,10 @@ example_record_audio_video = join(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    variables = {
+        "wage_per_hour": 12.0,
+    }
+
     timeline = Timeline(
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),
@@ -396,3 +400,16 @@ class Exp(psynet.experiment.Experiment):
         example_preloading,
         SuccessfulEndPage(),
     )
+
+    @property
+    def ad_requirements(self):
+        return super().ad_requirements + [
+            'You must be wearing <span style="font-weight: bold;">headphones</span> and sitting in a quiet place.'
+        ]
+
+    @property
+    def ad_payment_information(self):
+        return (
+            super().ad_payment_information
+            + '<br>Send us your <span style="font-weight: bold;">bank account information</span> to receive refunds.'
+        )
