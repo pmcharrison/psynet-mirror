@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Fixed
+- Fixed SQLAlchemy start-up error induced by v2.2.1. 
+
 # [2.2.1] Released on 2021-06-21
 
 #### Fixed
