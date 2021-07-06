@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Changed
+- Minor improvement to video synchronization.
+
 #### Fixed
 - Fixed SQLAlchemy start-up error induced by v2.2.1. 
 
