@@ -1,10 +1,22 @@
 # CHANGELOG
 
+# [2.3.0] Released on 2021-07-07
+
+#### Added
+- Store browser and platform information in participant table.
+
 #### Changed
+- New way of how the contents of the `Ad page` are specified. See https://computational-audition-lab.gitlab.io/psynet/experimenter/add_page.html for details.
+- PsyNet now enforces at least one consent element to be included in a timeline. See `psynet/consent.py` for available consent modules. If you're sure you want to omit the consent form, include a ``NoConsent`` element in the timeline.
 - Minor improvement to video synchronization.
 
+#### Updated
+- Updated repp and tapping demos.
+- Updated Dallinger to v7.5.0.
+
 #### Fixed
-- Fixed SQLAlchemy start-up error induced by v2.2.1. 
+- Fixed SQLAlchemy start-up error induced by v2.2.1.
+
 
 # [2.2.1] Released on 2021-06-21
 
@@ -14,7 +26,7 @@
 # [2.2.0] Released on 2021-06-16
 
 #### Added
-- Add new experiment variable ``hard_max_experiment_payment`` which allows for setting a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` variable. Default is $1100.
+- Added new experiment variable ``hard_max_experiment_payment`` which allows for setting a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` variable. Default is $1100.
 - Allow for changing the soft and hard spending limits from the dashboard's timeline tab. Clicking on the upper, green progress bar shows/hides the corresponding UI widgets.
 
 #### Changed
