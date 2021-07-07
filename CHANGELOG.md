@@ -6,8 +6,8 @@
 - Store browser and platform information in participant table.
 
 #### Changed
-- New way of how the contents of the `Ad page` are specified. See https://computational-audition-lab.gitlab.io/psynet/experimenter/add_page.html for details.
-- PsyNet now enforces at least one consent element to be included in a timeline. See `psynet/consent.py` for available consent modules. If you're sure you want to omit the consent form, include a ``NoConsent`` element in the timeline.
+- New way of how the contents of the `Ad page` are specified. See https://computational-audition-lab.gitlab.io/psynet/experimenter/ad_page.html for details.
+- PsyNet now enforces at least one consent element to be included in a timeline. See `psynet/consent.py` for available consent modules. If you're sure you want to omit the consent form, include a ``NoConsent`` element.
 - Minor improvement to video synchronization.
 
 #### Updated
