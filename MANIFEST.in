@@ -1,0 +1,7 @@
+recursive-include psynet *
+recursive-include docs *
+
+include README.md
+include LICENSE
+
+prune *.pyc
