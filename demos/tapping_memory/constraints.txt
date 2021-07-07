@@ -52,7 +52,7 @@ click==7.1.2
     #   rq
 cycler==0.10.0
     # via matplotlib
-dallinger==7.4.0
+dallinger==7.5.0
     # via psynet
 datetime==4.3
     # via psynet

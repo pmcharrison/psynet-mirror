@@ -31,7 +31,7 @@ click==7.1.2
     #   pip-tools
     #   psynet
     #   rq
-dallinger==7.4.0
+dallinger==7.5.0
     # via psynet
 datetime==4.3
     # via psynet
