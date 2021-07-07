@@ -15,19 +15,6 @@
   }
 </style>
 
-<script>
-  var experiment_metadata = null;
-  window.addEventListener("load", function() {
-    dallinger.get("/metadata").done(function(resp) {
-      let duration_in_minutes = (resp.duration_seconds / 60).toFixed(0)
-      $("#duration_minutes").text(duration_in_minutes + (duration_in_minutes == 1 ? ' minute' : ' minutes'));
-      $("#total_estimated_payment").text(
-        "$" + ((resp.duration_seconds / 3600) * {{ experiment.var.wage_per_hour }}).toFixed(2) + ' in total'
-      );
-    });
-  });
-</script>
-
 <img src="/static/images/princeton-consent.png" alt="Princeton University adult consent form" style="width:450px" class="center">
 <div class="main_div" style="padding-bottom: 100px;">
   <div class="consent_div text-justify">
@@ -75,7 +62,8 @@
     </p>
 
     <p>
-        Your total expected time commitment for this study is: <span id="duration_minutes" style="font-weight: bold"></span>.
+        Your total expected time commitment for this study is <span style="font-weight: bold; white-space: nowrap;">
+        {{ experiment.estimated_duration_in_minutes|round|int }} minutes</span>.
     </p>
 
     <h2>Benefits and Risks: </h2>
@@ -106,9 +94,9 @@
 
     <h2>Compensation: </h2>
     <p>
-        For your participation, you will receive approximately <span style="font-weight: bold">&#36;{{ "{:.2f}".format(experiment.var.wage_per_hour) }}
+        For your participation, you will receive approximately <span style="font-weight: bold">${{ "{:.2f}".format(experiment.var.wage_per_hour) }}
         per hour</span>. Based on the estimated time to complete the experiment that amounts to
-        <span id="total_estimated_payment" style="font-weight: bold;"></span>. If you are on Mturk or Prolific and for any reason you do
+        <span style="font-weight: bold; white-space: nowrap;">${{ "{:.2f}".format(experiment.estimated_bonus_in_dollars) }} in total</span>. If you are on Mturk or Prolific and for any reason you do
         not complete the study (e.g. technical difficulties, or a desire to stop), we will only be able to pay you if
         you send an email through MTurk/Prolific, or by emailing the researcher, at cocosci-lab@princeton.edu.
         If you have any questions about the study, feel free to contact the researcher or the Principal Investigator,

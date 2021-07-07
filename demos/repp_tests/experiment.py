@@ -1,9 +1,7 @@
 # pylint: disable=unused-import,abstract-method,unused-argument,no-member
 
-##########################################################################################
-# Imports
-##########################################################################################
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
@@ -14,13 +12,11 @@ from psynet.prescreen import (
 )
 from psynet.timeline import PreDeployRoutine, Timeline
 
-##########################################################################################
+
 # Experiment
-##########################################################################################
-
-
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         PreDeployRoutine(
             "prepare_s3_bucket_for_presigned_urls",
             prepare_s3_bucket_for_presigned_urls,
@@ -30,8 +26,8 @@ class Exp(psynet.experiment.Experiment):
                 "create_new_bucket": True,
             },  # s3 bucket to store markers check recordings
         ),
-        REPPVolumeCalibrationMarkers(),  # Volume calibration test for metronome: adjust right volume to be used with REPP when working with metronome stimuli
-        REPPVolumeCalibrationMusic(),  # Volume calibration test for music: adjust right volume to be used with REPP when working with music sitmuli
+        REPPVolumeCalibrationMarkers(),  # Volume calibration test for markers
+        REPPVolumeCalibrationMusic(),  # Volume calibration test for music
         REPPTappingCalibration(),  # Calibration test 2: adjust tapping volume to be used with REPP
         REPPMarkersTest(),
         InfoPage("You passed the recording test! Congratulations.", time_estimate=3),

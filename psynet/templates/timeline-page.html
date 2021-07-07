@@ -428,7 +428,6 @@
 
                         event.runJS = function(info) {
                             if (event.js !== null) {
-                                debugger
                                 Function("info", unescape(event.js))(info);
                             }
                         };
@@ -1089,7 +1088,7 @@
                     return true;
                 }
 
-                create_media_from_buffer.video = function (data, args) {
+                create_media_from_buffer.video = async function (data, args) {
                     let stimulus_id = args["stimulus_id"];
                     let media_type = args["media_type"];
                     let file_id = args["file_id"];
@@ -1103,6 +1102,7 @@
                         player.src = URL.createObjectURL(data);
                         player.classList.remove("loader");
                         player.load();
+                        await psynet.waitForEventListener(player, "canplaythrough");
                     }
 
                     let out = psynet.media.data[media_type][stimulus_id];

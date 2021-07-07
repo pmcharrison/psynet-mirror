@@ -19,6 +19,7 @@ from typing import List, Union
 from flask import Markup
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -208,6 +209,7 @@ trial_maker = CustomTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         trial_maker,
         SuccessfulEndPage(),
     )

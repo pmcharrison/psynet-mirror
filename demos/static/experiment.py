@@ -9,6 +9,7 @@ import logging
 from flask import Markup
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
@@ -162,6 +163,7 @@ trial_maker = AnimalTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         ModularPage(
             "custom_filters",
             "Do you want to enable custom stimulus and stimulus version filters?",

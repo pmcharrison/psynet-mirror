@@ -6,6 +6,7 @@
 
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.prescreen import HeadphoneTest
 from psynet.timeline import Timeline
@@ -20,6 +21,7 @@ from psynet.timeline import Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         VolumeCalibration(),
         HeadphoneTest(),
         InfoPage(
