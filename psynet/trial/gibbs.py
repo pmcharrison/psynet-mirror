@@ -390,7 +390,7 @@ class GibbsSource(ChainSource):
             )
         return {
             "vector": [network.random_sample(i) for i in range(network.vector_length)],
-            "active_index": random.randint(0, network.vector_length),
+            "active_index": random.randint(0, network.vector_length - 1),
         }
 
 
