@@ -730,23 +730,6 @@
                 psynet.trial.restart();
             });
 
-            $("#btn-record-play-all").on("click", function() {
-                replayMode = true;
-                psynet.media.stop_all_audio();
-                psynet.trial.restart();
-            });
-
-            $("#btn-record-play-prompt").on("click", async function() {
-                await psynet.media.stop_all_audio();
-                await psynet.trial.restart({from: "promptStart"});
-            });
-
-            $("#btn-record-play-recording").on("click", async function() {
-                await psynet.media.stop_all_audio();
-                await psynet.trial.stop();
-                await psynet.page.control.playRecording();
-            });
-
             $("#btn-record-stop").on("click", async function() {
                 await psynet.trial.stop();
                 await psynet.page.control.stopRecordingPlayback();
