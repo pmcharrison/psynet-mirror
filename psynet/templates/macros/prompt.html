@@ -38,6 +38,9 @@
         </style>
 
         <div id="audio-prompt-controls">
+            <button id="audio-prompt-play" type="button" class="btn audio-prompt-button btn-primary btn-sm" disabled>
+                Play
+            </button>
             <div id="audio-prompt-loop">
               <input id="audio-prompt-loop-input" type="checkbox" value="" {% if config.loop %} checked {% endif %}>
               <label id="audio-prompt-loop-label" for="audio-prompt-loop-input" style="cursor: pointer;">
