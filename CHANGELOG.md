@@ -1,6 +1,7 @@
 # CHANGELOG
 
 #### Fixed
+- Fixed experiment network display bug.
 - Fixed bug in GSP seed generation, 
   whereby the initial `active_index` selection was not entirely uniform.
 

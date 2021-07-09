@@ -959,7 +959,7 @@ class ExperimentNetwork(Network):
     __extra_vars__ = {}
 
     def __init__(self):
-        self.role = "config"
+        self.role = "experiment"
         self.max_size = 0
 
     @property
