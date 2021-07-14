@@ -15,7 +15,7 @@ ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
-[Advert metadata]
+[Ad metadata]
 description = This app demos a simple audio slider.
 keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com

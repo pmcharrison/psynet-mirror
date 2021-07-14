@@ -25,6 +25,7 @@ PsyNet Documentation
    experimenter/basic_usage
    experimenter/timeline
    experimenter/trial_overview
+   experimenter/ad_page
    experimenter/modular_page
    experimenter/graphics
    experimenter/unity_page

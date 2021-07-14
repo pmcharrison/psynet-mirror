@@ -14,7 +14,7 @@ approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 
-[Advert metadata]
+[Ad metadata]
 description = This app demos the progress bar functionality.
 keywords = progress
 contact_email_on_error = computational.audition+online_running@gmail.com

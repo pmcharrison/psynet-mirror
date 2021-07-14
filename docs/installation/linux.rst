@@ -160,7 +160,7 @@ Needed for running the Selenium tests with headless Chrome.
 
 .. code-block:: bash
 
-   wget https://chromedriver.storage.googleapis.com/88.0.4324.96/chromedriver_linux64.zip --directory /tmp
+   wget https://chromedriver.storage.googleapis.com/90.0.4430.24/chromedriver_linux64.zip --directory /tmp
    sudo unzip /tmp/chromedriver_linux64.zip chromedriver -d /usr/local/bin/
 
 Install additional Python packages

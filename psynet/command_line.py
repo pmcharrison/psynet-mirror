@@ -85,7 +85,7 @@ def prepare(force):
         FLAGS.add("force")
     dallinger_log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
     experiment_class = import_local_experiment().get("class")
-    experiment_instance = experiment_class.new(db.session)
+    experiment_instance = experiment_class.new(session=None)
     experiment_instance.pre_deploy()
     db.session.commit()
     clean_sys_modules()

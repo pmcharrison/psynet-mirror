@@ -85,7 +85,7 @@ video_record_page = join(
     ModularPage(
         "video_plus_audio_2",
         VideoPrompt(
-            "https://psynet.s3.amazonaws.com/tests/video-sync-test.webm",
+            "https://psynet.s3.amazonaws.com/tests/video-sync-test.mp4",
             """
             Here's a second version, where the video and audio both come from the same original recording.
             If everything is working properly, the video and the audio should be well-synchronized.

@@ -1,5 +1,28 @@
 # CHANGELOG
 
+#### Fixed
+- Fixed experiment network display bug.
+- Fixed bug in GSP seed generation, 
+  whereby the initial `active_index` selection was not entirely uniform.
+
+# [2.3.0] Released on 2021-07-07
+
+#### Added
+- Store browser and platform information in participant table.
+
+#### Changed
+- New way of how the contents of the `Ad page` are specified. See https://computational-audition-lab.gitlab.io/psynet/experimenter/ad_page.html for details.
+- PsyNet now enforces at least one consent element to be included in a timeline. See `psynet/consent.py` for available consent modules. If you're sure you want to omit the consent form, include a ``NoConsent`` element.
+- Minor improvement to video synchronization.
+
+#### Updated
+- Updated repp and tapping demos.
+- Updated Dallinger to v7.5.0.
+
+#### Fixed
+- Fixed SQLAlchemy start-up error induced by v2.2.1.
+
+
 # [2.2.1] Released on 2021-06-21
 
 #### Fixed
@@ -8,7 +31,7 @@
 # [2.2.0] Released on 2021-06-16
 
 #### Added
-- Add new experiment variable ``hard_max_experiment_payment`` which allows for setting a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` variable. Default is $1100.
+- Added new experiment variable ``hard_max_experiment_payment`` which allows for setting a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` variable. Default is $1100.
 - Allow for changing the soft and hard spending limits from the dashboard's timeline tab. Clicking on the upper, green progress bar shows/hides the corresponding UI widgets.
 
 #### Changed
@@ -42,6 +65,7 @@
 #### Fixed
 - Improved robustness of browser-based regression tests.
 - Fixed incorrect performance bonus assignment for trial makers initialized with `check_performance_every_trial = True`. 
+- Improved robustness of browser-based regression tests.
 - Various bugfixes in audio-visual playback/recording interfaces.
 - Reverted the new language config.txt parameter, which was causing problems in various situations.
   This functionality will be reinstated in the upcoming Dallinger release.
