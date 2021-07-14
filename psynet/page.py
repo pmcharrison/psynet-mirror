@@ -3,7 +3,6 @@ import json
 import warnings
 from math import ceil
 from typing import List, Optional, Union
-import os
 
 from flask import Markup, escape
 
@@ -27,9 +26,8 @@ from .timeline import (
     join,
     while_loop,
 )
-from .utils import get_logger, linspace
-
-from .utils import LANGUAGE
+from .utils import get_logger, get_language
+import os
 import gettext
 
 
@@ -37,12 +35,13 @@ logger = get_logger()
 warnings.simplefilter("always", DeprecationWarning)
 
 
-## Load translation
+LANGUAGE = get_language()
 
-locale_path=os.path.dirname(__file__)+"/locale"
-filename = os.path.basename(__file__)[:-3]
-lang = gettext.translation(filename, localedir=locale_path, languages=[LANGUAGE])
-lang.install()
+# Load translation files
+domain_name = os.path.basename(__file__)[:-3] # strip ".py" extension
+localedir = os.path.dirname(__file__)+"/locale"
+lang = gettext.translation(domain_name, localedir=localedir, languages=[LANGUAGE])
+lang.install() # install _() function
 
 
 class InfoPage(Page):

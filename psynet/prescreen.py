@@ -27,16 +27,21 @@ from .timeline import (
 )
 from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
-from .utils import LANGUAGE
+
+from .utils import get_language
 import gettext
 
 
 ## Load translation
 
-locale_path=os.path.dirname(__file__)+"/locale"
-filename = os.path.basename(__file__)[:-3]
-lang = gettext.translation(filename, localedir=locale_path, languages=[LANGUAGE])
-lang.install()
+LANGUAGE = get_language()
+
+# Load translation files
+domain_name = os.path.basename(__file__)[:-3] # strip ".py" extension
+localedir = os.path.dirname(__file__)+"/locale"
+lang = gettext.translation(domain_name, localedir=localedir, languages=[LANGUAGE])
+lang.install() # install _() function
+
 
 class VolumeTestControlMusic(AudioMeterControl):
     decay = {"display": 0.1, "high": 0.1, "low": 0.1}

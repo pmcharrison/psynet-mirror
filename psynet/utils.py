@@ -16,12 +16,6 @@ import pandas as pd
 from dallinger.config import config, get_config
 from sqlalchemy.sql import func
 
-## HARD CODED LANGUAGE PARAMETER
-LANGUAGE = "en"
-print("***")
-print("LANGUAGE =",LANGUAGE)
-print("***")
-
 
 def get_logger():
     logging.basicConfig(level=logging.INFO)
