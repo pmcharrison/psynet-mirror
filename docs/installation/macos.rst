@@ -71,6 +71,10 @@ Setup Git
 Setup virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+.. note::
+
+   If you are installing on Big Sur 11.3 with the M1 chip, please skip below
+
 .. code-block:: bash
 
    pip3 install virtualenv
@@ -139,6 +143,23 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
    pip3 install -e .
 
 The `-e` flag makes in the last command above makes the `psynet` code editable.
+
+Install PsyNet on Big Sur 11.3/M1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to have PsyNet work with Big Sur 11.3 macOS with the M1 chip, we advise you use `conda` to download, install, and manage packages within your virtual environment. You can obtain this software by downloading `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ . You could also accomplish this with `Anaconda <https://www.anaconda.com/>`_, but this will download about 5 GB worth of software that is not needed to install PsyNet. Once you have installed Miniconda, you can then type the following commands into your Terminal:
+
+.. code-block:: bash
+
+   cd ~
+   git clone git@gitlab.com:computational-audition-lab/psynet
+   cd psynet
+   conda create --name psynet python=3.9 # creates a virtual environment called psynet, respond yes to prompt
+   conda activate psynet 
+   pip3 install -e .   
+   conda install psycopg2 # needs to be installed , respond yes to prompt
+
+Note that if you close your Terminal, you will need to ensure that you type `conda activate psynet` everytime you want to work on PsyNet. You can return to your base environment with `conda deactivate` while in the virtual environment. 
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
