@@ -284,7 +284,23 @@ def export(app, local):
         class_name = dallinger_model.__name__
 
         result = requests.get(f"{base_url}/export", params={"class_name": class_name})
-        json_data = json.loads(result.content.decode("utf8"))
+        
+        #debugging json_decode_error
+        retries = 0
+        while True:
+            import json.decoder
+            try:
+                json_text = result.content.decode("utf8")
+                json_data = json.loads(json_text)                
+                break
+            except json.decoder.JSONDecodeError as e:
+                dallinger_log(f"A JSONDecoder error occurred for {class_name}.")
+                if retries <= 3:
+                    dallinger_log("Retrying...")
+                    retries += 1
+                else:
+                    dallinger_log(f"The problematic string was: {json_text}")
+                    raise e
 
         for model_name, json_data in json_data.items():
             base_filename = model_name_to_snake_case(model_name)
