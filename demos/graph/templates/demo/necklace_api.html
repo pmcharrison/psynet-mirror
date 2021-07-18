@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <script src="raphael.js" type="text/javascript" charset="utf-8"></script>
+        <script type="text/javascript" charset="utf-8">
+            window.onload = function () {
+                var r = Raphael("holder", 640, 480)
+                var example_coloring = ["red", "green", "blue", "red", "blue", "red", "green"]
+                create_interactive_necklace(r, 120, 250, 20, 41, example_coloring)
+                create_static_necklace(r, 120, 350, 20, 41, example_coloring)
+            };
+        </script>
+        <script>
+            const color_options = ["red", "blue", "green"]
+
+            create_interactive_necklace = function(paper, px, py, size, spacing, coloring) {
+                translation = 0;
+                for (i=0;i<coloring.length;i++) {
+                    (function (t, c) {
+                        paper.circle(px, py, size).attr({stroke: c, fill: c, transform: t, "fill-opacity": .75
+                            }).click(function () {
+                            let currentColor = this.attrs.fill;
+                            let targetIdx = (color_options.findIndex(element => element == currentColor) + 1) % color_options.length
+                            this.attr({"stroke": color_options[targetIdx], "fill": color_options[targetIdx]});
+                        });
+                    })("T" + translation + ",0", coloring[i]);
+                    translation += spacing;
+                }
+            }
+
+            create_static_necklace = function(paper, px, py, size, spacing, coloring) {
+                var s = paper.set();
+                translation = 0;
+                for (i=0;i<coloring.length;i++) {
+                    (function (t, c) {
+                        s.push(paper.circle(px, py, size).attr({stroke: c, fill: c, transform: t, "fill-opacity": .75}));
+                    })("T" + translation + ",0", coloring[i]);
+                    translation += spacing;
+                }
+                s.click(function () {
+                    console.log("The necklace was just clicked!")
+                })
+            }
+        </script>
+    </head>
+    <body>
+        <div id="holder"></div>
+        <!-- <p id="copy">Necklace creation library</p> -->
+    </body>
+</html>

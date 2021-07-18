@@ -7,6 +7,8 @@
 import random
 import re
 from statistics import mean
+from typing import Optional, Union
+from flask import Markup
 import rpdb
 
 import psynet.experiment
@@ -18,8 +20,9 @@ from psynet.trial.graph import (
     GraphChainNode,
     GraphChainSource,
     GraphChainTrial,
-    GridChainTrialMaker,
+    GraphChainTrialMaker,
 )
+from psynet.consent import MTurkStandardConsent
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -73,7 +76,7 @@ class CustomTrial(GraphChainTrial):
             Prompt("Choose one of the following 7-digit numbers which you'd like to memorize."),
             PushButtonControl(options)
         )
-        # page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
+
         page_2 = FixedDigitInputPage("number", "What was the number?")
 
         return [page_1, page_2]
@@ -101,10 +104,86 @@ class CustomSource(GraphChainSource):
         return random.randint(1000000, 9999999)
 
 
-class CustomTrialMaker(GridChainTrialMaker):
+class CustomTrialMaker(GraphChainTrialMaker):
+    """
+    This TrialMaker implements a square lattice graph of dimensions grid_dimension x grid_dimension
+    """
+
     response_timeout_sec = 60
     check_timeout_interval = 30
 
+    def __init__(
+        self,
+        *,
+        id_,
+        network_class,
+        node_class,
+        source_class,
+        trial_class,
+        phase: str,
+        time_estimate_per_trial: Union[int, float],
+        grid_dimension: int,
+        chain_type: str,
+        num_trials_per_participant: int,
+        num_chains_per_participant: Optional[int],
+        trials_per_node: int,
+        balance_across_chains: bool,
+        check_performance_at_end: bool,
+        check_performance_every_trial: bool,
+        recruit_mode: str,
+        target_num_participants=Optional[int],
+        num_iterations_per_chain: Optional[int] = None,
+        num_nodes_per_chain: Optional[int] = None,
+        fail_trials_on_premature_exit: bool = False,
+        fail_trials_on_participant_performance_check: bool = False,
+        propagate_failure: bool = True,
+        num_repeat_trials: int = 0,
+        wait_for_networks: bool = False,
+        allow_revisiting_networks_in_across_chains: bool = False,
+    ):
+
+        network_structure = self.generate_grid(grid_dimension)
+        super().__init__(
+            id_=id_,
+            network_class=network_class,
+            node_class=node_class,
+            source_class=source_class,
+            trial_class=trial_class,
+            phase=phase,
+            time_estimate_per_trial=time_estimate_per_trial,
+            network_structure=network_structure,
+            chain_type=chain_type,
+            num_trials_per_participant=num_trials_per_participant,
+            num_chains_per_participant=num_chains_per_participant,
+            trials_per_node=trials_per_node,
+            balance_across_chains=balance_across_chains,
+            check_performance_at_end=check_performance_at_end,
+            check_performance_every_trial=check_performance_every_trial,
+            recruit_mode=recruit_mode,
+            target_num_participants=target_num_participants,
+            num_iterations_per_chain=num_iterations_per_chain,
+            num_nodes_per_chain=num_nodes_per_chain,
+            fail_trials_on_premature_exit=fail_trials_on_premature_exit,
+            fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
+            propagate_failure=propagate_failure,
+            num_repeat_trials=num_repeat_trials,
+            wait_for_networks=wait_for_networks,
+            allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains
+        )
+
+    def generate_grid(self, size):
+        vertices = [i for i in range(1, size**2 + 1)]
+        edges = []
+        for v in vertices:
+            if v % size != 0:
+                edges = edges + [{"origin": v, "target": v + 1, "properties": {"type": "default"}}]
+            if (v - 1) % size != 0:
+                edges = edges + [{"origin": v, "target": v - 1, "properties": {"type": "default"}}]
+            if (v + size) <= size ** 2:
+                edges = edges + [{"origin": v, "target": v + size, "properties": {"type": "default"}}]
+            if (v - size) > 0:
+                edges = edges + [{"origin": v, "target": v - size, "properties": {"type": "default"}}]
+        return {"vertices": vertices, "edges": edges}
 
 ##########################################################################################
 # Experiment
@@ -116,6 +195,26 @@ class CustomTrialMaker(GridChainTrialMaker):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        MTurkStandardConsent(),
+        InfoPage(Markup("""
+            <p>
+            This experiment implements a simple task on a square lattice.
+            This is done by specifying an approppriate dictionary of edges and vertices which in
+            turn is passed to <code>GraphChainTrialMaker</code> through <code>network_structure</code>.
+            The dictionary should take the following form:
+            </p>
+            <code>
+            {
+                "vertices": [1,2],
+                "edges": [{"origin": 1, "target": 2, "properties": {"type": "default"}}]
+            }
+            </code>
+        """), time_estimate=10),
+        InfoPage(Markup("""
+            The task itself consists of choosing a stimulus from one of your neighbours
+            on the lattice and replicating it.
+        """), time_estimate=5),
+        InfoPage("Let's begin!", time_estimate=3),
         CustomTrialMaker(
             id_="graph_demo",
             network_class=CustomNetwork,

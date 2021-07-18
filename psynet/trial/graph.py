@@ -1,7 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
 from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
-import json
 from typing import Optional, Union, List
 from dallinger import db
 from ..field import claim_field
@@ -33,7 +32,11 @@ class GraphChainNetwork(ChainNetwork):
     __mapper_args__ = {"polymorphic_identity": "graph_chain_network"}
     __extra_vars__ = ChainNetwork.__extra_vars__.copy()
 
-    def __init__(
+    vertex_id = claim_field("vertex_id", __extra_vars__, int)
+    dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
+    source_seed = claim_field("source_seed", __extra_vars__)
+
+    def __init__(   # overriden
         self,
         trial_maker_id: str,
         source_class,
@@ -73,7 +76,7 @@ class GraphChainNetwork(ChainNetwork):
 
         experiment.save()
 
-    def add_source(self, source_class, experiment, source_seed, participant=None):
+    def add_source(self, source_class, experiment, source_seed, participant=None):  # overriden
         source = source_class(self, experiment, source_seed, participant)
         db.session.add(source)
         self.add_node(source)
@@ -81,10 +84,6 @@ class GraphChainNetwork(ChainNetwork):
 
     def make_definition(self):
         return {}
-
-    vertex_id = claim_field("vertex_id", __extra_vars__, int)
-    dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
-    source_seed = claim_field("source_seed", __extra_vars__)
 
 
 class GraphChainTrial(ChainTrial):
@@ -251,10 +250,6 @@ class GraphChainNode(ChainNode):
     def is_complete(self):
         return self.completed_and_processed_trials.count() >= self.target_num_trials
 
-    def create_seed(self, experiment, participant):
-        trials = self.completed_and_processed_trials.all()
-        return self.summarize_trials(trials, experiment, participant)
-
 
 class GraphChainSource(ChainSource):
     """
@@ -275,7 +270,7 @@ class GraphChainSource(ChainSource):
         if source_seed is not None:
             self.seed = source_seed
 
-    def generate_seed(self, network, experiment, participant):  # the seed of a source is a simple seed (e.g. stimulus) whereas the seed of a node is a bundle (belonging to a vertex and its neighbours)
+    def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 
     @staticmethod
@@ -294,7 +289,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
     ----------
 
     network_structure
-        A JSON representation of the graph structure to instantiate.
+        A representation of the graph structure to instantiate.
         The representation consistes of a dictionary of vertices and edges.
         E.g. {"vertices": [1,2], "edges": [{"origin": 1, "target": 2, "properties": {"type": "default"}}]}
     """
@@ -331,7 +326,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
     ):
         if chain_type == "within":
             raise NotImplementedError  # UNCLEAR TO ME HOW TO UNITE THE ON-DEMAND CREATION OF WITHIN CHAINS AND THE PRE-DFINED GRAPH NETWORK STRUCTURE
-        num_chains_per_experiment = len(json.loads(network_structure)["vertices"])
+        num_chains_per_experiment = len(network_structure["vertices"])
         self.network_structure = network_structure
         super().__init__(
             id_=id_,
@@ -364,10 +359,10 @@ class GraphChainTrialMaker(ChainTrialMaker):
     def experiment_setup_routine(self, experiment):
         if self.num_networks == 0 and self.chain_type == "across":
             experiment.var.set(with_trial_maker_namespace(self.id, "network_structure"), self.network_structure)
-            self.create_networks_across(experiment)
+        super().experiment_setup_routine(experiment)
 
     def create_networks_across(self, experiment):
-        network_structure = json.loads(self.network_structure)
+        network_structure = self.network_structure
         vertices = network_structure["vertices"]
         source_seeds = self.generate_source_seed_bundles()
         for i in range(self.num_chains_per_experiment):
@@ -447,7 +442,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         return bundle
 
     def generate_source_seed_bundles(self):
-        network_structure = json.loads(self.network_structure)
+        network_structure = self.network_structure
         vertices = network_structure["vertices"]
         centers = [{"vertex_id": v, "content": self.source_class.generate_class_seed(), "is_center": True} for v in vertices]
         bundles = []
@@ -460,87 +455,3 @@ class GraphChainTrialMaker(ChainTrialMaker):
                 bundle = bundle + [{"vertex_id": j, "content": content[0], "is_center": False}]
             bundles = bundles + [{"vertex_id": center["vertex_id"], "bundle": bundle}]
         return bundles
-
-
-class GridChainTrialMaker(GraphChainTrialMaker):
-    """
-    A TrialMaker class for grid-type graph chains;
-    see the documentation for
-    :class:`~psynet.trial.chain.ChainTrialMaker`
-    for usage instructions.
-    """
-
-    def __init__(
-        self,
-        *,
-        id_,
-        network_class,
-        node_class,
-        source_class,
-        trial_class,
-        phase: str,
-        time_estimate_per_trial: Union[int, float],
-        grid_dimension: int,
-        chain_type: str,
-        num_trials_per_participant: int,
-        num_chains_per_participant: Optional[int],
-        # num_chains_per_experiment: Optional[int],
-        trials_per_node: int,
-        balance_across_chains: bool,
-        check_performance_at_end: bool,
-        check_performance_every_trial: bool,
-        recruit_mode: str,
-        target_num_participants=Optional[int],
-        num_iterations_per_chain: Optional[int] = None,
-        num_nodes_per_chain: Optional[int] = None,
-        fail_trials_on_premature_exit: bool = False,
-        fail_trials_on_participant_performance_check: bool = False,
-        propagate_failure: bool = True,
-        num_repeat_trials: int = 0,
-        wait_for_networks: bool = False,
-        allow_revisiting_networks_in_across_chains: bool = False,
-    ):
-
-        network_structure = self.generate_grid_json(grid_dimension)
-        super().__init__(
-            id_=id_,
-            network_class=network_class,
-            node_class=node_class,
-            source_class=source_class,
-            trial_class=trial_class,
-            phase=phase,
-            time_estimate_per_trial=time_estimate_per_trial,
-            network_structure=network_structure,
-            chain_type=chain_type,
-            num_trials_per_participant=num_trials_per_participant,
-            num_chains_per_participant=num_chains_per_participant,
-            # num_chains_per_experiment=num_chains_per_experiment,
-            trials_per_node=trials_per_node,
-            balance_across_chains=balance_across_chains,
-            check_performance_at_end=check_performance_at_end,
-            check_performance_every_trial=check_performance_every_trial,
-            recruit_mode=recruit_mode,
-            target_num_participants=target_num_participants,
-            num_iterations_per_chain=num_iterations_per_chain,
-            num_nodes_per_chain=num_nodes_per_chain,
-            fail_trials_on_premature_exit=fail_trials_on_premature_exit,
-            fail_trials_on_participant_performance_check=fail_trials_on_participant_performance_check,
-            propagate_failure=propagate_failure,
-            num_repeat_trials=num_repeat_trials,
-            wait_for_networks=wait_for_networks,
-            allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains
-        )
-
-    def generate_grid_json(self, size):
-        vertices = [i for i in range(1, size**2 + 1)]
-        edges = []
-        for v in vertices:
-            if v % size != 0:
-                edges = edges + [{"origin": v, "target": v + 1, "properties": {"type": "default"}}]
-            if (v - 1) % size != 0:
-                edges = edges + [{"origin": v, "target": v - 1, "properties": {"type": "default"}}]
-            if (v + size) <= size ** 2:
-                edges = edges + [{"origin": v, "target": v + size, "properties": {"type": "default"}}]
-            if (v - size) > 0:
-                edges = edges + [{"origin": v, "target": v - size, "properties": {"type": "default"}}]
-        return json.dumps({"vertices": vertices, "edges": edges})
