@@ -96,8 +96,8 @@ class CustomNode(GraphChainNode):
 class CustomSource(GraphChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-    def generate_seed(self, network, experiment, participant):
-        return random.randint(1000000, 9999999)
+    # def generate_seed(self, network, experiment, participant):
+    #     return random.randint(1000000, 9999999)
 
     @staticmethod
     def generate_class_seed():

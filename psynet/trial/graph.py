@@ -52,35 +52,21 @@ class GraphChainNetwork(ChainNetwork):
         source_seed: Optional = None
     ):
 
-        TrialNetwork.__init__(self, trial_maker_id, phase, experiment)
-        db.session.add(self)
-        db.session.commit()
-
-        if participant is not None:
-            self.id_within_participant = id_within_participant
-            self.participant_id = participant.id
-
-        self.chain_type = chain_type
-        self.trials_per_node = trials_per_node
-        self.target_num_nodes = target_num_nodes
         self.vertex_id = vertex_id
         self.dependent_vertex_ids = dependent_vertex_ids
-        # The last node in the chain doesn't receive any trials
-        self.target_num_trials = (target_num_nodes - 1) * trials_per_node
-        self.definition = self.make_definition()
-        self.participant_group = self.get_participant_group()
         self.source_seed = source_seed
-        self.add_source(source_class, experiment, source_seed, participant)
 
-        self.validate()
-
-        experiment.save()
-
-    def add_source(self, source_class, experiment, source_seed, participant=None):  # overriden
-        source = source_class(self, experiment, source_seed, participant)
-        db.session.add(source)
-        self.add_node(source)
-        db.session.commit()
+        super().__init__(
+            trial_maker_id=trial_maker_id,
+            source_class=source_class,
+            phase=phase,
+            experiment=experiment,
+            chain_type=chain_type,
+            trials_per_node=trials_per_node,
+            target_num_nodes=target_num_nodes,
+            participant=participant,
+            id_within_participant=id_within_participant
+        )
 
     def make_definition(self):
         return {}
@@ -259,19 +245,8 @@ class GraphChainSource(ChainSource):
     __mapper_args__ = {"polymorphic_identity": "graph_chain_source"}
     __extra_vars__ = ChainSource.__extra_vars__.copy()
 
-    def __init__(
-            self,
-            network,
-            experiment,
-            source_seed,
-            participant
-    ):
-        super().__init__(network, experiment, participant)
-        if source_seed is not None:
-            self.seed = source_seed
-
     def generate_seed(self, network, experiment, participant):
-        raise NotImplementedError
+        return network.source_seed
 
     @staticmethod
     def generate_class_seed():
