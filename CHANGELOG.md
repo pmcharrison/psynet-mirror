@@ -1,6 +1,7 @@
 # CHANGELOG
 
 #### Fixed
+- Improved efficiency of StimulusVersion queries.
 - Fixed experiment network display bug.
 - Fixed bug in GSP seed generation, 
   whereby the initial `active_index` selection was not entirely uniform.
@@ -65,7 +66,6 @@
 #### Fixed
 - Improved robustness of browser-based regression tests.
 - Fixed incorrect performance bonus assignment for trial makers initialized with `check_performance_every_trial = True`. 
-- Improved robustness of browser-based regression tests.
 - Various bugfixes in audio-visual playback/recording interfaces.
 - Reverted the new language config.txt parameter, which was causing problems in various situations.
   This functionality will be reinstated in the upcoming Dallinger release.
