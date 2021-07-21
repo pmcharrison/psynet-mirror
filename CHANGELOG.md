@@ -1,10 +1,22 @@
 # CHANGELOG
 
+# [2.4.0] Released on 2021-07-21
+
 #### Fixed
 - Improved efficiency of StimulusVersion queries.
 - Fixed experiment network display bug.
 - Fixed bug in GSP seed generation, 
   whereby the initial `active_index` selection was not entirely uniform.
+
+#### Added
+- Added failed_reason text to nodes and infos when calling their respective fail methods
+- Use bumpversion for incrementing release versions.
+- Added MANIFEST.in
+- Added installation instructions for macOS Big Sur 11.3/M1
+
+#### Changed
+- Pin Dallinger to version >=7.5.0
+
 
 # [2.3.0] Released on 2021-07-07
 
