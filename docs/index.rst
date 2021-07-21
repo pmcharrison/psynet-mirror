@@ -49,6 +49,7 @@ PsyNet Documentation
    developer/basic_workflow
    developer/prescreening_tasks
    developer/updating_documentation
+   developer/releasing_new_versions
 
 .. toctree::
    :maxdepth: 2

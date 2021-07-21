@@ -32,7 +32,7 @@ from .timeline import (
     RecruitmentCriterion,
     Timeline,
 )
-from .utils import (  # get_language,
+from .utils import (
     call_function,
     get_arg_from_dict,
     get_logger,
@@ -805,7 +805,7 @@ class Experiment(dallinger.experiment.Experiment):
         from dallinger.models import Node
 
         node = Node.query.filter_by(id=node_id).one()
-        node.fail()
+        node.fail(reason="http_fail_route_called")
         db.session.commit()
         return success_response()
 
@@ -815,7 +815,7 @@ class Experiment(dallinger.experiment.Experiment):
         from dallinger.models import Info
 
         info = Info.query.filter_by(id=info_id).one()
-        info.fail()
+        info.fail(reason="http_fail_route_called")
         db.session.commit()
         return success_response()
 
@@ -959,7 +959,7 @@ class ExperimentNetwork(Network):
     __extra_vars__ = {}
 
     def __init__(self):
-        self.role = "config"
+        self.role = "experiment"
         self.max_size = 0
 
     @property

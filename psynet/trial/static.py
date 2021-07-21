@@ -258,6 +258,9 @@ class StimulusVersion(TrialNode, HasDefinition):
     __extra_vars__ = {**TrialNode.__extra_vars__, **HasDefinition.__extra_vars__}
 
     stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
+    phase = claim_field("phase", __extra_vars__, str)
+    participant_group = claim_field("participant_group", __extra_vars__, str)
+    block = claim_field("block", __extra_vars__, str)
     has_media = claim_field("has_media", __extra_vars__, bool)
     s3_bucket = claim_field("s3_bucket", __extra_vars__, str)
     remote_media_dir = claim_field("remote_media_dir", __extra_vars__, str)
@@ -276,24 +279,12 @@ class StimulusVersion(TrialNode, HasDefinition):
     def stimulus(self):
         return Stimulus.query.filter_by(id=self.stimulus_id).one()
 
-    @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.stimulus.phase
-
-    @property
-    @extra_var(__extra_vars__)
-    def participant_group(self):
-        return self.stimulus.participant_group
-
-    @property
-    @extra_var(__extra_vars__)
-    def block(self):
-        return self.stimulus.block
-
     def __init__(self, stimulus_version_spec, stimulus, network, stimulus_set):
         super().__init__(network=network)
         self.stimulus_id = stimulus.id
+        self.phase = stimulus.phase
+        self.participant_group = stimulus.participant_group
+        self.block = stimulus.block
         self.has_media = stimulus_version_spec.has_media
         self.s3_bucket = stimulus_set.s3_bucket
         self.remote_media_dir = stimulus_set.remote_media_dir

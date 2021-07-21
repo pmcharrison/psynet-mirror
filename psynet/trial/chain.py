@@ -1,4 +1,3 @@
-import datetime
 import random
 import warnings
 from typing import Optional, Union
@@ -340,7 +339,7 @@ class ChainNetwork(TrialNetwork):
         first_node = nodes[0]
         other_nodes = nodes[1:]
         for node in other_nodes:
-            node.fail()
+            node.fail(reason=f"duplicate_node_at_degree_{node.degree}")
         return first_node
 
     def add_node(self, node):
@@ -367,7 +366,7 @@ class ChainNetwork(TrialNetwork):
 
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
-        self.head.fail()
+        self.head.fail(reason=reason)
 
 
 class ChainNode(TrialNode, HasSeed, HasDefinition):
@@ -647,22 +646,24 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
             origin_id=self.id, failed=False, is_repeat_trial=False
         ).count()
 
-    def fail(self):
+    @property
+    def failure_cascade(self):
+        to_fail = []
+        if self.propagate_failure:
+            to_fail.append(self.infos)
+            if self.child:
+                to_fail.append(lambda: [self.child])
+        return to_fail
+
+    def fail(self, reason=None):
         """
-        Marks the node as failed. Unlike the core Dallinger implementation,
-        this implementation of the fail method does not raise an exception
-        if the node is failed already.
-        If ``self.propagate_failure``, then the node's failure is propagated to its children.
+        Marks the node as failed.
+
+        If a `reason` argument is passed, this will be stored in
+        :attr:`~dallinger.models.SharedMixin.failed_reason`.
         """
         if not self.failed:
-            self.failed = True
-            self.time_of_death = datetime.datetime.now()
-            self.network.calculate_full()
-            if self.propagate_failure:
-                for i in self.infos():
-                    i.fail()
-                if self.child:
-                    self.child.fail()
+            super().fail(reason=reason)
 
 
 class ChainSource(TrialSource, HasSeed):
@@ -727,8 +728,11 @@ class ChainSource(TrialSource, HasSeed):
     }
 
     ready_to_spawn = True
-
     degree = 0
+
+    def __init__(self, network, experiment, participant):
+        super().__init__(network, participant)
+        self.seed = self.generate_seed(network, experiment, participant)
 
     @property
     def phase(self):
@@ -738,9 +742,15 @@ class ChainSource(TrialSource, HasSeed):
     def var(self):  # occupies the <details> attribute
         return VarStore(self)
 
-    def __init__(self, network, experiment, participant):
-        super().__init__(network, participant)
-        self.seed = self.generate_seed(network, experiment, participant)
+    def fail(self, reason=None):
+        """
+        Marks the source node as failed.
+
+        If a `reason` argument is passed, this will be stored in
+        :attr:`~dallinger.models.SharedMixin.failed_reason`.
+        """
+        if not self.failed:
+            super().fail(reason=reason)
 
     def create_seed(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -912,7 +922,15 @@ class ChainTrial(Trial):
     def phase(self):
         return self.node.phase
 
-    def fail(self):
+    @property
+    def failure_cascade(self):
+        to_fail = []
+        if self.propagate_failure:
+            if self.child:
+                to_fail.append(lambda: [self.child])
+        return to_fail
+
+    def fail(self, reason=None):
         """
         Marks a trial as failed. Failing a trial means that it is somehow
         excluded from certain parts of the experiment logic, for example
@@ -923,28 +941,9 @@ class ChainTrial(Trial):
         :class:`~dallinger.models.Info` class
         throws an error if the object is already failed,
         but this behaviour is disabled here.
-
-        If :attr:`~psynet.trial.chain.ChainTrial.propagate_failure`
-        is ``True``, then this method will also call
-        :meth:`~psynet.trial.chain.ChainTrial.fail_descendants`.
         """
         if not self.failed:
-            self.failed = True
-            self.time_of_death = datetime.datetime.now()
-            if self.propagate_failure:
-                self.fail_descendants()
-
-    def fail_descendants(self):
-        """
-        Fails the descendants of a trial.
-        The current node doesn't need to be failed, because it was created
-        before the present trial was created.
-        Instead, we fail the child node of the current node, if one exists.
-        """
-        node = self.node
-        child_node = node.child
-        if child_node is not None:
-            child_node.fail()
+            super().fail(reason=reason)
 
 
 class ChainTrialMaker(NetworkTrialMaker):
@@ -1271,19 +1270,6 @@ class ChainTrialMaker(NetworkTrialMaker):
     def num_trials_still_required(self):
         assert self.chain_type == "across"
         return sum([network.num_trials_still_required for network in self.networks])
-
-    # def fail_trial(self, trial):
-    #     if not trial.failed:
-    #         trial.fail()
-    #     if self.propagate_failure_to_descendants:
-    #         current_node = trial.origin
-    #         child_node = current_node.child
-    #         if child_node:
-    #             self.fail_node(child_node)
-
-    # def fail_node(self, node):
-    #     if not node.failed:
-    #         node.fail()
 
     #########################
     # Participated networks #

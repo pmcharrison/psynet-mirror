@@ -115,7 +115,7 @@ class RecordTrial:
                     self.upload_plot(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
-                        self.fail()
+                        self.fail(reason="analysis")
                 except KeyError:
                     raise KeyError(
                         "The recording analysis failed to contain a 'failed' attribute."
