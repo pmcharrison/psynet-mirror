@@ -910,9 +910,13 @@ class Page(Elt):
         # pylint: disable=unused-argument
         if not experiment.var.show_bonus:
             return Footer([""])
-        bonus = participant.time_credit.estimate_bonus() + participant.performance_bonus
+        performance_bonus = participant.performance_bonus
+        basic_bonus = participant.time_credit.get_bonus()
+        bonus = performance_bonus + basic_bonus
         return Footer(
-            [f"Estimated bonus: <strong>&#36;{bonus:.2f}</strong>"],
+            [
+                f'Bonus: <strong>&#36;{basic_bonus:.2f} (basic) + &#36;{performance_bonus:.2f} (extra) = <span style="font-weight: bold">&#36;{bonus:.2f}</span></strong>'
+            ],
             escape=False,
         )
 
