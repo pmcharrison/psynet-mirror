@@ -68,9 +68,6 @@ class GraphChainNetwork(ChainNetwork):
             id_within_participant=id_within_participant
         )
 
-    def make_definition(self):
-        return {}
-
 
 class GraphChainTrial(ChainTrial):
     """

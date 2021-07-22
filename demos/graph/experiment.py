@@ -5,16 +5,17 @@
 ##########################################################################################
 
 import random
-import re
-from statistics import mean
+from scipy import stats
+import numpy as np
 from typing import Optional, Union
 from flask import Markup
+from typing import List
 import rpdb
 
 import psynet.experiment
-from psynet.modular_page import ModularPage, Prompt, TextControl, PushButtonControl
+from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import FailedValidation, Timeline
+from psynet.timeline import Timeline
 from psynet.trial.graph import (
     GraphChainNetwork,
     GraphChainNode,
@@ -22,6 +23,7 @@ from psynet.trial.graph import (
     GraphChainTrial,
     GraphChainTrialMaker,
 )
+from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.consent import MTurkStandardConsent
 from psynet.utils import get_logger
 
@@ -31,55 +33,267 @@ logger = get_logger()
 ##########################################################################################
 # Stimuli
 ##########################################################################################
+COLOR_OPTIONS = ["red", "green", "blue"]
+NECKLACE_LENGTH = 9
 
 
-class FixedDigitInputPage(ModularPage):
+class NecklaceCircle(Circle):
+    """
+    A Necklace circle object.
+
+    Parameters
+    ----------
+
+    id_
+        A unique identifier for the object.
+
+    x
+        x coordinate.
+
+    y
+        y coordinate.
+
+    radius
+        The circle's radius.
+
+    **kwargs
+        Additional parameters passed to :class:`~psynet.graphic.GraphicObject`.
+    """
+
+    def __init__(
+        self,
+        id_: str,
+        x: int,
+        y: int,
+        radius: int,
+        color_options: List[str],
+        initial_color: int,
+        interactive: bool,
+        **kwargs
+    ):
+        self.color_options = color_options
+        self.initial_color = initial_color
+        self.interactive = interactive
+        super().__init__(
+            id_,
+            x,
+            y,
+            radius,
+            click_to_answer=not interactive,
+            **kwargs
+        )
+
+    @property
+    def js_init(self) -> str:
+        return [
+            *super().js_init,
+            f"""
+            let initial_color = {self.initial_color};
+            let color_options = {self.color_options};
+            this.raphael.attr({{"stroke": color_options[initial_color], "fill": color_options[initial_color]}});
+
+            if (psynet.response.staged.raw_answer == undefined) {{
+                psynet.response.staged.raw_answer = {{}};
+            }}
+
+            let stage_color = function(index, circle_id) {{
+                psynet.response.staged.raw_answer[circle_id] = {{
+                    color_index: index,
+                    color_value: color_options[index]
+                }};
+            }};
+
+            stage_color(initial_color, "{self.id}");
+
+            this.raphael.click(function () {{
+                if ("{self.interactive}" == "True") {{
+                    let currentColor = this.attrs.fill;
+                    let targetIdx = (color_options.findIndex(element => element == currentColor) + 1) % color_options.length
+                    this.attr({{"stroke": color_options[targetIdx], "fill": color_options[targetIdx]}});
+                    stage_color(targetIdx, "{self.id}");
+                }}
+            }});
+            """,
+        ]
+
+
+class NecklaceNAFCPage(ModularPage):
     def __init__(
         self,
         label: str,
         prompt: str,
+        necklace_states: List[List[int]],
+        color_options: List[str],
+        time_estimate=10
     ):
-        self.num_digits = 7
+        self.color_options = color_options
+        self.necklace_states = necklace_states
 
         super().__init__(
             label,
-            Prompt(prompt),
-            control=TextControl(
-                label,
+            prompt=GraphicPrompt(
+                text=prompt,
+                dimensions=[640, 480],
+                viewport_width=0.7,
+                frames=[
+                    Frame(
+                        self.create_necklace_array(
+                            px=150,
+                            py=100,
+                            size=20,
+                            spacing=41,
+                            vertical_spacing=75,
+                            necklace_states=necklace_states,
+                            color_options=color_options,
+                            interactive=False
+                        )
+                    )
+                ],
             ),
+            time_estimate=time_estimate
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        try:
-            pattern = re.compile("^[0-9]*$")
-            assert len(raw_answer) == self.num_digits
-            assert pattern.match(raw_answer)
-            return int(raw_answer)
-        except (ValueError, AssertionError):
-            return "INVALID_RESPONSE"
+        chosen_necklace_id = int(raw_answer['clicked_object'].split("_")[1])
+        return chosen_necklace_id
 
-    def validate(self, response, **kwargs):
-        if response.answer == "INVALID_RESPONSE":
-            return FailedValidation("Please enter a 7-digit number.")
-        return None
+    def create_necklace(self, px, py, size, spacing, coloring, color_options, necklace_id, interactive):
+        translation = 0
+        necklace = []
+        for i in range(len(coloring)):
+            necklace = necklace + [
+                NecklaceCircle(
+                    id_=necklace_id + "_circle_" + str(i),
+                    x=px + translation,
+                    y=py,
+                    radius=size,
+                    color_options=color_options,
+                    initial_color=coloring[i],
+                    interactive=interactive
+                )
+            ]
+            translation += spacing
+        return necklace
+
+    def create_necklace_array(self, necklace_states, vertical_spacing, px, py, **kwargs):
+        translation = 0
+        necklace_array = []
+        for i in range(len(necklace_states)):
+            necklace_array = necklace_array + self.create_necklace(
+                necklace_id="necklace_" + str(i),
+                px=px,
+                py=py + translation,
+                coloring=necklace_states[i],
+                **kwargs
+            )
+            translation += vertical_spacing
+        return necklace_array
+
+
+class NecklaceInteractivePage(ModularPage):
+    def __init__(
+        self,
+        label: str,
+        prompt: str,
+        necklace_state: List[List[int]],
+        color_options: List[str],
+        time_estimate=10
+    ):
+        self.color_options = color_options
+        self.necklace_state = necklace_state
+
+        super().__init__(
+            label,
+            prompt=GraphicPrompt(
+                text=prompt,
+                dimensions=[640, 480],
+                viewport_width=0.7,
+                frames=[
+                    Frame(
+                        self.create_necklace(
+                            necklace_id="necklace",
+                            px=140,
+                            py=150,
+                            size=20,
+                            spacing=41,
+                            coloring=necklace_state,
+                            color_options=color_options,
+                            interactive=True
+                        )
+                    )
+                ],
+            ),
+            time_estimate=time_estimate
+        )
+
+    def format_answer(self, raw_answer, **kwargs):
+        chosen_state = [None for _ in range(len(raw_answer.keys()))]
+        for key in raw_answer.keys():
+            idx = int(key.split('_')[2])
+            chosen_state[idx] = raw_answer[key]['color_index']
+        return chosen_state
+
+    def create_necklace(self, px, py, size, spacing, coloring, color_options, necklace_id, interactive):
+        translation = 0
+        necklace = []
+        for i in range(len(coloring)):
+            necklace = necklace + [
+                NecklaceCircle(
+                    id_=necklace_id + "_circle_" + str(i),
+                    x=px + translation,
+                    y=py,
+                    radius=size,
+                    color_options=color_options,
+                    initial_color=coloring[i],
+                    interactive=interactive
+                )
+            ]
+            translation += spacing
+        return necklace
 
 
 class CustomTrial(GraphChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     num_pages = 2
+    accumulate_answers = True
 
     def show_trial(self, experiment, participant):
         options = [option["content"] for option in self.definition]
-        page_1 = ModularPage(
-            "custom_trial",
-            Prompt("Choose one of the following 7-digit numbers which you'd like to memorize."),
-            PushButtonControl(options)
+
+        page_1 = NecklaceNAFCPage(
+            label="choose",
+            prompt="Choose the necklace which you like most.",
+            necklace_states=options,
+            color_options=COLOR_OPTIONS,
         )
 
-        page_2 = FixedDigitInputPage("number", "What was the number?")
+        page_2 = NecklaceInteractivePage(
+            label="reproduce",
+            prompt="Recolor the present necklace like the necklace you just chose.",
+            necklace_state=CustomSource.generate_class_seed(),  
+            color_options=COLOR_OPTIONS
+        )
 
         return [page_1, page_2]
+
+
+# class CustomTrial(GraphChainTrial):
+#     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
+
+#     num_pages = 2
+
+#     def show_trial(self, experiment, participant):
+#         options = [option["content"] for option in self.definition]
+#         page_1 = ModularPage(
+#             "custom_trial",
+#             Prompt("Choose one of the following 7-digit numbers which you'd like to memorize."),
+#             PushButtonControl(options)
+#         )
+
+#         page_2 = FixedDigitInputPage("number", "What was the number?")
+
+#         return [page_1, page_2]
 
 
 class CustomNetwork(GraphChainNetwork):
@@ -90,18 +304,17 @@ class CustomNode(GraphChainNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
 
     def summarize_trials(self, trials: list, experiment, paricipant):
-        return round(mean([trial.answer for trial in trials]))
+        answers = np.array([trial.answer[1] for trial in trials])
+        summary = stats.mode(answers)
+        return summary.mode.flatten().tolist()
 
 
 class CustomSource(GraphChainSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
-    # def generate_seed(self, network, experiment, participant):
-    #     return random.randint(1000000, 9999999)
-
     @staticmethod
     def generate_class_seed():
-        return random.randint(1000000, 9999999)
+        return [random.randint(0, len(COLOR_OPTIONS) - 1) for i in range(NECKLACE_LENGTH)]
 
 
 class CustomTrialMaker(GraphChainTrialMaker):
