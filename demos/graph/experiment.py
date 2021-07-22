@@ -117,6 +117,11 @@ class NecklaceCircle(Circle):
         ]
 
 
+class CustomGraphicPrompt(GraphicPrompt):
+    def validate(self):
+        return True
+
+
 class NecklaceNAFCPage(ModularPage):
     def __init__(
         self,
@@ -131,7 +136,7 @@ class NecklaceNAFCPage(ModularPage):
 
         super().__init__(
             label,
-            prompt=GraphicPrompt(
+            prompt=CustomGraphicPrompt(
                 text=prompt,
                 dimensions=[640, 480],
                 viewport_width=0.7,
@@ -146,9 +151,11 @@ class NecklaceNAFCPage(ModularPage):
                             necklace_states=necklace_states,
                             color_options=color_options,
                             interactive=False
-                        )
+                        ),
+                        activate_control_submit=False
                     )
                 ],
+                prevent_control_submit=True
             ),
             time_estimate=time_estimate
         )
@@ -278,24 +285,6 @@ class CustomTrial(GraphChainTrial):
         return [page_1, page_2]
 
 
-# class CustomTrial(GraphChainTrial):
-#     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
-#     num_pages = 2
-
-#     def show_trial(self, experiment, participant):
-#         options = [option["content"] for option in self.definition]
-#         page_1 = ModularPage(
-#             "custom_trial",
-#             Prompt("Choose one of the following 7-digit numbers which you'd like to memorize."),
-#             PushButtonControl(options)
-#         )
-
-#         page_2 = FixedDigitInputPage("number", "What was the number?")
-
-#         return [page_1, page_2]
-
-
 class CustomNetwork(GraphChainNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
 
@@ -385,17 +374,24 @@ class CustomTrialMaker(GraphChainTrialMaker):
         )
 
     def generate_grid(self, size):
-        vertices = [i for i in range(1, size**2 + 1)]
+        vertices = []
         edges = []
-        for v in vertices:
-            if v % size != 0:
-                edges = edges + [{"origin": v, "target": v + 1, "properties": {"type": "default"}}]
-            if (v - 1) % size != 0:
-                edges = edges + [{"origin": v, "target": v - 1, "properties": {"type": "default"}}]
-            if (v + size) <= size ** 2:
-                edges = edges + [{"origin": v, "target": v + size, "properties": {"type": "default"}}]
-            if (v - size) > 0:
-                edges = edges + [{"origin": v, "target": v - size, "properties": {"type": "default"}}]
+        for r in range(size):
+            for c in range(size):
+                v = int(np.ravel_multi_index([r, c], [size, size]))
+                vertices = vertices + [v]
+                if r > 0:
+                    upper_neighbour = int(np.ravel_multi_index([r - 1, c], [size, size]))
+                    edges = edges + [
+                        {"origin": v, "target": upper_neighbour, "properties": {"type": "default"}},
+                        {"origin": upper_neighbour, "target": v, "properties": {"type": "default"}}
+                    ]
+                if c < size - 1:
+                    right_neighbour = int(np.ravel_multi_index([r, c + 1], [size, size]))
+                    edges = edges + [
+                        {"origin": v, "target": right_neighbour, "properties": {"type": "default"}},
+                        {"origin": right_neighbour, "target": v, "properties": {"type": "default"}}
+                    ]
         return {"vertices": vertices, "edges": edges}
 
 ##########################################################################################

@@ -615,7 +615,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
 
     @property
     def ready_to_spawn(self):
-        return self.completed_and_processed_trials.count() >= self.target_num_trials
+        return self.reached_target_num_trials()
 
     @property
     def completed_and_processed_trials(self):
@@ -646,6 +646,9 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         return Trial.query.filter_by(
             origin_id=self.id, failed=False, is_repeat_trial=False
         ).count()
+
+    def reached_target_num_trials(self):
+        return self.completed_and_processed_trials.count() >= self.target_num_trials
 
     def fail(self):
         """

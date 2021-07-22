@@ -214,8 +214,8 @@ class GraphChainNode(ChainNode):
     def ready_to_spawn(self):
         parents = self.get_parents()  # These are parent nodes from the same layer, to be passed to the next layer
         if len(parents) == len(self.dependent_vertex_ids):  # Make sure all parents exist
-            all_parents_ready = all([p.is_complete() for p in parents])
-            current_vertex_ready = self.is_complete()
+            all_parents_ready = all([p.reached_target_num_trials() for p in parents])
+            current_vertex_ready = self.reached_target_num_trials()
             return (all_parents_ready and current_vertex_ready)
         elif len(parents) < len(self.dependent_vertex_ids):
             return False
@@ -229,9 +229,6 @@ class GraphChainNode(ChainNode):
         current_layer = [n for n in nodes if n.network.trial_maker_id == trial_maker_id and n.degree == degree]
         parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
         return parents
-
-    def is_complete(self):
-        return self.completed_and_processed_trials.count() >= self.target_num_trials
 
 
 class GraphChainSource(ChainSource):
