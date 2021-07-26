@@ -684,6 +684,12 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
+                resource_filename(
+                    "psynet", "resources/libraries/jQuery-Knob/dist/jquery.knob.min.js"
+                ),
+                "/static/scripts/jquery.knob.min.js",
+            ),
+            (
                 resource_filename("psynet", "resources/libraries/js-synthesizer"),
                 "/static/scripts/js-synthesizer",
             ),

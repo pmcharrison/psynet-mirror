@@ -43,19 +43,23 @@ def new_example(description, **kwargs):
         {escape(description)}
         {print_dict(kwargs)}
         <p>
-            Slider value is <strong id="slider_value">NA</strong>
+            Raw slider value is <strong id="slider_raw_value">NA</strong> <br>
+            Output slider value is <strong id="slider_output_value">NA</strong>
+            (phase = <strong id="phase">NA</strong>, random wrap = <strong id="random-wrap">NA</strong>)
         </p>
         <p>
             Just played <strong id="slider_audio">NA</strong>
         </p>
         <script>
             update_value = function() {{
-                document.getElementById("slider_value").innerHTML = slider.value;
                 document.getElementById("slider_audio").innerHTML = slider.audio;
-            }}
-            psynet.response.register_on_ready_routine(function() {{
-                setInterval(update_value, 100);
-            }});
+                document.getElementById("slider_raw_value").innerHTML = parseFloat(slider.getAttribute("raw_value")).toFixed(2);
+                document.getElementById("slider_output_value").innerHTML = parseFloat(slider.getAttribute("output_value")).toFixed(2);
+                document.getElementById("phase").innerHTML = parseFloat(slider.getAttribute("phase")).toFixed(2);
+                document.getElementById("random-wrap").innerHTML = slider.getAttribute("random_wrap");
+            }};
+            psynet.trial.onEvent("trialConstruct", () => setInterval(update_value, 100));
+
         </script>
         """
     )
@@ -95,7 +99,37 @@ class CustomExp(psynet.experiment.Experiment):
         ),
         new_example(
             """
-            Same example but with slider snapping to sound locations
+            Same example with wrapping, i.e., then slider is wrapped twice so that there are no boundary jumps.
+            """,
+            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            snap_values=None,
+            start_value=200,
+            min_value=0,
+            max_value=471,
+            autoplay=True,
+            minimal_time=2,
+            time_estimate=5,
+            random_wrap=True,
+        ),
+        new_example(
+            """
+            Example with circular slider and wrapping.
+            """,
+            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            snap_values=None,
+            start_value=200,
+            min_value=0,
+            max_value=471,
+            autoplay=True,
+            minimal_time=2,
+            time_estimate=5,
+            random_wrap=True,
+            input_type="circular_slider",
+        ),
+        new_example(
+            """
+            We come back to the simple example (without wrapping), but this
+            with slider snapping to sound locations
             (as close as can be achieved given the underlying step size of the slider).
             """,
             sound_locations=dict(zip(ids, [i for i in range(472)])),
