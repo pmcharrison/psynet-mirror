@@ -65,7 +65,7 @@
                 });
             });
             $("#audio-prompt-stop").on("click", function() {
-                psynet.page.prompt.stop;
+                psynet.page.prompt.stop();
             });
             $("#audio-prompt-loop-input").on("change", function(event) {
                 audioPromptPlayerOptions.loop = event.target.checked;
