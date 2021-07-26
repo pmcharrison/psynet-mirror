@@ -31,6 +31,7 @@ tests:
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
   - export HEADLESS=TRUE
+  - pip install psynet@git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing-extract#egg=singing_extract
   - pytest --chrome tests
 
 pages:
