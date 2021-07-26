@@ -6,6 +6,9 @@
 #### Added
 - Added demo of translation workflow (see `demos/translation`).
 
+#### Changed
+- Revised implementation for `audio_gibbs_demo`.
+
 # [2.4.0] Released on 2021-07-21
 
 #### Fixed
