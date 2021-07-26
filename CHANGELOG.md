@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Fixed
+- Fixed bug in 'stop' button for `AudioPrompt'.
+
 #### Added
 - Added demo of translation workflow (see `demos/translation`).
 
@@ -20,7 +23,6 @@
 #### Changed
 - Pin Dallinger to version >=7.5.0
 
-
 # [2.3.0] Released on 2021-07-07
 
 #### Added
@@ -36,8 +38,7 @@
 - Updated Dallinger to v7.5.0.
 
 #### Fixed
-- Fixed SQLAlchemy start-up error induced by v2.2.1.
-
+- Fixed SQLAlchemy start-up error introduced in v2.2.1.
 
 # [2.2.1] Released on 2021-06-21
 
