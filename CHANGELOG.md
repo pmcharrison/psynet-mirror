@@ -7,6 +7,7 @@
 - Added demo of translation workflow (see `demos/translation`).
 - Added a new type of slider for `SliderControl`: `circular_slider`.
 - Added optional `random_wrap` functionality to `SliderControl`.
+- Added experimental graph network API.
 
 #### Changed
 - Revised implementation for `audio_gibbs_demo`.
