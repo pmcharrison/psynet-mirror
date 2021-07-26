@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Added
+- Added demo of translation workflow (see `demos/translation`).
+
 # [2.4.0] Released on 2021-07-21
 
 #### Fixed
