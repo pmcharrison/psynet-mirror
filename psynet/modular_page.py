@@ -1458,7 +1458,7 @@ class TappingAudioMeterControl(AudioMeterControl):
 
 class SliderControl(Control):
     """
-    This control interface displays a horizontal slider to the participant.
+    This control interface displays either a horizontal or circular slider to the participant.
 
     The control logs all interactions from the participant including:
     - initial location of the slider
@@ -1505,9 +1505,13 @@ class SliderControl(Control):
     slider_id:
         The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
 
-    input_type :
-        By default we use the HTML5 slider, however future implementations might also use different slider
-        formats, like 2D sliders or circular sliders. Default: `"HTML5_range_slider"`.
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then slider is wrapped twice so that there are no boundary jumps, and
+        the phase to initialise the wrapping is randomized each time.
 
     minimal_interactions:
         Minimal interactions with the slider before the user can go to the next trial. Default: `0`.
@@ -1537,6 +1541,7 @@ class SliderControl(Control):
         directional: Optional[bool] = True,
         slider_id: Optional[str] = "sliderpage_slider",
         input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
         snap_values: Optional[Union[int, list]] = None,
         minimal_interactions: Optional[int] = 0,
         minimal_time: Optional[int] = 0,
@@ -1544,6 +1549,15 @@ class SliderControl(Control):
         template_filename: Optional[str] = None,
         template_args: Optional[Dict] = None,
     ):
+        if snap_values is not None and input_type == "circular_slider":
+            raise ValueError(
+                "Snapping values is currently not supported for circular sliders, set snap_values=None"
+            )
+        if input_type == "circular_slider" and reverse_scale:
+            raise NotImplementedError(
+                "Reverse scale is currently not supported for circular sliders, set reverse_scale=False"
+            )
+
         self.label = label
         self.start_value = start_value
         self.min_value = min_value
@@ -1554,6 +1568,7 @@ class SliderControl(Control):
         self.directional = directional
         self.slider_id = slider_id
         self.input_type = input_type
+        self.random_wrap = random_wrap
         self.template_filename = template_filename
         self.template_args = template_args
         self.minimal_time = minimal_time
@@ -1572,7 +1587,8 @@ class SliderControl(Control):
 
     def format_snap_values(self, snap_values, min_value, max_value, num_steps):
         if snap_values is None:
-            return linspace(min_value, max_value, num_steps)
+            return snap_values
+            # return linspace(min_value, max_value, num_steps)
         elif isinstance(snap_values, int):
             return linspace(min_value, max_value, snap_values)
         else:
@@ -1583,11 +1599,6 @@ class SliderControl(Control):
             return sorted(snap_values)
 
     def validate(self, response, **kwargs):
-        if self.input_type != "HTML5_range_slider":
-            raise NotImplementedError(
-                'Currently "HTML5_range_slider" is the only supported `input_type`'
-            )
-
         if self.max_value <= self.min_value:
             raise ValueError("`max_value` must be larger than `min_value`")
 
@@ -1613,6 +1624,7 @@ class SliderControl(Control):
             "directional": self.directional,
             "slider_id": self.slider_id,
             "input_type": self.input_type,
+            "random_wrap": self.random_wrap,
             "template_filename": self.template_filename,
             "template_args": self.template_args,
             "js_vars": self.js_vars,
@@ -1630,6 +1642,7 @@ class SliderControl(Control):
 class AudioSliderControl(SliderControl):
     """
     This control solicits a slider response from the user that results in playing some audio.
+    The slider can either be horizontal or circular.
 
     Parameters
     ----------
@@ -1672,6 +1685,9 @@ class AudioSliderControl(SliderControl):
     autoplay:
         The sound closest to the current slider position is played once the page is loaded. Default: `False`.
 
+    disable_while_playing:
+        If `True`, the slider is disabled while the audio is playing. Default: `False`.
+
     num_steps:
         - ``<int>``: Number of equidistant steps between `min_value` and `max_value` that the slider
           can be dragged through. This is before any snapping occurs.
@@ -1683,6 +1699,18 @@ class AudioSliderControl(SliderControl):
 
     slider_id:
         The HTML id attribute value of the slider. Default: `"sliderpage_slider"`.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    random_wrap:
+        Defaults to `False`. If `True` then original value of the slider is wrapped twice,
+        creating a new virtual range between min and min+2(max-min). To avoid boundary issues,
+        the phase of the slider is randomised for each slider using the new range. During the
+        user interaction with the slider, we use the virtual wrapped value (`output_value`) in the
+        new range and with the random phase, but at the end we use the unwrapped value in the original
+        range and without random phase (`raw_value`). Both values are stored in the metadata.
 
     reverse_scale:
         Flip the scale. Default: `False`.
@@ -1717,8 +1745,11 @@ class AudioSliderControl(SliderControl):
         audio: dict,
         sound_locations: dict,
         autoplay: Optional[bool] = False,
+        disable_while_playing: Optional[bool] = False,
         num_steps: Optional[int] = 10000,
         slider_id: Optional[str] = "sliderpage_slider",
+        input_type: Optional[str] = "HTML5_range_slider",
+        random_wrap: Optional[bool] = False,
         reverse_scale: Optional[bool] = False,
         directional: bool = True,
         snap_values: Optional[Union[int, list]] = "sound_locations",
@@ -1764,6 +1795,8 @@ class AudioSliderControl(SliderControl):
             max_value=max_value,
             num_steps=num_steps,
             slider_id=slider_id,
+            input_type=input_type,
+            random_wrap=random_wrap,
             reverse_scale=reverse_scale,
             directional=directional,
             snap_values=snap_values,
@@ -1773,10 +1806,12 @@ class AudioSliderControl(SliderControl):
 
         self.sound_locations = sound_locations
         self.autoplay = autoplay
+        self.disable_while_playing = disable_while_playing
         self.snap_values = snap_values
         self.audio = audio
         self.js_vars["sound_locations"] = sound_locations
         self.js_vars["autoplay"] = autoplay
+        self.js_vars["disable_while_playing"] = disable_while_playing
 
     macro = "audio_slider"
 
@@ -1786,6 +1821,7 @@ class AudioSliderControl(SliderControl):
             **super().metadata,
             "sound_locations": self.sound_locations,
             "autoplay": self.autoplay,
+            "disable_while_playing": self.disable_while_playing,
         }
 
 

@@ -3,6 +3,7 @@ import json
 from flask import Markup, escape
 
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -63,6 +64,7 @@ class CustomTrial(StaticTrial):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         InfoPage("We begin with the practice trials.", time_estimate=5),
         StaticTrialMaker(
             id_="audio_practice",

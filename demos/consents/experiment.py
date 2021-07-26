@@ -4,6 +4,7 @@ from psynet.consent import (
     CAPRecruiterStandardConsent,
     MTurkAudiovisualConsent,
     MTurkStandardConsent,
+    NoConsent,
     PrincetonConsent,
 )
 from psynet.page import SuccessfulEndPage
@@ -15,6 +16,7 @@ from psynet.timeline import Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),
         CAPRecruiterStandardConsent(),

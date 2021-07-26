@@ -3,6 +3,7 @@ from datetime import datetime
 from dallinger.experiment import experiment_route
 
 import psynet.experiment
+from psynet.consent import CAPRecruiterStandardConsent
 from psynet.modular_page import (
     ModularPage,
     NumberControl,
@@ -42,6 +43,7 @@ class Exp(psynet.experiment.Experiment):
         return f"A custom route for {cls.__name__}."
 
     timeline = Timeline(
+        CAPRecruiterStandardConsent(),
         InfoPage("Welcome to the experiment!", time_estimate=5),
         Module(
             "introduction",

@@ -384,7 +384,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         page = self.show_trial(experiment=experiment, participant=participant)
         return page.visualize(trial=self)
 
-    def fail(self):
+    def fail(self, reason=None):
         """
         Marks a trial as failed. Failing a trial means that it is somehow
         excluded from certain parts of the experiment logic, for example
@@ -395,10 +395,14 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         :class:`~dallinger.models.Info` class
         throws an error if the object is already failed,
         but this behaviour is disabled here.
+
+        If a `reason` argument is passed, this will be stored in
+        :attr:`~dallinger.models.SharedMixin.failed_reason`.
         """
 
         if not self.failed:
             self.failed = True
+            self.failed_reason = reason
             self.time_of_death = datetime.datetime.now()
 
     @property
@@ -593,11 +597,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
 
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
-        self.fail()
-
-    # def fail(self):
-    #     self.failed = True
-    #     self.time_of_death = timenow()
+        self.fail(reason="fail_async_processes")
 
     def new_repeat_trial(self, experiment, repeat_trial_index, num_repeat_trials):
         repeat_trial = self.__class__(
@@ -908,7 +908,9 @@ class TrialMaker(Module):
             self.fail_trials_on_premature_exit
             and "premature_exit" in participant.failure_tags
         ):
-            self.fail_participant_trials(participant)
+            self.fail_participant_trials(
+                participant, reason=", ".join(participant.failure_tags)
+            )
 
     @property
     def check_timeout_task(self):
@@ -1069,7 +1071,7 @@ class TrialMaker(Module):
         )
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
-            trial.fail()
+            trial.fail(reason="response_timeout")
 
     def check_async_trials(self):
         trials_awaiting_processes = self.trial_class.query.filter_by(
@@ -1088,7 +1090,7 @@ class TrialMaker(Module):
             len(trials_to_fail),
         )
         for trial in trials_to_fail:
-            trial.fail_async_processes(reason="long-pending trial process")
+            trial.fail_async_processes(reason="async_process_timeout")
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -1230,7 +1232,7 @@ class TrialMaker(Module):
     def with_namespace(self, x=None):
         return with_trial_maker_namespace(self.id, x=x)
 
-    def fail_participant_trials(self, participant):
+    def fail_participant_trials(self, participant, reason=None):
         trials_to_fail = (
             db.session.query(Trial)
             .filter_by(participant_id=participant.id, failed=False)
@@ -1238,7 +1240,7 @@ class TrialMaker(Module):
             .filter_by(trial_maker_id=self.id)
         )
         for trial in trials_to_fail:
-            trial.fail()
+            trial.fail(reason=reason)
 
     def check_fail_logic(self):
         """

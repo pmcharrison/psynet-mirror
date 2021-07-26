@@ -24,17 +24,20 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-
 # Custom parameters, change these as you like!
-TARGETS = ["critical", "suggestive", "angry"]
-DIMENSIONS = 5
+TARGETS = ["dominant", "trustworthy"]
+DIMENSIONS = 7
 RANGE = [-800, 800]
 GRANULARITY = 25
 SNAP_SLIDER = True
 AUTOPLAY = True
 DEBUG = False
 psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
+NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
+NUM_CHAINS_PER_PARTICIPANT = len(TARGETS)
+NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * NUM_CHAINS_PER_PARTICIPANT
 
+assert NUM_TRIALS_PER_PARTICIPANT == 2*7*2
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -103,9 +106,9 @@ trial_maker = CustomTrialMaker(
     phase="experiment",  # can be whatever you like
     time_estimate_per_trial=5,
     chain_type="within",  # can be "within" or "across"
-    num_trials_per_participant=21,
-    num_iterations_per_chain=7,
-    num_chains_per_participant=3,  # set to None if chain_type="across"
+    num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
+    num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,
+    num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
     num_chains_per_experiment=None,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,

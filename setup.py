@@ -1,16 +1,11 @@
-import os
-
 import setuptools
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-with open(os.path.join("psynet", "VERSION")) as version_file:
-    version = version_file.read().strip()
-
 setuptools.setup(
     name="psynet",
-    version=version,
+    version="2.4.0",
     author="Peter Harrison, Raja Marjieh, Nori Jacoby",
     author_email="pmc.harrison@gmail.com",
     description="Utility functions for Dallinger experiments",
@@ -27,7 +22,7 @@ setuptools.setup(
     include_package_data=True,
     package_data={"psynet": ["VERSION"]},
     install_requires=[
-        "dallinger==7.4.0",
+        "dallinger>=7.5.0",
         "click",
         "datetime",
         "dominate",

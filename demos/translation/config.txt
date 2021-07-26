@@ -1,0 +1,36 @@
+[Launch mode]
+mode = sandbox
+language = el
+
+[Payment information]
+title = Translation demo
+base_payment = 0.10
+
+[Recruitment strategy]
+auto_recruit = true
+lifetime = 24
+duration = 2
+us_only = false
+approve_requirement = 95
+ad_group = Game
+browser_exclude_rule = MSIE, mobile, tablet
+disable_when_duration_exceeded = False
+
+[Advert metadata]
+description = In this demo we will use gettext to translate text from English to Greek (you can integrate your own language). You should also carefully inspect the locale/ directory.
+keywords = translation
+contact_email_on_error = computational.audition+online_running@gmail.com
+organization_name = Max Planck Institute for Empirical Aesthetics
+
+[Database]
+database_url = postgresql://postgres@localhost/dallinger
+database_size = standard-2
+
+[Server]
+# Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
+dyno_type = standard-1x
+num_dynos_web = 1
+num_dynos_worker = 1
+redis_size = hobby-dev
+host = 0.0.0.0
+clock_on = true

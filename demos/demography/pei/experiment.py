@@ -1,4 +1,5 @@
 import psynet.experiment
+from psynet.consent import NoConsent
 from psynet.demography.pei import PEI
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -13,6 +14,7 @@ from psynet.timeline import Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
+        NoConsent(),
         PEI(),
         SuccessfulEndPage(),
     )

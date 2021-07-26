@@ -8,7 +8,7 @@ $(document).ready(function() {
   );
   $.each(timelineModules["modules"], function() {
     $('.chart.modules').append(
-      '<div class="progress modules ' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' +
+      '<div class="progress modules" id="' + this['id'] + '" data-module-id="' + this['id'] + '" data-html="true">' +
         '<div class="progress-bar ' + this['id'] + '" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">' +
           '<span class="show ' + this['id'] + '">' + this['id'] + '</span>' +
         '</div>' +
@@ -116,15 +116,16 @@ function hideOptionsTooltip(param) {
 }
 
 function updateDetails(moduleId) {
-  $("#element-details").load('/module/' + moduleId);
+  $("#element-details").load('/module', { 'moduleId': moduleId });
 }
 
 function updateTooltip(moduleId) {
-  $.get('/module/' + moduleId + '/tooltip', function(data) {
-    if ($('.progress.' + moduleId + ':hover').length != 0) {
-      $('.progress.' + moduleId).tooltip('dispose').tooltip({title: data}).tooltip('show');
+  $.post('/module/tooltip', { 'moduleId': moduleId }, function(data) {
+    let selector = 'div[id="' + moduleId + '"].progress';
+    if ($(selector + ':hover').length != 0) {
+      $(selector).tooltip('dispose').tooltip({title: data}).tooltip('show');
     } else {
-      $('.progress').tooltip('dispose');
+      $(selector).tooltip('dispose');
     }
   });
 }

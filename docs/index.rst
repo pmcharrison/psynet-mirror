@@ -25,6 +25,7 @@ PsyNet Documentation
    experimenter/basic_usage
    experimenter/timeline
    experimenter/trial_overview
+   experimenter/ad_page
    experimenter/modular_page
    experimenter/graphics
    experimenter/unity_page
@@ -48,6 +49,7 @@ PsyNet Documentation
    developer/basic_workflow
    developer/prescreening_tasks
    developer/updating_documentation
+   developer/releasing_new_versions
 
 .. toctree::
    :maxdepth: 2

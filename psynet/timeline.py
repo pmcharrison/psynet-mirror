@@ -748,6 +748,10 @@ class Page(Elt):
         else:
             participant.answer_is_fresh = False
 
+        participant.browser_platform = metadata.get(
+            "platform", "Browser platform info could not be retrieved."
+        )
+
         db.session.commit()
         return resp
 
@@ -906,9 +910,13 @@ class Page(Elt):
         # pylint: disable=unused-argument
         if not experiment.var.show_bonus:
             return Footer([""])
-        bonus = participant.time_credit.estimate_bonus() + participant.performance_bonus
+        performance_bonus = participant.performance_bonus
+        basic_bonus = participant.time_credit.get_bonus()
+        bonus = performance_bonus + basic_bonus
         return Footer(
-            [f"Estimated bonus: <strong>&#36;{bonus:.2f}</strong>"],
+            [
+                f'Bonus: <strong>&#36;{basic_bonus:.2f} (basic) + &#36;{performance_bonus:.2f} (extra) = <span style="font-weight: bold">&#36;{bonus:.2f}</span></strong>'
+            ],
             escape=False,
         )
 
@@ -1176,6 +1184,7 @@ class Timeline:
             raise ValueError("The final element in the timeline must be an EndPage.")
         self.check_for_time_estimate()
         self.check_start_fix_times()
+        self.check_for_consent()
         self.check_modules()
 
     def check_for_time_estimate(self):
@@ -1213,6 +1222,20 @@ class Timeline:
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
             raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
+
+    def check_for_consent(self):
+        from psynet.consent import Consent
+        from psynet.page import InfoPage
+
+        first_elt = self.elts[0]
+        # ignore unless the timeline is fully initialized
+        if (
+            isinstance(first_elt, InfoPage)
+            and first_elt.content == "Placeholder timeline"
+        ):
+            return
+        if all([not isinstance(elt, Consent) for elt in self.elts]):
+            raise ValueError("At least one element in the timeline must be a consent.")
 
     def modules(self):
         return {
@@ -1601,6 +1624,7 @@ def while_loop(
             ),
             UnsuccessfulEndPage(),
             fix_time_credit=False,
+            log_chosen_branch=False,
         ),
         conditional(
             label,

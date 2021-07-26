@@ -224,6 +224,9 @@ class AudioGibbsTrial(GibbsTrial):
         If ``False`` (default), the sound only plays once the participant
         first moves the slider.
 
+    disable_while_playing : bool
+        If `True`, the slider is disabled while the audio is playing. Default: `False`.
+
     minimal_interactions : int : default: 3
         Minimal interactions with the slider before the user can go to next trial.
 
@@ -235,6 +238,17 @@ class AudioGibbsTrial(GibbsTrial):
         If ``True``, then the page displays debugging information about the
         current trial. If ``False`` (default), no information is displayed.
         Override this to enable behaviour.
+
+    input_type:
+        Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
+        The other option currently is `"circular_slider"`, which gives a circular slider.
+
+    wrap:
+        Defaults to `False`. If `True` then slider is wrapped twice so that there are no boundary jumps.
+
+    phase:
+        Defaults to `None`. It gives a random number within the range (min-max)
+        to determine the phase of the slider when `wrap = True`
     """
 
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
@@ -242,9 +256,12 @@ class AudioGibbsTrial(GibbsTrial):
     snap_slider = False
     snap_slider_before_release = False
     autoplay = False
+    disable_while_playing = False
     minimal_interactions = 3
     minimal_time = 3.0
     debug = False
+    wrap = False
+    input_type = "HTML5_range_slider"
 
     def show_trial(self, experiment, participant):
         self._validate()
@@ -265,10 +282,14 @@ class AudioGibbsTrial(GibbsTrial):
                 num_steps="num_sounds" if self.snap_slider_before_release else 10000,
                 snap_values="sound_locations" if self.snap_slider else None,
                 autoplay=self.autoplay,
+                disable_while_playing=self.disable_while_playing,
                 reverse_scale=self.reverse_scale,
                 directional=False,
                 minimal_interactions=self.minimal_interactions,
                 minimal_time=self.minimal_time,
+                wrap=self.wrap,
+                phase=self.phase,
+                input_type=self.input_type,
             ),
             media=self.media,
             time_estimate=5,

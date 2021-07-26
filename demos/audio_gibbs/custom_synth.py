@@ -6,7 +6,7 @@ import os
 
 import numpy as np
 
-
+TIMESTAMPS = [0.0, 0.071, 0.142, 0.213, 0.284, 0.355, 0.426]
 def synth_stimulus(vector, output_path, chain_definition):
     """
     Synthesises a stimulus.
@@ -29,8 +29,8 @@ def synth_stimulus(vector, output_path, chain_definition):
         The chain's definition object.
     """
     assert isinstance(chain_definition, dict)
-    assert len(vector) == 5
-    times = np.array([0.0, 0.090453, 0.18091, 0.27136, 0.36181])
+    times = np.array(TIMESTAMPS)
+    assert len(vector) == len(times)
     freqs = np.array(vector)
     x = np.column_stack((times, freqs))
 
@@ -39,9 +39,7 @@ def synth_stimulus(vector, output_path, chain_definition):
     synth_batch(
         [x],
         [output_path],
-        "synth_files/audio/3c_sp5_cr_su_i10_g00_bier_no-b_flat_235Hz_no-sil.wav",
-        prepend_path="synth_files/audio/2b_sp5_cr_su_i10_g00_bier_b-only.wav",
-        append_path="synth_files/audio/silence.wav",
+        "synth_files/audio/norm_stim_vraiment_interro.wav",
         effects=effects,
     )
 

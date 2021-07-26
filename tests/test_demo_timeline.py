@@ -36,7 +36,14 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            assert get_participant(1).modules == {}
+            assert list(get_participant(1).modules.keys()) == [
+                "cap-recruiter_standard_consent"
+            ]
+
+            driver.execute_script(
+                "$('html').animate({ scrollTop: $(document).height() }, 0);"
+            )
+            next_page(driver, "standard_consent")
 
             assert_text(driver, "main-body", "Welcome to the experiment! Next")
             next_page(driver, "next_button")
@@ -44,15 +51,21 @@ class TestExp(object):
             # Page 1
             participant = get_participant(1)
             modules = participant.modules
-            assert list(modules.keys()) == ["introduction"]
+            assert list(modules.keys()) == [
+                "introduction",
+                "cap-recruiter_standard_consent",
+            ]
             assert set(list(modules["introduction"].keys())) == {
                 "time_started",
                 "time_finished",
             }
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 0
-            assert participant.started_modules == ["introduction"]
-            assert participant.finished_modules == []
+            assert participant.started_modules == [
+                "cap-recruiter_standard_consent",
+                "introduction",
+            ]
+            assert participant.finished_modules == ["cap-recruiter_standard_consent"]
             assert participant.current_module == "introduction"
 
             assert re.search(
@@ -147,17 +160,27 @@ class TestExp(object):
             db_session.commit()
             participant = get_participant(1)
             modules = participant.modules
-            assert set(list(modules.keys())) == {"chocolate", "weight", "introduction"}
+            assert set(list(modules.keys())) == {
+                "cap-recruiter_standard_consent",
+                "chocolate",
+                "weight",
+                "introduction",
+            }
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 1
             assert len(modules["chocolate"]["time_started"]) == 1
             assert len(modules["chocolate"]["time_finished"]) == 0
             assert participant.started_modules == [
+                "cap-recruiter_standard_consent",
                 "introduction",
                 "weight",
                 "chocolate",
             ]
-            assert participant.finished_modules == ["introduction", "weight"]
+            assert participant.finished_modules == [
+                "cap-recruiter_standard_consent",
+                "introduction",
+                "weight",
+            ]
             assert participant.current_module == "chocolate"
 
             assert_text(driver, "main-body", "Do you like chocolate? Yes No")
@@ -225,7 +248,7 @@ class TestExp(object):
                 "main-body",
                 (
                     "That's the end of the experiment! In addition to your base payment of $0.10, "
-                    "you will receive a bonus of $0.26 for the time you spent on the experiment. "
+                    "you will receive a bonus of $0.36 for the time you spent on the experiment. "
                     'Thank you for taking part. Please click "Finish" to complete the HIT. Finish'
                 ),
             )

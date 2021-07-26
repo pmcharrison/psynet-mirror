@@ -1,4 +1,60 @@
-# Changelog
+# CHANGELOG
+
+#### Fixed
+- Fixed bug in 'stop' button for `AudioPrompt`.
+
+#### Added
+- Added demo of translation workflow (see `demos/translation`).
+- Added a new type of slider for `SliderControl`: `circular_slider`.
+- Added optional `random_wrap` functionality to `SliderControl`.
+
+#### Changed
+- Revised implementation for `audio_gibbs_demo`.
+
+# [2.4.0] Released on 2021-07-21
+
+#### Fixed
+- Improved efficiency of StimulusVersion queries.
+- Fixed experiment network display bug.
+- Fixed bug in GSP seed generation, 
+  whereby the initial `active_index` selection was not entirely uniform.
+
+#### Added
+- Added failed_reason text to nodes and infos when calling their respective fail methods
+- Use bumpversion for incrementing release versions.
+- Added MANIFEST.in
+- Added installation instructions for macOS Big Sur 11.3/M1
+
+#### Changed
+- Pin Dallinger to version >=7.5.0
+
+# [2.3.0] Released on 2021-07-07
+
+#### Added
+- Store browser and platform information in participant table.
+
+#### Changed
+- New way of how the contents of the `Ad page` are specified. See https://computational-audition-lab.gitlab.io/psynet/experimenter/ad_page.html for details.
+- PsyNet now enforces at least one consent element to be included in a timeline. See `psynet/consent.py` for available consent modules. If you're sure you want to omit the consent form, include a ``NoConsent`` element.
+- Minor improvement to video synchronization.
+
+#### Updated
+- Updated repp and tapping demos.
+- Updated Dallinger to v7.5.0.
+
+#### Fixed
+- Fixed SQLAlchemy start-up error introduced in v2.2.1.
+
+# [2.2.1] Released on 2021-06-21
+
+#### Fixed
+- Fixed bug to make pre-deployment routines work again 
+
+# [2.2.0] Released on 2021-06-16
+
+#### Added
+- Added new experiment variable ``hard_max_experiment_payment`` which allows for setting a hard, absolute limit on the amount spent in an experiment. Bonuses are not paid from the point the value is reached and the amount of unpaid bonus is saved in the participant's `unpaid_bonus` variable. Default is $1100.
+- Allow for changing the soft and hard spending limits from the dashboard's timeline tab. Clicking on the upper, green progress bar shows/hides the corresponding UI widgets.
 
 #### Changed
 - Renamed the `media_url` property of `RecordTrial` to `recording_url` so as to not clash with the same method name in `StaticTrial`. 
@@ -6,13 +62,15 @@
 #### Fixed
 - Fixed bug with wrong `minimal_interactions` functionality of `SliderControl` due to duplicate event handling in `control.html`.
 - The renamed `recording_url` method incorrectly only returned camera urls. This was replaced with the correct `url` key. 
-
+- Fixed issue where `max_loop_time_condition` would be logged to the participant table
+  every trial in a trial maker.
 
 # [2.1.2] Released on 2021-06-15
 
 #### Fixed
-- Temporary hotfix for bonus/time estimation bug
-
+- Hotfix for bonus/time estimation bug: `time_estimate` for `EndPage`
+  is now set to zero. This means that experiment estimated durations
+  (and corresponding bonuses) will decrease slighly.
 
 # [2.1.1] Released on 2021-06-10
 
@@ -116,6 +174,16 @@ implemented in Dallinger v7.3.0.
 #### Fixed
 - Fix bug in static experiments related to SQLAlchemy.
 - Prevent multiple instances of `check_database` from running simultaneously.
+
+# [1.13.1] Released on 2021-05-05
+
+#### Fixed
+- Fix name attribute default value for RadioButtonControl, DropdownControl, and CheckboxControl
+- Fix some deprecation warnings in tests
+- Update black, isort, and flake8 versions in pre-commit hook config
+- Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
+- Implement missing notify_duration_exceeded method for CAPRecruiter
+- Update Dallinger to v7.2.1
 
 # [1.13.1] Released on 2021-05-05
 
