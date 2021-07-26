@@ -1,0 +1,42 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR ORGANIZATION
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"POT-Creation-Date: 2021-07-15 09:51+0200\n"
+"PO-Revision-Date: 2021-07-15 09:54+0200\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: pygettext.py 1.5\n"
+"X-Generator: Poedit 2.3\n"
+"Last-Translator: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"Language: el\n"
+
+#: experiment.py:47
+msgid "Welcome to the translation demo!"
+msgstr ""
+
+#: experiment.py:54
+msgid "Below you will see this text translated!"
+msgstr "Παρακάτω θα δείτε αυτό το κείμενο μεταφρασμένο!"
+
+#: experiment.py:80
+msgid "You can also translate text in push buttons or any kind of page!"
+msgstr "Μπορείτε επίσης να μεταφράσετε κείμενο σε κουμπιά και κάθε είδους σελίδα!"
+
+#: experiment.py:82
+msgid "Click"
+msgstr "Πάτησε"
+
+#: experiment.py:82
+msgid "on"
+msgstr "στην"
+
+#: experiment.py:82
+msgid "translation"
+msgstr "μετάφραση"
