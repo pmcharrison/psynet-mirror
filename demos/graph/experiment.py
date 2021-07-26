@@ -5,14 +5,15 @@
 ##########################################################################################
 
 import random
-from scipy import stats
+from typing import List, Optional, Union
+
 import numpy as np
-from typing import Optional, Union
 from flask import Markup
-from typing import List
-import rpdb
+from scipy import stats
 
 import psynet.experiment
+from psynet.consent import MTurkStandardConsent
+from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -23,8 +24,6 @@ from psynet.trial.graph import (
     GraphChainTrial,
     GraphChainTrialMaker,
 )
-from psynet.graphics import Circle, Frame, GraphicPrompt
-from psynet.consent import MTurkStandardConsent
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -69,19 +68,12 @@ class NecklaceCircle(Circle):
         color_options: List[str],
         initial_color: int,
         interactive: bool,
-        **kwargs
+        **kwargs,
     ):
         self.color_options = color_options
         self.initial_color = initial_color
         self.interactive = interactive
-        super().__init__(
-            id_,
-            x,
-            y,
-            radius,
-            click_to_answer=not interactive,
-            **kwargs
-        )
+        super().__init__(id_, x, y, radius, click_to_answer=not interactive, **kwargs)
 
     @property
     def js_init(self) -> str:
@@ -129,7 +121,7 @@ class NecklaceNAFCPage(ModularPage):
         prompt: str,
         necklace_states: List[List[int]],
         color_options: List[str],
-        time_estimate=10
+        time_estimate=10,
     ):
         self.color_options = color_options
         self.necklace_states = necklace_states
@@ -150,21 +142,23 @@ class NecklaceNAFCPage(ModularPage):
                             vertical_spacing=75,
                             necklace_states=necklace_states,
                             color_options=color_options,
-                            interactive=False
+                            interactive=False,
                         ),
-                        activate_control_submit=False
+                        activate_control_submit=False,
                     )
                 ],
-                prevent_control_submit=True
+                prevent_control_submit=True,
             ),
-            time_estimate=time_estimate
+            time_estimate=time_estimate,
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        chosen_necklace_id = int(raw_answer['clicked_object'].split("_")[1])
+        chosen_necklace_id = int(raw_answer["clicked_object"].split("_")[1])
         return chosen_necklace_id
 
-    def create_necklace(self, px, py, size, spacing, coloring, color_options, necklace_id, interactive):
+    def create_necklace(
+        self, px, py, size, spacing, coloring, color_options, necklace_id, interactive
+    ):
         translation = 0
         necklace = []
         for i in range(len(coloring)):
@@ -176,13 +170,15 @@ class NecklaceNAFCPage(ModularPage):
                     radius=size,
                     color_options=color_options,
                     initial_color=coloring[i],
-                    interactive=interactive
+                    interactive=interactive,
                 )
             ]
             translation += spacing
         return necklace
 
-    def create_necklace_array(self, necklace_states, vertical_spacing, px, py, **kwargs):
+    def create_necklace_array(
+        self, necklace_states, vertical_spacing, px, py, **kwargs
+    ):
         translation = 0
         necklace_array = []
         for i in range(len(necklace_states)):
@@ -191,7 +187,7 @@ class NecklaceNAFCPage(ModularPage):
                 px=px,
                 py=py + translation,
                 coloring=necklace_states[i],
-                **kwargs
+                **kwargs,
             )
             translation += vertical_spacing
         return necklace_array
@@ -204,7 +200,7 @@ class NecklaceInteractivePage(ModularPage):
         prompt: str,
         necklace_state: List[List[int]],
         color_options: List[str],
-        time_estimate=10
+        time_estimate=10,
     ):
         self.color_options = color_options
         self.necklace_state = necklace_state
@@ -225,22 +221,24 @@ class NecklaceInteractivePage(ModularPage):
                             spacing=41,
                             coloring=necklace_state,
                             color_options=color_options,
-                            interactive=True
+                            interactive=True,
                         )
                     )
                 ],
             ),
-            time_estimate=time_estimate
+            time_estimate=time_estimate,
         )
 
     def format_answer(self, raw_answer, **kwargs):
         chosen_state = [None for _ in range(len(raw_answer.keys()))]
         for key in raw_answer.keys():
-            idx = int(key.split('_')[2])
-            chosen_state[idx] = raw_answer[key]['color_index']
+            idx = int(key.split("_")[2])
+            chosen_state[idx] = raw_answer[key]["color_index"]
         return chosen_state
 
-    def create_necklace(self, px, py, size, spacing, coloring, color_options, necklace_id, interactive):
+    def create_necklace(
+        self, px, py, size, spacing, coloring, color_options, necklace_id, interactive
+    ):
         translation = 0
         necklace = []
         for i in range(len(coloring)):
@@ -252,7 +250,7 @@ class NecklaceInteractivePage(ModularPage):
                     radius=size,
                     color_options=color_options,
                     initial_color=coloring[i],
-                    interactive=interactive
+                    interactive=interactive,
                 )
             ]
             translation += spacing
@@ -278,8 +276,8 @@ class CustomTrial(GraphChainTrial):
         page_2 = NecklaceInteractivePage(
             label="reproduce",
             prompt="Recolor the present necklace like the necklace you just chose.",
-            necklace_state=CustomSource.generate_class_seed(),  
-            color_options=COLOR_OPTIONS
+            necklace_state=CustomSource.generate_class_seed(),
+            color_options=COLOR_OPTIONS,
         )
 
         return [page_1, page_2]
@@ -303,7 +301,9 @@ class CustomSource(GraphChainSource):
 
     @staticmethod
     def generate_class_seed():
-        return [random.randint(0, len(COLOR_OPTIONS) - 1) for i in range(NECKLACE_LENGTH)]
+        return [
+            random.randint(0, len(COLOR_OPTIONS) - 1) for i in range(NECKLACE_LENGTH)
+        ]
 
 
 class CustomTrialMaker(GraphChainTrialMaker):
@@ -370,7 +370,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
             propagate_failure=propagate_failure,
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=wait_for_networks,
-            allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains
+            allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
         )
 
     def generate_grid(self, size):
@@ -379,20 +379,45 @@ class CustomTrialMaker(GraphChainTrialMaker):
         for r in range(size):
             for c in range(size):
                 v = int(np.ravel_multi_index([r, c], [size, size]))
-                vertices = vertices + [v]
+                vertices.append(v)
                 if r > 0:
-                    upper_neighbour = int(np.ravel_multi_index([r - 1, c], [size, size]))
-                    edges = edges + [
-                        {"origin": v, "target": upper_neighbour, "properties": {"type": "default"}},
-                        {"origin": upper_neighbour, "target": v, "properties": {"type": "default"}}
-                    ]
+                    upper_neighbour = int(
+                        np.ravel_multi_index([r - 1, c], [size, size])
+                    )
+                    edges.append(
+                        {
+                            "origin": v,
+                            "target": upper_neighbour,
+                            "properties": {"type": "default"},
+                        }
+                    )
+                    edges.append(
+                        {
+                            "origin": upper_neighbour,
+                            "target": v,
+                            "properties": {"type": "default"},
+                        }
+                    )
                 if c < size - 1:
-                    right_neighbour = int(np.ravel_multi_index([r, c + 1], [size, size]))
-                    edges = edges + [
-                        {"origin": v, "target": right_neighbour, "properties": {"type": "default"}},
-                        {"origin": right_neighbour, "target": v, "properties": {"type": "default"}}
-                    ]
+                    right_neighbour = int(
+                        np.ravel_multi_index([r, c + 1], [size, size])
+                    )
+                    edges.append(
+                        {
+                            "origin": v,
+                            "target": right_neighbour,
+                            "properties": {"type": "default"},
+                        }
+                    )
+                    edges.append(
+                        {
+                            "origin": right_neighbour,
+                            "target": v,
+                            "properties": {"type": "default"},
+                        }
+                    )
         return {"vertices": vertices, "edges": edges}
+
 
 ##########################################################################################
 # Experiment
@@ -405,7 +430,9 @@ class CustomTrialMaker(GraphChainTrialMaker):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         MTurkStandardConsent(),
-        InfoPage(Markup("""
+        InfoPage(
+            Markup(
+                """
             <p>
             This experiment implements a simple task on a square lattice.
             This is done by specifying an approppriate dictionary of edges and vertices which in
@@ -418,11 +445,19 @@ class Exp(psynet.experiment.Experiment):
                 "edges": [{"origin": 1, "target": 2, "properties": {"type": "default"}}]
             }
             </code>
-        """), time_estimate=10),
-        InfoPage(Markup("""
+        """
+            ),
+            time_estimate=10,
+        ),
+        InfoPage(
+            Markup(
+                """
             The task itself consists of choosing a stimulus from one of your neighbours
             on the lattice and replicating it.
-        """), time_estimate=5),
+        """
+            ),
+            time_estimate=5,
+        ),
         InfoPage("Let's begin!", time_estimate=3),
         CustomTrialMaker(
             id_="graph_demo",
