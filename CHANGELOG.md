@@ -11,6 +11,29 @@
 #### Changed
 - Revised implementation for `audio_gibbs_demo`.
 
+#### Breaking changes
+
+- The API for `ProgressDisplay` and `ProgressStage` has now been improved.
+  `ProgressDisplay` no longer takes a `duration` argument, the duration
+  is instead computed automatically from the provided `ProgressStage` objects.
+  `ProgressStage` now accepts a single number as the `time` argument,
+  which determines the duration of the stage. The start time and end time 
+  are then inferred automatically with respect to the previous stage in the sequence.
+  One can therefore write something like this:
+  
+````python
+from psynet.timeline import ProgressDisplay, ProgressStage
+
+ProgressDisplay(
+    stages=[
+        ProgressStage(0.75, "Wait a moment...", color="grey"),
+        ProgressStage(1, "Red!", color="red"),
+        ProgressStage(1, "Green!", color="green"),
+        ProgressStage(1, "Blue!", color="blue"),
+    ],
+),
+````
+
 # [2.4.0] Released on 2021-07-21
 
 #### Fixed

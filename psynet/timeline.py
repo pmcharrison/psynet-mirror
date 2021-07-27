@@ -6,7 +6,7 @@ from collections import Counter
 from datetime import datetime
 from functools import reduce
 from statistics import median
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, Union
 
 import flask
 import importlib_resources
@@ -420,14 +420,18 @@ class MediaSpec:
 class ProgressStage(dict):
     def __init__(
         self,
-        time: List,
+        time: Union[float, int, List],
         caption: str = "",
         color: str = "rgb(49, 124, 246)",
         persistent: bool = False,
     ):
-        assert len(time) == 2
+        if isinstance(time, list):
+            duration = time[1] - time[0]
+        else:
+            duration = time
+
         self["time"] = time
-        self["duration"] = time[1] - time[0]
+        self["duration"] = duration
         self["caption"] = caption
         self["color"] = color
         self["persistent"] = persistent
@@ -436,21 +440,39 @@ class ProgressStage(dict):
 class ProgressDisplay(dict):
     def __init__(
         self,
-        duration,
+        stages: List,
         start="trialStart",
-        stages: Optional[List] = None,
         show_bar: bool = True,
     ):
-        self["duration"] = duration
+        self.consolidate_stages(stages)
+
+        if len(stages) == 0:
+            _duration = 0.0
+        else:
+            last_stage = stages[-1]
+            _duration = last_stage["time"][1]
+
+        self["duration"] = _duration
         self["start"] = start
         self["show_bar"] = show_bar
-
-        if stages is None:
-            stages = [ProgressStage(time=[0.0, duration])]
-
         self["stages"] = stages
 
         self.validate()
+
+    def consolidate_stages(self, stages):
+        """
+        Goes through the list of stages, and whenever the ``time`` argument
+        is a single number, replaces this argument with a pair of numbers
+        corresponding to the computed start time and end time for that stage.
+        """
+        _start_time = 0.0
+        for s in stages:
+            if not isinstance(s["time"], list):
+                _duration = s["time"]
+                _end_time = _start_time + _duration
+                s["time"] = [_start_time, _end_time]
+            _end_time = s["time"][1]
+            _start_time = _end_time
 
     def validate(self):
         stages = self["stages"]
@@ -651,7 +673,7 @@ class Page(Elt):
         }
 
         if progress_display is None:
-            progress_display = ProgressDisplay(duration=0.0, show_bar=False)
+            progress_display = ProgressDisplay(stages=[], show_bar=False)
         self.progress_display = progress_display
 
     def prepare_default_events(self):
