@@ -13,6 +13,7 @@
   The functionality will be ready-to-use once the Dallinger pull request
   https://github.com/Dallinger/Dallinger/pull/3016 is merged.
 - Added `generate_constraints.py` for regenerating constraints for all PsyNet demos.
+- Added experimental graph network API.
 
 #### Changed
 - Revised implementation for `audio_gibbs_demo`.
