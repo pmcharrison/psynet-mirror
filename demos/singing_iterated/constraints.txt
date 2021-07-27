@@ -4,20 +4,14 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 9dd53b8493d99e47eca3cb3a056c4387
+# Compiled from a requirement.txt file with md5sum: 446cfc2616b80723e156e3a2fe460917
 #
--e git+https://psynet:kucaRsj5WHnopLT7wypy@gitlab.com/computational-audition-lab/melody/melody-singing/singing-extract#egg=singing_extract
-    # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
-aubio==0.4.9
-    # via
-    #   -r requirements.txt
-    #   singing-extract
 boto3==1.18.7
     # via
+    #   -r requirements.txt
     #   dallinger
-    #   singing-extract
 botocore==1.21.7
     # via
     #   boto3
@@ -40,28 +34,26 @@ click==7.1.2
 cycler==0.10.0
     # via matplotlib
 dallinger==7.5.0
-    # via
-    #   psynet
-    #   singing-extract
+    # via psynet
 datetime==4.3
     # via
+    #   -r requirements.txt
     #   psynet
-    #   singing-extract
 docopt==0.6.2
-    # via singing-extract
+    # via -r requirements.txt
 dominate==2.6.0
     # via psynet
 faker==8.10.3
     # via dallinger
 flask==1.1.4
     # via
+    #   -r requirements.txt
     #   dallinger
     #   flask-crossdomain
     #   flask-login
     #   flask-sockets
     #   flask-wtf
     #   psynet
-    #   singing-extract
 flask-crossdomain==0.1
     # via dallinger
 flask-login==0.5.0
@@ -92,8 +84,8 @@ idna==3.2
     # via requests
 importlib-resources==5.2.0
     # via
+    #   -r requirements.txt
     #   psynet
-    #   singing-extract
 itsdangerous==1.1.0
     # via
     #   flask
@@ -115,19 +107,18 @@ markupsafe==2.0.1
     #   jinja2
     #   wtforms
 matplotlib==3.4.2
-    # via
-    #   -r requirements.txt
-    #   singing-extract
+    # via -r requirements.txt
+git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments
+    # via -r requirements.txt
 numpy==1.21.1
     # via
-    #   aubio
+    #   -r requirements.txt
     #   matplotlib
     #   pandas
     #   patsy
     #   praat-parselmouth
     #   psynet
     #   scipy
-    #   singing-extract
     #   statsmodels
 packaging==21.0
     # via build
@@ -148,7 +139,9 @@ pillow==8.3.1
 pip-tools==6.2.0
     # via dallinger
 praat-parselmouth==0.4.0
-    # via psynet
+    # via
+    #   -r requirements.txt
+    #   psynet
 progress==1.5
     # via psynet
 psutil==5.8.0
@@ -194,8 +187,8 @@ s3transfer==0.5.0
     # via boto3
 scipy==1.7.0
     # via
+    #   -r requirements.txt
     #   psynet
-    #   singing-extract
     #   statsmodels
 selenium==3.141.0
     # via dallinger
