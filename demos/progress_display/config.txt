@@ -13,6 +13,7 @@ us_only = false
 approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
+disable_when_duration_exceeded = False
 
 [Ad metadata]
 description = This app demos the progress bar functionality.

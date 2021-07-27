@@ -260,7 +260,6 @@ example_record_page = join(
         ),
         time_estimate=5,
         progress_display=ProgressDisplay(
-            duration=3.0,
             stages=[
                 ProgressStage([0.0, 3.0], "Recording...", "red"),
             ],
@@ -298,7 +297,6 @@ example_listen_then_record_page = join(
         time_estimate=5,
         events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
-            duration=5.0,
             stages=[
                 ProgressStage([0.0, 3.0], "Waiting to record..."),
                 ProgressStage([3.0, 4.0], "Recording...", "red"),
@@ -342,7 +340,6 @@ example_record_audio_video = join(
             auto_advance=True,
         ),
         progress_display=ProgressDisplay(
-            duration=4.6,
             stages=[
                 ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
                 ProgressStage([2.6, 4.0], "Recording!", color="red"),
