@@ -701,6 +701,12 @@ class Experiment(dallinger.experiment.Experiment):
                 resource_filename("psynet", "templates/error.html"),
                 "templates/error.html",
             ),
+            (
+                resource_filename(
+                    "psynet", "resources/scripts/prepare_docker_image.sh"
+                ),
+                "prepare_docker_image.sh",
+            ),
         ]
 
     @dashboard_tab("Timeline", after_route="monitoring")

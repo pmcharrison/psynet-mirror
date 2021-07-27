@@ -67,7 +67,6 @@ class CustomVideoRecordControl(VideoRecordControl):
 class CustomProgressDisplay(ProgressDisplay):
     def __init__(self):
         super().__init__(
-            duration=1.5 + 5.0,
             stages=[
                 ProgressStage([0.0, 1.5], "Get ready...", color="grey"),
                 ProgressStage([1.5, 1.5 + 5.0], "Make your gesture!", color="red"),

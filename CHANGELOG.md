@@ -5,12 +5,41 @@
 
 #### Added
 - Added demo of translation workflow (see `demos/translation`).
+- Added new iterated singing demo (see `demos/singing_iterated`).
 - Added a new type of slider for `SliderControl`: `circular_slider`.
 - Added optional `random_wrap` functionality to `SliderControl`.
+- Prepared PsyNet for new Docker functionality. 
+  Note new format of requirements in `requirements.txt`.
+  The functionality will be ready-to-use once the Dallinger pull request
+  https://github.com/Dallinger/Dallinger/pull/3016 is merged.
+- Added `generate_constraints.py` for regenerating constraints for all PsyNet demos.
 - Added experimental graph network API.
 
 #### Changed
 - Revised implementation for `audio_gibbs_demo`.
+
+#### Breaking changes
+
+- The API for `ProgressDisplay` and `ProgressStage` has now been improved.
+  `ProgressDisplay` no longer takes a `duration` argument, the duration
+  is instead computed automatically from the provided `ProgressStage` objects.
+  `ProgressStage` now accepts a single number as the `time` argument,
+  which determines the duration of the stage. The start time and end time 
+  are then inferred automatically with respect to the previous stage in the sequence.
+  One can therefore write something like this:
+  
+````python
+from psynet.timeline import ProgressDisplay, ProgressStage
+
+ProgressDisplay(
+    stages=[
+        ProgressStage(0.75, "Wait a moment...", color="grey"),
+        ProgressStage(1, "Red!", color="red"),
+        ProgressStage(1, "Green!", color="green"),
+        ProgressStage(1, "Blue!", color="blue"),
+    ],
+),
+````
 
 # [2.4.0] Released on 2021-07-21
 
@@ -175,16 +204,6 @@ implemented in Dallinger v7.3.0.
 #### Fixed
 - Fix bug in static experiments related to SQLAlchemy.
 - Prevent multiple instances of `check_database` from running simultaneously.
-
-# [1.13.1] Released on 2021-05-05
-
-#### Fixed
-- Fix name attribute default value for RadioButtonControl, DropdownControl, and CheckboxControl
-- Fix some deprecation warnings in tests
-- Update black, isort, and flake8 versions in pre-commit hook config
-- Update google chrome and chromedriver to v90.x in .gitlab-ci.yml
-- Implement missing notify_duration_exceeded method for CAPRecruiter
-- Update Dallinger to v7.2.1
 
 # [1.13.1] Released on 2021-05-05
 

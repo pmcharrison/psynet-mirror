@@ -4,27 +4,13 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 605c5e56e2e55922ffbab8cb0a0a63ca
+# Compiled from a requirement.txt file with md5sum: 387318b7d439b34c52d5c58d56cfebcd
 #
--e git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
-    # via -r requirements.txt
--e git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition-lab/repp@master#egg=repp
-    # via -r requirements.txt
 apscheduler==3.7.0
     # via dallinger
-argon2-cffi==20.1.0
-    # via notebook
-async-generator==1.10
-    # via nbclient
-attrs==21.2.0
-    # via jsonschema
-backcall==0.2.0
-    # via ipython
-bleach==3.3.1
-    # via nbconvert
-boto3==1.18.3
+boto3==1.18.7
     # via dallinger
-botocore==1.21.3
+botocore==1.21.7
     # via
     #   boto3
     #   s3transfer
@@ -34,10 +20,6 @@ cached-property==1.5.2
     # via dallinger
 certifi==2021.5.30
     # via requests
-cffi==1.14.6
-    # via
-    #   argon2-cffi
-    #   sounddevice
 charset-normalizer==2.0.3
     # via requests
 click==7.1.2
@@ -46,7 +28,6 @@ click==7.1.2
     #   flask
     #   pip-tools
     #   psynet
-    #   repp
     #   rq
 cycler==0.10.0
     # via matplotlib
@@ -54,17 +35,11 @@ dallinger==7.5.0
     # via psynet
 datetime==4.3
     # via psynet
-debugpy==1.3.0
-    # via ipykernel
-decorator==5.0.9
-    # via ipython
-defusedxml==0.7.1
-    # via nbconvert
+docopt==0.6.2
+    # via -r requirements.txt
 dominate==2.6.0
     # via psynet
-entrypoints==0.3
-    # via nbconvert
-faker==8.10.1
+faker==8.10.3
     # via dallinger
 flask==1.1.4
     # via
@@ -104,67 +79,18 @@ idna==3.2
     # via requests
 importlib-resources==5.2.0
     # via psynet
-ipykernel==6.0.3
-    # via
-    #   ipywidgets
-    #   jupyter
-    #   jupyter-console
-    #   notebook
-    #   qtconsole
-ipython==7.25.0
-    # via
-    #   ipykernel
-    #   ipywidgets
-    #   jupyter-console
-ipython-genutils==0.2.0
-    # via
-    #   nbformat
-    #   notebook
-    #   qtconsole
-    #   traitlets
-ipywidgets==7.6.3
-    # via jupyter
 itsdangerous==1.1.0
     # via
     #   flask
     #   flask-wtf
-jedi==0.18.0
-    # via ipython
 jinja2==2.11.3
-    # via
-    #   flask
-    #   nbconvert
-    #   notebook
+    # via flask
 jmespath==0.10.0
     # via
     #   boto3
     #   botocore
 joblib==1.0.1
     # via psynet
-jsonschema==3.2.0
-    # via nbformat
-jupyter==1.0.0
-    # via repp
-jupyter-client==6.1.12
-    # via
-    #   ipykernel
-    #   jupyter-console
-    #   nbclient
-    #   notebook
-    #   qtconsole
-jupyter-console==6.4.0
-    # via jupyter
-jupyter-core==4.7.1
-    # via
-    #   jupyter-client
-    #   nbconvert
-    #   nbformat
-    #   notebook
-    #   qtconsole
-jupyterlab-pygments==0.1.2
-    # via nbconvert
-jupyterlab-widgets==1.0.0
-    # via ipywidgets
 kiwisolver==1.3.1
     # via matplotlib
 localconfig==1.1.3
@@ -174,33 +100,7 @@ markupsafe==2.0.1
     #   jinja2
     #   wtforms
 matplotlib==3.4.2
-    # via
-    #   -r requirements.txt
-    #   repp
-matplotlib-inline==0.1.2
-    # via
-    #   ipykernel
-    #   ipython
-mistune==0.8.4
-    # via nbconvert
-nbclient==0.5.3
-    # via nbconvert
-nbconvert==6.1.0
-    # via
-    #   jupyter
-    #   notebook
-nbformat==5.1.3
-    # via
-    #   ipywidgets
-    #   nbclient
-    #   nbconvert
-    #   notebook
-nest-asyncio==1.5.1
-    # via nbclient
-notebook==6.4.0
-    # via
-    #   jupyter
-    #   widgetsnbextension
+    # via -r requirements.txt
 numpy==1.21.1
     # via
     #   matplotlib
@@ -211,17 +111,11 @@ numpy==1.21.1
     #   scipy
     #   statsmodels
 packaging==21.0
-    # via
-    #   bleach
-    #   build
-pandas==1.3.0
+    # via build
+pandas==1.3.1
     # via
     #   psynet
     #   statsmodels
-pandocfilters==1.4.3
-    # via nbconvert
-parso==0.8.2
-    # via jedi
 patsy==0.5.1
     # via statsmodels
 pep517==0.11.0
@@ -229,11 +123,7 @@ pep517==0.11.0
     #   build
     #   pip-tools
 pexpect==4.8.0
-    # via
-    #   dallinger
-    #   ipython
-pickleshare==0.7.5
-    # via ipython
+    # via dallinger
 pillow==8.3.1
     # via matplotlib
 pip-tools==6.2.0
@@ -242,43 +132,25 @@ praat-parselmouth==0.4.0
     # via psynet
 progress==1.5
     # via psynet
-prometheus-client==0.11.0
-    # via notebook
-prompt-toolkit==3.0.19
-    # via
-    #   ipython
-    #   jupyter-console
 psutil==5.8.0
     # via dallinger
 psycopg2==2.9.1
     # via
     #   dallinger
     #   sqlalchemy-postgres-copy
+git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
+    # via -r requirements.txt
 ptyprocess==0.7.0
-    # via
-    #   pexpect
-    #   terminado
-pycparser==2.20
-    # via cffi
-pygments==2.9.0
-    # via
-    #   ipython
-    #   jupyter-console
-    #   jupyterlab-pygments
-    #   nbconvert
-    #   qtconsole
+    # via pexpect
 pyparsing==2.4.7
     # via
     #   matplotlib
     #   packaging
-pyrsistent==0.18.0
-    # via jsonschema
 python-dateutil==2.8.2
     # via
     #   botocore
     #   faker
     #   heroku3
-    #   jupyter-client
     #   matplotlib
     #   pandas
 pytz==2021.1
@@ -287,15 +159,6 @@ pytz==2021.1
     #   datetime
     #   pandas
     #   tzlocal
-pyzmq==22.1.0
-    # via
-    #   jupyter-client
-    #   notebook
-    #   qtconsole
-qtconsole==5.1.1
-    # via jupyter
-qtpy==1.9.0
-    # via qtconsole
 redis==3.5.3
     # via
     #   dallinger
@@ -313,26 +176,18 @@ s3transfer==0.5.0
 scipy==1.7.0
     # via
     #   psynet
-    #   repp
     #   statsmodels
 selenium==3.141.0
     # via dallinger
-send2trash==1.7.1
-    # via notebook
 six==1.16.0
     # via
     #   apscheduler
-    #   argon2-cffi
-    #   bleach
     #   cycler
     #   dallinger
-    #   jsonschema
     #   patsy
     #   python-dateutil
     #   sqlalchemy-postgres-copy
-sounddevice==0.4.2
-    # via repp
-sqlalchemy==1.4.21
+sqlalchemy==1.4.22
     # via
     #   dallinger
     #   sqlalchemy-postgres-copy
@@ -344,37 +199,14 @@ tabulate==0.8.9
     # via dallinger
 termcolor==1.1.0
     # via yaspin
-terminado==0.10.1
-    # via notebook
-testpath==0.5.0
-    # via nbconvert
 text-unidecode==1.3
     # via faker
 timeago==1.0.15
     # via dallinger
 toml==0.10.2
     # via build
-tomli==1.0.4
+tomli==1.1.0
     # via pep517
-tornado==6.1
-    # via
-    #   ipykernel
-    #   jupyter-client
-    #   notebook
-    #   terminado
-traitlets==5.0.5
-    # via
-    #   ipykernel
-    #   ipython
-    #   ipywidgets
-    #   jupyter-client
-    #   jupyter-core
-    #   matplotlib-inline
-    #   nbclient
-    #   nbconvert
-    #   nbformat
-    #   notebook
-    #   qtconsole
 tzlocal==2.1
     # via
     #   apscheduler
@@ -390,16 +222,10 @@ urllib3==1.26.6
     #   selenium
 user-agents==2.2.0
     # via dallinger
-wcwidth==0.2.5
-    # via prompt-toolkit
-webencodings==0.5.1
-    # via bleach
 werkzeug==1.0.1
     # via flask
 wheel==0.36.2
     # via pip-tools
-widgetsnbextension==3.5.1
-    # via ipywidgets
 wtforms==2.3.3
     # via flask-wtf
 yaspin==2.0.0
