@@ -443,6 +443,7 @@ class ProgressDisplay(dict):
         stages: List,
         start="trialStart",
         show_bar: bool = True,
+        **kwargs,
     ):
         self.consolidate_stages(stages)
 
@@ -458,6 +459,18 @@ class ProgressDisplay(dict):
         self["stages"] = stages
 
         self.validate()
+
+        if "duration" in kwargs:
+            logger.warning(
+                "ProgressDisplay no longer takes a 'duration' argument, please remove it."
+            )
+            del kwargs["duration"]
+
+        if (len(kwargs)) > 0:
+            logger.warning(
+                "The following unrecognized arguments were passed to ProgressDisplay: "
+                + ", ".join(list(kwargs))
+            )
 
     def consolidate_stages(self, stages):
         """

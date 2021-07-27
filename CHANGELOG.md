@@ -5,6 +5,7 @@
 
 #### Added
 - Added demo of translation workflow (see `demos/translation`).
+- Added new iterated singing demo (see `demos/singing_iterated`).
 - Added a new type of slider for `SliderControl`: `circular_slider`.
 - Added optional `random_wrap` functionality to `SliderControl`.
 - Prepared PsyNet for new Docker functionality. 
