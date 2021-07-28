@@ -7,7 +7,7 @@ from ..field import claim_field
 import rpdb
 
 # from psynet.trial.main import with_trial_maker_namespace
-from .main import TrialNetwork, with_trial_maker_namespace
+from .main import with_trial_maker_namespace, Trial
 
 
 class GraphChainNetwork(ChainNetwork):
@@ -35,6 +35,7 @@ class GraphChainNetwork(ChainNetwork):
     vertex_id = claim_field("vertex_id", __extra_vars__, int)
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
     source_seed = claim_field("source_seed", __extra_vars__)
+    network_structure = claim_field("network_structure", __extra_vars__)
 
     def __init__(   # overriden
         self,
@@ -47,6 +48,7 @@ class GraphChainNetwork(ChainNetwork):
         dependent_vertex_ids: List[int],
         trials_per_node: int,
         target_num_nodes: int,
+        network_structure,
         participant=None,
         id_within_participant: Optional[int] = None,
         source_seed: Optional = None
@@ -55,6 +57,7 @@ class GraphChainNetwork(ChainNetwork):
         self.vertex_id = vertex_id
         self.dependent_vertex_ids = dependent_vertex_ids
         self.source_seed = source_seed
+        self.network_structure = network_structure
 
         super().__init__(
             trial_maker_id=trial_maker_id,
@@ -223,12 +226,51 @@ class GraphChainNode(ChainNode):
             raise ValueError("Invalid number of parent nodes!")
 
     def get_parents(self):
+        current_layer = self.get_node_layer()
+        parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
+        return parents
+
+    def get_node_layer(self):
         trial_maker_id = self.network.trial_maker_id
         degree = self.degree
         nodes = GraphChainNode.query.all()
         current_layer = [n for n in nodes if n.network.trial_maker_id == trial_maker_id and n.degree == degree]
-        parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
-        return parents
+        return current_layer
+
+    def summarize_node_layer(self):  # to be used in the monitor
+        current_layer = self.get_node_layer()
+        network_structure = self.network.network_structure
+        vertex_summary = []
+        trial_summary = []
+
+        for v in network_structure["vertices"]:
+            vertex_node = [n for n in current_layer if n.vertex_id == v][0]
+            vertex_summary.append({
+                "vertex_id": v,
+                "node_id": vertex_node.id,
+                "degree": vertex_node.degree,
+                "clicked": self == vertex_node,
+                "failed": vertex_node.failed
+            })
+
+            trials = Trial.query.filter_by(origin_id=vertex_node.id)
+            for t in trials:
+                trial_summary.append({
+                    "trial_id": t.id,
+                    "vertex_id": v,
+                    "node_id": vertex_node.id,
+                    "failed": t.failed,
+                    "invisible": False,
+                    "type": "default"
+                })
+
+        digested_graph = {
+            "vertices": vertex_summary,
+            "trials": trial_summary,
+            "edges": network_structure["edges"]
+        }
+
+        return digested_graph
 
 
 class GraphChainSource(ChainSource):
@@ -338,9 +380,9 @@ class GraphChainTrialMaker(ChainTrialMaker):
             vertex_id = vertices[i]
             source_seed = [seed["bundle"] for seed in source_seeds if seed["vertex_id"] == vertex_id][0]
             dependent_vertex_ids = self.get_dependent_vertex_ids(vertex_id, network_structure)
-            self.create_network(experiment, vertex_id, dependent_vertex_ids, source_seed)
+            self.create_network(experiment, vertex_id, dependent_vertex_ids, source_seed, network_structure)
 
-    def create_network(self, experiment, vertex_id, dependent_vertex_ids, source_seed, participant=None, id_within_participant=None):
+    def create_network(self, experiment, vertex_id, dependent_vertex_ids, source_seed, network_structure, participant=None, id_within_participant=None):
         network = self.network_class(
             trial_maker_id=self.id,
             source_class=self.source_class,
@@ -353,7 +395,8 @@ class GraphChainTrialMaker(ChainTrialMaker):
             target_num_nodes=self.num_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
-            source_seed=source_seed
+            source_seed=source_seed,
+            network_structure=network_structure
         )
         db.session.add(network)
         db.session.commit()
