@@ -68,11 +68,8 @@
         <div class="header">
             {% if experiment_progress_bar.show %}
                 <div class="progress">
-                    <div class="progress-bar" role="progressbar"
-                         aria-valuenow="{{ experiment_progress_bar.percentage }}"
-                         aria-valuemin="0" aria-valuemax="100" style="width:{{ experiment_progress_bar.percentage }}%">
-                        {{ experiment_progress_bar.percentage }}%
-                    </div>
+                    <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
+                         aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
                 </div>
             {% endif %}
         </div>
@@ -164,46 +161,51 @@
         {% endblock %}
     {% endblock %}
 
-    {% block footer %}
-        {% if footer.show %}
-            <style>
-                #footer {
-                    background-color: rgb(49, 124, 246);
-                    color: white;
-                    margin: 0px;
-                    padding: 0px;
-                    line-height: 33px;
-                    border-style: none;
-                }
-                #media_download_progress_bar {
-                    width: {{ initial_download_progress }}%;
-                    height: 6px;
-                    background-color: black;
-                }
-                .footer-text {
-                    margin: 0px;
-                }
-                #help_button {
-                    min-width: 50px;
-                    background-color: white;
-                    color: black
-                }
-                #help_button:hover {
-                    background-color: rgb(234, 236, 239);
-                }
-            </style>
+    <style>
+        #footer {
+            background-color: rgb(49, 124, 246);
+            color: white;
+            margin: 0px;
+            padding: 0px;
+            line-height: 33px;
+            border-style: none;
+        }
+        #media_download_progress_bar {
+            width: {{ initial_download_progress }}%;
+            height: 6px;
+            background-color: black;
+        }
+        .footer-text {
+            margin: 0px;
+        }
+        #help_button {
+            min-width: 50px;
+            background-color: white;
+            color: black
+        }
+        #help_button:hover {
+            background-color: rgb(234, 236, 239);
+        }
+    </style>
 
-            <nav id="footer" class="navbar fixed-bottom">
-                <div id="media_download_progress_bar"></div>
-                <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
-                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                        {% for text in footer.text_to_show %} <div class="footer-text"> {{ text }} </div> {% endfor %}
-                        <button type="button" class="btn btn-primary" id="help_button">Help!</button>
-                    </div>
+    <nav id="footer" class="navbar fixed-bottom">
+        <div id="media_download_progress_bar"></div>
+        <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
+            <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                <div class="footer-text">
+                    Bonus:
+                    <strong>
+                        &#36;<span id="basic-bonus">0.00</span> (basic) +
+                        &#36;<span id="extra-bonus">0.00</span> (extra) =
+                        <span style="font-weight: bold">
+                            &#36;<span id="total-bonus">0.00</span>
+                        </span>
+                    </strong>
                 </div>
-            </nav>
-        {% endif %}
-    {% endblock %}
+                <button type="button" class="btn btn-primary" id="help_button">Help!</button>
+            </div>
+        </div>
+    </nav>
 {% endblock %}
 
 {% block head %}
@@ -1479,6 +1481,25 @@
                 return psynet
             }()
         )
+
+        let updateProgressAndBonus = function() {
+            $.get('/timeline/progress_and_bonus')
+            .done(function(data) {
+                let progressPercentage = data['progressPercentage'];
+                let progressPercentageStr = progressPercentage + '%';
+                $('#timeline-progress-bar').text(progressPercentageStr);
+                $('#timeline-progress-bar').css("width", progressPercentageStr)
+                $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+
+                if (data['bonus'] !== undefined) {
+                    $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
+                    $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
+                    $('#total-bonus').text(data['bonus']['total'].toFixed(2));
+                }
+            });
+        }
+        updateProgressAndBonus();
+        setInterval(updateProgressAndBonus, 2000)
     </script>
 
 {% endblock %}
