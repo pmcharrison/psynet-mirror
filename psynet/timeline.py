@@ -883,7 +883,6 @@ class Page(Elt):
             ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "experiment_progress_bar": self.create_experiment_progress_bar(participant),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
@@ -901,9 +900,6 @@ class Page(Elt):
     @property
     def define_media_requests(self):
         return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
-
-    def create_experiment_progress_bar(self, participant):
-        return ExperimentProgressBar(participant.progress)
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
@@ -1843,16 +1839,6 @@ def multiply_expected_repetitions(logic, factor: float):
         for elt in logic:
             elt.multiply_expected_repetitions(factor)
     return logic
-
-
-class ExperimentProgressBar:
-    def __init__(self, progress: float, show=True, min_pct=5, max_pct=99):
-        self.show = show
-        self.percentage = round(progress * 100)
-        if self.percentage > max_pct:
-            self.percentage = max_pct
-        elif self.percentage < min_pct:
-            self.percentage = min_pct
 
 
 class Module:

@@ -66,12 +66,10 @@
 {% block body %}
     {% block header %}
         <div class="header">
-            {% if experiment_progress_bar.show %}
-                <div class="progress">
-                    <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
-                         aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
-                </div>
-            {% endif %}
+            <div class="progress">
+                <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
+                     aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
         </div>
     {% endblock %}
 

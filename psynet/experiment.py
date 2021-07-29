@@ -890,10 +890,15 @@ class Experiment(dallinger.experiment.Experiment):
     def get_progress_and_bonus(cls):
         participant = Participant.query.first()
         progress_percentage = int(participant.progress * 100)
-        progress = 5 if progress_percentage < 5 else progress_percentage
+        min_pct = 5
+        max_pct = 99
+        if progress_percentage > max_pct:
+            progress_percentage = max_pct
+        elif progress_percentage < min_pct:
+            progress_percentage = min_pct
         data = {
-            "progressPercentage": progress,
-            "progressPercentageStr": f"{progress}%",
+            "progressPercentage": progress_percentage,
+            "progressPercentageStr": f"{progress_percentage}%",
         }
         if cls.new(db.session).var.show_bonus:
             performance_bonus = participant.performance_bonus
