@@ -62,19 +62,19 @@ When using a custom package in a Dallinger/PsyNet experiment, you also need to i
 
 .. code-block:: console
 
-  -e git+<link_to_repository>@<commit_hash_or_branch_name>#egg=<package_name>
+  <package_name>@git+<link_to_repository>@<commit_hash_or_branch_name>#egg=<package_name>
 
 For example,
 
 .. code-block:: console
 
-  -e git+https://gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
+  <package_name>@git+https://gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
 
 If the repository is a private repository, you will need to generate a custom deploy token. Follow the process described in :ref:`Deploy tokens` and based on the above example replace ``username`` and ``deploy_token`` in the line below accordingly.
 
 .. code-block:: console
 
-  -e git+https://<username>:<deploy_token>@gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
+  <package_name>@git+https://<username>:<deploy_token>@gitlab.com/computational-audition-lab/theory-rep-samp/vowels@v1.5.1#egg=vowel_extract
 
 The experiment class
 --------------------
