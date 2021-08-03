@@ -883,6 +883,10 @@ class Page(Elt):
             ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
+            "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
+            "extra_bonus": "%.2f" % participant.performance_bonus,
+            "total_bonus": "%.2f"
+            % (participant.performance_bonus + participant.time_credit.get_bonus()),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
