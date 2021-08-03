@@ -887,6 +887,7 @@ class Page(Elt):
             "extra_bonus": "%.2f" % participant.performance_bonus,
             "total_bonus": "%.2f"
             % (participant.performance_bonus + participant.time_credit.get_bonus()),
+            "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,

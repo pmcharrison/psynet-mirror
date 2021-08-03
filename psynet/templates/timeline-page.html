@@ -68,7 +68,8 @@
         <div class="header">
             <div class="progress">
                 <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
-                     aria-valuenow="" aria-valuemin="0" aria-valuemax="100"></div>
+                     aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
+                     style="width:{{ progress_percentage }}%">{{ progress_percentage }}%</div>
             </div>
         </div>
     {% endblock %}
