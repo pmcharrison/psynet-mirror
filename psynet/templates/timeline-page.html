@@ -1486,7 +1486,7 @@
 
         let updateProgressAndBonus = function() {
             if (psynet.participantId !== undefined) {
-                $.post('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
+                $.get('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
                 .done(function(data) {
                     let progressPercentage = data['progressPercentage'];
                     let progressPercentageStr = progressPercentage + '%';
