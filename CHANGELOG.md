@@ -1,7 +1,11 @@
 # CHANGELOG
 
+# [3.0.0] Released on 2021-08-03
+
 #### Fixed
 - Fixed bug in 'stop' button for `AudioPrompt`.
+- Fixed bug when displaying tooltip and module details in dashboard.
+- Removed temporary fix for 'assignmenId' from start page.
 
 #### Added
 - Added demo of translation workflow (see `demos/translation`).
@@ -17,6 +21,7 @@
 
 #### Changed
 - Revised implementation for `audio_gibbs_demo`.
+- Added more detailed info to the bonus displayed in the footer.
 
 #### Breaking changes
 
