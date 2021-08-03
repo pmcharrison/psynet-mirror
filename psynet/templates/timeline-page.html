@@ -66,11 +66,13 @@
 {% block body %}
     {% block header %}
         <div class="header">
-            <div class="progress">
-                <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
-                     aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
-                     style="width:{{ progress_percentage }}%">{{ progress_percentage }}%</div>
-            </div>
+            {% if show_progress_bar %}
+                <div class="progress">
+                    <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
+                         aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
+                         style="width:{{ progress_percentage }}%">{{ progress_percentage }}%</div>
+                </div>
+            {% endif %}
         </div>
     {% endblock %}
 
@@ -161,51 +163,53 @@
     {% endblock %}
 
     {% block footer %}
-        <style>
-            #footer {
-                background-color: rgb(49, 124, 246);
-                color: white;
-                margin: 0px;
-                padding: 0px;
-                line-height: 33px;
-                border-style: none;
-            }
-            #media_download_progress_bar {
-                width: {{ initial_download_progress }}%;
-                height: 6px;
-                background-color: black;
-            }
-            .footer-text {
-                margin: 0px;
-            }
-            #help_button {
-                min-width: 50px;
-                background-color: white;
-                color: black
-            }
-            #help_button:hover {
-                background-color: rgb(234, 236, 239);
-            }
-        </style>
+        {% if show_footer %}
+            <style>
+                #footer {
+                    background-color: rgb(49, 124, 246);
+                    color: white;
+                    margin: 0px;
+                    padding: 0px;
+                    line-height: 33px;
+                    border-style: none;
+                }
+                #media_download_progress_bar {
+                    width: {{ initial_download_progress }}%;
+                    height: 6px;
+                    background-color: black;
+                }
+                .footer-text {
+                    margin: 0px;
+                }
+                #help_button {
+                    min-width: 50px;
+                    background-color: white;
+                    color: black
+                }
+                #help_button:hover {
+                    background-color: rgb(234, 236, 239);
+                }
+            </style>
 
-        <nav id="footer" class="navbar fixed-bottom">
-            <div id="media_download_progress_bar"></div>
-            <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
-                <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                    <div class="footer-text">
-                        Bonus:
-                        <strong>
-                            &#36;<span id="basic-bonus">{{basic_bonus}}</span> (basic) +
-                            &#36;<span id="extra-bonus">{{extra_bonus}}</span> (extra) =
-                            <span style="font-weight: bold">
-                                &#36;<span id="total-bonus">{{total_bonus}}</span>
-                            </span>
-                        </strong>
+            <nav id="footer" class="navbar fixed-bottom">
+                <div id="media_download_progress_bar"></div>
+                <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
+                    <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="footer-text">
+                            Bonus:
+                            <strong>
+                                &#36;<span id="basic-bonus">{{basic_bonus}}</span> (basic) +
+                                &#36;<span id="extra-bonus">{{extra_bonus}}</span> (extra) =
+                                <span style="font-weight: bold">
+                                    &#36;<span id="total-bonus">{{total_bonus}}</span>
+                                </span>
+                            </strong>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="help_button">Help!</button>
                     </div>
-                    <button type="button" class="btn btn-primary" id="help_button">Help!</button>
                 </div>
-            </div>
-        </nav>
+            </nav>
+        {% endif %}
     {% endblock %}
 {% endblock %}
 
