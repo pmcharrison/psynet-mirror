@@ -1231,6 +1231,8 @@
 
                     psynet.page_load_time = new Date();
                     psynet.page_loaded = true;
+                    psynet.participantId = dallinger.identity.participantId;
+                    updateProgressAndBonus();
 
                     setTimeout(() => psynet.trial.init(), 25);
                 };
@@ -1481,23 +1483,25 @@
         )
 
         let updateProgressAndBonus = function() {
-            $.get('/timeline/progress_and_bonus')
-            .done(function(data) {
-                let progressPercentage = data['progressPercentage'];
-                let progressPercentageStr = progressPercentage + '%';
-                $('#timeline-progress-bar').text(progressPercentageStr);
-                $('#timeline-progress-bar').css("width", progressPercentageStr)
-                $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+            if (psynet.participantId !== undefined) {
+                $.post('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
+                .done(function(data) {
+                    let progressPercentage = data['progressPercentage'];
+                    let progressPercentageStr = progressPercentage + '%';
+                    $('#timeline-progress-bar').text(progressPercentageStr);
+                    $('#timeline-progress-bar').css("width", progressPercentageStr)
+                    $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
 
-                if (data['bonus'] !== undefined) {
-                    $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
-                    $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
-                    $('#total-bonus').text(data['bonus']['total'].toFixed(2));
-                }
-            });
+                    if (data['bonus'] !== undefined) {
+                        $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
+                        $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
+                        $('#total-bonus').text(data['bonus']['total'].toFixed(2));
+                    }
+                });
+            }
         }
-        updateProgressAndBonus();
-        setInterval(updateProgressAndBonus, 2000)
+
+        setInterval(updateProgressAndBonus, 1000)
     </script>
 
 {% endblock %}
