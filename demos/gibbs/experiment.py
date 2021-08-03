@@ -69,7 +69,7 @@ class ColorSliderPage(ModularPage):
                 template_args={
                     "hidden_inputs": hidden_inputs,
                 },
-                continuous_updates=True,
+                continuous_updates=False,
             ),
             time_estimate=time_estimate,
         )

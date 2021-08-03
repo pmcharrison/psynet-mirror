@@ -1,5 +1,51 @@
 # CHANGELOG
 
+# [3.0.0] Released on 2021-08-03
+
+#### Fixed
+- Fixed bug in 'stop' button for `AudioPrompt`.
+- Fixed bug when displaying tooltip and module details in dashboard.
+- Removed temporary fix for 'assignmenId' from start page.
+
+#### Added
+- Added demo of translation workflow (see `demos/translation`).
+- Added new iterated singing demo (see `demos/singing_iterated`).
+- Added a new type of slider for `SliderControl`: `circular_slider`.
+- Added optional `random_wrap` functionality to `SliderControl`.
+- Prepared PsyNet for new Docker functionality. 
+  Note new format of requirements in `requirements.txt`.
+  The functionality will be ready-to-use once the Dallinger pull request
+  https://github.com/Dallinger/Dallinger/pull/3016 is merged.
+- Added `generate_constraints.py` for regenerating constraints for all PsyNet demos.
+- Added experimental graph network API.
+
+#### Changed
+- Revised implementation for `audio_gibbs_demo`.
+- Added more detailed info to the bonus displayed in the footer.
+
+#### Breaking changes
+
+- The API for `ProgressDisplay` and `ProgressStage` has now been improved.
+  `ProgressDisplay` no longer takes a `duration` argument, the duration
+  is instead computed automatically from the provided `ProgressStage` objects.
+  `ProgressStage` now accepts a single number as the `time` argument,
+  which determines the duration of the stage. The start time and end time 
+  are then inferred automatically with respect to the previous stage in the sequence.
+  One can therefore write something like this:
+  
+````python
+from psynet.timeline import ProgressDisplay, ProgressStage
+
+ProgressDisplay(
+    stages=[
+        ProgressStage(0.75, "Wait a moment...", color="grey"),
+        ProgressStage(1, "Red!", color="red"),
+        ProgressStage(1, "Green!", color="green"),
+        ProgressStage(1, "Blue!", color="blue"),
+    ],
+),
+````
+
 # [2.4.0] Released on 2021-07-21
 
 #### Fixed
@@ -17,7 +63,6 @@
 #### Changed
 - Pin Dallinger to version >=7.5.0
 
-
 # [2.3.0] Released on 2021-07-07
 
 #### Added
@@ -33,8 +78,7 @@
 - Updated Dallinger to v7.5.0.
 
 #### Fixed
-- Fixed SQLAlchemy start-up error induced by v2.2.1.
-
+- Fixed SQLAlchemy start-up error introduced in v2.2.1.
 
 # [2.2.1] Released on 2021-06-21
 

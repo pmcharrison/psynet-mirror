@@ -39,17 +39,17 @@ def demo_gibbs(root):
     ACTIVE_EXPERIMENT = None
 
 
-@pytest.fixture(scope="class")
-def demo_iterated_singing(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "iterated_singing"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/iterated_singing"))
-    import psynet.utils
-
-    psynet.utils.import_local_experiment()
-    yield
-    os.chdir(root)
-    ACTIVE_EXPERIMENT = None
+# @pytest.fixture(scope="class")
+# def demo_singing_iterated(root):
+#     global ACTIVE_EXPERIMENT
+#     ACTIVE_EXPERIMENT = "singing_iterated"
+#     os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/singing_iterated"))
+#     import psynet.utils
+#
+#     psynet.utils.import_local_experiment()
+#     yield
+#     os.chdir(root)
+#     ACTIVE_EXPERIMENT = None
 
 
 @pytest.fixture(scope="class")
@@ -109,12 +109,12 @@ def participant(db_session):
 
 @pytest.fixture
 def node(db_session, network):
-    if ACTIVE_EXPERIMENT == "iterated_singing":
-        nodes = Node.query.all()
-        return [
-            n for n in nodes if not isinstance(n, Source) and n.definition is not None
-        ][0]
-    elif ACTIVE_EXPERIMENT == "mcmcp":
+    # if ACTIVE_EXPERIMENT == "singing_iterated":
+    #     nodes = Node.query.all()
+    #     return [
+    #         n for n in nodes if not isinstance(n, Source) and n.definition is not None
+    #     ][0]
+    if ACTIVE_EXPERIMENT == "mcmcp":
         nodes = Node.query.all()
         return [
             n for n in nodes if not isinstance(n, Source) and n.definition is not None
@@ -135,8 +135,10 @@ def network(db_session, experiment_module):
 def trial_class(experiment_module):
     if ACTIVE_EXPERIMENT == "static":
         return experiment_module.AnimalTrial
-    elif ACTIVE_EXPERIMENT == "iterated_singing":
-        return experiment_module.CustomTrial
+    else:
+        raise NotImplementedError
+    # elif ACTIVE_EXPERIMENT == "singing_iterated":
+    #     return experiment_module.CustomTrial
 
 
 @pytest.fixture

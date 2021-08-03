@@ -121,7 +121,7 @@ video_record_page = join(
             s3_bucket=bucket_name,
         ),
         time_estimate=5,
-        progress_display=ProgressDisplay(duration=4.0),
+        progress_display=ProgressDisplay(stages=[ProgressStage(time=4)]),
         media=MediaSpec(audio={"soundtrack": "/static/funk-game-loop.mp3"}),
         events={
             "playSoundtrack": Event(
@@ -153,7 +153,6 @@ video_record_page = join(
         ),
         time_estimate=5,
         progress_display=ProgressDisplay(
-            duration=4.0 + 3.0,  # 4.0 seconds recording, 3.0 seconds delay
             stages=[
                 ProgressStage([0.0, 1.0], "Recording in 3 seconds...", color="grey"),
                 ProgressStage([1.0, 2.0], "Recording in 2 seconds...", color="grey"),
@@ -190,7 +189,7 @@ video_record_page = join(
             controls=True,
         ),
         time_estimate=5,
-        progress_display=ProgressDisplay(duration=5.0),
+        progress_display=ProgressDisplay([ProgressStage(time=5.0)]),
     ),
     conditional(
         "video_record_page",

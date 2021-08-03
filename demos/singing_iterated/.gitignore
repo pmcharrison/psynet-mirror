@@ -1,0 +1,4 @@
+cache/*
+local-s3-clone
+static/s3
+env

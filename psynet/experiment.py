@@ -684,6 +684,12 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/raphael-2.3.0.min.js",
             ),
             (
+                resource_filename(
+                    "psynet", "resources/libraries/jQuery-Knob/dist/jquery.knob.min.js"
+                ),
+                "/static/scripts/jquery.knob.min.js",
+            ),
+            (
                 resource_filename("psynet", "resources/libraries/js-synthesizer"),
                 "/static/scripts/js-synthesizer",
             ),
@@ -694,6 +700,12 @@ class Experiment(dallinger.experiment.Experiment):
             (
                 resource_filename("psynet", "templates/error.html"),
                 "templates/error.html",
+            ),
+            (
+                resource_filename(
+                    "psynet", "resources/scripts/prepare_docker_image.sh"
+                ),
+                "prepare_docker_image.sh",
             ),
         ]
 
@@ -735,18 +747,18 @@ class Experiment(dallinger.experiment.Experiment):
         exported_data = data.export(class_name)
         return json.dumps(exported_data, default=serialise)
 
-    @experiment_route("/module/<module_id>", methods=["GET"])
+    @experiment_route("/module", methods=["POST"])
     @classmethod
-    def get_module_details_as_rendered_html(cls, module_id):
+    def get_module_details_as_rendered_html(cls):
         exp = cls.new(db.session)
-        trial_maker = exp.timeline.get_trial_maker(module_id)
+        trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
         return trial_maker.visualize()
 
-    @experiment_route("/module/<module_id>/tooltip", methods=["GET"])
+    @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
-    def get_module_tooltip_as_rendered_html(cls, module_id):
+    def get_module_tooltip_as_rendered_html(cls):
         exp = cls.new(db.session)
-        trial_maker = exp.timeline.get_trial_maker(module_id)
+        trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
         return trial_maker.visualize_tooltip()
 
     @experiment_route("/module/progress_info", methods=["GET"])
