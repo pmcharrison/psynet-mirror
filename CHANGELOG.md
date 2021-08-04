@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [3.1.0] Unreleased 
+
+#### Fixed
+- Fixed display of progress and bonus on Unity pages
+
 # [3.0.0] Released on 2021-08-03
 
 #### Fixed
