@@ -123,7 +123,7 @@ overridden. Also, they can be enriched with new variables in the following way:
 
 ::
 
-    from psynet.experiment import Experiment
+    import psynet.experiment
 
     class SomeExperiment(psynet.experiment.Experiment):
         variables = {

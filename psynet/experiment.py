@@ -62,7 +62,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     ::
 
-        from psynet.experiment import Experiment
+        import psynet.experiment
 
         class Exp(psynet.experiment.Experiment):
             variables = {
