@@ -918,8 +918,13 @@ class Page(Elt):
             ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
-            "experiment_progress_bar": self.create_experiment_progress_bar(participant),
-            "footer": self.create_footer(experiment, participant),
+            "show_footer": True,
+            "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
+            "extra_bonus": "%.2f" % participant.performance_bonus,
+            "total_bonus": "%.2f"
+            % (participant.performance_bonus + participant.time_credit.get_bonus()),
+            "show_progress_bar": True,
+            "progress_percentage": round(participant.progress * 100),
             "contact_email_on_error": get_config().get("contact_email_on_error"),
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
@@ -937,23 +942,6 @@ class Page(Elt):
     @property
     def define_media_requests(self):
         return f"psynet.media.requests = JSON.parse('{self.media.to_json()}');"
-
-    def create_experiment_progress_bar(self, participant):
-        return ExperimentProgressBar(participant.progress)
-
-    def create_footer(self, experiment, participant):
-        # pylint: disable=unused-argument
-        if not experiment.var.show_bonus:
-            return Footer([""])
-        performance_bonus = participant.performance_bonus
-        basic_bonus = participant.time_credit.get_bonus()
-        bonus = performance_bonus + basic_bonus
-        return Footer(
-            [
-                f'Bonus: <strong>&#36;{basic_bonus:.2f} (basic) + &#36;{performance_bonus:.2f} (extra) = <span style="font-weight: bold">&#36;{bonus:.2f}</span></strong>'
-            ],
-            escape=False,
-        )
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
@@ -1893,22 +1881,6 @@ def multiply_expected_repetitions(logic, factor: float):
         for elt in logic:
             elt.multiply_expected_repetitions(factor)
     return logic
-
-
-class ExperimentProgressBar:
-    def __init__(self, progress: float, show=True, min_pct=5, max_pct=99):
-        self.show = show
-        self.percentage = round(progress * 100)
-        if self.percentage > max_pct:
-            self.percentage = max_pct
-        elif self.percentage < min_pct:
-            self.percentage = min_pct
-
-
-class Footer:
-    def __init__(self, text_to_show: List[str], escape=True, show=True):
-        self.show = show
-        self.text_to_show = [x if escape else flask.Markup(x) for x in text_to_show]
 
 
 class Module:
