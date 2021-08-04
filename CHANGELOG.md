@@ -5,6 +5,9 @@
 #### Fixed
 - Fixed display of progress and bonus on Unity pages
 
+#### Updated
+- Updated Dallinger to v7.6.0.
+
 # [3.0.0] Released on 2021-08-03
 
 #### Fixed
