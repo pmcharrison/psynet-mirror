@@ -103,6 +103,23 @@ class GraphChainTrial(ChainTrial):
         """
         return self.node.definition
 
+    def summarize_trial_layer(self):
+        digested_graph = self.node.summarize_node_layer()
+        vertex_summary = []
+        trial_summary = []
+
+        for v in digested_graph["vertices"]:
+            v["clicked"] = False
+            vertex_summary.append(v)
+        for t in digested_graph["trials"]:
+            t["clicked"] = self.id == t["trial_id"]
+            trial_summary.append(t)
+
+        digested_graph["vertices"] = vertex_summary
+        digested_graph["trials"] = trial_summary
+
+        return digested_graph
+
 
 class GraphChainNode(ChainNode):
     """
@@ -261,6 +278,7 @@ class GraphChainNode(ChainNode):
                     "node_id": vertex_node.id,
                     "failed": t.failed,
                     "invisible": False,
+                    "clicked": False,
                     "type": "default"
                 })
 
