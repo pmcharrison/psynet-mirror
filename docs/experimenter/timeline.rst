@@ -214,7 +214,7 @@ Following this method, here's a complete definition of a simple experiment:
     from psynet.page import InfoPage, Prompt, SuccessfulEndPage
     from psynet.timeline import PageMaker, Timeline
 
-    class CustomExp(psynet.Experiment):
+    class CustomExp(psynet.experiment.Experiment):
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",

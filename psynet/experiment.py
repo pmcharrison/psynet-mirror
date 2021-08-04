@@ -64,7 +64,7 @@ class Experiment(dallinger.experiment.Experiment):
 
         from psynet.experiment import Experiment
 
-        class Exp(psynet.Experiment):
+        class Exp(psynet.experiment.Experiment):
             variables = {
                 "new_variable": "some-value",  # Adding a new variable
                 "wage_per_hour": 12.0,         # Overriding an existing variable
