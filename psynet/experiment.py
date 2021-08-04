@@ -897,6 +897,32 @@ class Experiment(dallinger.experiment.Experiment):
                 return jsonify(page.__json__(participant))
             return page.render(exp, participant)
 
+    @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
+    @classmethod
+    def get_progress_and_bonus(cls):
+        participant = get_participant(request.args.get("participantId"))
+        progress_percentage = round(participant.progress * 100)
+        min_pct = 5
+        max_pct = 99
+        if progress_percentage > max_pct:
+            progress_percentage = max_pct
+        elif progress_percentage < min_pct:
+            progress_percentage = min_pct
+        data = {
+            "progressPercentage": progress_percentage,
+            "progressPercentageStr": f"{progress_percentage}%",
+        }
+        if cls.new(db.session).var.show_bonus:
+            performance_bonus = participant.performance_bonus
+            basic_bonus = participant.time_credit.get_bonus()
+            bonus = performance_bonus + basic_bonus
+            data["bonus"] = {
+                "basic": basic_bonus,
+                "extra": performance_bonus,
+                "total": bonus,
+            }
+        return data
+
     @experiment_route("/response", methods=["POST"])
     @classmethod
     def route_response(cls):
