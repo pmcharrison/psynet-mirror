@@ -195,16 +195,18 @@
                 <div id="media_download_progress_bar"></div>
                 <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                        <div class="footer-text">
-                            Bonus:
-                            <strong>
-                                &#36;<span id="basic-bonus">{{basic_bonus}}</span> (basic) +
-                                &#36;<span id="extra-bonus">{{extra_bonus}}</span> (extra) =
-                                <span style="font-weight: bold">
-                                    &#36;<span id="total-bonus">{{total_bonus}}</span>
-                                </span>
-                            </strong>
-                        </div>
+                        {% if show_bonus %}
+                            <div class="footer-text">
+                                Bonus:
+                                <strong>
+                                    &#36;<span id="basic-bonus">{{basic_bonus}}</span> (basic) +
+                                    &#36;<span id="extra-bonus">{{extra_bonus}}</span> (extra) =
+                                    <span style="font-weight: bold">
+                                        &#36;<span id="total-bonus">{{total_bonus}}</span>
+                                    </span>
+                                </strong>
+                            </div>
+                        {% endif %}
                         <button type="button" class="btn btn-primary" id="help_button">Help!</button>
                     </div>
                 </div>
