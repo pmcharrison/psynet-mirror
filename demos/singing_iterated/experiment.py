@@ -128,16 +128,13 @@ class CustomTrial(AudioImitationChainTrial):
                 "recordStart": Event(is_triggered_by="promptEnd", delay=0.5),
             },
             progress_display=ProgressDisplay(
-                duration=8,
                 # show_bar=False,
                 stages=[
+                    ProgressStage(3, "Listen to the melody and wait...", "orange"),
+                    ProgressStage(3, "START SINGING!", "red"),
+                    ProgressStage(0.5, "Finished recording.", "green"),
                     ProgressStage(
-                        [0.0, 3.5], "Listen to the melody and wait...", "orange"
-                    ),
-                    ProgressStage([3.5, 7], "START SINGING!", "red"),
-                    ProgressStage([7, 7.9], "Finished recording.", "green"),
-                    ProgressStage(
-                        [7.9, 8],
+                        0.5,
                         "Uploading... please wait and click next",
                         "orange",
                         persistent=True,

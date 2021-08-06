@@ -284,14 +284,15 @@ def export(app, local):
         class_name = dallinger_model.__name__
 
         result = requests.get(f"{base_url}/export", params={"class_name": class_name})
-        
-        #debugging json_decode_error
+
+        # debugging json_decode_error
         retries = 0
         while True:
             import json.decoder
+
             try:
                 json_text = result.content.decode("utf8")
-                json_data = json.loads(json_text)                
+                json_data = json.loads(json_text)
                 break
             except json.decoder.JSONDecodeError as e:
                 dallinger_log(f"A JSONDecoder error occurred for {class_name}.")

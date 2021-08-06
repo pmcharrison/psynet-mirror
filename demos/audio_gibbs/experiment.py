@@ -37,7 +37,8 @@ NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
 NUM_CHAINS_PER_PARTICIPANT = len(TARGETS)
 NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * NUM_CHAINS_PER_PARTICIPANT
 
-assert NUM_TRIALS_PER_PARTICIPANT == 2*7*2
+assert NUM_TRIALS_PER_PARTICIPANT == 2 * 7 * 2
+
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}

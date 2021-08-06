@@ -1,13 +1,14 @@
 # pylint: disable=unused-argument,abstract-method
 
-from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
-from typing import Optional, Union, List
+from typing import List, Optional, Union
+
 from dallinger import db
+
 from ..field import claim_field
-import rpdb
+from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
 
 # from psynet.trial.main import with_trial_maker_namespace
-from .main import TrialNetwork, with_trial_maker_namespace
+from .main import with_trial_maker_namespace
 
 
 class GraphChainNetwork(ChainNetwork):
@@ -36,7 +37,7 @@ class GraphChainNetwork(ChainNetwork):
     dependent_vertex_ids = claim_field("dependent_vertex_ids", __extra_vars__)
     source_seed = claim_field("source_seed", __extra_vars__)
 
-    def __init__(   # overriden
+    def __init__(  # overriden
         self,
         trial_maker_id: str,
         source_class,
@@ -49,7 +50,7 @@ class GraphChainNetwork(ChainNetwork):
         target_num_nodes: int,
         participant=None,
         id_within_participant: Optional[int] = None,
-        source_seed: Optional = None
+        source_seed: Optional = None,
     ):
 
         self.vertex_id = vertex_id
@@ -65,7 +66,7 @@ class GraphChainNetwork(ChainNetwork):
             trials_per_node=trials_per_node,
             target_num_nodes=target_num_nodes,
             participant=participant,
-            id_within_participant=id_within_participant
+            id_within_participant=id_within_participant,
         )
 
 
@@ -138,7 +139,7 @@ class GraphChainNode(ChainNode):
             network=network,
             experiment=experiment,
             propagate_failure=propagate_failure,
-            participant=participant
+            participant=participant,
         )
 
     def create_definition_from_seed(self, seed, experiment, participant):
@@ -212,11 +213,15 @@ class GraphChainNode(ChainNode):
 
     @property
     def ready_to_spawn(self):
-        parents = self.get_parents()  # These are parent nodes from the same layer, to be passed to the next layer
-        if len(parents) == len(self.dependent_vertex_ids):  # Make sure all parents exist
+        parents = (
+            self.get_parents()
+        )  # These are parent nodes from the same layer, to be passed to the next layer
+        if len(parents) == len(
+            self.dependent_vertex_ids
+        ):  # Make sure all parents exist
             all_parents_ready = all([p.reached_target_num_trials() for p in parents])
             current_vertex_ready = self.reached_target_num_trials()
-            return (all_parents_ready and current_vertex_ready)
+            return all_parents_ready and current_vertex_ready
         elif len(parents) < len(self.dependent_vertex_ids):
             return False
         else:
@@ -226,7 +231,11 @@ class GraphChainNode(ChainNode):
         trial_maker_id = self.network.trial_maker_id
         degree = self.degree
         nodes = GraphChainNode.query.all()
-        current_layer = [n for n in nodes if n.network.trial_maker_id == trial_maker_id and n.degree == degree]
+        current_layer = [
+            n
+            for n in nodes
+            if n.network.trial_maker_id == trial_maker_id and n.degree == degree
+        ]
         parents = [n for n in current_layer if n.vertex_id in self.dependent_vertex_ids]
         return parents
 
@@ -322,12 +331,15 @@ class GraphChainTrialMaker(ChainTrialMaker):
             propagate_failure=propagate_failure,
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=wait_for_networks,
-            allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains
+            allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
         )
 
     def experiment_setup_routine(self, experiment):
         if self.num_networks == 0 and self.chain_type == "across":
-            experiment.var.set(with_trial_maker_namespace(self.id, "network_structure"), self.network_structure)
+            experiment.var.set(
+                with_trial_maker_namespace(self.id, "network_structure"),
+                self.network_structure,
+            )
         super().experiment_setup_routine(experiment)
 
     def create_networks_across(self, experiment):
@@ -336,11 +348,27 @@ class GraphChainTrialMaker(ChainTrialMaker):
         source_seeds = self.generate_source_seed_bundles()
         for i in range(self.num_chains_per_experiment):
             vertex_id = vertices[i]
-            source_seed = [seed["bundle"] for seed in source_seeds if seed["vertex_id"] == vertex_id][0]
-            dependent_vertex_ids = self.get_dependent_vertex_ids(vertex_id, network_structure)
-            self.create_network(experiment, vertex_id, dependent_vertex_ids, source_seed)
+            source_seed = [
+                seed["bundle"]
+                for seed in source_seeds
+                if seed["vertex_id"] == vertex_id
+            ][0]
+            dependent_vertex_ids = self.get_dependent_vertex_ids(
+                vertex_id, network_structure
+            )
+            self.create_network(
+                experiment, vertex_id, dependent_vertex_ids, source_seed
+            )
 
-    def create_network(self, experiment, vertex_id, dependent_vertex_ids, source_seed, participant=None, id_within_participant=None):
+    def create_network(
+        self,
+        experiment,
+        vertex_id,
+        dependent_vertex_ids,
+        source_seed,
+        participant=None,
+        id_within_participant=None,
+    ):
         network = self.network_class(
             trial_maker_id=self.id,
             source_class=self.source_class,
@@ -353,7 +381,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
             target_num_nodes=self.num_nodes_per_chain,
             participant=participant,
             id_within_participant=id_within_participant,
-            source_seed=source_seed
+            source_seed=source_seed,
         )
         db.session.add(network)
         db.session.commit()
@@ -398,13 +426,15 @@ class GraphChainTrialMaker(ChainTrialMaker):
             {
                 "vertex_id": head.network.vertex_id,
                 "content": head_seed,
-                "is_center": True
+                "is_center": True,
             }
         ] + [
             {
                 "vertex_id": p.network.vertex_id,
-                "content": p.create_seed(experiment, participant),  # might require some thought if participant becomes relevant
-                "is_center": False
+                "content": p.create_seed(
+                    experiment, participant
+                ),  # might require some thought if participant becomes relevant
+                "is_center": False,
             }
             for p in parents
         ]
@@ -413,14 +443,25 @@ class GraphChainTrialMaker(ChainTrialMaker):
     def generate_source_seed_bundles(self):
         network_structure = self.network_structure
         vertices = network_structure["vertices"]
-        centers = [{"vertex_id": v, "content": self.source_class.generate_class_seed(), "is_center": True} for v in vertices]
+        centers = [
+            {
+                "vertex_id": v,
+                "content": self.source_class.generate_class_seed(),
+                "is_center": True,
+            }
+            for v in vertices
+        ]
         bundles = []
         for i in range(len(centers)):
             center = centers[i]
-            dependent_vertex_ids = self.get_dependent_vertex_ids(center["vertex_id"], network_structure)
+            dependent_vertex_ids = self.get_dependent_vertex_ids(
+                center["vertex_id"], network_structure
+            )
             bundle = [center]
             for j in dependent_vertex_ids:
                 content = [c["content"] for c in centers if c["vertex_id"] == j]
-                bundle = bundle + [{"vertex_id": j, "content": content[0], "is_center": False}]
+                bundle = bundle + [
+                    {"vertex_id": j, "content": content[0], "is_center": False}
+                ]
             bundles = bundles + [{"vertex_id": center["vertex_id"], "bundle": bundle}]
         return bundles
