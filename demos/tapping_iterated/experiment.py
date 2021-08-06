@@ -143,11 +143,10 @@ class CustomTrial(CustomTrialAnalysis):
             ),
             time_estimate=duration_rec_sec + 5,
             progress_display=ProgressDisplay(
-                duration=(duration_rec_sec + 1),
                 show_bar=True,  # set to False to hide progress bar in movement
                 stages=[
                     ProgressStage(
-                        [0.0, 3.5],
+                        3.5,
                         "Wait in silence...",
                         "red",
                     ),
@@ -157,12 +156,12 @@ class CustomTrial(CustomTrialAnalysis):
                         "green",
                     ),
                     ProgressStage(
-                        [(duration_rec_sec - 6), duration_rec_sec],
+                        3.5,
                         "Stop tapping and wait in silence...",
                         "red",
                     ),
                     ProgressStage(
-                        [duration_rec_sec, (duration_rec_sec + 1)],
+                        0.5,
                         "Uploading, please wait...",
                         "orange",
                         persistent=True,

@@ -147,11 +147,10 @@ class CustomTrial(CustomTrialAnalysis):
                 "recordStart": Event(is_triggered_by="promptEnd", delay=0.5),
             },
             progress_display=ProgressDisplay(
-                duration=(duration_rec_sec * 2 + 4),
                 # show_bar=False,
                 stages=[
                     ProgressStage(
-                        [0.0, (duration_rec_sec + 1)],
+                        (duration_rec_sec + 1),
                         "Listen to the rhythm and wait...",
                         "orange",
                     ),
@@ -161,12 +160,12 @@ class CustomTrial(CustomTrialAnalysis):
                         "red",
                     ),
                     ProgressStage(
-                        [(duration_rec_sec * 2 + 3), (duration_rec_sec * 2 + 3.9)],
+                        1,
                         "Finished recording.",
                         "green",
                     ),
                     ProgressStage(
-                        [(duration_rec_sec * 2 + 3.9), (duration_rec_sec * 2 + 4)],
+                        0.5,
                         "Uploading, please wait...",
                         "orange",
                         persistent=True,
