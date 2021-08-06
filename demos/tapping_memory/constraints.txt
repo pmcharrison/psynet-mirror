@@ -93,7 +93,7 @@ defusedxml==0.7.1
 docopt==0.6.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.6.0/dev-requirements.txt
-    #   -r /tmp/tmpkun6ap1_/requirements.txt
+    #   -r /tmp/tmp4revfcfo/requirements.txt
     #   tapping-extract
 dominate==2.6.0
     # via psynet
@@ -263,7 +263,7 @@ markupsafe==2.0.1
     #   wtforms
 matplotlib==3.4.2
     # via
-    #   -r /tmp/tmpkun6ap1_/requirements.txt
+    #   -r /tmp/tmp4revfcfo/requirements.txt
     #   repp
     #   reppextension
     #   tapping-extract
@@ -461,7 +461,7 @@ s3transfer==0.5.0
     #   boto3
 scipy==1.7.1
     # via
-    #   -r /tmp/tmpkun6ap1_/requirements.txt
+    #   -r /tmp/tmp4revfcfo/requirements.txt
     #   psynet
     #   repp
     #   reppextension
