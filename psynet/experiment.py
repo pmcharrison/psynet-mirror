@@ -97,6 +97,10 @@ class Experiment(dallinger.experiment.Experiment):
         If ``True`` (default), then the participant's current estimated bonus is displayed
         at the bottom of the page.
 
+    show_footer : `bool`
+        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
+        and bonus information if `show_bonus` is set to `True`.
+
     min_browser_version : `str`
         The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
 
@@ -244,6 +248,7 @@ class Experiment(dallinger.experiment.Experiment):
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
             "show_bonus": True,
+            "show_footer": True,
         }
 
     @property
