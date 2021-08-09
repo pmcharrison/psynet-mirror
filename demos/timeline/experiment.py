@@ -35,6 +35,7 @@ class Exp(psynet.experiment.Experiment):
     variables = {
         "wage_per_hour": 12.0,
         "new_variable": "some-value",
+        # "show_footer": False.  # uncomment to disable the footer (bonus + help button)
     }
 
     @experiment_route("/custom_route", methods=["POST", "GET"])
