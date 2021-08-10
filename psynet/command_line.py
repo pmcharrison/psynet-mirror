@@ -1,6 +1,8 @@
 import errno
 import json
 import os
+import pathlib
+import re
 import shutil
 import subprocess
 import sys
@@ -189,6 +191,182 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
 
 
+##########
+# update #
+##########
+@psynet.command()
+@click.option(
+    "--dallinger-version",
+    default="latest",
+    help="The git branch, commit or tag of the Dallinger version to install.",
+)
+@click.option(
+    "--psynet-version",
+    default="latest",
+    help="The git branch, commit or tag of the psynet version to install.",
+)
+@click.option("--verbose", is_flag=True, help="Verbose mode")
+def update(dallinger_version, psynet_version, verbose):
+    """
+    Update the locally installed `Dallinger` and `PsyNet` versions.
+    """
+
+    def _dallinger_dir():
+        import dallinger as _
+
+        return pathlib.Path(_.__file__).parent.parent.resolve()
+
+    def _psynet_dir():
+        import psynet as _
+
+        return pathlib.Path(_.__file__).parent.parent.resolve()
+
+    def _get_version(project_name):
+        return (
+            subprocess.check_output([f"{project_name} --version"], shell=True)
+            .decode("utf-8")
+            .strip()
+        )
+
+    def _is_editable(project):
+        for path_item in sys.path:
+            egg_link = os.path.join(path_item, project + ".egg-link")
+            if os.path.isfile(egg_link):
+                return True
+        return False
+
+    def _git_checkout(version, cwd, capture_output):
+        with yaspin(text=f"Checking out {version}...", color="green") as spinner:
+            subprocess.run(
+                [f"git checkout {version}"],
+                shell=True,
+                cwd=cwd,
+                capture_output=capture_output,
+            )
+            spinner.ok("✔")
+
+    def _git_latest_tag(cwd, capture_output):
+        return (
+            subprocess.check_output(["git", "describe", "--abbrev=0", "--tag"], cwd=cwd)
+            .decode("utf-8")
+            .strip()
+        )
+
+    def _git_pull(cwd, capture_output):
+        with yaspin(text="Pulling changes...", color="green") as spinner:
+            subprocess.run(
+                ["git pull"],
+                shell=True,
+                cwd=cwd,
+                capture_output=capture_output,
+            )
+            spinner.ok("✔")
+
+    def _git_needs_stashing(cwd):
+        return (
+            subprocess.check_output(["git", "diff", "--name-only"], cwd=cwd)
+            .decode("utf-8")
+            .strip()
+            != ""
+        )
+
+    def _git_version_pattern():
+        return re.compile("^v([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+
+    def _prepare(version, project_name, cwd, capture_output):
+        if _git_needs_stashing(cwd):
+            with yaspin(
+                text=f"Git commit your changes or stash them before updating {project_name}!",
+                color="red",
+            ) as spinner:
+                spinner.ok("✘")
+            raise SystemExit()
+
+        _git_checkout("master", cwd, capture_output)
+        _git_pull(cwd, capture_output)
+
+        if version == "latest":
+            version = _git_latest_tag(cwd, capture_output)
+
+        _git_checkout(version, cwd, capture_output)
+
+    dallinger_log(header)
+    capture_output = not verbose
+
+    # Dallinger
+    dallinger_log("Updating Dallinger...")
+    cwd = _dallinger_dir()
+    if _is_editable("dallinger"):
+        _prepare(
+            dallinger_version,
+            "Dallinger",
+            cwd,
+            capture_output,
+        )
+
+    if _is_editable("dallinger"):
+        text = "Installing development requirements and base packages..."
+        install_command = "pip install --editable '.[data]'"
+    else:
+        text = "Installing base packages..."
+        install_command = "pip install '.[data]'"
+
+    with yaspin(
+        text=text,
+        color="green",
+    ) as spinner:
+        if _is_editable("dallinger"):
+            subprocess.run(
+                ["pip3 install -r dev-requirements.txt"],
+                shell=True,
+                cwd=cwd,
+                capture_output=capture_output,
+            )
+        else:
+            if _git_version_pattern().match(dallinger_version):
+                install_command = f"pip install dallinger=={dallinger_version}"
+            else:
+                install_command = "pip install dallinger"
+        subprocess.run(
+            [install_command],
+            shell=True,
+            cwd=cwd,
+            capture_output=capture_output,
+        )
+        spinner.ok("✔")
+
+    # PsyNet
+    dallinger_log("Updating PsyNet...")
+    cwd = _psynet_dir()
+    if _is_editable("psynet"):
+        _prepare(
+            psynet_version,
+            "PsyNet",
+            cwd,
+            capture_output,
+        )
+
+        text = "Installing base packages and development requirements..."
+        install_command = "pip install -e '.[dev]'"
+    else:
+        text = "Installing base packages..."
+        install_command = "pip install .'"
+
+    with yaspin(text=text, color="green") as spinner:
+        install_command = install_command
+        subprocess.run(
+            [install_command],
+            shell=True,
+            cwd=cwd,
+            capture_output=capture_output,
+        )
+        spinner.ok("✔")
+
+    dallinger_log(
+        f'Updated Dallinger to version {_get_version("dallinger")}, PsyNet to version {_get_version("psynet")}'
+    )
+
+
 ############
 # estimate #
 ############
@@ -284,14 +462,15 @@ def export(app, local):
         class_name = dallinger_model.__name__
 
         result = requests.get(f"{base_url}/export", params={"class_name": class_name})
-        
-        #debugging json_decode_error
+
+        # debugging json_decode_error
         retries = 0
         while True:
             import json.decoder
+
             try:
                 json_text = result.content.decode("utf8")
-                json_data = json.loads(json_text)                
+                json_data = json.loads(json_text)
                 break
             except json.decoder.JSONDecodeError as e:
                 dallinger_log(f"A JSONDecoder error occurred for {class_name}.")

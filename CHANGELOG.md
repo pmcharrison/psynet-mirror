@@ -1,5 +1,23 @@
 # CHANGELOG
 
+# [3.1.0] Released on 2021-08-10
+
+#### Added
+- Added `show_footer` experiment variable.
+- Added `psynet update` command.
+
+#### Changed
+- In the footer, only display detailed bonus (basic + extra) if `performance_bonus` > 0.
+
+#### Fixed
+- Fixed display of progress and bonus on Unity pages.
+- Fixed wrong `import` documentation.
+- Fixed code for black, isort, and flake8.
+
+#### Updated
+- Updated Dallinger to v7.6.0.
+- Updated singing_iterated and tapping_* demos.
+
 # [3.0.0] Released on 2021-08-03
 
 #### Fixed

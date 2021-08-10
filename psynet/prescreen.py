@@ -379,12 +379,11 @@ class REPPMarkersTest(Module):
                     ),
                     time_estimate=time_estimate,
                     progress_display=ProgressDisplay(
-                        duration=self.definition["duration_sec"],  # 12 seconds long
                         # show_bar=False,
                         stages=[
-                            ProgressStage([0.0, 11.5], "Recording...", "red"),
+                            ProgressStage(11.5, "Recording...", "red"),
                             ProgressStage(
-                                [11.5, 12],
+                                0.5,
                                 "Uploading, please wait...",
                                 "orange",
                                 persistent=True,

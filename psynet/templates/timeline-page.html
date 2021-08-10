@@ -66,13 +66,11 @@
 {% block body %}
     {% block header %}
         <div class="header">
-            {% if experiment_progress_bar.show %}
+            {% if show_progress_bar %}
                 <div class="progress">
-                    <div class="progress-bar" role="progressbar"
-                         aria-valuenow="{{ experiment_progress_bar.percentage }}"
-                         aria-valuemin="0" aria-valuemax="100" style="width:{{ experiment_progress_bar.percentage }}%">
-                        {{ experiment_progress_bar.percentage }}%
-                    </div>
+                    <div id="timeline-progress-bar" class="progress-bar" role="progressbar"
+                         aria-valuenow="{{ progress_percentage }}" aria-valuemin="0" aria-valuemax="100"
+                         style="width:{{ progress_percentage }}%">{{ progress_percentage }}%</div>
                 </div>
             {% endif %}
         </div>
@@ -165,7 +163,7 @@
     {% endblock %}
 
     {% block footer %}
-        {% if footer.show %}
+        {% if show_footer %}
             <style>
                 #footer {
                     background-color: rgb(49, 124, 246);
@@ -197,7 +195,20 @@
                 <div id="media_download_progress_bar"></div>
                 <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
-                        {% for text in footer.text_to_show %} <div class="footer-text"> {{ text }} </div> {% endfor %}
+                        {% if show_bonus %}
+                            <div class="footer-text">
+                                Bonus:
+                                <strong>
+                                    <span id="bonus-details" style="display: none">
+                                        &#36;<span id="basic-bonus">{{basic_bonus}}</span> (basic) +
+                                        &#36;<span id="extra-bonus">{{extra_bonus}}</span> (extra) =
+                                    </span>
+                                    <span style="font-weight: bold">
+                                        &#36;<span id="total-bonus">{{total_bonus}}</span>
+                                    </span>
+                                </strong>
+                            </div>
+                        {% endif %}
                         <button type="button" class="btn btn-primary" id="help_button">Help!</button>
                     </div>
                 </div>
@@ -1231,6 +1242,8 @@
 
                     psynet.page_load_time = new Date();
                     psynet.page_loaded = true;
+                    psynet.participantId = dallinger.identity.participantId;
+                    updateProgressAndBonus();
 
                     setTimeout(() => psynet.trial.init(), 25);
                 };
@@ -1479,6 +1492,30 @@
                 return psynet
             }()
         )
+
+        let updateProgressAndBonus = function() {
+            if (psynet.participantId !== undefined) {
+                $.get('/timeline/progress_and_bonus', {'participantId': psynet.participantId})
+                .done(function(data) {
+                    let progressPercentage = data['progressPercentage'];
+                    let progressPercentageStr = progressPercentage + '%';
+                    $('#timeline-progress-bar').text(progressPercentageStr);
+                    $('#timeline-progress-bar').css("width", progressPercentageStr)
+                    $('#timeline-progress-bar').attr("aria-valuenow", progressPercentage)
+
+                    if (data['bonus'] !== undefined) {
+                        if (data['bonus']['extra'].toFixed(2) > 0) {
+                            $('#basic-bonus').text(data['bonus']['basic'].toFixed(2));
+                            $('#extra-bonus').text(data['bonus']['extra'].toFixed(2));
+                            $("#bonus-details").show()
+                        }
+                        $('#total-bonus').text(data['bonus']['total'].toFixed(2));
+                    }
+                });
+            }
+        }
+
+        setInterval(updateProgressAndBonus, 1000)
     </script>
 
 {% endblock %}

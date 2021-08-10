@@ -96,7 +96,7 @@ You can use it as follows:
 
     import psynet.experiment
 
-    class CustomExp(psynet.Experiment):
+    class CustomExp(psynet.experiment.Experiment):
         ...
 
 
@@ -123,9 +123,9 @@ overridden. Also, they can be enriched with new variables in the following way:
 
 ::
 
-    from psynet.experiment import Experiment
+    import psynet.experiment
 
-    class SomeExperiment(psynet.Experiment):
+    class SomeExperiment(psynet.experiment.Experiment):
         variables = {
             "new_variable": "some-value",  # Adding a new variable
             "wage_per_hour": 12.0,         # Overriding an existing variable
@@ -165,7 +165,7 @@ of the Experiment class, for example:
     from psynet.timeline import PageMaker, Timeline
 
 
-    class CustomExp(psynet.Experiment):
+    class CustomExp(psynet.experiment.Experiment):
         timeline = Timeline(
             InfoPage(
                 "Welcome to the experiment!",

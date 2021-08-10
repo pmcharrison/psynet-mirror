@@ -62,9 +62,9 @@ class Experiment(dallinger.experiment.Experiment):
 
     ::
 
-        from psynet.experiment import Experiment
+        import psynet.experiment
 
-        class Exp(psynet.Experiment):
+        class Exp(psynet.experiment.Experiment):
             variables = {
                 "new_variable": "some-value",  # Adding a new variable
                 "wage_per_hour": 12.0,         # Overriding an existing variable
@@ -96,6 +96,10 @@ class Experiment(dallinger.experiment.Experiment):
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
         at the bottom of the page.
+
+    show_footer : `bool`
+        If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
+        and bonus information if `show_bonus` is set to `True`.
 
     min_browser_version : `str`
         The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
@@ -244,6 +248,7 @@ class Experiment(dallinger.experiment.Experiment):
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
             "show_bonus": True,
+            "show_footer": True,
         }
 
     @property
@@ -896,6 +901,32 @@ class Experiment(dallinger.experiment.Experiment):
             if mode == "json":
                 return jsonify(page.__json__(participant))
             return page.render(exp, participant)
+
+    @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
+    @classmethod
+    def get_progress_and_bonus(cls):
+        participant = get_participant(request.args.get("participantId"))
+        progress_percentage = round(participant.progress * 100)
+        min_pct = 5
+        max_pct = 99
+        if progress_percentage > max_pct:
+            progress_percentage = max_pct
+        elif progress_percentage < min_pct:
+            progress_percentage = min_pct
+        data = {
+            "progressPercentage": progress_percentage,
+            "progressPercentageStr": f"{progress_percentage}%",
+        }
+        if cls.new(db.session).var.show_bonus:
+            performance_bonus = participant.performance_bonus
+            basic_bonus = participant.time_credit.get_bonus()
+            bonus = performance_bonus + basic_bonus
+            data["bonus"] = {
+                "basic": basic_bonus,
+                "extra": performance_bonus,
+                "total": bonus,
+            }
+        return data
 
     @experiment_route("/response", methods=["POST"])
     @classmethod
