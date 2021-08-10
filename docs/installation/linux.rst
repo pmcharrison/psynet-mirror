@@ -134,9 +134,7 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
    cd ~
    git clone git@gitlab.com:computational-audition-lab/psynet
    cd psynet
-   pip install -e .
-
-The `-e` flag makes in the last command above makes the `psynet` code editable.
+   pip install --editable .
 
 Verify successful installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
