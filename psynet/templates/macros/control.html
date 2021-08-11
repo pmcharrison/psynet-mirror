@@ -20,7 +20,7 @@
     </button>
 {% endmacro %}
 
-{% macro reset_button(config,   ) %}
+{% macro reset_button(config, input_type) %}
     <script>
         {% if config.show_reset_button == "on_selection" %}
         $("#reset_button").css({"display": "block"});
