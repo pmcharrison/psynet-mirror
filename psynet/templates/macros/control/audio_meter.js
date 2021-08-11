@@ -22,9 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-var audio_meter_control = {}
+var audioMeterControl = {}
 
-audio_meter_control.init = function(json) {
+audioMeterControl.init = function(json) {
     config = JSON.parse(json);
 
     this.display_range = config.display_range;
@@ -52,28 +52,28 @@ audio_meter_control.init = function(json) {
 
     this.message_timer = null;
 
-    var audio_meter_control = this;
+    var audioMeterControl = this;
     psynet.trial.onEvent("trialConstruct",function() {
-        audio_meter_control.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
-        audio_meter_control.audioContext = psynet.media.audio_context;
+        audioMeterControl.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
+        audioMeterControl.audioContext = psynet.media.audioContext;
         return new Promise((resolve) => {
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
             .then(function(stream) {
-                audio_meter_control.onMicrophoneGranted(stream);
+                audioMeterControl.onMicrophoneGranted(stream);
                 resolve();
             });
         });
     });
     setTimeout(function() {
-        audio_meter_control.audio_meter_text.style.display = "block";
+        audioMeterControl.audio_meter_text.style.display = "block";
     }, 1000);
 }
 
-audio_meter_control.onMicrophoneDenied = function() {
+audioMeterControl.onMicrophoneDenied = function() {
     alert('Microphone permission denied. You may refresh the page to try again.');
 }
 
-audio_meter_control.onMicrophoneGranted = function(stream) {
+audioMeterControl.onMicrophoneGranted = function(stream) {
     this.show_message("Starting audio meter...", "blue");
 
     // Create an AudioNode from the stream.
@@ -84,13 +84,13 @@ audio_meter_control.onMicrophoneGranted = function(stream) {
     mediaStreamSource.connect(this.audio_meter);
 
     // kick off the visual updating
-    var audio_meter_control = this;
+    var audioMeterControl = this;
     window.requestAnimationFrame(function(time) {
-        audio_meter_control.onLevelChange(time);
+        audioMeterControl.onLevelChange(time);
     });
 }
 
-audio_meter_control.show_message = function(message, color) {
+audioMeterControl.show_message = function(message, color) {
     this.audio_meter_text.innerHTML = message;
     this.audio_meter_text.style.color = color;
     this.canvasContext.fillStyle = color;
@@ -103,13 +103,13 @@ audio_meter_control.show_message = function(message, color) {
     }, self.msg_duration * 2000);
 }
 
-audio_meter_control.reset_message = function() {
+audioMeterControl.reset_message = function() {
     this.audio_meter_text.innerHTML = "Just right.";
     this.audio_meter_text.style.color = "green";
     this.canvasContext.fillStyle = "green";
 }
 
-audio_meter_control.onLevelChange = function(time) {
+audioMeterControl.onLevelChange = function(time) {
     this.canvasContext.clearRect(0, 0, this.audio_meter_max_width, this.audio_meter_max_height);
 
     if (this.audio_meter.volume.high >= this.threshold.high) {
@@ -146,9 +146,9 @@ audio_meter_control.onLevelChange = function(time) {
     this.canvasContext.fillRect(0, 0, proportion * this.audio_meter_max_width, this.audio_meter_max_height);
 
     // set up the next visual callback
-    var audio_meter_control = this;
+    var audioMeterControl = this;
     this.rafID = window.requestAnimationFrame(function(time) {
-        audio_meter_control.onLevelChange(time);
+        audioMeterControl.onLevelChange(time);
     });
 }
 
@@ -165,11 +165,11 @@ audio_meter_control.onLevelChange = function(time) {
     Access the clipping through node.checkClipping(); use node.shutdown to get rid of it.
     */
 
-audio_meter_control.createAudioMeter = function(audioContext, clipLevel, averaging, clipLag) {
-    var audio_meter_control = this;
+audioMeterControl.createAudioMeter = function(audioContext, clipLevel, averaging, clipLag) {
+    var audioMeterControl = this;
     var processor = this.audioContext.createScriptProcessor(512);
     processor.onaudioprocess = function(event) {
-        audio_meter_control.volumeAudioProcess(event);
+        audioMeterControl.volumeAudioProcess(event);
     }
     processor.clipping = false;
     processor.lastClip = 0;
@@ -204,7 +204,7 @@ audio_meter_control.createAudioMeter = function(audioContext, clipLevel, averagi
     return processor;
 }
 
-audio_meter_control.volumeAudioProcess = function(event) {
+audioMeterControl.volumeAudioProcess = function(event) {
     var buf = event.inputBuffer.getChannelData(0);
     var bufLength = buf.length;
     var sum = 0;
@@ -239,11 +239,11 @@ audio_meter_control.volumeAudioProcess = function(event) {
     // this.volume = Math.max(rms, this.volume*this.averaging);
 }
 
-audio_meter_control.rms_to_db = function(rms) {
+audioMeterControl.rms_to_db = function(rms) {
     return Math.max(-100, 20 * Math.log10(rms));
 }
 
-audio_meter_control.update_from_sliders = function() {
+audioMeterControl.updateFromSliders = function() {
     this.decay = {
         display: $("#decay_display").get(0).value,
         high: $("#decay_high").get(0).value,

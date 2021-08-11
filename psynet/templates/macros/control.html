@@ -346,10 +346,10 @@
         // Set the color
         onSliderEvent = function (eventType) {
             psynet.log.debug("Updating slider background");
-            var r_hex = parseInt(document.getElementById('red').value, 10).toString(16),
-                g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
-                b_hex = parseInt(document.getElementById('blue').value, 10).toString(16),
-                hex = "#" + pad(r_hex) + pad(g_hex) + pad(b_hex);
+            var rHex = parseInt(document.getElementById('red').value, 10).toString(16),
+                gHex = parseInt(document.getElementById('green').value, 10).toString(16),
+                bHex = parseInt(document.getElementById('blue').value, 10).toString(16),
+                hex = "#" + pad(rHex) + pad(gHex) + pad(bHex);
             document.body.style.backgroundColor = hex;
         };
 
@@ -469,16 +469,16 @@
                     // being called. One solution that seemed promising was to store the last value, and
                     // compare it to the new (snapped value), and work out when convergence occurs.
                     // It would be worth exploring this more in the future.
-                    // Also for some complicated reason putting slider_update_handler in a timeout
+                    // Also for some complicated reason putting sliderUpdateHandler in a timeout
                     // seemed to work, but again, it's a bit of a hack...
 
                     // Seems like the terminology used by knob.js is inconsistent with base JS
                     sliderOnChange();
 
-                    /*if (!continuous_updates) {
-                        if (last_value != value) {
-                            last_value = value;
-                            slider_updating = setTimeout(slider_update_handler, 100);
+                    /*if (!continuousUpdates) {
+                        if (lastValue != value) {
+                            lastValue = value;
+                            sliderUpdating = setTimeout(sliderUpdateHandler, 100);
                         }
                     }*/
                 },
@@ -519,13 +519,13 @@
 
     <script>
         {% autoescape off %}
-        var snap_values = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
-        var minimal_interactions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
-        var continuous_updates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
-        var slider_id = '{{ config.slider_id }}';
+        var snapValues = {% if config.js_vars.snap_values is none %}null{% else %}{{ config.js_vars.snap_values }}{% endif %};
+        var minimalInteractions = {% if config.js_vars.minimal_interactions is none %}null{% else %}{{ config.js_vars.minimal_interactions }}{% endif %};
+        var continuousUpdates = {% if config.js_vars.continuous_updates is not defined or config.js_vars.continuous_updates is none %}null{% else %}{{ config.js_vars.continuous_updates | lower }}{% endif %};
+        var sliderId = '{{ config.slider_id }}';
         var randomWrap = {{ config.random_wrap | lower }}; // Decide whether to add to js_vars
-        var min_val = {{ config.min_value }}; // Decide whether to add to js_vars
-        var max_val = {{ config.max_value }}; // Decide whether to add to js_vars
+        var minVal = {{ config.min_value }}; // Decide whether to add to js_vars
+        var maxVal = {{ config.max_value }}; // Decide whether to add to js_vars
         {% endautoescape %}
 
         // This is called each time
@@ -535,9 +535,9 @@
         };
 
         // Metadata collection
-        var slider = document.getElementById(slider_id);
+        var slider = document.getElementById(sliderId);
 
-        if (continuous_updates) {
+        if (continuousUpdates) {
             slider.log = "The slider log is disabled when continuous slider updates are enabled.";
         } else {
             slider.log = [];
@@ -545,18 +545,18 @@
 
         // To do - refactor this into psynet.trial.eventLog
         slider.updateLog = function() {
-            if (!continuous_updates) {
+            if (!continuousUpdates) {
                 slider.log.push({
                     'time': new Date(),
                     'value': slider.value,
-                    'output_value': slider.getAttribute("output_value")
+                    'outputValue': slider.getAttribute("output_value")
                 });
             }
         }
 
-        slider.interaction_count = 0;
+        slider.interactionCount = 0;
 
-        let set_slider_value = function(val) {
+        let setSliderValue = function(val) {
             {% if config.input_type == "HTML5_range_slider" %}
                 slider.value = val;
             {% elif config.input_type == "circular_slider" %}
@@ -565,49 +565,49 @@
             {% endif %}
         }
 
-        let snap_slider = function () {
-            let raw_value = parseFloat(slider.value);
-            if (snap_values == null) {
-                psynet.log.debug("Slider value: " + raw_value + " (no snapping).");
-                return raw_value
+        let snapSlider = function () {
+            let rawValue = parseFloat(slider.value);
+            if (snapValues == null) {
+                psynet.log.debug("Slider value: " + rawValue + " (no snapping).");
+                return rawValue
             } else {
-                let new_value = psynet.utils.closest(slider.value, snap_values).value;
+                let newValue = psynet.utils.closest(slider.value, snapValues).value;
                 psynet.snapping = true; // TODO: can this be removed?
-                set_slider_value(new_value);
-                psynet.log.debug("Snapped slider from " + raw_value + " to " + new_value);
-                return new_value;
+                setSliderValue(newValue);
+                psynet.log.debug("Snapped slider from " + rawValue + " to " + newValue);
+                return newValue;
             }
         };
 
-        let format_slider_value = function () {
-            let raw_value = parseFloat(slider.value);
-            let output_value;
+        let formatSliderValue = function () {
+            let rawValue = parseFloat(slider.value);
+            let outputValue;
 
             if (randomWrap) {
                 let phase = slider.getAttribute("phase")
-                output_value = wrap_slider_value(raw_value, phase);
+                outputValue = wrapSliderValue(rawValue, phase);
             } else  {
-                output_value = raw_value;
+                outputValue = rawValue;
             }
 
-            slider.setAttribute("raw_value", raw_value);
-            slider.setAttribute("output_value", output_value);
-            psynet.log.debug("Slider raw_value = " + raw_value + ", slider output_value = " + output_value);
+            slider.setAttribute("raw_value", rawValue);
+            slider.setAttribute("output_value", outputValue);
+            psynet.log.debug("Slider raw_value = " + rawValue + ", slider output_value = " + outputValue);
         };
 
-        let sample_slider_phase = function () {
-            let phase = min_val + (2 * (max_val - min_val)) * Math.random()
+        let sampleSliderPhase = function () {
+            let phase = minVal + (2 * (maxVal - minVal)) * Math.random()
             return phase
         };
 
-        let wrap_slider_value = function (value, phase) {
+        let wrapSliderValue = function (value, phase) {
             // first, the original value of the slider is wrapped twice, creating a new virtual
             // range between min and min+2(max-min)
-            let value_new_range =  min_val + 2 * (value - min_val);
+            let valueNewRange =  minVal + 2 * (value - minVal);
             // second, we we adjust it to incorporate a given phase
-            let value_new_range_with_phase =  mod((value_new_range - phase), (2 * (max_val - min_val))) + min_val;
-            let output_value = - Math.abs(value_new_range_with_phase - max_val) + max_val;
-            return output_value
+            let valueNewRangeWithPhase =  mod((valueNewRange - phase), (2 * (maxVal - minVal))) + minVal;
+            let outputValue = - Math.abs(valueNewRangeWithPhase - maxVal) + maxVal;
+            return outputValue
         };
 
         let mod = function(a, n){
@@ -619,22 +619,22 @@
         psynet.trial.onEvent("trialPrepare", () => {
             let phase;
             if (randomWrap) {
-                phase = sample_slider_phase();
+                phase = sampleSliderPhase();
             } else {
                 phase = 0.0;
             }
             slider.setAttribute("phase", phase);
             slider.setAttribute("random_wrap", randomWrap);
             psynet.log.debug("Slider phase:" + phase);
-            snap_slider();
-            format_slider_value();
+            snapSlider();
+            formatSliderValue();
             onSliderEvent("initialise");
             slider.updateLog();
         });
 
         let hadMinimalInteractions = false;
         let checkMinimalInteractions = function() {
-            if (slider.interaction_count >= minimal_interactions && !hadMinimalInteractions) {
+            if (slider.interactionCount >= minimalInteractions && !hadMinimalInteractions) {
                 hadMinimalInteractions = true;
                 psynet.trial.registerEvent("sliderMinimalInteractions");
             }
@@ -642,11 +642,11 @@
 
         let sliderOnInput = function() {
             // Triggered whenever the slider slides to a new value
-            if (continuous_updates) {
-                snap_slider();
+            if (continuousUpdates) {
+                snapSlider();
             }
-            format_slider_value();
-            if (continuous_updates) {
+            formatSliderValue();
+            if (continuousUpdates) {
                 onSliderEvent("sliderChanged");
                 slider.updateLog();
             }
@@ -654,12 +654,12 @@
 
         let sliderOnChange = function() {
             // Triggered whenever the slider is released on a new value
-            if (!continuous_updates) {
-                snap_slider();
+            if (!continuousUpdates) {
+                snapSlider();
                 onSliderEvent("sliderChanged");
                 slider.updateLog();
             }
-            slider.interaction_count += 1;
+            slider.interactionCount += 1;
             checkMinimalInteractions();
             psynet.trial.registerEvent("sliderChange", {
                 info: {
@@ -676,11 +676,11 @@
         });
 
         retrieveResponse = function() {
-            let output_value = parseFloat(slider.getAttribute("output_value"));
-            let rawAnswer = output_value;
+            let outputValue = parseFloat(slider.getAttribute("output_value"));
+            let rawAnswer = outputValue;
             let metadata = {
-              raw_value: parseFloat(slider.value),
-              output_value: output_value,
+              rawValue: parseFloat(slider.value),
+              outputValue: outputValue,
               phase: parseFloat(slider.getAttribute("phase"))
             };
             return {
@@ -725,7 +725,7 @@
     </style>
 
     <script>
-        var init_sliders = function(){
+        var initSliders = function(){
             var slider = $('.slider'),
                 range = $('.slider-range'),
                 value = $('.slider-value');
@@ -741,7 +741,7 @@
                 });
             });
         };
-        window.addEventListener("load", init_sliders);
+        window.addEventListener("load", initSliders);
     </script>
 
     <div class="slider-collection">
@@ -800,7 +800,7 @@
 
     <script>
         {% include "macros/control/audio_meter.js" %}
-        audio_meter_control.init('{{ config.to_json() }}');
+        audioMeterControl.init('{{ config.to_json() }}');
     </script>
 {% endmacro %}
 
@@ -849,7 +849,7 @@
     </div>
 
     <script>
-        setInterval(() => audio_meter_control.update_from_sliders(), 50);
+        setInterval(() => audioMeterControl.updateFromSliders(), 50);
     </script>
 {% endmacro %}
 
@@ -1070,8 +1070,8 @@
             if (!replayMode) {
                 await recorder.stop();
                 recordingBlob = await getAudioRecording();
-                let buffer = await psynet.media.blob_to_array_buffer(recordingBlob);
-                await psynet.media.add_extra_audio_stimulus(buffer, "recording");
+                let buffer = await psynet.media.blobToArrayBuffer(recordingBlob);
+                await psynet.media.addExtraAudioStimulus(buffer, "recording");
             }
         });
 
@@ -1101,7 +1101,7 @@
                 video: false
             }).then(function(stream) {
                 psynet.log.debug("Initialising audio recorder.");
-                let input = psynet.media.audio_context.createMediaStreamSource(stream);
+                let input = psynet.media.audioContext.createMediaStreamSource(stream);
                 recorder = new Recorder(input, channelCount);
                 psynet.trial.registerEvent("audioRecorderReady");
                 resolve();
@@ -1468,15 +1468,15 @@
     {{ null(config) }}
 
     <script>
-        update_video_from_slider = function() {
+        psynet.media.updateVideoFromSlider = function() {
             var slider_value = document.getElementById("slider").value;
             var video = document.getElementById("slider_video");
             if (psynet.response.ready_done && !isNaN(video.duration)) {
                 video.currentTime = slider_value * video.duration;
             };
-            window.requestAnimationFrame(update_video_from_slider);
+            window.requestAnimationFrame(psynet.media.updateVideoFromSlider);
         }
-        update_video_from_slider();
+        psynet.media.updateVideoFromSlider();
 
         retrieveResponse = function() {
             return {

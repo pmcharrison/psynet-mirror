@@ -601,7 +601,7 @@
                     };
 
                     trial.getGlobalTime = function() {
-                        return psynet.media.audio_context.currentTime;
+                        return psynet.media.audioContext.currentTime;
                     };
 
                     trial.listEvents = function() {
@@ -765,7 +765,7 @@
                     if (context.state == "suspended") {
                         context.resume();
                     }
-                    psynet.media.audio_context = context;
+                    psynet.media.audioContext = context;
                 };
 
                 let askUserToResume = function() {
@@ -784,7 +784,7 @@
                 psynet.media.init = async function () {
                     psynet.media.init_audio_context();
 
-                    if (psynet.media.audio_context.state == "suspended") {
+                    if (psynet.media.audioContext.state == "suspended") {
                         psynet.log.info(
                             "Audio context is suspended, and can only be resumed " +
                             "after a user interaction. Waiting for the participant to click 'Resume'."
@@ -935,7 +935,7 @@
                 let create_audio_stimulus = function(data, stimulus_id, handler) {
                     psynet.log.debug("Decoding sound " + stimulus_id + "...");
 
-                    return new Promise((resolve) => { psynet.media.audio_context.decodeAudioData(data, function (buffer) {
+                    return new Promise((resolve) => { psynet.media.audioContext.decodeAudioData(data, function (buffer) {
                         psynet.log.debug("Sound " + stimulus_id + " decoded.");
 
                         let out = psynet.media.data.audio[stimulus_id];
@@ -958,9 +958,9 @@
                             const duration = (options.end === null) ? undefined : options.end - options.start;
 
                             let sound = {
-                                source: psynet.media.audio_context.createBufferSource(),
-                                gain_node: psynet.media.audio_context.createGain(),
-                                start_time: psynet.media.audio_context.currentTime + options.start_delay,
+                                source: psynet.media.audioContext.createBufferSource(),
+                                gain_node: psynet.media.audioContext.createGain(),
+                                start_time: psynet.media.audioContext.currentTime + options.start_delay,
                                 options: options,
                                 manually_stopped: false,
                                 duration: (duration === undefined) ? buffer.duration : duration,
@@ -971,7 +971,7 @@
                             sound.source.buffer = buffer;
 
                             sound.source.connect(sound.gain_node);
-                            sound.gain_node.connect(psynet.media.audio_context.destination);
+                            sound.gain_node.connect(psynet.media.audioContext.destination);
 
                             sound.gain_node.gain.setValueAtTime(
                                 0.001,
@@ -983,7 +983,7 @@
                             if (options.gain > 1e-10) {
                                 sound.gain_node.gain.exponentialRampToValueAtTime(
                                     options.gain,
-                                    psynet.media.audio_context.currentTime + options.start_delay + options.fade_in
+                                    psynet.media.audioContext.currentTime + options.start_delay + options.fade_in
                                 );
                             }
 
@@ -1007,7 +1007,7 @@
                                 sound.manually_stopped = options.manual;
 
                                 let gain_now = sound.gain_node.gain.value;
-                                let time_now = psynet.media.audio_context.currentTime;
+                                let time_now = psynet.media.audioContext.currentTime;
 
                                 if (sound.gain_node.gain.value > 0.001) {
                                     sound.gain_node.gain.setValueAtTime(gain_now, time_now);
@@ -1051,14 +1051,14 @@
                     })});
                 };
 
-                psynet.media.blob_to_array_buffer = async function(blob) {
+                psynet.media.blobToArrayBuffer = async function(blob) {
                     let buffer = await new Response(blob).arrayBuffer();
                     return buffer;
                 }
 
                 // Used to add extra stimuli that aren't loaded as part of the initial media load
                 // (needs refactoring in a general cross-media way)
-                psynet.media.add_extra_audio_stimulus = async function(buffer, stimulus_id) {
+                psynet.media.addExtraAudioStimulus = async function(buffer, stimulus_id) {
                     init_stimulus(stimulus_id, "audio");
                     await create_audio_stimulus(buffer, stimulus_id, () => Promise.resolve());
                 }
