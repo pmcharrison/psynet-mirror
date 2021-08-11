@@ -54,7 +54,7 @@
             });
 
             function submit_answer(clicked_object, click_coordinates) {
-                psynet.next_page({
+                psynet.nextPage({
                     clicked_object: clicked_object,
                     click_coordinates: click_coordinates
                 });
@@ -190,11 +190,5 @@
                 psynet.trial.onEvent("trialStart", start_sequence);
             }
         })();
-
-        //retrieve_response = function() {
-        //    return {
-        //        raw_answer: parseFloat($("#slider").get(0).value)
-        //    }
-        //}
     </script>
 {% endmacro %}

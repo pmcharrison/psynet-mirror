@@ -747,7 +747,7 @@
                 //     }
                 // };
 
-                psynet.media.stop_all_audio = function() {
+                psynet.media.stopAllAudio = function() {
                     if (psynet.audio) {
                         Object.values(psynet.audio).forEach(function(x) {
                             x.stop();
@@ -1254,11 +1254,11 @@
                     }
                 };
 
-                psynet.next_page = function (raw_answer, metadata, blobs) {
+                psynet.nextPage = function (raw_answer, metadata, blobs) {
                     // Arguments default to psynet.response.staged if they
                     // are not provided explicitly.
                     if (raw_answer === undefined) {
-                        raw_answer = psynet.response.staged.raw_answer;
+                        raw_answer = psynet.response.staged.rawAnswer;
                     }
                     if (metadata === undefined) {
                         metadata = psynet.response.staged.metadata;

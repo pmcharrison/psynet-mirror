@@ -74,15 +74,15 @@ class UnityPage(Page):
     """
     This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
 
-    Ín order to conclude this page call the ``psynet.next_page`` function which has following parameters:
+    Ín order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
 
-    * ``raw_answer``: The main answer that the page returns.
+    * ``rawAnswer``: The main answer that the page returns.
 
     * ``metadata``: Additional information that might be useful for debugging or other exploration, e.g. time taken on the page.
 
     * ``blobs``: Use this for large binaries, e.g. audio recordings.
 
-    Once the ``psynet.next_page`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``page_updated`` in the ``window`` object.
+    Once the ``psynet.nextPage`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``page_updated`` in the ``window`` object.
 
     Parameters
     ----------

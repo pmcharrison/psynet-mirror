@@ -15,7 +15,7 @@
     }
 
     // Set the color
-    on_slider_event = function (event_type) {
+    onSliderEvent = function (eventType) {
         psynet.log.debug("Updating slider background");
         var r_hex = parseInt(document.getElementById('red').value, 10).toString(16),
             g_hex = parseInt(document.getElementById('green').value, 10).toString(16),
@@ -24,5 +24,5 @@
         document.body.style.backgroundColor = hex;
     };
 
-    document.addEventListener("load", on_slider_event);
+    document.addEventListener("load", onSliderEvent);
 </script>

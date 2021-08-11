@@ -11,7 +11,7 @@ Unity pages are the foundational part for the integration of Unity with PsyNet.
 Here are the basic steps necessary for Unity to interact with PsyNet's user interface:
 
 #. Define an experiment timeline using :class:`~psynet.page.UnityPage` elements.
-#. Call ``psynet.next_page()``, listen for the JavaScript event ``page_updated``, and respond to the updated data on the page.
+#. Call ``psynet.nextPage()``, listen for the JavaScript event ``page_updated``, and respond to the updated data on the page.
 
 Let's look at an example of an experiment consisting of a timeline which includes three :class:`~psynet.page.UnityPage` elements. The first two elements share the same ``session_id`` while the third has a different one. A ``session_id`` corresponds to a Unity session and allows for joining a sequence of :class:`~psynet.page.UnityPage` elements into a single unit.
 
@@ -65,9 +65,9 @@ To accelerate the development process of Unity experiments experiment authors ca
           SuccessfulEndPage()
       )
 
-By calling the JavaScript function ``psynet.next_page()`` the user can advance to a follow-up page. ``psynet.next_page()`` takes following arguments:
+By calling the JavaScript function ``psynet.nextPage()`` the user can advance to a follow-up page. ``psynet.nextPage()`` takes following arguments:
 
-raw_answer
+rawAnswer
   The main answer that the page returns.
 metadata
   Additional information that might be useful for debugging or other exploration, e.g. time taken on the page.

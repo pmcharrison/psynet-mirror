@@ -56,7 +56,7 @@
         psynet.trial.onEvent("trialConstruct", function() {
             $(".audio-prompt-button").prop("disabled", false)
             $("#audio-prompt-play").on("click", function() {
-                psynet.media.stop_all_audio();
+                psynet.media.stopAllAudio();
                 let sound = psynet.audio.prompt.play(audioPromptPlayerOptions);
                 sound.source.addEventListener("ended", () => {
                     if (!sound.manually_stopped) {
@@ -87,7 +87,7 @@
             });
         };
 
-        psynet.page.prompt.stop = psynet.media.stop_all_audio;
+        psynet.page.prompt.stop = psynet.media.stopAllAudio;
 
         psynet.trial.onEvent("promptStart", psynet.page.prompt.play);
         psynet.trial.onEvent("trialStop", psynet.page.prompt.stop);
