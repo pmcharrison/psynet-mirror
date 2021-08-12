@@ -10,7 +10,6 @@ from statistics import mean
 from typing import Optional
 
 from dallinger import db
-from dallinger.models import Network
 from progress.bar import Bar
 from sqlalchemy import func
 
@@ -26,7 +25,7 @@ from ..media import (
     upload_to_s3,
     write_string_to_s3,
 )
-from ..utils import DisableLogger, get_logger, hash_object, import_local_experiment
+from ..utils import DisableLogger, get_logger, hash_object
 from .main import (
     HasDefinition,
     NetworkTrialMaker,
@@ -1488,10 +1487,10 @@ class StaticNetwork(TrialNetwork):
         db.session.add(self)
         if not self.creation_started:
             self.creation_started = True
-            self.queue_async_process(
-                call_network_populate,
-                pickle.dumps(stimulus_set),
-                target_num_trials_per_stimulus,
+            self.queue_async_method(
+                "populate",
+                stimulus_set=stimulus_set,
+                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
             )
         db.session.commit()
 
@@ -1534,30 +1533,6 @@ class StaticNetwork(TrialNetwork):
     @property
     def num_stimuli(self):
         return self.stimulus_query.count()
-
-
-def call_network_populate(
-    network_id, process_id, pickled_stimulus_set, target_num_trials_per_stimulus
-):
-    logger.info("Running populate function for network %i...", network_id)
-    import_local_experiment()
-    stimulus_set = pickle.loads(pickled_stimulus_set)
-    network = Network.query.filter_by(id=network_id).one()
-    try:
-        if process_id in network.pending_async_processes:
-            network.populate(stimulus_set, target_num_trials_per_stimulus)
-            network.pop_async_process(process_id)
-        else:
-            logger.info(
-                "Skipping async process %s as it is no longer queued.", process_id
-            )
-    except BaseException as e:
-        network.fail_async_processes(
-            reason=f"exception in network.populate(): {e.__class__.__name__}"
-        )
-        raise
-    finally:
-        db.session.commit()  # pylint: disable=no-member
 
 
 class LocalMediaStimulusVersionSpec(StimulusVersionSpec):
