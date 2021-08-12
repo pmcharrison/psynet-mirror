@@ -2245,9 +2245,11 @@ class TrialNetwork(Network, AsyncProcessOwner):
 #         db.session.commit()  # pylint: disable=no-member
 
 
-class TrialNode(dallinger.models.Node):
+class TrialNode(dallinger.models.Node, AsyncProcessOwner):
     __mapper_args__ = {"polymorphic_identity": "trial_node"}
-    __extra_vars__ = {}
+    __extra_vars__ = {
+        **AsyncProcessOwner.__extra_vars__.copy(),
+    }
 
     def __json__(self):
         x = super().__json__()
