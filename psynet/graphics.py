@@ -284,7 +284,7 @@ class GraphicObject:
         self.animations_js = [
             {
                 "index": index,
-                "final_attributes": animation.final_attributes,
+                "finalAttributes": animation.final_attributes,
                 "duration": animation.duration,
                 "easing": animation.easing,
             }
