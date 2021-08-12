@@ -96,14 +96,14 @@
         <script>
           psynet.response.staged.metadata = {};
           psynet.response.staged.metadata["demonstration_purposes_consent"] = false;
-          function set_demonstration_purposes_consent() {
+          function setDemonstrationPurposesConsent() {
             psynet.response.staged.metadata["demonstration_purposes_consent"] = $('#demonstration_purposes_consent_yes').is(':checked');
           }
 
           $('.demonstration_purposes_consent').click(function() {
             $('.demonstration_purposes_consent').prop('checked', false);
             $(this).prop('checked', true);
-            set_demonstration_purposes_consent();
+            setDemonstrationPurposesConsent();
           });
         </script>
         <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
