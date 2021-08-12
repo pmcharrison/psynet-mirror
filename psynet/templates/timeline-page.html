@@ -243,7 +243,7 @@
                     return Object.assign({}, x);
                 }
 
-                psynet.utils.deep_copy = function(x) {
+                psynet.utils.deepCopy = function(x) {
                     return JSON.parse(JSON.stringify(x));
                 }
 
@@ -962,7 +962,7 @@
                                 gain_node: psynet.media.audioContext.createGain(),
                                 start_time: psynet.media.audioContext.currentTime + options.start_delay,
                                 options: options,
-                                manually_stopped: false,
+                                manuallyStopped: false,
                                 duration: (duration === undefined) ? buffer.duration : duration,
                                 stimulus_id: stimulus_id,
                                 on_end: null
@@ -1004,7 +1004,7 @@
 
                                 psynet.log.debug("Stopping audio " + sound.stimulus_id + ".");
 
-                                sound.manually_stopped = options.manual;
+                                sound.manuallyStopped = options.manual;
 
                                 let gain_now = sound.gain_node.gain.value;
                                 let time_now = psynet.media.audioContext.currentTime;
@@ -1026,7 +1026,7 @@
                                 clearTimeout(stopTimer);
                                 psynet.log.debug("Finished sound with ID = " + sound.stimulus_id);
                                 psynet.media.sounds = psynet.media.sounds.filter(s => s !== sound);
-                                if (sound.options.loop && !sound.manually_stopped) {
+                                if (sound.options.loop && !sound.manuallyStopped) {
                                     psynet.log.debug("Looping sound with ID = " + out.stimulus_id);
                                     out.play(sound.options);
                                 }
