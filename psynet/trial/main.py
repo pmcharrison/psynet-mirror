@@ -102,12 +102,13 @@ class AsyncProcessOwner:
     __extra_vars__ = {}
 
     awaiting_async_process = claim_field("awaiting_async_process", __extra_vars__, bool)
-    pending_async_processes = claim_var(
-        "pending_async_processes", __extra_vars__, use_default=True, default=lambda: {}
-    )
-    failed_async_processes = claim_var(
-        "failed_async_processes", __extra_vars__, use_default=True, default=lambda: {}
-    )
+    pending_async_processes = claim_field("pending_async_processes", __extra_vars__)
+    failed_async_processes = claim_field("failed_async_processes", __extra_vars__)
+
+    def __init__(self):
+        self.awaiting_async_process = False
+        self.pending_async_processes = {}
+        self.failed_async_processes = {}
 
     @property
     def earliest_async_process_start_time(self):
@@ -481,6 +482,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         self, experiment, node, participant, propagate_failure, is_repeat_trial
     ):
         super().__init__(origin=node)
+        AsyncProcessOwner.__init__(self)
         self.complete = False
         self.finalized = False
         self.awaiting_async_process = False
@@ -2143,6 +2145,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
+        AsyncProcessOwner.__init__(self)
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
@@ -2250,6 +2253,10 @@ class TrialNode(dallinger.models.Node, AsyncProcessOwner):
     __extra_vars__ = {
         **AsyncProcessOwner.__extra_vars__.copy(),
     }
+
+    def __init__(self, network, participant=None):
+        super().__init__(network=network, participant=participant)
+        AsyncProcessOwner.__init__(self)
 
     def __json__(self):
         x = super().__json__()

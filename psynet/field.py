@@ -28,6 +28,7 @@ def extra_var(extra_vars):
 
 
 def claim_field(name: str, extra_vars: dict, field_type=object):
+    # To do - add new argument corresponding to the default value of the field
     register_extra_var(extra_vars, name, field_type=field_type)
 
     if field_type is int:
