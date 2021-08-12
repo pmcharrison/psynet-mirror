@@ -243,12 +243,8 @@ class AudioGibbsTrial(GibbsTrial):
         Defaults to `"HTML5_range_slider"`, which gives a standard horizontal slider.
         The other option currently is `"circular_slider"`, which gives a circular slider.
 
-    wrap:
+    random_wrap:
         Defaults to `False`. If `True` then slider is wrapped twice so that there are no boundary jumps.
-
-    phase:
-        Defaults to `None`. It gives a random number within the range (min-max)
-        to determine the phase of the slider when `wrap = True`
     """
 
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
@@ -260,7 +256,7 @@ class AudioGibbsTrial(GibbsTrial):
     minimal_interactions = 3
     minimal_time = 3.0
     debug = False
-    wrap = False
+    random_wrap = False
     input_type = "HTML5_range_slider"
 
     def show_trial(self, experiment, participant):
@@ -287,8 +283,7 @@ class AudioGibbsTrial(GibbsTrial):
                 directional=False,
                 minimal_interactions=self.minimal_interactions,
                 minimal_time=self.minimal_time,
-                wrap=self.wrap,
-                phase=self.phase,
+                random_wrap=self.random_wrap,
                 input_type=self.input_type,
             ),
             media=self.media,
