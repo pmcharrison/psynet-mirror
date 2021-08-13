@@ -11,7 +11,7 @@ Unity pages are the foundational part for the integration of Unity with PsyNet.
 Here are the basic steps necessary for Unity to interact with PsyNet's user interface:
 
 #. Define an experiment timeline using :class:`~psynet.page.UnityPage` elements.
-#. Call ``psynet.nextPage()``, listen for the JavaScript event ``page_updated``, and respond to the updated data on the page.
+#. Call ``psynet.nextPage()``, listen for the JavaScript event ``pageUpdated``, and respond to the updated data on the page.
 
 Let's look at an example of an experiment consisting of a timeline which includes three :class:`~psynet.page.UnityPage` elements. The first two elements share the same ``session_id`` while the third has a different one. A ``session_id`` corresponds to a Unity session and allows for joining a sequence of :class:`~psynet.page.UnityPage` elements into a single unit.
 
@@ -75,14 +75,14 @@ blobs
   Used for large binaries, e.g. audio recordings.
 
 
-If the follow-up page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``page_updated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. The information on the page is accessible through the attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container for holding the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ``{"melody": [1, 5, 2]}``. Here is a JavaScript code snippet demonstrating how to make use of the ``page_updated`` event:
+If the follow-up page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``pageUpdated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. The information on the page is accessible through the attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container for holding the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ``{"melody": [1, 5, 2]}``. Here is a JavaScript code snippet demonstrating how to make use of the ``pageUpdated`` event:
 
 .. code-block:: javascript
 
-  window.addEventListener("page_updated", on_page_updated)
+  window.addEventListener("pageUpdated", onPageUpdated)
 
-  on_page_updated = function(event) {
-      console.log("Event 'page_updated' was dispatched.");
+  onPageUpdated = function(event) {
+      console.log("Event 'pageUpdated' was dispatched.");
       // Respond to the updated page information accessible through ``psynet.page.contents``.
   };
 

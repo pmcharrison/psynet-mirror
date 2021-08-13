@@ -412,7 +412,7 @@ class Image(GraphicObject):
     @property
     def js_init(self):
         if self.height is None:
-            height_js = f"Math.round({self.width} / psynet.image['{self.media_id}'].aspect_ratio)"
+            height_js = f"Math.round({self.width} / psynet.image['{self.media_id}'].aspectRatio)"
         else:
             height_js = self.height
 
