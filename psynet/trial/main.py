@@ -647,7 +647,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         """
         raise NotImplementedError
 
-    def _call_async_post_trial(self):
+    def call_async_post_trial(self):
         experiment = dallinger.experiment.load()
         trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
         self.async_post_trial()
@@ -1870,7 +1870,7 @@ class NetworkTrialMaker(TrialMaker):
         # pylint: disable=unused-argument,no-self-use,no-member
         super().finalize_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
-            trial.queue_async_method("_call_async_post_trial")
+            trial.queue_async_method("call_async_post_trial")
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
