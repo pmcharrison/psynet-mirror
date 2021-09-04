@@ -1879,7 +1879,7 @@ class NetworkTrialMaker(TrialMaker):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            network.queue_async_method("_call_async_post_grow_network")
+            network.queue_async_method("call_async_post_grow_network")
             db.session.commit()
 
     @property
@@ -2177,7 +2177,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
         is set to ``True``.
         """
 
-    def _call_async_post_grow_network(self):
+    def call_async_post_grow_network(self):
         # Currently this function is redundant, but it's there in case we want to
         # add wrapping logic one day.
         self.async_post_grow_network()

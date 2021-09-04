@@ -857,7 +857,7 @@ class Experiment(dallinger.experiment.Experiment):
         from .trial.main import TrialNetwork
 
         network = TrialNetwork.query.filter_by(id=network_id).one()
-        network.queue_async_method("_call_async_post_grow_network")
+        network.queue_async_method("call_async_post_grow_network")
         db.session.commit()
         return success_response()
 
