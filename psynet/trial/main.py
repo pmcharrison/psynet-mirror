@@ -119,7 +119,7 @@ class AsyncProcessOwner:
             ]
         )
 
-    def queue_async_method(self, method_id: str, *args, **kwargs):
+    def queue_async_method(self, method_name: str, *args, **kwargs):
         """
         Queues an object's method to be run asynchronously in a worker process.
         This is useful for scheduling long-running processes without blocking
@@ -128,12 +128,12 @@ class AsyncProcessOwner:
         Parameters
         ----------
 
-        method_id:
+        method_name:
             The name of the method to call. Typically this method will have been
             custom-implemented for the particular experiment.
             For example, suppose we have implemented a method called ``do_heavy_computation``.
             We would ordinarily call this synchronously as follows: ``obj.do_heavy_computation()``.
-            To call this method asynchronously, we write ``method_id="do_heavy_computation"``.
+            To call this method asynchronously, we write ``method_name="do_heavy_computation"``.
             The outputs of this heavy computation typically need to be saved somehow in the database;
             for example, within the ``do_heavy_computation`` function one might write
             ``self.var.computation_output = result``.
@@ -160,29 +160,29 @@ class AsyncProcessOwner:
             kwargs=dict(
                 object_id=self.id,
                 process_id=process_id,
-                method_id=method_id,
+                method_name=method_name,
                 **kwargs,
             ),
             timeout=1e10,  # PsyNet deals with timeouts itself (it's useful to log them in the database)
         )  # pylint: disable=no-member
 
     @classmethod
-    def _run_async_method(cls, object_id, process_id, method_id, *args, **kwargs):
+    def _run_async_method(cls, object_id, process_id, method_name, *args, **kwargs):
         import_local_experiment()
         obj = cls.query.filter_by(id=object_id).one()
         try:
             if process_id in obj.pending_async_processes:
-                method = getattr(obj, method_id)
+                method = getattr(obj, method_name)
                 method(*args, **kwargs)
                 obj.pop_async_process(process_id)
             else:
                 logger.info(
                     "Skipping async method %s (%s) as it is no longer queued.",
-                    method_id,
+                    method_name,
                     process_id,
                 )
         except BaseException:
-            obj.fail_async_processes(reason=f"exception in async method %{method_id}")
+            obj.fail_async_processes(reason=f"exception in async method %{method_name}")
             raise
         finally:
             db.session.commit()  # pylint: disable=no-member
