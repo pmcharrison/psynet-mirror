@@ -102,12 +102,13 @@ class AsyncProcessOwner:
     __extra_vars__ = {}
 
     awaiting_async_process = claim_field("awaiting_async_process", __extra_vars__, bool)
-    pending_async_processes = claim_var(
-        "pending_async_processes", __extra_vars__, use_default=True, default=lambda: {}
-    )
-    failed_async_processes = claim_var(
-        "failed_async_processes", __extra_vars__, use_default=True, default=lambda: {}
-    )
+    pending_async_processes = claim_field("pending_async_processes", __extra_vars__)
+    failed_async_processes = claim_field("failed_async_processes", __extra_vars__)
+
+    def __init__(self):
+        self.awaiting_async_process = False
+        self.pending_async_processes = {}
+        self.failed_async_processes = {}
 
     @property
     def earliest_async_process_start_time(self):
@@ -118,23 +119,75 @@ class AsyncProcessOwner:
             ]
         )
 
-    def queue_async_process(self, function, *args):
+    def queue_async_method(self, method_name: str, *args, **kwargs):
         """
-        Args will be pickled with pickle.dumps. Be careful about using complicated args that rely on
-        class definitions from the experiment directory, these may cause downstream problems.
-        For safety, any such arguments should be pickled first (using pickle.dumps),
-        then the function should run import_local_experiment(), then the arguments should be unpickled
-        (see trial.static for an example).
+        Queues an object's method to be run asynchronously in a worker process.
+        This is useful for scheduling long-running processes without blocking
+        the main server thread.
+
+        Parameters
+        ----------
+
+        method_name:
+            The name of the method to call. Typically this method will have been
+            custom-implemented for the particular experiment.
+            For example, suppose we have implemented a method called ``do_heavy_computation``.
+            We would ordinarily call this synchronously as follows: ``obj.do_heavy_computation()``.
+            To call this method asynchronously, we write ``method_name="do_heavy_computation"``.
+            The outputs of this heavy computation typically need to be saved somehow in the database;
+            for example, within the ``do_heavy_computation`` function one might write
+            ``self.var.computation_output = result``.
+
+        args, kwargs:
+            Optional arguments which will be pickled under-the-hood using ``pickle.dumps``.
+            Be careful passing complex objects here (e.g. SQLAlchemy objects),
+            as they might not be serialized properly. Better instead to pass object IDs
+            and recreate the SQLAlchemy objects within the asynchronous function.
+
+        Returns
+        -------
+
+        ``None``, as the asynchronous function call is non-blocking.
+
         """
         process_id = str(uuid4())
         self.push_async_process(process_id)
         db.session.commit()
         q = Queue("default", connection=redis_conn)
         q.enqueue_call(
-            func=function,
-            args=(self.id, process_id, *args),
-            timeout=1e10,  # PsyNet deals with timeouts itself
+            func=self._run_async_method,
+            args=tuple(args),
+            kwargs=dict(
+                object_id=self.id,
+                process_id=process_id,
+                method_name=method_name,
+                **kwargs,
+            ),
+            timeout=1e10,  # PsyNet deals with timeouts itself (it's useful to log them in the database)
         )  # pylint: disable=no-member
+
+    @classmethod
+    def _run_async_method(cls, object_id, process_id, method_name, *args, **kwargs):
+        import_local_experiment()
+        obj = cls.query.filter_by(id=object_id).one()
+        try:
+            if process_id in obj.pending_async_processes:
+                method = getattr(obj, method_name)
+                method(*args, **kwargs)
+                obj.pop_async_process(process_id)
+            else:
+                logger.info(
+                    "Skipping async method %s (%s) as it is no longer queued.",
+                    method_name,
+                    process_id,
+                )
+        except BaseException:
+            obj.fail_async_processes(
+                reason=f"exception in async method '{method_name}'"
+            )
+            raise
+        finally:
+            db.session.commit()  # pylint: disable=no-member
 
     def push_async_process(self, process_id):
         pending_processes = self.pending_async_processes.copy()
@@ -431,6 +484,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         self, experiment, node, participant, propagate_failure, is_repeat_trial
     ):
         super().__init__(origin=node)
+        AsyncProcessOwner.__init__(self)
         self.complete = False
         self.finalized = False
         self.awaiting_async_process = False
@@ -594,6 +648,13 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         is set to ``True``.
         """
         raise NotImplementedError
+
+    def call_async_post_trial(self):
+        experiment = dallinger.experiment.load()
+        trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
+        self.async_post_trial()
+        trial_maker._grow_network(self.network, self.participant, experiment)
+        self.mark_as_finalized()
 
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
@@ -1811,7 +1872,7 @@ class NetworkTrialMaker(TrialMaker):
         # pylint: disable=unused-argument,no-self-use,no-member
         super().finalize_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
-            trial.queue_async_process(call_async_post_trial)
+            trial.queue_async_method("call_async_post_trial")
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
@@ -1820,7 +1881,7 @@ class NetworkTrialMaker(TrialMaker):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            network.queue_async_process(call_async_post_grow_network)
+            network.queue_async_method("call_async_post_grow_network")
             db.session.commit()
 
     @property
@@ -2086,6 +2147,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
+        AsyncProcessOwner.__init__(self)
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
@@ -2116,6 +2178,11 @@ class TrialNetwork(Network, AsyncProcessOwner):
         Will only run if :attr:`~psynet.trial.main.TrialNetwork.run_async_post_grow_network`
         is set to ``True``.
         """
+
+    def call_async_post_grow_network(self):
+        # Currently this function is redundant, but it's there in case we want to
+        # add wrapping logic one day.
+        self.async_post_grow_network()
 
     @property
     @extra_var(__extra_vars__)
@@ -2156,57 +2223,15 @@ class TrialNetwork(Network, AsyncProcessOwner):
         )
 
 
-def call_async_post_trial(trial_id, process_id):
-    logger.info(
-        "Running async_post_trial process %s for trial %i...", process_id, trial_id
-    )
-    import_local_experiment()
-    experiment = dallinger.experiment.load()
-    trial = Trial.query.filter_by(id=trial_id).one()
-    trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
-    try:
-        if process_id in trial.pending_async_processes:
-            trial.async_post_trial()
-            trial.pop_async_process(process_id)
-            trial_maker._grow_network(trial.network, trial.participant, experiment)
-            trial.mark_as_finalized()
-        else:
-            logger.info(
-                "Skipping async process %s as it is no longer queued.", process_id
-            )
-    except BaseException as e:
-        trial.fail_async_processes(
-            reason=f"exception in post-trial process: {e.__class__.__name__}"
-        )
-        raise
-    finally:
-        db.session.commit()  # pylint: disable=no-member
-
-
-def call_async_post_grow_network(network_id, process_id):
-    logger.info("Running async_post_grow_network for network %i...", network_id)
-    import_local_experiment()
-    network = Network.query.filter_by(id=network_id).one()
-    try:
-        if process_id in network.pending_async_processes:
-            network.async_post_grow_network()
-            network.pop_async_process(process_id)
-        else:
-            logger.info(
-                "Skipping async process %s as it is no longer queued.", process_id
-            )
-    except BaseException as e:
-        network.fail_async_processes(
-            reason=f"exception in post-grow-network process: {e.__class__.__name__}"
-        )
-        raise
-    finally:
-        db.session.commit()  # pylint: disable=no-member
-
-
-class TrialNode(dallinger.models.Node):
+class TrialNode(dallinger.models.Node, AsyncProcessOwner):
     __mapper_args__ = {"polymorphic_identity": "trial_node"}
-    __extra_vars__ = {}
+    __extra_vars__ = {
+        **AsyncProcessOwner.__extra_vars__.copy(),
+    }
+
+    def __init__(self, network, participant=None):
+        super().__init__(network=network, participant=participant)
+        AsyncProcessOwner.__init__(self)
 
     def __json__(self):
         x = super().__json__()

@@ -854,10 +854,10 @@ class Experiment(dallinger.experiment.Experiment):
     )
     @staticmethod
     def call_async_post_grow_network(network_id):
-        from .trial.main import TrialNetwork, call_async_post_grow_network
+        from .trial.main import TrialNetwork
 
         network = TrialNetwork.query.filter_by(id=network_id).one()
-        network.queue_async_process(call_async_post_grow_network)
+        network.queue_async_method("call_async_post_grow_network")
         db.session.commit()
         return success_response()
 

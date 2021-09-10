@@ -1,5 +1,15 @@
 # CHANGELOG
 
+#### Changed
+- Refactored the logic for queueing asynchronous processes, and created a new method
+  ``queue_async_method`` that makes it easy to queue asynchronous functions for 
+  database objects such as networks and trials.
+  See the ``async_pruning`` demo for an example.
+
+#### Fixed
+- Fixed bug in ``AudioSliderControl`` (renaming of ``wrap`` to ``random_wrap`` 
+  and deletion of ``phase`` arguments not propagated properly).
+
 # [3.1.0] Released on 2021-08-10
 
 #### Added
