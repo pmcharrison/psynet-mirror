@@ -489,6 +489,6 @@ class JSSynth(Prompt):
 
         events["promptStart"] = Event(is_triggered_by="trialStart")
         events["promptEnd"] = Event(
-            is_triggered_by="trialStart", delay=self.total_duration
+            is_triggered_by="promptStart", delay=self.total_duration
         )  #
         events["trialFinish"].add_trigger("promptEnd")

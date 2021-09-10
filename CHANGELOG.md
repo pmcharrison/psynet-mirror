@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### Added
+- Added a collection of dense rating paradigms (see `psynet.trial.dense`).
+  These are still experimental, but they do have draft documentation.
+  
 #### Changed
 - Refactored the logic for queueing asynchronous processes, and created a new method
   ``queue_async_method`` that makes it easy to queue asynchronous functions for 
@@ -9,6 +13,29 @@
 #### Fixed
 - Fixed bug in ``AudioSliderControl`` (renaming of ``wrap`` to ``random_wrap`` 
   and deletion of ``phase`` arguments not propagated properly).
+- The `promptEnd` event of JSSynth is now triggered by `promptStart` rather than `trialStart`.
+  This facilitates customization where the JSSynth is triggered multiple times in
+  the same trial.
+
+#### Renamed
+- Renamed `check_timeout_interval` to `check_timeout_interval_sec`.
+
+#### Breaking changes
+- Repeat trials are now constructed in a slightly different way. 
+  Previously, they were constructed in a way that permitted slight variation
+  in surface features between a repeat trial and its originator;
+  in the case of GSP, for example, this would mean a different randomized
+  starting location for the slider. However, this behavior ended up 
+  being problematic for extensibility. In the new implementation, repeat 
+  trials are by default exact clones of their parents.
+- `with_trial_maker_namespace` is now changed to remove the leading hyphens
+  from trial-maker variables as they are stored in the database.
+  This has the consequence that these variables (e.g. performance check results)
+  will now be exported directly by `psynet export` into the main CSV files,
+  rather than only being available in `db-snapshot`. 
+  This is a breaking change in that it will not be possible to relaunch
+  experiments from zip file that were originally deployed with a 
+  previous PsyNet version.
 
 # [3.1.0] Released on 2021-08-10
 
@@ -111,7 +138,7 @@ ProgressDisplay(
 # [2.2.1] Released on 2021-06-21
 
 #### Fixed
-- Fixed bug to make pre-deployment routines work again 
+- Fixed bug to make pre-deployment routines work again
 
 # [2.2.0] Released on 2021-06-16
 

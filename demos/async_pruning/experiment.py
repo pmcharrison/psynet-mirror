@@ -196,7 +196,7 @@ class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
     async_timeout_sec = 5
-    check_timeout_interval = 5
+    check_timeout_interval_sec = 5
     give_end_feedback_passed = False
 
 
