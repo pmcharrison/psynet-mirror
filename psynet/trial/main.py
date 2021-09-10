@@ -182,7 +182,9 @@ class AsyncProcessOwner:
                     process_id,
                 )
         except BaseException:
-            obj.fail_async_processes(reason=f"exception in async method %{method_name}")
+            obj.fail_async_processes(
+                reason=f"exception in async method '{method_name}'"
+            )
             raise
         finally:
             db.session.commit()  # pylint: disable=no-member
