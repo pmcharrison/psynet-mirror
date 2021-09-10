@@ -147,7 +147,7 @@ class AsyncProcessOwner:
         Returns
         -------
 
-        ``none``, as the asynchronous function call is non-blocking.
+        ``None``, as the asynchronous function call is non-blocking.
 
         """
         process_id = str(uuid4())
