@@ -1106,11 +1106,9 @@ class ColorVocabularyTest(Module):
 
     colors : list, optional
         A list of tuples each representing one color option. The tuples are of
-        the form ("color-name", [R,G,B]) where R, G, and B are numbers in the
-        range of 0 - 255 representing a color in the RGB color system. In each
-        trial the colors are presented in random order. Default: the list of the
-        six colors "turquoise", "magenta", "granite", "ivory", "maroon", and
-        "navy".
+        the form ("color-name", [H, S, L]) corresponding to hue, saturation, and lightness.
+        Hue takes integer values in [0-360]; saturation and lightness take integer values in [0-100].
+        Default: the list of the six colors "turquoise", "magenta", "granite", "ivory", "maroon", and "navy".
     """
 
     def __init__(

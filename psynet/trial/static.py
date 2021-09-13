@@ -10,7 +10,6 @@ from statistics import mean
 from typing import Optional
 
 from dallinger import db
-from dallinger.models import Network
 from progress.bar import Bar
 from sqlalchemy import func
 
@@ -26,7 +25,7 @@ from ..media import (
     upload_to_s3,
     write_string_to_s3,
 )
-from ..utils import DisableLogger, get_logger, hash_object, import_local_experiment
+from ..utils import DisableLogger, get_logger, hash_object
 from .main import (
     HasDefinition,
     NetworkTrialMaker,
@@ -685,12 +684,8 @@ class StaticTrial(Trial):
 
     stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
 
-    def __init__(
-        self, experiment, node, participant, propagate_failure, is_repeat_trial
-    ):
-        super().__init__(
-            experiment, node, participant, propagate_failure, is_repeat_trial
-        )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.stimulus_id = self.stimulus_version.stimulus_id
 
     def show_trial(self, experiment, participant):
@@ -775,10 +770,10 @@ class StaticTrialMaker(NetworkTrialMaker):
       to a random group.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`,
-      run once the the sequence of trials is complete.
+      run once the sequence of trials is complete.
 
-    * :meth:`~psynet.trial.main.TrialMaker.performance_check`,
-      which checks the performance of the participant
+    * :meth:`~psynet.trial.main.TrialMaker.performance_check`;
+      checks the performance of the participant
       with a view to rejecting poor-performing participants.
 
     Further customisable options are available in the constructor's parameter list,
@@ -844,14 +839,14 @@ class StaticTrialMaker(NetworkTrialMaker):
         then the latter criterion is only used for tie breaking.
 
     check_performance_at_end
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated at the end of the series of trials.
         Defaults to ``False``.
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
         for implementing performance checks.
 
     check_performance_every_trial
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated after each trial.
         Defaults to ``False``.
         See :meth:`~psynet.trial.main.TrialMaker.performance_check`
@@ -872,11 +867,12 @@ class StaticTrialMaker(NetworkTrialMaker):
         are typically used to estimate the reliability of the participant's
         responses. Repeat trials are presented at the end of the trial maker,
         after all blocks have been completed.
+        Defaults to 0.
 
     Attributes
     ----------
 
-    check_timeout_interval : float
+    check_timeout_interval_sec : float
         How often to check for trials that have timed out, in seconds (default = 30).
         Users are invited to override this.
 
@@ -885,17 +881,17 @@ class StaticTrialMaker(NetworkTrialMaker):
         (i.e. how long PsyNet will wait for the participant's response to a trial).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
     async_timeout_sec : float
         How long until an async process times out, in seconds (default = 300).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
-    network_query
+    network_query : sqlalchemy.orm.Query
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
@@ -911,7 +907,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         the participant must achieve to pass the performance check.
 
     end_performance_check_waits : bool
-        If True (default), then the final performance check waits until all trials no
+        If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
     """
 
@@ -979,6 +975,15 @@ class StaticTrialMaker(NetworkTrialMaker):
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=True,
         )
+
+        self.check_stimulus_set()
+
+    def check_stimulus_set(self):
+        if self.phase != self.stimulus_set.phase:
+            raise ValueError(
+                f"Trial-maker '{self.id}' has a chosen phase of '{self.phase}', "
+                + f"which contradicts the phase selected in the stimulus set ('{self.stimulus_set.phase}')."
+            )
 
     @property
     def num_trials_still_required(self):
@@ -1488,10 +1493,10 @@ class StaticNetwork(TrialNetwork):
         db.session.add(self)
         if not self.creation_started:
             self.creation_started = True
-            self.queue_async_process(
-                call_network_populate,
-                pickle.dumps(stimulus_set),
-                target_num_trials_per_stimulus,
+            self.queue_async_method(
+                "populate",
+                stimulus_set=stimulus_set,
+                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
             )
         db.session.commit()
 
@@ -1534,30 +1539,6 @@ class StaticNetwork(TrialNetwork):
     @property
     def num_stimuli(self):
         return self.stimulus_query.count()
-
-
-def call_network_populate(
-    network_id, process_id, pickled_stimulus_set, target_num_trials_per_stimulus
-):
-    logger.info("Running populate function for network %i...", network_id)
-    import_local_experiment()
-    stimulus_set = pickle.loads(pickled_stimulus_set)
-    network = Network.query.filter_by(id=network_id).one()
-    try:
-        if process_id in network.pending_async_processes:
-            network.populate(stimulus_set, target_num_trials_per_stimulus)
-            network.pop_async_process(process_id)
-        else:
-            logger.info(
-                "Skipping async process %s as it is no longer queued.", process_id
-            )
-    except BaseException as e:
-        network.fail_async_processes(
-            reason=f"exception in network.populate(): {e.__class__.__name__}"
-        )
-        raise
-    finally:
-        db.session.commit()  # pylint: disable=no-member
 
 
 class LocalMediaStimulusVersionSpec(StimulusVersionSpec):

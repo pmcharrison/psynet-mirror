@@ -12,6 +12,7 @@ from datetime import datetime
 from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
+import numpy as np
 import pandas as pd
 from dallinger.config import config, get_config
 from sqlalchemy.sql import func
@@ -410,3 +411,9 @@ def get_language():
     if not config.ready:
         config.load()
     return config.get("language")
+
+
+def sample_from_surface_of_unit_sphere(n_dimensions):
+    res = np.random.randn(n_dimensions, 1)
+    res /= np.linalg.norm(res, axis=0)
+    return res[:, 0].tolist()

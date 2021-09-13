@@ -1053,11 +1053,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         fewer valid trials.
 
     check_performance_at_end
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated at the end of the series of trials.
 
     check_performance_every_trial
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated after each trial.
 
     recruit_mode
@@ -1093,6 +1093,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
+        Defaults to ``0``.
 
     wait_for_networks
         If ``True``, then the participant will be made to wait if there are
@@ -1105,7 +1106,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     Attributes
     ----------
 
-    check_timeout_interval : float
+    check_timeout_interval_sec : float
         How often to check for trials that have timed out, in seconds (default = 30).
         Users are invited to override this.
 
@@ -1114,17 +1115,17 @@ class ChainTrialMaker(NetworkTrialMaker):
         (i.e. how long PsyNet will wait for the participant's response to a trial).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
     async_timeout_sec : float
         How long until an async process times out, in seconds (default = 300).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
-    network_query
+    network_query : sqlalchemy.orm.Query
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
@@ -1140,7 +1141,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         the participant must achieve to pass the performance check.
 
     end_performance_check_waits : bool
-        If True (default), then the final performance check waits until all trials no
+        If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
     """
 

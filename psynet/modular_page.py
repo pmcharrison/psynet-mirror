@@ -2003,7 +2003,7 @@ class AudioRecordControl(RecordControl):
 
 class VideoRecordControl(RecordControl):
     """
-    Records a video either by using the the camera or by capturing from the screen. Output format
+    Records a video either by using the camera or by capturing from the screen. Output format
     for both screen and camera recording is ``.webm``.
 
     Parameters
