@@ -910,7 +910,7 @@ class Page(Elt):
         pass
 
     def render(self, experiment, participant):
-        internal_js_vars = {"page_uuid": participant.page_uuid}
+        internal_js_vars = {"pageUuid": participant.page_uuid}
         all_template_arg = {
             **self.template_arg,
             "init_js_vars": flask.Markup(
