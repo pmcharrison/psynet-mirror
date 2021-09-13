@@ -14,12 +14,14 @@
 ##########################################################################################
 
 import random
+import time
 from typing import List, Union
 
 from flask import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
+from psynet.experiment import scheduled_task
 from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -160,6 +162,27 @@ class CustomTrial(GibbsTrial):
 
             time.sleep(1e6)
 
+    def expensive_computation(self, seed):
+        """
+        This is a silly example of how one might define an expensive computation to be
+        run asynchronously on ``Trial`` objects. Have a look at the ``scheduled_task`` definition
+        in the ``Experiment`` class below to see how this is invoked.
+
+        Parameters
+        ----------
+
+        seed:
+            The input number to process.
+
+        Returns
+        -------
+
+        Nothing; the output is instead saved in ``self.var.computation_output``.
+
+        """
+        time.sleep(0.5)
+        self.var.computation_output = seed + 1
+
 
 class CustomNode(GibbsNode):
     __mapper_args__ = {"polymorphic_identity": "custom_node"}
@@ -173,7 +196,7 @@ class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
     async_timeout_sec = 5
-    check_timeout_interval = 5
+    check_timeout_interval_sec = 5
     give_end_feedback_passed = False
 
 
@@ -219,3 +242,17 @@ class Exp(psynet.experiment.Experiment):
 
         # Change this if you want to simulate multiple simultaneous participants.
         self.initial_recruitment_size = 1
+
+    @scheduled_task("interval", minutes=1, max_instances=1)
+    @staticmethod
+    def add_random_var_to_trials():
+        trials = CustomTrial.query.all()
+        for t in trials:
+            if not t.awaiting_async_process and not t.failed:
+                # Often it's wise to make sure that the trial isn't already waiting
+                # for a pre-existing asynchronous process to complete.
+                # One might implement more complex checks here, for example only running the
+                # task for trials that have already received a response from the participant.
+                t.queue_async_method(
+                    "expensive_computation", seed=random.randint(0, 10)
+                )

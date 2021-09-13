@@ -99,7 +99,7 @@ class CustomSource(ImitationChainSource):
 
 class CustomTrialMaker(ImitationChainTrialMaker):
     response_timeout_sec = 60
-    check_timeout_interval = 30
+    check_timeout_interval_sec = 30
 
 
 ##########################################################################################

@@ -2,8 +2,7 @@
 
 import datetime
 import random
-from math import isnan, nan
-from statistics import mean
+from math import isnan
 from typing import Optional, Union
 from uuid import uuid4
 
@@ -27,7 +26,6 @@ from ..field import (
     UndefinedVariableError,
     VarStore,
     claim_field,
-    claim_var,
     extra_var,
     register_extra_var,
 )
@@ -63,7 +61,7 @@ logger = get_logger()
 def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     if x is None:
         return trial_maker_id
-    return f"__{trial_maker_id}__{x}"
+    return f"{trial_maker_id}__{x}"
 
 
 def set_participant_group(trial_maker_id, participant, participant_group):
@@ -102,12 +100,13 @@ class AsyncProcessOwner:
     __extra_vars__ = {}
 
     awaiting_async_process = claim_field("awaiting_async_process", __extra_vars__, bool)
-    pending_async_processes = claim_var(
-        "pending_async_processes", __extra_vars__, use_default=True, default=lambda: {}
-    )
-    failed_async_processes = claim_var(
-        "failed_async_processes", __extra_vars__, use_default=True, default=lambda: {}
-    )
+    pending_async_processes = claim_field("pending_async_processes", __extra_vars__)
+    failed_async_processes = claim_field("failed_async_processes", __extra_vars__)
+
+    def __init__(self):
+        self.awaiting_async_process = False
+        self.pending_async_processes = {}
+        self.failed_async_processes = {}
 
     @property
     def earliest_async_process_start_time(self):
@@ -118,23 +117,75 @@ class AsyncProcessOwner:
             ]
         )
 
-    def queue_async_process(self, function, *args):
+    def queue_async_method(self, method_name: str, *args, **kwargs):
         """
-        Args will be pickled with pickle.dumps. Be careful about using complicated args that rely on
-        class definitions from the experiment directory, these may cause downstream problems.
-        For safety, any such arguments should be pickled first (using pickle.dumps),
-        then the function should run import_local_experiment(), then the arguments should be unpickled
-        (see trial.static for an example).
+        Queues an object's method to be run asynchronously in a worker process.
+        This is useful for scheduling long-running processes without blocking
+        the main server thread.
+
+        Parameters
+        ----------
+
+        method_name:
+            The name of the method to call. Typically this method will have been
+            custom-implemented for the particular experiment.
+            For example, suppose we have implemented a method called ``do_heavy_computation``.
+            We would ordinarily call this synchronously as follows: ``obj.do_heavy_computation()``.
+            To call this method asynchronously, we write ``method_name="do_heavy_computation"``.
+            The outputs of this heavy computation typically need to be saved somehow in the database;
+            for example, within the ``do_heavy_computation`` function one might write
+            ``self.var.computation_output = result``.
+
+        args, kwargs:
+            Optional arguments which will be pickled under-the-hood using ``pickle.dumps``.
+            Be careful passing complex objects here (e.g. SQLAlchemy objects),
+            as they might not be serialized properly. Better instead to pass object IDs
+            and recreate the SQLAlchemy objects within the asynchronous function.
+
+        Returns
+        -------
+
+        ``None``, as the asynchronous function call is non-blocking.
+
         """
         process_id = str(uuid4())
         self.push_async_process(process_id)
         db.session.commit()
         q = Queue("default", connection=redis_conn)
         q.enqueue_call(
-            func=function,
-            args=(self.id, process_id, *args),
-            timeout=1e10,  # PsyNet deals with timeouts itself
+            func=self._run_async_method,
+            args=tuple(args),
+            kwargs=dict(
+                object_id=self.id,
+                process_id=process_id,
+                method_name=method_name,
+                **kwargs,
+            ),
+            timeout=1e10,  # PsyNet deals with timeouts itself (it's useful to log them in the database)
         )  # pylint: disable=no-member
+
+    @classmethod
+    def _run_async_method(cls, object_id, process_id, method_name, *args, **kwargs):
+        import_local_experiment()
+        obj = cls.query.filter_by(id=object_id).one()
+        try:
+            if process_id in obj.pending_async_processes:
+                method = getattr(obj, method_name)
+                method(*args, **kwargs)
+                obj.pop_async_process(process_id)
+            else:
+                logger.info(
+                    "Skipping async method %s (%s) as it is no longer queued.",
+                    method_name,
+                    process_id,
+                )
+        except BaseException:
+            obj.fail_async_processes(
+                reason=f"exception in async method '{method_name}'"
+            )
+            raise
+        finally:
+            db.session.commit()  # pylint: disable=no-member
 
     def push_async_process(self, process_id):
         pending_processes = self.pending_async_processes.copy()
@@ -262,6 +313,10 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         The user should not typically change this directly.
         Stored in ``details`` in the database.
 
+    parent_trial_id : int
+        If the trial is a repeat trial, this attribute corresponds to the ID
+        of the trial from which that repeat trial was cloned.
+
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
@@ -318,12 +373,12 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
     score = claim_field("score", __extra_vars__, float)
     bonus = claim_field("bonus", __extra_vars__, float)
-
-    answer = claim_var("answer", __extra_vars__, use_default=True)
-    propagate_failure = claim_var("propagate_failure", __extra_vars__, use_default=True)
-    response_id = claim_var("response_id", __extra_vars__, use_default=True)
-    repeat_trial_index = claim_var("repeat_trial_index", __extra_vars__)
-    num_repeat_trials = claim_var("num_repeat_trials", __extra_vars__)
+    parent_trial_id = claim_field("parent_trial_id", __extra_vars__, int)
+    answer = claim_field("answer", __extra_vars__)
+    propagate_failure = claim_field("propagate_failure", __extra_vars__, bool)
+    response_id = claim_field("response_id", __extra_vars__, int)
+    repeat_trial_index = claim_field("repeat_trial_index", __extra_vars__, int)
+    num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
 
     # Override this if you intend to return multiple pages
     num_pages = 1
@@ -337,6 +392,11 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         field.json_add_extra_vars(x, self)
         field.json_format_vars(x)
         return x
+
+    @property
+    def parent_trial(self):
+        assert self.parent_trial_id is not None
+        return Trial.query.filter_by(id=self.parent_trial_id).one()
 
     # @property
     # def num_pages(self):
@@ -428,17 +488,33 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     #################
 
     def __init__(
-        self, experiment, node, participant, propagate_failure, is_repeat_trial
+        self,
+        experiment,
+        node,
+        participant,
+        propagate_failure,  # If the trial fails, should its failure be propagated to its descendants?
+        is_repeat_trial,  # Is the trial a repeat trial?
+        parent_trial=None,  # If the trial is a repeat trial, what is its parent?
+        repeat_trial_index=None,  # Only relevant if the trial is a repeat trial
+        num_repeat_trials=None,  # Only relevant if the trial is a repeat trial
     ):
         super().__init__(origin=node)
+        AsyncProcessOwner.__init__(self)
         self.complete = False
         self.finalized = False
         self.awaiting_async_process = False
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
-        self.definition = self.make_definition(experiment, participant)
+        self.parent_trial_id = None if parent_trial is None else parent_trial.id
+        self.repeat_trial_index = repeat_trial_index
+        self.num_repeat_trials = num_repeat_trials
         self.score = None
+
+        if is_repeat_trial:
+            self.definition = parent_trial.definition
+        else:
+            self.definition = self.make_definition(experiment, participant)
 
     def mark_as_finalized(self):
         """
@@ -487,7 +563,9 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         Returns
         -------
 
-        A numeric score quantifying the participant's success, where positive numbers are better.
+        A numeric score quantifying the participant's success.
+        The experimenter is free to decide the directionality
+        (whether high scores are better than low scores, or vice versa).
         Alternatively, ``None`` indicating no score.
         """
         return None
@@ -595,6 +673,13 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         """
         raise NotImplementedError
 
+    def call_async_post_trial(self):
+        experiment = dallinger.experiment.load()
+        trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
+        self.async_post_trial()
+        trial_maker._grow_network(self.network, self.participant, experiment)
+        self.mark_as_finalized()
+
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
         self.fail(reason="fail_async_processes")
@@ -606,9 +691,10 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
             participant=self.participant,
             propagate_failure=False,
             is_repeat_trial=True,
+            parent_trial=self,
+            repeat_trial_index=repeat_trial_index,
+            num_repeat_trials=num_repeat_trials,
         )
-        repeat_trial.repeat_trial_index = repeat_trial_index
-        repeat_trial.num_repeat_trials = num_repeat_trials
         return repeat_trial
 
 
@@ -637,7 +723,7 @@ class TrialMaker(Module):
       has given their response.
 
     * :meth:`~psynet.trial.main.TrialMaker.on_complete`
-      (optional), run once the the sequence of trials is complete.
+      (optional), run once the sequence of trials is complete.
 
     * :meth:`~psynet.trial.main.TrialMaker.performance_check`
       (optional), which checks the performance of the participant
@@ -695,11 +781,11 @@ class TrialMaker(Module):
         (used for progress estimation).
 
     check_performance_at_end
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated at the end of the series of trials.
 
     check_performance_every_trial
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
@@ -731,11 +817,12 @@ class TrialMaker(Module):
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
+        Defaults to ``0``.
 
     Attributes
     ----------
 
-    check_timeout_interval : float
+    check_timeout_interval_sec : float
         How often to check for timeouts, in seconds (default = 30).
         Users are invited to override this.
 
@@ -744,14 +831,14 @@ class TrialMaker(Module):
         (i.e. how long PsyNet will wait for the participant's response to a trial).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
     async_timeout_sec : float
         How long until an async process times out, in seconds (default = 300).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
     introduction
@@ -768,7 +855,7 @@ class TrialMaker(Module):
         the participant must achieve to pass the performance check.
 
     end_performance_check_waits : bool
-        If True (default), then the final performance check waits until all trials no
+        If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
     """
 
@@ -895,7 +982,7 @@ class TrialMaker(Module):
         """
         raise NotImplementedError
 
-    check_timeout_interval = 30
+    check_timeout_interval_sec = 30
     response_timeout_sec = 60 * 5
     async_timeout_sec = 300
     end_performance_check_waits = True
@@ -1585,11 +1672,11 @@ class NetworkTrialMaker(TrialMaker):
         (used for progress estimation).
 
     check_performance_at_end
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated at the end of the series of trials.
 
     check_performance_every_trial
-        If ``True``, the participant's performance is
+        If ``True``, the participant's performance
         is evaluated after each trial.
 
     fail_trials_on_premature_exit
@@ -1621,6 +1708,7 @@ class NetworkTrialMaker(TrialMaker):
         Number of repeat trials to present to the participant. These trials
         are typically used to estimate the reliability of the participant's
         responses.
+        Defaults to ``0``.
 
     wait_for_networks
         If ``True``, then the participant will be made to wait if there are
@@ -1630,7 +1718,7 @@ class NetworkTrialMaker(TrialMaker):
     Attributes
     ----------
 
-    check_timeout_interval : float
+    check_timeout_interval_sec : float
         How often to check for trials that have timed out, in seconds (default = 30).
         Users are invited to override this.
 
@@ -1639,17 +1727,17 @@ class NetworkTrialMaker(TrialMaker):
         (i.e. how long PsyNet will wait for the participant's response to a trial).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
     async_timeout_sec : float
         How long until an async process times out, in seconds (default = 300).
         This is a lower bound on the actual timeout
         time, which depends on when the timeout daemon next runs,
-        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval`.
+        which in turn depends on :attr:`~psynet.trial.main.TrialMaker.check_timeout_interval_sec`.
         Users are invited to override this.
 
-    network_query
+    network_query : sqlalchemy.orm.Query
         An SQLAlchemy query for retrieving all networks owned by the current trial maker.
         Can be used for operations such as the following: ``self.network_query.count()``.
 
@@ -1665,7 +1753,7 @@ class NetworkTrialMaker(TrialMaker):
         the participant must achieve to pass the performance check.
 
     end_performance_check_waits : bool
-        If True (default), then the final performance check waits until all trials no
+        If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
 
     performance_threshold : float (default = -1.0)
@@ -1801,7 +1889,11 @@ class NetworkTrialMaker(TrialMaker):
 
     def _create_trial(self, node, participant, experiment):
         trial = self.trial_class(
-            experiment, node, participant, self.propagate_failure, is_repeat_trial=False
+            experiment=experiment,
+            node=node,
+            participant=participant,
+            propagate_failure=self.propagate_failure,
+            is_repeat_trial=False,
         )
         db.session.add(trial)
         db.session.commit()
@@ -1811,7 +1903,7 @@ class NetworkTrialMaker(TrialMaker):
         # pylint: disable=unused-argument,no-self-use,no-member
         super().finalize_trial(answer, trial, experiment, participant)
         if trial.run_async_post_trial:
-            trial.queue_async_process(call_async_post_trial)
+            trial.queue_async_method("call_async_post_trial")
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
@@ -1820,7 +1912,7 @@ class NetworkTrialMaker(TrialMaker):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            network.queue_async_process(call_async_post_grow_network)
+            network.queue_async_method("call_async_post_grow_network")
             db.session.commit()
 
     @property
@@ -1905,21 +1997,40 @@ class NetworkTrialMaker(TrialMaker):
     def performance_check_consistency(
         self, experiment, participant, participant_trials
     ):
-        assert self.min_nodes_for_performance_check >= 2
-        trials_by_node = self.group_trials_by_node(participant_trials)
-        answer_groups = [
-            [self.get_answer_for_consistency_check(t) for t in trials]
-            for trials in trials_by_node.values()
-            if len(trials) > 1
+        trials_by_id = {trial.id: trial for trial in participant_trials}
+
+        repeat_trials = [t for t in participant_trials if t.is_repeat_trial]
+        parent_trials = [trials_by_id[t.parent_trial_id] for t in repeat_trials]
+
+        repeat_trial_answers = [
+            self.get_answer_for_consistency_check(t) for t in repeat_trials
         ]
-        if len(answer_groups) < self.min_nodes_for_performance_check:
+        parent_trial_answers = [
+            self.get_answer_for_consistency_check(t) for t in parent_trials
+        ]
+
+        assert self.min_nodes_for_performance_check >= 2
+
+        if len(repeat_trials) < self.min_nodes_for_performance_check:
+            logger.info(
+                "min_nodes_for_performance_check was not reached, so consistency score cannot be calculated."
+            )
             score = None
             passed = True
         else:
-            consistency = self.monte_carlo_consistency(answer_groups, n=100)
+            consistency = self.get_consistency(
+                repeat_trial_answers, parent_trial_answers
+            )
             if isnan(consistency):
+                logger.info(
+                    """
+                    get_consistency returned 'nan' in the performance check.
+                    This commonly indicates that the participant gave the same response
+                    to all repeat trials. The participant will be failed.
+                    """
+                )
                 score = None
-                passed = True
+                passed = False
             else:
                 score = float(consistency)
                 passed = bool(score >= self.performance_threshold)
@@ -1930,19 +2041,6 @@ class NetworkTrialMaker(TrialMaker):
             passed,
         )
         return {"score": score, "passed": passed}
-
-    def monte_carlo_consistency(self, groups, n):
-        rels = []
-        for _ in range(n):
-            trial_pairs = [random.sample(group, 2) for group in groups]
-            x = [pair[0] for pair in trial_pairs]
-            y = [pair[1] for pair in trial_pairs]
-            res = self.get_consistency(x, y)
-            if not isnan(res):
-                rels.append(res)
-        if len(rels) == 0:
-            return nan
-        return mean(rels)
 
     def get_consistency(self, x, y):
         if self.consistency_check_type == "pearson_correlation":
@@ -1957,13 +2055,13 @@ class NetworkTrialMaker(TrialMaker):
             raise NotImplementedError
 
     @staticmethod
-    def group_trials_by_node(trials):
+    def group_trials_by_parent(trials):
         res = {}
         for trial in trials:
-            node_id = trial.origin.id
-            if node_id not in res:
-                res[node_id] = []
-            res[node_id].append(trial)
+            parent_id = trial.parent_trial_id
+            if parent_id not in res:
+                res[parent_id] = []
+            res[parent_id].append(trial)
         return res
 
     def _wait_for_trial(self, experiment, participant):
@@ -2086,6 +2184,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
 
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
+        AsyncProcessOwner.__init__(self)
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
@@ -2116,6 +2215,11 @@ class TrialNetwork(Network, AsyncProcessOwner):
         Will only run if :attr:`~psynet.trial.main.TrialNetwork.run_async_post_grow_network`
         is set to ``True``.
         """
+
+    def call_async_post_grow_network(self):
+        # Currently this function is redundant, but it's there in case we want to
+        # add wrapping logic one day.
+        self.async_post_grow_network()
 
     @property
     @extra_var(__extra_vars__)
@@ -2156,57 +2260,15 @@ class TrialNetwork(Network, AsyncProcessOwner):
         )
 
 
-def call_async_post_trial(trial_id, process_id):
-    logger.info(
-        "Running async_post_trial process %s for trial %i...", process_id, trial_id
-    )
-    import_local_experiment()
-    experiment = dallinger.experiment.load()
-    trial = Trial.query.filter_by(id=trial_id).one()
-    trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
-    try:
-        if process_id in trial.pending_async_processes:
-            trial.async_post_trial()
-            trial.pop_async_process(process_id)
-            trial_maker._grow_network(trial.network, trial.participant, experiment)
-            trial.mark_as_finalized()
-        else:
-            logger.info(
-                "Skipping async process %s as it is no longer queued.", process_id
-            )
-    except BaseException as e:
-        trial.fail_async_processes(
-            reason=f"exception in post-trial process: {e.__class__.__name__}"
-        )
-        raise
-    finally:
-        db.session.commit()  # pylint: disable=no-member
-
-
-def call_async_post_grow_network(network_id, process_id):
-    logger.info("Running async_post_grow_network for network %i...", network_id)
-    import_local_experiment()
-    network = Network.query.filter_by(id=network_id).one()
-    try:
-        if process_id in network.pending_async_processes:
-            network.async_post_grow_network()
-            network.pop_async_process(process_id)
-        else:
-            logger.info(
-                "Skipping async process %s as it is no longer queued.", process_id
-            )
-    except BaseException as e:
-        network.fail_async_processes(
-            reason=f"exception in post-grow-network process: {e.__class__.__name__}"
-        )
-        raise
-    finally:
-        db.session.commit()  # pylint: disable=no-member
-
-
-class TrialNode(dallinger.models.Node):
+class TrialNode(dallinger.models.Node, AsyncProcessOwner):
     __mapper_args__ = {"polymorphic_identity": "trial_node"}
-    __extra_vars__ = {}
+    __extra_vars__ = {
+        **AsyncProcessOwner.__extra_vars__.copy(),
+    }
+
+    def __init__(self, network, participant=None):
+        super().__init__(network=network, participant=participant)
+        AsyncProcessOwner.__init__(self)
 
     def __json__(self):
         x = super().__json__()
