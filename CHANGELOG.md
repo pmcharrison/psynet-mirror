@@ -1,5 +1,7 @@
 # CHANGELOG
 
+# [4.0.0] Released on 2021-09-13
+
 #### Added
 - Added a collection of dense rating paradigms (see `psynet.trial.dense`).
   These are still experimental, but they do have draft documentation.
