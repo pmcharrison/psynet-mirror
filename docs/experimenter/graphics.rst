@@ -97,8 +97,8 @@ Here is an example:
 
 If ``click_to_answer=True``, this means that the participant can respond
 by clicking on the object. In this case the page returns a dict containing
-two variables: ``clickedObject``, corresponding to the object ID of the
-clicked object, and ``clickCoordinates``, corresponding to the exact location
+two variables: ``clicked_object``, corresponding to the object ID of the
+clicked object, and ``click_coordinates``, corresponding to the exact location
 of the mouse click.
 
 Often we want to customize the objects that we display to the user.
