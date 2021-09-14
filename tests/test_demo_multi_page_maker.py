@@ -19,12 +19,12 @@ class TestExp:
             next_page(driver, "3")
 
             assert_text(driver, "main-body", "Page 1/3 Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             assert_text(driver, "main-body", "Page 2/3 Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             assert_text(driver, "main-body", "Page 3/3 Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button", finished=True)

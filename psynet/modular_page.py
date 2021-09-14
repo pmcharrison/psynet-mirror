@@ -841,7 +841,7 @@ class PushButtonControl(OptionControl):
         with html:
             for choice, label in zip(self.choices, self.labels):
                 response_string = response.response.replace('"', "")
-                _class = "btn push_button btn-primary response submit"
+                _class = "btn push-button btn-primary response submit"
                 _class = (
                     _class.replace("btn-primary", "btn-success")
                     if response_string == choice
@@ -908,7 +908,7 @@ class TimedPushButtonControl(PushButtonControl):
         with html:
             for choice, label in zip(self.choices, self.labels):
                 response_string = response.response.replace('"', "")
-                _class = "btn push_button btn-primary response timed"
+                _class = "btn push-button btn-primary response timed"
                 _class = (
                     _class.replace("btn-primary", "btn-success")
                     if response_string == choice
@@ -1337,7 +1337,7 @@ class AudioMeterControl(Control):
             self.sliders = MultiSliderControl(
                 [
                     Slider(
-                        "decay_display",
+                        "decay-display",
                         "Decay (display)",
                         self.decay["display"],
                         0,
@@ -1345,7 +1345,7 @@ class AudioMeterControl(Control):
                         0.001,
                     ),
                     Slider(
-                        "decay_high",
+                        "decay-high",
                         "Decay (too high)",
                         self.decay["high"],
                         0,
@@ -1353,10 +1353,10 @@ class AudioMeterControl(Control):
                         0.001,
                     ),
                     Slider(
-                        "decay_low", "Decay (too low)", self.decay["low"], 0, 3, 0.001
+                        "decay-low", "Decay (too low)", self.decay["low"], 0, 3, 0.001
                     ),
                     Slider(
-                        "threshold_high",
+                        "threshold-high",
                         "Threshold (high)",
                         self.threshold["high"],
                         -60,
@@ -1364,7 +1364,7 @@ class AudioMeterControl(Control):
                         0.01,
                     ),
                     Slider(
-                        "threshold_low",
+                        "threshold-low",
                         "Threshold (low)",
                         self.threshold["low"],
                         -60,
@@ -1372,7 +1372,7 @@ class AudioMeterControl(Control):
                         0.01,
                     ),
                     Slider(
-                        "grace_high",
+                        "grace-high",
                         "Grace period (too high)",
                         self.grace["high"],
                         0,
@@ -1380,7 +1380,7 @@ class AudioMeterControl(Control):
                         0.001,
                     ),
                     Slider(
-                        "grace_low",
+                        "grace-low",
                         "Grace period (too low)",
                         self.grace["low"],
                         0,
@@ -1388,10 +1388,10 @@ class AudioMeterControl(Control):
                         0.001,
                     ),
                     Slider(
-                        "warn_on_clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1
+                        "warn-on-clip", "Warn on clip?", int(self.warn_on_clip), 0, 1, 1
                     ),
                     Slider(
-                        "msg_duration_high",
+                        "msg-duration-high",
                         "Message duration (high)",
                         self.msg_duration["high"],
                         0,
@@ -1399,7 +1399,7 @@ class AudioMeterControl(Control):
                         0.1,
                     ),
                     Slider(
-                        "msg_duration_low",
+                        "msg-duration-low",
                         "Message duration (low)",
                         self.msg_duration["low"],
                         0,

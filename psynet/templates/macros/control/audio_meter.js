@@ -36,7 +36,7 @@ audioMeterControl.init = function(json) {
 
     this.audioContext = null;
     this.audioMeter = null;
-    this.audioMeterText = document.getElementById("audio_meter_text");
+    this.audioMeterText = document.getElementById("audio-meter-text");
     this.canvasContext = null;
     this.audioMeterMaxWidth=300;
     this.audioMeterMaxHeight=50;
@@ -54,7 +54,7 @@ audioMeterControl.init = function(json) {
 
     var audioMeterControl = this;
     psynet.trial.onEvent("trialConstruct",function() {
-        audioMeterControl.canvasContext = document.getElementById( "audio_meter" ).getContext("2d");
+        audioMeterControl.canvasContext = document.getElementById("audio-meter").getContext("2d");
         audioMeterControl.audioContext = psynet.media.audioContext;
         return new Promise((resolve) => {
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
@@ -245,25 +245,25 @@ audioMeterControl.rmsToDb = function(rms) {
 
 audioMeterControl.updateFromSliders = function() {
     this.decay = {
-        display: $("#decay_display").get(0).value,
-        high: $("#decay_high").get(0).value,
-        low: $("#decay_low").get(0).value
+        display: $("#decay-display").get(0).value,
+        high: $("#decay-high").get(0).value,
+        low: $("#decay-low").get(0).value
     }
 
     this.threshold = {
-        high: $("#threshold_high").get(0).value,
-        low: $("#threshold_low").get(0).value,
+        high: $("#threshold-high").get(0).value,
+        low: $("#threshold-low").get(0).value,
     }
 
     this.grace = {
-        high: $("#grace_high").get(0).value,
-        low: $("#grace_low").get(0).value,
+        high: $("#grace-high").get(0).value,
+        low: $("#grace-low").get(0).value,
     }
 
-    this.warnOnClip = Boolean($("#warn_on_clip").get(0).value)
+    this.warnOnClip = Boolean($("#warn-on-clip").get(0).value)
 
     this.msgDuration = {
-        high: $("#msg_duration_high").get(0).value,
-        low: $("#msg_duration_low").get(0).value,
+        high: $("#msg-duration-high").get(0).value,
+        low: $("#msg-duration-low").get(0).value,
     }
 }

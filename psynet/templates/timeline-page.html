@@ -16,7 +16,7 @@
             background-color: rgba(0, 0, 0, 0.4);
         }
 
-        #help_modal {
+        #help-modal {
             z-index: 1000;
         }
 
@@ -122,7 +122,7 @@
 
     {% block modals %}
         {% block help_modal %}
-            <div id="help_modal" class="modal">
+            <div id="help-modal" class="modal">
                 <div class="modal-content">
                     <span class="close">&times;</span>
                     <div style="margin: 20px">
@@ -148,13 +148,13 @@
         {% endblock %}
 
         {% block resume_modal %}
-            <div id="resume_modal" class="modal">
+            <div id="resume-modal" class="modal">
                 <div class="modal-content">
                     <h3>Are you ready?</h3>
                     <p>
                         Click the button when you're ready to continue the experiment.
                     </p>
-                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume_button">
+                    <button type="button" style="max-width: 100px" class="btn btn-primary" id="resume-button">
                         Resume
                     </button>
                 </div>
@@ -173,7 +173,7 @@
                     line-height: 33px;
                     border-style: none;
                 }
-                #media_download_progress_bar {
+                #media-download-progress-bar {
                     width: {{ initial_download_progress }}%;
                     height: 6px;
                     background-color: black;
@@ -181,18 +181,18 @@
                 .footer-text {
                     margin: 0px;
                 }
-                #help_button {
+                #help-button {
                     min-width: 50px;
                     background-color: white;
                     color: black
                 }
-                #help_button:hover {
+                #help-button:hover {
                     background-color: rgb(234, 236, 239);
                 }
             </style>
 
             <nav id="footer" class="navbar fixed-bottom">
-                <div id="media_download_progress_bar"></div>
+                <div id="media-download-progress-bar"></div>
                 <div style="width: 100%; padding: 8px; padding-left: 20px; padding-right: 20px;">
                     <div style="margin: 0px; display: flex; justify-content: space-between; align-items: center;">
                         {% if show_bonus %}
@@ -209,7 +209,7 @@
                                 </strong>
                             </div>
                         {% endif %}
-                        <button type="button" class="btn btn-primary" id="help_button">Help!</button>
+                        <button type="button" class="btn btn-primary" id="help-button">Help!</button>
                     </div>
                 </div>
             </nav>
@@ -716,7 +716,7 @@
                 };
 
                 psynet.media.downloadProgress.bar = function () {
-                    return document.getElementById("media_download_progress_bar")
+                    return document.getElementById("media-download-progress-bar")
                 };
 
                 psynet.media.downloadProgress.updateDisplay = function () {
@@ -770,8 +770,8 @@
 
                 let askUserToResume = function() {
                     return new Promise((resolve) => {
-                        let resumeModal = $("#resume_modal");
-                        let resumeButton = $("#resume_button");
+                        let resumeModal = $("#resume-modal");
+                        let resumeButton = $("#resume-button");
                         resumeModal.css("display", "block");
                         resumeButton.click(async function() {
                             resumeModal.css("display", "none");
@@ -1191,8 +1191,8 @@
                 };
 
                 let initModal = function () {
-                    let modal = document.getElementById("help_modal");
-                    let helpBtn = document.getElementById("help_button");
+                    let modal = document.getElementById("help-modal");
+                    let helpBtn = document.getElementById("help-button");
                     let span = document.getElementsByClassName("close")[0];
 
                     if (modal !== null) {

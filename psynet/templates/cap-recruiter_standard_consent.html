@@ -2,12 +2,12 @@
 
 {% block main_body %}
   <style>
-    .main_div {
+    .main-div {
       margin: 0;
     }
   </style>
 
-  <div class="main_div" style="padding-bottom: 100px;
+  <div class="main-div" style="padding-bottom: 100px;
   ">
     <noscript>
         <h1>Warning: Javascript is not working on your browser</h1>
@@ -16,7 +16,7 @@
     </noscript>
     <h1>Research Participant Consent Form</h1>
     <hr>
-    <div class="consent_div text-justify">
+    <div class="text-justify">
         <div class="text-left" style="font-size:18px">
           <h2>Title of study: {{experiment_title}}</h2>
           <p>
@@ -60,7 +60,7 @@
         <hr>
         <h4>Do you understand and consent to these terms?</h4>
         <br>
-        <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
+        <button type="button" id="standard-consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
           I agree
         </button>
         <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
