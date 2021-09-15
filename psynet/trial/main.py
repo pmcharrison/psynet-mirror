@@ -729,6 +729,9 @@ class TrialMaker(Module):
       (optional), which checks the performance of the participant
       with a view to rejecting poor-performing participants.
 
+    * :meth:`~psynet.trial.main.TrialMaker.compute_bonus`;
+      computes the final performance bonus to assign to the participant.
+
     * :attr:`~psynet.trial.main.TrialMaker.num_trials_still_required`
       (optional), which is used to estimate how many more participants are
       still required in the case that ``recruit_mode="num_trials"``.
