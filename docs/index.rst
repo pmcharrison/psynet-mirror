@@ -32,6 +32,7 @@ PsyNet Documentation
    experimenter/pre_deploy_routines
    experimenter/payment_limits
    experimenter/deploy_tokens
+   experimenter/deployment
 
 .. toctree::
    :maxdepth: 2
