@@ -60,8 +60,8 @@ Deployment from docker.io
 -------------------------
 
 This section makes use of Dallinger's ``dallinger docker-ssh`` command. In order to get a full understanding of its
-capabilities refer to the official documentation at https://dallinger.readthedocs.io/en/latest/docker_support.html.
-Although, this shouldn't be necessary for a basic deployment in the way described below.
+capabilities refer to the official documentation at https://dallinger.readthedocs.io/en/latest/docker_support.html,
+although this shouldn't be necessary for a basic deployment in the way described below.
 
 .. note::
 
