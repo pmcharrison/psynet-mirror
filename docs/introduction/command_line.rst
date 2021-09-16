@@ -13,6 +13,7 @@ Commands:
 | :ref:`deploy <deploy>`
 | :ref:`estimate <estimate>`
 | :ref:`export <export>`
+| :ref:`update <update>`
 
 .. _debug:
 
@@ -156,3 +157,34 @@ Export from sandbox/production
     --local          Export local data
     --force-prepare  Force override of cache.
     --help           Show this message and exit.
+
+
+.. _update:
+
+Update PsyNet/Dallinger (``update``)
+------------------------------------
+
+Update the locally installed `PsyNet` and `Dallinger` versions to their latest
+compatible release. While the default is to update both packages, they can also
+be set to specific versions (e.g. downgraded) using the ``--psynet-version`` and
+``--dallinger-version`` command line options.
+
+.. code:: bash
+
+  psynet update
+
+**Usage**
+
+.. code:: bash
+
+  psynet update [OPTIONS]
+
+  Options:
+    --dallinger-version TEXT  The git branch, commit or tag of the Dallinger
+                              version to install.
+
+    --psynet-version TEXT     The git branch, commit or tag of the psynet
+                              version to install.
+
+    --verbose                 Verbose mode
+    --help                    Show this message and exit.
