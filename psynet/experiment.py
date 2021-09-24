@@ -5,6 +5,7 @@ from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
 import rpdb
+import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import log as dallinger_log
 from dallinger.config import get_config
@@ -13,6 +14,7 @@ from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
 from dallinger.notifications import admin_notifier
+from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
 
@@ -526,24 +528,8 @@ class Experiment(dallinger.experiment.Experiment):
         :returns:
             The bonus payment as a ``float``.
         """
-        bonus = self.calculate_bonus(participant)
+        bonus = participant.calculate_bonus()
         return self.check_bonus(bonus, participant)
-
-    def calculate_bonus(self, participant):
-        """
-        Calculates and returns the bonus for the given participant.
-
-        :param participant:
-            The participant.
-        :type participant:
-            :attr:`~psynet.participant.Participant`
-        :returns:
-            The bonus as a ``float``.
-        """
-        return round(
-            participant.time_credit.get_bonus() + participant.performance_bonus,
-            ndigits=2,
-        )
 
     def check_bonus(self, bonus, participant):
         """
@@ -727,6 +713,68 @@ class Experiment(dallinger.experiment.Experiment):
             timeline_modules=json.dumps(exp.timeline.modules(), default=serialise),
         )
 
+    @dashboard_tab("Participant", after_route="monitoring")
+    @classmethod
+    def participant(cls):
+        message = ""
+        participant = None
+
+        assignment_id = request.args.get("assignment_id", default=None)
+        participant_id = request.args.get("participant_id", default=None)
+        worker_id = request.args.get("worker_id", default=None)
+
+        try:
+            if assignment_id is not None:
+                participant = cls.get_participant_from_assignment_id(assignment_id)
+            elif participant_id is not None:
+                participant = cls.get_participant_from_participant_id(participant_id)
+            elif worker_id is not None:
+                participant = cls.get_participant_from_worker_id(worker_id)
+            else:
+                message = "Please select a participant."
+        except ValueError:
+            message = "Invalid ID."
+        except sqlalchemy.orm.exc.NoResultFound:
+            message = "Failed to find any matching participants."
+        except sqlalchemy.orm.exc.MultipleResultsFound:
+            message = "Found multiple participants matching those specifications."
+
+        return render_template(
+            "participant.html",
+            title="Participant",
+            participant=participant,
+            message=message,
+            app_base_url=get_base_url(),
+        )
+
+    @classmethod
+    def get_participant_from_assignment_id(cls, assignment_id):
+        return Participant.query.filter_by(assignment_id=assignment_id).one()
+
+    @classmethod
+    def get_participant_from_participant_id(cls, participant_id):
+        """
+        Get a participant with a specified ``participant_id``.
+        Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
+        and a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant.
+
+        Parameters
+        ----------
+        participant_id :
+            ID of the participant to retrieve.
+
+        Returns
+        -------
+
+        The corresponding participant object.
+        """
+        _id = int(participant_id)
+        return Participant.query.filter_by(id=_id).one()
+
+    @classmethod
+    def get_participant_from_worker_id(cls, worker_id):
+        return Participant.query.filter_by(worker_id=worker_id).one()
+
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
     def get_participant_info_for_debug_mode():
@@ -868,6 +916,11 @@ class Experiment(dallinger.experiment.Experiment):
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
+    @experiment_route("/resume/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_resume(cls, assignment_id):
+        return render_template("resume.html", assignment_id=assignment_id)
+
     @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
     @classmethod
     def route_timeline(cls, participant_id, assignment_id):
@@ -920,11 +973,11 @@ class Experiment(dallinger.experiment.Experiment):
         if cls.new(db.session).var.show_bonus:
             performance_bonus = participant.performance_bonus
             basic_bonus = participant.time_credit.get_bonus()
-            bonus = performance_bonus + basic_bonus
+            total_bonus = participant.calculate_bonus()
             data["bonus"] = {
                 "basic": basic_bonus,
                 "extra": performance_bonus,
-                "total": bonus,
+                "total": total_bonus,
             }
         return data
 

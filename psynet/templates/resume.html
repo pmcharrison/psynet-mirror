@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    {{super()}}
+
+    <div style="margin: 15%">
+        <p>
+            Resuming experiment ...
+        </p>
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+{{super()}}
+    <script>
+        let assignmentId = "{{ assignment_id }}";
+        dallinger.loadParticipant(assignmentId).done(function(resp) {
+            let participantId = dallinger.identity.participantId;
+            dallinger.goToPage("timeline/" + participantId + "/" + dallinger.identity.assignmentId);
+        }).fail(function(resp) {
+            alert("Failed to load the requested session: " + resp);
+        });
+    </script>
+{% endblock %}
