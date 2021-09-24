@@ -34,4 +34,21 @@
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
 Begin Experiment
 </button>
+<button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
+Abort Experiment
+</button>
+
+<script>
+    function abortExperiment(event) {
+        dallinger.submitAssignment();
+    }
+
+    function enableAbortButton(event) {
+        document.getElementById("abort-button").disabled = false;
+    }
+
+    document.getElementById("begin-button").onmouseup = enableAbortButton;
+    document.getElementById("abort-button").onclick = abortExperiment;
+</script>
 {% endblock live %}
+
