@@ -124,5 +124,4 @@ class Exp(psynet.experiment.Experiment):
 
     @classmethod
     def extra_parameters(cls):
-        config = get_config()
-        config.register("cap_recruiter_auth_token", str, [], False)
+        get_config().register("cap_recruiter_auth_token", str, [], False)

@@ -36,4 +36,4 @@ host = 0.0.0.0
 clock_on = true
 
 [Docker]
-docker_image_base_name = docker.io/kqmqneyosi8e/mcmcpauth3
+docker_image_base_name = docker.io/kqmqneyosi8e/mcmcpauth5
