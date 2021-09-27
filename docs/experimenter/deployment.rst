@@ -44,9 +44,7 @@ Setup docker locally
 
 .. code-block:: bash
 
-    sudo groupadd docker
     sudo usermod -aG docker $USER
-    newgrp docker
 
 .. code-block:: bash
 
@@ -59,8 +57,8 @@ Verify docker works
 
     docker run hello-world
 
-If it doesn't run the command successfully log out and log in a gain or reboot. Then try running the command again.
-
+If the command doesn't run successfully log out and in again or reboot the machine.
+After, try running the last command again.
 
 Deployment from docker.io
 -------------------------
@@ -71,16 +69,24 @@ although this shouldn't be necessary for a basic deployment in the way described
 
 .. note::
 
-    Unless you already have one, first create an account on ``docker.io``.
+    Unless you already have one, create an account on ``docker.io`` or ``ghcr.io``. In this document,
+    ``docker.io`` is utilized as the place for storing our Docker images.
 
 Add remote server to docker servers list
 ++++++++++++++++++++++++++++++++++++++++
 
 We use ``cap-experiments.ae.mpg.de`` as the server where experiments will be deployed.
+Add it to the list of remote servers known to `docker-ssh`
 
 .. code-block:: bash
 
     dallinger docker-ssh servers add --user cap --host cap-experiments.ae.mpg.de
+
+To verify it has been added, execute
+
+.. code-block:: bash
+
+    dallinger docker-ssh servers list
 
 Login to docker.io (locally and on the remote server)
 +++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -91,58 +97,54 @@ Login to docker.io (locally and on the remote server)
 
     docker login -u <DOCKER_IO_USERNAME> -p "<DOCKER_IO_PASSWORD>" docker.io
 
-Adjust experiment config.txt
-++++++++++++++++++++++++++++
+or for  better security
 
-Add a new section ``Docker`` containing key ``image_base_name`` to your experiments `config.txt` file.
+.. code-block:: bash
+
+    docker login -u <DOCKER_IO_USERNAME> --password-stdin docker.io
+
+Now type ``CTRL-D``, paste the password and hit `RETURN`.
+
+.. note::
+    For how to use a `credentials store`, see this link: https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Make sure your experiment's constraints.txt file is up-to-date
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+In your experiment directory execute
+
+.. code-block:: bash
+
+    dallinger generate-constraints
+
+Adjust the experiment's `config.txt` file
++++++++++++++++++++++++++++++++++++++++++
+
+Add a new section ``Docker`` containing the key ``docker_image_base_name`` to your experiments `config.txt` file.
 
 .. code-block:: bash
 
     [Docker]
-    image_base_name = docker.io/<DOCKER_IO_USERNAME>/<DOCKER_IO_REPOSITORY>
+    docker_image_base_name = docker.io/<DOCKER_IO_USERNAME>/<DOCKER_IO_REPOSITORY>
 
 Build Docker image
 ++++++++++++++++++
 
 The Docker image will contain all necessary software to independently run in a Docker container on the remote server.
+Build it with
 
 .. code-block:: bash
 
     dallinger docker build
 
-Push image to docker.io
-+++++++++++++++++++++++
-
-.. code-block:: bash
-
-    dallinger docker push --use-existing
-
-
 Deploy image to remote server
 +++++++++++++++++++++++++++++
 
-.. code-block:: bash
-
-    dallinger docker-ssh deploy --image docker.io/<DOCKER_IO_USERNAME>/<DOCKER_IO_REPOSITORY>:<DOCKER_IMAGE_HASH> -c recruiter hotair -c dashboard_password cap
-
-E.g.:
+You are now ready to deploy the image to the remote server:
 
 .. code-block:: bash
 
-    dallinger docker-ssh deploy --image docker.io/dockeriousername/mcmcp:7f4ce7eb -c recruiter hotair -c dashboard_password cap
+    dallinger docker-ssh deploy
 
-Tag Docker image
-++++++++++++++++
-
-.. code-block:: bash
-
-    docker tag <DOCKER_IO_REPOSITORY>:<DOCKER_IMAGE_HASH> <DOCKER_IO_USERNAME>/<DOCKER_IO_REPOSITORY>:<DOCKER_IMAGE_HASH>
-
-E.g.:
-
-.. code-block:: bash
-
-    docker tag mcmcp:7f4ce7eb dockeriousername/mcmcp:7f4ce7eb
-
-
-
+This will append a new line after the line which specifies `docker_image_base_name` in `config.txt`.
+The console's output should give you hints for how to further proceed from here.
