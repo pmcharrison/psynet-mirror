@@ -14,6 +14,7 @@ approve_requirement = 95
 ad_group = Game
 browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
+recruiter = StagingCapRecruiter
 
 [Ad metadata]
 description = This app demos an MCMCP experiment.
@@ -33,3 +34,7 @@ num_dynos_worker = 1
 redis_size = hobby-dev
 host = 0.0.0.0
 clock_on = true
+
+[Docker]
+docker_image_base_name = docker.io/kqmqneyosi8e/mcmcpauth
+docker_image_name = kqmqneyosi8e/mcmcpauth@sha256:692a9dfde9014f67de3e7888514d45e894b7103da65a0c884d840ed7da14e962
