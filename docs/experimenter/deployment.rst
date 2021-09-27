@@ -39,13 +39,17 @@ Install system packages
 
     sudo apt install docker.io python3.9
 
-Setup docker
-++++++++++++
+Setup docker locally
+++++++++++++++++++++
 
 .. code-block:: bash
 
+    sudo groupadd docker
     sudo usermod -aG docker $USER
     newgrp docker
+
+.. code-block:: bash
+
     sudo systemctl restart docker
 
 Verify docker works
@@ -54,6 +58,8 @@ Verify docker works
 .. code-block:: bash
 
     docker run hello-world
+
+If it doesn't run the command successfully log out and log in a gain or reboot. Then try running the command again.
 
 
 Deployment from docker.io
