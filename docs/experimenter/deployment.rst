@@ -152,6 +152,9 @@ The console's output should give you hints for how to further proceed from here.
 Special notes when using CAP-Recruiter as recruitment system
 ------------------------------------------------------------
 
+Specify extra parameter
++++++++++++++++++++++++
+
 Add the following code inside the experiment's class:
 
 .. code-block:: python
@@ -162,17 +165,38 @@ Add the following code inside the experiment's class:
     def extra_parameters(cls):
         get_config().register("cap_recruiter_auth_token", str, [], False)
 
-Specify the recruiter class in `config.txt`:
+Set authentication tokens
++++++++++++++++++++++++++
 
-Staging
-+++++++
+Add a new section to your local user's `.dallingerconfig` file to provide an authentication token
+for the CAP-Recruiter API:
+
+.. note::
+
+    See CAP-safe for the valid authentication tokens.
+
+.. code-block:: bash
+
+    [API Tokens]
+    # staging
+    cap_recruiter_auth_token = <AUTH_TOKEN>
+
+    # production
+    cap_recruiter_auth_token = <AUTH_TOKEN>
+
+
+Specify the recruiter class
++++++++++++++++++++++++++++
+
+Finally, specify the recruiter class in `config.txt`:
+
+**Staging**
 
 .. code-block:: bash
 
     recruiter = StagingCapRecruiter
 
-Production
-++++++++++
+**Production**
 
 .. code-block:: bash
 
