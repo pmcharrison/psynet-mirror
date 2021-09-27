@@ -37,3 +37,4 @@ clock_on = true
 
 [Docker]
 docker_image_base_name = docker.io/kqmqneyosi8e/mcmcpauth5
+docker_image_name = kqmqneyosi8e/mcmcpauth5@sha256:fbe79523d9abac3b9217e560ed7bea6f0dfb2fb7171d3099782baaaa0a8307c7

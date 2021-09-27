@@ -148,3 +148,36 @@ You are now ready to deploy the image to the remote server:
 
 This will append a new line after the line which specifies `docker_image_base_name` in `config.txt`.
 The console's output should give you hints for how to further proceed from here.
+
+Special notes when using CAP-Recruiter as recruitment system
+------------------------------------------------------------
+
+Add the following code inside the experiment's class:
+
+.. code-block:: python
+
+    from dallinger.config import get_config
+
+    @classmethod
+    def extra_parameters(cls):
+        get_config().register("cap_recruiter_auth_token", str, [], False)
+
+Specify the recruiter class in `config.txt`:
+
+Staging
++++++++
+
+.. code-block:: bash
+
+    recruiter = StagingCapRecruiter
+
+Production
+++++++++++
+
+.. code-block:: bash
+
+    recruiter = CapRecruiter
+
+.. note::
+
+    The `DevCapRecruiter` class is only used during development. Don't use it when deploying!
