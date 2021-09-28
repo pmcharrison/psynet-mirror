@@ -104,8 +104,6 @@ To verify it has been added, execute
 Login to docker.io (locally)
 ++++++++++++++++++++++++++++
 
-*TODO*: Check if both logins are necessary.
-
 .. code-block:: bash
 
     docker login -u <DOCKER_IO_USERNAME> -p "<DOCKER_IO_PASSWORD>" docker.io
