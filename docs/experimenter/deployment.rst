@@ -7,8 +7,8 @@ Server setup
 
 This setup only has to be done by the server's administrator once. Also, instructions apply to Ubuntu 20.04 LTS (Focal Fossa) only.
 
-Add new user'cap'
-+++++++++++++++++
+Add new user *cap*
+++++++++++++++++++
 
 Login to the remote server. Then, execute
 
@@ -19,8 +19,8 @@ Login to the remote server. Then, execute
 Provide a secure password and store it at a save place.
 
 
-Give user 'cap' sudo-rights
-+++++++++++++++++++++++++++
+Grant sudo privileges to user *cap*
++++++++++++++++++++++++++++++++++++
 
 .. code-block:: bash
 
