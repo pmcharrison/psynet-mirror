@@ -88,7 +88,7 @@ The following steps are all executed from your local computer.
 Add remote server to docker servers list
 ++++++++++++++++++++++++++++++++++++++++
 
-We use ``cap-experiments.ae.mpg.de`` as the server where experiments will be deployed.
+Here, we use ``cap-experiments.ae.mpg.de`` as the server where experiments will be deployed.
 Add it to the list of remote servers known to `docker-ssh`
 
 .. code-block:: bash
@@ -140,6 +140,8 @@ Add a new section ``Docker`` containing the key ``docker_image_base_name`` to yo
 
 Build Docker image
 ++++++++++++++++++
+
+*This step is optional as `dallinger docker-ssh deploy` will also build the image if it has changed or does not exist yet.*
 
 The Docker image will contain all necessary software to independently run in a Docker container on the remote server.
 Build it with
