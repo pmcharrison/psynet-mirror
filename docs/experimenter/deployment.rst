@@ -7,10 +7,20 @@ Server setup
 
 This setup only has to be done by the server's administrator once. Also, instructions apply to Ubuntu 20.04 LTS (Focal Fossa) only.
 
-Update sudo permissions
-+++++++++++++++++++++++
+Add new user'cap'
++++++++++++++++++
 
-Login on the remote server. Then, execute
+Login to the remote server. Then, execute
+
+.. code-block:: bash
+
+    sudo adduser cap
+
+Provide a secure password and store it at a save place.
+
+
+Give user 'cap' sudo-rights
++++++++++++++++++++++++++++
 
 .. code-block:: bash
 
@@ -45,6 +55,7 @@ Setup docker locally
 .. code-block:: bash
 
     sudo usermod -aG docker $USER
+    newgrp docker
 
 .. code-block:: bash
 
@@ -72,6 +83,8 @@ although this shouldn't be necessary for a basic deployment in the way described
     Unless you already have one, create an account on ``docker.io`` or ``ghcr.io``. In this document,
     ``docker.io`` is utilized as the place for storing our Docker images.
 
+The following steps are all executed from your local computer.
+
 Add remote server to docker servers list
 ++++++++++++++++++++++++++++++++++++++++
 
@@ -88,8 +101,8 @@ To verify it has been added, execute
 
     dallinger docker-ssh servers list
 
-Login to docker.io (locally and on the remote server)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++
+Login to docker.io (locally)
+++++++++++++++++++++++++++++
 
 *TODO*: Check if both logins are necessary.
 
