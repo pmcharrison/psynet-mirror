@@ -119,7 +119,7 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = (
-            1  # increase to simulate multiple participants at once
+            10  # increase to simulate multiple participants at once
         )
 
     @classmethod
