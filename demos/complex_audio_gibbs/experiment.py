@@ -21,24 +21,59 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsTrialMaker,
 )
 from psynet.utils import get_logger
+import random
 
 logger = get_logger()
 
 # Custom parameters, change these as you like!
-TARGETS = ["dominant", "trustworthy"]
-DIMENSIONS = 7
-RANGE = [-800, 800]
+TARGETS = ["sad", "happy", "angry"]
+SENTENCE_RECORDINGS = ['Harvard_L35_S01_0.wav', 'Harvard_L35_S02_0.wav', 'Harvard_L35_S03_0.wav']
+RANGES = [
+    # DURATION
+    # 1. Duration, percent
+    [0.8, 1.2],
+
+    # INTENSITY
+    # 2. Tremolo rate, st
+    [0.01, 5],
+
+    # 3. Tremolo depth, dB
+    [0.01, 10],
+
+    # PITCH
+    # 4. Shift, semitones
+    [-3, 3],
+
+    # 5. Range, percent
+    [0.2, 1.8],
+
+    # 6. Increase/Decrease, semitones
+    [-3, 3],
+
+    # 7. Jitter, custom unit
+    [0, 10]
+]
+INITIAL_VALUES = [
+    1,  # 1. Duration, percent
+    0.1,  # 2. Tremolo rate, st
+    0.05,  # 3. Tremolo depth, dB
+    0,  # 4. Shift, semitones
+    1,  # 5. Range, percent
+    0,  # 6. Increase/Decrease, semitones
+    0  # 7. Jitter, custom unit
+]
+DIMENSIONS = len(INITIAL_VALUES)
+MIN_DURATION = 5
+TIME_ESTIMATE_PER_TRIAL = 5
 GRANULARITY = 25
-SNAP_SLIDER = True
+SNAP_SLIDER = False
 AUTOPLAY = True
 DEBUG = False
 psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
-NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2
-NUM_CHAINS_PER_PARTICIPANT = len(TARGETS)
-NUM_TRIALS_PER_PARTICIPANT = NUM_ITERATIONS_PER_CHAIN * NUM_CHAINS_PER_PARTICIPANT
 
-assert NUM_TRIALS_PER_PARTICIPANT == 2 * 7 * 2
-
+NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2 # every dimension is visited twice
+NUM_CHAINS_PER_EXPERIMENT = len(TARGETS) * 3 # for each emotion there are 3 chains (each with a different sentence)
+NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3 # every participant does 9 trials
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -50,13 +85,16 @@ class CustomNetwork(AudioGibbsNetwork):
 
     s3_bucket = "audio-gibbs-demo"
     vector_length = DIMENSIONS
-    vector_ranges = [RANGE for _ in range(DIMENSIONS)]
+    vector_ranges = RANGES
     granularity = GRANULARITY
 
     n_jobs = 8  # <--- Parallelizes stimulus synthesis into 8 parallel processes at each worker node
 
     def make_definition(self):
-        return {"target": self.balance_across_networks(TARGETS)}
+        return {
+            "target": self.balance_across_networks(TARGETS),
+            "file": random.sample(SENTENCE_RECORDINGS, 1)[0] # Get random sample
+        }
 
 
 class CustomTrial(AudioGibbsTrial):
@@ -65,13 +103,12 @@ class CustomTrial(AudioGibbsTrial):
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
-    minimal_time = 3.0
+    minimal_time = MIN_DURATION
 
     def get_prompt(self, experiment, participant):
         return Markup(
-            "Adjust the slider so that the word sounds as "
-            f"<strong>{self.network.definition['target']}</strong> "
-            "as possible."
+            "Adjust the slider to make the speaker sound like she is "
+            f"<strong>{self.network.definition['target']}</strong>."
         )
 
 
@@ -82,20 +119,17 @@ class CustomNode(AudioGibbsNode):
 class CustomSource(AudioGibbsSource):
     __mapper_args__ = {"polymorphic_identity": "custom_source"}
 
+    def generate_seed(self, network, experiment, participant):
+        if network.vector_length is None:
+            raise ValueError("network.vector_length must not be None. Did you forget to set it?")
+        return {
+            "vector": INITIAL_VALUES, # Start at predefined zero points, i.e. not at a random point in space
+            "active_index": random.randint(0, network.vector_length), # 
+        }
+
 
 class CustomTrialMaker(AudioGibbsTrialMaker):
-    performance_threshold = -1.0
-    give_end_feedback_passed = True
-
-    def get_end_feedback_passed_page(self, score):
-        score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
-
-        return InfoPage(
-            Markup(
-                f"Your consistency score was <strong>{score_to_display}&#37;</strong>."
-            ),
-            time_estimate=5,
-        )
+    response_timeout_sec = 1e9
 
 
 trial_maker = CustomTrialMaker(
@@ -105,21 +139,24 @@ trial_maker = CustomTrialMaker(
     node_class=CustomNode,
     source_class=CustomSource,
     phase="experiment",  # can be whatever you like
-    time_estimate_per_trial=5,
-    chain_type="within",  # can be "within" or "across"
+    time_estimate_per_trial=TIME_ESTIMATE_PER_TRIAL,
+    chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,
-    num_chains_per_participant=NUM_CHAINS_PER_PARTICIPANT,  # set to None if chain_type="across"
-    num_chains_per_experiment=None,  # set to None if chain_type="within"
+    num_chains_per_participant=None,  # set to None if chain_type="across"
+    num_chains_per_experiment=NUM_CHAINS_PER_EXPERIMENT,  # set to None if chain_type="within"
     trials_per_node=1,
     balance_across_chains=True,
-    check_performance_at_end=True,
+    check_performance_at_end=False,
     check_performance_every_trial=False,
     propagate_failure=False,
-    recruit_mode="num_participants",
-    target_num_participants=10,
+    recruit_mode="num_trials",
+    target_num_participants=None,
     wait_for_networks=True,
 )
+
+
+
 
 ##########################################################################################
 # Experiment
