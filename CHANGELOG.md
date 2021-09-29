@@ -1,5 +1,13 @@
 # CHANGELOG
 
+#### Added
+- Added new dashboard panel called 'Participant'.
+  Here one can search participants by participant ID, worker ID, or assignment ID,
+  and easily see the current status of the participant 
+  as well as their current estimated bonus.
+  Functionality is also provided for resuming a given participant's session
+  via a special URL.
+
 # [4.0.0] Released on 2021-09-13
 
 #### Added
