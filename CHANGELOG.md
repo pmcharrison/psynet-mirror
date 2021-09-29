@@ -7,6 +7,7 @@
   as well as their current estimated bonus.
   Functionality is also provided for resuming a given participant's session
   via a special URL.
+- Added documentation for the ``compute_bonus`` method.
 
 # [4.0.0] Released on 2021-09-13
 
