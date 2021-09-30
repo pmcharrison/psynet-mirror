@@ -1,5 +1,19 @@
 # CHANGELOG
 
+#### Added
+- Added new dashboard panel called 'Participant'.
+  Here one can search participants by participant ID, worker ID, or assignment ID,
+  and easily see the current status of the participant 
+  as well as their current estimated bonus.
+  Functionality is also provided for resuming a given participant's session
+  via a special URL.
+- Added documentation for the ``compute_bonus`` method.
+
+#### Changed
+- Migrated the ``compute_bonus`` method from the ``Experiment`` class to the 
+  ``Participant`` class. Researchers should not be using this method directly,
+  so this change should not affect most people.
+
 # [4.0.0] Released on 2021-09-13
 
 #### Added
