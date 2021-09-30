@@ -751,7 +751,8 @@ class Experiment(dallinger.experiment.Experiment):
     def get_participant_from_assignment_id(cls, assignment_id):
         """
         Get a participant with a specified ``assignment_id``.
-        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant.
+        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
+        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
 
         Parameters
         ----------
@@ -770,7 +771,8 @@ class Experiment(dallinger.experiment.Experiment):
         """
         Get a participant with a specified ``participant_id``.
         Throws a ``ValueError`` if the ``participant_id`` is not a valid integer,
-        and a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant.
+        a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
+        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
 
         Parameters
         ----------
@@ -789,7 +791,8 @@ class Experiment(dallinger.experiment.Experiment):
     def get_participant_from_worker_id(cls, worker_id):
         """
         Get a participant with a specified ``worker_id``.
-        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant.
+        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant,
+        or a ``sqlalchemy.orm.exc.MultipleResultsFound`` error if there are multiple such participants.
 
         Parameters
         ----------
