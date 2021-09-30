@@ -9,6 +9,11 @@
   via a special URL.
 - Added documentation for the ``compute_bonus`` method.
 
+#### Changed
+- Migrated the ``compute_bonus`` method from the ``Experiment`` class to the 
+  ``Participant`` class. Researchers should not be using this method directly,
+  so this change should not affect most people.
+
 # [4.0.0] Released on 2021-09-13
 
 #### Added
