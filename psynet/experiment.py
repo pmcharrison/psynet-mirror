@@ -749,6 +749,20 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def get_participant_from_assignment_id(cls, assignment_id):
+        """
+        Get a participant with a specified ``assignment_id``.
+        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant.
+
+        Parameters
+        ----------
+        assignment_id :
+            ID of the participant to retrieve.
+
+        Returns
+        -------
+
+        The corresponding participant object.
+        """
         return Participant.query.filter_by(assignment_id=assignment_id).one()
 
     @classmethod
@@ -773,6 +787,20 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def get_participant_from_worker_id(cls, worker_id):
+        """
+        Get a participant with a specified ``worker_id``.
+        Throws a ``sqlalchemy.orm.exc.NoResultFound`` error if there is no such participant.
+
+        Parameters
+        ----------
+        worker_id :
+            ID of the participant to retrieve.
+
+        Returns
+        -------
+
+        The corresponding participant object.
+        """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
