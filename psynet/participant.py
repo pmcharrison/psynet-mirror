@@ -226,6 +226,18 @@ class Participant(dallinger.models.Participant):
         self.client_ip_address = client_ip_address
         self.initialised = True
 
+    def calculate_bonus(self):
+        """
+        Calculates and returns the currently accumulated bonus for the given participant.
+
+        :returns:
+            The bonus as a ``float``.
+        """
+        return round(
+            self.time_credit.get_bonus() + self.performance_bonus,
+            ndigits=2,
+        )
+
     def inc_performance_bonus(self, value):
         self.performance_bonus = self.performance_bonus + value
 
