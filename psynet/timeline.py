@@ -918,6 +918,7 @@ class Page(Elt):
             ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
+            "show_abort_button": experiment.var.show_abort_button,
             "show_footer": experiment.var.show_footer,
             "show_bonus": experiment.var.show_bonus,
             "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),

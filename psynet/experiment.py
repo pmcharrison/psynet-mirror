@@ -95,6 +95,12 @@ class Experiment(dallinger.experiment.Experiment):
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
+    show_abort_button : `bool`
+        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
+        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
+        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+        Default ``False``.
+
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
         at the bottom of the page.
@@ -249,6 +255,7 @@ class Experiment(dallinger.experiment.Experiment):
             "soft_max_experiment_payment": 1000.0,
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
+            "show_abort_button": False,
             "show_bonus": True,
             "show_footer": True,
         }
