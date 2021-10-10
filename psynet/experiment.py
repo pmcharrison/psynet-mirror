@@ -959,6 +959,24 @@ class Experiment(dallinger.experiment.Experiment):
     def route_resume(cls, assignment_id):
         return render_template("resume.html", assignment_id=assignment_id)
 
+    @experiment_route("/abort/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_abort(cls, assignment_id):
+        try:
+            if assignment_id is not None:
+                participant = cls.get_participant_from_assignment_id(assignment_id)
+                abort_info = sorted(participant.abort_info().items())
+                logger.info(f"Aborting experiment for assignment ID '{assignment_id}'.")
+
+        except ValueError:
+            logger.error("Invalid assignment ID.")
+        except sqlalchemy.orm.exc.NoResultFound:
+            logger.error("Failed to find any matching participants.")
+        except sqlalchemy.orm.exc.MultipleResultsFound:
+            logger.error("Found multiple participants matching those specifications.")
+
+        return render_template("abort.html", participant_abort_info=abort_info)
+
     @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
     @classmethod
     def route_timeline(cls, participant_id, assignment_id):

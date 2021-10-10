@@ -375,6 +375,21 @@ class Participant(dallinger.models.Participant):
         self.failure_tags = combined
         return self
 
+    def abort_info(self):
+        """
+            Information that will be shown to a participant if they click the abort button,
+            e.g. in the case of an error where the participant is unable to finish the experiment.
+
+        :returns: ``dict`` which may be rendered to the worker as an HTML table
+            when they abort the experiment.
+        """
+        return {
+            "Assignment ID": self.assignment_id,
+            "HIT ID": self.hit_id,
+            "Base Pay": self.time_credit.get_bonus(),
+            "Bonus": self.performance_bonus,
+        }
+
 
 def get_participant(participant_id: int):
     """

@@ -41,7 +41,7 @@ Abort Experiment
 
 <script>
     function abortExperiment(event) {
-        dallinger.submitAssignment();
+        window.location.href = "/abort/" + "{{assignmentid}}";
     }
 
     function enableAbortButton(event) {
