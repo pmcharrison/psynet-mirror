@@ -10,6 +10,8 @@
 - Added documentation for the ``compute_bonus`` method.
 
 #### Changed
+- Reduced the default performance threshold in `LexTaleTest` from 10 to 8.
+  The previous performance threshold was found to be much too stringent.
 - Migrated the ``compute_bonus`` method from the ``Experiment`` class to the 
   ``Participant`` class. Researchers should not be using this method directly,
   so this change should not affect most people.
