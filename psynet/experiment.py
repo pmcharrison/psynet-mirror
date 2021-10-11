@@ -965,8 +965,10 @@ class Experiment(dallinger.experiment.Experiment):
         try:
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
+                participant.end_time = datetime.now()
+                db.session.commit()
                 abort_info = sorted(participant.abort_info().items())
-                logger.info(f"Aborting experiment for assignment ID '{assignment_id}'.")
+                logger.info(f"Aborted experiment for assignment ID '{assignment_id}'.")
 
         except ValueError:
             logger.error("Invalid assignment ID.")
