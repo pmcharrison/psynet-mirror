@@ -88,6 +88,7 @@ class CustomNode(MCMCPNode):
 class Exp(psynet.experiment.Experiment):
     variables = {
         "show_abort_button": True,
+        "min_accumulated_bonus_for_abort": 0.11,
     }
 
     timeline = Timeline(

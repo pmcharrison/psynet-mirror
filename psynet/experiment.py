@@ -95,6 +95,10 @@ class Experiment(dallinger.experiment.Experiment):
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
 
+    min_accumulated_bonus_for_abort : `float`
+        The threshold of bonus accumulated in US dollars for the participant to be able to receive
+        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
+
     show_abort_button : `bool`
         If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
         e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
@@ -255,6 +259,7 @@ class Experiment(dallinger.experiment.Experiment):
             "soft_max_experiment_payment": 1000.0,
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
+            "min_accumulated_bonus_for_abort": 0.20,
             "show_abort_button": False,
             "show_bonus": True,
             "show_footer": True,
