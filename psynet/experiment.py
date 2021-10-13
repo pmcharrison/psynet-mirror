@@ -970,10 +970,14 @@ class Experiment(dallinger.experiment.Experiment):
         try:
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                participant.end_time = datetime.now()
-                db.session.commit()
                 abort_info = sorted(participant.abort_info().items())
-                logger.info(f"Aborted experiment for assignment ID '{assignment_id}'.")
+                if (
+                    participant.calculate_bonus()
+                    < cls.new(db.session).var.min_accumulated_bonus_for_abort
+                ):
+                    template_name = "abort_not_possible.html"
+                else:
+                    template_name = "abort_possible.html"
 
         except ValueError:
             logger.error("Invalid assignment ID.")
@@ -982,7 +986,7 @@ class Experiment(dallinger.experiment.Experiment):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             logger.error("Found multiple participants matching those specifications.")
 
-        return render_template("abort.html", participant_abort_info=abort_info)
+        return render_template(template_name, participant_abort_info=abort_info)
 
     @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
     @classmethod

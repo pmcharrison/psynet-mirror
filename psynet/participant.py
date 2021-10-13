@@ -386,8 +386,7 @@ class Participant(dallinger.models.Participant):
         return {
             "Assignment ID": self.assignment_id,
             "HIT ID": self.hit_id,
-            "Base Pay": self.time_credit.get_bonus(),
-            "Bonus": self.performance_bonus,
+            "Accumulated bonus": "$" + "{:.2f}".format(self.calculate_bonus()),
         }
 
 
