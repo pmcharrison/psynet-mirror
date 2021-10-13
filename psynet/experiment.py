@@ -701,8 +701,8 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/Tonejs",
             ),
             (
-                resource_filename("psynet", "templates/error.html"),
-                "templates/error.html",
+                resource_filename("psynet", "templates/mturk_error.html"),
+                "templates/mturk_error.html",
             ),
             (
                 resource_filename(

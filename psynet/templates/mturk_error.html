@@ -1,0 +1,30 @@
+{% extends "layout.html" %}
+
+{% block body %}
+    <div class="main_div">
+        <div>
+            <h1>Error!</h1>
+            <hr>
+            <div>
+                <p id="error-text"><em>{{ error_text }}</em></p>
+                {% if compensate == True %}
+                <br>
+                <p>
+                    There is no need to contact us to receive the compensation;
+                    this should be awarded to you automatically via MTurk a few minutes
+                    after completing the experiment.
+                    If this is not the case, please contact us at
+                    <a href="mailto:{{contact_address}}">{{contact_address}}</a>
+                    quoting the following information:
+                </p>
+                <p>
+                    Error type: {{ error_type }}<br>
+                    HIT ID: {{ hit_id }}<br>
+                    Assignment ID: {{ assignment_id }}<br>
+                    Worker ID: {{ worker_id }}<br>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
