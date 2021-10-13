@@ -677,7 +677,7 @@ class LexTaleTest(Module):
         The time estimate in seconds per trial, default: 2.0.
 
     performance_threshold : int, optional
-        The performance threshold, default: 10.
+        The performance threshold, default: 8.
 
     hide_after : float, optional
         The time in seconds after the word disappears, default: 1.0.
@@ -693,7 +693,7 @@ class LexTaleTest(Module):
         self,
         label="lextale_test",
         time_estimate_per_trial: float = 2.0,
-        performance_threshold: int = 10,
+        performance_threshold: int = 8,
         media_url: str = "https://s3.amazonaws.com/lextale-test-materials",
         hide_after: float = 1,
         num_trials: float = 12,
