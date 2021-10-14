@@ -702,7 +702,7 @@ class Experiment(dallinger.experiment.Experiment):
             ),
             (
                 resource_filename("psynet", "templates/mturk_error.html"),
-                "templates/mturk_error.html",
+                "templates/error.html",
             ),
             (
                 resource_filename(
