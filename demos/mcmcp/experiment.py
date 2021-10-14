@@ -87,7 +87,7 @@ class CustomNode(MCMCPNode):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     variables = {
-        "show_abort_button": True,
+        "show_abort_button": "always",
         "min_accumulated_bonus_for_abort": 0.11,
     }
 

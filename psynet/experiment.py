@@ -99,11 +99,13 @@ class Experiment(dallinger.experiment.Experiment):
         The threshold of bonus accumulated in US dollars for the participant to be able to receive
         compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
 
-    show_abort_button : `bool`
-        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
-        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
-        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
-        Default ``False``.
+    show_abort_button : `str`
+        Controls the behavior of the `Abort` button on the `Ad` page. It can take three values:
+        ``always``, ``on_error``, and ``never``. If ``always`` is chosen, an `Abort` button is displayed
+        the participant can click to terminate the HIT. When chosing ``on_error`` the button will only be displayed
+        if an actual error occured, e.g. in a case where the participant is unable to finish the experiment.
+        Clicking the button assures the participant is compensated on the basis of the amount of bonus
+        that has been accumulated. Use ``never`` to disable experiment abort functionality. Default ``on_error``.
 
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
@@ -702,7 +704,7 @@ class Experiment(dallinger.experiment.Experiment):
             ),
             (
                 resource_filename("psynet", "templates/mturk_error.html"),
-                "templates/error.html",
+                "templates/mturk_error.html",
             ),
             (
                 resource_filename(
@@ -963,6 +965,22 @@ class Experiment(dallinger.experiment.Experiment):
     @classmethod
     def route_resume(cls, assignment_id):
         return render_template("resume.html", assignment_id=assignment_id)
+
+    @experiment_route("/error/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_error(cls, assignment_id):
+        try:
+            if assignment_id is not None:
+                participant = cls.get_participant_from_assignment_id(assignment_id)
+                logger.info(participant)
+        except ValueError:
+            logger.error("Invalid assignment ID.")
+        except sqlalchemy.orm.exc.NoResultFound:
+            logger.error("Failed to find any matching participants.")
+        except sqlalchemy.orm.exc.MultipleResultsFound:
+            logger.error("Found multiple participants matching those specifications.")
+
+        return {"error": ""}
 
     @experiment_route("/abort/<assignment_id>", methods=["GET"])
     @classmethod

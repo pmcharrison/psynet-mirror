@@ -33,6 +33,7 @@ logger = get_logger()
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     variables = {
+        "show_abort_button": "on_error",
         "wage_per_hour": 12.0,
         "new_variable": "some-value",
         # "show_footer": False.  # uncomment to disable the footer (bonus + help button)
