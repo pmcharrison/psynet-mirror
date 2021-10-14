@@ -34,7 +34,7 @@
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
 Begin Experiment
 </button>
-{% if experiment.var.show_abort_button == "always" or experiment.var.show_abort_button == "on_error" %}
+{% if experiment.var.show_abort_button %}
 <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
 Abort Experiment
 </button>
@@ -52,22 +52,6 @@ Abort Experiment
 
     document.getElementById("begin-button").onmouseup = enableAbortButton;
     document.getElementById("abort-button").onclick = abortExperiment;
-
-    {% if experiment.var.show_abort_button == "on_error" %}
-    document.getElementById("abort-button").style="display: none;";
-    {% endif %}
-    setInterval(function () {
-      fetch('/error/{{assignmentid}}')
-        .then(function(response) {
-           return response.json();
-        })
-        .then(function(jsonResponse) {
-          if (jsonResponse.error == "") {
-            document.getElementById("abort-button").style="display: block; float: right;";
-          }
-        });
-    }, 2000);
 </script>
 {% endif %}
 {% endblock live %}
-

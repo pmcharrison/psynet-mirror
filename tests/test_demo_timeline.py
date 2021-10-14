@@ -29,7 +29,7 @@ class TestExp(object):
         assert exp.var.wage_per_hour == 12.0
         assert exp.var.new_variable == "some-value"
         assert exp.var.min_accumulated_bonus_for_abort == 0.2  # Default
-        assert exp.var.show_abort_button == "on_error"  # Default
+        assert exp.var.show_abort_button is True
 
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
         for i, bot in enumerate(bot_recruits):

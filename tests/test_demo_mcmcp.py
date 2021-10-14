@@ -40,5 +40,5 @@ class TestExp:
         assert exp.var.soft_max_experiment_payment_email_sent is False
         assert exp.var.wage_per_hour == 9.0
         assert exp.var.min_accumulated_bonus_for_abort == 0.11
-        assert exp.var.show_abort_button == "always"
+        assert exp.var.show_abort_button is True
         assert exp.var.show_bonus is True
