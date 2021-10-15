@@ -23,8 +23,8 @@ tests:
   - curl https://cli-assets.heroku.com/install.sh | sh
   - apt-get -f -y install curl redis-server
   - service redis-server start
-  - wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_90.0.4430.85-1_amd64.deb
-  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/90.0.4430.24/chromedriver_linux64.zip
+  - wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_94.0.4606.81-1_amd64.deb
+  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/94.0.4606.41/chromedriver_linux64.zip
   - apt-get -f -y install ./chrome.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
