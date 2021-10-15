@@ -35,7 +35,7 @@
         <hr>
         <p>
           Aborting the experiment is not possible as the experimenter does not allow it at this time!
-          You have to <span style="font-weight: bold;">accumulate at least ${{ experiment.var.min_accumulated_bonus_for_abort }}</span> of bonus to be able to be compensated. See below information on your currently accumulated bonus.
+          You have to <span style="font-weight: bold;">accumulate at least ${{ "{:.2f}".format(experiment.var.min_accumulated_bonus_for_abort) }}</span> of bonus to be able to be compensated. See below information on your currently accumulated bonus.
         </p>
         <table class="table table-sm table-striped">
             <tbody>

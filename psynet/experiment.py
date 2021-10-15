@@ -836,6 +836,17 @@ class Experiment(dallinger.experiment.Experiment):
         )
         return json.dumps(json_data, default=serialise)
 
+    @experiment_route("/error-page", methods=["POST", "GET"])
+    def render_error():
+        from psynet.utils import error_page
+
+        request_data = request.form.get("request_data")
+        participant_id = request.form.get("participant_id")
+        participant = None
+        if participant_id:
+            participant = participant = Participant.query.first()
+        return error_page(participant=participant, request_data=request_data)
+
     @experiment_route("/export", methods=["GET"])
     @staticmethod
     def export():
@@ -991,7 +1002,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
     @classmethod
     def route_timeline(cls, participant_id, assignment_id):
-        from dallinger.experiment_server.utils import error_page
+        from psynet.utils import error_page
 
         exp = cls.new(db.session)
         participant = get_participant(participant_id)
