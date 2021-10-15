@@ -257,6 +257,105 @@ class JSONSerializer(json.JSONEncoder):
             return super(JSONSerializer, self).default(obj)
 
 
+class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
+    __mapper_args__ = {"polymorphic_identity": "markers_test_trial"}
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "markers_test_trial",
+            AudioPrompt(
+                self.definition["url_audio"],
+                Markup(
+                    """
+                    <h3>Recording test</h3>
+                    <hr>
+                    <h4>Please remain silent while we play a sound and record it</h4>
+                    """
+                ),
+            ),
+            AudioRecordControl(
+                duration=self.definition["duration_sec"],
+                s3_bucket="markers-check-recordings",
+                public_read=True,
+                show_meter=False,
+                controls=False,
+                auto_advance=False,
+            ),
+            time_estimate=12,
+            progress_display=ProgressDisplay(
+                # show_bar=False,
+                stages=[
+                    ProgressStage(11.5, "Recording...", "red"),
+                    ProgressStage(
+                        0.5,
+                        "Uploading, please wait...",
+                        "orange",
+                        persistent=True,
+                    ),
+                ],
+            ),
+        )
+
+    def show_feedback(self, experiment, participant):
+        if self.failed:
+            return InfoPage(
+                Markup(
+                    """
+                    <h4>The recording quality of your laptop is not good</h4>
+                    This may have many reasons. Please try to do one or more of the following:
+                    <ol><li>Increase the volumne of your laptop.</li>
+                        <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
+                        <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                        <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
+                    </ol>
+                    We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                    """
+                ),
+                time_estimate=5,
+            )
+        else:
+            return InfoPage(
+                Markup(
+                    """
+                    <h4>The recording quality of your laptop is good</h4>
+                    We will try some more trials.
+                    To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
+                    """
+                ),
+                time_estimate=5,
+            )
+
+    def gives_feedback(self, experiment, participant):
+        return self.position == 0
+
+    def analyze_recording(self, audio_file: str, output_plot: str):
+        from repp.analysis import REPPAnalysis
+        from repp.config import sms_tapping
+
+        info = {
+            "markers_onsets": self.definition["markers_onsets"],
+            "stim_shifted_onsets": self.definition["stim_shifted_onsets"],
+            "onset_is_played": self.definition["onset_is_played"],
+        }
+
+        title_in_graph = "Participant {}".format(self.participant_id)
+        analysis = REPPAnalysis(config=sms_tapping)
+        output, analysis, is_failed = analysis.do_analysis(
+            info, audio_file, title_in_graph, output_plot
+        )
+        num_markers_detected = int(analysis["num_markers_detected"])
+        correct_answer = self.definition["correct_answer"]
+
+        output = json.dumps(output, cls=JSONSerializer)
+        analysis = json.dumps(analysis, cls=JSONSerializer)
+        return {
+            "failed": correct_answer != num_markers_detected,
+            "num_detected_markers": num_markers_detected,
+            "output": output,
+            "analysis": analysis,
+        }
+
+
 class REPPMarkersTest(Module):
     """
     This markers test is used to determine whether participants are using hardware
@@ -353,104 +452,6 @@ class REPPMarkersTest(Module):
         )
 
     def trial(self, time_estimate: float):
-        class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "markers_test_trial"}
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "markers_test_trial",
-                    AudioPrompt(
-                        self.definition["url_audio"],
-                        Markup(
-                            """
-                            <h3>Recording test</h3>
-                            <hr>
-                            <h4>Please remain silent while we play a sound and record it</h4>
-                            """
-                        ),
-                    ),
-                    AudioRecordControl(
-                        duration=self.definition["duration_sec"],
-                        s3_bucket="markers-check-recordings",
-                        public_read=True,
-                        show_meter=False,
-                        controls=False,
-                        auto_advance=False,
-                    ),
-                    time_estimate=time_estimate,
-                    progress_display=ProgressDisplay(
-                        # show_bar=False,
-                        stages=[
-                            ProgressStage(11.5, "Recording...", "red"),
-                            ProgressStage(
-                                0.5,
-                                "Uploading, please wait...",
-                                "orange",
-                                persistent=True,
-                            ),
-                        ],
-                    ),
-                )
-
-            def show_feedback(self, experiment, participant):
-                if self.failed:
-                    return InfoPage(
-                        Markup(
-                            """
-                            <h4>The recording quality of your laptop is not good</h4>
-                            This may have many reasons. Please try to do one or more of the following:
-                            <ol><li>Increase the volumne of your laptop.</li>
-                                <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
-                                <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
-                                <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
-                            </ol>
-                            We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
-                            """
-                        ),
-                        time_estimate=5,
-                    )
-                else:
-                    return InfoPage(
-                        Markup(
-                            """
-                            <h4>The recording quality of your laptop is good</h4>
-                            We will try some more trials.
-                            To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
-                            """
-                        ),
-                        time_estimate=5,
-                    )
-
-            def gives_feedback(self, experiment, participant):
-                return self.position == 0
-
-            def analyze_recording(self, audio_file: str, output_plot: str):
-                from repp.analysis import REPPAnalysis
-                from repp.config import sms_tapping
-
-                info = {
-                    "markers_onsets": self.definition["markers_onsets"],
-                    "stim_shifted_onsets": self.definition["stim_shifted_onsets"],
-                    "onset_is_played": self.definition["onset_is_played"],
-                }
-
-                title_in_graph = "Participant {}".format(self.participant_id)
-                analysis = REPPAnalysis(config=sms_tapping)
-                output, analysis, is_failed = analysis.do_analysis(
-                    info, audio_file, title_in_graph, output_plot
-                )
-                num_markers_detected = int(analysis["num_markers_detected"])
-                correct_answer = self.definition["correct_answer"]
-
-                output = json.dumps(output, cls=JSONSerializer)
-                analysis = json.dumps(analysis, cls=JSONSerializer)
-                return {
-                    "failed": correct_answer != num_markers_detected,
-                    "num_detected_markers": num_markers_detected,
-                    "output": output,
-                    "analysis": analysis,
-                }
-
         return RecordMarkersTrial
 
     def get_stimulus_set(self, media_url: str, audio_filenames: list):
