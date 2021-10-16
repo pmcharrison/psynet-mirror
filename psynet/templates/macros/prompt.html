@@ -243,9 +243,9 @@
 {% macro js_synth(config) %}
     {{ simple(config) }}
 
-    <script type="text/javascript" src="/static/scripts/Tonejs/Tone.js"></script>
-    <script type="text/javascript" src="/static/scripts/js-synthesizer/instruments.js"></script>
-    <script type="text/javascript" src="/static/scripts/js-synthesizer/synthesis.js"></script>
+    <script src="/static/scripts/Tonejs/Tone.js"></script>
+    <script src="/static/scripts/js-synthesizer/instruments.js"></script>
+    <script src="/static/scripts/js-synthesizer/synthesis.js"></script>
 
     <script>
         let stimulus = {{ config.stimulus | tojson }};
