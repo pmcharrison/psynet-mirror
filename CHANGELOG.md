@@ -1,5 +1,7 @@
 # CHANGELOG
 
+# [4.1.0] Released on 2021-10-15
+
 #### Added
 - Added new dashboard panel called 'Participant'.
   Here one can search participants by participant ID, worker ID, or assignment ID,
@@ -15,6 +17,12 @@
 - Migrated the ``compute_bonus`` method from the ``Experiment`` class to the 
   ``Participant`` class. Researchers should not be using this method directly,
   so this change should not affect most people.
+
+#### Fixed
+- Fixed ReppMarkersTest
+
+#### Updated
+- Updated Dallinger to v7.7.0.
 
 # [4.0.0] Released on 2021-09-13
 
