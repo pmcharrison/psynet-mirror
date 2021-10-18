@@ -38,18 +38,25 @@
         </p>
         <table class="table table-sm table-striped">
             <tbody>
-            {% for key, value in participant_abort_info %}
-                <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
-            {% endfor %}
+              <tr><th>Assignment ID</th><td>{{ participant_abort_info.assignment_id }}</td></tr>
+              <tr><th>HIT ID</th><td>{{ participant_abort_info.hit_id }}</td></tr>
+              <tr><th>Accumulated bonus</th><td>{{ participant_abort_info.accumulated_bonus }}</td></tr>
             </tbody>
         </table>
         <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: left; margin-top: 15px;" onclick="window.close();">
           Close window
         </button>
-        <button type="button" id="close-button" class="btn btn-danger btn-lg" style="float: right; margin-top: 15px;" onclick="dallinger.submitAssignment();">
+        <button type="button" id="close-button" class="btn btn-danger btn-lg" style="float: right; margin-top: 15px;" onclick="setAborted('{{ participant_abort_info.assignment_id }}');">
           Abort experiment
         </button>
       </div>
     </div>
+    <script>
+      setAborted = function(assignmentId) {
+        var request = new XMLHttpRequest();
+        request.open("GET", "/set_aborted/" + assignmentId);
+        request.send();
+        dallinger.submitAssignment();
+    }
+    </script>
 {% endblock %}
-

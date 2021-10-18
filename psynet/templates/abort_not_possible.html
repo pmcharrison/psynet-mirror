@@ -39,9 +39,9 @@
         </p>
         <table class="table table-sm table-striped">
             <tbody>
-            {% for key, value in participant_abort_info %}
-                <tr><th>{{ key }}</th><td>{{ value }}</td></tr>
-            {% endfor %}
+              <tr><th>Assignment ID</th><td>{{ participant_abort_info.assignment_id }}</td></tr>
+              <tr><th>HIT ID</th><td>{{ participant_abort_info.hit_id }}</td></tr>
+              <tr><th>Accumulated bonus</th><td>{{ participant_abort_info.accumulated_bonus }}</td></tr>
             </tbody>
         </table>
         <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: left; margin-top: 15px;" onclick="window.close();">

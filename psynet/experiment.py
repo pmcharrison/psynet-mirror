@@ -40,6 +40,7 @@ from .utils import (
     get_logger,
     pretty_log_dict,
     serialise,
+    serialise_datetime,
 )
 
 logger = get_logger()
@@ -975,21 +976,36 @@ class Experiment(dallinger.experiment.Experiment):
     def route_resume(cls, assignment_id):
         return render_template("resume.html", assignment_id=assignment_id)
 
+    @experiment_route("/set_aborted/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_set_aborted(cls, assignment_id):
+        logger.info(f"Setting assignment_id '{assignment_id}'' as aborted.")
+        participant = cls.get_participant_from_assignment_id(assignment_id)
+        participant.aborted = True
+        modules = participant.modules.copy()
+        try:
+            log = modules[participant.current_module]
+        except KeyError:
+            log = {"time_started": [], "time_finished": [], "time_aborted": []}
+        time_now = serialise_datetime(datetime.now())
+        log["time_aborted"] = [time_now]
+        modules[participant.current_module] = log.copy()
+        participant.modules = modules.copy()
+        db.session.commit()
+        return success_response()
+
     @experiment_route("/abort/<assignment_id>", methods=["GET"])
     @classmethod
     def route_abort(cls, assignment_id):
         try:
+            template_name = "abort_not_possible.html"
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
-                abort_info = sorted(participant.abort_info().items())
                 if (
                     participant.calculate_bonus()
-                    < cls.new(db.session).var.min_accumulated_bonus_for_abort
+                    >= cls.new(db.session).var.min_accumulated_bonus_for_abort
                 ):
-                    template_name = "abort_not_possible.html"
-                else:
                     template_name = "abort_possible.html"
-
         except ValueError:
             logger.error("Invalid assignment ID.")
         except sqlalchemy.orm.exc.NoResultFound:
@@ -997,7 +1013,9 @@ class Experiment(dallinger.experiment.Experiment):
         except sqlalchemy.orm.exc.MultipleResultsFound:
             logger.error("Found multiple participants matching those specifications.")
 
-        return render_template(template_name, participant_abort_info=abort_info)
+        return render_template(
+            template_name, participant_abort_info=participant.abort_info()
+        )
 
     @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
     @classmethod
