@@ -15,7 +15,7 @@
             class="btn btn-primary btn-lg"
             id="consent"
             style="margin-top: 20px;"
-            onClick="window.location='/start?{{query_string | safe}}';">
+            onClick="window.opener.enableAbortButton(); window.location='/start?{{query_string|safe}}';">
             Next
           </button>
         </div>
