@@ -15,7 +15,7 @@
             class="btn btn-primary btn-lg"
             id="consent"
             style="margin-top: 20px;"
-            onClick="{% if experiment.var.show_abort_button %}window.opener.enableAbortButton(); {% endif %}window.location='/start?{{query_string|safe}}';">
+            onClick="enableAbortButton(); window.location='/start?{{query_string|safe}}';">
             Next
           </button>
         </div>
@@ -31,6 +31,14 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        {% if experiment.var.show_abort_button %}
+        enableAbortButton = function() {
+            if (window.opener !== null) {
+                window.opener.enableAbortButton();
+            }
+        }
+        {% endif %}
+
         is_version_at_least = function(x, comparison) {
             var x_split = x.split(".").map(Number);
             var comparison_split = comparison.split(".").map(Number);

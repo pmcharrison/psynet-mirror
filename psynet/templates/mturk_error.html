@@ -22,6 +22,32 @@
                     Assignment ID: {{ assignment_id }}<br>
                     Worker ID: {{ worker_id }}<br>
                 </p>
+                {% if experiment.var.show_abort_button %}
+                <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="display: none; float: right;">
+                Abort Experiment
+                </button>
+                <div id="abort-text" style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px; display: none;">
+                    <span class="alert-danger">Click the above button to be compensated in case of an error.</span>
+                </div>
+                <script>
+                    function abortExperiment() {
+                        var windowObjectReference;
+                        var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
+                        windowObjectReference = window.open("/abort/" + "{{assignment_id}}", "Abort window", windowFeatures);
+                    }
+
+                    function showAbortButton() {
+                        document.getElementById("abort-button").style.display = "block";
+                        document.getElementById("abort-text").style.display = "block";
+                    }
+
+                    document.getElementById("abort-button").onclick = abortExperiment;
+
+                    if (window.opener === null) {
+                        showAbortButton();
+                    }
+                </script>
+                {% endif %}
                 {% endif %}
             </div>
         </div>
