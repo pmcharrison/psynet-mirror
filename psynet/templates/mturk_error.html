@@ -12,7 +12,7 @@
                 <p id="error-text"><em>{{ error_text }}</em></p>
                 {% if compensate == True %}
                 <p>
-                    You may be able to abort the experiment using the <span style="font-weight: bold;">Abort experiment</span> button on the MTurk ad page. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at
+                    You may be able to abort the experiment using the <span style="font-weight: bold;">Abort experiment</span> button <span id="abort-button-location" style="font-weight: bold;">on the MTurk ad page</span></span>. Once aborted, there is no need to contact us to receive the compensation; this should be awarded to you automatically via MTurk a few minutes after. If this is not the case, please contact us at
                     <a href="mailto:{{contact_address}}">{{contact_address}}</a>
                     quoting the following information:
                 </p>
@@ -44,6 +44,7 @@
                     document.getElementById("abort-button").onclick = abortExperiment;
 
                     if (window.opener === null) {
+                        document.getElementById("abort-button-location").textContent = "below";
                         showAbortButton();
                     }
                 </script>
