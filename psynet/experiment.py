@@ -983,12 +983,16 @@ class Experiment(dallinger.experiment.Experiment):
         participant.aborted = True
         modules = participant.modules.copy()
         try:
-            log = modules[participant.current_module]
+            current_module_log = modules[participant.current_module]
         except KeyError:
-            log = {"time_started": [], "time_finished": [], "time_aborted": []}
+            current_module_log = {
+                "time_started": [],
+                "time_finished": [],
+                "time_aborted": [],
+            }
         time_now = serialise_datetime(datetime.now())
-        log["time_aborted"] = [time_now]
-        modules[participant.current_module] = log.copy()
+        current_module_log["time_aborted"] = [time_now]
+        modules[participant.current_module] = current_module_log.copy()
         participant.modules = modules.copy()
         db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
