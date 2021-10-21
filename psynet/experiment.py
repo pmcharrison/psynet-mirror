@@ -976,9 +976,9 @@ class Experiment(dallinger.experiment.Experiment):
     def route_resume(cls, assignment_id):
         return render_template("resume.html", assignment_id=assignment_id)
 
-    @experiment_route("/set_aborted/<assignment_id>", methods=["GET"])
+    @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
-    def route_set_aborted(cls, assignment_id):
+    def route_set_participant_as_aborted(cls, assignment_id):
         logger.info(f"Setting assignment_id '{assignment_id}'' as aborted.")
         participant = cls.get_participant_from_assignment_id(assignment_id)
         participant.aborted = True

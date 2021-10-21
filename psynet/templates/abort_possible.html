@@ -54,7 +54,7 @@
     <script>
       setAborted = function(assignmentId) {
         var request = new XMLHttpRequest();
-        request.open("GET", "/set_aborted/" + assignmentId);
+        request.open("GET", "/set_participant_as_aborted/" + assignmentId);
         request.send();
         dallinger.submitAssignment();
     }
