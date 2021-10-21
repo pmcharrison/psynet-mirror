@@ -305,16 +305,6 @@
                     });
                 };
 
-                psynet.setAborted = function(assignmentId) {
-                    var formData = new FormData();
-                    formData.append("json", {"assignmentId": assignmentId});
-                    var request = new XMLHttpRequest();
-                    request.open("POST", "/setAborted");
-                    request.send(formData);
-
-                    dallinger.submitAssignment();
-                }
-
                 class PsyNetError extends Error {
                     constructor(message) {
                         super(message);
