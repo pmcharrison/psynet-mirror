@@ -979,7 +979,6 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
     def route_set_participant_as_aborted(cls, assignment_id):
-        logger.info(f"Setting assignment_id '{assignment_id}'' as aborted.")
         participant = cls.get_participant_from_assignment_id(assignment_id)
         participant.aborted = True
         modules = participant.modules.copy()
@@ -992,6 +991,7 @@ class Experiment(dallinger.experiment.Experiment):
         modules[participant.current_module] = log.copy()
         participant.modules = modules.copy()
         db.session.commit()
+        logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
 
     @experiment_route("/abort/<assignment_id>", methods=["GET"])
