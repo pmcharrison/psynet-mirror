@@ -43,9 +43,8 @@ Abort Experiment
 </div>
 <script>
     function abortExperiment(event) {
-        var windowObjectReference;
         var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
-        windowObjectReference = window.open("/abort/" + "{{assignmentid}}", "Abort window", windowFeatures);
+        let windowObjectReference = window.open("/abort/" + "{{assignmentid}}", "Abort window", windowFeatures);
     }
 
     function enableAbortButton(event) {
