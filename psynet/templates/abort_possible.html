@@ -31,7 +31,7 @@
         <div class="col-xs-2">
           <img id="adlogo" src="/static/images/logo.png" alt="Psynet logo" style="width: 150px; float: left;">
         </div>
-        <h1 style="clear: both;">Are you sure you want to abort the experiment?</h1>
+        <h1 id="header" style="clear: both;">Are you sure you want to abort the experiment?</h1>
         <hr>
         <p>
           If you click the Abort button, the experiment will end early, and you will be automatically paid the compensation you have earned so far. Please only contact us if you have trouble receiving your payment. See the information below for details of your compensation.
@@ -46,7 +46,7 @@
         <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: left; margin-top: 15px;" onclick="window.close();">
           Close window
         </button>
-        <button type="button" id="close-button" class="btn btn-danger btn-lg" style="float: right; margin-top: 15px;" onclick="setAborted('{{ participant_abort_info.assignment_id }}');">
+        <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right; margin-top: 15px;" onclick="setAborted('{{ participant_abort_info.assignment_id }}');">
           Abort experiment
         </button>
       </div>

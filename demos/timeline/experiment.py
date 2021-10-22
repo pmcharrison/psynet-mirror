@@ -34,6 +34,7 @@ logger = get_logger()
 class Exp(psynet.experiment.Experiment):
     variables = {
         "show_abort_button": True,
+        "min_accumulated_bonus_for_abort": 0.15,
         "wage_per_hour": 12.0,
         "new_variable": "some-value",
         # "show_footer": False.  # uncomment to disable the footer (bonus + help button)
