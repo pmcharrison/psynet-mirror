@@ -1,4 +1,7 @@
 # Note: parselmouth must be installed with pip install praat-parselmouth
+# The documentation of the audio methods can be found in the supplements of the paper "Gibbs Sampling with People",
+# which can be obtained here:
+# https://proceedings.neurips.cc/paper/2020/file/7880d7226e872b776d8b9f23975e2a3d-Supplemental.zip
 
 import os
 from parselmouth.praat import call, run_file
