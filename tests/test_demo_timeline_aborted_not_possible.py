@@ -54,7 +54,6 @@ class TestExp:
             next_page(driver, "next_button")
 
             driver.switch_to.window(driver.window_handles[0])
-            time.sleep(2)
             abort_button = driver.find_element_by_id("abort-button")
             abort_button.click()
 
@@ -62,9 +61,9 @@ class TestExp:
             assert_text(
                 driver, "header", "Are you sure you want to abort the experiment?"
             )
-            time.sleep(2)
             abort_button = driver.find_element_by_id("abort-button")
             abort_button.click()
+            time.sleep(0.5)
 
             participant = get_participant(1)
             modules = participant.modules

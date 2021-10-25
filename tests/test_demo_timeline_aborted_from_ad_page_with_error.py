@@ -66,6 +66,8 @@ class TestExp:
 
             abort_button = driver.find_element_by_id("abort-button")
             abort_button.click()
+            time.sleep(0.5)
+
             participant = get_participant(1)
             modules = participant.modules
 
