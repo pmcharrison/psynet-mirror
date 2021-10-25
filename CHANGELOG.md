@@ -1,5 +1,10 @@
 # CHANGELOG
 
+#### Changed
+- Replaced the Audio Gibbs demo with an implementation of the emotional prosody
+  experiment from our 2020 NeurIPS paper (Harrison et al., 2020)
+  (thanks Pol van Rijn!).
+
 # [4.1.0] Released on 2021-10-15
 
 #### Added
