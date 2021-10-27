@@ -107,6 +107,12 @@
             padding-bottom: 25px;
             visibility: hidden;
         }
+        {% if config.mirrored is true %}
+        video {
+            -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+        }
+        {% endif %}
     </style>
 
     <div id="prompt-video-container">
