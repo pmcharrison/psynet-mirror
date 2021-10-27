@@ -1131,6 +1131,12 @@
             width: {{ config.width }};
             margin: 10px
         }
+        {% if config.mirrored is true %}
+        video {
+            -webkit-transform: scaleX(-1);
+            transform: scaleX(-1);
+        }
+        {% endif %}
     </style>
 
     <div id="video-control-container">
