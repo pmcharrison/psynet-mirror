@@ -40,6 +40,7 @@ from .utils import (
     get_logger,
     pretty_log_dict,
     serialise,
+    serialise_datetime,
 )
 
 logger = get_logger()
@@ -94,6 +95,16 @@ class Experiment(dallinger.experiment.Experiment):
         Guarantees that in an experiment no more is spent than the value assigned.
         Bonuses are not paid from the point this value is reached and a record of the amount
         of unpaid bonus is kept in the participant's `unpaid_bonus` variable. Default: `1100.0`.
+
+    min_accumulated_bonus_for_abort : `float`
+        The threshold of bonus accumulated in US dollars for the participant to be able to receive
+        compensation when aborting an experiment using the `Abort experiment` button. Default: `0.20`.
+
+    show_abort_button : `bool`
+        If ``True``, the `Ad` page displays an `Abort` button the participant can click to terminate the HIT,
+        e.g. in case of an error where the participant is unable to finish the experiment. Clicking the button
+        assures the participant is compensated on the basis of the amount of bonus that has been accumulated.
+        Default ``False``.
 
     show_bonus : `bool`
         If ``True`` (default), then the participant's current estimated bonus is displayed
@@ -249,6 +260,8 @@ class Experiment(dallinger.experiment.Experiment):
             "soft_max_experiment_payment": 1000.0,
             "soft_max_experiment_payment_email_sent": False,
             "wage_per_hour": 9.0,
+            "min_accumulated_bonus_for_abort": 0.20,
+            "show_abort_button": False,
             "show_bonus": True,
             "show_footer": True,
         }
@@ -689,8 +702,8 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/Tonejs",
             ),
             (
-                resource_filename("psynet", "templates/error.html"),
-                "templates/error.html",
+                resource_filename("psynet", "templates/mturk_error.html"),
+                "templates/mturk_error.html",
             ),
             (
                 resource_filename(
@@ -824,6 +837,17 @@ class Experiment(dallinger.experiment.Experiment):
         )
         return json.dumps(json_data, default=serialise)
 
+    @experiment_route("/error-page", methods=["POST", "GET"])
+    def render_error():
+        from psynet.utils import error_page
+
+        request_data = request.form.get("request_data")
+        participant_id = request.form.get("participant_id")
+        participant = None
+        if participant_id:
+            participant = participant = Participant.query.first()
+        return error_page(participant=participant, request_data=request_data)
+
     @experiment_route("/export", methods=["GET"])
     @staticmethod
     def export():
@@ -952,10 +976,55 @@ class Experiment(dallinger.experiment.Experiment):
     def route_resume(cls, assignment_id):
         return render_template("resume.html", assignment_id=assignment_id)
 
+    @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_set_participant_as_aborted(cls, assignment_id):
+        participant = cls.get_participant_from_assignment_id(assignment_id)
+        participant.aborted = True
+        modules = participant.modules.copy()
+        try:
+            current_module_log = modules[participant.current_module]
+        except KeyError:
+            current_module_log = {
+                "time_started": [],
+                "time_finished": [],
+                "time_aborted": [],
+            }
+        time_now = serialise_datetime(datetime.now())
+        current_module_log["time_aborted"] = [time_now]
+        modules[participant.current_module] = current_module_log.copy()
+        participant.modules = modules.copy()
+        db.session.commit()
+        logger.info(f"Aborted participant with ID '{participant.id}'.")
+        return success_response()
+
+    @experiment_route("/abort/<assignment_id>", methods=["GET"])
+    @classmethod
+    def route_abort(cls, assignment_id):
+        try:
+            template_name = "abort_not_possible.html"
+            if assignment_id is not None:
+                participant = cls.get_participant_from_assignment_id(assignment_id)
+                if (
+                    participant.calculate_bonus()
+                    >= cls.new(db.session).var.min_accumulated_bonus_for_abort
+                ):
+                    template_name = "abort_possible.html"
+        except ValueError:
+            logger.error("Invalid assignment ID.")
+        except sqlalchemy.orm.exc.NoResultFound:
+            logger.error("Failed to find any matching participants.")
+        except sqlalchemy.orm.exc.MultipleResultsFound:
+            logger.error("Found multiple participants matching those specifications.")
+
+        return render_template(
+            template_name, participant_abort_info=participant.abort_info()
+        )
+
     @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
     @classmethod
     def route_timeline(cls, participant_id, assignment_id):
-        from dallinger.experiment_server.utils import error_page
+        from psynet.utils import error_page
 
         exp = cls.new(db.session)
         participant = get_participant(participant_id)

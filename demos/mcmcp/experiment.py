@@ -86,6 +86,10 @@ class CustomNode(MCMCPNode):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    variables = {
+        "show_abort_button": True,
+    }
+
     timeline = Timeline(
         MTurkStandardConsent(),
         MCMCPTrialMaker(

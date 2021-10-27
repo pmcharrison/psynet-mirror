@@ -72,7 +72,7 @@ $(document).ready(function() {
         $.each(moduleIds, function(index, moduleId) {
           let hasTarget = data[moduleId]['target_num_participants'] ? true : false
           let progressPercentage = Number((data[moduleId]['progress'] * 100).toFixed(3));
-          let text = moduleId + ': ' + data[moduleId]['started_num_participants'] + '/' + data[moduleId]['finished_num_participants'] + (hasTarget ? '/' + data[moduleId]['target_num_participants'] : '') + ' (started/finished' + (hasTarget ? '/target) ' + progressPercentage + '%' : ')')
+          let text = moduleId + ': ' + data[moduleId]['started_num_participants'] + '/' + data[moduleId]['finished_num_participants'] + '/' + data[moduleId]['aborted_num_participants'] + (hasTarget ? '/' + data[moduleId]['target_num_participants'] : '') + ' (started/finished/aborted' + (hasTarget ? '/target) ' + progressPercentage + '%' : ')')
           $('.show.' + moduleId).text(text);
           if (data[moduleId]['finished_num_participants'] > 0) {
             $('.progress-bar.' + moduleId).css('width', progressPercentage + '%');
