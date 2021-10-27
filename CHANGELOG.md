@@ -1,5 +1,12 @@
 # CHANGELOG
 
+#### Changed
+- Replaced the Audio Gibbs demo with an implementation of the emotional prosody
+  experiment from our 2020 NeurIPS paper (Harrison et al., 2020)
+  (thanks Pol van Rijn!).
+
+# [4.1.0] Released on 2021-10-15
+
 #### Added
 - Added new dashboard panel called 'Participant'.
   Here one can search participants by participant ID, worker ID, or assignment ID,
@@ -10,9 +17,17 @@
 - Added documentation for the ``compute_bonus`` method.
 
 #### Changed
+- Reduced the default performance threshold in `LexTaleTest` from 10 to 8.
+  The previous performance threshold was found to be much too stringent.
 - Migrated the ``compute_bonus`` method from the ``Experiment`` class to the 
   ``Participant`` class. Researchers should not be using this method directly,
   so this change should not affect most people.
+
+#### Fixed
+- Fixed ReppMarkersTest
+
+#### Updated
+- Updated Dallinger to v7.7.0.
 
 # [4.0.0] Released on 2021-09-13
 
