@@ -240,6 +240,9 @@ class VideoPrompt(Prompt):
     hide_when_finished
         If ``True`` (default), the video will disappear once it has finished playing.
 
+    mirrored
+        Whether the video is displayed as if looking into a mirror. Default: `True`.
+
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
     """
@@ -254,6 +257,7 @@ class VideoPrompt(Prompt):
         controls: bool = False,
         muted: bool = False,
         hide_when_finished: bool = True,
+        mirrored: bool = True,
         **kwargs,
     ):
         if play_window is None:
@@ -266,6 +270,7 @@ class VideoPrompt(Prompt):
         self.url = url
         self.width = width
         self.play_window = play_window
+        self.mirrored = mirrored
 
         self.js_play_options = dict(
             start_at=play_window[0],
@@ -279,7 +284,12 @@ class VideoPrompt(Prompt):
 
     @property
     def metadata(self):
-        return {"text": self.text, "url": self.url, "play_window": self.play_window}
+        return {
+            "text": self.text,
+            "url": self.url,
+            "play_window": self.play_window,
+            "mirrored": self.mirrored,
+        }
 
     @property
     def media(self):
@@ -312,7 +322,6 @@ class VideoPrompt(Prompt):
         )
 
         events["promptEnd"] = Event(is_triggered_by=None, once=False)
-
         events["trialFinish"].add_trigger("promptEnd")
 
 
@@ -2034,6 +2043,8 @@ class VideoRecordControl(RecordControl):
     loop_playback
         Whether to loop playback by default (only relevant if ``controls=True``.
 
+    mirrored
+        Whether the preview of the video is displayed as if looking into a mirror. Default: `True`.
     """
 
     macro = "video_record"
@@ -2048,6 +2059,7 @@ class VideoRecordControl(RecordControl):
         show_preview: bool = False,
         controls: bool = False,
         loop_playback: bool = False,
+        mirrored: bool = True,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2059,6 +2071,7 @@ class VideoRecordControl(RecordControl):
         self.show_preview = show_preview
         self.controls = controls
         self.loop_playback = loop_playback
+        self.mirrored = mirrored
         self.presigned_url_camera = None
         self.presigned_url_screen = None
 
@@ -2085,6 +2098,7 @@ class VideoRecordControl(RecordControl):
             "screen_key": screen_key,
             "recording_source": self.recording_source,
             "record_audio": self.record_audio,
+            "mirrored": self.mirrored,
         }
 
     def visualize_response(self, answer, response, trial):
