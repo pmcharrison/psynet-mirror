@@ -53,10 +53,10 @@
     </div>
     <script>
       setAborted = function(assignmentId) {
-        var request = new XMLHttpRequest();
-        request.open("GET", "/set_participant_as_aborted/" + assignmentId);
-        request.send();
-        dallinger.submitAssignment();
-    }
+        fetch("/set_participant_as_aborted/" + assignmentId)
+          .then(function () {
+            dallinger.submitAssignment();
+          });
+      }
     </script>
 {% endblock %}
