@@ -77,5 +77,4 @@ three sections can be customized. These are:
 
 .. note::
 
-    To completely override the appearance of the ad page you can add an `ad.html` file to the `templates` directory of
-    your experiment.
+    To completely override the appearance of the ad page you can add an `ad.html` file to the `templates` directory of your experiment.

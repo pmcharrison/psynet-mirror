@@ -68,6 +68,11 @@ class Participant(dallinger.models.Participant):
         Should not be modified directly.
         Stored in the database as ``property3``.
 
+    aborted : bool
+        Whether the participant has aborted the experiment.
+        A participant is considered to have aborted the experiment
+        once they have hit the "Abort experiment" button on the "Abort experiment" confirmation page.
+
     answer : object
         The most recent answer submitted by the participant.
         Can take any form that can be automatically serialized to JSON.
@@ -115,6 +120,9 @@ class Participant(dallinger.models.Participant):
 
     elt_id = field.claim_field("elt_id", __extra_vars__, int)
     page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
+    aborted = claim_var(
+        "aborted", __extra_vars__, use_default=True, default=lambda: False
+    )
     complete = field.claim_field("complete", __extra_vars__, bool)
     answer = field.claim_field("answer", __extra_vars__, object)
     branch_log = field.claim_field("branch_log", __extra_vars__, list)
@@ -165,6 +173,18 @@ class Participant(dallinger.models.Participant):
         if self.last_response_id is None:
             return None
         return Response.query.filter_by(id=self.last_response_id).one()
+
+    @property
+    @extra_var(__extra_vars__)
+    def aborted_modules(self):
+        modules = [
+            (key, value)
+            for key, value in self.modules.items()
+            if value.get("time_aborted") is not None
+            and len(value.get("time_aborted")) > 0
+        ]
+        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
+        return [m[0] for m in modules]
 
     @property
     @extra_var(__extra_vars__)
@@ -374,6 +394,20 @@ class Participant(dallinger.models.Participant):
         combined = list(set(original + new))
         self.failure_tags = combined
         return self
+
+    def abort_info(self):
+        """
+            Information that will be shown to a participant if they click the abort button,
+            e.g. in the case of an error where the participant is unable to finish the experiment.
+
+        :returns: ``dict`` which may be rendered to the worker as an HTML table
+            when they abort the experiment.
+        """
+        return {
+            "assignment_id": self.assignment_id,
+            "hit_id": self.hit_id,
+            "accumulated_bonus": "$" + "{:.2f}".format(self.calculate_bonus()),
+        }
 
 
 def get_participant(participant_id: int):

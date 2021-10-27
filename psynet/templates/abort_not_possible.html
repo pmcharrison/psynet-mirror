@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block stylesheets %}
+    <style>
+      body {
+          padding:0px;
+          margin: 0px;
+          background-color: white;
+          color: black;
+          font-weight: 300;
+          font-size: 13pt;
+      }
+
+      #container {
+          position: absolute;
+          top: 0px; /* Header Height */
+          bottom: 0px; /* Footer Height */
+          left: 0px;
+          right: 0px;
+          padding: 100px;
+          padding-top: 5%;
+          border: 18px solid #f3f3f3;
+          background: white;
+      }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div id="container">
+      <div style="max-width: max-content;">
+        <div class="col-xs-2">
+          <img id="adlogo" src="/static/images/logo.png" alt="Psynet logo" style="width: 150px; float: left;">
+        </div>
+        <h1 id="header" style="clear: both;">Aborting not possible.</h1>
+        <hr>
+        <p>
+          Aborting the experiment is not possible as the experimenter does not allow it at this time!
+          You have to <span style="font-weight: bold;">accumulate at least ${{ "{:.2f}".format(experiment.var.min_accumulated_bonus_for_abort) }}</span> of bonus to be able to be compensated. See below information on your currently accumulated bonus.
+        </p>
+        <table class="table table-sm table-striped">
+            <tbody>
+              <tr><th>Assignment ID</th><td>{{ participant_abort_info.assignment_id }}</td></tr>
+              <tr><th>HIT ID</th><td>{{ participant_abort_info.hit_id }}</td></tr>
+              <tr><th>Accumulated bonus</th><td>{{ participant_abort_info.accumulated_bonus }}</td></tr>
+            </tbody>
+        </table>
+        <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: left; margin-top: 15px;" onclick="window.close();">
+          Close window
+        </button>
+      </div>
+    </div>
+{% endblock %}
+
