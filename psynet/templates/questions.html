@@ -45,7 +45,7 @@
             <div class="row">
                 <div class="col-xs-2"></div>
                 <div class="col-xs-7"></div>
-                <div class="col-xs-3"><button type="button" id="submit-questionnaire" class="btn btn-primary btn-lg continue" onclick="attempt_submit()">Continue</button></div>
+                <div class="col-xs-3"><button type="button" id="submit-questionnaire" class="btn btn-primary btn-lg continue" onclick="attemptSubmit()">Continue</button></div>
             </div>
         </div>
     </div>
@@ -53,7 +53,7 @@
 
 {% block scripts %}
   <script>
-    function attempt_submit() {
+    function attemptSubmit() {
         const fields = document.querySelectorAll(".questionnaire-field");
         clear = true;
         for (var i = 0; i < fields.length; i ++) {
@@ -66,17 +66,17 @@
         if (clear) {
             var x = document.getElementById("questionnaire");
             var name = x.getAttribute("name");
-            var next_page = x.getAttribute("next_page")
-            submit_responses(name, next_page = next_page);
+            var nextPage = x.getAttribute("next_page")
+            submitResponses(name, nextPage = nextPage);
         }
     }
 
-    submit_responses = function (questionnaire_name, next_page = "") {
-        when_done = function() {
-            if (next_page == "") {
+    submitResponses = function (questionnaireName, nextPage = "") {
+        whenDone = function() {
+            if (nextPage == "") {
                 dallinger.submitAssignment();
             } else {
-                dallinger.goToPage(next_page);
+                dallinger.goToPage(nextPage);
             }
         }
 
@@ -90,12 +90,12 @@
         });
 
         xhr = dallinger.post('/question/' + dallinger.identity.participantId, {
-            question: questionnaire_name,
+            question: questionnaireName,
             number: 1,
             response: JSON.stringify(formDict)
         });
         spinner.freeze([$('form :input')]);
-        xhr.done(when_done)
+        xhr.done(whenDone)
         xhr.always(function () { spinner.unfreeze(); });
   };
   </script>
