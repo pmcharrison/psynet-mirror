@@ -4,15 +4,22 @@
 # https://proceedings.neurips.cc/paper/2020/file/7880d7226e872b776d8b9f23975e2a3d-Supplemental.zip
 
 import os
-from parselmouth.praat import call, run_file
+
 import numpy as np
+from parselmouth.praat import call
 from scipy import interpolate
+
 
 # Helper methods
 def update_pitch_points(pitch, manipulation, pitch_values, time):
     pitch_tier = call(manipulation, "Extract pitch tier")
     # Make sure the pitch Tier is empty
-    call(pitch_tier, "Remove points between", min(pitch.xs()) - 0.001, max(pitch.xs()) + 0.001)
+    call(
+        pitch_tier,
+        "Remove points between",
+        min(pitch.xs()) - 0.001,
+        max(pitch.xs()) + 0.001,
+    )
     for i in range(len(pitch_values)):
         call(pitch_tier, "Add point", time[i], pitch_values[i])
     call([manipulation, pitch_tier], "Replace pitch tier")
@@ -21,30 +28,27 @@ def update_pitch_points(pitch, manipulation, pitch_values, time):
 
 def load_files(path):
     from parselmouth import Sound
-    import json
 
     filename = os.path.basename(path)
-    folder = path[:-len(filename)]
 
     # Use splitext() to get filename and extension separately.
     (file, ext) = os.path.splitext(filename)
 
-    setting_path = folder + file + '.json'
     data = {
         "reference_tone": 210.8,
         "min_F0": 100,
         "max_F0": 500,
         "base_name": file,
-        "step_size": 0.01
+        "step_size": 0.01,
     }
 
     sound = Sound(path)
-    data['duration'] = sound.xmax - sound.xmin
-    pitch = call(sound, "To Pitch", data['step_size'], data['min_F0'], data['max_F0'])
+    data["duration"] = sound.xmax - sound.xmin
+    pitch = call(sound, "To Pitch", data["step_size"], data["min_F0"], data["max_F0"])
 
     manipulation = call([sound, pitch], "To Manipulation")
 
-    pitch_values = pitch.selected_array['frequency']
+    pitch_values = pitch.selected_array["frequency"]
 
     # Remove NAs
     idxs = np.where(pitch_values == 0)
@@ -61,6 +65,7 @@ def cent2herz(ct, reference_tone):
     st = ct / 100
     semi1 = np.log(np.power(2, 1 / 12))
     return np.exp(st * semi1) * reference_tone
+
 
 def synth_stimulus(vector, output_path, chain_definition):
     """
@@ -79,7 +84,13 @@ def synth_stimulus(vector, output_path, chain_definition):
         The chain's definition object.
     """
     DIMENSION_NAMES = [
-        'duration', 'tremolo_rate', 'tremolo_depth', 'pitch_shift', 'pitch_range', 'pitch_change', 'jitter'
+        "duration",
+        "tremolo_rate",
+        "tremolo_depth",
+        "pitch_shift",
+        "pitch_range",
+        "pitch_change",
+        "jitter",
     ]
     DIMENSIONS = len(DIMENSION_NAMES)
 
@@ -88,48 +99,56 @@ def synth_stimulus(vector, output_path, chain_definition):
 
     parameters = dict(zip(DIMENSION_NAMES, vector))
 
-    SYNTHESIS_FILES_DIR = 'synth_files/audio'
+    SYNTHESIS_FILES_DIR = "synth_files/audio"
 
-    filename = os.path.join(SYNTHESIS_FILES_DIR, chain_definition['file'])
+    filename = os.path.join(SYNTHESIS_FILES_DIR, chain_definition["file"])
     sound, manipulation, pitch, time, pitch_values, pulses, data = load_files(filename)
-    if 'pitch_shift' in parameters and parameters['pitch_shift'] != 0:
-        shift_st = int(parameters['pitch_shift'])
-        pitch_values = pitch_shift(pitch_values, data['reference_tone'], shift_st)
+    if "pitch_shift" in parameters and parameters["pitch_shift"] != 0:
+        shift_st = int(parameters["pitch_shift"])
+        pitch_values = pitch_shift(pitch_values, data["reference_tone"], shift_st)
 
-    if 'pitch_range' in parameters and parameters['pitch_range'] != 1:
-        scalar = float(parameters['pitch_range'])
+    if "pitch_range" in parameters and parameters["pitch_range"] != 1:
+        scalar = float(parameters["pitch_range"])
         pitch_values = scale_pitch(pitch_values, scalar)
 
-    if 'pitch_change' in parameters and parameters['pitch_change'] != 0:
-        pitch_change = float(parameters['pitch_change'])
-        pitch_change = cent2herz(pitch_change * 100, data['reference_tone']) - data['reference_tone']
-        # Must be in ms
-        duration_s = data['duration']
-        duration_ms = duration_s * 1000
-        points = np.stack((
-            np.linspace(0, duration_ms, num=4),
-            np.linspace(0, pitch_change * duration_s, num=4)
-        ))
-        pitch_values = inflection(
-            time, pitch_values, points, 0, duration_ms
+    if "pitch_change" in parameters and parameters["pitch_change"] != 0:
+        pitch_change = float(parameters["pitch_change"])
+        pitch_change = (
+            cent2herz(pitch_change * 100, data["reference_tone"])
+            - data["reference_tone"]
         )
+        # Must be in ms
+        duration_s = data["duration"]
+        duration_ms = duration_s * 1000
+        points = np.stack(
+            (
+                np.linspace(0, duration_ms, num=4),
+                np.linspace(0, pitch_change * duration_s, num=4),
+            )
+        )
+        pitch_values = inflection(time, pitch_values, points, 0, duration_ms)
 
     manipulation = update_pitch_points(pitch, manipulation, pitch_values, time)
 
-    if 'jitter' in parameters and parameters['jitter'] != 0:
-        jitter_amount = (int(parameters['jitter']))
+    if "jitter" in parameters and parameters["jitter"] != 0:
+        jitter_amount = int(parameters["jitter"])
         manipulation, pulses = jitter(manipulation, pulses, jitter_amount)
 
-    if 'duration' in parameters and parameters['duration'] != 1:
-        duration_scalar = (float(parameters['duration']))
-        manipulation = scale_duration(manipulation, data['duration'], duration_scalar)
+    if "duration" in parameters and parameters["duration"] != 1:
+        duration_scalar = float(parameters["duration"])
+        manipulation = scale_duration(manipulation, data["duration"], duration_scalar)
 
     sound = call(manipulation, "Get resynthesis (overlap-add)")
 
-    if all([name in parameters and parameters[name] != 0 for name in ['tremolo_depth', 'tremolo_rate']]):
-        tremolo_depth = (float(parameters['tremolo_depth']))
-        tremolo_rate = (float(parameters['tremolo_rate']))
-        intensity_tier = tremolo(data['duration'], tremolo_rate, tremolo_depth)
+    if all(
+        [
+            name in parameters and parameters[name] != 0
+            for name in ["tremolo_depth", "tremolo_rate"]
+        ]
+    ):
+        tremolo_depth = float(parameters["tremolo_depth"])
+        tremolo_rate = float(parameters["tremolo_rate"])
+        intensity_tier = tremolo(data["duration"], tremolo_rate, tremolo_depth)
         sound = call([sound, intensity_tier], "Multiply", "yes")
 
     call(sound, "Save as WAV file", output_path)
@@ -160,13 +179,15 @@ def inflection(time, pitch_values, points, start_time, duration_ms):
     # Convert all sound measures to seconds
     duration_s = duration_ms / 1000
     if not all([p >= 0 and p <= duration_ms for p in points[0]]):
-        raise ValueError('Time must lay in specified duration')
+        raise ValueError("Time must lay in specified duration")
     time_kernel = [start_time + p / 1000 for p in points[0]]
 
     # Convert cents to hertz
     pitch_kernel = [p for p in points[1]]
 
-    idxs = [i for i, t in enumerate(time) if t >= start_time and t < start_time + duration_s]
+    idxs = [
+        i for i, t in enumerate(time) if t >= start_time and t < start_time + duration_s
+    ]
     time = time[idxs]
     pitch_values = pitch_values[idxs]
 
@@ -216,6 +237,3 @@ def tremolo(duration, tremolo_rate, tremolo_depth):
         intensity = 90 + (tremolo_depth / 2) * np.sin(pulses * i) * ramp
         call([intensity_tier], "Add point", i / 100, intensity)
     return intensity_tier
-
-
-

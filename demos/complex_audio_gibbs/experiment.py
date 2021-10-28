@@ -6,12 +6,14 @@
 # Imports
 ##########################################################################################
 
+import random
+
 from flask import Markup
 
 import psynet.experiment
 import psynet.media
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
 from psynet.trial.audio_gibbs import (
     AudioGibbsNetwork,
@@ -21,37 +23,34 @@ from psynet.trial.audio_gibbs import (
     AudioGibbsTrialMaker,
 )
 from psynet.utils import get_logger
-import random
 
 logger = get_logger()
 
 # Custom parameters, change these as you like!
 TARGETS = ["sad", "happy", "angry"]
-SENTENCE_RECORDINGS = ['Harvard_L35_S01_0.wav', 'Harvard_L35_S02_0.wav', 'Harvard_L35_S03_0.wav']
+SENTENCE_RECORDINGS = [
+    "Harvard_L35_S01_0.wav",
+    "Harvard_L35_S02_0.wav",
+    "Harvard_L35_S03_0.wav",
+]
 RANGES = [
     # DURATION
     # 1. Duration, percent
     [0.8, 1.2],
-
     # INTENSITY
     # 2. Tremolo rate, st
     [0.01, 5],
-
     # 3. Tremolo depth, dB
     [0.01, 10],
-
     # PITCH
     # 4. Shift, semitones
     [-3, 3],
-
     # 5. Range, percent
     [0.2, 1.8],
-
     # 6. Increase/Decrease, semitones
     [-3, 3],
-
     # 7. Jitter, custom unit
-    [0, 10]
+    [0, 10],
 ]
 INITIAL_VALUES = [
     1,  # 1. Duration, percent
@@ -60,7 +59,7 @@ INITIAL_VALUES = [
     0,  # 4. Shift, semitones
     1,  # 5. Range, percent
     0,  # 6. Increase/Decrease, semitones
-    0  # 7. Jitter, custom unit
+    0,  # 7. Jitter, custom unit
 ]
 DIMENSIONS = len(INITIAL_VALUES)
 MIN_DURATION = 5
@@ -71,9 +70,12 @@ AUTOPLAY = True
 DEBUG = False
 psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 
-NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2 # every dimension is visited twice
-NUM_CHAINS_PER_EXPERIMENT = len(TARGETS) * 3 # for each emotion there are 3 chains (each with a different sentence)
-NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3 # every participant does 9 trials
+NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2  # every dimension is visited twice
+NUM_CHAINS_PER_EXPERIMENT = (
+    len(TARGETS) * 3
+)  # for each emotion there are 3 chains (each with a different sentence)
+NUM_TRIALS_PER_PARTICIPANT = len(TARGETS) * 3  # every participant does 9 trials
+
 
 class CustomNetwork(AudioGibbsNetwork):
     __mapper_args__ = {"polymorphic_identity": "custom_network"}
@@ -93,7 +95,7 @@ class CustomNetwork(AudioGibbsNetwork):
     def make_definition(self):
         return {
             "target": self.balance_across_networks(TARGETS),
-            "file": random.sample(SENTENCE_RECORDINGS, 1)[0] # Get random sample
+            "file": random.sample(SENTENCE_RECORDINGS, 1)[0],  # Get random sample
         }
 
 
@@ -121,10 +123,12 @@ class CustomSource(AudioGibbsSource):
 
     def generate_seed(self, network, experiment, participant):
         if network.vector_length is None:
-            raise ValueError("network.vector_length must not be None. Did you forget to set it?")
+            raise ValueError(
+                "network.vector_length must not be None. Did you forget to set it?"
+            )
         return {
-            "vector": INITIAL_VALUES, # Start at predefined zero points, i.e. not at a random point in space
-            "active_index": random.randint(0, network.vector_length), # 
+            "vector": INITIAL_VALUES,  # Start at predefined zero points, i.e. not at a random point in space
+            "active_index": random.randint(0, network.vector_length),  #
         }
 
 
@@ -154,8 +158,6 @@ trial_maker = CustomTrialMaker(
     target_num_participants=None,
     wait_for_networks=True,
 )
-
-
 
 
 ##########################################################################################
