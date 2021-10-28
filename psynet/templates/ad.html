@@ -34,4 +34,24 @@
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
 Begin Experiment
 </button>
+{% if experiment.var.show_abort_button %}
+<button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right;" disabled>
+Abort Experiment
+</button>
+<div style="width: 200px; text-align: right; clear: both; float: right; margin-top: 7px;">
+    <span class="alert-danger">Click the above button to be compensated in case of an error.</span>
+</div>
+<script>
+    function abortExperiment(event) {
+        var windowFeatures = "menubar=no,location=no,resizable=no,scrollbars=no,status=no";
+        let windowObjectReference = window.open("/abort/" + "{{assignmentid}}", "Abort window", windowFeatures);
+    }
+
+    function enableAbortButton(event) {
+        document.getElementById("abort-button").disabled = false;
+    }
+
+    document.getElementById("abort-button").onclick = abortExperiment;
+</script>
+{% endif %}
 {% endblock live %}

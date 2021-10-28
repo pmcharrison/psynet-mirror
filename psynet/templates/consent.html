@@ -4,7 +4,7 @@
     <div style="margin-top: 130px;text-align: -webkit-center;">
       <div style="max-width: max-content;">
         <div class="col-xs-2">
-          <img id="adlogo" src="/static/images/logo.png" alt="PsyNet Logo" style="width: 150px; float: left;">
+          <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
         </div>
         <h3 style="clear: both;">
           To proceed, please click the button below
@@ -15,7 +15,7 @@
             class="btn btn-primary btn-lg"
             id="consent"
             style="margin-top: 20px;"
-            onClick="window.location='/start?{{query_string | safe}}';">
+            onClick="start();">
             Next
           </button>
         </div>
@@ -31,6 +31,15 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        start = function() {
+            {% if experiment.var.show_abort_button %}
+            if (window.opener !== null) {
+                window.opener.enableAbortButton();
+            }
+            {% endif %}
+            window.location='/start?{{query_string|safe}}';
+        }
+
         is_version_at_least = function(x, comparison) {
             var x_split = x.split(".").map(Number);
             var comparison_split = comparison.split(".").map(Number);
