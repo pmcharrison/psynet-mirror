@@ -15,7 +15,7 @@
         }
     </script>
 
-    <button type="button" id="next_button" class="btn btn-primary btn-lg submit" onclick="onNextButton();">
+    <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();">
         Next
     </button>
 {% endmacro %}
@@ -23,30 +23,30 @@
 {% macro reset_button(config, input_type) %}
     <script>
         {% if config.show_reset_button == "on_selection" %}
-        $("#reset_button").css({"display": "block"});
+        $("#reset-button").css({"display": "block"});
         {% endif %}
         onResetButton = function() {
             $('input[type={{ input_type }}]').attr('checked', false);
             {% if config.show_reset_button == "on_selection" %}
-            $("#reset_button").css({"display": "none"});
+            $("#reset-button").css({"display": "none"});
             {% endif %}
-            $("#reset_button").prop('disabled', true);
+            $("#reset-button").prop('disabled', true);
         }
 
         $('input[type={{ input_type }}]').click(function() {
             {% if config.show_reset_button == "on_selection" %}
-            $("#reset_button").css({"display": "block"});
+            $("#reset-button").css({"display": "block"});
             {% endif %}
             if (!$('input[type={{ input_type }}]').is(':checked'))
             {
-                $("#reset_button").prop('disabled', true);
+                $("#reset-button").prop('disabled', true);
             } else {
-                $("#reset_button").prop('disabled', false);
+                $("#reset-button").prop('disabled', false);
             }
         });
     </script>
 
-    <button type="button" id="reset_button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="onResetButton();" disabled>
+    <button type="button" id="reset-button" class="btn btn-primary btn-lg" style="{% if config.show_reset_button == 'on_selection' %}display: none{% endif %}; margin-right: 30px;" onclick="onResetButton();" disabled>
         Reset
     </button>
     {% endmacro %}
@@ -54,7 +54,7 @@
 {% macro push_button(config) %}
     <button
         type="button"
-        class="btn push_button btn-primary response {% if config.timed == true %} timed {% else %} submit {% endif %}"
+        class="btn push-button btn-primary response {% if config.timed == true %} timed {% else %} submit {% endif %}"
         id="{{ config.id }}"
         onclick="clickedButton(this, this.id);"
         style="{{ config.style }}"
@@ -291,7 +291,7 @@
             if (!randomWrap) {
                  valueToPlay =  slider.value
             } else {
-                valueToPlay = slider.getAttribute("output_value")
+                valueToPlay = slider.getAttribute("output-value")
             }
             var nearest = psynet.utils.closest(parseFloat(valueToPlay), locations);
             var selectedAudio = Object.keys(soundLocations)[nearest.index];
@@ -398,7 +398,7 @@
         max="{{ config.max_value + 0.0001 * config.step_size }}"
         step="{{ config.step_size }}"
         value="{{ config.start_value }}"
-        random_wrap="{{ config.random_wrap }}"
+        random-wrap="{{ config.random_wrap }}"
     >
 
     <script>
@@ -445,7 +445,7 @@
             data-max="{{ config.max_value + 0.0001 * config.step_size }}"
             data-step="{{ config.step_size }}"
             value="{{ config.start_value }}"
-            random_wrap="{{ config.random_wrap }}"
+            random-wrap="{{ config.random_wrap }}"
         >
     </div>
 
@@ -549,7 +549,7 @@
                 slider.log.push({
                     'time': new Date(),
                     'value': slider.value,
-                    'outputValue': slider.getAttribute("output_value")
+                    'outputValue': slider.getAttribute("output-value")
                 });
             }
         }
@@ -590,9 +590,9 @@
                 outputValue = rawValue;
             }
 
-            slider.setAttribute("raw_value", rawValue);
-            slider.setAttribute("output_value", outputValue);
-            psynet.log.debug("Slider raw_value = " + rawValue + ", slider output_value = " + outputValue);
+            slider.setAttribute("raw-value", rawValue);
+            slider.setAttribute("output-value", outputValue);
+            psynet.log.debug("Slider rawValue = " + rawValue + ", slider outputValue = " + outputValue);
         };
 
         let sampleSliderPhase = function () {
@@ -624,7 +624,7 @@
                 phase = 0.0;
             }
             slider.setAttribute("phase", phase);
-            slider.setAttribute("random_wrap", randomWrap);
+            slider.setAttribute("random-wrap", randomWrap);
             psynet.log.debug("Slider phase:" + phase);
             snapSlider();
             formatSliderValue();
@@ -676,7 +676,7 @@
         });
 
         retrieveResponse = function() {
-            let outputValue = parseFloat(slider.getAttribute("output_value"));
+            let outputValue = parseFloat(slider.getAttribute("output-value"));
             let rawAnswer = outputValue;
             let metadata = {
               rawValue: parseFloat(slider.value),
@@ -767,23 +767,23 @@
 
 {% macro audio_meter(config) %}
     <style>
-        .audio_meter_block {
+        .audio-meter-block {
             margin-top: 20px;
             margin-bottom: 20px;
         }
     </style>
-    <div class="audio_meter_block">
+    <div class="audio-meter-block">
         <table style="width: 500px; padding: 10px">
             <tbody>
                 <tr align="left" valign="middle">
                     <td width="300px">
                         <div style="background-color: black; width: 300px; height: 50px">
-                            <canvas id="audio_meter" width="300" height="50"></canvas>
+                            <canvas id="audio-meter" width="300" height="50"></canvas>
                         </div>
                     </td>
                     <td width="20px"></td>
                     <td align="left">
-                        <p id="audio_meter_text" style="font-weight: bold; margin: 0px; display: none;"></p>
+                        <p id="audio-meter-text" style="font-weight: bold; margin: 0px; display: none;"></p>
                     </td>
                 </tr>
             </tbody>
@@ -956,7 +956,7 @@
                 psynet.trial.registerEvent("uploadStart");
                 psynet.trial.onEvent("uploadEnd", () => {
                     spinner.hide();
-                    $("#next_button").click()
+                    $("#next-button").click()
                 });
                 psynet.trial.onEvent("uploadFail", resetButton);
             });
@@ -1346,23 +1346,23 @@
 
 {% macro text(config) %}
     <style>
-        #text_input_container {
+        #text-input-container {
             padding-top: 20px;
             padding-bottom: 20px;
             display: flex;
             justify-content: center;
         }
-        #text_input {
+        #text-input {
             {% if config.width is not none %} width: {{ config.width }}; {% endif %}
             {% if config.height is not none %} height: {{ config.height }}; {% endif %}
         }
     </style>
 
-    <div id="text_input_container">
+    <div id="text-input-container">
         {% if config.one_line %}
-            <input id="text_input" class="form-control response" type="text" value=""/>
+            <input id="text-input" class="form-control response" type="text" value=""/>
         {% else %}
-            <textarea id="text_input" class="form-control response" type="text"></textarea>
+            <textarea id="text-input" class="form-control response" type="text"></textarea>
         {% endif %}
     </div>
     <p class="vspace"></p>
@@ -1370,7 +1370,7 @@
     <script>
         retrieveResponse = function() {
             return {
-                rawAnswer: $("#text_input").get(0).value
+                rawAnswer: $("#text-input").get(0).value
             }
         }
     </script>
@@ -1380,27 +1380,27 @@
 
 {% macro number(config) %}
     <style>
-        #number_input_container {
+        #number-input-container {
             padding-top: 20px;
             padding-bottom: 20px;
             display: flex;
             justify-content: center;
         }
-        #number_input {
+        #number-input {
             text-align: {{config.text_align}};
             {% if config.width is not none %}width: {{ config.width }};{% endif %}
         }
     </style>
 
-    <div id="number_input_container">
-        <input id="number_input" class="form-control response" type="text" value=""/>
+    <div id="number-input-container">
+        <input id="number-input" class="form-control response" type="text" value=""/>
     </div>
     <p class="vspace"></p>
 
     <script>
         retrieveResponse = function() {
             return {
-                rawAnswer: $("#number_input").get(0).value
+                rawAnswer: $("#number-input").get(0).value
             }
         }
     </script>
@@ -1410,7 +1410,7 @@
 
 {% macro video_slider(config) %}
     <style>
-        #slider_video_container {
+        #slider-video-container {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -1418,7 +1418,7 @@
             min-height: {{ config.height }};
             min-width: {{ config.width }};
         }
-        #slider_container {
+        #slider-container {
             margin: 25px;
             {% if config.hide_slider == true %} display: none; {% endif %}
         }
@@ -1452,14 +1452,14 @@
         {% endif %}
     </style>
 
-    <div id="slider_video_container">
-        <video id="slider_video" class="loader" width="{{ config.width }}" height="{{ config.height }}">
+    <div id="slider-video-container">
+        <video id="slider-video" class="loader" width="{{ config.width }}" height="{{ config.height }}">
             <source src="" type="video/{{ config.file_type }}"
         </video>
     </div>
 
     {{config.__dict__}}
-    <div id="slider_container">
+    <div id="slider-container">
         <input
             type="range"
             id="slider"
@@ -1476,7 +1476,7 @@
     <script>
         psynet.media.updateVideoFromSlider = function() {
             var slider_value = document.getElementById("slider").value;
-            var video = document.getElementById("slider_video");
+            var video = document.getElementById("slider-video");
             if (psynet.response.ready_done && !isNaN(video.duration)) {
                 video.currentTime = slider_value * video.duration;
             };

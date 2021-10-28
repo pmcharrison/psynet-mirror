@@ -37,12 +37,12 @@ class TestExp:
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard_consent")
-            next_page(driver, "next_button")
-            next_page(driver, "next_button")
+            next_page(driver, "standard-consent")
+            next_page(driver, "next-button")
+            next_page(driver, "next-button")
 
             with pytest.raises(RuntimeError):
-                next_page(driver, "next_button")
+                next_page(driver, "next-button")
 
             assert_text(driver, "header", "Error!")
             assert_text(

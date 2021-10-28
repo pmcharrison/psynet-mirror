@@ -16,16 +16,16 @@ def print_dict(x):
 def make_example(args):
     prompt = Markup(
         f"""
-        Raw slider value is <strong id="slider_raw_value">NA</strong> <br>
-        Output slider value is <strong id="slider_output_value">NA</strong>
+        Raw slider value is <strong id="slider-raw-value">NA</strong> <br>
+        Output slider value is <strong id="slider-output-value">NA</strong>
         (phase = <strong id="phase">NA</strong>, random wrap = <strong id="random-wrap">NA</strong>)
         {print_dict(args)}
         <script>
             update_value = function() {{
-                document.getElementById("slider_raw_value").innerHTML = parseFloat(slider.getAttribute("raw_value")).toFixed(2);
-                document.getElementById("slider_output_value").innerHTML = parseFloat(slider.getAttribute("output_value")).toFixed(2);
+                document.getElementById("slider-raw-value").innerHTML = parseFloat(slider.getAttribute("raw-value")).toFixed(2);
+                document.getElementById("slider-output-value").innerHTML = parseFloat(slider.getAttribute("output-value")).toFixed(2);
                 document.getElementById("phase").innerHTML = parseFloat(slider.getAttribute("phase")).toFixed(2);
-                document.getElementById("random-wrap").innerHTML = slider.getAttribute("random_wrap");
+                document.getElementById("random-wrap").innerHTML = slider.getAttribute("random-wrap");
             }}
             psynet.trial.onEvent("trialConstruct", () => setInterval(update_value, 100));
         </script>
