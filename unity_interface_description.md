@@ -5,7 +5,7 @@
 There exist two main ways for Unity to interact with PsyNet's user interface:
 
 1. Defining an experiment timeline using ``UnityPage`` elements
-2. Calling ``psynet.next_page()`` and then listening to the JavaScript event ``page_updated``
+2. Calling ``psynet.nextPage()`` and then listening to the JavaScript event ``pageUpdated``
 
 Let's look at an example of an experiment consisting of an experiment timeline which includes three ``UnityPage`` elements. The first two elements share the same ``session_id`` while the third has a different one. A ``session_id`` corresponds to a Unity session and allows for joining a sequence of ``UnityPage`` elements into a single unit.
 
@@ -58,14 +58,14 @@ class UnityExperiment(psynet.experiment.Experiment):
     )
 ```
 
-By calling the JavaScript function ``psynet.next_page()`` the user can advance to a follow-up page. If this page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``page_updated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. This information is accessible through attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container to hold the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ```
-python {"melody": [1, 5, 2]}```. Here is a JavaScript code snippet demonstrating how to make use of the ``page_updated`` event. 
+By calling the JavaScript function ``psynet.nextPage()`` the user can advance to a follow-up page. If this page has the same ``session_id`` as the preceeding page the JavaScript CustomEvent ``pageUpdated`` is dispatched. Unity needs to listen for this event and then respond to the updated page information accordingly. This information is accessible through attributes ``contents`` and ``attributes`` of JavaScript variable ``psynet.page``, where ``contents`` is the main container to hold the experiment specific data. For example, in an experiment about melodies, the ``contents`` property might look something like this: ```
+python {"melody": [1, 5, 2]}```. Here is a JavaScript code snippet demonstrating how to make use of the ``pageUpdated`` event.
 
 ```javascript
-window.addEventListener("page_updated", on_page_updated)
+window.addEventListener("pageUpdated", onPageUpdated)
 
-on_page_updated = function(event) {
-    console.log("Event 'page_updated' was dispatched.");
+onPageUpdated = function(event) {
+    console.log("Event 'pageUpdated' was dispatched.");
     // Respond to the updated page information accessible
     // through ``psynet.page.contents``
 };
@@ -83,7 +83,7 @@ class UnityPage(Page):
     """
     This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
 
-    Ín order to conclude this page call the ``psynet.next_page`` function which has following parameters:
+    Ín order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
 
     * ``raw_answer``: The main answer that the page returns.
 
@@ -91,7 +91,7 @@ class UnityPage(Page):
 
     * ``blobs``: Use this for large binaries, e.g. audio recordings.
 
-    Once the ``psynet.next_page`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``page_updated`` in the ``window`` object.
+    Once the ``psynet.nextPage`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``pageUpdated`` in the ``window`` object.
 
     Parameters
     ----------
@@ -123,7 +123,7 @@ class UnityPage(Page):
         Time estimated for the page.
 
     session_id:
-        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with JavaScript code like window.addEventListener(”page_updated”, ...).
+        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with JavaScript code like window.addEventListener(”pageUpdated”, ...).
 
     **kwargs:
         Further arguments to pass to :class:`psynet.timeline.Page`.

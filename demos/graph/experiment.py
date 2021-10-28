@@ -84,12 +84,12 @@ class NecklaceCircle(Circle):
             let color_options = {self.color_options};
             this.raphael.attr({{"stroke": color_options[initial_color], "fill": color_options[initial_color]}});
 
-            if (psynet.response.staged.raw_answer == undefined) {{
-                psynet.response.staged.raw_answer = {{}};
+            if (psynet.response.staged.rawAnswer == undefined) {{
+                psynet.response.staged.rawAnswer = {{}};
             }}
 
             let stage_color = function(index, circle_id) {{
-                psynet.response.staged.raw_answer[circle_id] = {{
+                psynet.response.staged.rawAnswer[circle_id] = {{
                     color_index: index,
                     color_value: color_options[index]
                 }};
@@ -153,7 +153,7 @@ class NecklaceNAFCPage(ModularPage):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        chosen_necklace_id = int(raw_answer["clicked_object"].split("_")[1])
+        chosen_necklace_id = int(raw_answer["clickedObject"].split("_")[1])
         return chosen_necklace_id
 
     def create_necklace(
