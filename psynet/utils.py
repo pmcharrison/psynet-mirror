@@ -15,6 +15,7 @@ from urllib.parse import ParseResult, urlparse
 import numpy as np
 import pandas as pd
 from dallinger.config import config, get_config
+from flask import make_response, render_template, request
 from sqlalchemy.sql import func
 
 
@@ -417,3 +418,50 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
     res = np.random.randn(n_dimensions, 1)
     res /= np.linalg.norm(res, axis=0)
     return res[:, 0].tolist()
+
+
+def error_page(
+    participant=None,
+    error_text=None,
+    compensate=True,
+    error_type="default",
+    request_data="",
+):
+    """Render HTML for error page."""
+    config = get_config()
+
+    if error_text is None:
+        error_text = "There has been an error and so you are unable to continue, sorry!"
+
+    if participant is not None:
+        hit_id = participant.hit_id
+        assignment_id = participant.assignment_id
+        worker_id = participant.worker_id
+        participant_id = participant.id
+    else:
+        hit_id = request.form.get("hit_id", "")
+        assignment_id = request.form.get("assignment_id", "")
+        worker_id = request.form.get("worker_id", "")
+        participant_id = request.form.get("participant_id", None)
+
+    if participant_id:
+        try:
+            participant_id = int(participant_id)
+        except (ValueError, TypeError):
+            participant_id = None
+
+    return make_response(
+        render_template(
+            "mturk_error.html",
+            error_text=error_text,
+            compensate=compensate,
+            contact_address=config.get("contact_email_on_error"),
+            error_type=error_type,
+            hit_id=hit_id,
+            assignment_id=assignment_id,
+            worker_id=worker_id,
+            request_data=request_data,
+            participant_id=participant_id,
+        ),
+        500,
+    )

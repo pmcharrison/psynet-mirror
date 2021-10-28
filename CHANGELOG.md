@@ -1,5 +1,16 @@
 # CHANGELOG
 
+# [4.2.0] Released on 2021-10-27
+
+#### Added
+- Added new argument 'mirrored' to VideoRecordControl and VideoPrompt allowing
+  the video to be displayed as if looking into a mirror.
+- Added a button "Abort experiment" to the ad and error page, including two new environment
+  variables 'show_abort_button' and 'min_accumulated_bonus_for_abort'. These additions
+  make it possible for the experimenter to allow the participant to abort an experiment and
+  be compensated automatically given the minimum amount of bonus has already been accumulated.
+  The default is to not display the button.
+
 #### Changed
 - Replaced the Audio Gibbs demo with an implementation of the emotional prosody
   experiment from our 2020 NeurIPS paper (Harrison et al., 2020)
