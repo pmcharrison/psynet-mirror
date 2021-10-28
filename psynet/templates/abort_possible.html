@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block stylesheets %}
+    <style>
+      body {
+          padding:0px;
+          margin: 0px;
+          background-color: white;
+          color: black;
+          font-weight: 300;
+          font-size: 13pt;
+      }
+
+      #container {
+          position: absolute;
+          top: 0px; /* Header Height */
+          bottom: 0px; /* Footer Height */
+          left: 0px;
+          right: 0px;
+          padding: 100px;
+          padding-top: 5%;
+          border: 18px solid #f3f3f3;
+          background: white;
+      }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div id="container">
+      <div style="max-width: max-content;">
+        <div class="col-xs-2">
+          <img id="adlogo" src="/static/images/logo.png" alt="Psynet logo" style="width: 150px; float: left;">
+        </div>
+        <h1 id="header" style="clear: both;">Are you sure you want to abort the experiment?</h1>
+        <hr>
+        <p>
+          If you click the Abort button, the experiment will end early, and you will be automatically paid the compensation you have earned so far. Please only contact us if you have trouble receiving your payment. See the information below for details of your compensation.
+        </p>
+        <table class="table table-sm table-striped">
+            <tbody>
+              <tr><th>Assignment ID</th><td>{{ participant_abort_info.assignment_id }}</td></tr>
+              <tr><th>HIT ID</th><td>{{ participant_abort_info.hit_id }}</td></tr>
+              <tr><th>Accumulated bonus</th><td>{{ participant_abort_info.accumulated_bonus }}</td></tr>
+            </tbody>
+        </table>
+        <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: left; margin-top: 15px;" onclick="window.close();">
+          Close window
+        </button>
+        <button type="button" id="abort-button" class="btn btn-danger btn-lg" style="float: right; margin-top: 15px;" onclick="setAborted('{{ participant_abort_info.assignment_id }}');">
+          Abort experiment
+        </button>
+      </div>
+    </div>
+    <script>
+      setAborted = function(assignmentId) {
+        fetch("/set_participant_as_aborted/" + assignmentId)
+          .then(function () {
+            dallinger.submitAssignment();
+          });
+      }
+    </script>
+{% endblock %}

@@ -284,7 +284,7 @@ class GraphicObject:
         self.animations_js = [
             {
                 "index": index,
-                "final_attributes": animation.final_attributes,
+                "finalAttributes": animation.final_attributes,
                 "duration": animation.duration,
                 "easing": animation.easing,
             }
@@ -412,7 +412,7 @@ class Image(GraphicObject):
     @property
     def js_init(self):
         if self.height is None:
-            height_js = f"Math.round({self.width} / psynet.image['{self.media_id}'].aspect_ratio)"
+            height_js = f"Math.round({self.width} / psynet.image['{self.media_id}'].aspectRatio)"
         else:
             height_js = self.height
 

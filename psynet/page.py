@@ -74,15 +74,15 @@ class UnityPage(Page):
     """
     This is the main page when conducting Unity experiments. Its attributes ``contents`` and ``attributes`` can be accessed through the JavaScript variable ``psynet.page`` inside the page template.
 
-    Ín order to conclude this page call the ``psynet.next_page`` function which has following parameters:
+    Ín order to conclude this page call the ``psynet.nextPage`` function which has following parameters:
 
-    * ``raw_answer``: The main answer that the page returns.
+    * ``rawAnswer``: The main answer that the page returns.
 
     * ``metadata``: Additional information that might be useful for debugging or other exploration, e.g. time taken on the page.
 
     * ``blobs``: Use this for large binaries, e.g. audio recordings.
 
-    Once the ``psynet.next_page`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``page_updated`` in the ``window`` object.
+    Once the ``psynet.nextPage`` function is called, PsyNet will navigate to a new page if the new page has a different session_id compared to the current page, otherwise it will update the page while preserving the ongoing Unity session, specifically updating ``psynet.page`` and triggering the JavaScript event ``pageUpdated`` in the ``window`` object.
 
     Parameters
     ----------
@@ -113,7 +113,7 @@ class UnityPage(Page):
         Time estimated for the page (seconds).
 
     session_id:
-        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called page_updated. This event can be listened for with JavaScript code like window.addEventListener(”page_updated”, ...).
+        If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the JavaScript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with JavaScript code like window.addEventListener(”pageUpdated”, ...).
 
     debug:
         Specifies if we are in debug mode and use `unity-debug-page.html` as template instead of the standard `unity-page.html`.

@@ -101,7 +101,7 @@ def bot_class(headless=None):
 
 def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.0):
     def get_uuid():
-        return driver.execute_script("return page_uuid")
+        return driver.execute_script("return pageUuid")
 
     def click_button():
         button = driver.find_element_by_id(button_id)
@@ -112,7 +112,7 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
             "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
         )
         if psynet_loaded:
-            page_loaded = driver.execute_script("return psynet.page_loaded")
+            page_loaded = driver.execute_script("return psynet.pageLoaded")
             if page_loaded:
                 response_enabled = driver.execute_script(
                     "return psynet.trial.events.responseEnable.happened"
