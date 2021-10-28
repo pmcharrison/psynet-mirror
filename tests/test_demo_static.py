@@ -102,7 +102,7 @@ class TestExp:
                 assert t.participant_id == 1
                 assert t.trial_maker_id == "animals"
 
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             assert_text(
                 driver,
@@ -115,7 +115,7 @@ class TestExp:
                 """,
             )
 
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button", finished=True)
 
     def test_custom_filters(self, bot_recruits, db_session, trial_maker):
         for participant, bot in enumerate(bot_recruits):
@@ -159,5 +159,5 @@ class TestExp:
             for _ in range(num_remaining_trials + num_repeat_trials):
                 next_page(driver, "Very much")
 
-            next_page(driver, "next_button")
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button")
+            next_page(driver, "next-button", finished=True)

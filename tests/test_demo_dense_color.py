@@ -36,5 +36,5 @@ class TestExp:
             adjectives.sort()
             assert adjectives == ["angry"] * 3 + ["happy"] * 3
 
-            next_page(driver, "next_button")
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button")
+            next_page(driver, "next-button", finished=True)
