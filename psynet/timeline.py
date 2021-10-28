@@ -918,6 +918,8 @@ class Page(Elt):
             ),
             "define_media_requests": flask.Markup(self.define_media_requests),
             "initial_download_progress": self.initial_download_progress,
+            "min_accumulated_bonus_for_abort": experiment.var.min_accumulated_bonus_for_abort,
+            "show_abort_button": experiment.var.show_abort_button,
             "show_footer": experiment.var.show_footer,
             "show_bonus": experiment.var.show_bonus,
             "basic_bonus": "%.2f" % participant.time_credit.get_bonus(),
@@ -1905,6 +1907,7 @@ class Module:
             {
                 "time_started": participant.modules[module_id]["time_started"][0],
                 "time_finished": participant.modules[module_id]["time_finished"][0],
+                "time_aborted": participant.modules[module_id]["time_finished"][0],
             }
             for participant in participants
             if module_id in participant.finished_modules
@@ -1934,6 +1937,15 @@ class Module:
             return None
 
         return median(sorted(durations_in_min))
+
+    @property
+    def aborted_participants(self):
+        from .participant import Participant
+
+        participants = Participant.query.all()
+        aborted_participants = [p for p in participants if self.id in p.aborted_modules]
+        aborted_participants.sort(key=lambda p: p.modules[self.id]["time_aborted"][0])
+        return aborted_participants
 
     @property
     def started_participants(self):
@@ -1972,6 +1984,10 @@ class Module:
             median_finish_time_in_min = round(
                 Module.median_finish_time_in_min(self.finished_participants, self.id), 1
             )
+        if self.aborted_participants:
+            time_aborted_last = self.aborted_participants[-1].modules[self.id][
+                "time_aborted"
+            ][0]
 
         div = tags.div()
         with div:
@@ -1980,9 +1996,12 @@ class Module:
             with tags.ul(cls="details"):
                 if phase is not None:
                     tags.li(f"Phase: {phase}")
+                    tags.br()
                 tags.li(f"Participants started: {len(self.started_participants)}")
                 tags.li(f"Participants finished: {len(self.finished_participants)}")
+                tags.li(f"Participants aborted: {len(self.aborted_participants)}")
                 if self.started_participants:
+                    tags.br()
                     tags.li(
                         f"Participant started last: {format_datetime_string(time_started_last)}"
                     )
@@ -1990,7 +2009,16 @@ class Module:
                     tags.li(
                         f"Participant finished last: {format_datetime_string(time_finished_last)}"
                     )
-                    tags.li(f"Median time spent: {median_finish_time_in_min} min.")
+                if self.aborted_participants:
+                    tags.li(
+                        f"Participant aborted last: {format_datetime_string(time_aborted_last)}"
+                    )
+
+                if self.finished_participants:
+                    tags.br()
+                    tags.li(
+                        f"Median time spent (finished): {median_finish_time_in_min} min."
+                    )
 
         return div.render()
 
@@ -2007,6 +2035,8 @@ class Module:
             tags.span(
                 f"{len(self.started_participants)} started, {len(self.finished_participants)} finished,"
             )
+            tags.br()
+            tags.span(f"{len(self.aborted_participants)} aborted")
             if self.finished_participants:
                 tags.br()
                 tags.span(f"{round(median_finish_time_in_min, 1)} min. (median)")
@@ -2030,6 +2060,7 @@ class Module:
             self.id: {
                 "started_num_participants": len(self.started_participants),
                 "finished_num_participants": len(self.finished_participants),
+                "aborted_num_participants": len(self.aborted_participants),
                 "target_num_participants": target_num_participants,
                 "progress": progress,
             }

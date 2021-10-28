@@ -43,7 +43,7 @@ click==7.1.2
     #   rq
 dallinger==7.7.0
     # via
-    #   -r /tmp/tmp7dkhkhvb/requirements.txt
+    #   -r /tmp/tmpi7elztoz/requirements.txt
     #   psynet
 datetime==4.3
     # via psynet
@@ -110,7 +110,7 @@ idna==3.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
     #   requests
-importlib-resources==5.2.2
+importlib-resources==5.3.0
     # via psynet
 itsdangerous==1.1.0
     # via
@@ -268,7 +268,7 @@ timeago==1.0.15
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
     #   dallinger
-tomli==1.2.1
+tomli==1.2.2
     # via
     #   build
     #   pep517
