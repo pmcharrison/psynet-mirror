@@ -20,12 +20,12 @@ class TestExp:
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard_consent")
+            next_page(driver, "standard-consent")
             for i in range(10):
                 next_page(driver, "1")
 
-            next_page(driver, "next_button")
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button")
+            next_page(driver, "next-button", finished=True)
 
     def test_default_variables(self, db_session):
         from psynet.utils import import_local_experiment

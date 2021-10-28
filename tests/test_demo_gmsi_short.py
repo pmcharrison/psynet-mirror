@@ -30,7 +30,7 @@ class TestExp(object):
             driver = bot.driver
             time.sleep(1)
 
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
             next_page(driver, "1")
             next_page(driver, "2")
             next_page(driver, "3")
@@ -85,4 +85,4 @@ class TestExp(object):
                 "Perceptual Abilities": 4.0,
             }
 
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button", finished=True)

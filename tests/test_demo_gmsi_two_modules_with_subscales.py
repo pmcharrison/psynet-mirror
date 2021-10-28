@@ -35,7 +35,7 @@ class TestExp(object):
             driver = bot.driver
             time.sleep(1)
 
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
             next_page(driver, "1")
             next_page(driver, "1")
             next_page(driver, "1")
@@ -43,7 +43,7 @@ class TestExp(object):
             next_page(driver, "7")
             next_page(driver, "1")
             next_page(driver, "1")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
             next_page(driver, "7")
             next_page(driver, "7")
             next_page(driver, "1")
@@ -77,4 +77,4 @@ class TestExp(object):
                 "Musical Training": 7.0,
             }
 
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button", finished=True)
