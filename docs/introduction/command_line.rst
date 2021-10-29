@@ -13,6 +13,7 @@ Commands:
 | :ref:`deploy <deploy>`
 | :ref:`estimate <estimate>`
 | :ref:`export <export>`
+| :ref:`update <update>`
 
 .. _debug:
 
@@ -28,7 +29,7 @@ Start an experiment in debug mode with verbose output on localhost port 5000.
 **Usage**
 
 .. code:: bash
-  
+
   psynet debug [OPTIONS]
 
   Options:
@@ -49,7 +50,7 @@ Deploy an experiment using Heroku to the MTurk Sandbox.
 **Usage**
 
 .. code:: bash
-  
+
   psynet sandbox [OPTIONS]
 
   Options:
@@ -69,7 +70,7 @@ Deploy an experiment using Heroku to MTurk.
 **Usage**
 
 .. code:: bash
-  
+
   psynet deploy [OPTIONS]
 
   Options:
@@ -93,7 +94,7 @@ Estimate a participant's maximum bonus and time to complete the experiment.
 **Usage**
 
 .. code:: bash
-  
+
   psynet estimate [OPTIONS]
 
   Options:
@@ -147,7 +148,7 @@ Export from sandbox/production
 **Usage**
 
 .. code:: bash
-  
+
   psynet export [OPTIONS]
 
   Options:
@@ -156,3 +157,32 @@ Export from sandbox/production
     --local          Export local data
     --force-prepare  Force override of cache.
     --help           Show this message and exit.
+
+
+.. _update:
+
+Update PsyNet/Dallinger (``update``)
+------------------------------------
+
+Update the local installations of `PsyNet` and `Dallinger` to their latest versions.
+While the default is to update both packages, they can also be set to specific
+versions (e.g. downgraded) using the ``--psynet-version`` and
+``--dallinger-version`` command line options.
+
+.. code:: bash
+
+  psynet update
+
+**Usage**
+
+.. code:: bash
+
+  psynet update [OPTIONS]
+
+  Options:
+    --dallinger-version TEXT  The git branch, commit or tag of the Dallinger
+                              version to install.
+    --psynet-version TEXT     The git branch, commit or tag of the psynet
+                              version to install.
+    --verbose                 Verbose mode
+    --help                    Show this message and exit.
