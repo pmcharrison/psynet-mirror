@@ -677,8 +677,8 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         experiment = dallinger.experiment.load()
         trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
         self.async_post_trial()
-        trial_maker._grow_network(self.network, self.participant, experiment)
         self.mark_as_finalized()
+        trial_maker._grow_network(self.network, self.participant, experiment)
 
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
