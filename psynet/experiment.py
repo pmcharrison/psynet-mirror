@@ -24,7 +24,12 @@ from . import field
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
-from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
+from .recruiters import (  # noqa: F401
+    CapRecruiter,
+    DevCapRecruiter,
+    LucidRecruiter,
+    StagingCapRecruiter,
+)
 from .timeline import (
     DatabaseCheck,
     ExperimentSetupRoutine,
