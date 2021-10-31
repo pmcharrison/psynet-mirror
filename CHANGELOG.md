@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### Fixed
+- Implemented fix for networks not growing properly in within-participant experiments 
+  with asynchronous processing.
+
 # [4.2.0] Released on 2021-10-27
 
 #### Added
