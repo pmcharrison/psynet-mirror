@@ -162,18 +162,6 @@ class LucidRecruiter(Recruiter):
             raise LucidRecruiterException("Can't run a survey from localhost")
 
         create_survey_request_params = {
-            # "experiment_id": self.config.get("id"),
-            # "title": "{} ({})".format(
-            #     self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
-            # ),
-            # "description": self.config.get("description"),
-            # "keywords": self._config_to_list("keywords"),
-            # "reward": self.config.get("base_payment"),
-            # "duration_hours": self.config.get("duration"),
-            # "lifetime_days": self.config.get("lifetime"),
-            # # "question": MTurkQuestions.external(self.ad_url),
-            # "max_assignments": n,
-            # "notification_url": self.notification_url,
             "live_url": self.ad_url,
             "name": "{} ({})".format(
                 self.config.get("title"), heroku_tools.app_name(self.config.get("id"))

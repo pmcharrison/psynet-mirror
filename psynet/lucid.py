@@ -2,6 +2,10 @@ import json
 
 import requests
 
+from .utils import get_logger
+
+logger = get_logger()
+
 
 class LucidServiceException(Exception):
     """Custom exception type"""
@@ -92,7 +96,10 @@ class LucidService(object):
         response = requests.post(
             f"{self.request_base_url}/surveys", data=data, headers=headers
         )
-
+        logger.info(params)
+        logger.info(data)
+        logger.info(response)
+        logger.info(response.content)
         if "create_date" not in response or "id" not in response:
             raise LucidServiceException(
                 "'Create survey' request was invalid for unknown reason."
