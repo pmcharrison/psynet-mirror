@@ -174,29 +174,10 @@ class LucidRecruiter(Recruiter):
             # # "question": MTurkQuestions.external(self.ad_url),
             # "max_assignments": n,
             # "notification_url": self.notification_url,
-            "client_cpi_usd": 5,
-            "collects_pii": True,
-            "expected_completes": 10,
-            "expected_completion_loi": 10,
-            "expected_incidence_rate": 0.1,
-            "fraud_profile": True,
-            "fraud_profile_threshold": 13,
-            "industry": "education",
             "live_url": self.ad_url,
-            "locale": "eng_us",
             "name": "{} ({})".format(
                 self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
             ),
-            "priority": 13,
-            "quantity_calc_type": "prescreens",
-            "relevant_id": True,
-            "status": "pending",
-            "study_type": "ihut",
-            "survey_cpi_usd": 5,
-            "test_url": "https://www.samplesurvey.com/test",
-            "unique_ip": True,
-            "unique_pid": True,
-            "verify_callback": True,
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)

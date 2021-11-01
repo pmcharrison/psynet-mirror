@@ -31,19 +31,8 @@ class LucidService(object):
 
     def create_survey(
         self,
-        experiment_id,
-        title,
-        description,
-        keywords,
-        reward,
-        duration_hours,
-        lifetime_days,
-        question,
-        max_assignments,
-        notification_url=None,
-        annotation=None,
-        qualifications=(),
-        do_subscribe=True,
+        live_url,
+        name,
     ):
         """
         Create the actual survey and return a dict with its useful properties.
@@ -77,6 +66,27 @@ class LucidService(object):
             "business_unit_id": 2404,  # TODO: Get business unit id dynamically
             "project_id": response["id"],
             "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
+            "client_cpi_usd": 5,
+            "collects_pii": True,
+            "expected_completes": 10,
+            "expected_completion_loi": 10,
+            "expected_incidence_rate": 0.1,
+            "fraud_profile": True,
+            "fraud_profile_threshold": 13,
+            "industry": "education",
+            "live_url": live_url,
+            "locale": "eng_us",
+            "name": name,
+            "priority": 13,
+            "quantity_calc_type": "prescreens",
+            "relevant_id": True,
+            "status": "pending",
+            "study_type": "ihut",
+            "survey_cpi_usd": 5,
+            "test_url": "https://www.samplesurvey.com/test",
+            "unique_ip": True,
+            "unique_pid": True,
+            "verify_callback": True,
         }
         data = json.dumps(params)
         response = requests.post(
@@ -87,7 +97,8 @@ class LucidService(object):
             raise LucidServiceException(
                 "'Create survey' request was invalid for unknown reason."
             )
-        return self._translate_survey(response)
+        return response
+        # return self._translate_survey(response)
 
     def _translate_survey(self, survey):
         if "Keywords" in survey:
