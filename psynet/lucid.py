@@ -60,6 +60,11 @@ class LucidService(object):
             f"{self.request_base_url}/projects", data=data, headers=headers
         )
 
+        logger.info(params)
+        logger.info(data)
+        logger.info(response)
+        logger.info(response.content)
+
         if "id" not in response:
             raise LucidServiceException(
                 "'Create project' request was invalid for unknown reason."
