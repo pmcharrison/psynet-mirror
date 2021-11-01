@@ -1,5 +1,8 @@
 import datetime
 
+import boto3
+from cached_property import cached_property
+
 
 class LucidServiceException(Exception):
     """Custom exception type"""
@@ -24,16 +27,16 @@ class LucidService(object):
         self.is_sandbox = sandbox
         self.max_wait_secs = max_wait_secs
 
-    # @cached_property
-    # def mturk(self):
-    #     session = boto3.session.Session(
-    #         aws_access_key_id=self.aws_key,
-    #         aws_secret_access_key=self.aws_secret,
-    #         region_name=self.region_name,
-    #     )
-    #     return session.client(
-    #         "mturk", endpoint_url=self.host, region_name=self.region_name
-    #     )
+    @cached_property
+    def lucid(self):
+        session = boto3.session.Session(
+            aws_access_key_id=self.aws_key,
+            aws_secret_access_key=self.aws_secret,
+            region_name=self.region_name,
+        )
+        return session.client(
+            "lucid", endpoint_url=self.host, region_name=self.region_name
+        )
 
     # @cached_property
     # def sns(self):
@@ -43,22 +46,25 @@ class LucidService(object):
     #         region_name=self.region_name,
     #     )
 
-    # @property
-    # def host(self):
-    #     if self.is_sandbox:
-    #         template = u"https://mturk-requester-sandbox.{}.amazonaws.com"
-    #     else:
-    #         template = u"https://mturk-requester.{}.amazonaws.com"
-    #     return template.format(self.region_name)
+    @property
+    def host(self):
+        # if self.is_sandbox:
+        #     template = "https://mturk-requester-sandbox.{}.amazonaws.com"
+        # else:
+        #     template = "https://mturk-requester.{}.amazonaws.com"
+        # return template.format(self.region_name)
+        return "TODO ~~~> LUCID template (was: https://mturk-requester-sandbox.{}.amazonaws.com)".format(
+            self.region_name
+        )
 
-    # def account_balance(self):
-    #     response = self.mturk.get_account_balance()
-    #     return float(response["AvailableBalance"])
+    def account_balance(self):
+        response = self.lucid.get_account_balance()
+        return float(response["AvailableBalance"])
 
     def check_credentials(self):
         """Verifies key/secret/host combination by making a balance inquiry"""
         try:
-            return bool(self.mturk.get_account_balance())
+            return bool(self.lucid.get_account_balance())
         # except NoCredentialsError:
         #     raise LucidServiceException("No AWS credentials set!")
         # except ClientError:
@@ -75,7 +81,7 @@ class LucidService(object):
     # def create_qualification_type(self, name, description, status="Active"):
     #     """Create a new qualification Workers can be scored for."""
     #     try:
-    #         response = self.mturk.create_qualification_type(
+    #         response = self.lucid.create_qualification_type(
     #             Name=name, Description=description, QualificationTypeStatus=status
     #         )
     #     except Exception as ex:
@@ -100,7 +106,7 @@ class LucidService(object):
     #         "MustBeOwnedByCaller": True,
     #         "MaxResults": max_fuzzy_matches_to_check,
     #     }
-    #     results = self.mturk.list_qualification_types(**args)["QualificationTypes"]
+    #     results = self.lucid.list_qualification_types(**args)["QualificationTypes"]
     #     # This loop is largely for tests, because there's some indexing that
     #     # needs to happen on MTurk for search to work:
     #     start = time.time()
@@ -109,7 +115,7 @@ class LucidService(object):
     #         if elapsed > self.max_wait_secs:
     #             return None
     #         time.sleep(1)
-    #         results = self.mturk.list_qualification_types(**args)["QualificationTypes"]
+    #         results = self.lucid.list_qualification_types(**args)["QualificationTypes"]
 
     #     qualifications = [self._translate_qtype(r) for r in results]
     #     if len(qualifications) > 1:
@@ -124,7 +130,7 @@ class LucidService(object):
     # def assign_qualification(self, qualification_id, worker_id, score, notify=False):
     #     """Score a worker for a specific qualification"""
     #     return self._is_ok(
-    #         self.mturk.associate_qualification_with_worker(
+    #         self.lucid.associate_qualification_with_worker(
     #             QualificationTypeId=qualification_id,
     #             WorkerId=worker_id,
     #             IntegerValue=score,
@@ -140,7 +146,7 @@ class LucidService(object):
     #             'No Qualification exists with name "{}"'.format(name)
     #         )
     #     return self._is_ok(
-    #         self.mturk.associate_qualification_with_worker(
+    #         self.lucid.associate_qualification_with_worker(
     #             QualificationTypeId=qtype["id"],
     #             WorkerId=worker_id,
     #             IntegerValue=score,
@@ -177,7 +183,7 @@ class LucidService(object):
 
     # def revoke_qualification(self, qualification_id, worker_id, reason=""):
     #     return self._is_ok(
-    #         self.mturk.disassociate_qualification_from_worker(
+    #         self.lucid.disassociate_qualification_from_worker(
     #             QualificationTypeId=qualification_id, WorkerId=worker_id, Reason=reason
     #         )
     #     )
@@ -185,7 +191,7 @@ class LucidService(object):
     # def current_qualification_score(self, qualification_id, worker_id):
     #     """Return a worker's qualification score as an iteger."""
     #     try:
-    #         response = self.mturk.get_qualification_score(
+    #         response = self.lucid.get_qualification_score(
     #             QualificationTypeId=qualification_id, WorkerId=worker_id
     #         )
     #     except ClientError as ex:
@@ -225,7 +231,7 @@ class LucidService(object):
     # def dispose_qualification_type(self, qualification_id):
     #     """Remove a qualification type we created"""
     #     return self._is_ok(
-    #         self.mturk.delete_qualification_type(QualificationTypeId=qualification_id)
+    #         self.lucid.delete_qualification_type(QualificationTypeId=qualification_id)
     #     )
 
     # def get_workers_with_qualification(self, qualification_id):
@@ -234,14 +240,14 @@ class LucidService(object):
     #     next_token = None
     #     while not done:
     #         if next_token is not None:
-    #             response = self.mturk.list_workers_with_qualification_type(
+    #             response = self.lucid.list_workers_with_qualification_type(
     #                 QualificationTypeId=qualification_id,
     #                 MaxResults=MAX_SUPPORTED_BATCH_SIZE,
     #                 Status="Granted",
     #                 NextToken=next_token,
     #             )
     #         else:
-    #             response = self.mturk.list_workers_with_qualification_type(
+    #             response = self.lucid.list_workers_with_qualification_type(
     #                 QualificationTypeId=qualification_id,
     #                 MaxResults=MAX_SUPPORTED_BATCH_SIZE,
     #                 Status="Granted",
@@ -292,7 +298,7 @@ class LucidService(object):
         if annotation:
             params["RequesterAnnotation"] = annotation
 
-        response = self.mturk.create_hit_with_hit_type(**params)
+        response = self.lucid.create_hit_with_hit_type(**params)
         if "HIT" not in response:
             raise LucidServiceException("HIT request was invalid for unknown reason.")
         return self._translate_hit(response["HIT"])
@@ -308,7 +314,7 @@ class LucidService(object):
 
     # def create_additional_assignments_for_hit(self, hit_id, number):
     #     try:
-    #         response = self.mturk.create_additional_assignments_for_hit(
+    #         response = self.lucid.create_additional_assignments_for_hit(
     #             HITId=hit_id,
     #             NumberOfAdditionalAssignments=number,
     #             UniqueRequestToken=self._request_token(),
@@ -323,7 +329,7 @@ class LucidService(object):
     #     hit = self.get_hit(hit_id)
     #     expiration = datetime.timedelta(hours=hours) + hit["expiration"]
     #     try:
-    #         response = self.mturk.update_expiration_for_hit(
+    #         response = self.lucid.update_expiration_for_hit(
     #             HITId=hit_id, ExpireAt=expiration
     #         )
     #     except Exception as ex:
@@ -342,7 +348,7 @@ class LucidService(object):
     #         pass
 
     #     try:
-    #         result = self.mturk.delete_hit(HITId=hit_id)
+    #         result = self.lucid.delete_hit(HITId=hit_id)
     #     except Exception as ex:
     #         if "currently in the state 'Disposed'" in str(ex):
     #             # this means "already deleted"...
@@ -356,7 +362,7 @@ class LucidService(object):
     #     allowing it to be deleted.
     #     """
     #     try:
-    #         self.mturk.update_expiration_for_hit(HITId=hit_id, ExpireAt=0)
+    #         self.lucid.update_expiration_for_hit(HITId=hit_id, ExpireAt=0)
     #     except Exception as ex:
     #         raise MTurkServiceException(
     #             "Failed to expire HIT {}: {}".format(hit_id, str(ex))
@@ -364,18 +370,18 @@ class LucidService(object):
     #     return True
 
     # def get_hit(self, hit_id):
-    #     return self._translate_hit(self.mturk.get_hit(HITId=hit_id)["HIT"])
+    #     return self._translate_hit(self.lucid.get_hit(HITId=hit_id)["HIT"])
 
     # def get_hits(self, hit_filter=lambda x: True):
     #     done = False
     #     next_token = None
     #     while not done:
     #         if next_token is not None:
-    #             response = self.mturk.list_hits(
+    #             response = self.lucid.list_hits(
     #                 MaxResults=MAX_SUPPORTED_BATCH_SIZE, NextToken=next_token
     #             )
     #         else:
-    #             response = self.mturk.list_hits(MaxResults=MAX_SUPPORTED_BATCH_SIZE)
+    #             response = self.lucid.list_hits(MaxResults=MAX_SUPPORTED_BATCH_SIZE)
     #         for hit in response["HITs"]:
     #             translated = self._translate_hit(hit)
     #             if hit_filter(translated):
@@ -399,7 +405,7 @@ class LucidService(object):
     #     amount_str = "{:.2f}".format(amount)
     #     try:
     #         return self._is_ok(
-    #             self.mturk.send_bonus(
+    #             self.lucid.send_bonus(
     #                 WorkerId=worker_id,
     #                 BonusAmount=amount_str,
     #                 AssignmentId=assignment_id,
@@ -416,7 +422,7 @@ class LucidService(object):
     # def get_assignment(self, assignment_id):
     #     """Get an assignment by ID and reformat the response."""
     #     try:
-    #         response = self.mturk.get_assignment(AssignmentId=assignment_id)
+    #         response = self.lucid.get_assignment(AssignmentId=assignment_id)
     #     except ClientError as ex:
     #         if "does not exist" in str(ex):
     #             return None
@@ -432,7 +438,7 @@ class LucidService(object):
     #     """
     #     try:
     #         return self._is_ok(
-    #             self.mturk.approve_assignment(AssignmentId=assignment_id)
+    #             self.lucid.approve_assignment(AssignmentId=assignment_id)
     #         )
     #     except ClientError as ex:
     #         assignment = self.get_assignment(assignment_id)
@@ -447,7 +453,7 @@ class LucidService(object):
     # ):
     #     topic_arn = self.sns.create_subscription(experiment_id, notification_url)
     #     logger.warning("Updating HIT with confirmed subscription: {}".format(topic_arn))
-    #     self.mturk.update_notification_settings(
+    #     self.lucid.update_notification_settings(
     #         HITTypeId=hit_type_id,
     #         Notification={
     #             "Destination": topic_arn,
@@ -473,7 +479,7 @@ class LucidService(object):
     #     """
     #     reward = str(reward)
     #     duration_secs = int(datetime.timedelta(hours=duration_hours).total_seconds())
-    #     hit_type = self.mturk.create_hit_type(
+    #     hit_type = self.lucid.create_hit_type(
     #         Title=title,
     #         Description=description,
     #         Reward=reward,
@@ -531,9 +537,9 @@ class LucidService(object):
 
     # def _worker_hit_url(self, type_id):
     #     if self.is_sandbox:
-    #         url = "https://workersandbox.mturk.com/projects/{}/tasks"
+    #         url = "https://workersandbox.lucid.com/projects/{}/tasks"
     #     else:
-    #         url = "https://worker.mturk.com/projects/{}/tasks"
+    #         url = "https://worker.lucid.com/projects/{}/tasks"
 
     #     return url.format(type_id)
 

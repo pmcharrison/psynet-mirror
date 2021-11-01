@@ -123,9 +123,11 @@ class LucidRecruiter(Recruiter):
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
         self._validate_config()
+        logger.info("LUCID ~~~~~> Initialized.")
 
     def _validate_config(self):
         mode = self.config.get("mode")
+        logger.info("LUCID ~~~~~> _validate_config.")
         if mode not in ("sandbox", "live"):
             raise LucidRecruiterException(
                 '"{}" is not a valid mode for Lucid recruitment. '
