@@ -164,7 +164,8 @@ class LucidRecruiter(Recruiter):
         if self.hit_domain is None:
             raise LucidRecruiterException("Can't run a HIT from localhost")
 
-        self.lucidservice.check_credentials()
+        # TODO Needed only for MTurrk?
+        # self.lucidservice.check_credentials()
 
         hit_request = {
             "AccountID": 1,

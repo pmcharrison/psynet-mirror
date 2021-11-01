@@ -1,6 +1,7 @@
 import datetime
 
 import boto3
+from botocore.exceptions import ClientError, NoCredentialsError
 from cached_property import cached_property
 
 
@@ -10,7 +11,7 @@ class LucidServiceException(Exception):
 
 class LucidService(object):
     """
-    Facade for Lucid Marketplace services provided via an HTTP API.
+    Facade for Lucid Marketplace services provided via its HTTP API.
     """
 
     def __init__(
@@ -65,10 +66,10 @@ class LucidService(object):
         """Verifies key/secret/host combination by making a balance inquiry"""
         try:
             return bool(self.lucid.get_account_balance())
-        # except NoCredentialsError:
-        #     raise LucidServiceException("No AWS credentials set!")
-        # except ClientError:
-        #     raise LucidServiceException("Invalid AWS credentials!")
+        except NoCredentialsError:
+            raise LucidServiceException("No AWS credentials set!")
+        except ClientError:
+            raise LucidServiceException("Invalid AWS credentials!")
         except Exception as ex:
             raise LucidServiceException(
                 "Error checking credentials: {}".format(str(ex))
