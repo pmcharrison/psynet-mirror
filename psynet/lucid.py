@@ -1,8 +1,6 @@
-import datetime
+import json
 
-import boto3
-from botocore.exceptions import ClientError, NoCredentialsError
-from cached_property import cached_property
+import requests
 
 
 class LucidServiceException(Exception):
@@ -16,64 +14,109 @@ class LucidService(object):
 
     def __init__(
         self,
-        aws_access_key_id,
-        aws_secret_access_key,
-        region_name,
+        api_key,
         sandbox=True,
         max_wait_secs=0,
     ):
-        self.aws_key = aws_access_key_id
-        self.aws_secret = aws_secret_access_key
-        self.region_name = region_name
+        self.api_key = api_key
         self.is_sandbox = sandbox
         self.max_wait_secs = max_wait_secs
 
-    @cached_property
-    def lucid(self):
-        session = boto3.session.Session(
-            aws_access_key_id=self.aws_key,
-            aws_secret_access_key=self.aws_secret,
-            region_name=self.region_name,
-        )
-        return session.client(
-            "lucid", endpoint_url=self.host, region_name=self.region_name
-        )
-
-    # @cached_property
-    # def sns(self):
-    #     return SNSService(
-    #         aws_access_key_id=self.aws_key,
-    #         aws_secret_access_key=self.aws_secret,
-    #         region_name=self.region_name,
-    #     )
-
     @property
-    def host(self):
-        # if self.is_sandbox:
-        #     template = "https://mturk-requester-sandbox.{}.amazonaws.com"
-        # else:
-        #     template = "https://mturk-requester.{}.amazonaws.com"
-        # return template.format(self.region_name)
-        return "TODO ~~~> LUCID template (was: https://mturk-requester-sandbox.{}.amazonaws.com)".format(
-            self.region_name
+    def request_base_url(self):
+        url = "https://live.techops.engineering/demand/v2-beta"
+        if self.is_sandbox:
+            url = "https://sandbox.techops.engineering/demand/v2-beta"
+        return url
+
+    def create_survey(
+        self,
+        experiment_id,
+        title,
+        description,
+        keywords,
+        reward,
+        duration_hours,
+        lifetime_days,
+        question,
+        max_assignments,
+        notification_url=None,
+        annotation=None,
+        qualifications=(),
+        do_subscribe=True,
+    ):
+        """
+        Create the actual survey and return a dict with its useful properties.
+        """
+
+        headers = {
+            "Content-type": "application/json",
+            "Authorization": self.api_key,
+            "Accept": "text/plain",
+        }
+
+        # We need to create a project for the survey first
+        params = {
+            "description": "MCMCP demo",
+            "name": "MCMCP demo project",
+            "project_owner_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
+        }
+
+        data = json.dumps(params)
+        response = requests.post(
+            f"{self.request_base_url}/projects", data=data, headers=headers
         )
 
-    def account_balance(self):
-        response = self.lucid.get_account_balance()
-        return float(response["AvailableBalance"])
-
-    def check_credentials(self):
-        """Verifies key/secret/host combination by making a balance inquiry"""
-        try:
-            return bool(self.lucid.get_account_balance())
-        except NoCredentialsError:
-            raise LucidServiceException("No AWS credentials set!")
-        except ClientError:
-            raise LucidServiceException("Invalid AWS credentials!")
-        except Exception as ex:
+        if "id" not in response:
             raise LucidServiceException(
-                "Error checking credentials: {}".format(str(ex))
+                "'Create project' request was invalid for unknown reason."
             )
+
+        # Now we create the survey
+        params = {
+            "business_unit_id": 2404,  # TODO: Get business unit id dynamically
+            "project_id": response["id"],
+            "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
+        }
+        data = json.dumps(params)
+        response = requests.post(
+            f"{self.request_base_url}/surveys", data=data, headers=headers
+        )
+
+        if "create_date" not in response or "id" not in response:
+            raise LucidServiceException(
+                "'Create survey' request was invalid for unknown reason."
+            )
+        return self._translate_survey(response)
+
+    def _translate_survey(self, survey):
+        if "Keywords" in survey:
+            keywords = [w.strip() for w in survey["Keywords"].split(",") if w.strip()]
+        else:
+            keywords = []
+        translated = {
+            "id": survey["HITId"],
+            "type_id": survey["HITTypeId"],
+            "created": survey["CreationTime"],
+            "expiration": survey["Expiration"],
+            "max_assignments": survey["MaxAssignments"],
+            "title": survey["Title"],
+            "description": survey["Description"],
+            "keywords": keywords,
+            "qualification_type_ids": [
+                q["QualificationTypeId"] for q in survey["QualificationRequirements"]
+            ],
+            "reward": float(survey["Reward"]),
+            "review_status": survey["HITReviewStatus"],
+            "status": survey["HITStatus"],
+            "annotation": survey.get("RequesterAnnotation"),
+            "worker_url": self._worker_hit_url(survey["HITTypeId"]),
+            "assignments_available": survey["NumberOfAssignmentsAvailable"],
+            "assignments_completed": survey["NumberOfAssignmentsCompleted"],
+            "assignments_pending": survey["NumberOfAssignmentsPending"],
+        }
+
+        return translated
 
     # def confirm_subscription(self, token, topic):
     #     """Called by the MTurkRecruiter Flask route"""
@@ -260,49 +303,6 @@ class LucidService(object):
     #             next_token = response["NextToken"]
     #         else:
     #             done = True
-
-    def create_hit(
-        self,
-        experiment_id,
-        title,
-        description,
-        keywords,
-        reward,
-        duration_hours,
-        lifetime_days,
-        question,
-        max_assignments,
-        notification_url=None,
-        annotation=None,
-        qualifications=(),
-        do_subscribe=True,
-    ):
-        """Create the actual HIT and return a dict with its useful properties."""
-
-        # We need a HIT_Type in order to register for notifications
-        hit_type_id = self._register_hit_type(
-            title, description, reward, duration_hours, keywords, qualifications
-        )
-        if do_subscribe:
-            self._create_notification_subscription(
-                experiment_id, notification_url, hit_type_id
-            )
-        params = {
-            "HITTypeId": hit_type_id,
-            "Question": question,
-            "LifetimeInSeconds": int(
-                datetime.timedelta(days=lifetime_days).total_seconds()
-            ),
-            "MaxAssignments": max_assignments,
-            "UniqueRequestToken": self._request_token(),
-        }
-        if annotation:
-            params["RequesterAnnotation"] = annotation
-
-        response = self.lucid.create_hit_with_hit_type(**params)
-        if "HIT" not in response:
-            raise LucidServiceException("HIT request was invalid for unknown reason.")
-        return self._translate_hit(response["HIT"])
 
     # def extend_hit(self, hit_id, number, duration_hours=None):
     #     """Extend an existing HIT and return an updated description"""
@@ -503,35 +503,6 @@ class LucidService(object):
     #         "status": assignment["AssignmentStatus"],
     #         "hit_id": assignment["HITId"],
     #         "worker_id": assignment["WorkerId"],
-    #     }
-
-    #     return translated
-
-    # def _translate_hit(self, hit):
-    #     if "Keywords" in hit:
-    #         keywords = [w.strip() for w in hit["Keywords"].split(",") if w.strip()]
-    #     else:
-    #         keywords = []
-    #     translated = {
-    #         "id": hit["HITId"],
-    #         "type_id": hit["HITTypeId"],
-    #         "created": hit["CreationTime"],
-    #         "expiration": hit["Expiration"],
-    #         "max_assignments": hit["MaxAssignments"],
-    #         "title": hit["Title"],
-    #         "description": hit["Description"],
-    #         "keywords": keywords,
-    #         "qualification_type_ids": [
-    #             q["QualificationTypeId"] for q in hit["QualificationRequirements"]
-    #         ],
-    #         "reward": float(hit["Reward"]),
-    #         "review_status": hit["HITReviewStatus"],
-    #         "status": hit["HITStatus"],
-    #         "annotation": hit.get("RequesterAnnotation"),
-    #         "worker_url": self._worker_hit_url(hit["HITTypeId"]),
-    #         "assignments_available": hit["NumberOfAssignmentsAvailable"],
-    #         "assignments_completed": hit["NumberOfAssignmentsCompleted"],
-    #         "assignments_pending": hit["NumberOfAssignmentsPending"],
     #     }
 
     #     return translated

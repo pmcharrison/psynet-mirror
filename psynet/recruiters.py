@@ -4,6 +4,7 @@ import dallinger.recruiters
 import requests
 from dallinger.config import get_config
 from dallinger.db import session
+from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import Recruiter, RedisStore
 from dallinger.utils import get_base_url
@@ -101,7 +102,7 @@ class LucidRecruiterException(Exception):
 
 
 class LucidRecruiter(Recruiter):
-    """Recruit participants from Lucid"""
+    """Recruit participants from Lucid Marketplace"""
 
     nickname = "lucid"
     # extra_routes = mturk_routes
@@ -112,27 +113,100 @@ class LucidRecruiter(Recruiter):
         base_url = get_base_url()
         self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
         # self.notification_url = "{}/mturk-sns-listener".format(base_url)
-        self.hit_domain = os.getenv("HOST")
+        self.survey_domain = os.getenv("HOST")
         self.lucidservice = LucidService(
-            aws_access_key_id=self.config.get("aws_access_key_id"),
-            aws_secret_access_key=self.config.get("aws_secret_access_key"),
-            region_name=self.config.get("aws_region"),
+            api_key=self.config.get("lucid_api_key"),
             sandbox=self.config.get("mode") != "live",
         )
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
         self._validate_config()
-        logger.info("LUCID ~~~~~> Initialized.")
+
+    def _record_current_survey_id(self, survey_id):
+        self.store.set(self.survey_id_storage_key, survey_id)
 
     def _validate_config(self):
         mode = self.config.get("mode")
-        logger.info("LUCID ~~~~~> _validate_config.")
         if mode not in ("sandbox", "live"):
             raise LucidRecruiterException(
                 '"{}" is not a valid mode for Lucid recruitment. '
                 'The value of "mode" must be either "sandbox" or "live"'.format(mode)
             )
+
+    @property
+    def is_in_progress(self):
+        """Does an Lucid survey for the current experiment ID already exist?"""
+        return self.current_survey_id() is not None
+
+    @property
+    def survey_id_storage_key(self):
+        experiment_id = self.config.get("id")
+        return "{}:{}".format(self.__class__.__name__, experiment_id)
+
+    def current_survey_id(self):
+        """Return the ID of the survey associated with the active experiment ID
+        if any such survey exists.
+        """
+        return self.store.get(self.survey_id_storage_key)
+
+    def open_recruitment(self, n=1):
+        """Open a connection to Lucid and create a survey."""
+        logger.info("Opening Lucid recruitment for {} participants".format(n))
+        if self.is_in_progress:
+            raise LucidRecruiterException(
+                "Tried to open_recruitment on already open recruiter."
+            )
+
+        if self.survey_domain is None:
+            raise LucidRecruiterException("Can't run a survey from localhost")
+
+        create_survey_request_params = {
+            # "experiment_id": self.config.get("id"),
+            # "title": "{} ({})".format(
+            #     self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
+            # ),
+            # "description": self.config.get("description"),
+            # "keywords": self._config_to_list("keywords"),
+            # "reward": self.config.get("base_payment"),
+            # "duration_hours": self.config.get("duration"),
+            # "lifetime_days": self.config.get("lifetime"),
+            # # "question": MTurkQuestions.external(self.ad_url),
+            # "max_assignments": n,
+            # "notification_url": self.notification_url,
+            "client_cpi_usd": 5,
+            "collects_pii": True,
+            "expected_completes": 10,
+            "expected_completion_loi": 10,
+            "expected_incidence_rate": 0.1,
+            "fraud_profile": True,
+            "fraud_profile_threshold": 13,
+            "industry": "education",
+            "live_url": self.ad_url,
+            "locale": "eng_us",
+            "name": "{} ({})".format(
+                self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
+            ),
+            "priority": 13,
+            "quantity_calc_type": "prescreens",
+            "relevant_id": True,
+            "status": "pending",
+            "study_type": "ihut",
+            "survey_cpi_usd": 5,
+            "test_url": "https://www.samplesurvey.com/test",
+            "unique_ip": True,
+            "unique_pid": True,
+            "verify_callback": True,
+        }
+
+        survey_info = self.lucidservice.create_survey(**create_survey_request_params)
+        self._record_current_survey_id(survey_info["id"])
+        url = survey_info["live_url"]
+
+        return {
+            "items": [url],
+            "message": "Survey now published to Lucid Marketplace.",
+        }
 
     # def exit_response(self, experiment, participant):
     #     return flask.render_template(
@@ -152,74 +226,6 @@ class LucidRecruiter(Recruiter):
     #     if self.is_sandbox:
     #         return "https://workersandbox.mturk.com/mturk/externalSubmit"
     #     return "https://www.mturk.com/mturk/externalSubmit"
-
-    def open_recruitment(self, n=1):
-        """Open a connection to Lucid and create a survey."""
-        logger.info("Opening Lucid recruitment for {} participants".format(n))
-        if self.is_in_progress:
-            raise LucidRecruiterException(
-                "Tried to open_recruitment on already open recruiter."
-            )
-
-        if self.hit_domain is None:
-            raise LucidRecruiterException("Can't run a HIT from localhost")
-
-        # TODO Needed only for MTurrk?
-        # self.lucidservice.check_credentials()
-
-        hit_request = {
-            "AccountID": 1,
-            "ClientCPI": 999,
-            "ClientSurveyLiveURL": "https://dlgr-lucid_mcmcp.psynet.io",
-            "CountryLanguageID": 9,
-            "FraudProfileThreshold": 0,
-            "FulcrumExchangeAllocation": 0,
-            "FulcrumExchangeHedgeAccess": False,
-            "IndustryID": 1,
-            "IsActive": True,
-            "IsDedupe": False,
-            "IsFraudProfile": False,
-            "IsGeoIP": False,
-            "IsRelevantID": False,
-            "IsTrueSample": False,
-            "IsVerifyCallBack": False,
-            "Quota": 100,
-            "QuotaCPI": 1,
-            "QuotaCalculationTypeID": 1,
-            "StudyTypeID": 1,
-            "SurveyName": "Test Survey - {{$timestamp}}",
-            "SurveyPriority": 11,
-            "SurveyStatusCode": "01",
-            "TestRedirectURL": "https://dlgr-staging_lucid_mcmcp.psynet.io",
-            "UniqueIPAddress": True,
-            "UniquePID": False,
-            "BidIncidence": 20,
-            "CollectsPII": None,
-        }
-
-        # "experiment_id": self.config.get("id"),
-        # "max_assignments": n,
-        # "title": "{} ({})".format(
-        #     self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
-        # ),
-        # "description": self.config.get("description"),
-        # "keywords": self._config_to_list("keywords"),
-        # "reward": self.config.get("base_payment"),
-        # "duration_hours": self.config.get("duration"),
-        # "lifetime_days": self.config.get("lifetime"),
-        # "question": MTurkQuestions.external(self.ad_url),
-        # "notification_url": self.notification_url,
-        # "annotation": self.config.get("id"),
-        # "qualifications": self._build_required_hit_qualifications(),
-
-        hit_info = self.lucidservice.create_hit(**hit_request)
-        self._record_current_hit_id(hit_info["id"])
-        url = hit_info["worker_url"]
-
-        return {
-            "items": [url],
-            "message": "HIT now published to Lucid Marketplace.",
-        }
 
     # def assign_experiment_qualifications(self, worker_id, qualifications):
     #     """Assigns MTurk Qualifications to a worker.
@@ -389,17 +395,6 @@ class LucidRecruiter(Recruiter):
     #     except MTurkServiceException as ex:
     #         logger.exception(str(ex))
 
-    @property
-    def is_in_progress(self):
-        """Does an Lucid HIT for the current experiment ID already exist?"""
-        return self.current_hit_id() is not None
-
-    def current_hit_id(self):
-        """Return the ID of the HIT associated with the active experiment ID
-        if any such HIT exists.
-        """
-        return self.store.get(self.hit_id_storage_key)
-
     #     def approve_hit(self, assignment_id):
     #         try:
     #             return self.mturkservice.approve_assignment(assignment_id)
@@ -427,11 +422,6 @@ class LucidRecruiter(Recruiter):
     #     def is_sandbox(self):
     #         return self.config.get("mode") == "sandbox"
 
-    @property
-    def hit_id_storage_key(self):
-        experiment_id = self.config.get("id")
-        return "{}:{}".format(self.__class__.__name__, experiment_id)
-
 
 #     def _build_required_hit_qualifications(self):
 #         # The Qualications an MTurk worker must have, or in the case of the
@@ -453,9 +443,6 @@ class LucidRecruiter(Recruiter):
 #             quals.extend(explicit_qualifications)
 
 #         return quals
-
-#     def _record_current_hit_id(self, hit_id):
-#         self.store.set(self.hit_id_storage_key, hit_id)
 
 #     def _confirm_sns_subscription(self, token, topic):
 #         self.mturkservice.confirm_subscription(token=token, topic=topic)
