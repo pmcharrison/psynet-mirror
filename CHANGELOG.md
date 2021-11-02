@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Added
+- Added ability to disable progress bar (`experiment.var.show_progress_bar`).
+
 # [4.2.1] Released on 2021-10-31
 
 #### Fixed

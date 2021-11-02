@@ -119,6 +119,9 @@ class Experiment(dallinger.experiment.Experiment):
         If ``True`` (default), then a footer is displayed at the bottom of the page containing a 'Help' button
         and bonus information if `show_bonus` is set to `True`.
 
+    show_progress_bar : `bool`
+        If ``True`` (default), then a progress bar is displayed at the top of the page.
+
     min_browser_version : `str`
         The minimum version of the Chrome browser a participant needs in order to take a HIT. Default: `80.0`.
 
@@ -269,6 +272,7 @@ class Experiment(dallinger.experiment.Experiment):
             "show_abort_button": False,
             "show_bonus": True,
             "show_footer": True,
+            "show_progress_bar": True,
         }
 
     @property
