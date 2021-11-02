@@ -37,7 +37,8 @@ class Exp(psynet.experiment.Experiment):
         "min_accumulated_bonus_for_abort": 0.15,
         "wage_per_hour": 12.0,
         "new_variable": "some-value",
-        # "show_footer": False.  # uncomment to disable the footer (bonus + help button)
+        # "show_footer": False,  # uncomment to disable the footer (bonus + help button)
+        # "show_progress_bar": False,  # uncomment to disable the progress bar
     }
 
     @experiment_route("/custom_route", methods=["POST", "GET"])
