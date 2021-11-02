@@ -163,9 +163,7 @@ class LucidRecruiter(Recruiter):
 
         create_survey_request_params = {
             "id": heroku_tools.app_name(self.config.get("id")),
-            "name": "{} ({})".format(
-                self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
-            ),
+            "name": self.config.get("title"),
             "live_url": self.ad_url,
         }
 
