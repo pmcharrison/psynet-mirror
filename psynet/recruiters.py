@@ -162,10 +162,11 @@ class LucidRecruiter(Recruiter):
             raise LucidRecruiterException("Can't run a survey from localhost")
 
         create_survey_request_params = {
-            "live_url": self.ad_url,
+            "id": heroku_tools.app_name(self.config.get("id")),
             "name": "{} ({})".format(
                 self.config.get("title"), heroku_tools.app_name(self.config.get("id"))
             ),
+            "live_url": self.ad_url,
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)

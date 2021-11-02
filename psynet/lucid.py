@@ -35,8 +35,9 @@ class LucidService(object):
 
     def create_survey(
         self,
-        live_url,
+        id,
         name,
+        live_url,
     ):
         """
         Create the actual survey and return a dict with its useful properties.
@@ -50,30 +51,30 @@ class LucidService(object):
 
         # We need to create a project for the survey first
         params = {
-            "description": "MCMCP demo",
-            "name": "MCMCP demo project",
+            "description": name,
+            "name": name,
             "project_owner_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
         }
 
-        data = json.dumps(params)
+        request_data = json.dumps(params)
         response = requests.post(
-            f"{self.request_base_url}/projects", data=data, headers=headers
+            f"{self.request_base_url}/projects", data=request_data, headers=headers
         )
+        response_data = response.json()
+        logger.info(request_data)
+        logger.info(response.status)
+        logger.info(response_data)
 
-        logger.info(params)
-        logger.info(data)
-        logger.info(response)
-        logger.info(response.content)
-
-        if "id" not in response:
+        if "id" not in response_data:
             raise LucidServiceException(
                 "'Create project' request was invalid for unknown reason."
             )
+        logger.info(f'Created Lucid project with ID {response_data["id"]}.')
 
         # Now we create the survey
         params = {
             "business_unit_id": 2404,  # TODO: Get business unit id dynamically
-            "project_id": response["id"],
+            "project_id": response_data["id"],
             "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
             "client_cpi_usd": 5,
             "collects_pii": True,
@@ -97,19 +98,22 @@ class LucidService(object):
             "unique_pid": True,
             "verify_callback": True,
         }
-        data = json.dumps(params)
+        request_data = json.dumps(params)
         response = requests.post(
-            f"{self.request_base_url}/surveys", data=data, headers=headers
+            f"{self.request_base_url}/surveys", data=request_data, headers=headers
         )
-        logger.info(params)
-        logger.info(data)
-        logger.info(response)
-        logger.info(response.content)
-        if "create_date" not in response or "id" not in response:
+        response_data = response.json()
+        logger.info(request_data)
+        logger.info(response.status)
+        logger.info(response_data)
+
+        if "create_date" not in response_data or "id" not in response_data:
             raise LucidServiceException(
                 "'Create survey' request was invalid for unknown reason."
             )
-        return response
+        logger.info(f'Created Lucid survey with ID {response_data["id"]}.')
+
+        return response_data
         # return self._translate_survey(response)
 
     def _translate_survey(self, survey):
