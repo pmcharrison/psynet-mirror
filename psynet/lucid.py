@@ -62,7 +62,7 @@ class LucidService(object):
         )
         response_data = response.json()
         logger.info(request_data)
-        logger.info(response.status)
+        logger.info(response.status_code)
         logger.info(response_data)
 
         if "id" not in response_data:
@@ -104,7 +104,7 @@ class LucidService(object):
         )
         response_data = response.json()
         logger.info(request_data)
-        logger.info(response.status)
+        logger.info(response.status_code)
         logger.info(response_data)
 
         if "create_date" not in response_data or "id" not in response_data:
