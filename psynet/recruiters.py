@@ -631,3 +631,14 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
 
 #     nickname = "dev-lucid-recruiter"
 #     external_submission_url = "http://localhost:8000/hits/complete"
+
+
+class LucidRecruiter(BaseLucidRecruiter):
+    """
+    The production Lucid recruiter.
+    Recruit participants from Lucid Marketplace
+    """
+
+    nickname = "lucid-recruiter"
+    # extra_routes = mturk_routes
+    external_submission_url = ""
