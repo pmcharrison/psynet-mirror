@@ -6,7 +6,7 @@ from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
-from dallinger.recruiters import Recruiter, RedisStore
+from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 
 from .lucid import LucidService
@@ -98,41 +98,14 @@ class DevCapRecruiter(BaseCapRecruiter):
 
 
 class LucidRecruiterException(Exception):
-    """Custom exception for MTurkRecruiter"""
+    """Custom exception for LucidRecruiter"""
 
 
-class LucidRecruiter(Recruiter):
-    """Recruit participants from Lucid Marketplace"""
+class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
+    """
+    The LucidRecruiter base class
 
-    nickname = "lucid"
-    # extra_routes = mturk_routes
-
-    def __init__(self, *args, **kwargs):
-        super(LucidRecruiter, self).__init__()
-        self.config = get_config()
-        base_url = get_base_url()
-        self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
-        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
-        self.survey_domain = os.getenv("HOST")
-        self.lucidservice = LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sandbox=self.config.get("mode") != "live",
-        )
-        self.notifies_admin = admin_notifier(self.config)
-        self.mailer = get_mailer(self.config)
-        self.store = kwargs.get("store") or RedisStore()
-        self._validate_config()
-
-    def _record_current_survey_id(self, survey_id):
-        self.store.set(self.survey_id_storage_key, survey_id)
-
-    def _validate_config(self):
-        mode = self.config.get("mode")
-        if mode not in ("sandbox", "live"):
-            raise LucidRecruiterException(
-                '"{}" is not a valid mode for Lucid recruitment. '
-                'The value of "mode" must be either "sandbox" or "live"'.format(mode)
-            )
+    """
 
     @property
     def is_in_progress(self):
@@ -175,6 +148,80 @@ class LucidRecruiter(Recruiter):
             "items": [url],
             "message": "Survey now published to Lucid Marketplace.",
         }
+
+    def recruit(self, n=1):
+        return []
+
+    def close_recruitment(self):
+        logger.info("No more participants required. Recruitment stopped.")
+
+    def compensate_worker(self, *args, **kwargs):
+        """A recruiter may provide a means to directly compensate a worker."""
+        raise RuntimeError("Compensation is not implemented.")
+
+    def notify_duration_exceeded(self, participants, reference_time):
+        """
+        The participant has been working longer than the time defined in
+        the "duration" config value.
+        """
+        for participant in participants:
+            participant.status = "abandoned"
+            session.commit()
+
+    def reward_bonus(self, assignment_id, amount, reason):
+        """
+        Return values for `basePay` and `bonus` to cap-recruiter application.
+        """
+        data = {
+            "assignmentId": assignment_id,
+            "basePayment": self.config.get("base_payment"),
+            "bonus": amount,
+        }
+        requests.post(
+            self.external_submission_url,
+            json=data,
+            headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
+            verify=False,  # Temporary fix because of SSLCertVerificationError
+        )
+
+
+class StagingLucidRecruiter(BaseLucidRecruiter):
+    """
+    The staging Lucid recruiter.
+    Recruit participants from Lucid Marketplace
+    """
+
+    nickname = "staging-lucid-recruiter"
+    # extra_routes = mturk_routes
+    external_submission_url = ""
+
+    def __init__(self, *args, **kwargs):
+        super(StagingLucidRecruiter, self).__init__()
+        self.config = get_config()
+        base_url = get_base_url()
+        self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
+        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
+        self.survey_domain = os.getenv("HOST")
+        self.lucidservice = LucidService(
+            api_key=self.config.get("lucid_api_key"),
+            sandbox=self.config.get("mode") != "live",
+        )
+        self.notifies_admin = admin_notifier(self.config)
+        self.mailer = get_mailer(self.config)
+        self.store = kwargs.get("store") or RedisStore()
+        self._validate_config()
+
+    # def _record_current_survey_id(self, survey_id):
+    #     self.store.set(self.survey_id_storage_key, survey_id)
+
+    def _validate_config(self):
+        mode = self.config.get("mode")
+        logger.info(mode)
+        if mode not in ("sandbox", "live"):
+            raise LucidRecruiterException(
+                '"{}" is not a valid mode for Lucid recruitment. '
+                'The value of "mode" must be either "sandbox" or "live"'.format(mode)
+            )
 
     # def exit_response(self, experiment, participant):
     #     return flask.render_template(
