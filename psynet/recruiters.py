@@ -211,8 +211,8 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
         self.store = kwargs.get("store") or RedisStore()
         self._validate_config()
 
-    # def _record_current_survey_id(self, survey_id):
-    #     self.store.set(self.survey_id_storage_key, survey_id)
+    def _record_current_survey_id(self, survey_id):
+        self.store.set(self.survey_id_storage_key, survey_id)
 
     def _validate_config(self):
         mode = self.config.get("mode")
