@@ -1,14 +1,36 @@
 import copy
 import json
+import jsonpickle
 import re
 from datetime import datetime
 
-from sqlalchemy import Boolean, Column, Float, Integer, String
+from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.dialects.postgresql import JSONB
 
 from .utils import get_logger
 
 logger = get_logger()
+
+
+class PythonObject(TypeDecorator):
+
+    @property
+    def python_type(self):
+        return object
+
+    impl = types.String
+
+    def process_bind_param(self, value, dialect):
+        return jsonpickle.encode(value)
+
+    def process_literal_param(self, value, dialect):
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return jsonpickle.decode(value)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -39,12 +61,8 @@ def claim_field(name: str, extra_vars: dict, field_type=object):
         col = Column(Boolean, nullable=True)
     elif field_type is str:
         col = Column(String, nullable=True)
-    elif field_type is dict:
-        col = Column(JSONB, server_default="{}", default=lambda: {})
-    elif field_type is list:
-        col = Column(JSONB, server_default="[]", default=lambda: [])
-    elif field_type is object:
-        col = Column(JSONB, server_default="{}", default=lambda: {})
+    elif field_type in [list, object]:
+        col = Column(PythonObject, nullable=True)
     else:
         raise NotImplementedError
 
@@ -127,12 +145,8 @@ class VarStore:
             def var(self):
                 return VarStore(self)
 
-    **WARNING 1:** avoid in-place modification (e.g. ``participant.var.my_var_name[3] = "d"``),
-    as such modifications will (probably) not get propagated to the database.
-    Support could be added in the future if Dallinger takes advantage of
-    `mutable structures in SQLAlchemy <https://docs.sqlalchemy.org/en/13/orm/extensions/mutable.html#module-sqlalchemy.ext.mutable>`_.
 
-    **WARNING 2:** avoid storing large objects here on account of the performance cost
+    **WARNING:** avoid storing large objects here on account of the performance cost
     of converting to and from JSON.
     """
 
@@ -143,10 +157,21 @@ class VarStore:
         owner = self.__dict__["_owner"]
         if name == "_owner":
             return owner
-        if name == "_all":
-            return copy.deepcopy(owner.details)
+        elif name == "_all":
+            return self.get_vars()
+        else:
+            return self.get_var(name)
+
+    def encode_to_string(self, obj):
+        return jsonpickle.encode(obj)
+
+    def decode_string(self, string):
+        return jsonpickle.decode(string)
+
+    def get_var(self, name):
+        vars_ = self.get_vars()
         try:
-            return copy.deepcopy(owner.details[name])
+            return self.decode_string(vars_[name])
         except KeyError:
             raise UndefinedVariableError(f"Undefined variable: {name}.")
 
@@ -154,14 +179,24 @@ class VarStore:
         if name == "_owner":
             self.__dict__["_owner"] = value
         else:
-            # We need to copy the dictionary otherwise
-            # SQLAlchemy won't notice that we changed it.
-            all_vars = self.__dict__["_owner"].details
-            if all_vars is None:
-                all_vars = {}
-            all_vars = all_vars.copy()
-            all_vars[name] = value
-            self.__dict__["_owner"].details = all_vars
+            self.set_var(name, value)
+
+    def set_var(self, name, value):
+        vars_ = self.get_vars()
+        value_encoded = self.encode_to_string(value)
+        vars_[name] = value_encoded
+        self.set_vars(vars_)
+
+    def get_vars(self):
+        vars_ = self.__dict__["_owner"].details
+        if vars_ is None:
+            vars_ = {}
+        return vars_.copy()
+
+    def set_vars(self, vars_):
+        # We need to copy the dictionary otherwise
+        # SQLAlchemy won't notice if we change it later.
+        self.__dict__["_owner"].details = vars_.copy()
 
     def get(self, name: str, unserialise: bool = True):
         """

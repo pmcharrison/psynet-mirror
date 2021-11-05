@@ -244,6 +244,7 @@ class Participant(dallinger.models.Participant):
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = client_ip_address
+        self.branch_log = []
         self.initialised = True
 
     def calculate_bonus(self):
