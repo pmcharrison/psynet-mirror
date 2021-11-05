@@ -61,7 +61,7 @@ def claim_field(name: str, extra_vars: dict, field_type=object):
         col = Column(Boolean, nullable=True)
     elif field_type is str:
         col = Column(String, nullable=True)
-    elif field_type in [list, object]:
+    elif field_type is object:
         col = Column(PythonObject, nullable=True)
     else:
         raise NotImplementedError
