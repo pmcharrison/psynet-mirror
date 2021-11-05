@@ -28,6 +28,7 @@ setuptools.setup(
         "dominate",
         "flask",
         "importlib_resources",
+        "jsonpickle",
         "pandas",
         "rpdb",
         "progress",

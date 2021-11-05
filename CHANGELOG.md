@@ -1,5 +1,12 @@
 # CHANGELOG
 
+#### Changed
+- PsyNet now supports serialization of arbitrary objects to database fields.
+  Serialization is accomplished using `jsonpickle`.
+  No change should be necessary to experiment implementations;
+  however the underlying database representation for some fields
+  will have changed slightly.
+
 # [4.2.1] Released on 2021-10-31
 
 #### Fixed
