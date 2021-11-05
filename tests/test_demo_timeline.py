@@ -53,9 +53,10 @@ class TestExp(object):
             # Page 1
             participant = get_participant(1)
             modules = participant.modules
+
             assert list(modules.keys()) == [
-                "introduction",
                 "cap-recruiter_standard_consent",
+                "introduction",
             ]
             assert set(list(modules["introduction"].keys())) == {
                 "time_started",
