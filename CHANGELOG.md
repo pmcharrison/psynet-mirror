@@ -1,16 +1,5 @@
 # CHANGELOG
 
-# [6.0.0]
-
-#### Changed
-- PsyNet now supports serialization of arbitrary objects to database fields.
-  Serialization is accomplished using `jsonpickle`.
-  No change should be necessary to experiment implementations;
-  however the underlying database representation for some fields
-  will have changed slightly. As a result, it is unlikely to be possible
-  to relaunch experiments from zip files using PsyNet >=6.0.0 if the original version
-  was deployed on PsyNet <6.0.0.
-
 # [5.0.0] Released on 2021-11-XX
 
 #### Added
@@ -18,6 +7,13 @@
 - Added dallinger version to `psynet --version` output.
 
 #### Changed
+- PsyNet now supports serialization of arbitrary objects to database fields.
+  Serialization is accomplished using `jsonpickle`.
+  No change should be necessary to experiment implementations;
+  however the underlying database representation for some fields
+  will have changed slightly. As a result, it is unlikely to be possible
+  to relaunch experiments from zip files using PsyNet >=5.0.0 if the original version
+  was deployed on PsyNet <5.0.0.
 - Refactored JavaScript to camelCase.
 - Refactored HTML attribute values to kebab-case.
 
