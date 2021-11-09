@@ -95,7 +95,7 @@ class AnimalTrial(StaticTrial):
 
 class AnimalTrialMaker(StaticTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
-        """Should return a tuple (score: float, passed: bool)"""
+        """Should return a dict: {"score": float, "passed": bool}"""
         score = 0
         failed = False
         for trial in participant_trials:
