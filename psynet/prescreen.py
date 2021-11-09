@@ -2,6 +2,7 @@ import json
 import random
 from os.path import exists as file_exists
 from random import shuffle
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
@@ -1343,33 +1344,33 @@ class AudioForcedChoiceTest(Module):
     Parameters
     ----------
 
-    csv_path : string
+    csv_path :
         The path to a valid csv file with headers. The file must contain the two columns `url` and `answer`.
 
-    answer_options : list
+    answer_options :
         List of answer options.
 
-    instructions : string
+    instructions :
         Text of initial instruction page.
 
-    question : string
+    question :
         Question asked at every trial of the test. If the table already contains a column `question` this value will be
         taken.
 
-    performance_threshold : int, optional
+    performance_threshold :
         The performance threshold. The amount of mistakes the participant is allowed to make before failing the
         performance check.
 
-    label : string, optional
+    label :
         The label for the audio forced choice check, default: "audio_forced_choice_test".
 
-    time_estimate_per_trial : float, optional
+    time_estimate_per_trial :
         The time estimate in seconds per trial, default: 8.
 
-    n_stimuli_to_use : int, optional
+    n_stimuli_to_use :
         If None, all stimuli are used (default). If integer is supplied, n random stimuli are taken.
 
-    specific_stimuli : list, optional
+    specific_stimuli :
         If None, all stimuli are used (default). If list of indexes is supplied, only indexes are used.
 
     """
@@ -1383,8 +1384,8 @@ class AudioForcedChoiceTest(Module):
         performance_threshold: int,
         label="audio_forced_choice_test",
         time_estimate_per_trial: int = 8,
-        n_stimuli_to_use: int = None,
-        specific_stimuli: list = None,
+        n_stimuli_to_use: Optional[int] = None,
+        specific_stimuli: Optional[List] = None,
     ):
         # `n_stimuli_to_use` and `specific_stimuli` can both be None or either of them, but it is not allowed that they
         # are both not None, as they can contain conflicting information.
