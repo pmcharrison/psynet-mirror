@@ -25,6 +25,11 @@ class LucidService(object):
         self.api_key = api_key
         self.is_sandbox = sandbox
         self.max_wait_secs = max_wait_secs
+        self.headers = {
+            "Content-type": "application/json",
+            "Authorization": api_key,
+            "Accept": "text/plain",
+        }
 
     @property
     def request_base_url(self):
@@ -43,12 +48,6 @@ class LucidService(object):
         Create the actual survey and return a dict with its useful properties.
         """
 
-        headers = {
-            "Content-type": "application/json",
-            "Authorization": self.api_key,
-            "Accept": "text/plain",
-        }
-
         # We need to create a project for the survey first
         params = {
             "description": name,
@@ -58,7 +57,7 @@ class LucidService(object):
 
         request_data = json.dumps(params)
         response = requests.post(
-            f"{self.request_base_url}/projects", data=request_data, headers=headers
+            f"{self.request_base_url}/projects", data=request_data, headers=self.headers
         )
         response_data = response.json()
         logger.info(request_data)
@@ -100,7 +99,7 @@ class LucidService(object):
         }
         request_data = json.dumps(params)
         response = requests.post(
-            f"{self.request_base_url}/surveys", data=request_data, headers=headers
+            f"{self.request_base_url}/surveys", data=request_data, headers=self.headers
         )
         response_data = response.json()
         logger.info(request_data)
@@ -115,6 +114,23 @@ class LucidService(object):
 
         return response_data
         # return self._translate_survey(response)
+
+    def extend_survey(self, survey_id, number, duration_hours=None):
+        """Extend an existing survey and return an updated description"""
+        params = {}
+        request_data = json.dumps(params)
+        response = requests.post(
+            f"{self.request_base_url}/surveys", data=request_data, headers=self.headers
+        )
+        response_data = response.json()
+        logger.info(request_data)
+        logger.info(response.status_code)
+        logger.info(response_data)
+
+        # if duration_hours is not None:
+        #     self.update_expiration_for_survey(survey_id, duration_hours)
+
+        return response_data
 
     def _translate_survey(self, survey):
         if "Keywords" in survey:

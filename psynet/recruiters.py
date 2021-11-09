@@ -9,7 +9,7 @@ from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 
-from .lucid import LucidService
+from .lucid import LucidService, LucidServiceException
 from .utils import get_logger
 
 logger = get_logger()
@@ -216,12 +216,36 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
 
     def _validate_config(self):
         mode = self.config.get("mode")
-        logger.info(mode)
         if mode not in ("sandbox", "live"):
             raise LucidRecruiterException(
                 '"{}" is not a valid mode for Lucid recruitment. '
                 'The value of "mode" must be either "sandbox" or "live"'.format(mode)
             )
+
+    def recruit(self, n=1):
+        """Recruit n new participants to an existing survey"""
+        logger.info("Recruiting {} Lucid participants".format(n))
+        if not self.config.get("auto_recruit"):
+            logger.info("auto_recruit is False: recruitment suppressed.")
+            return
+
+        survey_id = self.current_survey_id()
+        if survey_id is None:
+            logger.info("No survey in progress: recruitment aborted.")
+            return
+
+        try:
+            return self.lucidservice.extend_survey(
+                survey_id, number=n, duration_hours=self.config.get("duration")
+            )
+        except LucidServiceException as e:
+            logger.exception(str(e))
+
+    def current_survey_id(self):
+        """Return the ID of the survey associated with the active experiment ID
+        if any such survey exists.
+        """
+        return self.store.get(self.survey_id_storage_key)
 
     # def exit_response(self, experiment, participant):
     #     return flask.render_template(
@@ -321,25 +345,6 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     #         message = {}
 
     #     return {"hit": hit_info, "qualification": qualification, "email": message}
-
-    # def recruit(self, n=1):
-    #     """Recruit n new participants to an existing HIT"""
-    #     logger.info("Recruiting {} MTurk participants".format(n))
-    #     if not self.config.get("auto_recruit"):
-    #         logger.info("auto_recruit is False: recruitment suppressed")
-    #         return
-
-    #     hit_id = self.current_hit_id()
-    #     if hit_id is None:
-    #         logger.info("no HIT in progress: recruitment aborted")
-    #         return
-
-    #     try:
-    #         return self.mturkservice.extend_hit(
-    #             hit_id, number=n, duration_hours=self.config.get("duration")
-    #         )
-    #     except MTurkServiceException as ex:
-    #         logger.exception(str(ex))
 
     # def notify_duration_exceeded(self, participants, reference_time):
     #     """The participant has exceed the maximum time for the activity,
