@@ -1,14 +1,14 @@
 # CHANGELOG
 
-# [5.0.0] Released on 2021-11-XX
+# [5.0.0] Released on 2021-11-10
 
 #### Added
 - Added ability to disable progress bar (`experiment.var.show_progress_bar`).
 - Added dallinger version to `psynet --version` output.
+- Added `dallinger_version` experiment variable.
 - Added audio-forced-choice prescreening task (thanks Pol van Rijn, Harin Lee).
 
 #### Breaking changes
-
 - Refactored JavaScript variable and function names to camelCase,
   and HTML IDs and attributes to kebab-case.
   Experiments referring explicitly to these components may need to be
@@ -59,6 +59,10 @@ class CustomTrial(Trial):
   will have changed slightly. As a result, it is unlikely to be possible
   to relaunch experiments from zip files using PsyNet >=5.0.0 if the original version
   was deployed on PsyNet <5.0.0.
+
+#### Fixed
+- Removed external references to `jQuery` and `platform` JavaScript libraries.
+- Specified the version of Dallinger in gitlab-ci.yml.
 
 # [4.2.1] Released on 2021-10-31
 
