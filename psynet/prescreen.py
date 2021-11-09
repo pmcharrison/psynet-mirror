@@ -447,7 +447,6 @@ class REPPMarkersTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, audio_filenames),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
         )
 
@@ -577,7 +576,7 @@ class LanguageVocabularyTest(Module):
     ):
         class LanguageVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == "correct":
@@ -590,7 +589,6 @@ class LanguageVocabularyTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, language_code, words),
-            time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -737,7 +735,7 @@ class LexTaleTest(Module):
     ):
         class LextaleTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -750,7 +748,6 @@ class LexTaleTest(Module):
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -1022,7 +1019,7 @@ class ColorBlindnessTest(Module):
     ):
         class ColorBlindnessTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -1035,7 +1032,6 @@ class ColorBlindnessTest(Module):
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1157,7 +1153,7 @@ class ColorVocabularyTest(Module):
     ):
         class ColorVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -1170,7 +1166,6 @@ class ColorVocabularyTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(colors),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1269,7 +1264,7 @@ class HeadphoneTest(Module):
     ):
         class HeadphoneTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -1282,7 +1277,6 @@ class HeadphoneTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )

@@ -7,6 +7,7 @@ import dallinger.experiment
 import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
+from dallinger.command_line import __version__ as dallinger_version
 from dallinger.command_line import log as dallinger_log
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
@@ -73,8 +74,7 @@ class Experiment(dallinger.experiment.Experiment):
                 "wage_per_hour": 12.0,         # Overriding an existing variable
             }
 
-    These variables can then be changed in the course of experiment, just like
-    (e.g.) participant variables.
+    These variables can then be changed in the course of experiment, just like (e.g.) participant variables.
 
     ::
 
@@ -128,6 +128,9 @@ class Experiment(dallinger.experiment.Experiment):
 
     psynet_version : `str`
         The version of the `psynet` package.
+
+    dallinger_version : `str`
+        The version of the `Dallinger` package.
 
     hard_max_experiment_payment_email_sent : `bool`
         Whether an email to the experimenter has already been sent indicating the `hard_max_experiment_payment`
@@ -256,6 +259,7 @@ class Experiment(dallinger.experiment.Experiment):
     def _default_variables(self):
         return {
             "psynet_version": __version__,
+            "dallinger_version": dallinger_version,
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -630,6 +634,7 @@ class Experiment(dallinger.experiment.Experiment):
             )
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
+            participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
         else:
@@ -684,6 +689,12 @@ class Experiment(dallinger.experiment.Experiment):
             (
                 resource_filename("psynet", "resources/css/dashboard_timeline.css"),
                 "/static/css/dashboard_timeline.css",
+            ),
+            (
+                resource_filename(
+                    "psynet", "resources/libraries/platform-1.3.6/platform.min.js"
+                ),
+                "/static/scripts/platform.min.js",
             ),
             (
                 resource_filename(
