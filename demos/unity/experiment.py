@@ -163,7 +163,7 @@ class IslandTrialMaker(StaticTrialMaker):
 
     def performance_check(self, experiment, participant, participant_trials):
         """
-        Should return a tuple (score: float, passed: bool)
+        Should return a dict: {"score": float, "passed": bool}
         """
         score = 1
         for trial in participant_trials:

@@ -622,7 +622,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
             origin_id=self.id,
             failed=False,
             complete=True,
-            awaiting_async_process=False,
+            finalized=True,
             is_repeat_trial=False,
         )
 

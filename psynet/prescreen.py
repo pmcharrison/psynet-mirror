@@ -577,7 +577,7 @@ class LanguageVocabularyTest(Module):
     ):
         class LanguageVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == "correct":
@@ -737,7 +737,7 @@ class LexTaleTest(Module):
     ):
         class LextaleTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -1022,7 +1022,7 @@ class ColorBlindnessTest(Module):
     ):
         class ColorBlindnessTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -1157,7 +1157,7 @@ class ColorVocabularyTest(Module):
     ):
         class ColorVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:
@@ -1269,7 +1269,7 @@ class HeadphoneTest(Module):
     ):
         class HeadphoneTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
-                """Should return a tuple (score: float, passed: bool)"""
+                """Should return a dict: {"score": float, "passed": bool}"""
                 score = 0
                 for trial in participant_trials:
                     if trial.answer == trial.definition["correct_answer"]:

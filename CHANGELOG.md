@@ -1,5 +1,21 @@
 # CHANGELOG
 
+# [5.0.0] Released on 2021-11-XX
+
+#### Added
+- Added ability to disable progress bar (`experiment.var.show_progress_bar`).
+- Added dallinger version to `psynet --version` output.
+
+#### Changed
+- Refactor JavaScript to camelCase.
+- Refactor HTML attribute values to kebab-case.
+
+# [4.2.1] Released on 2021-10-31
+
+#### Fixed
+- Implemented fix for networks not growing properly in within-participant experiments 
+  with asynchronous processing.
+
 # [4.2.0] Released on 2021-10-27
 
 #### Added

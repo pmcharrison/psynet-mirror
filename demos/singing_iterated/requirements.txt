@@ -1,12 +1,3 @@
 psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
 melody_experiments@git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments
-# requirements for singing extract
-boto3>=1.9.80
-DateTime>=4.3
-flask>=1.0.2
-docopt>=0.6.2
-importlib-resources>=1.5.0
-matplotlib>=3.3.1
-numpy>=1.18.4
-scipy>=1.5.3
-praat-parselmouth>=0.4.0
+matplotlib
