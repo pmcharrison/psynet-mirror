@@ -35,6 +35,7 @@ class FixedDigitInputPage(ModularPage):
         self,
         label: str,
         prompt: str,
+        time_estimate: float,
     ):
         self.num_digits = 7
 
@@ -44,6 +45,7 @@ class FixedDigitInputPage(ModularPage):
             control=TextControl(
                 label,
             ),
+            time_estimate=time_estimate,
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -67,10 +69,17 @@ class CustomTrial(ImitationChainTrial):
     num_pages = 3
     accumulate_answers = True
 
+    time_estimate = 5 + 3 + 3
+
     def show_trial(self, experiment, participant):
-        page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
-        page_2 = FixedDigitInputPage("number", "What was the number?")
-        page_3 = FixedDigitInputPage("number", "Type the number one more time.")
+        page_1 = InfoPage(
+            f"Try to remember this 7-digit number: {self.definition:07d}",
+            time_estimate=5,
+        )
+        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
+        page_3 = FixedDigitInputPage(
+            "number", "Type the number one more time.", time_estimate=3
+        )
 
         return [page_1, page_2, page_3]
 
@@ -128,7 +137,6 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_estimate_per_trial=5,
             chain_type="within",
             num_iterations_per_chain=5,
             num_trials_per_participant=5,

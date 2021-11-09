@@ -16,7 +16,7 @@ In general, a pre-screening task is a :class:`~psynet.trial.Module` which contai
 
 In the following we show an example of a pre-screening task that consists of a single Yes/No question checking for the participant's suitability for a follow-up hearing test.
 
-The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module` and defines the actual pre-screening. It has a single event (:class:`~psynet.trial.Module`) assigned to its ``events`` property which consists of a ``label``, a :class:`~psynet.timeline.Page` (:class:`~psynet.page.ModularPage`) for the participant's input and the logic (:class:`~psynet.timeline.conditional`) to determine a positive or negative outcome. In the negative case the :class:`~psynet.page.UnsuccessfulEndPage` is shown and the participant exits the pre-screening. This class also needs to be provided with values for ``label`` and ``time_estimate_per_trial``.
+The ``HearingImpairmentCheck`` class inherits from :class:`~psynet.trial.Module` and defines the actual pre-screening. It has a single event (:class:`~psynet.trial.Module`) assigned to its ``events`` property which consists of a ``label``, a :class:`~psynet.timeline.Page` (:class:`~psynet.page.ModularPage`) for the participant's input and the logic (:class:`~psynet.timeline.conditional`) to determine a positive or negative outcome. In the negative case the :class:`~psynet.page.UnsuccessfulEndPage` is shown and the participant exits the pre-screening. This class also needs to be provided with a value for ``label``.
 
 ::
 
@@ -83,7 +83,6 @@ A static pre-screening task inherits from :class:`~psynet.trial.Module`, e.g.:
         def __init__(
             self,
             label = "some_static_prescreening_task",
-            time_estimate_per_trial: float = 5.0,
             performance_threshold: int = 4,
         ):
         self.label = label
@@ -94,7 +93,7 @@ A static pre-screening task inherits from :class:`~psynet.trial.Module`, e.g.:
         super().__init__(self.label, self.elts)
 
 
-Set reasonable defaults for ``time_estimate_per_trial`` and ``performance_threshold`` and assign a ``label``. Implement the four methods :meth:`instruction_page`, :meth:`trial_maker`, :meth:`trial`, and :meth:`get_stimulus_set`.
+Set reasonable defaults for ``performance_threshold`` and ``label``. Implement the four methods :meth:`instruction_page`, :meth:`trial_maker`, :meth:`trial`, and :meth:`get_stimulus_set`.
 The :meth:`instruction_page` method returns an :class:`~psynet.page.InfoPage`, e.g.:
 
 ::
@@ -121,7 +120,6 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
 
     def trial_maker(
             self,
-            time_estimate_per_trial: float,
             performance_threshold: int
         ):
         class SomeStaticPrescreeningTrialMaker(StaticTrialMaker):
@@ -137,7 +135,6 @@ The :meth:`trial_maker` method returns a :class:`~psynet.trial.main.TrialMaker` 
             trial_class=self.trial(time_estimate_per_trial),
             phase="some_prescreening_phase",
             stimulus_set=self.get_stimulus_set(),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False
         )
@@ -158,6 +155,8 @@ The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` whi
     def trial(self, time_estimate: float):
         class SomeStaticPrescreeningTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "some_prescreening_trial"}
+
+            time_estimate = time_estimate
 
             def show_trial(self, experiment, participant):
                 return ModularPage(

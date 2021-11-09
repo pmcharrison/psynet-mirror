@@ -50,6 +50,8 @@ CONDITIONS = ConditionList(
 class CustomTrial(SingleStimulusTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    time_estimate = 5
+
     def show_trial(self, experiment, participant):
         adjective = self.definition["adjective"]
         color = self.definition["location"]
@@ -59,7 +61,7 @@ class CustomTrial(SingleStimulusTrial):
             "color",
             ColorPrompt(color=color, text=caption),
             PushButtonControl(choices=[1, 2, 3, 4], arrange_vertically=False),
-            time_estimate=5,
+            time_estimate=self.time_estimate,
         )
 
 
@@ -82,7 +84,6 @@ class Exp(psynet.experiment.Experiment):
             id_="color",
             trial_class=CustomTrial,
             conditions=CONDITIONS,
-            time_estimate_per_trial=5,
             recruit_mode="num_participants",
             target_num_participants=1,
             target_num_trials_per_condition=None,

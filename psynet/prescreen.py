@@ -447,7 +447,6 @@ class REPPMarkersTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, audio_filenames),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
         )
 
@@ -590,7 +589,6 @@ class LanguageVocabularyTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, language_code, words),
-            time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -750,7 +748,6 @@ class LexTaleTest(Module):
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -1035,7 +1032,6 @@ class ColorBlindnessTest(Module):
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1170,7 +1166,6 @@ class ColorVocabularyTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(colors),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1282,7 +1277,6 @@ class HeadphoneTest(Module):
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url),
-            time_estimate_per_trial=time_estimate_per_trial,
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )

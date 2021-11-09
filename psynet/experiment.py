@@ -630,6 +630,7 @@ class Experiment(dallinger.experiment.Experiment):
             )
             if isinstance(validation, FailedValidation):
                 return self.response_rejected(message=validation.message)
+            participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
         else:
