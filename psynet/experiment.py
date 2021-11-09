@@ -687,6 +687,12 @@ class Experiment(dallinger.experiment.Experiment):
             ),
             (
                 resource_filename(
+                    "psynet", "resources/libraries/platform-1.3.6/platform.min.js"
+                ),
+                "/static/scripts/platform.min.js",
+            ),
+            (
+                resource_filename(
                     "psynet", "resources/libraries/raphael-2.3.0/raphael.min.js"
                 ),
                 "/static/scripts/raphael-2.3.0.min.js",
