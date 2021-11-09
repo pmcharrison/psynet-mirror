@@ -5,6 +5,7 @@
 #### Added
 - Added ability to disable progress bar (`experiment.var.show_progress_bar`).
 - Added dallinger version to `psynet --version` output.
+- Added audio-forced-choice prescreening task (thanks Pol van Rijn, Harin Lee).
 
 #### Breaking changes
 
