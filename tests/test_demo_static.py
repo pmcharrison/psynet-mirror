@@ -101,6 +101,7 @@ class TestExp:
             for t in p_trials:
                 assert t.participant_id == 1
                 assert t.trial_maker_id == "animals"
+                assert t.time_credit_from_trial == 3
 
             next_page(driver, "next-button")
 

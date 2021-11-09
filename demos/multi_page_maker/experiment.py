@@ -20,7 +20,7 @@ class Exp(psynet.experiment.Experiment):
             control=PushButtonControl(
                 ["1", "2", "3", "4", "5"], arrange_vertically=False
             ),
-            time_estimate=5,
+            time_estimate=0,
         ),
         CodeBlock(
             lambda participant: participant.var.set(
@@ -30,12 +30,10 @@ class Exp(psynet.experiment.Experiment):
         multi_page_maker(
             "example_multi_page_maker",
             lambda participant: [
-                InfoPage(
-                    f"Page {i + 1}/{participant.var.num_pages}", time_estimate=None
-                )
+                InfoPage(f"Page {i + 1}/{participant.var.num_pages}", time_estimate=1)
                 for i in range(participant.var.num_pages)
             ],
-            total_time_estimate=5,
+            total_time_estimate=3,
             expected_num_pages=3,
         ),
         SuccessfulEndPage(),

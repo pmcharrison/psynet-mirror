@@ -56,6 +56,8 @@ DESIGN_PARAMS = {
 class CustomTrial(AudioImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    time_estimate = TIME_ESTIMATE_TRIAL
+
     def make_definition(self, experiment, participant):
         definition = super().make_definition(experiment, participant)
 
@@ -122,7 +124,7 @@ class CustomTrial(AudioImitationChainTrial):
                 controls=False,
                 auto_advance=False,
             ),
-            time_estimate=TIME_ESTIMATE_TRIAL,
+            time_estimate=self.time_estimate,
             events={
                 "promptStart": Event(is_triggered_by="trialStart", delay=0.25),
                 "recordStart": Event(is_triggered_by="promptEnd", delay=0.5),
@@ -198,6 +200,8 @@ class CustomTrialPractice(CustomTrial):
 
     def gives_feedback(self, experiment, participant):
         return True
+
+    time_estimate = 10
 
     def show_feedback(self, experiment, participant):
         feedback = utils.feedback_generator(self.details["analysis"])
@@ -342,7 +346,6 @@ SingingFeedback = join(
         node_class=CustomNode,
         source_class=CustomSource,
         phase="practice",
-        time_estimate_per_trial=10,
         chain_type="within",
         num_iterations_per_chain=1,
         num_trials_per_participant=DESIGN_PARAMS["num_trials_practice"],
@@ -394,7 +397,6 @@ SingingMainTask1 = join(
         node_class=CustomNode,
         source_class=CustomSource,
         phase="experiment",
-        time_estimate_per_trial=TIME_ESTIMATE_TRIAL,
         chain_type=DESIGN_PARAMS["chain_type"],
         num_trials_per_participant=DESIGN_PARAMS["max_trials_per_participant"],
         num_iterations_per_chain=DESIGN_PARAMS["num_iterations_per_chain"],

@@ -273,9 +273,13 @@ class TapTrial(TapTrialAnalysis):
 class TapTrialISO(TapTrial):
     __mapper_args__ = {"polymorphic_identity": "tap_trial_ISO"}
 
+    time_estimate = DURATION_ESTIMATED_TRIAL
+
 
 class TapTrialMusic(TapTrial):
     __mapper_args__ = {"polymorphic_identity": "tap_trial_music"}
+
+    time_estimate = DURATION_ESTIMATED_TRIAL
 
 
 # Tapping tasks
@@ -304,7 +308,6 @@ ISO_tapping = join(
         trial_class=TapTrialISO,
         phase="ISO_tapping",
         stimulus_set=stimulus_ISO_set,
-        time_estimate_per_trial=DURATION_ESTIMATED_TRIAL,
         target_num_participants=NUM_PARTICIPANTS,
         recruit_mode="num_participants",
         check_performance_at_end=False,
@@ -335,7 +338,6 @@ music_tapping = join(
         trial_class=TapTrialMusic,
         phase="music_tapping",
         stimulus_set=stimulus_music_set,
-        time_estimate_per_trial=DURATION_ESTIMATED_TRIAL,
         target_num_participants=NUM_PARTICIPANTS,
         recruit_mode="num_participants",
         check_performance_at_end=False,
