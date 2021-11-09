@@ -1,6 +1,17 @@
 # CHANGELOG
 
+# [5.0.0] Released on 2021-11-XX
+
+#### Added
+- Added ability to disable progress bar (`experiment.var.show_progress_bar`).
+- Added dallinger version to `psynet --version` output.
+
 #### Breaking changes
+
+- Refactored JavaScript variable and function names to camelCase,
+  and HTML IDs and attributes to kebab-case.
+  Experiments referring explicitly to these components may need to be
+  updated accordingly.
 
 The time estimation process has been revised in PsyNet, resulting in the following changes:
 
@@ -37,15 +48,9 @@ class CustomTrial(Trial):
 - New ``Trial`` fields have been added to help keep track of how time credit was assigned for trials:
   ``time_credit_before_trial``, ``time_credit_after_trial``, and ``time_credit_from_trial``.
   If a trial turned out to give an unexpected amount of time credit,
-  PsyNet now delivers a warning message and recommends a revised value for ``time_estimate``. 
-
-# [5.0.0] Released on 2021-11-XX
-
-#### Added
-- Added ability to disable progress bar (`experiment.var.show_progress_bar`).
-- Added dallinger version to `psynet --version` output.
-
-#### Changed
+  PsyNet now delivers a warning message and recommends a revised value for ``time_estimate``.
+  
+#### Other changes
 - PsyNet now supports serialization of arbitrary objects to database fields.
   Serialization is accomplished using `jsonpickle`.
   No change should be necessary to experiment implementations;
@@ -53,8 +58,6 @@ class CustomTrial(Trial):
   will have changed slightly. As a result, it is unlikely to be possible
   to relaunch experiments from zip files using PsyNet >=5.0.0 if the original version
   was deployed on PsyNet <5.0.0.
-- Refactored JavaScript to camelCase.
-- Refactored HTML attribute values to kebab-case.
 
 # [4.2.1] Released on 2021-10-31
 
