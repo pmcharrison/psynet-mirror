@@ -1,7 +1,10 @@
 import json
 import random
+from os.path import exists as file_exists
+from random import shuffle
 
 import numpy as np
+import pandas as pd
 from flask import Markup
 
 from .modular_page import (
@@ -1318,5 +1321,194 @@ class HeadphoneTest(Module):
                     ("OSI", "2"),
                     ("OIS", "3"),
                 ]
+            ],
+        )
+
+
+class AudioForcedChoiceTest(Module):
+    """
+    The audio forced choice test makes sure that the participant can correctly classify a sound.
+    In each trial, the participant hears one sound and has to pick one answer from a list.
+    Some use-cases where this test can be of use:
+    - You only have a few stimuli with ground truth annotation and want the participant to annotate the rest. You can
+      use the test to make sure that the participant is capable to classify the stimuli correctly.
+    - You implemented an experiment that assumes participants are able to classify sounds (e.g., which bird sings the
+      played bird song)
+    - During the main experiment, participants record themselves reading a sentence. There can be issues with the
+      recording e.g., the participant misreads the sentence. Familiarizing the participants with these kind of errors
+      beforehand can raise awareness of these issues. Furthermore, participants can be under the impression that their
+      own recordings are being rated by others, which might increase motivation to do the task properly.
+
+
+    Parameters
+    ----------
+
+    csv_path : string
+        The path to a valid csv file with headers. The file must contain the two columns `url` and `answer`.
+
+    answer_options : list
+        List of answer options.
+
+    instructions : string
+        Text of initial instruction page.
+
+    question : string
+        Question asked at every trial of the test. If the table already contains a column `question` this value will be
+        taken.
+
+    performance_threshold : int, optional
+        The performance threshold. The amount of mistakes the participant is allowed to make before failing the
+        performance check.
+
+    label : string, optional
+        The label for the audio forced choice check, default: "audio_forced_choice_test".
+
+    time_estimate_per_trial : float, optional
+        The time estimate in seconds per trial, default: 8.
+
+    n_stimuli_to_use : int, optional
+        If None, all stimuli are used (default). If integer is supplied, n random stimuli are taken.
+
+    specific_stimuli : list, optional
+        If None, all stimuli are used (default). If list of indexes is supplied, only indexes are used.
+
+    """
+
+    def __init__(
+        self,
+        csv_path: str,
+        answer_options: list,
+        instructions: str,
+        question: str,
+        performance_threshold: int,
+        label="audio_forced_choice_test",
+        time_estimate_per_trial: int = 8,
+        n_stimuli_to_use: int = None,
+        specific_stimuli: list = None,
+    ):
+        # `n_stimuli_to_use` and `specific_stimuli` can both be None or either of them, but it is not allowed that they
+        # are both not None, as they can contain conflicting information.
+        assert (
+            sum([1 for i in [specific_stimuli, n_stimuli_to_use] if i is not None]) < 2
+        )
+
+        # Load stimulus
+        self.answer_options = answer_options
+        self.load_stimuli(csv_path, question)
+
+        self.instructions = instructions
+
+        self.n_stimuli_to_use = n_stimuli_to_use
+        self.specific_stimuli = specific_stimuli
+        self.check_stimuli()
+
+        self.label = label
+
+        super().__init__(
+            label,
+            join(
+                self.instruction_page(),
+                self.trial_maker(time_estimate_per_trial, performance_threshold),
+            ),
+        )
+
+    def load_stimuli(self, csv_path, question):
+        # Make sure the csv_exists
+        assert file_exists(csv_path)
+
+        df = pd.read_csv(csv_path)
+        columns = list(df.columns)
+        # the column `url` and `answer` must be present
+        assert all(col in columns for col in ["url", "answer"])
+
+        stimuli = []
+        for index, row in df.iterrows():
+            stimulus = dict(row)
+            assert stimulus["url"].startswith("http")  # Make sure url starts with http
+            stimulus["answer_options"] = self.answer_options
+            if "question" not in columns:
+                stimulus["question"] = question
+            stimuli.append(stimulus)
+        self.stimuli = stimuli
+
+    def check_stimuli(self):
+        used_answer_options = list(set([s["answer"] for s in self.stimuli]))
+
+        # Make sure that all answer options in the file are also selectable during the experiment
+        assert all([answer in self.answer_options for answer in used_answer_options])
+
+        if self.specific_stimuli is not None:
+            # Make sure all indexes are valid (i.e., are integers, go from 0 to max id)
+            assert all([isinstance(i, int) for i in self.specific_stimuli])
+            assert min(self.specific_stimuli) >= 0
+            assert max(self.specific_stimuli) < len(self.stimuli)
+
+        if self.n_stimuli_to_use is not None:
+            assert self.n_stimuli_to_use <= len(
+                self.stimuli
+            )  # Cannot select more stimuli than which are available
+            assert self.n_stimuli_to_use > 0  # Must be an integer larger than 0
+
+    def instruction_page(self):
+        return InfoPage(
+            Markup(self.instructions),
+            time_estimate=10,
+        )
+
+    def trial_maker(self, time_estimate_per_trial: float, performance_threshold: int):
+        class AudioForcedChoiceTrialMaker(StaticTrialMaker):
+            def performance_check(self, experiment, participant, participant_trials):
+                """Should return a dict: {"score": float, "passed": bool}"""
+                score = 0
+                for trial in participant_trials:
+                    if trial.answer == trial.definition["answer"]:
+                        score += 1
+                passed = score >= performance_threshold
+                return {"score": score, "passed": passed}
+
+        return AudioForcedChoiceTrialMaker(
+            id_=self.label + "_trials",
+            trial_class=self.trial(time_estimate_per_trial),
+            phase="screening",
+            stimulus_set=self.get_stimulus_set(),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
+        )
+
+    def trial(self, time_estimate: float):
+        class AudioForcedChoiceTrial(StaticTrial):
+            __mapper_args__ = {"polymorphic_identity": "audio_forced_choice_trial"}
+
+            time_estimate = time_estimate
+
+            def show_trial(self, experiment, participant):
+                return ModularPage(
+                    "audio_forced_choice_trial",
+                    AudioPrompt(
+                        self.definition["url"],
+                        self.definition["question"],
+                    ),
+                    PushButtonControl(self.definition["answer_options"]),
+                    time_estimate=self.time_estimate,
+                )
+
+        return AudioForcedChoiceTrial
+
+    def get_stimulus_set(self):
+        if self.n_stimuli_to_use is not None:
+            shuffle(self.stimuli)
+            self.stimuli = self.stimuli[: self.n_stimuli_to_use]
+
+        elif self.specific_stimuli is not None:
+            self.stimuli = [self.stimuli[i] for i in self.specific_stimuli]
+
+        return StimulusSet(
+            "audio_forced_choice_test",
+            [
+                StimulusSpec(
+                    definition=stimulus,
+                    phase="screening",
+                )
+                for stimulus in self.stimuli
             ],
         )
