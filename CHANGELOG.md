@@ -1,7 +1,10 @@
 # CHANGELOG
 
+# [5.0.1] Released on 2021-11-10
+
 #### Fixed
 - Fixed regressions in prescreening tasks.
+- Fixed demos' constraints.
 - Improved changelog notes for v5.0.0.
 
 # [5.0.0] Released on 2021-11-10
