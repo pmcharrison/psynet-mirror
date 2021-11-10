@@ -46,9 +46,11 @@ class ReadAudioTest(AudioForcedChoiceTest):
             self.stimuli
         )
 
-    def trial(self, time_estimate: float):
+    def trial(self, time_estimate_: float):
         class AudioForcedChoiceTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "read_audio_test_trial"}
+
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
@@ -58,7 +60,7 @@ class ReadAudioTest(AudioForcedChoiceTest):
                         QUESTION % self.definition["text"],
                     ),
                     PushButtonControl(self.definition["answer_options"]),
-                    time_estimate=time_estimate,
+                    time_estimate=self.time_estimate,
                 )
 
         return AudioForcedChoiceTrial

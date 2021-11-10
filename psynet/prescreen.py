@@ -264,6 +264,8 @@ class JSONSerializer(json.JSONEncoder):
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "markers_test_trial"}
 
+    time_estimate = 12
+
     def show_trial(self, experiment, participant):
         return ModularPage(
             "markers_test_trial",
@@ -285,7 +287,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 controls=False,
                 auto_advance=False,
             ),
-            time_estimate=12,
+            time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
                 # show_bar=False,
                 stages=[
@@ -379,9 +381,6 @@ class REPPMarkersTest(Module):
     label : string, optional
         The label for the markers check, default: "repp_markers_test".
 
-    time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 15.0.
-
     performance_threshold : int, optional
         The performance threshold, default: 1.
 
@@ -394,7 +393,6 @@ class REPPMarkersTest(Module):
     def __init__(
         self,
         label="repp_markers_test",
-        time_estimate_per_trial: float = 15.0,
         performance_threshold: int = 0.6,
         media_url: str = "https://s3.amazonaws.com/repp-materials",
         filename_image: str = "REPP-image_rules.png",
@@ -405,7 +403,6 @@ class REPPMarkersTest(Module):
             self.instruction_page(num_trials, media_url, filename_image),
             self.trial_maker(
                 media_url,
-                time_estimate_per_trial,
                 performance_threshold,
                 num_trials,
                 self.audio_filenames,
@@ -436,7 +433,6 @@ class REPPMarkersTest(Module):
     def trial_maker(
         self,
         media_url: str,
-        time_estimate_per_trial: float,
         performance_threshold: int,
         num_trials: float,
         audio_filenames: list,
@@ -448,14 +444,13 @@ class REPPMarkersTest(Module):
 
         return MarkersTrialMaker(
             id_="markers_test",
-            trial_class=self.trial(time_estimate_per_trial),
+            trial_class=self.trial_class,
             phase="screening",
             stimulus_set=self.get_stimulus_set(media_url, audio_filenames),
             check_performance_at_end=True,
         )
 
-    def trial(self, time_estimate: float):
-        return RecordMarkersTrial
+    trial_class = RecordMarkersTrial
 
     def get_stimulus_set(self, media_url: str, audio_filenames: list):
         return StimulusSet(
@@ -597,9 +592,11 @@ class LanguageVocabularyTest(Module):
             check_performance_at_end=True,
         )
 
-    def trial(self, time_estimate: float):
+    def trial(self, time_estimate_: float):
         class LanguageVocabularyTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "language_vocabulary_trial"}
+
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 path_correct = self.definition["url_image_folder"] + "/correct"
@@ -638,7 +635,7 @@ class LanguageVocabularyTest(Module):
                         style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
                         arrange_vertically=False,
                     ),
-                    time_estimate=time_estimate,
+                    time_estimate=self.time_estimate,
                 )
 
         return LanguageVocabularyTrial
@@ -756,9 +753,11 @@ class LexTaleTest(Module):
             check_performance_at_end=True,
         )
 
-    def trial(self, time_estimate: float, hide_after: float):
+    def trial(self, time_estimate_: float, hide_after: float):
         class LextaleTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "lextale_trial"}
+
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
@@ -778,7 +777,7 @@ class LexTaleTest(Module):
                         arrange_vertically=False,
                         style="min-width: 150px; margin: 10px",
                     ),
-                    time_estimate=time_estimate,
+                    time_estimate=self.time_estimate,
                 )
 
         return LextaleTrial
@@ -1040,9 +1039,11 @@ class ColorBlindnessTest(Module):
             fail_trials_on_premature_exit=False,
         )
 
-    def trial(self, time_estimate: float, hide_after: float):
+    def trial(self, time_estimate_: float, hide_after: float):
         class ColorBlindnessTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "color_blindness_trial"}
+
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
@@ -1057,7 +1058,7 @@ class ColorBlindnessTest(Module):
                         text_align="center",
                     ),
                     TextControl(width="100px"),
-                    time_estimate=time_estimate,
+                    time_estimate=self.time_estimate,
                 )
 
         return ColorBlindnessTrial
@@ -1174,9 +1175,11 @@ class ColorVocabularyTest(Module):
             fail_trials_on_premature_exit=False,
         )
 
-    def trial(self, time_estimate: float):
+    def trial(self, time_estimate_: float):
         class ColorVocabularyTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "color_vocabulary_trial"}
+
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
@@ -1191,7 +1194,7 @@ class ColorVocabularyTest(Module):
                         arrange_vertically=False,
                         style="min-width: 150px; margin: 10px",
                     ),
-                    time_estimate=time_estimate,
+                    time_estimate=self.time_estimate,
                 )
 
         return ColorVocabularyTrial
@@ -1285,9 +1288,11 @@ class HeadphoneTest(Module):
             fail_trials_on_premature_exit=False,
         )
 
-    def trial(self, time_estimate: float):
+    def trial(self, time_estimate_: float):
         class HeadphoneTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "headphone_trial"}
+
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
@@ -1297,7 +1302,7 @@ class HeadphoneTest(Module):
                         "Which sound was softest (quietest) -- 1, 2, or 3?",
                     ),
                     PushButtonControl(["1", "2", "3"]),
-                    time_estimate=time_estimate,
+                    time_estimate=self.time_estimate,
                 )
 
         return HeadphoneTrial
@@ -1476,11 +1481,11 @@ class AudioForcedChoiceTest(Module):
             fail_trials_on_premature_exit=False,
         )
 
-    def trial(self, time_estimate: float):
+    def trial(self, time_estimate_: float):
         class AudioForcedChoiceTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "audio_forced_choice_trial"}
 
-            time_estimate = time_estimate
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(

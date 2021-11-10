@@ -126,6 +126,8 @@ jmespath==0.10.0
     #   botocore
 joblib==1.1.0
     # via psynet
+jsonpickle==2.0.0
+    # via psynet
 localconfig==1.1.3
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
