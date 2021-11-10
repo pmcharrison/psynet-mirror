@@ -83,6 +83,8 @@ class CustomProgressDisplay(ProgressDisplay):
 class CustomTrial(CameraImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    time_estimate = 15
+
     def show_trial(self, experiment, participant):
         if self.origin.degree == 1:
             instruction = f"Please trace out a {self.origin.seed} in the air \
@@ -184,7 +186,6 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_estimate_per_trial=15,
             chain_type="within",
             num_trials_per_participant=4,
             num_iterations_per_chain=4,

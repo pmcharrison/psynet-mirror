@@ -66,6 +66,7 @@ class CustomTrial(AudioGibbsTrial):
     autoplay = AUTOPLAY
     debug = DEBUG
     minimal_time = 3.0
+    time_estimate = 5.0
 
     def get_prompt(self, experiment, participant):
         return Markup(
@@ -105,7 +106,6 @@ trial_maker = CustomTrialMaker(
     node_class=CustomNode,
     source_class=CustomSource,
     phase="experiment",  # can be whatever you like
-    time_estimate_per_trial=5,
     chain_type="within",  # can be "within" or "across"
     num_trials_per_participant=NUM_TRIALS_PER_PARTICIPANT,
     num_iterations_per_chain=NUM_ITERATIONS_PER_CHAIN,

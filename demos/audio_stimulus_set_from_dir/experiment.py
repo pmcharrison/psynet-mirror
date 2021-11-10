@@ -40,6 +40,8 @@ experiment_stimuli = stimulus_set_from_dir(
 class CustomTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    time_estimate = 5
+
     def show_trial(self, experiment, participant):
         dump = escape(json.dumps(self.summarize(), indent=4))
         text = Markup(
@@ -55,7 +57,7 @@ class CustomTrial(StaticTrial):
             "question_page",
             AudioPrompt(self.media_url, text),
             PushButtonControl(["Yes", "No"]),
-            time_estimate=5,
+            time_estimate=self.time_estimate,
         )
 
 
@@ -71,7 +73,6 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             phase="practice",
             stimulus_set=practice_stimuli,
-            time_estimate_per_trial=5,
             target_num_participants=3,
             recruit_mode="num_participants",
         ),
@@ -81,7 +82,6 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             phase="experiment",
             stimulus_set=experiment_stimuli,
-            time_estimate_per_trial=5,
             target_num_participants=10,
             recruit_mode="num_participants",
         ),

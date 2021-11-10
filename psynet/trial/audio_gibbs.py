@@ -198,6 +198,8 @@ class AudioGibbsTrial(GibbsTrial):
     The user should customise this by overriding the
     :meth:`~psynet.trial.audio_gibbs.AudioGibbsTrial.get_prompt`
     method.
+    The user must also specify a time estimate
+    by overriding the ``time_estimate`` class attribute.
     The user is also invited to override the
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.snap_slider`,
     :attr:`~psynet.trial.audio_gibbs.AudioGibbsTrial.autoplay`,
@@ -249,6 +251,7 @@ class AudioGibbsTrial(GibbsTrial):
 
     __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
 
+    time_estimate = None
     snap_slider = False
     snap_slider_before_release = False
     autoplay = False
@@ -287,7 +290,7 @@ class AudioGibbsTrial(GibbsTrial):
                 input_type=self.input_type,
             ),
             media=self.media,
-            time_estimate=5,
+            time_estimate=self.time_estimate,
         )
 
     def _get_prompt(self, experiment, participant):

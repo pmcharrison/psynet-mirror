@@ -9,15 +9,18 @@ from psynet.trial.chain import (
 )
 
 
+class CustomTrial(ChainTrial):
+    time_estimate = 5
+
+
 def new_trial_maker(**kwarg):
     args = dict(
         id_="test_trial_maker",
         network_class=ChainNetwork,
         node_class=ChainNode,
         source_class=ChainSource,
-        trial_class=ChainTrial,
+        trial_class=CustomTrial,
         phase="test",
-        time_estimate_per_trial=5,
         chain_type="across",
         num_trials_per_participant=5,
         num_chains_per_participant=None,
