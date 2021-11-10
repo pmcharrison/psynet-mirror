@@ -152,11 +152,11 @@ The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` whi
     from psynet.page import ModularPage
     from psynet.trial.static import StaticTrial
 
-    def trial(self, time_estimate: float):
+    def trial(self, time_estimate_: float):
         class SomeStaticPrescreeningTrial(StaticTrial):
             __mapper_args__ = {"polymorphic_identity": "some_prescreening_trial"}
 
-            time_estimate = time_estimate
+            time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
                 return ModularPage(
@@ -171,7 +171,7 @@ The :meth:`trial` method returns a :class:`~psynet.trial.static.StaticTrial` whi
                     # PushButtonControl(
                     #     ["1", "2", "3"]
                     # ),
-                    time_estimate=time_estimate
+                    time_estimate=self.time_estimate
                 )
         return SomeStaticPrescreeningTrial
 
