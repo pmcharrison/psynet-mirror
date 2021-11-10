@@ -2,12 +2,12 @@
 
 {% block main_body %}
   <style>
-    .main_div {
+    .main-div {
       margin: 0;
     }
   </style>
 
-  <div class="main_div" style="padding-bottom: 100px;
+  <div class="main-div" style="padding-bottom: 100px;
   ">
     <noscript>
         <h1>Warning: Javascript is not working on your browser</h1>
@@ -16,7 +16,7 @@
     </noscript>
     <h1>Research Participant Consent Form for Image/Sound Recordings</h1>
     <hr>
-    <div class="consent_div text-justify">
+    <div class="text-justify">
         <div class="text-left" style="font-size:18px">
           <h2>Title of study: {{experiment_title}}</h2>
           <p>
@@ -43,15 +43,15 @@
             <label style="margin-left: 35px; cursor: pointer;">
               <input
                   type="checkbox"
-                  id="demonstration_purposes_consent_yes"
-                  class="demonstration_purposes_consent"
+                  id="demonstration-purposes-consent-yes"
+                  class="demonstration-purposes-consent"
                   style="cursor: pointer;"/>
               <span>YES</span>
             </label>
             <label style="margin-left: 25px; cursor: pointer;">
               <input
                   type="checkbox"
-                  class="demonstration_purposes_consent"
+                  class="demonstration-purposes-consent"
                   style="cursor: pointer;"/>
               <span>NO</span>
             </label>
@@ -96,20 +96,20 @@
         <script>
           psynet.response.staged.metadata = {};
           psynet.response.staged.metadata["demonstration_purposes_consent"] = false;
-          function set_demonstration_purposes_consent() {
-            psynet.response.staged.metadata["demonstration_purposes_consent"] = $('#demonstration_purposes_consent_yes').is(':checked');
+          function setDemonstrationPurposesConsent() {
+            psynet.response.staged.metadata["demonstration_purposes_consent"] = $('#demonstration-purposes-consent-yes').is(':checked');
           }
 
-          $('.demonstration_purposes_consent').click(function() {
-            $('.demonstration_purposes_consent').prop('checked', false);
+          $('.demonstration-purposes-consent').click(function() {
+            $('.demonstration-purposes-consent').prop('checked', false);
             $(this).prop('checked', true);
-            set_demonstration_purposes_consent();
+            setDemonstrationPurposesConsent();
           });
         </script>
-        <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page(true);" style="float: left;">
+        <button type="button" id="standard-consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
           I agree
         </button>
-        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.next_page(false);" style="float: right;">
+        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
           No, thank you (return task)
         </button>
       </div>

@@ -125,7 +125,7 @@ class Participant(dallinger.models.Participant):
     )
     complete = field.claim_field("complete", __extra_vars__, bool)
     answer = field.claim_field("answer", __extra_vars__, object)
-    branch_log = field.claim_field("branch_log", __extra_vars__, list)
+    branch_log = field.claim_field("branch_log", __extra_vars__)
 
     initialised = claim_var(
         "initialised", __extra_vars__, use_default=True, default=lambda: False
@@ -244,6 +244,7 @@ class Participant(dallinger.models.Participant):
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = client_ip_address
+        self.branch_log = []
         self.initialised = True
 
     def calculate_bonus(self):

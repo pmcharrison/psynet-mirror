@@ -25,7 +25,7 @@
 
 {% block libs %}
     {{ super() }}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/platform/1.3.6/platform.min.js"></script>
+    <script src="/static/scripts/platform.min.js"></script>
 {% endblock libs %}
 
 {% block scripts %}
@@ -40,19 +40,19 @@
             window.location='/start?{{query_string|safe}}';
         }
 
-        is_version_at_least = function(x, comparison) {
-            var x_split = x.split(".").map(Number);
-            var comparison_split = comparison.split(".").map(Number);
-            for (var i = 0; i < comparison_split.length; i ++) {
-                if (i < x_split.length) {
+        isVersionAtLeast = function(x, comparison) {
+            var xSplit = x.split(".").map(Number);
+            var comparisonSplit = comparison.split(".").map(Number);
+            for (var i = 0; i < comparisonSplit.length; i ++) {
+                if (i < xSplit.length) {
                     // Both have version numbers at that specifity to compare
-                    if (x_split[i] > comparison_split[i]) {
+                    if (xSplit[i] > comparisonSplit[i]) {
                         return true;
-                    } else if (x_split[i] < comparison_split[i]) {
+                    } else if (xSplit[i] < comparisonSplit[i]) {
                         return false;
                     }
                 } else {
-                    if (comparison_split[i] > 0) {
+                    if (comparisonSplit[i] > 0) {
                         return false;
                     }
                 }
@@ -61,7 +61,7 @@
         }
         window.addEventListener("load", function() {
             console.log(platform.toString());
-            var min_browser_version = "{{ experiment.var.min_browser_version }}";
+            var minBrowserVersion = "{{ experiment.var.min_browser_version }}";
             if (platform.name != "Chrome") {
                 $("#consent").prop("disabled", true);
                 $("#consent").append("(please reload in Chrome first)");
@@ -70,13 +70,13 @@
                     "This experiment only supports Chrome. If you're using a different " +
                     "browser, please reopen the same page in Chrome."
                 )
-            } else if (!is_version_at_least(platform.version, min_browser_version)) {
+            } else if (!isVersionAtLeast(platform.version, minBrowserVersion)) {
                 $("#consent").prop("disabled", true);
                 $("#consent").append("(please update browser first)");
                 alert(
                     "It seems like you're using an out-of-date version of Chrome "
                     + "(you're using " + platform.version + ", this app requires at least "
-                    + min_browser_version + "). "
+                    + minBrowserVersion + "). "
                     + "Please update your browser and open this web page again."
                 );
             }

@@ -1,7 +1,7 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-  <div class="main_div" style="padding-bottom: 100px;
+  <div class="main-div" style="padding-bottom: 100px;
   ">
     <noscript>
         <h1>Warning: Javascript is not working on your browser</h1>
@@ -10,7 +10,7 @@
     </noscript>
     <h1>We need your consent to proceed</h1>
     <hr>
-    <div class="consent_div text-justify">
+    <div class="text-justify">
         <div class="text-left" style="font-size:18px">
             <h2>Overview</h2>
             <p>
@@ -189,17 +189,17 @@
         <hr>
         <h4>Do you understand and consent to these terms?</h4>
         <br>
-        <button type="button" id="standard_consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.next_page(true);" style="float: left;">
+        <button type="button" id="standard-consent" class="btn btn-primary btn-lg" id="consent" onClick="psynet.nextPage(true);" style="float: left;">
             I agree
         </button>
-        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.next_page(false);" style="float: right;">
+        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
           No, thank you (return task)
         </button>
       </div>
   </div>
 
   <style>
-    .main_div {
+    .main-div {
       margin: 0;
     }
   </style>

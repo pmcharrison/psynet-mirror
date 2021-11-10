@@ -5,7 +5,7 @@
 ##########################################################################################
 
 import random
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import numpy as np
 from flask import Markup
@@ -84,12 +84,12 @@ class NecklaceCircle(Circle):
             let color_options = {self.color_options};
             this.raphael.attr({{"stroke": color_options[initial_color], "fill": color_options[initial_color]}});
 
-            if (psynet.response.staged.raw_answer == undefined) {{
-                psynet.response.staged.raw_answer = {{}};
+            if (psynet.response.staged.rawAnswer == undefined) {{
+                psynet.response.staged.rawAnswer = {{}};
             }}
 
             let stage_color = function(index, circle_id) {{
-                psynet.response.staged.raw_answer[circle_id] = {{
+                psynet.response.staged.rawAnswer[circle_id] = {{
                     color_index: index,
                     color_value: color_options[index]
                 }};
@@ -153,7 +153,7 @@ class NecklaceNAFCPage(ModularPage):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        chosen_necklace_id = int(raw_answer["clicked_object"].split("_")[1])
+        chosen_necklace_id = int(raw_answer["clickedObject"].split("_")[1])
         return chosen_necklace_id
 
     def create_necklace(
@@ -262,6 +262,7 @@ class CustomTrial(GraphChainTrial):
 
     num_pages = 2
     accumulate_answers = True
+    time_estimate = 5
 
     def show_trial(self, experiment, participant):
         options = [option["content"] for option in self.definition]
@@ -323,7 +324,6 @@ class CustomTrialMaker(GraphChainTrialMaker):
         source_class,
         trial_class,
         phase: str,
-        time_estimate_per_trial: Union[int, float],
         grid_dimension: int,
         chain_type: str,
         num_trials_per_participant: int,
@@ -352,7 +352,6 @@ class CustomTrialMaker(GraphChainTrialMaker):
             source_class=source_class,
             trial_class=trial_class,
             phase=phase,
-            time_estimate_per_trial=time_estimate_per_trial,
             network_structure=network_structure,
             chain_type=chain_type,
             num_trials_per_participant=num_trials_per_participant,
@@ -467,7 +466,6 @@ class Exp(psynet.experiment.Experiment):
             source_class=CustomSource,
             grid_dimension=3,
             phase="experiment",
-            time_estimate_per_trial=5,
             chain_type="across",
             num_iterations_per_chain=5,
             num_trials_per_participant=9,

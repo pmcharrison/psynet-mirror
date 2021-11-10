@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Monitor preview
+title = Timeline demo
 base_payment = 0.10
 
 [Recruitment strategy]

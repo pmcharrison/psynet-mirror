@@ -45,17 +45,18 @@ class TestExp(object):
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard_consent")
+            next_page(driver, "standard-consent")
 
             assert_text(driver, "main-body", "Welcome to the experiment! Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             # Page 1
             participant = get_participant(1)
             modules = participant.modules
+
             assert list(modules.keys()) == [
-                "introduction",
                 "cap-recruiter_standard_consent",
+                "introduction",
             ]
             assert set(list(modules["introduction"].keys())) == {
                 "time_started",
@@ -74,20 +75,20 @@ class TestExp(object):
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
                 driver.find_element_by_id("main-body").text,
             )
-            button = driver.find_element_by_id("next_button")
+            button = driver.find_element_by_id("next-button")
             assert button.text == "Next"
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             # Page 2
             assert_text(driver, "main-body", "Write me a message! Next")
-            text_input = driver.find_element_by_id("text_input")
+            text_input = driver.find_element_by_id("text-input")
             text_input.send_keys("Hello! I am a robot.")
-            assert_text(driver, "next_button", "Next")
-            next_page(driver, "next_button")
+            assert_text(driver, "next-button", "Next")
+            next_page(driver, "next-button")
 
             # Page 3
             assert_text(driver, "main-body", "Your message: Hello! I am a robot. Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             db_session.commit()
             participant = Participant.query.filter_by(id=1).one()
@@ -105,14 +106,14 @@ class TestExp(object):
 
             # Page 4
             assert_text(driver, "main-body", "What is your weight in kg? Next")
-            text_input = driver.find_element_by_id("number_input")
+            text_input = driver.find_element_by_id("number-input")
             text_input.send_keys("78.5")
-            assert_text(driver, "next_button", "Next")
-            next_page(driver, "next_button")
+            assert_text(driver, "next-button", "Next")
+            next_page(driver, "next-button")
 
             # Page 5
             assert_text(driver, "main-body", "Your weight is 78.5 kg. Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             db_session.commit()
             participant = Participant.query.filter_by(id=1).one()
@@ -141,7 +142,7 @@ class TestExp(object):
             button = driver.find_element_by_id("A")
             button.click()
 
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             db_session.commit()
             participant = Participant.query.filter_by(id=1).one()
@@ -192,7 +193,7 @@ class TestExp(object):
             assert_text(
                 driver, "main-body", "It's nice to hear that you like chocolate! Next"
             )
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             # Loop
             assert_text(
@@ -217,7 +218,7 @@ class TestExp(object):
                 "main-body",
                 "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer. Next",
             )
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             assert_text(
                 driver, "main-body", "Participant 1, choose a shape: Square Circle"
@@ -234,7 +235,7 @@ class TestExp(object):
                 "main-body",
                 "If accumulate_answers is True, then the answers are stored in a list, in this case: ['Square', 'Minor']. Next",
             )
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             assert_text(
                 driver, "main-body", "What's your favourite color? Red Green Blue"
@@ -242,7 +243,7 @@ class TestExp(object):
             next_page(driver, "Red")
 
             assert_text(driver, "main-body", "Red is a nice color, wait 1s. Next")
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             # Final page
             assert_text(
@@ -255,4 +256,4 @@ class TestExp(object):
                 ),
             )
 
-            next_page(driver, "next_button", finished=True)
+            next_page(driver, "next-button", finished=True)

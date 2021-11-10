@@ -11,6 +11,7 @@ from shutil import rmtree, which
 import click
 import requests
 from dallinger import db
+from dallinger.command_line import __version__ as dallinger_version
 from dallinger.command_line import data as dallinger_data
 from dallinger.command_line import debug as dallinger_debug
 from dallinger.command_line import deploy as dallinger_deploy
@@ -67,7 +68,12 @@ header = r"""
 
 
 @click.group()
-@click.version_option(__version__, "--version", "-v", message="%(version)s")
+@click.version_option(
+    __version__,
+    "--version",
+    "-v",
+    message=f"{__version__} (using Dallinger {dallinger_version})",
+)
 def psynet():
     pass
 

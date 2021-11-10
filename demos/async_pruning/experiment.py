@@ -126,6 +126,8 @@ class CustomTrial(GibbsTrial):
     # on each trial.
     resample_free_parameter = True
 
+    time_estimate = 5
+
     def show_trial(self, experiment, participant):
         target = self.network.definition["target"]
         prompt = Markup(
@@ -139,7 +141,7 @@ class CustomTrial(GibbsTrial):
             selected_idx=self.active_index,
             reverse_scale=self.reverse_scale,
             directional=False,
-            time_estimate=5,
+            time_estimate=self.time_estimate,
         )
 
     def show_feedback(self, experiment, participant):
@@ -207,7 +209,6 @@ trial_maker = CustomTrialMaker(
     node_class=CustomNode,
     source_class=CustomSource,
     phase="experiment",  # can be whatever you like
-    time_estimate_per_trial=5,
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=4,
     num_iterations_per_chain=5,  # note that the final node receives no trials

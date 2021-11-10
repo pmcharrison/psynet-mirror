@@ -50,7 +50,7 @@ stimulus_set = StimulusSet(
 class AnimalTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "animal_trial"}
 
-    # num_pages = 2
+    time_estimate = 3
 
     def show_trial(self, experiment, participant):
         text_color = self.definition["text_color"]
@@ -76,6 +76,7 @@ class AnimalTrial(StaticTrial):
                 """
             ),
             PushButtonControl(["Not at all", "A little", "Very much"]),
+            time_estimate=self.time_estimate,
         )
 
         return page
@@ -95,7 +96,7 @@ class AnimalTrial(StaticTrial):
 
 class AnimalTrialMaker(StaticTrialMaker):
     def performance_check(self, experiment, participant, participant_trials):
-        """Should return a tuple (score: float, passed: bool)"""
+        """Should return a dict: {"score": float, "passed": bool}"""
         score = 0
         failed = False
         for trial in participant_trials:
@@ -139,7 +140,6 @@ trial_maker = AnimalTrialMaker(
     trial_class=AnimalTrial,
     phase="experiment",
     stimulus_set=stimulus_set,
-    time_estimate_per_trial=3,
     max_trials_per_block=2,
     allow_repeated_stimuli=True,
     max_unique_stimuli_per_block=None,

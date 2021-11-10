@@ -25,20 +25,20 @@
         let graphic_{{ config.id }} = {
             id: "{{ config.id }}",
             paper: new Raphael("graphic-{{ config.id }}"),
-            paper_html: $("#graphic-{{ config.id }}"),
+            paperHtml: $("#graphic-{{ config.id }}"),
             objects: {}
         };
 
         (function() {
-            let {id, paper, paper_html, objects} = graphic_{{ config.id }};
+            let {id, paper, paperHtml, objects} = graphic_{{ config.id }};
             let loop = {% if config.loop %} true {% else %} false {% endif %};
-            let blueprint_dim = [
+            let blueprintDim = [
                 {{ config.dimensions[0] }},
                 {{ config.dimensions[1] }}
             ];
-            let cursor_location = null;
+            let cursorLocation = null;
 
-            paper.setViewBox(0, 0, blueprint_dim[0], blueprint_dim[1], true);
+            paper.setViewBox(0, 0, blueprintDim[0], blueprintDim[1], true);
             paper.setSize("100%", "100%");
 
             let svg = document.querySelector("svg");
@@ -46,21 +46,20 @@
             svg.removeAttribute("height");
 
             window.addEventListener("mousemove", function(e) {
-                let mouse_loc = [e.pageX, e.pageY];
-                let paper_loc = [paper_html.offset().left, paper_html.offset().top];
-                let paper_dim = [paper_html.width(), paper_html.height()];
-                cursor_location = [0, 1].map(i => blueprint_dim[i] * (mouse_loc[i] - paper_loc[i]) / paper_dim[i]);
-                // psynet.log.debug("Cursor location: " + cursor_location)
+                let mouseLoc = [e.pageX, e.pageY];
+                let paperLoc = [paperHtml.offset().left, paperHtml.offset().top];
+                let paperDim = [paperHtml.width(), paperHtml.height()];
+                cursorLocation = [0, 1].map(i => blueprintDim[i] * (mouseLoc[i] - paperLoc[i]) / paperDim[i]);
+                // psynet.log.debug("Cursor location: " + cursorLocation)
             });
 
-            function submit_answer(clicked_object, click_coordinates) {
-                psynet.next_page({
-                    clicked_object: clicked_object,
-                    click_coordinates: click_coordinates
+            function submitAnswer(clickedObject, clickCoordinates) {
+                psynet.nextPage({
+                    clicked_object: clickedObject,
+                    click_coordinates: clickCoordinates
                 });
             }
 
-            let current_frame = 0;
             let frames = [];
             {% for frame in config.frames %}
                 frames.push({
@@ -86,7 +85,7 @@
                                     active: false,
                                     persist: {{ object.persist | lower }},
                                     animations: {{ object.animations_js | tojson }},
-                                    loop_animations: {{ object.loop_animations | lower }},
+                                    loopAnimations: {{ object.loop_animations | lower }},
                                     raphael: null
                                 };
 
@@ -98,9 +97,9 @@
 
                                     {% if object.click_to_answer %}
                                         this.raphael.click(function () {
-                                            let clicked_object = object.id;
-                                            let click_coordinates = cursor_location;
-                                            submit_answer(clicked_object, cursor_location);
+                                            let clickedObject = object.id;
+                                            let clickCoordinates = cursorLocation;
+                                            submitAnswer(clickedObject, cursorLocation);
                                         })
                                     {% endif %}
 
@@ -112,25 +111,25 @@
                                     this.active = false;
                                 }
 
-                                object.queue_animation = function(i) {
+                                object.queueAnimation = function(i) {
                                     let object = this;
-                                    let num_animations = this.animations.length;
-                                    let animation_spec = this.animations[i];
+                                    let numAnimations = this.animations.length;
+                                    let animationSpec = this.animations[i];
                                     function callback() {
                                         if (!object.active) {
                                             return
-                                        } else if (i + 1 < num_animations) {
-                                            object.queue_animation(i + 1);
-                                        } else if (object.loop_animations) {
+                                        } else if (i + 1 < numAnimations) {
+                                            object.queueAnimation(i + 1);
+                                        } else if (object.loopAnimations) {
                                             object.erase();
                                             object.draw();
-                                            object.queue_animation(0);
+                                            object.queueAnimation(0);
                                         }
                                     }
                                     this.raphael.animate(
-                                        animation_spec.final_attributes,
-                                        1000 * animation_spec.duration,
-                                        animation_spec.easing,
+                                        animationSpec.finalAttributes,
+                                        1000 * animationSpec.duration,
+                                        animationSpec.easing,
                                         callback
                                     );
                                 }
@@ -140,7 +139,7 @@
                                 object.draw();
 
                                 if (object.animations.length > 0) {
-                                    object.queue_animation(0);
+                                    object.queueAnimation(0);
                                 }
                             }
                         {% endfor %}
@@ -148,53 +147,47 @@
                 });
             {% endfor %}
 
-            let clear_paper = function(remove_persistent_objects) {
-               Object.keys(objects).forEach(function(object_id) {
-                    let object = objects[object_id];
-                    if (remove_persistent_objects || !object.persist) {
+            let clearPaper = function(removePersistentObjects) {
+               Object.keys(objects).forEach(function(objectId) {
+                    let object = objects[objectId];
+                    if (removePersistentObjects || !object.persist) {
                         object.erase();
-                        delete objects[object_id];
+                        delete objects[objectId];
                     }
                 });
             };
 
-            let queue_frame = function (i) {
+            let queueFrame = function (i) {
                 psynet.log.debug("Graphic '" + id + "': queuing frame " + i);
-                let remove_persistent_objects = i == 0;
-                clear_paper(remove_persistent_objects);
+                let removePersistentObjects = i == 0;
+                clearPaper(removePersistentObjects);
                 frames[i].function();
                 if (frames[i].duration !== null) {
                     setTimeout(function() {
-                        let is_last_frame = (!loop) && (i + 1 == frames.length);
-                        if (!is_last_frame) {
-                            let next_frame = (i + 1) % frames.length;
-                            queue_frame(next_frame);
+                        let isLastFrame = (!loop) && (i + 1 == frames.length);
+                        if (!isLastFrame) {
+                            let nextFrame = (i + 1) % frames.length;
+                            queueFrame(nextFrame);
                         }
                     }, frames[i].duration)
                 }
             };
 
-            let start_sequence = function() {
-                queue_frame(0);
+            let startSequence = function() {
+                queueFrame(0);
 
                 {% if config.auto_advance_after is defined and config.auto_advance_after is not none %}
                     setTimeout(function() {
-                        let clicked_object = null;
-                        let click_coordinates = null;
-                        submit_answer(clicked_object, click_coordinates);
+                        let clickedObject = null;
+                        let clickCoordinates = null;
+                        submitAnswer(clickedObject, clickCoordinates);
                     }, 1000 * {{ config.auto_advance_after }});
                 {% endif %}
             };
 
             if (frames.length > 0) {
-                psynet.trial.onEvent("trialStart", start_sequence);
+                psynet.trial.onEvent("trialStart", startSequence);
             }
         })();
-
-        //retrieve_response = function() {
-        //    return {
-        //        raw_answer: parseFloat($("#slider").get(0).value)
-        //    }
-        //}
     </script>
 {% endmacro %}

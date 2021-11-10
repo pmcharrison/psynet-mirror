@@ -37,9 +37,9 @@ class TestExp:
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard_consent")
-            next_page(driver, "next_button")
-            next_page(driver, "next_button")
+            next_page(driver, "standard-consent")
+            next_page(driver, "next-button")
+            next_page(driver, "next-button")
 
             driver.switch_to.window(driver.window_handles[0])
             abort_button = driver.find_element_by_id("abort-button")
@@ -51,7 +51,7 @@ class TestExp:
             close_button.click()
             driver.switch_to.window(driver.window_handles[1])
 
-            next_page(driver, "next_button")
+            next_page(driver, "next-button")
 
             driver.switch_to.window(driver.window_handles[0])
             abort_button = driver.find_element_by_id("abort-button")

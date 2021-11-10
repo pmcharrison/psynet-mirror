@@ -1,6 +1,4 @@
+psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
 repp@git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition-lab/repp@master#egg=repp
 reppextension@git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
-docopt
 matplotlib
-# scipy

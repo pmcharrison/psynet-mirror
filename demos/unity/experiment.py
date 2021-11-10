@@ -119,6 +119,8 @@ class IslandTrial(StaticTrial):
     num_pages = NUMBER_OF_ISLANDS
     accumulate_answers = True
 
+    time_estimate = 3
+
     def show_trial(self, experiment, participant):
         network_content = self.definition
         world_id = int(network_content["world_id"])
@@ -163,7 +165,7 @@ class IslandTrialMaker(StaticTrialMaker):
 
     def performance_check(self, experiment, participant, participant_trials):
         """
-        Should return a tuple (score: float, passed: bool)
+        Should return a dict: {"score": float, "passed": bool}
         """
         score = 1
         for trial in participant_trials:
@@ -181,7 +183,6 @@ trial_maker = IslandTrialMaker(
     trial_class=IslandTrial,
     phase="train",
     stimulus_set=stimulus_set_initial,
-    time_estimate_per_trial=3,
     max_trials_per_block=3,
     allow_repeated_stimuli=False,
     max_unique_stimuli_per_block=None,
@@ -201,7 +202,6 @@ final_trial_maker = IslandTrialMaker(
     trial_class=FinalIslandTrial,
     phase="experiment",
     stimulus_set=stimulus_set_final,
-    time_estimate_per_trial=3,
     max_trials_per_block=1,
     allow_repeated_stimuli=False,
     max_unique_stimuli_per_block=None,
