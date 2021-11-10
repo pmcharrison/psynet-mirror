@@ -69,6 +69,11 @@ recordings_s3_bucket = "static-audio-demo-stimuli-recordings"
 class CustomTrial(StaticTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    _time_trial = 3
+    _time_feedback = 2
+
+    time_estimate = _time_trial + _time_feedback
+
     def show_trial(self, experiment, participant):
         return ModularPage(
             "question_page",
@@ -78,7 +83,7 @@ class CustomTrial(StaticTrial):
             AudioRecordControl(
                 duration=3.0, s3_bucket=recordings_s3_bucket, public_read=True
             ),
-            time_estimate=5,
+            time_estimate=self._time_trial,
         )
 
     def show_feedback(self, experiment, participant):
@@ -88,7 +93,7 @@ class CustomTrial(StaticTrial):
                 participant.answer["url"],
                 "Listen back to your recording. Did you do a good job?",
             ),
-            time_estimate=2,
+            time_estimate=self._time_feedback,
         )
 
 
@@ -130,7 +135,6 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             phase="experiment",
             stimulus_set=stimulus_set,
-            time_estimate_per_trial=5,
             target_num_participants=3,
             recruit_mode="num_participants",
         ),

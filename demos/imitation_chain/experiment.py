@@ -65,10 +65,14 @@ class CustomTrial(ImitationChainTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
     num_pages = 2
+    time_estimate = 2 + 3
 
     def show_trial(self, experiment, participant):
-        page_1 = InfoPage(f"Try to remember this 7-digit number: {self.definition:07d}")
-        page_2 = FixedDigitInputPage("number", "What was the number?")
+        page_1 = InfoPage(
+            f"Try to remember this 7-digit number: {self.definition:07d}",
+            time_estimate=2,
+        )
+        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
 
         return [page_1, page_2]
 
@@ -114,7 +118,6 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_estimate_per_trial=5,
             chain_type="within",
             num_iterations_per_chain=5,
             num_trials_per_participant=5,

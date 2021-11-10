@@ -117,6 +117,8 @@ class CustomTrialAnalysis(AudioImitationChainTrial):
 class CustomTrial(CustomTrialAnalysis):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    time_estimate = TIME_ESTIMATE_PER_TRIAL
+
     def show_trial(self, experiment, participant):
         info_stimulus = self.origin.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec"]
@@ -261,7 +263,6 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",
-            time_estimate_per_trial=TIME_ESTIMATE_PER_TRIAL,
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,
             num_iterations_per_chain=NUM_ITERATION_CHAIN,  # only relevant in within chains

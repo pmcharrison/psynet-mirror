@@ -49,6 +49,8 @@ class CustomSource(MCMCPSource):
 class CustomTrial(MCMCPTrial):
     __mapper_args__ = {"polymorphic_identity": "custom_trial"}
 
+    time_estimate = 5
+
     def show_trial(self, experiment, participant):
         occupation = self.network.definition["occupation"]
         age_1 = self.first_stimulus["age"]
@@ -64,7 +66,7 @@ class CustomTrial(MCMCPTrial):
             control=PushButtonControl(
                 ["0", "1"], labels=["Person A", "Person B"], arrange_vertically=False
             ),
-            time_estimate=5,
+            time_estimate=self.time_estimate,
         )
 
 
@@ -99,7 +101,6 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",  # can be whatever you like
-            time_estimate_per_trial=5,
             chain_type="across",  # can be "within" or "across"
             num_trials_per_participant=10,
             num_chains_per_participant=None,  # set to None if chain_type="across"

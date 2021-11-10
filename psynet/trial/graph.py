@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
-from typing import List, Optional, Union
+from typing import List, Optional
 
 from dallinger import db
 
@@ -281,7 +281,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
         source_class,
         trial_class,
         phase: str,
-        time_estimate_per_trial: Union[int, float],
         network_structure: str,
         chain_type: str,
         num_trials_per_participant: int,
@@ -313,7 +312,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
             source_class=source_class,
             trial_class=trial_class,
             phase=phase,
-            time_estimate_per_trial=time_estimate_per_trial,
             chain_type=chain_type,
             num_trials_per_participant=num_trials_per_participant,
             num_chains_per_participant=num_chains_per_participant,

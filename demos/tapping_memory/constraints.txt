@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: f0ba843420e62f3fbd9b78994cbb50e5
+# Compiled from a requirement.txt file with md5sum: a3b2b183d25d6e336ef8384091a576b5
 #
 apscheduler==3.8.0
     # via
@@ -93,7 +93,6 @@ defusedxml==0.7.1
 docopt==0.6.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
-    #   -r /tmp/tmpw_tco7sb/requirements.txt
     #   tapping-extract
 dominate==2.6.0
     # via psynet
@@ -164,7 +163,7 @@ idna==3.2
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
     #   requests
-importlib-resources==5.3.0
+importlib-resources==5.4.0
     # via
     #   psynet
     #   tapping-extract
@@ -265,7 +264,7 @@ markupsafe==2.0.1
     #   wtforms
 matplotlib==3.4.3
     # via
-    #   -r /tmp/tmpw_tco7sb/requirements.txt
+    #   -r /tmp/tmptme_j_gz/requirements.txt
     #   repp
     #   reppextension
     #   tapping-extract
@@ -461,9 +460,8 @@ s3transfer==0.5.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
     #   boto3
-scipy==1.7.1
+scipy==1.7.2
     # via
-    #   -r /tmp/tmpw_tco7sb/requirements.txt
     #   psynet
     #   repp
     #   reppextension

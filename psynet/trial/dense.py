@@ -74,9 +74,6 @@ class DenseTrialMaker(StaticTrialMaker):
     conditions
         Defines a collection of conditions to be administered to the participants.
 
-    time_estimate_per_trial
-        Time estimated for each trial (seconds).
-
     phase
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
@@ -200,7 +197,6 @@ class DenseTrialMaker(StaticTrialMaker):
         id_: str,
         trial_class,
         conditions: ConditionList,
-        time_estimate_per_trial: int,
         phase: str = "default",
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
@@ -220,7 +216,6 @@ class DenseTrialMaker(StaticTrialMaker):
             trial_class=trial_class,
             phase=phase,
             stimulus_set=conditions,
-            time_estimate_per_trial=time_estimate_per_trial,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
             target_num_trials_per_stimulus=target_num_trials_per_condition,
