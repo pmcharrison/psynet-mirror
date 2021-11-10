@@ -381,9 +381,6 @@ class REPPMarkersTest(Module):
     label : string, optional
         The label for the markers check, default: "repp_markers_test".
 
-    time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 15.0.
-
     performance_threshold : int, optional
         The performance threshold, default: 1.
 
@@ -396,7 +393,6 @@ class REPPMarkersTest(Module):
     def __init__(
         self,
         label="repp_markers_test",
-        time_estimate_per_trial: float = 15.0,
         performance_threshold: int = 0.6,
         media_url: str = "https://s3.amazonaws.com/repp-materials",
         filename_image: str = "REPP-image_rules.png",
@@ -407,7 +403,6 @@ class REPPMarkersTest(Module):
             self.instruction_page(num_trials, media_url, filename_image),
             self.trial_maker(
                 media_url,
-                time_estimate_per_trial,
                 performance_threshold,
                 num_trials,
                 self.audio_filenames,
