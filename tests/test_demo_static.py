@@ -102,6 +102,7 @@ class TestExp:
                 assert t.participant_id == 1
                 assert t.trial_maker_id == "animals"
                 assert t.time_credit_from_trial == 3
+                assert t.time_taken > 0
 
             next_page(driver, "next-button")
 
