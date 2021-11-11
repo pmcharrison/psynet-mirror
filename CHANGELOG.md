@@ -1,5 +1,12 @@
 # CHANGELOG
 
+# [5.0.1] Released on 2021-11-10
+
+#### Fixed
+- Fixed regressions in prescreening tasks.
+- Fixed demos' constraints.
+- Improved changelog notes for v5.0.0.
+
 # [5.0.0] Released on 2021-11-10
 
 #### Added
@@ -45,6 +52,29 @@ class CustomTrial(Trial):
 
   An error will be thrown if the user neglects to set this `time_estimate`, 
   or if they try to set it via the trial maker.
+
+  To update PsyNet code to follow this new convention, see below.
+  Here's an example of what the code might look like before:
+
+```py
+class CustomTrial(Trial):
+    def show_trial(self, experiment, participant):
+        return InfoPage("Hello!", time_estimate=5)
+
+trial_maker = TrialMaker(**params, time_estimate_per_trial=5)
+```
+
+The updated code should look like this:
+
+```py
+class CustomTrial(Trial):
+    time_estimate = 5
+    
+    def show_trial(self, experiment, participant):
+        return InfoPage("Hello!", time_estimate=self.time_estimate)
+
+trial_maker = TrialMaker(**params)
+```
 
 - New ``Trial`` fields have been added to help keep track of how time credit was assigned for trials:
   ``time_credit_before_trial``, ``time_credit_after_trial``, and ``time_credit_from_trial``.

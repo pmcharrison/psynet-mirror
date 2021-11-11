@@ -215,6 +215,8 @@ jmespath==0.10.0
     #   botocore
 joblib==1.1.0
     # via psynet
+jsonpickle==2.0.0
+    # via psynet
 jsonschema==3.2.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
@@ -264,7 +266,7 @@ markupsafe==2.0.1
     #   wtforms
 matplotlib==3.4.3
     # via
-    #   -r /tmp/tmptme_j_gz/requirements.txt
+    #   -r /tmp/tmpm3fr9dla/requirements.txt
     #   repp
     #   reppextension
     #   tapping-extract

@@ -38,7 +38,7 @@ logger = get_logger()
 # global parameters
 INITIAL_RECRUITMENT_SIZE = 1
 BUCKET_NAME = "iterated-singing-demo"
-TIME_ESTIMATE_TRIAL = params.singing_config_2d["sing_duration"] * 2
+TIME_ESTIMATE_TRIAL = params.singing_2intervals["sing_duration"] * 2
 DESIGN_PARAMS = {
     "num_trials_per_participant": 10,
     "max_trials_per_participant": 15,
@@ -78,7 +78,7 @@ class CustomTrial(AudioImitationChainTrial):
         ] = utils.convert_interval_sequence_to_absolute_pitches(
             intervals=definition["intervals"],
             reference_pitch=reference_pitch,
-            reference_mode=params.singing_config_2d["reference_mode"],
+            reference_mode=params.singing_2intervals["reference_mode"],
         )
 
         return definition
@@ -117,7 +117,7 @@ class CustomTrial(AudioImitationChainTrial):
                 default_silence=params.note_silence,
             ),
             AudioRecordControl(
-                duration=params.singing_config_2d["sing_duration"],
+                duration=params.singing_2intervals["sing_duration"],
                 s3_bucket=BUCKET_NAME,
                 public_read=True,
                 show_meter=False,
@@ -148,7 +148,7 @@ class CustomTrial(AudioImitationChainTrial):
     def analyze_recording(self, audio_file: str, output_plot: str):
         raw = sing.analyze(
             audio_file,
-            params.singing_config_2d,
+            params.singing_2intervals,
             target_pitches=self.definition["target_pitches"],
             plot_options=sing.PlotOptions(save=True, path=output_plot, format="png"),
         )
@@ -157,11 +157,11 @@ class CustomTrial(AudioImitationChainTrial):
         ]
         sung_pitches = [x["median_f0"] for x in raw]
         sung_intervals = utils.convert_absolute_pitches_to_interval_sequence(
-            sung_pitches, params.singing_config_2d["reference_mode"]
+            sung_pitches, params.singing_2intervals["reference_mode"]
         )
         target_intervals = utils.convert_absolute_pitches_to_interval_sequence(
             self.definition["target_pitches"],
-            params.singing_config_2d["reference_mode"],
+            params.singing_2intervals["reference_mode"],
         )
         stats = sing.compute_stats(
             sung_pitches,
@@ -171,13 +171,13 @@ class CustomTrial(AudioImitationChainTrial):
         )
         is_failed = utils.failing_criteria(
             sung_intervals,
-            params.singing_config_2d["num_int"],
+            params.singing_2intervals["num_int"],
             sung_pitches,
             self.definition["target_pitches"],
-            params.singing_config_2d["max_mean_interval_error"],
-            params.singing_config_2d["max_interval_size"],
-            params.singing_config_2d["max_melody_pitch_range"],
-            params.singing_config_2d["reference_mode"],
+            params.singing_2intervals["max_mean_interval_error"],
+            params.singing_2intervals["max_interval_size"],
+            params.singing_2intervals["max_melody_pitch_range"],
+            params.singing_2intervals["reference_mode"],
         )
         return {
             "failed": is_failed["failed"],
@@ -278,24 +278,24 @@ class CustomSource(AudioImitationChainSource):
     def generate_seed(self, network, experiment, participant):
         if self.network.phase == "experiment":
             intervals = utils.sample_interval_sequence(
-                n_int=params.singing_config_2d["num_int"],
-                max_interval_size=params.singing_config_2d["max_interval_size"],
-                max_melody_pitch_range=params.singing_config_2d[
+                n_int=params.singing_2intervals["num_int"],
+                max_interval_size=params.singing_2intervals["max_interval_size"],
+                max_melody_pitch_range=params.singing_2intervals[
                     "max_melody_pitch_range"
                 ],
-                discrete=params.singing_config_2d["discrete"],
-                reference_mode=params.singing_config_2d["reference_mode"],
+                discrete=params.singing_2intervals["discrete"],
+                reference_mode=params.singing_2intervals["reference_mode"],
             )
             return dict(intervals=intervals)
         else:
             intervals = utils.sample_interval_sequence(
-                n_int=params.singing_config_2d["num_int"],
+                n_int=params.singing_2intervals["num_int"],
                 max_interval_size=3,
-                max_melody_pitch_range=params.singing_config_2d[
+                max_melody_pitch_range=params.singing_2intervals[
                     "max_melody_pitch_range"
                 ],
-                discrete=params.singing_config_2d["discrete"],
-                reference_mode=params.singing_config_2d["reference_mode"],
+                discrete=params.singing_2intervals["discrete"],
+                reference_mode=params.singing_2intervals["reference_mode"],
             )
             return dict(intervals=intervals)
 
