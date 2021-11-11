@@ -618,9 +618,15 @@ class Page(Elt):
 
     session_id : str
         If session_id is not None, then it must be a string. If two consecutive pages occur with the same session_id, then when it’s time to move to the second page, the browser will not navigate to a new page, but will instead update the Javascript variable psynet.page with metadata for the new page, and will trigger an event called pageUpdated. This event can be listened for with Javascript code like window.addEventListener(”pageUpdated”, ...).
+
+    dynamically_update_progress_bar_and_bonus : bool
+        If ``True``, then the page will regularly poll for updates to the progress bar and the bonus.
+        If ``False`` (default), the progress bar and bonus are updated only on page refresh or on transition to
+        the next page.
     """
 
     returns_time_credit = True
+    dynamically_update_progress_bar_and_bonus = False
 
     def __init__(
         self,
@@ -910,7 +916,10 @@ class Page(Elt):
         pass
 
     def render(self, experiment, participant):
-        internal_js_vars = {"pageUuid": participant.page_uuid}
+        internal_js_vars = {
+            "pageUuid": participant.page_uuid,
+            "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
+        }
         all_template_arg = {
             **self.template_arg,
             "init_js_vars": flask.Markup(

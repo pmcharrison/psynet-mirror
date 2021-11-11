@@ -1512,7 +1512,9 @@
             }
         }
 
-        setInterval(updateProgressAndBonus, 1000)
+        if (dynamicallyUpdateProgressBarAndBonus) {
+            setInterval(updateProgressAndBonus, 1000);
+        }
     </script>
 
 {% endblock %}
