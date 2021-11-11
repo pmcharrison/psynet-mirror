@@ -1,5 +1,9 @@
 # CHANGELOG
 
+#### Changed
+- By default, dynamic updating of progress bar and bonus display now only occurs
+  for Unity pages. This makes the logs cleaner for standard PsyNet pages.
+
 # [5.0.1] Released on 2021-11-10
 
 #### Fixed
