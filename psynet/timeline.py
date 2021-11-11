@@ -145,7 +145,10 @@ class Trigger(dict):
 
 def get_template(name):
     assert isinstance(name, str)
-    return importlib_resources.read_text(templates, name)
+    path_all_templates = importlib_resources.files(templates)
+    path_template = path_all_templates.joinpath(name)
+    with open(path_template, "r") as file:
+        return file.read()
 
 
 class Elt:
