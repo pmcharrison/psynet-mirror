@@ -122,6 +122,8 @@ class UnityPage(Page):
         Further arguments to pass to :class:`psynet.timeline.Page`.
     """
 
+    dynamically_update_progress_bar_and_bonus = True
+
     def __init__(
         self,
         title: str,
