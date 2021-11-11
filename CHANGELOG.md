@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Changed
+- The time taken by the participant is now stored as a property of the `Trial` object.
+
 # [5.0.1] Released on 2021-11-10
 
 #### Fixed
