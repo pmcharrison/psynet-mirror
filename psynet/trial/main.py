@@ -391,6 +391,14 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         specified by ``time_estimate``, then a warning message will be delivered,
         suggesting a revised value for ``time_estimate``.
 
+    response_id : int
+        ID of the associated :class:`~psynet.timeline.Response` object.
+        Equals ``None`` if no such object has been created yet.
+
+    response :
+        The associated :class:`~psynet.timeline.Response` object,
+        which records in detail the response received from the participant's web browser.
+        Equals ``None`` if no such object has been created yet.
     """
 
     # pylint: disable=unused-argument
@@ -413,6 +421,7 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     response_id = claim_field("response_id", __extra_vars__, int)
     repeat_trial_index = claim_field("repeat_trial_index", __extra_vars__, int)
     num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
+    time_taken = claim_field("time_taken", __extra_vars__, float)
 
     time_credit_before_trial = claim_field(
         "time_credit_before_trial", __extra_vars__, float
@@ -449,6 +458,12 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     def parent_trial(self):
         assert self.parent_trial_id is not None
         return Trial.query.filter_by(id=self.parent_trial_id).one()
+
+    @property
+    def response(self):
+        if self.response_id is None:
+            return None
+        return Response.query.filter_by(id=self.response_id).one()
 
     # @property
     # def num_pages(self):
@@ -527,12 +542,6 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         )
 
     @property
-    def response(self):
-        if self.response_id is None:
-            return None
-        return Response.query.filter_by(id=self.response_id).one()
-
-    @property
     @extra_var(__extra_vars__)
     def trial_maker_id(self):
         return self.network.trial_maker_id
@@ -562,6 +571,8 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         self.repeat_trial_index = repeat_trial_index
         self.num_repeat_trials = num_repeat_trials
         self.score = None
+        self.response_id = None
+        self.time_taken = None
 
         if is_repeat_trial:
             self.definition = parent_trial.definition
@@ -1342,6 +1353,7 @@ class TrialMaker(Module):
         trial.answer = answer
         trial.complete = True
         trial.response_id = participant.last_response_id
+        trial.time_taken = trial.response.metadata["time_taken"]
         self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
