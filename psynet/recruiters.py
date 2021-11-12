@@ -101,7 +101,7 @@ class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
 
-class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
+class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
     """
     The LucidRecruiter base class
 
@@ -125,7 +125,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        logger.info("Opening Lucid recruitment for {} participants".format(n))
+        logger.info(
+            "Opening XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX recruitment for {} participants".format(
+                n
+            )
+        )
         if self.is_in_progress:
             raise LucidRecruiterException(
                 "Tried to open_recruitment on already open recruiter."
@@ -146,11 +150,31 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         return {
             "items": [url],
-            "message": "Survey now published to Lucid Marketplace.",
+            "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
         }
 
     def recruit(self, n=1):
-        return []
+        """Recruit n new participants to an existing survey"""
+        logger.info(
+            "Recruiting {} XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX participants".format(
+                n
+            )
+        )
+        if not self.config.get("auto_recruit"):
+            logger.info("auto_recruit is False: recruitment suppressed.")
+            return
+
+        survey_id = self.current_survey_id()
+        if survey_id is None:
+            logger.info("No survey in progress: recruitment aborted.")
+            return
+
+        try:
+            return self.lucidservice.create_qualifications_and_quota(
+                survey_id, number=n, duration_hours=self.config.get("duration")
+            )
+        except LucidServiceException as e:
+            logger.exception(str(e))
 
     def close_recruitment(self):
         logger.info("No more participants required. Recruitment stopped.")
@@ -221,25 +245,6 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
                 '"{}" is not a valid mode for Lucid recruitment. '
                 'The value of "mode" must be either "sandbox" or "live"'.format(mode)
             )
-
-    def recruit(self, n=1):
-        """Recruit n new participants to an existing survey"""
-        logger.info("Recruiting {} Lucid participants".format(n))
-        if not self.config.get("auto_recruit"):
-            logger.info("auto_recruit is False: recruitment suppressed.")
-            return
-
-        survey_id = self.current_survey_id()
-        if survey_id is None:
-            logger.info("No survey in progress: recruitment aborted.")
-            return
-
-        try:
-            return self.lucidservice.create_qualifications_and_quota(
-                survey_id, number=n, duration_hours=self.config.get("duration")
-            )
-        except LucidServiceException as e:
-            logger.exception(str(e))
 
     def current_survey_id(self):
         """Return the ID of the survey associated with the active experiment ID

@@ -75,7 +75,9 @@ class LucidService(object):
             raise LucidServiceException(
                 "'Create project' request was invalid for unknown reason."
             )
-        logger.info(f'Created Lucid project with ID {response_data["id"]}.')
+        logger.info(
+            f'Created XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX project with ID {response_data["id"]}.'
+        )
 
         # Now we create the survey
         params = {
@@ -118,7 +120,9 @@ class LucidService(object):
             raise LucidServiceException(
                 "'Create survey' request was invalid for unknown reason."
             )
-        logger.info(f'Created Lucid survey with ID {response_data["id"]}.')
+        logger.info(
+            f'Created XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX survey with ID {response_data["id"]}.'
+        )
 
         return response_data
         # return self._translate_survey(response)
@@ -152,7 +156,9 @@ class LucidService(object):
             raise LucidServiceException(
                 "'Create qualifications' request was invalid for unknown reason."
             )
-        logger.info(f'Created {response_data["ResultCount"]} Lucid qualifications.')
+        logger.info(
+            f'Created {response_data["ResultCount"]} XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX qualifications.'
+        )
 
         # Create quota
         params = {
@@ -177,7 +183,9 @@ class LucidService(object):
             raise LucidServiceException(
                 "'Create quota' request was invalid for unknown reason."
             )
-        logger.info(f'Created Lucid quota ({response_data["ResultCount"]}).')
+        logger.info(
+            f'Created XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX quota ({response_data["ResultCount"]}).'
+        )
 
         # if duration_hours is not None:
         #     self.update_expiration_for_survey(survey_id, duration_hours)
