@@ -148,13 +148,7 @@ class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
         self._record_current_survey_id(survey_info["id"])
         url = survey_info["live_url"]
 
-        return {
-            "items": [url],
-            "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
-        }
-
-    def recruit(self, n=1):
-        """Recruit n new participants to an existing survey"""
+        # Recruit
         logger.info(
             "Recruiting {} XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX participants".format(
                 n
@@ -175,6 +169,34 @@ class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
             )
         except LucidServiceException as e:
             logger.exception(str(e))
+
+        return {
+            "items": [url],
+            "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
+        }
+
+    def recruit(self, n=1):
+        """Recruit n new participants to an existing survey"""
+        # logger.info(
+        #     "Recruiting {} XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX participants".format(
+        #         n
+        #     )
+        # )
+        # if not self.config.get("auto_recruit"):
+        #     logger.info("auto_recruit is False: recruitment suppressed.")
+        #     return
+
+        # survey_id = self.current_survey_id()
+        # if survey_id is None:
+        #     logger.info("No survey in progress: recruitment aborted.")
+        #     return
+
+        # try:
+        #     return self.lucidservice.create_qualifications_and_quota(
+        #         survey_id, number=n, duration_hours=self.config.get("duration")
+        #     )
+        # except LucidServiceException as e:
+        #     logger.exception(str(e))
 
     def close_recruitment(self):
         logger.info("No more participants required. Recruitment stopped.")
