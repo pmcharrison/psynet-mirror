@@ -137,8 +137,8 @@ class LucidService(object):
             "LogicalOperator": "OR",
             "NumberOfRequiredConditions": 1,
             "IsActive": True,
-            "PreCodes": ["1"],
-            "Order": 7,
+            "PreCodes": ["13", "14", "15", "16", "17"],
+            "Order": 1,
         }
 
         request_data = json.dumps(params)
