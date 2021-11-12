@@ -38,6 +38,13 @@ class LucidService(object):
             url = "https://sandbox.techops.engineering/demand/v2-beta"
         return url
 
+    @property
+    def request_base_url_v1(self):
+        url = "https://live.techops.engineering/Demand/v1"
+        if self.is_sandbox:
+            url = "https://sandbox.techops.engineering/Demand/v1"
+        return url
+
     def create_survey(
         self,
         id,
@@ -102,6 +109,7 @@ class LucidService(object):
             f"{self.request_base_url}/surveys", data=request_data, headers=self.headers
         )
         response_data = response.json()
+
         logger.info(request_data)
         logger.info(response.status_code)
         logger.info(response_data)
@@ -115,17 +123,61 @@ class LucidService(object):
         return response_data
         # return self._translate_survey(response)
 
-    def extend_survey(self, survey_id, number, duration_hours=None):
-        """Extend an existing survey and return an updated description"""
-        params = {}
+    def create_qualifications_and_quota(self, survey_id, number, duration_hours=None):
+        """Create qualifications and quota"""
+
+        # Create qualifications
+        params = {
+            "Name": "ENG-US-QUAL",
+            "QuestionID": 42,
+            "LogicalOperator": "OR",
+            "NumberOfRequiredConditions": 1,
+            "IsActive": True,
+            "PreCodes": ["1"],
+            "Order": 7,
+        }
+
         request_data = json.dumps(params)
         response = requests.post(
-            f"{self.request_base_url}/surveys", data=request_data, headers=self.headers
+            f"{self.request_base_url_v1}/SurveyQualifications/Create/{survey_id}",
+            data=request_data,
+            headers=self.headers,
         )
         response_data = response.json()
         logger.info(request_data)
         logger.info(response.status_code)
         logger.info(response_data)
+
+        if "ResultCount" not in response_data:
+            raise LucidServiceException(
+                "'Create qualifications' request was invalid for unknown reason."
+            )
+        logger.info(f'Created {response_data["ResultCount"]} Lucid qualifications.')
+
+        # Create quota
+        params = {
+            "Name": "Quota Name",
+            "Quota": 10,
+            "IsActive": True,
+            "Conditions": [{"QuestionID": 42, "PreCodes": ["1"]}],
+        }
+
+        request_data = json.dumps(params)
+        response = requests.post(
+            f"{self.request_base_url_v1}/SurveyQuotas/Create/{survey_id}",
+            data=request_data,
+            headers=self.headers,
+        )
+        response_data = response.json()
+        logger.info(request_data)
+        logger.info(response.status_code)
+        logger.info(response_data)
+
+        if "ResultCount" not in response_data:
+            raise LucidServiceException(
+                "'Create quota' request was invalid for unknown reason."
+            )
+        logger.info(f'Created Lucid quota ({response_data["ResultCount"]}).')
 
         # if duration_hours is not None:
         #     self.update_expiration_for_survey(survey_id, duration_hours)

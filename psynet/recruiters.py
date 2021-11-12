@@ -235,7 +235,7 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
             return
 
         try:
-            return self.lucidservice.extend_survey(
+            return self.lucidservice.create_qualifications_and_quota(
                 survey_id, number=n, duration_hours=self.config.get("duration")
             )
         except LucidServiceException as e:
