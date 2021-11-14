@@ -20,10 +20,12 @@ class LucidService(object):
         self,
         api_key,
         sandbox=True,
+        recruitment_config=None,
         max_wait_secs=0,
     ):
         self.api_key = api_key
         self.is_sandbox = sandbox
+        self.recruitment_config = recruitment_config
         self.max_wait_secs = max_wait_secs
         self.headers = {
             "Content-type": "application/json",
@@ -56,10 +58,15 @@ class LucidService(object):
         """
 
         # We need to create a project for the survey first
+        logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        logger.info(self.recruitment_config)
+        logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
         params = {
             "description": name,
             "name": name,
-            "project_owner_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
+            "project_owner_id": self.recruitment_config["project"][
+                "owner_id"
+            ],  # TODO: Is this correct? Got from dictionary lookup for users
         }
 
         request_data = json.dumps(params)
@@ -80,33 +87,15 @@ class LucidService(object):
         )
 
         # Now we create the survey
+        # "owner_id": 38490             # TODO: Is this correct? Got from dictionary lookup for users
+        # "business_unit_id": 2404,     # TODO: Get business unit id dynamically
+        # "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
         params = {
-            "business_unit_id": 2404,  # TODO: Get business unit id dynamically
             "project_id": response_data["id"],
-            "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
-            "client_cpi_usd": 5,
-            "collects_pii": True,
-            "expected_completes": 10,
-            "expected_completion_loi": 10,
-            "expected_incidence_rate": 0.1,
-            "fraud_profile": True,
-            "fraud_profile_threshold": 13,
-            "industry": "education",
             "live_url": live_url,
-            "locale": "eng_us",
             "name": name,
-            "priority": 13,
-            "quantity_calc_type": "prescreens",
-            "relevant_id": True,
-            "status": "pending",
-            "study_type": "ihut",
-            "survey_cpi_usd": 5,
-            "test_url": "https://www.samplesurvey.com/test",
-            "unique_ip": True,
-            "unique_pid": True,
-            "verify_callback": True,
         }
-        request_data = json.dumps(params)
+        request_data = json.dumps({**params, **self.recruitment_config["survey"]})
         response = requests.post(
             f"{self.request_base_url}/surveys", data=request_data, headers=self.headers
         )
@@ -128,20 +117,12 @@ class LucidService(object):
         # return self._translate_survey(response)
 
     def create_qualifications_and_quota(self, survey_id, number, duration_hours=None):
-        """Create qualifications and quota"""
+        """
+        Create qualifications and quota
+        """
 
         # Create qualifications
-        params = {
-            "Name": "ENG-US-QUAL",
-            "QuestionID": 42,
-            "LogicalOperator": "OR",
-            "NumberOfRequiredConditions": 1,
-            "IsActive": True,
-            "PreCodes": ["13", "14", "15", "16", "17"],
-            "Order": 1,
-        }
-
-        request_data = json.dumps(params)
+        request_data = json.dumps(self.recruitment_config["qualifications"])
         response = requests.post(
             f"{self.request_base_url_v1}/SurveyQualifications/Create/{survey_id}",
             data=request_data,
@@ -161,14 +142,7 @@ class LucidService(object):
         )
 
         # Create quota
-        params = {
-            "Name": "Quota Name",
-            "Quota": 10,
-            "IsActive": True,
-            "Conditions": [{"QuestionID": 42, "PreCodes": ["1"]}],
-        }
-
-        request_data = json.dumps(params)
+        request_data = json.dumps(self.recruitment_config["quota"])
         response = requests.post(
             f"{self.request_base_url_v1}/SurveyQuotas/Create/{survey_id}",
             data=request_data,

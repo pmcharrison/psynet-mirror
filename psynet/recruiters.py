@@ -1,3 +1,4 @@
+import json
 import os
 
 import dallinger.recruiters
@@ -7,10 +8,12 @@ from dallinger.db import session
 from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
-from dallinger.utils import get_base_url
 
 from .lucid import LucidService, LucidServiceException
 from .utils import get_logger
+
+# from dallinger.utils import get_base_url
+
 
 logger = get_logger()
 
@@ -135,8 +138,8 @@ class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
-        if self.survey_domain is None:
-            raise LucidRecruiterException("Can't run a survey from localhost")
+        # if self.survey_domain is None:
+        #     raise LucidRecruiterException("Can't run a survey from localhost")
 
         create_survey_request_params = {
             "id": heroku_tools.app_name(self.config.get("id")),
@@ -224,18 +227,23 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     def __init__(self, *args, **kwargs):
         super(StagingLucidRecruiter, self).__init__()
         self.config = get_config()
-        base_url = get_base_url()
-        self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
+        logger.info("LUCID_CONFIG")
+        logger.info(self.config.get("lucid_recruitment_config"))
+        logger.info("LUCID_CONFIG")
+        # base_url = get_base_url()
+        # self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
+        self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
         # self.notification_url = "{}/mturk-sns-listener".format(base_url)
         self.survey_domain = os.getenv("HOST")
         self.lucidservice = LucidService(
             api_key=self.config.get("lucid_api_key"),
             sandbox=self.config.get("mode") != "live",
+            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
-        self._validate_config()
+        # self._validate_config()
 
     def _record_current_survey_id(self, survey_id):
         self.store.set(self.survey_id_storage_key, survey_id)
