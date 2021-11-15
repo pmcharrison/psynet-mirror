@@ -8,6 +8,7 @@ from dallinger.db import session
 from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
+from dallinger.utils import get_base_url
 
 from .lucid import LucidService, LucidServiceException
 from .utils import get_logger
@@ -224,9 +225,9 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
         logger.info("LUCID_CONFIG")
         logger.info(self.config.get("lucid_recruitment_config"))
         logger.info("LUCID_CONFIG")
-        # base_url = get_base_url()
-        # self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
-        self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
+        base_url = get_base_url()
+        self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
+        # self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
         # self.notification_url = "{}/mturk-sns-listener".format(base_url)
         self.survey_domain = os.getenv("HOST")
         self.lucidservice = LucidService(
