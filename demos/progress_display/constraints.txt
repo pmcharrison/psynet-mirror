@@ -43,7 +43,7 @@ click==7.1.2
     #   rq
 dallinger==7.7.0
     # via
-    #   -r /tmp/tmpr07n71lz/requirements.txt
+    #   -r /tmp/tmpr032cpir/requirements.txt
     #   psynet
 datetime==4.3
     # via psynet
@@ -254,7 +254,7 @@ sqlalchemy-postgres-copy==0.5.0
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
     #   dallinger
-statsmodels==0.13.0
+statsmodels==0.13.1
     # via psynet
 tabulate==0.8.9
     # via
