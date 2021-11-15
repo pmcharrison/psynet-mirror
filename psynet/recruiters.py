@@ -12,9 +12,6 @@ from dallinger.recruiters import RedisStore
 from .lucid import LucidService, LucidServiceException
 from .utils import get_logger
 
-# from dallinger.utils import get_base_url
-
-
 logger = get_logger()
 
 
@@ -104,7 +101,7 @@ class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
 
-class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
+class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     """
     The LucidRecruiter base class
 
@@ -167,7 +164,7 @@ class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
             return
 
         try:
-            return self.lucidservice.create_qualifications_and_quota(
+            self.lucidservice.create_qualifications_and_quota(
                 survey_id, number=n, duration_hours=self.config.get("duration")
             )
         except LucidServiceException as e:
@@ -177,9 +174,6 @@ class BaseLucidRecruiter(dallinger.recruiters.Recruiter):
             "items": [url],
             "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
         }
-
-    def recruit(self, n=1):
-        return []
 
     def close_recruitment(self):
         logger.info("No more participants required. Recruitment stopped.")
