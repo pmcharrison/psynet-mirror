@@ -124,6 +124,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         """
         return self.store.get(self.survey_id_storage_key)
 
+    def _record_current_survey_id(self, survey_id):
+        self.store.set(self.survey_id_storage_key, survey_id)
+
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
         logger.info(
@@ -209,6 +212,37 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         )
 
 
+class DevLucidRecruiter(BaseLucidRecruiter):
+    """
+    The development Lucid recruiter.
+    Recruit saneddbox participants from Lucid Marketplace
+    """
+
+    nickname = "dev-lucid-recruiter"
+    # extra_routes = mturk_routes
+    external_submission_url = ""
+
+    def __init__(self, *args, **kwargs):
+        super(DevLucidRecruiter, self).__init__()
+        self.config = get_config()
+        logger.info("LUCID_CONFIG")
+        logger.info(self.config.get("lucid_recruitment_config"))
+        logger.info("LUCID_CONFIG")
+        # base_url = get_base_url()
+        self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
+        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
+        self.survey_domain = os.getenv("HOST")
+        self.lucidservice = LucidService(
+            api_key=self.config.get("lucid_api_key"),
+            sandbox=self.config.get("mode") != "live",
+            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
+        )
+        self.notifies_admin = admin_notifier(self.config)
+        self.mailer = get_mailer(self.config)
+        self.store = kwargs.get("store") or RedisStore()
+        # self._validate_config()
+
+
 class StagingLucidRecruiter(BaseLucidRecruiter):
     """
     The staging Lucid recruiter.
@@ -227,7 +261,6 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
         logger.info("LUCID_CONFIG")
         base_url = get_base_url()
         self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
-        # self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
         # self.notification_url = "{}/mturk-sns-listener".format(base_url)
         self.survey_domain = os.getenv("HOST")
         self.lucidservice = LucidService(
@@ -240,22 +273,13 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
         self.store = kwargs.get("store") or RedisStore()
         # self._validate_config()
 
-    def _record_current_survey_id(self, survey_id):
-        self.store.set(self.survey_id_storage_key, survey_id)
-
-    def _validate_config(self):
-        mode = self.config.get("mode")
-        if mode not in ("sandbox", "live"):
-            raise LucidRecruiterException(
-                '"{}" is not a valid mode for Lucid recruitment. '
-                'The value of "mode" must be either "sandbox" or "live"'.format(mode)
-            )
-
-    def current_survey_id(self):
-        """Return the ID of the survey associated with the active experiment ID
-        if any such survey exists.
-        """
-        return self.store.get(self.survey_id_storage_key)
+    # def _validate_config(self):
+    #     mode = self.config.get("mode")
+    #     if mode not in ("sandbox", "live"):
+    #         raise LucidRecruiterException(
+    #             '"{}" is not a valid mode for Lucid recruitment. '
+    #             'The value of "mode" must be either "sandbox" or "live"'.format(mode)
+    #         )
 
     # def exit_response(self, experiment, participant):
     #     return flask.render_template(
