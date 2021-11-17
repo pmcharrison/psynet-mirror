@@ -83,7 +83,7 @@ class LucidService(object):
                 "'Create project' request was invalid for unknown reason."
             )
         logger.info(
-            f'Created XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX project with ID {response_data["id"]}.'
+            f'=========================================>>> Created Lucid project with ID {response_data["id"]}.'
         )
 
         # Now we create the survey
@@ -110,7 +110,7 @@ class LucidService(object):
                 "'Create survey' request was invalid for unknown reason."
             )
         logger.info(
-            f'Created XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX survey with ID {response_data["id"]}.'
+            f'=========================================>>> Created Lucid survey with ID {response_data["id"]}.'
         )
 
         return response_data
@@ -138,7 +138,7 @@ class LucidService(object):
                 "'Create qualifications' request was invalid for unknown reason."
             )
         logger.info(
-            f'Created {response_data["ResultCount"]} XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX qualifications.'
+            f'=========================================>>> Created Lucid qualifications ({response_data["ResultCount"]}).'
         )
 
         # Create quota
@@ -158,13 +158,43 @@ class LucidService(object):
                 "'Create quota' request was invalid for unknown reason."
             )
         logger.info(
-            f'Created XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX quota ({response_data["ResultCount"]}).'
+            f'=========================================>>> Created Lucid quota ({response_data["ResultCount"]}).'
         )
 
         # if duration_hours is not None:
         #     self.update_expiration_for_survey(survey_id, duration_hours)
 
-        return {"items": response_data, "message": "LUCID recruitment success."}
+        return response_data
+        # return {"items": response_data, "message": "LUCID recruitment success."}
+
+    def update_quota(self, survey_id, quota_id, number):
+        logger.info(survey_id)
+        logger.info(quota_id)
+        logger.info(number)
+        request_data = self.recruitment_config["quota"]
+        request_data.update(
+            {"SurveyQuotaID": quota_id, "FieldTarget": 1000, "Quota": number}
+        )
+        request_data = json.dumps(request_data)
+        response = requests.put(
+            f"{self.request_base_url_v1}/SurveyQuotas/Update/{survey_id}",
+            data=request_data,
+            headers=self.headers,
+        )
+        logger.info(response.status_code)
+        logger.info(response.content)
+        response_data = response.json()
+        logger.info(json.loads(request_data))
+        logger.info(response.status_code)
+        logger.info(response_data)
+
+        if "ResultCount" not in response_data:
+            raise LucidServiceException(
+                "'Update quota' request was invalid for unknown reason."
+            )
+        logger.info(
+            f'=========================================>>> Updated Lucid quota ({response_data["Quotas"]}).'
+        )
 
     def _translate_survey(self, survey):
         if "Keywords" in survey:

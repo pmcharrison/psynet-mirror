@@ -139,6 +139,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         experiment_id = self.config.get("id")
         return "{}:{}".format(self.__class__.__name__, experiment_id)
 
+    @property
+    def quota_id_storage_key(self):
+        experiment_id = self.config.get("id")
+        return "{}:{}:QUOTA".format(self.__class__.__name__, experiment_id)
+
     def current_survey_id(self):
         """Return the ID of the survey associated with the active experiment ID
         if any such survey exists.
@@ -147,6 +152,15 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     def _record_current_survey_id(self, survey_id):
         self.store.set(self.survey_id_storage_key, survey_id)
+
+    def current_quota_id(self):
+        """Return the ID of the quota associated with the active experiment ID
+        if any such quota exists.
+        """
+        return self.store.get(self.quota_id_storage_key)
+
+    def _record_current_quota_id(self, quota_id):
+        self.store.set(self.quota_id_storage_key, quota_id)
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
@@ -189,15 +203,39 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             return
 
         try:
-            self.lucidservice.create_qualifications_and_quota(
-                survey_id, number=n, duration_hours=self.config.get("duration")
+            qualifications_and_quota_info = (
+                self.lucidservice.create_qualifications_and_quota(
+                    survey_id, number=n, duration_hours=self.config.get("duration")
+                )
+            )
+            self._record_current_quota_id(
+                qualifications_and_quota_info["Quotas"][1]["SurveyQuotaID"]
+            )
+            logger.info(f"Current QUOTA ID IS: {self.current_quota_id()}")
+        except LucidServiceException as e:
+            logger.exception(str(e))
+
+        # self.lucidservice.update_quota(
+        #     self.current_survey_id(),
+        #     self.current_quota_id(), number=666
+        # )
+
+        return {
+            "items": [url],
+            "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
+        }
+
+    def recruit(self, n=1):
+        try:
+            self.lucidservice.update_quota(
+                self.current_survey_id(), self.current_quota_id(), number=666
             )
         except LucidServiceException as e:
             logger.exception(str(e))
 
         return {
-            "items": [url],
-            "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
+            "items": [self.current_quota_id()],
+            "message": "Quota updated XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID on Lucid Marketplace.",
         }
 
     def close_recruitment(self):
@@ -664,5 +702,7 @@ class LucidRecruiter(BaseLucidRecruiter):
     """
 
     nickname = "lucid-recruiter"
-    # extra_routes = mturk_routes
-    external_submission_url = ""
+
+    def __init__(self, *args, **kwargs):
+        self.base_url = get_base_url()
+        super(LucidRecruiter, self).__init__()
