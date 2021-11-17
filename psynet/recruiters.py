@@ -107,12 +107,16 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     The LucidRecruiter base class
     """
 
+    external_submission_url = ""
+    # extra_routes = mturk_routes
+
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
         logger.info("LUCID_CONFIG")
         logger.info(self.config.get("lucid_recruitment_config"))
         logger.info("LUCID_CONFIG")
+        self.ad_url = f"{self.base_url}/ad?recruiter={self.nickname}"
         # self.notification_url = "{}/mturk-sns-listener".format(base_url)
         self.survey_domain = os.getenv("HOST")
         self.lucidservice = LucidService(
@@ -236,13 +240,10 @@ class DevLucidRecruiter(BaseLucidRecruiter):
     """
 
     nickname = "dev-lucid-recruiter"
-    # extra_routes = mturk_routes
-    external_submission_url = ""
 
     def __init__(self, *args, **kwargs):
+        self.base_url = "https://localhost:5000"
         super(DevLucidRecruiter, self).__init__()
-        # base_url = get_base_url()
-        self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
 
 
 class StagingLucidRecruiter(BaseLucidRecruiter):
@@ -252,13 +253,10 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     """
 
     nickname = "staging-lucid-recruiter"
-    # extra_routes = mturk_routes
-    external_submission_url = ""
 
     def __init__(self, *args, **kwargs):
+        self.base_url = get_base_url()
         super(StagingLucidRecruiter, self).__init__()
-        base_url = get_base_url()
-        self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
 
     # def _validate_config(self):
     #     mode = self.config.get("mode")
