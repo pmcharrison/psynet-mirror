@@ -105,8 +105,25 @@ class LucidRecruiterException(Exception):
 class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     """
     The LucidRecruiter base class
-
     """
+
+    def __init__(self, *args, **kwargs):
+        super(BaseLucidRecruiter, self).__init__()
+        self.config = get_config()
+        logger.info("LUCID_CONFIG")
+        logger.info(self.config.get("lucid_recruitment_config"))
+        logger.info("LUCID_CONFIG")
+        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
+        self.survey_domain = os.getenv("HOST")
+        self.lucidservice = LucidService(
+            api_key=self.config.get("lucid_api_key"),
+            sandbox=self.config.get("mode") != "live",
+            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
+        )
+        self.notifies_admin = admin_notifier(self.config)
+        self.mailer = get_mailer(self.config)
+        self.store = kwargs.get("store") or RedisStore()
+        # self._validate_config()
 
     @property
     def is_in_progress(self):
@@ -215,7 +232,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 class DevLucidRecruiter(BaseLucidRecruiter):
     """
     The development Lucid recruiter.
-    Recruit saneddbox participants from Lucid Marketplace
+    Recruit sandbox participants from Lucid Marketplace
     """
 
     nickname = "dev-lucid-recruiter"
@@ -224,29 +241,14 @@ class DevLucidRecruiter(BaseLucidRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(DevLucidRecruiter, self).__init__()
-        self.config = get_config()
-        logger.info("LUCID_CONFIG")
-        logger.info(self.config.get("lucid_recruitment_config"))
-        logger.info("LUCID_CONFIG")
         # base_url = get_base_url()
         self.ad_url = "https://localhost:5000/ad?recruiter={}".format(self.nickname)
-        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
-        self.survey_domain = os.getenv("HOST")
-        self.lucidservice = LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sandbox=self.config.get("mode") != "live",
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        )
-        self.notifies_admin = admin_notifier(self.config)
-        self.mailer = get_mailer(self.config)
-        self.store = kwargs.get("store") or RedisStore()
-        # self._validate_config()
 
 
 class StagingLucidRecruiter(BaseLucidRecruiter):
     """
     The staging Lucid recruiter.
-    Recruit participants from Lucid Marketplace
+    Recruit sandbox participants from Lucid Marketplace
     """
 
     nickname = "staging-lucid-recruiter"
@@ -255,23 +257,8 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(StagingLucidRecruiter, self).__init__()
-        self.config = get_config()
-        logger.info("LUCID_CONFIG")
-        logger.info(self.config.get("lucid_recruitment_config"))
-        logger.info("LUCID_CONFIG")
         base_url = get_base_url()
         self.ad_url = "{}/ad?recruiter={}".format(base_url, self.nickname)
-        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
-        self.survey_domain = os.getenv("HOST")
-        self.lucidservice = LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sandbox=self.config.get("mode") != "live",
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        )
-        self.notifies_admin = admin_notifier(self.config)
-        self.mailer = get_mailer(self.config)
-        self.store = kwargs.get("store") or RedisStore()
-        # self._validate_config()
 
     # def _validate_config(self):
     #     mode = self.config.get("mode")

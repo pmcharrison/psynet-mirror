@@ -2,7 +2,7 @@ import json
 
 import requests
 
-from .utils import get_logger, pretty_log_dict
+from .utils import get_logger
 
 logger = get_logger()
 
@@ -74,9 +74,9 @@ class LucidService(object):
             f"{self.request_base_url}/projects", data=request_data, headers=self.headers
         )
         response_data = response.json()
-        logger.info(pretty_log_dict(json.loads(request_data)))
+        logger.info(json.loads(request_data))
         logger.info(response.status_code)
-        logger.info(pretty_log_dict(response_data))
+        logger.info(response_data)
 
         if "id" not in response_data:
             raise LucidServiceException(
@@ -101,9 +101,9 @@ class LucidService(object):
         )
         response_data = response.json()
 
-        logger.info(pretty_log_dict(json.loads(request_data)))
+        logger.info(json.loads(request_data))
         logger.info(response.status_code)
-        logger.info(pretty_log_dict(response_data))
+        logger.info(response_data)
 
         if "create_date" not in response_data or "id" not in response_data:
             raise LucidServiceException(
@@ -129,9 +129,9 @@ class LucidService(object):
             headers=self.headers,
         )
         response_data = response.json()
-        logger.info(pretty_log_dict(json.loads(request_data)))
+        logger.info(json.loads(request_data))
         logger.info(response.status_code)
-        logger.info(pretty_log_dict(response_data))
+        logger.info(response_data)
 
         if "ResultCount" not in response_data:
             raise LucidServiceException(
@@ -149,9 +149,9 @@ class LucidService(object):
             headers=self.headers,
         )
         response_data = response.json()
-        logger.info(pretty_log_dict(json.loads(request_data)))
+        logger.info(json.loads(request_data))
         logger.info(response.status_code)
-        logger.info(pretty_log_dict(response_data))
+        logger.info(response_data)
 
         if "ResultCount" not in response_data:
             raise LucidServiceException(
