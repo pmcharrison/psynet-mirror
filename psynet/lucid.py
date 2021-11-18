@@ -240,11 +240,13 @@ class LucidService(object):
 
         if "ResultCount" not in response_data:
             raise LucidServiceException(
-                "'Update quota' request was invalid for unknown reason."
+                f"'Update quota' request for survey ID '{survey_id}' was invalid for unknown reason."
             )
         logger.info(
-            "=========================================>>> Got Lucid quotas for survey with ID '{survey_id}')."
+            f"=========================================>>> Got Lucid quotas for survey with ID '{survey_id}')."
         )
+
+        return response_data
 
     # def confirm_subscription(self, token, topic):
     #     """Called by the MTurkRecruiter Flask route"""
