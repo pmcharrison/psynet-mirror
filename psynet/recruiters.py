@@ -259,29 +259,13 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             participant.status = "abandoned"
             session.commit()
 
-    # def reward_bonus(self, assignment_id, amount, reason):
-    #     """
-    #     Return values for `basePay` and `bonus` to cap-recruiter application.
-    #     """
-    #     data = {
-    #         "assignmentId": assignment_id,
-    #         "basePayment": self.config.get("base_payment"),
-    #         "bonus": amount,
-    #     }
-    #     requests.post(
-    #         external_submission_url,
-    #         json=data,
-    #         headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
-    #         verify=False,  # Temporary fix because of SSLCertVerificationError
-    #     )
-
     def exit_response(self, experiment, participant):
         """Delegate to the experiment for possible values to show to the
         participant.
         """
-        exit_info = sorted(experiment.exit_info_for(participant).items())
         response_data = self.lucidservice.complete_survey(self.current_survey_id())
         logger.info(f"'Complete survey' request returned: {response_data}")
+        exit_info = sorted(experiment.exit_info_for(participant).items())
 
         return flask.render_template(
             "exit_recruiter.html",

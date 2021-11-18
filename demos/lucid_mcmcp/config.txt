@@ -6,8 +6,8 @@ title = MCMCP demo using the Lucid recruiter
 base_payment = 0.10
 
 [Recruitment strategy]
-recruiter = DevLucidRecruiter
-# recruiter = StagingLucidRecruiter
+# recruiter = DevLucidRecruiter
+recruiter = StagingLucidRecruiter
 auto_recruit = true
 lifetime = 24
 duration = 2
