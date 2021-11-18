@@ -118,7 +118,6 @@ class LucidService(object):
         )
 
         return response_data
-        # return self._translate_survey(response)
 
     def create_qualifications_and_quota(self, survey_id, number, duration_hours=None):
         """
@@ -200,6 +199,8 @@ class LucidService(object):
             f'=========================================>>> Updated Lucid quota ({response_data["Quotas"]}).'
         )
 
+        return response_data
+
     def complete_survey(self, survey_id):
         params = {
             "status": "complete",
@@ -226,34 +227,24 @@ class LucidService(object):
 
         return response_data
 
-    def _translate_survey(self, survey):
-        if "Keywords" in survey:
-            keywords = [w.strip() for w in survey["Keywords"].split(",") if w.strip()]
-        else:
-            keywords = []
-        translated = {
-            "id": survey["HITId"],
-            "type_id": survey["HITTypeId"],
-            "created": survey["CreationTime"],
-            "expiration": survey["Expiration"],
-            "max_assignments": survey["MaxAssignments"],
-            "title": survey["Title"],
-            "description": survey["Description"],
-            "keywords": keywords,
-            "qualification_type_ids": [
-                q["QualificationTypeId"] for q in survey["QualificationRequirements"]
-            ],
-            "reward": float(survey["Reward"]),
-            "review_status": survey["HITReviewStatus"],
-            "status": survey["HITStatus"],
-            "annotation": survey.get("RequesterAnnotation"),
-            "worker_url": self._worker_hit_url(survey["HITTypeId"]),
-            "assignments_available": survey["NumberOfAssignmentsAvailable"],
-            "assignments_completed": survey["NumberOfAssignmentsCompleted"],
-            "assignments_pending": survey["NumberOfAssignmentsPending"],
-        }
+    def get_quotas(self, survey_id):
+        logger.info(survey_id)
+        response = requests.get(
+            f"{self.request_base_url_v1}/SurveyQuotas/BySurveyNumber/{survey_id}",
+            headers=self.headers,
+        )
+        logger.info(response.status_code)
+        logger.info(response.content)
+        response_data = response.json()
+        logger.info(response_data)
 
-        return translated
+        if "ResultCount" not in response_data:
+            raise LucidServiceException(
+                "'Update quota' request was invalid for unknown reason."
+            )
+        logger.info(
+            "=========================================>>> Got Lucid quotas for survey with ID '{survey_id}')."
+        )
 
     # def confirm_subscription(self, token, topic):
     #     """Called by the MTurkRecruiter Flask route"""
