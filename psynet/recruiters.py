@@ -230,18 +230,18 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
         }
 
-    def recruit(self, n=1):
-        try:
-            self.lucidservice.update_quota(
-                self.current_survey_id(), self.current_quota_id(), number=666
-            )
-        except LucidServiceException as e:
-            logger.exception(str(e))
+    # def recruit(self, n=1):
+    #     try:
+    #         self.lucidservice.update_quota(
+    #             self.current_survey_id(), self.current_quota_id(), number=666
+    #         )
+    #     except LucidServiceException as e:
+    #         logger.exception(str(e))
 
-        return {
-            "items": [self.current_quota_id()],
-            "message": "Quota updated XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID on Lucid Marketplace.",
-        }
+    #     return {
+    #         "items": [self.current_quota_id()],
+    #         "message": "Quota updated XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID on Lucid Marketplace.",
+    #     }
 
     def close_recruitment(self):
         logger.info("No more participants required. Recruitment stopped.")

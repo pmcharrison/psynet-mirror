@@ -216,7 +216,7 @@ class LucidService(object):
         logger.info(response.status_code)
         logger.info(response_data)
 
-        if "create_date" not in response_data or "id" not in response_data:
+        if response.status_code != 200:
             raise LucidServiceException(
                 "'Update survey' request was invalid for unknown reason."
             )
