@@ -17,7 +17,7 @@
         "priority": 13,
         "quantity_calc_type": "prescreens",
         "relevant_id": true,
-        "status": "pending",
+        "status": "live",
         "study_type": "ihut",
         "survey_cpi_usd": 5,
         "test_url": "https://www.samplesurvey.com/test",
