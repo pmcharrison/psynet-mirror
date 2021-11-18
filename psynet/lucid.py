@@ -205,7 +205,7 @@ class LucidService(object):
             "status": "complete",
         }
         request_data = json.dumps(params)
-        response = requests.post(
+        response = requests.patch(
             f"{self.request_base_url}/surveys/{survey_id}",
             data=request_data,
             headers=self.headers,
