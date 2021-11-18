@@ -220,11 +220,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         except LucidServiceException as e:
             logger.exception(str(e))
 
-        # self.lucidservice.update_survey(
-        #     self.current_survey_id(),
-        #     self.current_quota_id(), number=666
-        # )
-
         return {
             "items": [url],
             "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",

@@ -36,7 +36,7 @@
 	},
 	"quota": {
 		"Name": "Quota Name",
-        "Quota": 3,
+        "Quota": 1,
         "IsActive": true,
         "Conditions": [
         	{
