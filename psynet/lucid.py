@@ -47,6 +47,10 @@ class LucidService(object):
             url = "https://sandbox.techops.engineering/Demand/v1"
         return url
 
+    @property
+    def survey_update_url(self):
+        return f"{self.request_base_url}/surveys"
+
     def create_survey(
         self,
         id,
@@ -195,6 +199,32 @@ class LucidService(object):
         logger.info(
             f'=========================================>>> Updated Lucid quota ({response_data["Quotas"]}).'
         )
+
+    def complete_survey(self, survey_id):
+        params = {
+            "status": "complete",
+        }
+        request_data = json.dumps(params)
+        response = requests.post(
+            f"{self.request_base_url}/surveys/{survey_id}",
+            data=request_data,
+            headers=self.headers,
+        )
+        response_data = response.json()
+
+        logger.info(json.loads(request_data))
+        logger.info(response.status_code)
+        logger.info(response_data)
+
+        if "create_date" not in response_data or "id" not in response_data:
+            raise LucidServiceException(
+                "'Update survey' request was invalid for unknown reason."
+            )
+        logger.info(
+            f"=========================================>>> Completed Lucid survey with ID {survey_id}."
+        )
+
+        return response_data
 
     def _translate_survey(self, survey):
         if "Keywords" in survey:

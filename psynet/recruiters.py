@@ -2,6 +2,7 @@ import json
 import os
 
 import dallinger.recruiters
+import flask
 import requests
 from dallinger.config import get_config
 from dallinger.db import session
@@ -113,21 +114,25 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
-        logger.info("LUCID_CONFIG")
-        logger.info(self.config.get("lucid_recruitment_config"))
-        logger.info("LUCID_CONFIG")
         self.ad_url = f"{self.base_url}/ad?recruiter={self.nickname}"
-        # self.notification_url = "{}/mturk-sns-listener".format(base_url)
+        self.notifies_admin = admin_notifier(self.config)
+        self.mailer = get_mailer(self.config)
+        self.store = kwargs.get("store") or RedisStore()
         self.survey_domain = os.getenv("HOST")
         self.lucidservice = LucidService(
             api_key=self.config.get("lucid_api_key"),
             sandbox=self.config.get("mode") != "live",
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
-        self.notifies_admin = admin_notifier(self.config)
-        self.mailer = get_mailer(self.config)
-        self.store = kwargs.get("store") or RedisStore()
+        self.external_submission_url = self.survey_update_url
         # self._validate_config()
+
+    @property
+    def survey_update_url(self):
+        """On experiment completion, participants are returned to
+        the Lucid Marketplace site to submit their survey.
+        """
+        return self.lucidservice.survey_update_url
 
     @property
     def is_in_progress(self):
@@ -215,7 +220,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         except LucidServiceException as e:
             logger.exception(str(e))
 
-        # self.lucidservice.update_quota(
+        # self.lucidservice.update_survey(
         #     self.current_survey_id(),
         #     self.current_quota_id(), number=666
         # )
@@ -254,20 +259,34 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             participant.status = "abandoned"
             session.commit()
 
-    def reward_bonus(self, assignment_id, amount, reason):
+    # def reward_bonus(self, assignment_id, amount, reason):
+    #     """
+    #     Return values for `basePay` and `bonus` to cap-recruiter application.
+    #     """
+    #     data = {
+    #         "assignmentId": assignment_id,
+    #         "basePayment": self.config.get("base_payment"),
+    #         "bonus": amount,
+    #     }
+    #     requests.post(
+    #         external_submission_url,
+    #         json=data,
+    #         headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
+    #         verify=False,  # Temporary fix because of SSLCertVerificationError
+    #     )
+
+    def exit_response(self, experiment, participant):
+        """Delegate to the experiment for possible values to show to the
+        participant.
         """
-        Return values for `basePay` and `bonus` to cap-recruiter application.
-        """
-        data = {
-            "assignmentId": assignment_id,
-            "basePayment": self.config.get("base_payment"),
-            "bonus": amount,
-        }
-        requests.post(
-            self.external_submission_url,
-            json=data,
-            headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
-            verify=False,  # Temporary fix because of SSLCertVerificationError
+        exit_info = sorted(experiment.exit_info_for(participant).items())
+        response_data = self.lucidservice.complete_survey(self.current_survey_id())
+        logger.info(f"'Complete survey' request returned: {response_data}")
+
+        return flask.render_template(
+            "exit_recruiter.html",
+            recruiter=self.__class__.__name__,
+            participant_exit_info=exit_info,
         )
 
 
@@ -303,15 +322,6 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     #             '"{}" is not a valid mode for Lucid recruitment. '
     #             'The value of "mode" must be either "sandbox" or "live"'.format(mode)
     #         )
-
-    # def exit_response(self, experiment, participant):
-    #     return flask.render_template(
-    #         "exit_recruiter_mturk.html",
-    #         hitid=participant.hit_id,
-    #         assignmentid=participant.assignment_id,
-    #         workerid=participant.worker_id,
-    #         external_submit_url=self.external_submission_url,
-    #     )
 
     # @property
     # def external_submission_url(self):
@@ -633,66 +643,6 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
 #             self.notifies_admin.send(message["subject"], message["body"])
 #         except MessengerError as ex:
 #             logger.exception(ex)
-
-
-# class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
-
-#     """
-#     The LucidRecruiter base class
-
-#     """
-
-#     def open_recruitment(self, n=1):
-#         """
-#         Return an empty list which otherwise would be a list of recruitment URLs.
-#         """
-#         return {"items": [], "message": ""}
-
-#     def recruit(self, n=1):
-#         return []
-
-#     def close_recruitment(self):
-#         logger.info("No more participants required. Recruitment stopped.")
-
-#     def compensate_worker(self, *args, **kwargs):
-#         """A recruiter may provide a means to directly compensate a worker."""
-#         raise RuntimeError("Compensation is not implemented.")
-
-#     def notify_duration_exceeded(self, participants, reference_time):
-#         """
-#         The participant has been working longer than the time defined in
-#         the "duration" config value.
-#         """
-#         for participant in participants:
-#             participant.status = "abandoned"
-#             session.commit()
-
-#     def reward_bonus(self, assignment_id, amount, reason):
-#         """
-#         Return values for `basePay` and `bonus` to cap-recruiter application.
-#         """
-#         data = {
-#             "assignmentId": assignment_id,
-#             "basePayment": self.config.get("base_payment"),
-#             "bonus": amount,
-#         }
-#         requests.post(
-#             self.external_submission_url,
-#             json=data,
-#             headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
-#             verify=False,  # Temporary fix because of SSLCertVerificationError
-#         )
-
-
-# class DevLucidRecruiter(BaseLucidRecruiter):
-
-#     """
-#     The development Lucid recruiter.
-
-#     """
-
-#     nickname = "dev-lucid-recruiter"
-#     external_submission_url = "http://localhost:8000/hits/complete"
 
 
 class LucidRecruiter(BaseLucidRecruiter):
