@@ -1,0 +1,48 @@
+{
+	"project": {
+		"owner_id": 38490
+	},
+	"survey": {
+		"business_unit_id": 2404,
+        "project_manager_id": 38490,
+        "client_cpi_usd": 5,
+        "collects_pii": true,
+        "expected_completes": 10,
+        "expected_completion_loi": 10,
+        "expected_incidence_rate": 0.1,
+        "fraud_profile": true,
+        "fraud_profile_threshold": 13,
+        "industry": "education",
+        "locale": "eng_us",
+        "priority": 13,
+        "quantity_calc_type": "prescreens",
+        "relevant_id": true,
+        "status": "live",
+        "study_type": "ihut",
+        "survey_cpi_usd": 5,
+        "test_url": "https://www.samplesurvey.com/test",
+        "unique_ip": true,
+        "unique_pid": true,
+        "verify_callback": true
+	},
+	"qualifications": {
+		"Name": "ENG-US-QUAL",
+        "QuestionID": 42,
+        "LogicalOperator": "OR",
+        "NumberOfRequiredConditions": 1,
+        "IsActive": true,
+        "PreCodes": ["13", "14", "15", "16", "17"],
+        "Order": 1
+	},
+	"quota": {
+		"Name": "Fortytwo",
+        "Quota": 1,
+        "IsActive": true,
+        "Conditions": [
+        	{
+        		"QuestionID": 42,
+        		"PreCodes": ["1"]
+        	}
+        ]
+	}
+}
