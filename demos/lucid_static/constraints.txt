@@ -4,7 +4,7 @@
 #
 #    dallinger generate-constraints
 #
-# Compiled from a requirement.txt file with md5sum: 4552cd56aec50ec9664fee3592ca2473
+# Compiled from a requirement.txt file with md5sum: 5689a9c659aa9bc32dfa62014d627096
 #
 apscheduler==3.8.0
     # via
@@ -183,7 +183,7 @@ psycopg2==2.9.1
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v7.7.0/dev-requirements.txt
     #   dallinger
     #   sqlalchemy-postgres-copy
-psynet @ git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet
+psynet @ git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@CAP-843_lucid-integration
     # via -r requirements.txt
 ptyprocess==0.7.0
     # via
