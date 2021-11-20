@@ -167,12 +167,10 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def _record_current_quota_id(self, quota_id):
         self.store.set(self.quota_id_storage_key, quota_id)
 
-    def open_recruitment(self, n=1):
+    def open_recruitment(self, initial_quota=1):
         """Open a connection to Lucid and create a survey."""
         logger.info(
-            "Opening XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX recruitment for {} participants".format(
-                n
-            )
+            "OPEN RECRUITMENT: OPENING INITIAL RECUITMENT FOR {initial_quota} PARTICIPANTS."
         )
         if self.is_in_progress:
             raise LucidRecruiterException(
@@ -191,13 +189,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_id(survey_info["id"])
         url = survey_info["live_url"]
+        logger.info("OPEN RECRUITMENT: DONE CREATING PROJECT AND SURVEY.")
 
         # Recruit
-        logger.info(
-            "Recruiting {} XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX participants".format(
-                n
-            )
-        )
+        logger.info("OPEN RECRUITMENT: CREATING QUALIFICATIONS AND QUOTA.")
+
         if not self.config.get("auto_recruit"):
             logger.info("auto_recruit is False: recruitment suppressed.")
             return
@@ -210,22 +206,29 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         try:
             qualifications_and_quota_info = (
                 self.lucidservice.create_qualifications_and_quota(
-                    survey_id, number=n, duration_hours=self.config.get("duration")
+                    survey_id,
+                    number=initial_quota,
+                    duration_hours=self.config.get("duration"),
                 )
             )
             self._record_current_quota_id(
                 qualifications_and_quota_info["Quotas"][1]["SurveyQuotaID"]
             )
-            logger.info(f"Current QUOTA ID IS: {self.current_quota_id()}")
+            logger.info(f"OPEN RECRUITMENT: QUOTA ID IS: {self.current_quota_id()}")
         except LucidServiceException as e:
             logger.exception(str(e))
 
+        logger.info("OPEN RECRUITMENT: SURVEY PUBLISHED TO LUCID MARKETPLACE.")
+
         return {
             "items": [url],
-            "message": "Survey now published to XXXXX LUCID LUCID LUCID LUCID LUCID LUCID LUCID XXXXX Marketplace.",
+            "message": "RECRUITER: SURVEY PUBLISHED TO LUCID MARKETPLACE.",
         }
 
     def recruit(self, n=1):
+        logger.info(
+            f"RECRUIT: RECRUITING ANOTHER {n} PARTICIPANTS ------------------------------."
+        )
         try:
             quotas = self.lucidservice.get_quotas(self.current_survey_id())
             n = quotas["Quotas"][1]["Quota"] + n
@@ -236,7 +239,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             logger.exception(str(e))
 
         logger.info(response_data)
-        logger.info(f"Quota with ID '{self.current_quota_id()}'' updated to {n}.")
+        logger.info(
+            f"RECRUIT: QUOTA WITH ID '{self.current_quota_id()}'' UPDATED TO {n}. --------"
+        )
 
         return response_data
 
