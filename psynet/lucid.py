@@ -144,8 +144,28 @@ class LucidService(object):
             f'=========================================>>> Created Lucid qualifications ({response_data["ResultCount"]}).'
         )
 
-        # Create quota
-        request_data = json.dumps(self.recruitment_config["quota"])
+        # Create total quota
+        request_data = json.dumps(self.recruitment_config["total_quota"])
+        response = requests.post(
+            f"{self.request_base_url_v1}/SurveyQuotas/Create/{survey_id}",
+            data=request_data,
+            headers=self.headers,
+        )
+        response_data = response.json()
+        logger.info(json.loads(request_data))
+        logger.info(response.status_code)
+        logger.info(response_data)
+
+        if "ResultCount" not in response_data:
+            raise LucidServiceException(
+                "'Create quota' request was invalid for unknown reason."
+            )
+        logger.info(
+            f'=========================================>>> Created Lucid quota ({response_data["ResultCount"]}).'
+        )
+
+        # Create subquota
+        request_data = json.dumps(self.recruitment_config["sub_quota"])
         response = requests.post(
             f"{self.request_base_url_v1}/SurveyQuotas/Create/{survey_id}",
             data=request_data,
@@ -200,6 +220,26 @@ class LucidService(object):
         )
 
         return response_data
+
+    def get_total_completes(self, survey_id):
+        response = requests.get(
+            f"{self.request_base_url}/surveys/{survey_id}",
+            headers=self.headers,
+        )
+        response_data = response.json()
+
+        logger.info(response.status_code)
+        logger.info(response_data)
+
+        if response.status_code != 200:
+            raise LucidServiceException(
+                "'Get survey' request was invalid for unknown reason."
+            )
+        logger.info(
+            f"=========================================>>> Got info on Lucid survey with ID {survey_id}."
+        )
+
+        return response_data["total_completes"]
 
     def complete_survey(self, survey_id):
         params = {

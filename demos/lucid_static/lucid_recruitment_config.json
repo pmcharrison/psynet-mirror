@@ -34,22 +34,26 @@
         "PreCodes": ["13", "14", "15", "16", "17"],
         "Order": 1
 	},
-	"quota": [
-        {
-            "Name": "Fortytwo",
-            "Quota": 100,
-            "IsActive": true,
-            "Conditions": [
-                {
-                    "QuestionID": 42,
-                    "PreCodes": ["13", "14", "15", "16", "17"]
-                }
-            ]
-        },
-        {
-            "Name": "Total",
-            "Quota": 1000,
-            "IsActive": true
-        }
-    ]
+	"sub_quota": {
+        "Name": "Fortytwo",
+        "Quota": 100,
+        "IsActive": true,
+        "Conditions": [
+            {
+                "QuestionID": 42,
+                "PreCodes": ["13", "14", "15", "16", "17"]
+            }
+        ]
+    },
+    "total_quota": {
+        "Name": "Total",
+        "Quota": 1000,
+        "IsActive": true,
+        "Conditions": [
+            {
+                "QuestionID": 42,
+                "PreCodes": ["13", "14", "15", "16", "17"]
+            }
+        ]
+    }
 }

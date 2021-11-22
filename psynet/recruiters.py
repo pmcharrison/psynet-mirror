@@ -269,15 +269,24 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         """
 
         # TODO: Only when experiment is completed!
-        response_data = self.lucidservice.complete_survey(self.current_survey_id())
-        logger.info(f"'Complete survey' request returned: {response_data}")
-        exit_info = sorted(experiment.exit_info_for(participant).items())
-
-        return flask.render_template(
-            "exit_recruiter.html",
-            recruiter=self.__class__.__name__,
-            participant_exit_info=exit_info,
+        total_completes = self.lucidservice.get_total_completes(
+            self.current_survey_id()
         )
+        if experiment.target_num_participants >= total_completes:
+            response_data = self.lucidservice.complete_survey(self.current_survey_id())
+            logger.info(f"'Complete survey' request returned: {response_data}")
+            exit_info = sorted(experiment.exit_info_for(participant).items())
+
+            return flask.render_template(
+                "exit_recruiter.html",
+                recruiter=self.__class__.__name__,
+                participant_exit_info=exit_info,
+            )
+        else:
+            logger.info(
+                f"Survey not yet complete: {experiment.target_num_participants}"
+                + " out of {total_completes} completed."
+            )
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
