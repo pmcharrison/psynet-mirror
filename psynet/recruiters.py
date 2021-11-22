@@ -229,6 +229,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         logger.info(
             f"RECRUIT: RECRUITING ANOTHER {n} PARTICIPANTS ------------------------------."
         )
+        response_data = None
+
         try:
             quotas = self.lucidservice.get_quotas(self.current_survey_id())
             n = quotas["Quotas"][1]["Quota"] + n
