@@ -167,10 +167,10 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def _record_current_quota_id(self, quota_id):
         self.store.set(self.quota_id_storage_key, quota_id)
 
-    def open_recruitment(self, initial_quota=1):
+    def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
         logger.info(
-            "OPEN RECRUITMENT: OPENING INITIAL RECUITMENT FOR {initial_quota} PARTICIPANTS."
+            "OPEN RECRUITMENT: OPENING INITIAL RECUITMENT FOR {n} PARTICIPANTS."
         )
         if self.is_in_progress:
             raise LucidRecruiterException(
@@ -207,7 +207,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             qualifications_and_quota_info = (
                 self.lucidservice.create_qualifications_and_quota(
                     survey_id,
-                    number=initial_quota,
+                    number=n,
                     duration_hours=self.config.get("duration"),
                 )
             )
