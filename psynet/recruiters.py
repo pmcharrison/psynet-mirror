@@ -267,6 +267,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         """Delegate to the experiment for possible values to show to the
         participant.
         """
+
+        # TODO: Only when experiment is completed!
         response_data = self.lucidservice.complete_survey(self.current_survey_id())
         logger.info(f"'Complete survey' request returned: {response_data}")
         exit_info = sorted(experiment.exit_info_for(participant).items())
