@@ -194,10 +194,8 @@ class LucidService(object):
         logger.info(survey_id)
         logger.info(quota_id)
         logger.info(number)
-        request_data = self.recruitment_config["quota"]
-        request_data.update(
-            {"SurveyQuotaID": quota_id, "FieldTarget": 1000, "Quota": number}
-        )
+        request_data = self.recruitment_config["sub_quota"]
+        request_data.update({"SurveyQuotaID": quota_id, "Quota": number})
         request_data = json.dumps(request_data)
         response = requests.put(
             f"{self.request_base_url_v1}/SurveyQuotas/Update/{survey_id}",

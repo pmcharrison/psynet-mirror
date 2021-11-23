@@ -222,7 +222,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         return {
             "items": [url],
-            "message": "RECRUITER: SURVEY PUBLISHED TO LUCID MARKETPLACE.",
+            "message": "Survey published to Lucid Marketplace.",
         }
 
     def recruit(self, n=1):

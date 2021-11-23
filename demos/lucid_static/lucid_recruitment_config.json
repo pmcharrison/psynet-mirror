@@ -34,20 +34,16 @@
         "PreCodes": ["13", "14", "15", "16", "17"],
         "Order": 1
 	},
-	"sub_quota": {
-        "Name": "Fortytwo",
-        "Quota": 100,
-        "IsActive": true,
-        "Conditions": [
-            {
-                "QuestionID": 42,
-                "PreCodes": ["13", "14", "15", "16", "17"]
-            }
-        ]
-    },
     "total_quota": {
         "Name": "Total",
-        "Quota": 1000,
+        "Quota": 3,
+        "IsActive": true,
+        "Conditions": null
+    },
+	"sub_quota": {
+        "Name": "Fortytwo",
+        "FieldTarget": 3,
+        "Quota": 1,
         "IsActive": true,
         "Conditions": [
             {
