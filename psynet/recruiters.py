@@ -269,23 +269,18 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def exit_response(self, experiment, participant):
         """
         Delegate to the experiment for possible values to show to the
-        participant.
+        participant and complete the survey if no more participants are needed.
         """
         if not experiment.need_more_participants:
             response_data = self.lucidservice.complete_survey(self.current_survey_id())
             logger.info(f"'Complete survey' request returned: {response_data}")
-            exit_info = sorted(experiment.exit_info_for(participant).items())
 
-            return flask.render_template(
-                "exit_recruiter.html",
-                recruiter=self.__class__.__name__,
-                participant_exit_info=exit_info,
-            )
-        else:
-            logger.info(
-                f"Survey not yet complete: {experiment.target_num_participants}"
-                + " out of {total_completes} completed."
-            )
+        exit_info = sorted(experiment.exit_info_for(participant).items())
+        return flask.render_template(
+            "exit_recruiter.html",
+            recruiter=self.__class__.__name__,
+            participant_exit_info=exit_info,
+        )
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
