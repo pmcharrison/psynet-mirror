@@ -36,6 +36,7 @@
 	},
     "total_quota": {
         "Name": "Total",
+        "FieldTarget": 3,
         "Quota": 3,
         "IsActive": true,
         "Conditions": null
