@@ -129,7 +129,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     @property
     def survey_update_url(self):
-        """On experiment completion, participants are returned to
+        """
+        On experiment completion, participants are returned to
         the Lucid Marketplace site to submit their survey.
         """
         return self.lucidservice.survey_update_url
@@ -150,7 +151,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         return "{}:{}:QUOTA".format(self.__class__.__name__, experiment_id)
 
     def current_survey_id(self):
-        """Return the ID of the survey associated with the active experiment ID
+        """
+        Return the ID of the survey associated with the active experiment ID
         if any such survey exists.
         """
         return self.store.get(self.survey_id_storage_key)
@@ -159,7 +161,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         self.store.set(self.survey_id_storage_key, survey_id)
 
     def current_quota_id(self):
-        """Return the ID of the quota associated with the active experiment ID
+        """
+        Return the ID of the quota associated with the active experiment ID
         if any such quota exists.
         """
         return self.store.get(self.quota_id_storage_key)
@@ -264,15 +267,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             session.commit()
 
     def exit_response(self, experiment, participant):
-        """Delegate to the experiment for possible values to show to the
+        """
+        Delegate to the experiment for possible values to show to the
         participant.
         """
-
-        # TODO: Only when experiment is completed!
-        total_completes = self.lucidservice.get_total_completes(
-            self.current_survey_id()
-        )
-        if experiment.target_num_participants >= total_completes:
+        if not experiment.need_more_participants:
             response_data = self.lucidservice.complete_survey(self.current_survey_id())
             logger.info(f"'Complete survey' request returned: {response_data}")
             exit_info = sorted(experiment.exit_info_for(participant).items())

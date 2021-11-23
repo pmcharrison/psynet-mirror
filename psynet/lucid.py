@@ -219,26 +219,6 @@ class LucidService(object):
 
         return response_data
 
-    def get_total_completes(self, survey_id):
-        response = requests.get(
-            f"{self.request_base_url}/surveys/{survey_id}",
-            headers=self.headers,
-        )
-        response_data = response.json()
-
-        logger.info(response.status_code)
-        logger.info(response_data)
-
-        if response.status_code != 200:
-            raise LucidServiceException(
-                "'Get survey' request was invalid for unknown reason."
-            )
-        logger.info(
-            f"=========================================>>> Got info on Lucid survey with ID {survey_id}."
-        )
-
-        return response_data["total_completes"]
-
     def complete_survey(self, survey_id):
         params = {
             "status": "complete",
