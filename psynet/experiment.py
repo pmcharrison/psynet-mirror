@@ -692,6 +692,12 @@ class Experiment(dallinger.experiment.Experiment):
             ),
             (
                 resource_filename(
+                    "psynet", "resources/libraries/jQuery/jquery-3.6.0.min.js"
+                ),
+                "/static/scripts/jquery-3.6.0.min.js",
+            ),
+            (
+                resource_filename(
                     "psynet", "resources/libraries/platform-1.3.6/platform.min.js"
                 ),
                 "/static/scripts/platform.min.js",

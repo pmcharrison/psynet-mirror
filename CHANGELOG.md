@@ -1,5 +1,26 @@
 # CHANGELOG
 
+# [5.0.2] Released on 2021-11-15
+
+#### Changed
+- The time taken by the participant is now stored as a property of the `Trial` object
+  (`Trial.time_taken`).
+- By default, dynamic updating of progress bar and bonus display now only occurs
+  for Unity pages. This makes the logs cleaner for standard PsyNet pages.
+
+#### Fixed
+- Updated `get_template` to remove use of deprecated function `read_text`.
+- (Re-)Added `jQuery` (v3.6.0) to the HTML head section of timeline-page.html. In Dallinger jQuery
+  only gets loaded in the body section which causes a `$ is not defined` JS error when using the
+  `AudioRecordControl` in PsyNet.
+
+# [5.0.1] Released on 2021-11-10
+
+#### Fixed
+- Fixed regressions in prescreening tasks.
+- Fixed demos' constraints.
+- Improved changelog notes for v5.0.0.
+
 # [5.0.0] Released on 2021-11-10
 
 #### Added
@@ -45,6 +66,29 @@ class CustomTrial(Trial):
 
   An error will be thrown if the user neglects to set this `time_estimate`, 
   or if they try to set it via the trial maker.
+
+  To update PsyNet code to follow this new convention, see below.
+  Here's an example of what the code might look like before:
+
+```py
+class CustomTrial(Trial):
+    def show_trial(self, experiment, participant):
+        return InfoPage("Hello!", time_estimate=5)
+
+trial_maker = TrialMaker(**params, time_estimate_per_trial=5)
+```
+
+The updated code should look like this:
+
+```py
+class CustomTrial(Trial):
+    time_estimate = 5
+    
+    def show_trial(self, experiment, participant):
+        return InfoPage("Hello!", time_estimate=self.time_estimate)
+
+trial_maker = TrialMaker(**params)
+```
 
 - New ``Trial`` fields have been added to help keep track of how time credit was assigned for trials:
   ``time_credit_before_trial``, ``time_credit_after_trial``, and ``time_credit_from_trial``.

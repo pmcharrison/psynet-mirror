@@ -368,9 +368,7 @@ def update(dallinger_version, psynet_version, verbose):
         )
         spinner.ok("✔")
 
-    dallinger_log(
-        f'Updated Dallinger to version {_get_version("dallinger")}, PsyNet to version {_get_version("psynet")}'
-    )
+    dallinger_log(f'Updated PsyNet to version {_get_version("psynet")}')
 
 
 ############
