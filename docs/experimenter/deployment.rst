@@ -89,11 +89,13 @@ Add remote server to docker servers list
 ++++++++++++++++++++++++++++++++++++++++
 
 Here, we use ``cap-experiments.ae.mpg.de`` as the server where experiments will be deployed.
-Add it to the list of remote servers known to `docker-ssh`
+Make sure you are either in the institute network or connected via VPN. Add ``cap-experiments.ae.mpg.de` to the list of remote servers known to `docker-ssh`
 
 .. code-block:: bash
 
     dallinger docker-ssh servers add --user cap --host cap-experiments.ae.mpg.de
+
+If you get the error `paramiko.ssh_exception.AuthenticationException: Authentication failed.` make sure you are really in the institute network.
 
 To verify it has been added, execute
 
