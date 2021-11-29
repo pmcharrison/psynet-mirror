@@ -6,8 +6,6 @@
 
 import random
 
-from dallinger.config import get_config
-
 import psynet.experiment
 from psynet.consent import MTurkStandardConsent
 from psynet.modular_page import PushButtonControl
@@ -124,9 +122,5 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = (
-            10  # increase to simulate multiple participants at once
+            1  # increase to simulate multiple participants at once
         )
-
-    @classmethod
-    def extra_parameters(cls):
-        get_config().register("cap_recruiter_auth_token", str, [], False)

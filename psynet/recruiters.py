@@ -1,7 +1,7 @@
+import os
+
 import dallinger.recruiters
 import requests
-
-# from dallinger.config import get_config
 from dallinger.db import session
 
 from .utils import get_logger
@@ -53,8 +53,7 @@ class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
         requests.post(
             self.external_submission_url,
             json=data,
-            # headers={"Authorization": get_config().get("cap_recruiter_auth_token")},
-            headers={"Authorization": "da128d326d10a5fc336af3efcddb7ae133ed5d83"},
+            headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
             verify=False,  # Temporary fix because of SSLCertVerificationError
         )
 
