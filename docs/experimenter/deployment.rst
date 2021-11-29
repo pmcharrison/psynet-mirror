@@ -131,7 +131,7 @@ In your experiment directory execute
 Adjust the experiment's `config.txt` file
 +++++++++++++++++++++++++++++++++++++++++
 
-Add a new section ``Docker`` containing the key ``docker_image_base_name`` to your experiments `config.txt` file.
+Add a new section ``Docker`` containing the key ``docker_image_base_name`` to your experiment's `config.txt` file.
 
 .. code-block:: bash
 
