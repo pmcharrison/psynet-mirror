@@ -1,5 +1,8 @@
 # CHANGELOG
 
+#### Added
+- Added 'Edit on GitLab' button to documentation pages.
+
 # [5.0.2] Released on 2021-11-15
 
 #### Changed
