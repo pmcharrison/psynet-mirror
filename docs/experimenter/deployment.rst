@@ -116,6 +116,8 @@ or for  better security
 
     docker login -u <DOCKER_IO_USERNAME> --password-stdin docker.io
 
+Note use your username, NOT your email address!
+
 Now type ``CTRL-D``, paste the password and hit `RETURN`.
 
 .. note::
