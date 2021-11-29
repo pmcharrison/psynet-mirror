@@ -38,5 +38,5 @@ The headphone check makes sure that the participant is wearing headphones. In ea
   :alt: Headphone check
 
 Audio forced choice check
----------------
+-------------------------
 The audio forced choice test makes sure that the participant can correctly classify a sound. In each trial, the participant hears one sound and has to pick one answer from a list. See the documentation for :class:`~psynet.prescreen.AudioForcedChoiceTest` for further details.

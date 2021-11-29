@@ -1,1 +1,1 @@
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@263-add-docker-deployment-docs#egg=psynet
+psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet
