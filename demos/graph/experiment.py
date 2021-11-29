@@ -153,7 +153,7 @@ class NecklaceNAFCPage(ModularPage):
         )
 
     def format_answer(self, raw_answer, **kwargs):
-        chosen_necklace_id = int(raw_answer["clickedObject"].split("_")[1])
+        chosen_necklace_id = int(raw_answer["clicked_object"].split("_")[1])
         return chosen_necklace_id
 
     def create_necklace(

@@ -1,7 +1,12 @@
 # CHANGELOG
 
+# Unreleased
+
 #### Added
 - Added 'Edit on GitLab' button to documentation pages.
+
+#### Fixed
+- Rename `clickedObject` to `clicked_object` in the graph experiment demo's `format_answer` method.
 
 # [5.0.2] Released on 2021-11-15
 
