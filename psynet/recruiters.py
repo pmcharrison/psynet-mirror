@@ -305,7 +305,7 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     nickname = "staging-lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        self.base_url = get_base_url()
+        self.base_url = get_base_url() + "&generate_tokens=1"
         super(StagingLucidRecruiter, self).__init__()
 
     # def _validate_config(self):
