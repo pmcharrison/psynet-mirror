@@ -23,6 +23,7 @@ from .page import InfoPage, UnsuccessfulEndPage
 from .timeline import (
     CodeBlock,
     Module,
+    PageMaker,
     ProgressDisplay,
     ProgressStage,
     conditional,
@@ -259,6 +260,272 @@ class JSONSerializer(json.JSONEncoder):
             return super(JSONSerializer, self).encode(bool(obj))
         else:
             return super(JSONSerializer, self).default(obj)
+
+
+class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
+    __mapper_args__ = {"polymorphic_identity": "free_tapping_record_trial"}
+
+    time_estimate = 10
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "free_tapping_record",
+            AudioPrompt(
+                self.definition["url_audio"],
+                Markup(
+                    """
+                    <h4>Tap a steady beat</h4>
+                    """
+                ),
+            ),
+            AudioRecordControl(
+                duration=self.definition["duration_rec_sec"],
+                s3_bucket="markers-check-recordings",
+                public_read=True,
+                show_meter=False,
+                controls=False,
+                auto_advance=False,
+            ),
+            time_estimate=self.time_estimate,
+            progress_display=ProgressDisplay(
+                stages=[
+                    ProgressStage(
+                        self.definition["duration_rec_sec"],
+                        "Recording... Start tapping!",
+                        "red",
+                        persistent=True,
+                    ),
+                ],
+            ),
+        )
+
+    def analyze_recording(self, audio_file: str, output_plot: str):
+        from repp.analysis import REPPAnalysis
+        from repp.config import sms_tapping
+
+        plot_title = "Participant {}".format(self.participant_id)
+        repp_analysis = REPPAnalysis(config=sms_tapping)
+        _, _, stats = repp_analysis.do_analysis_tapping_only(
+            audio_file, plot_title, output_plot
+        )
+        # output
+        num_resp_onsets_detected = stats["num_resp_onsets_detected"]
+        min_responses_ok = (
+            num_resp_onsets_detected > self.definition["min_num_detected_taps"]
+        )
+        median_ok = stats["median_ioi"] != 9999
+        failed = not (min_responses_ok and median_ok)
+        stats = json.dumps(stats, cls=JSONSerializer)
+        return {
+            "failed": failed,
+            "stats": stats,
+            "num_resp_onsets_detected": num_resp_onsets_detected,
+        }
+
+    def gives_feedback(self, experiment, participant):
+        return self.position == 0
+
+    def show_feedback(self, experiment, participant):
+        output_analysis = json.loads(self.details["analysis"])
+        num_resp_onsets_detected = output_analysis["num_resp_onsets_detected"]
+
+        if self.failed:
+            return InfoPage(
+                Markup(
+                    f"""
+                    <h4>Your tapping was bad...</h4>
+                    We detected {num_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
+                    Please try to do one or more of the following:
+                    <ol><li>Tap a steady beat, providing at least 5-10 taps.</li>
+                        <li>Make sure your laptop microphone is working and you are not using headphones or earplugs.</li>
+                        <li>Tap on the surface of your laptop using your index finger.</li>
+                        <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                    </ol>
+                    <b><b>If we cannot detect your tapping signal in the recording, the experiment will terminate.</b></b>
+                    """
+                ),
+                time_estimate=5,
+            )
+        else:
+            return InfoPage(
+                Markup(
+                    f"""
+                    <h4>Good!</h4>
+                    We could detect {num_resp_onsets_detected} taps in the recording.
+                    """
+                ),
+                time_estimate=5,
+            )
+
+
+class FreeTappingRecordTest(Module):
+    """
+    This pre-screening test is designed to quickly determine whether participants
+    are able to provide valid tapping data. The task is also efficient in determining whether
+    participants are following the instructions and use hardware
+    and software that meets the technical requirements of REPP.
+    To make the most out of it, the test should be used at the
+    beginning of the experiment, after providing general instructions.
+    This test is intended for unconstrained tapping experiments, where no markers are used.
+    By default, we start with a warming up exercise where participants can hear their recording.
+    We then perform a test with two trials and exclude participants who fail more than once.
+    After the first trial, we provide feedback based on the number of detected taps. The only
+    exclusion criterion to fail trials is based on the number of detected taps, by default set to
+    a minimum of 3 taps. NOTE: this test should be given after a volume and a tapping calibration test.
+
+    Parameters
+    ----------
+
+    label : string, optional
+        The label for the test, default: "free_tapping_record_test".
+
+    performance_threshold : int, optional
+        The performance threshold, default: 0.6.
+
+    duration_rec_sec : float, optional
+        Length of the recording, default: 8 sec.
+
+    min_num_detected_taps : float, optional
+        Mininum number of detected taps to pass the test, default: 1.
+
+    num_repeat_trials : float, optional
+        Number of trials to repeat in the trial maker, default: 0.
+
+    """
+
+    def __init__(
+        self,
+        label="free_tapping_record_test",
+        performance_threshold: int = 0.5,
+        duration_rec_sec: int = 8,
+        min_num_detected_taps: int = 3,
+        num_repeat_trials: int = 1,
+    ):
+        self.label = label
+        self.elts = join(
+            self.familiarization_phase(),
+            self.trial_maker(
+                performance_threshold,
+                duration_rec_sec,
+                min_num_detected_taps,
+                num_repeat_trials,
+            ),
+        )
+        super().__init__(self.label, self.elts)
+
+    def familiarization_phase(self):
+        return join(
+            InfoPage(
+                Markup(
+                    """
+                    <h3>Warming up</h3>
+                    <hr>
+                    We will now warm up with a short tapping exercise. On the next page,
+                    please tap a steady beat in any tempo that you like.
+                    <br><br>
+                    <b><b>Attention:</b></b> Tap with your index finger and only tap on the surface of your laptop.</b></b>
+                    <hr>
+                    """
+                ),
+                time_estimate=3,
+            ),
+            ModularPage(
+                "free_record_example",
+                Markup(
+                    """
+                    <h4>Tap a steady beat</h4>
+                    """
+                ),
+                AudioRecordControl(
+                    duration=7.0,
+                    s3_bucket="markers-check-recordings",
+                    show_meter=True,
+                    public_read=True,
+                    controls=False,
+                    auto_advance=False,
+                ),
+                time_estimate=5,
+                progress_display=ProgressDisplay(
+                    stages=[
+                        ProgressStage(7, "Recording.. Start tapping!", "red"),
+                    ],
+                ),
+            ),
+            PageMaker(
+                lambda participant: ModularPage(
+                    "playback",
+                    AudioPrompt(
+                        participant.answer["url"],
+                        Markup(
+                            """
+                        <h3>Can you hear your recording?</h3>
+                        <hr>
+                        If you do not hear your recording, please make sure
+                        your laptop microphone is working and you are not using any headphones or wireless devices.<br><br>
+                        <b><b>To proceed, we need to be able to record your tapping.</b></b>
+                        <hr>
+                        """
+                        ),
+                    ),
+                ),
+                time_estimate=5,
+            ),
+            InfoPage(
+                Markup(
+                    """
+                    <h3>Tapping test</h3>
+                    <hr>
+                    <b><b>Be careful:</b></b> This is a recording test!<br><br>
+                    On the next page, we will ask you again to tap a steady beat in any tempo that you like.
+                    <br><br>
+                    We will test if we can record your tapping signal properly:
+                    <b><b>If we cannot record it, the experiment will terminate here.</b></b>
+                    <hr>
+                    """
+                ),
+                time_estimate=3,
+            ),
+        )
+
+    def trial_maker(
+        self,
+        performance_threshold: int,
+        duration_rec_sec: int,
+        min_num_detected_taps: int,
+        num_repeat_trials: int,
+    ):
+        class FreeTappingRecordTrialMaker(StaticTrialMaker):
+            performance_check_type = "performance"
+            performance_check_threshold = performance_threshold
+            give_end_feedback_passed = False
+
+        return FreeTappingRecordTrialMaker(
+            id_="free_tapping_record_trialmaker",
+            trial_class=self.trial_class,
+            phase="screening",
+            stimulus_set=self.get_stimulus_set(duration_rec_sec, min_num_detected_taps),
+            num_repeat_trials=num_repeat_trials,
+            fail_trials_on_premature_exit=False,
+            fail_trials_on_participant_performance_check=False,
+            check_performance_at_end=True,
+        )
+
+    trial_class = FreeTappingRecordTrial
+
+    def get_stimulus_set(self, duration_rec_sec: float, min_num_detected_taps: int):
+        return StimulusSet(
+            "silence_wav",
+            [
+                StimulusSpec(
+                    definition={
+                        "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                        "duration_rec_sec": duration_rec_sec,
+                        "min_num_detected_taps": min_num_detected_taps,
+                    },
+                    phase="screening",
+                )
+            ],
+        )
 
 
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
