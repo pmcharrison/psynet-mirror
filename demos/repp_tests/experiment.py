@@ -5,6 +5,7 @@ from psynet.consent import NoConsent
 from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
+    FreeTappingRecordTest,
     REPPMarkersTest,
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
@@ -26,10 +27,17 @@ class Exp(psynet.experiment.Experiment):
                 "create_new_bucket": True,
             },  # s3 bucket to store markers check recordings
         ),
-        REPPVolumeCalibrationMarkers(),  # Volume calibration test for markers
-        REPPVolumeCalibrationMusic(),  # Volume calibration test for music
-        REPPTappingCalibration(),  # Calibration test 2: adjust tapping volume to be used with REPP
-        REPPMarkersTest(),
+        # volume calibration tests
+        REPPVolumeCalibrationMarkers(),  # Use this for SMS experiemnts with markers
+        REPPVolumeCalibrationMusic(),  # Use this for expeeriments using music
+        # tappingn instructions and calibration
+        REPPTappingCalibration(),
+        # recording tests
+        FreeTappingRecordTest(),  # Use this for unconstrained tapping experiment (without markers).
+        InfoPage(
+            "You passed the tapping recording test! Congratulations.", time_estimate=3
+        ),
+        REPPMarkersTest(),  # Use this for SMS tapping experiments (with markers).
         InfoPage("You passed the recording test! Congratulations.", time_estimate=3),
         SuccessfulEndPage(),
     )
