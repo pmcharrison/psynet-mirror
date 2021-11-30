@@ -1,5 +1,18 @@
 # CHANGELOG
 
+# [5.1.0] Released on 2021-11-30
+
+#### Added
+- Added 'Edit on GitLab' button to documentation pages.
+- Added `FreeTappingRecordTest` to prescreens.
+
+#### Fixed
+- Renamed `clickedObject` to `clicked_object` in the graph experiment demo's `format_answer` method.
+
+#### Updated
+- Updated Dallinger to v7.8.0.
+- Updated google-chrome and chromedriver to v96.x in .gitlab-ci.yml.
+
 # [5.0.2] Released on 2021-11-15
 
 #### Changed
