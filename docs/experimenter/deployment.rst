@@ -89,7 +89,9 @@ Add remote server to docker servers list
 ++++++++++++++++++++++++++++++++++++++++
 
 Here, we use ``cap-experiments.ae.mpg.de`` as the server where experiments will be deployed.
-Make sure you are either in the institute network or connected via VPN. Add ``cap-experiments.ae.mpg.de` to the list of remote servers known to `docker-ssh`
+Make sure you are either in the institute network or connected via VPN.
+
+Add ``cap-experiments.ae.mpg.de`` to the list of remote servers known to `docker-ssh`
 
 .. code-block:: bash
 
