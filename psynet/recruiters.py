@@ -114,7 +114,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
-        self.ad_url = f"{self.base_url}/ad?recruiter={self.nickname}&generate_tokens=1"
+        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&generate_tokens=1"
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
@@ -222,7 +222,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             logger.exception(str(e))
 
         logger.info("OPEN RECRUITMENT: SURVEY PUBLISHED TO LUCID MARKETPLACE.")
-
+        logger.info("----------")
+        logger.info("---------->" + url.replace("https", "http"))
+        logger.info("----------")
         return {
             "items": [url],
             "message": "Survey published to Lucid Marketplace.",
@@ -292,7 +294,6 @@ class DevLucidRecruiter(BaseLucidRecruiter):
     nickname = "dev-lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        self.base_url = "https://localhost:5000"
         super(DevLucidRecruiter, self).__init__()
 
 
@@ -305,7 +306,6 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     nickname = "staging-lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        self.base_url = get_base_url()
         super(StagingLucidRecruiter, self).__init__()
 
     # def _validate_config(self):
@@ -647,5 +647,4 @@ class LucidRecruiter(BaseLucidRecruiter):
     nickname = "lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        self.base_url = get_base_url()
         super(LucidRecruiter, self).__init__()
