@@ -33,6 +33,7 @@ PsyNet Documentation
    experimenter/payment_limits
    experimenter/deploy_tokens
    experimenter/deployment
+   experimenter/recruiters
 
 .. toctree::
    :maxdepth: 2
