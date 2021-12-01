@@ -74,6 +74,10 @@ After, try running the last command again.
 Deployment from docker.io
 -------------------------
 
+.. note::
+
+    Make sure you can logon via ssh to the server your experiment will be deployed on. Most preferably, enable ssh public key access. You may need to contact the server's administrator to set this up.
+
 This section makes use of Dallinger's ``dallinger docker-ssh`` command. In order to get a full understanding of its
 capabilities refer to the official documentation at https://dallinger.readthedocs.io/en/latest/docker_support.html,
 although this shouldn't be necessary for a basic deployment in the way described below.
