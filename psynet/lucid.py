@@ -191,9 +191,9 @@ class LucidService(object):
         # return {"items": response_data, "message": "LUCID recruitment success."}
 
     def update_quota(self, survey_id, quota_id, number):
-        logger.info(survey_id)
-        logger.info(quota_id)
-        logger.info(number)
+        logger.info(f"Survey ID: {survey_id}")
+        logger.info(f"Quota ID:  {quota_id}")
+        logger.info(f"Quota:     {number}")
         request_data = self.recruitment_config["sub_quota"]
         request_data.update({"SurveyQuotaID": quota_id, "Quota": number})
         request_data = json.dumps(request_data)
@@ -202,11 +202,10 @@ class LucidService(object):
             data=request_data,
             headers=self.headers,
         )
-        logger.info(response.status_code)
-        logger.info(response.content)
+        logger.info(f"RESPONSE (Status code): {response.status_code}")
+        logger.info(f"RESPONSE (Content):     {response.content}")
         response_data = response.json()
         logger.info(json.loads(request_data))
-        logger.info(response.status_code)
         logger.info(response_data)
 
         if "ResultCount" not in response_data:
