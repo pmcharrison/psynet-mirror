@@ -114,7 +114,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
-        self.ad_url = f"{self.base_url}/ad?recruiter={self.nickname}"
+        self.ad_url = f"{self.base_url}/ad?recruiter={self.nickname}&generate_tokens=1"
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
@@ -305,7 +305,7 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     nickname = "staging-lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        self.base_url = get_base_url() + "&generate_tokens=1"
+        self.base_url = get_base_url()
         super(StagingLucidRecruiter, self).__init__()
 
     # def _validate_config(self):
