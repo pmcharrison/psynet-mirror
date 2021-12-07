@@ -1,25 +1,28 @@
+# Final changelog
+_To complete after the draft implementation is complete_
+
 # Proposal
 _What changes do you plan to make?_
 
-# Predicted impact
+## Predicted impact
 _Why would the proposed contribution be useful to the PsyNet user base?_
 
-# Predicted difficulty
-## Technical bottlenecks
+## Predicted difficulty
+### Technical bottlenecks
 _What are the main technical bottlenecks/difficulties for implementing these changes?_
 
-## Amount of code to be added/changed
+### Amount of code to be added/changed
 _Very approximately, how many lines of code do you anticipated having to add/change?_ 
 
-## Locality of code changes
+### Locality of code changes
 _Will the revision change many parts of the PsyNet codebase,
 or will it be restricted to a particular part, 
 for example a given module or class definition?_
 
-## Documentation requirements
+### Documentation requirements
 _Does this change require updated documentation? If so, how much?_
 
-## Implementation time
+### Implementation time
 _Very approximately, how many working hours/days should it take to 
 implement these changes?_
 
