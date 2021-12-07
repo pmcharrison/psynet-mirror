@@ -1,6 +1,3 @@
-# Final changelog
-_To complete after the draft implementation is complete_
-
 # Proposal
 _What changes do you plan to make?_
 
@@ -39,4 +36,19 @@ require only a core developer as reviewer._
 unless agreed otherwise with a core developer.
 The choice of non-core developer should be made prioritizing overlapping interests
 where possible.___
+
+# Changelog
+_To be completed after the draft implementation is complete_
+
+## Added
+_New features (delete if not applicable)_
+
+## Fixed
+_Fixed issues (delete if not applicable)_
+
+## Changed
+_Changed functionality (point out breaking changes in particular) (delete if not applicable)_
+
+## Updated
+_Updated versions (e.g. for dependencies) (delete if not applicable)_
 
