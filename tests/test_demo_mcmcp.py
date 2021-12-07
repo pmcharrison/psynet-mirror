@@ -16,6 +16,9 @@ EXPERIMENT = None
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant_id, bot in enumerate(bot_recruits):
+            # Python zero-indexes, SQL one-indexes
+            participant_id += 1
+
             driver = bot.driver
             time.sleep(1)
 
