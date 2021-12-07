@@ -3,7 +3,9 @@ import time
 
 import pytest
 
+from psynet.participant import Participant
 from psynet.test import bot_class, next_page
+from psynet.trial.mcmcp import MCMCPNetwork
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -21,6 +23,15 @@ class TestExp:
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
             next_page(driver, "standard-consent")
+
+            # Testing that network.participant works correctly
+            # (we are in a within-participant experiment, so each chain
+            # should be associated with a single participant).
+            network = MCMCPNetwork.query.all()[0]
+            assert isinstance(network.participant, Participant)
+            assert network.participant.id == participant.id
+
+            # Iterating through the trials
             for i in range(10):
                 next_page(driver, "1")
 
