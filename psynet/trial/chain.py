@@ -955,7 +955,7 @@ class ChainTrial(Trial):
     @property
     @extra_var(__extra_vars__)
     def node(self):
-        return self.node.origin
+        return self.origin
 
     # @property
     # def node(self):
