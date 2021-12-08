@@ -126,6 +126,9 @@ class AudioPrompt(Prompt):
     fade_out
         Fade-out duration for the audio (defaults to ``0.0``).
 
+    auto_play
+        If ``True`` audio will play right a way, otherwise audio will not play (usefull when there are other controls that allow playback)
+
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
     """
@@ -140,6 +143,7 @@ class AudioPrompt(Prompt):
         controls: bool = False,
         fade_in: float = 0.0,
         fade_out: float = 0.0,
+        auto_play: bool = True,
         **kwargs,
     ):
         if play_window is None:
@@ -154,6 +158,7 @@ class AudioPrompt(Prompt):
         self.loop = loop
         self.play_window = play_window
         self.controls = controls
+        self.auto_play = auto_play
 
         self.js_play_options = dict(
             loop=loop,
@@ -188,15 +193,15 @@ class AudioPrompt(Prompt):
 
     def update_events(self, events):
         super().update_events(events)
-
-        events["promptStart"] = Event(
-            is_triggered_by=[
-                Trigger(
-                    triggering_event="trialStart",
-                    delay=0,
-                )
-            ]
-        )
+        if self.auto_play:
+            events["promptStart"] = Event(
+                is_triggered_by=[
+                    Trigger(
+                        triggering_event="trialStart",
+                        delay=0,
+                    )
+                ]
+            )
 
         events["promptEnd"] = Event(is_triggered_by=[], once=False)
         events["trialFinish"].add_trigger("promptEnd")
