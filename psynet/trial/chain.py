@@ -8,7 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.sql.expression import not_
 
-from ..field import VarStore, claim_field, claim_var, register_extra_var
+from ..field import VarStore, claim_field, claim_var, extra_var, register_extra_var
 from ..page import wait_while
 from ..utils import get_logger, negate
 from .main import (
@@ -738,8 +738,18 @@ class ChainSource(TrialSource, HasSeed):
         self.seed = self.generate_seed(network, experiment, participant)
 
     @property
+    @extra_var(__extra_vars__)
+    def degree(self):
+        return 0
+
+    @property
+    @extra_var(__extra_vars__)
     def phase(self):
         return self.network.phase
+
+    # @property
+    # def phase(self):
+    #     return self.network.phase
 
     @property
     def var(self):  # occupies the <details> attribute
@@ -925,18 +935,39 @@ class ChainTrial(Trial):
 
     # pylint: disable=abstract-method
     __mapper_args__ = {"polymorphic_identity": "chain_trial"}
+    __extra_vars__ = Trial.__extra_vars__.copy()
 
     @property
-    def node(self):
-        return self.origin
+    @extra_var(__extra_vars__)
+    def degree(self):
+        return self.node.degree
 
     @property
+    @extra_var(__extra_vars__)
+    def phase(self):
+        return self.node.phase
+
+    @property
+    @extra_var(__extra_vars__)
     def source(self):
         return self.node.source
 
     @property
-    def phase(self):
-        return self.node.phase
+    @extra_var(__extra_vars__)
+    def node(self):
+        return self.node.origin
+
+    # @property
+    # def node(self):
+    #     return self.origin
+
+    # @property
+    # def source(self):
+    #     return self.node.source
+
+    # @property
+    # def phase(self):
+    #     return self.node.phase
 
     @property
     def failure_cascade(self):
