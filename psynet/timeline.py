@@ -1281,8 +1281,10 @@ class Timeline:
             raise ValueError(
                 "The following module ID(s) were duplicated in your timeline: "
                 + ", ".join(duplicated)
-                + ". PsyNet timelines may not contain duplicated module IDs, "
-                + "please revise your module IDs accordingly."
+                + ". PsyNet timelines may not contain duplicated module IDs. "
+                + "You will need to update your timeline to fix this. "
+                + "This will probably mean updating one or more `id_` arguments in your "
+                + "trial makers and/or pre-screening tasks."
             )
 
     def check_for_consent(self):
