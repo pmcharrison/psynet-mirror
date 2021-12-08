@@ -495,6 +495,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
     __extra_vars__ = {
         **HasSeed.__extra_vars__.copy(),
         **HasDefinition.__extra_vars__.copy(),
+        **TrialNode.__extra_vars__.copy(),
     }
 
     def __init__(
@@ -605,6 +606,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         self.child_id = child.id
 
     @property
+    @extra_var(__extra_vars__)
     def phase(self):
         return self.network.phase
 
