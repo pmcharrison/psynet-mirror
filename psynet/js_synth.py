@@ -10,6 +10,13 @@ class Timbre(dict):
     """
 
 
+def check_if_params_are_valid(attack, decay, release, duration):
+    if sum([attack, decay, release]) > duration:
+        raise ValueError(
+                    f"Sum of attack ({attack}s), decay ({decay}s), and release ({release}s) cannot exceed duration ({duration}s)"
+                )
+
+
 class ADSRTimbre(Timbre):
     """
     ADSR timbre base class - not to be instantiated directly.
@@ -47,6 +54,9 @@ class ADSRTimbre(Timbre):
         duration: float = 0.75,
         release: float = 0.4,
     ):
+
+        check_if_params_are_valid(attack, decay, release, duration)
+
         super().__init__(
             attack=attack,
             decay=decay,
