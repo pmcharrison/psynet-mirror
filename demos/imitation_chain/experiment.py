@@ -35,6 +35,7 @@ class FixedDigitInputPage(ModularPage):
         self,
         label: str,
         prompt: str,
+        time_estimate: float
     ):
         self.num_digits = 7
 
