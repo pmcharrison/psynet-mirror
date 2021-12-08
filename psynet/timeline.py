@@ -1630,7 +1630,7 @@ def while_loop(
     force_wait:
         Whether the participants should be forced to wait for a given ``max_loop_time``.
         Setting this to ``True`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
-        but allow you to proceed to the next page.
+        but allow them to proceed to the next page.
 
     Returns
     -------

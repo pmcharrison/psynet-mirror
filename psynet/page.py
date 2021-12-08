@@ -207,7 +207,7 @@ def wait_while(
     max_wait_time: float = 20.0,
     wait_page=WaitPage,
     log_message: Optional[str] = None,
-    make_force_wait = False,
+    force_wait_until_max_wait_time = False,
 ):
     """
     Displays the participant a waiting page while a given condition
@@ -241,10 +241,10 @@ def wait_while(
     log_message
         Optional message to display in the log.
 
-    make_force_wait
+    force_wait_until_max_wait_time
         Whether the participants should be forced to wait for a given ``max_wait_time``.
         Setting this to ``True`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
-        but allow you to proceed to the next page.
+        but allow them to proceed to the next page.
 
     Returns
     -------
@@ -273,7 +273,7 @@ def wait_while(
             logic=logic,
             expected_repetitions=expected_repetitions,
             max_loop_time=max_wait_time,
-            force_wait=make_force_wait
+            force_wait=force_wait_until_max_wait_time
         ),
     )
 
