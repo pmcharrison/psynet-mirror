@@ -390,15 +390,20 @@ class DenseTrial(StaticTrial):
             )
         definition[key] = value
 
-    def get_from_definition(self, definition, key):
+    def get_from_definition(self, definition, key, has_default=False, default=None):
         try:
             return definition[key]
         except KeyError as e:
+            if has_default:
+                return default
             if key == "dimensions":
                 raise e
             raise KeyError(
                 f"{self.__class__.__name__} requires '{key}' to be specified in each Condition object."
             )
+
+
+
 
 
 class SingleStimulusTrial(DenseTrial):
