@@ -1278,7 +1278,14 @@ class Timeline:
         counts = Counter(modules)
         duplicated = [key for key, value in counts.items() if value > 1]
         if len(duplicated) > 0:
-            raise ValueError("duplicated module ID(s): " + ", ".join(duplicated))
+            raise ValueError(
+                "The following module ID(s) were duplicated in your timeline: "
+                + ", ".join(duplicated)
+                + ". PsyNet timelines may not contain duplicated module IDs. "
+                + "You will need to update your timeline to fix this. "
+                + "This will probably mean updating one or more `id_` arguments in your "
+                + "trial makers and/or pre-screening tasks."
+            )
 
     def check_for_consent(self):
         from psynet.consent import Consent
