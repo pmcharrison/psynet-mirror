@@ -747,10 +747,6 @@ class ChainSource(TrialSource, HasSeed):
     def phase(self):
         return self.network.phase
 
-    # @property
-    # def phase(self):
-    #     return self.network.phase
-
     @property
     def var(self):  # occupies the <details> attribute
         return VarStore(self)
@@ -949,25 +945,16 @@ class ChainTrial(Trial):
 
     @property
     @extra_var(__extra_vars__)
-    def source(self):
-        return self.node.source
+    def node_id(self):
+        return self.origin_id
 
     @property
-    @extra_var(__extra_vars__)
     def node(self):
         return self.origin
 
-    # @property
-    # def node(self):
-    #     return self.origin
-
-    # @property
-    # def source(self):
-    #     return self.node.source
-
-    # @property
-    # def phase(self):
-    #     return self.node.phase
+    @property
+    def source(self):
+        return self.node.source
 
     @property
     def failure_cascade(self):
