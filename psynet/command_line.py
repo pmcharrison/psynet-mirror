@@ -11,6 +11,7 @@ from shutil import rmtree, which
 import click
 import requests
 from dallinger import db
+from dallinger.config import get_config
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.command_line import data as dallinger_data
 from dallinger.command_line import debug as dallinger_debug
@@ -34,6 +35,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
+from psynet.utils import import_local_experiment
 
 from .utils import (
     import_local_experiment,
@@ -126,6 +128,24 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
         dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers
     )
 
+##############
+# pre deploy #
+##############
+
+def pre_deploy_checks():
+    """
+    checks whether the initial recruitment size is set to a value >10
+    """
+    config = get_config()
+    if not config.ready:
+        config.load()
+    exp_class = import_local_experiment()["class"]
+    exp = exp_class.new(db_session)
+    initial_recruitment_size = exp.initial_recruitment_size
+    recruiter = config.get("recruiter")
+    if recruiter == "mturk":
+        assert initial_recruitment_size > 10, "You need to increase your initial recruitment size"
+
 
 ##########
 # deploy #
@@ -140,6 +160,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
+    pre_deploy_checks()
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
@@ -178,6 +199,25 @@ def docs(force_rebuild):
         stdout=subprocess.DEVNULL,
     )
 
+##############
+# pre sandbox #
+##############
+
+def pre_sandbox_checks():
+    """
+    checks whether us_only is set to "False"
+    """
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    recruiter = config.get("recruiter")
+    us_only = config.get("us_only")
+    if recruiter == "mturk":
+        assert us_only == False, "You need to put us_only = False in config.txt."
+
+
+
 
 ###########
 # sandbox #
@@ -192,6 +232,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
+    pre_sandbox_checks()
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
