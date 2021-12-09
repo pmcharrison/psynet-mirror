@@ -559,7 +559,7 @@ def format_seconds(seconds):
     callback=dallinger_verify_id,
     help="Experiment id",
 )
-def add_connection_to_postico(app):
+def postico(app):
     """
     Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
     """
