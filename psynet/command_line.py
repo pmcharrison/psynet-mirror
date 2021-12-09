@@ -546,3 +546,61 @@ def move_snapshot_file(data_dir_path, app):
 def format_seconds(seconds):
     minutes_and_seconds = divmod(seconds, 60)
     return f"{round(minutes_and_seconds[0])} min {round(minutes_and_seconds[1])} sec"
+
+
+############
+# postico #
+############
+@psynet.command()
+@click.option(
+    "--app",
+    default=None,
+    required=True,
+    callback=dallinger_verify_id,
+    help="Experiment id",
+)
+def add_connection_to_postico(app):
+    """
+    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    """
+    # Grab the credentials using the Heroku-cli
+    if sys.platform != "darwin":
+        raise OSError("Postico is only available on MacOS.")
+
+    credentials = os.popen("heroku pg:credentials:url -a dlgr-%s" % app).read()
+    # Let's extract the connection info string
+    credentials = credentials.split("\n")[2]
+    # Remove the initial and final quotes and split entries by spaces
+    credentials = credentials.lstrip()[1:-1].split(" ")
+    # Now create a dictionary from the credentials
+    credential_dict = dict([c.split("=") for c in credentials])
+
+    xml = [
+        "<?xml version='1.0' encoding='UTF-8'?>",
+        "<!DOCTYPE plist PUBLIC '-//Apple//DTD PLIST 1.0//EN' 'http://www.apple.com/DTDs/PropertyList-1.0.dtd'>",
+        "<plist version='1.0'>",
+        "<dict>",
+        "<key>database</key>",
+        "<string>%s</string>" % credential_dict["dbname"],
+        "<key>host</key>",
+        "<string>%s</string>" % credential_dict["host"],
+        "<key>nickname</key>",
+        "<string>%s</string>" % app,
+        "<key>password</key>",
+        "<string>%s</string>" % credential_dict["password"],
+        "<key>type</key>",
+        "<string>at.eggerapps.PG-Commander.favorite</string>",
+        "<key>user</key>",
+        "<string>%s</string>" % credential_dict["user"],
+        "</dict>",
+        "</plist>",
+    ]
+
+    tmp_path = "/tmp/tmp.pgfav"
+    outF = open(tmp_path, "w")
+    for line in xml:
+        outF.write(line + "\n")
+    outF.close()
+
+    os.system("open /Applications/Postico.app %s" % tmp_path)
+    os.remove(tmp_path)
