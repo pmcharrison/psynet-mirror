@@ -186,3 +186,12 @@ versions (e.g. downgraded) using the ``--psynet-version`` and
                               version to install.
     --verbose                 Verbose mode
     --help                    Show this message and exit.
+
+
+.. _postico:
+
+Open SQLAlchemy database with MacOS app postico. (``postico``)
+-------------------------------------------
+
+This command-line tool makes an Heroku request, parses the SQLAlchemy credentials and opens them with the MacOS app
+postico.
