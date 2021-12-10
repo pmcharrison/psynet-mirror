@@ -186,3 +186,26 @@ versions (e.g. downgraded) using the ``--psynet-version`` and
                               version to install.
     --verbose                 Verbose mode
     --help                    Show this message and exit.
+
+
+
+.. _rpdb:
+
+Alias for rpdb using default port and IP (``rpdb``)
+---------------------------------------------------------
+
+Alias for rpdb using default port and IP.
+
+.. code:: bash
+
+  psynet rpdb
+
+**Usage**
+
+.. code:: bash
+
+  psynet rpdb [OPTIONS]
+
+  Options:
+    --ip [bonus|time|both]    IP address. Default: '127.0.0.1'.
+    --port                    Port. Default: '4444'.

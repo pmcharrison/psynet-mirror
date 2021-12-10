@@ -546,3 +546,20 @@ def move_snapshot_file(data_dir_path, app):
 def format_seconds(seconds):
     minutes_and_seconds = divmod(seconds, 60)
     return f"{round(minutes_and_seconds[0])} min {round(minutes_and_seconds[1])} sec"
+
+
+@psynet.command()
+@click.option(
+    "--ip",
+    default="127.0.0.1",
+    help="IP address",
+)
+@click.option("--port", default="4444", help="Port")
+def rpdb(ip, port):
+    """
+    Alias for `nc <ip> <port>`.
+    """
+    subprocess.run(
+        ["nc %s %s" % (ip, port)],
+        shell=True,
+    )
