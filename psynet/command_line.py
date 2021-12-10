@@ -566,7 +566,12 @@ def postico(app):
     # Grab the credentials using the Heroku-cli
     if sys.platform != "darwin":
         raise OSError("Postico is only available on MacOS.")
-
+    APP_LOCATION = "/Applications/Postico.app"
+    if not os.path.exists(APP_LOCATION):
+        raise FileNotFoundError(
+            "It seems Postico is not installed on your computer. Please make sure the app is installed and located in: "
+            + APP_LOCATION
+        )
     credentials = os.popen("heroku pg:credentials:url -a dlgr-%s" % app).read()
     # Let's extract the connection info string
     credentials = credentials.split("\n")[2]
@@ -602,5 +607,5 @@ def postico(app):
         outF.write(line + "\n")
     outF.close()
 
-    os.system("open /Applications/Postico.app %s" % tmp_path)
+    os.system("open %s %s" % (APP_LOCATION, tmp_path))
     os.remove(tmp_path)
