@@ -4,6 +4,8 @@
 # Imports
 ##########################################################################################
 
+from typing import Union
+
 from flask import Markup
 
 import psynet.experiment
@@ -28,6 +30,15 @@ from psynet.timeline import Timeline
 class HelloPrompt(Prompt):
     macro = "with_hello"
     external_template = "custom-prompts.html"
+
+    def __init__(
+        self,
+        username: str,
+        text: Union[None, str, Markup] = None,
+        text_align: str = "left",
+    ):
+        super().__init__(text=text, text_align=text_align)
+        self.username = username
 
 
 class ColorText(Control):
@@ -98,12 +109,13 @@ class Exp(psynet.experiment.Experiment):
         ModularPage(
             "example_hello",
             prompt=HelloPrompt(
-                """
-            This is an example of a custom prompt that adds 'Hello' to every page.
-            The custom prompt is defined in the class 'HelloPrompt' and the template
-            'custom-prompts.html'. Note that the template inherits from the built-in
-            'prompt.simple' macro as defined in PsyNet's 'prompt.html' file.
-            """
+                username="stranger",
+                text="""
+                    This is an example of a custom prompt that adds 'Hello' to every page.
+                    The custom prompt is defined in the class 'HelloPrompt' and the template
+                    'custom-prompts.html'. Note that the template inherits from the built-in
+                    'prompt.simple' macro as defined in PsyNet's 'prompt.html' file.
+                    """,
             ),
             time_estimate=5,
         ),
