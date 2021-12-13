@@ -186,3 +186,28 @@ versions (e.g. downgraded) using the ``--psynet-version`` and
                               version to install.
     --verbose                 Verbose mode
     --help                    Show this message and exit.
+
+
+
+.. _rpdb:
+
+Alias for rpdb using default port and IP (``rpdb``)
+---------------------------------------------------------
+
+Alias for nc using default port and IP. This is used for remote debugging. Insert `import rpdb; rpdb.set_trace()`
+somewhere in your Python code, execute the program, and wait until it hits `rpdb.set_trace()`. Then you can enter the
+interactive debugger by running `psynet rpdb` in a separate terminal.
+
+.. code:: bash
+
+  psynet rpdb
+
+**Usage**
+
+.. code:: bash
+
+  psynet rpdb [OPTIONS]
+
+  Options:
+    --ip [bonus|time|both]    IP address. Default: '127.0.0.1'.
+    --port                    Port. Default: '4444'.
