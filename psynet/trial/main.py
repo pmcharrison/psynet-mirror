@@ -2218,6 +2218,19 @@ class TrialNetwork(Network, AsyncProcessOwner):
         Set by default in the ``__init__`` function.
         Stored as the field ``role`` in the database.
 
+    source : Optional[TrialSource]
+        Returns the network's :class:`~psynet.trial.main.TrialSource`,
+        or ``None`` if none can be found.
+
+    participant : Optional[Participant]
+        Returns the network's :class:`~psynet.participant.Participant`,
+        or ``None`` if none can be found.
+        Implementation note:
+        The network's participant corresponds to the participant
+        listed in the network's :class:`~psynet.trial.main.TrialSource`.
+        If the network has no such :class:`~psynet.trial.main.TrialSource`
+        then an error is thrown.
+
     num_nodes : int
         Returns the number of non-failed nodes in the network.
 
@@ -2284,6 +2297,21 @@ class TrialNetwork(Network, AsyncProcessOwner):
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
+
+    @property
+    def source(self):
+        sources = TrialSource.query.filter_by(network_id=self.id, failed=False)
+        if len(sources) == 0:
+            return None
+        if len(sources) > 1:
+            raise RuntimeError(f"Network {self.id} has more than one source!")
+        return sources[0]
+
+    @property
+    def participant(self):
+        source = self.source
+        assert source is not None
+        return source.participant
 
     @property
     def num_nodes(self):
