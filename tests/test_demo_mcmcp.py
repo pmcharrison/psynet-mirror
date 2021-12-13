@@ -3,7 +3,9 @@ import time
 
 import pytest
 
+from psynet.participant import Participant
 from psynet.test import bot_class, next_page
+from psynet.trial.mcmcp import MCMCPNetwork
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -13,7 +15,10 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("demo_mcmcp")
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
-        for participant, bot in enumerate(bot_recruits):
+        for participant_id, bot in enumerate(bot_recruits):
+            # Python zero-indexes, SQL one-indexes
+            participant_id += 1
+
             driver = bot.driver
             time.sleep(1)
 
@@ -21,6 +26,15 @@ class TestExp:
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
             next_page(driver, "standard-consent")
+
+            # Testing that network.participant works correctly
+            # (we are in a within-participant experiment, so each chain
+            # should be associated with a single participant).
+            network = MCMCPNetwork.query.all()[0]
+            assert isinstance(network.participant, Participant)
+            assert network.participant.id == participant_id
+
+            # Iterating through the trials
             for i in range(10):
                 next_page(driver, "1")
 
