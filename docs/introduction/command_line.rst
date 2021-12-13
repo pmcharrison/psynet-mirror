@@ -194,7 +194,9 @@ versions (e.g. downgraded) using the ``--psynet-version`` and
 Alias for rpdb using default port and IP (``rpdb``)
 ---------------------------------------------------------
 
-Alias for rpdb using default port and IP.
+Alias for nc using default port and IP. This is used for remote debugging. Insert `import rpdb; rpdb.set_trace()`
+somewhere in your Python code, execute the program, and wait until it hits `rpdb.set_trace()`. Then you can enter the
+interactive debugger by running `psynet rpdb` in a separate terminal.
 
 .. code:: bash
 
