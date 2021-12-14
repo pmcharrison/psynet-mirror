@@ -609,3 +609,23 @@ def postico(app):
 
     os.system("open %s %s" % (APP_LOCATION, tmp_path))
     os.remove(tmp_path)
+
+
+############
+# rpdb #
+############
+@psynet.command()
+@click.option(
+    "--ip",
+    default="127.0.0.1",
+    help="IP address",
+)
+@click.option("--port", default="4444", help="Port")
+def rpdb(ip, port):
+    """
+    Alias for `nc <ip> <port>`.
+    """
+    subprocess.run(
+        ["nc %s %s" % (ip, port)],
+        shell=True,
+    )
