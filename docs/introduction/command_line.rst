@@ -190,7 +190,7 @@ versions (e.g. downgraded) using the ``--psynet-version`` and
 
 .. _postico:
 
-Open SQLAlchemy database with MacOS app postico. (``postico``)
+Open SQLAlchemy database deployed to Heroku with MacOS app postico. (``postico``)
 -------------------------------------------
 
 This command-line tool makes an Heroku request, parses the SQLAlchemy credentials and opens them with the MacOS app

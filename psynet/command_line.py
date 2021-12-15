@@ -561,7 +561,7 @@ def format_seconds(seconds):
 )
 def postico(app):
     """
-    Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
+    Open SQLAlchemy database deployed to Heroku with MacOS app postico.
     """
     # Grab the credentials using the Heroku-cli
     if sys.platform != "darwin":
