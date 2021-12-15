@@ -21,7 +21,6 @@ class TestExp:
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
             next_page(driver, "standard-consent")
-            breakpoint()
 
             for i in range(10):
                 next_page(driver, "1")
