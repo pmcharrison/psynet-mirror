@@ -215,7 +215,7 @@ example_audio_page = ModularPage(
         "/static/audio/bier.wav",
         "This page illustrates a simple audio page with one stimulus.",
         loop=False,
-        auto_play=True,
+        autoplay=True,
     ),
     time_estimate=5,
 )
@@ -224,10 +224,10 @@ example_audio_page_2 = ModularPage(
     "audio_page",
     AudioPrompt(
         "/static/audio/bier.wav",
-        "This page adds audio playback controls. Note: audio will NOT played immediately.",
+        "This page adds audio playback controls. Note: audio will be NOT played immediately.",
         controls=True,
         loop=False,
-        auto_play=False,
+        autoplay=False,
     ),
     time_estimate=5,
 )
@@ -237,14 +237,14 @@ example_audio_page_3 = ModularPage(
     AudioPrompt(
         "/static/audio/train1.wav",
         """
-        This page illustrates a 'play window' combined with fade-in, fade-out, and loop. Note: audio will NOT played immediately.
+        This page illustrates a 'play window' combined with fade-in, fade-out, and loop. Note: audio will be NOT played immediately.
         """,
         play_window=[5, 9],
         fade_in=0.75,
         fade_out=0.75,
         loop=True,
         controls=True,
-        auto_play=False,
+        autoplay=False,
     ),
     time_estimate=5,
 )
@@ -252,7 +252,7 @@ example_audio_page_3 = ModularPage(
 example_record_page = join(
     ModularPage(
         "record_page",
-        "This page lets you record audio. Note that, in this version, you must click 'Upload' when finished. ",
+        "This page lets you record audio. Note that, in this version, you must click 'Upload' when finished.",
         AudioRecordControl(
             duration=3.0,
             s3_bucket="audio-record-demo",
