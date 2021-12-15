@@ -127,7 +127,7 @@ class AudioPrompt(Prompt):
         Fade-out duration for the audio (defaults to ``0.0``).
 
     auto_play
-        If ``True`` audio will play right a way, otherwise audio will not play (usefull when there are other controls that allow playback)
+        If ``True`` audio will play right a way, otherwise audio will not play until triggered externally.
 
     kwargs
         Passed to :class:`~psynet.modular_page.Prompt`.
