@@ -1593,7 +1593,7 @@ def while_loop(
     expected_repetitions: int,
     max_loop_time: float = None,
     fix_time_credit=True,
-    force_wait=False,
+    fail_on_timeout=True,
 ):
     """
     Loops a series of elts while a given criterion is satisfied.
@@ -1627,9 +1627,9 @@ def while_loop(
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
         receive the same credit.
 
-    force_wait:
-        Whether the participants should be forced to wait for a given ``max_loop_time``.
-        Setting this to ``True`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
+    fail_on_timeout:
+        Whether the participants should be failed when the ``max_loop_time`` is reached.
+        Setting this to ``False`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
         but allow them to proceed to the next page.
 
     Returns
@@ -1668,10 +1668,10 @@ def while_loop(
 
     from .page import UnsuccessfulEndPage
 
-    if force_wait is True:
-        force_or_not = GoTo(end_while)
+    if fail_on_timeout is True:
+        after_timeout_page = UnsuccessfulEndPage()
     else:
-        force_or_not = UnsuccessfulEndPage()
+        after_timeout_page = GoTo(end_while)
 
     elts = join(
         CodeBlock(
@@ -1686,7 +1686,7 @@ def while_loop(
                 max_loop_time_condition,
                 {"participant": participant, "experiment": experiment},
             ),
-            force_or_not,
+            after_timeout_page,
             fix_time_credit=False,
             log_chosen_branch=False,
         ),
