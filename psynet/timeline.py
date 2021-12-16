@@ -1669,9 +1669,9 @@ def while_loop(
     from .page import UnsuccessfulEndPage
 
     if fail_on_timeout is True:
-        after_timeout_page = UnsuccessfulEndPage()
+        after_timeout_logic = UnsuccessfulEndPage()
     else:
-        after_timeout_page = GoTo(end_while)
+        after_timeout_logic = GoTo(end_while)
 
     elts = join(
         CodeBlock(
@@ -1686,7 +1686,7 @@ def while_loop(
                 max_loop_time_condition,
                 {"participant": participant, "experiment": experiment},
             ),
-            after_timeout_page,
+            after_timeout_logic,
             fix_time_credit=False,
             log_chosen_branch=False,
         ),
