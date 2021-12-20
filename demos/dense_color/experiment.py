@@ -34,7 +34,6 @@ PARAMS = {
         Dimension("Lightness", min_value=0, max_value=100),
     ]
 }
-DELAY_TIME = 3 # in seconds time to display discrimination colors
 
 CONDITIONS_PREFERENE = ConditionList(
     "color",
@@ -60,7 +59,6 @@ CONDITIONS_DISCRIMINATION = ConditionList(
         Condition(
             {
                 **PARAMS,
-                "adjective": "angry",
                 "delta": 30,
                 "bonus_per_correct_response":0.01
             }
@@ -72,54 +70,24 @@ class ColorSameDiff(SameDifferentTrial):
     __mapper_args__ = {"polymorphic_identity": "same_diff_trial"}
 
     time_estimate = 5
-    num_pages = 4
+    num_pages = 3
     accumulate_answers = False
 
-
     def show_trial(self, experiment, participant):
-        adjective = self.definition["adjective"]
-
         order = self.definition["order"]
         color1 = self.definition["locations"][order[0]]
         color2 = self.definition["locations"][order[1]]
         correct_answer= self.definition["correct_answer"]
 
-        events = {
-            "moveToNextPage": Event(
-                is_triggered_by="trialStart",
-                delay=DELAY_TIME,
-                js="psynet.nextPage()",
-            ),
-            "responseEnable": Event(
-                is_triggered_by="trialPrepare",
-                delay=DELAY_TIME,
-                once=True,
-            ),
-            "removeNextButton": Event(
-                is_triggered_by="trialPrepare",
-                delay=0,
-                once=False,
-                js='$(".btn-primary").hide()'
-                # this isn't an elegant solution- and it also do show up for a short period. How should I do this better?
-            )
-        }
-
         page1 = ModularPage(
             prompt=ColorPrompt(color=color1, text="First color"),
-            label="wait_page_1",
-            events=events,
-            time_estimate=DELAY_TIME,
-        )
-        page_in_between=InfoPage(
-            content="",
-            events=events,
-            time_estimate=3
+            label="color_page_1",
+            time_estimate=2
         )
         page2 = ModularPage(
             prompt=ColorPrompt(color=color2, text="Second color"),
-            label="wait_page_2",
-            events=events,
-            time_estimate=DELAY_TIME
+            label="color_page_2",
+            time_estimate=2
         )
         page3 = ModularPage(
             "color1",
@@ -128,7 +96,7 @@ class ColorSameDiff(SameDifferentTrial):
             time_estimate=self.time_estimate,
         )
 
-        return [page1,page_in_between,page2,page3]
+        return [page1,page2,page3]
 
     def compute_bonus(self, score):
         return score * self.definition["bonus_per_correct_response"]
@@ -188,7 +156,7 @@ class Exp(psynet.experiment.Experiment):
             target_num_trials_per_condition=None,
             max_trials_per_block=6,
         ),
-        InfoPage("In this part of the expriment you will be rating colors", time_estimate=0),
+        InfoPage("In this part of the experiment you will be rating colors", time_estimate=0),
         DenseTrialMaker(
             id_="color_preferences",
             trial_class=ColorSameDiff,
