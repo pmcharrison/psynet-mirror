@@ -20,8 +20,8 @@ logger = get_logger()
 class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
 
     """
-    The CapRecruiter base class
-
+        The CapRecruiter base class
+    1
     """
 
     def open_recruitment(self, n=1):
@@ -115,6 +115,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&generate_tokens=1"
+        logger.info(self.ad_url)
+        logger.info(self.ad_url)
+        logger.info(self.ad_url)
+        logger.info(self.ad_url)
+        logger.info(self.ad_url)
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
@@ -186,12 +191,13 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         create_survey_request_params = {
             "id": heroku_tools.app_name(self.config.get("id")),
             "name": self.config.get("title"),
-            "live_url": self.ad_url,
+            # "live_url": f'{self.ad_url.replace("http", "https")}?rid=[%RID%]',
+            "live_url": f'{self.ad_url.replace("http", "https")}?rid=[%RID%]',
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
-        self._record_current_survey_id(survey_info["id"])
-        url = survey_info["live_url"]
+        self._record_current_survey_id(survey_info["SurveyNumber"])
+        url = survey_info["TestRedirectURL"]
         logger.info("OPEN RECRUITMENT: DONE CREATING PROJECT AND SURVEY.")
 
         # Recruit

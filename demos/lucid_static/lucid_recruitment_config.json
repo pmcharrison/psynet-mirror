@@ -1,29 +1,17 @@
 {
 	"project": {
-		"owner_id": 38490
+		" owner_id": 38490
 	},
 	"survey": {
-		"business_unit_id": 2404,
-        "project_manager_id": 38490,
-        "client_cpi_usd": 5,
-        "collects_pii": false,
-        "expected_completes": 10,
-        "expected_completion_loi": 10,
-        "expected_incidence_rate": 0.1,
-        "fraud_profile": true,
-        "fraud_profile_threshold": 13,
-        "industry": "other",
-        "locale": "eng_us",
-        "priority": 13,
-        "quantity_calc_type": "prescreens",
-        "relevant_id": true,
-        "status": "pending",
-        "study_type": "adhoc",
-        "survey_cpi_usd": 5,
-        "test_url": "https://www.samplesurvey.com/test",
-        "unique_ip": true,
-        "unique_pid": true,
-        "verify_callback": true
+        "SurveyStatusCode": "01",
+        "SurveyPriority": 11,
+        "SurveyName": "Example API Survey",
+        "CountryLanguageID": 9,
+        "IndustryID": 30,
+        "StudyTypeID": 1,
+        "ClientCPI": 1,
+        "QuotaCPI": 2,
+        "FulcrumExchangeAllocation": 0
 	},
 	"qualifications": {
 		"Name": "ENG-US-QUAL",

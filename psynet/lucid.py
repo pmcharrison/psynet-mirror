@@ -62,62 +62,69 @@ class LucidService(object):
         """
 
         # We need to create a project for the survey first
-        logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-        logger.info(self.recruitment_config)
-        logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-        params = {
-            "description": name,
-            "name": name,
-            "project_owner_id": self.recruitment_config["project"][
-                "owner_id"
-            ],  # TODO: Is this correct? Got from dictionary lookup for users
-        }
+        # logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        # logger.info(self.recruitment_config)
+        # logger.info("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
+        # params = {
+        #     "description": name,
+        #     "name": name,
+        #     "project_owner_id": self.recruitment_config["project"][
+        #         "owner_id"
+        #     ],  # TODO: Is this correct? Got from dictionary lookup for users
+        # }
 
-        request_data = json.dumps(params)
-        response = requests.post(
-            f"{self.request_base_url}/projects", data=request_data, headers=self.headers
-        )
-        response_data = response.json()
-        logger.info(json.loads(request_data))
-        logger.info(response.status_code)
-        logger.info(response_data)
+        # request_data = json.dumps(params)
+        # response = requests.post(
+        #     f"{self.request_base_url}/projects", data=request_data, headers=self.headers
+        # )
+        # response_data = response.json()
+        # logger.info(json.loads(request_data))
+        # logger.info(response.status_code)
+        # logger.info(response_data)
 
-        if "id" not in response_data:
-            raise LucidServiceException(
-                "'Create project' request was invalid for unknown reason."
-            )
-        logger.info(
-            f'=========================================>>> Created Lucid project with ID {response_data["id"]}.'
-        )
+        # if "id" not in response_data:
+        #     raise LucidServiceException(
+        #         "'Create project' request was invalid for unknown reason."
+        #     )
+        # logger.info(
+        #     f'=========================================>>> Created Lucid project with ID {response_data["id"]}.'
+        # )
 
         # Now we create the survey
         # "owner_id": 38490             # TODO: Is this correct? Got from dictionary lookup for users
         # "business_unit_id": 2404,     # TODO: Get business unit id dynamically
         # "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
         params = {
-            "project_id": response_data["id"],
-            "live_url": live_url,
+            # "project_id": response_data["id"],
+            "ClientSurveyLiveURL": live_url,
             "name": name,
         }
         request_data = json.dumps({**params, **self.recruitment_config["survey"]})
         response = requests.post(
-            f"{self.request_base_url}/surveys", data=request_data, headers=self.headers
+            f"{self.request_base_url_v1}/Surveys/Create",
+            data=request_data,
+            headers=self.headers,
         )
         response_data = response.json()
 
-        logger.info(json.loads(request_data))
-        logger.info(response.status_code)
-        logger.info(response_data)
+        # logger.info(json.loads(request_data))
+        # logger.info(response.status_code)
+        logger.info("**********************")
+        logger.info(response_data["Survey"])
+        logger.info("**********************")
 
-        if "create_date" not in response_data or "id" not in response_data:
+        if (
+            "SurveySID" not in response_data["Survey"]
+            or "SurveyNumber" not in response_data["Survey"]
+        ):
             raise LucidServiceException(
                 "'Create survey' request was invalid for unknown reason."
             )
         logger.info(
-            f'=========================================>>> Created Lucid survey with ID {response_data["id"]}.'
+            f'=========================================>>> Created Lucid survey with ID {response_data["Survey"]}.'
         )
 
-        return response_data
+        return response_data["Survey"]
 
     def create_qualifications_and_quota(self, survey_id, number, duration_hours=None):
         """
