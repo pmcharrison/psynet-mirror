@@ -110,7 +110,7 @@ class LucidService(object):
         # logger.info(json.loads(request_data))
         # logger.info(response.status_code)
         logger.info("**********************")
-        logger.info(response_data["Survey"])
+        logger.info(response_data)
         logger.info("**********************")
 
         if (
