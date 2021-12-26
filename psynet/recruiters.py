@@ -108,8 +108,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     The LucidRecruiter base class
     """
 
-    external_submission_url = ""
-    # extra_routes = mturk_routes
+    external_submission_url = (
+        "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
+    )
 
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
@@ -124,8 +125,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             sandbox=self.config.get("mode") != "live",
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
-        self.external_submission_url = self.survey_update_url
-        # self._validate_config()
 
     @property
     def survey_update_url(self):
@@ -186,7 +185,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         create_survey_request_params = {
             "id": heroku_tools.app_name(self.config.get("id")),
             "name": self.config.get("title"),
-            "live_url": f'{self.ad_url.replace("http", "https")}?rid=[%RID%]',
+            "live_url": f'{self.ad_url.replace("http", "https")}&rid=[%RID%]',
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
@@ -251,6 +250,31 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         )
 
         return response_data
+
+    def normalize_entry_information(self, entry_information):
+        """
+        Accepts data from recruited user and returns data needed to validate,
+        create or load a Dallinger Participant.
+
+        See :func:`~dallinger.experiment.Experiment.create_participant` for
+        details.
+
+        The implementation extracts ``rid`` values directly from the ``entry_information``.
+
+        Returning a dictionary without valid ``rid`` will generally result in an exception.
+        """
+        participant_data = {
+            "hit_id": entry_information.pop(
+                "hitId", entry_information.pop("hit_id", None)
+            ),
+            "assignment_id": entry_information.pop(
+                "assignmentId", entry_information.pop("assignment_id", None)
+            ),
+            "rid": entry_information.pop("rid", entry_information.pop("rid", None)),
+        }
+        if entry_information:
+            participant_data["entry_information"] = entry_information
+        return participant_data
 
     def close_recruitment(self):
         logger.info("No more participants required. Recruitment stopped.")
@@ -319,12 +343,11 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     # @property
     # def external_submission_url(self):
     #     """On experiment completion, participants are returned to
-    #     the Mechanical Turk site to submit their HIT, which in turn triggers
-    #     notifications to the /mturk-sns-listener route.
+    #     the Lucid marketplace site to submit their HIT using their previously assigned RID.
     #     """
     #     if self.is_sandbox:
-    #         return "https://workersandbox.mturk.com/mturk/externalSubmit"
-    #     return "https://www.mturk.com/mturk/externalSubmit"
+    #         return "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
+    #     return "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
 
     # def assign_experiment_qualifications(self, worker_id, qualifications):
     #     """Assigns MTurk Qualifications to a worker.

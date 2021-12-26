@@ -97,6 +97,7 @@ class LucidService(object):
         params = {
             # "project_id": response_data["id"],
             "ClientSurveyLiveURL": live_url,
+            "TestRedirectURL": live_url,
             "name": name,
         }
         request_data = json.dumps({**params, **self.recruitment_config["survey"]})
