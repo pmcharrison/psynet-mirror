@@ -20,8 +20,7 @@ logger = get_logger()
 class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
 
     """
-        The CapRecruiter base class
-    1
+    The CapRecruiter base class
     """
 
     def open_recruitment(self, n=1):
@@ -99,6 +98,9 @@ class DevCapRecruiter(BaseCapRecruiter):
     external_submission_url = "http://localhost:8000/hits/complete"
 
 
+# Lucid
+
+
 class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
@@ -111,11 +113,13 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     external_submission_url = (
         "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
     )
+    # extra_routes = mturk_routes
 
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
-        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&generate_tokens=1"
+        # self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&hitId=[%RID%]&assignmentId=[%RID%]&workerId=[%RID%]"
+        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&hitId=111&assignmentId=222&workerId=333"
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
@@ -185,7 +189,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         create_survey_request_params = {
             "id": heroku_tools.app_name(self.config.get("id")),
             "name": self.config.get("title"),
-            "live_url": f'{self.ad_url.replace("http", "https")}&rid=333333',  # [%RID%]
+            "live_url": self.ad_url.replace("http", "https"),
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
@@ -251,35 +255,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         return response_data
 
-    def normalize_entry_information(self, entry_information):
-        """Accepts data from recruited user and returns data needed to validate,
-        create or load a Dallinger Participant.
-
-        See :func:`~dallinger.experiment.Experiment.create_participant` for
-        details.
-
-        The default implementation extracts ``hit_id``, ``assignment_id``, and
-        ``worker_id`` values directly from the ``entry_information``.
-
-        Returning a dictionary without valid ``hit_id``, ``assignment_id``, or
-        ``worker_id`` will generally result in an exception.
-        """
-        participant_data = {
-            "hit_id": entry_information.pop(
-                "hitId", entry_information.pop("hit_id", None)
-            ),
-            "assignment_id": entry_information.pop(
-                "assignmentId", entry_information.pop("assignment_id", None)
-            ),
-            "worker_id": entry_information.pop(
-                "workerId", entry_information.pop("worker_id", None)
-            ),
-            "rid": entry_information.pop("rid", entry_information.pop("rid", None)),
-        }
-        if entry_information:
-            participant_data["entry_information"] = entry_information
-        return participant_data
-
     def close_recruitment(self):
         logger.info("No more participants required. Recruitment stopped.")
 
@@ -305,31 +280,18 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             response_data = self.lucidservice.complete_survey(self.current_survey_id())
             logger.info(f"'Complete survey' request returned: {response_data}")
 
-        exit_info = sorted(experiment.exit_info_for(participant).items())
-
         logger.info(
-            f"XXXXXXX Calling external_submission_url {self.external_submission_url + participant} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+            f"CALLING EXIT ROUTE TO LUCID: {self.external_submission_url + participant.assignment_id}"
         )
-        response = requests.get(self.external_submission_url + participant)
-        logger.info("RESPONSE XTENRAL SUBMISSION:")
-        logger.info(response)
+        resonse = requests.get(self.external_submission_url + participant.assignment_id)
+        logger.info(f"RESPONSE: {resonse}")
 
+        exit_info = sorted(experiment.exit_info_for(participant).items())
         return flask.render_template(
-            "exit_recruiter.html",
+            "exit_recruiter_lucid.html",
             recruiter=self.__class__.__name__,
             participant_exit_info=exit_info,
         )
-
-    # def reward_bonus(self, assignment_id, amount, reason):
-    #     """
-    #     Return values for `basePay` and `bonus` to cap-recruiter application.
-    #     """
-    #     logger.info(f"XXXXXXX Calling external_submission_url {self.external_submission_url + assignment_id} XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX")
-    #     response = requests.get(
-    #         self.external_submission_url + assignment_id
-    #     )
-    #     logger.info("RESPONSE XTENRAL SUBMISSION:")
-    #     logger.info(response)
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
@@ -513,6 +475,13 @@ class StagingLucidRecruiter(BaseLucidRecruiter):
     #     completes the HIT on that service.
     #     """
     #     return None
+
+    # def reward_bonus(self, assignment_id, amount, reason):
+    #     """Reward the Turker for a specified assignment with a bonus."""
+    #     try:
+    #         return self.mturkservice.grant_bonus(assignment_id, amount, reason)
+    #     except MTurkServiceException as ex:
+    #         logger.exception(str(ex))
 
     #     def approve_hit(self, assignment_id):
     #         try:

@@ -58,7 +58,7 @@ class LucidService(object):
         live_url,
     ):
         """
-        Create the actual survey and return a dict with its useful properties.
+        Create the survey and return a dict with its useful properties.
         """
 
         # We need to create a project for the survey first
