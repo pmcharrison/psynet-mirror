@@ -176,7 +176,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
         logger.info(
-            "OPEN RECRUITMENT: OPENING INITIAL RECUITMENT FOR {n} PARTICIPANTS."
+            f">>>>>>>>>> LUCID RECRUITER: Opening initial recruitment for {n} participants."
         )
         if self.is_in_progress:
             raise LucidRecruiterException(
@@ -195,10 +195,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_id(survey_info["SurveyNumber"])
         url = survey_info["ClientSurveyLiveURL"]
-        logger.info("OPEN RECRUITMENT: DONE CREATING PROJECT AND SURVEY.")
+        logger.info(">>>>>>>>>> LUCID RECRUITER: Done creating project and survey.")
 
-        # Recruit
-        logger.info("OPEN RECRUITMENT: CREATING QUALIFICATIONS AND QUOTA.")
+        logger.info(">>>>>>>>>> LUCID RECRUITER: Creating qualifications and quota...")
 
         if not self.config.get("auto_recruit"):
             logger.info("auto_recruit is False: recruitment suppressed.")
@@ -206,7 +205,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         survey_id = self.current_survey_id()
         if survey_id is None:
-            logger.info("No survey in progress: recruitment aborted.")
+            logger.info(
+                ">>>>>>>>>> LUCID RECRUITER: No survey in progress: recruitment aborted."
+            )
             return
 
         try:
@@ -220,23 +221,26 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             self._record_current_quota_id(
                 qualifications_and_quota_info["Quotas"][1]["SurveyQuotaID"]
             )
-            logger.info(f"OPEN RECRUITMENT: QUOTA ID IS: {self.current_quota_id()}")
+            logger.info(
+                f">>>>>>>>>> LUCID RECRUITER: Done. Quota id is '{self.current_quota_id()}'"
+            )
         except LucidServiceException as e:
             logger.exception(str(e))
 
-        logger.info("OPEN RECRUITMENT: SURVEY PUBLISHED TO LUCID MARKETPLACE.")
+        logger.info(
+            ">>>>>>>>>> LUCID RECRUITER: Survey published to Lucid Marketplace."
+        )
         logger.info("----------")
         logger.info("---------->" + url.replace("https", "http"))
         logger.info("----------")
+
         return {
             "items": [url],
             "message": "Survey published to Lucid Marketplace.",
         }
 
     def recruit(self, n=1):
-        logger.info(
-            f"RECRUIT: RECRUITING ANOTHER {n} PARTICIPANTS ------------------------------."
-        )
+        logger.info(f">>>>>>>>>> LUCID RECRUITER: Recruiting another {n} participants.")
         response_data = None
 
         try:
@@ -250,13 +254,15 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         logger.info(response_data)
         logger.info(
-            f"RECRUIT: QUOTA WITH ID '{self.current_quota_id()}'' UPDATED TO {n}. --------"
+            f">>>>>>>>>> LUCID RECRUITER: Quota with id '{self.current_quota_id()}'' updated to {n}. --------"
         )
 
         return response_data
 
     def close_recruitment(self):
-        logger.info("No more participants required. Recruitment stopped.")
+        logger.info(
+            ">>>>>>>>>> LUCID RECRUITER: No more participants required. Recruitment stopped."
+        )
 
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
@@ -278,13 +284,15 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         """
         if not experiment.need_more_participants:
             response_data = self.lucidservice.complete_survey(self.current_survey_id())
-            logger.info(f"'Complete survey' request returned: {response_data}")
+            logger.info(
+                f"'>>>>>>>>>> LUCID RECRUITER: 'Complete survey' request returned: {response_data}"
+            )
 
         logger.info(
-            f"CALLING EXIT ROUTE TO LUCID: {self.external_submission_url + participant.assignment_id}"
+            f">>>>>>>>>> LUCID RECRUITER: Calling exit route: {self.external_submission_url + participant.assignment_id}"
         )
         resonse = requests.get(self.external_submission_url + participant.assignment_id)
-        logger.info(f"RESPONSE: {resonse}")
+        logger.info(f">>>>>>>>>> LUCID RECRUITER: Response from exit route: {resonse}")
 
         exit_info = sorted(experiment.exit_info_for(participant).items())
         return flask.render_template(

@@ -5,7 +5,7 @@
 	"survey": {
         "SurveyStatusCode": "01",
         "SurveyPriority": 11,
-        "SurveyName": "Example API Survey",
+        "SurveyName": "Static demo survey 1",
         "CountryLanguageID": 9,
         "IndustryID": 30,
         "StudyTypeID": 1,
