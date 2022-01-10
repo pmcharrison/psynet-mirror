@@ -28,6 +28,7 @@
         "SurveyQuotaType": "Total",
         "Quota": 3,
         "TotalQuota": 3,
+        "FieldTarget": 3,
         "IsActive": true,
         "Conditions": null
     },
@@ -36,6 +37,7 @@
         "SurveyQuotaType": "Client",
         "Quota": 1,
         "TotalQuota": 3,
+        "FieldTarget": 3,
         "IsActive": true,
         "Conditions": [
             {
