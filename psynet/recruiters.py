@@ -291,6 +291,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         logger.info(
             f">>>>>>>>>> LUCID RECRUITER: Calling exit route: {self.external_submission_url + participant.assignment_id}"
         )
+
+        # TODO implement SHA1
         resonse = requests.get(self.external_submission_url + participant.assignment_id)
         logger.info(f">>>>>>>>>> LUCID RECRUITER: Response from exit route: {resonse}")
 
