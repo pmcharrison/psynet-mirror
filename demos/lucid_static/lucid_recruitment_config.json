@@ -11,6 +11,7 @@
         "StudyTypeID": 1,
         "ClientCPI": 1,
         "QuotaCPI": 2,
+        "Quota": 3,
         "FulcrumExchangeAllocation": 0
 	},
 	"qualifications": {
@@ -24,15 +25,17 @@
 	},
     "total_quota": {
         "Name": "Total",
-        "FieldTarget": 3,
+        "SurveyQuotaType": "Total",
         "Quota": 3,
+        "TotalQuota": 3,
         "IsActive": true,
         "Conditions": null
     },
 	"sub_quota": {
         "Name": "Fortytwo",
-        "FieldTarget": 3,
+        "SurveyQuotaType": "Client",
         "Quota": 1,
+        "TotalQuota": 3,
         "IsActive": true,
         "Conditions": [
             {
