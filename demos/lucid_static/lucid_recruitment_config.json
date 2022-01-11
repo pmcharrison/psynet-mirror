@@ -35,7 +35,7 @@
 	"sub_quota": {
         "Name": "Fortytwo",
         "SurveyQuotaType": "Client",
-        "Quota": 1,
+        "Quota": 2,
         "TotalQuota": 3,
         "FieldTarget": 3,
         "IsActive": true,
