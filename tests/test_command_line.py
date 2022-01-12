@@ -1,6 +1,5 @@
 import subprocess
 
-import mock
 import pytest
 from click.testing import CliRunner
 from mock import patch
@@ -198,63 +197,12 @@ class TestExport:
             yield mock_move_snapshot_file
 
     @pytest.fixture
-    def get_base_url(self):
-        with patch("psynet.command_line.get_base_url") as mock_get_base_url:
-            yield mock_get_base_url
-
-    @pytest.fixture
     def export_data(self):
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
-
-    @pytest.fixture
-    def requests_get(self):
-        response = mock.Mock()
-        response.content.decode.return_value = '{"SomeClass": 123}'
-        with patch("psynet.command_line.requests.get") as mocḱ_requests_get:
-            mocḱ_requests_get.return_value = response
-            yield mocḱ_requests_get
 
     def test_export_missing_app_param(self, export):
         result = CliRunner().invoke(export)
         assert b"Usage: export [OPTIONS]" in result.stdout_bytes
         assert b"Error: Missing option '--app'." in result.stdout_bytes
         assert result.exit_code == 2
-
-    def test_export_local(
-        self, export, prepare, move_snapshot_file, dallinger_data_export, get_base_url
-    ):
-        CliRunner().invoke(export, ["--local", "--app=app-1"])
-        prepare.assert_not_called()
-        move_snapshot_file.assert_called_once_with("data/data-app-1", "app-1")
-        dallinger_data_export.assert_called_once_with("app-1", local=True)
-        get_base_url.assert_called_once()
-
-    def test_export_remote(
-        self, export, prepare, move_snapshot_file, dallinger_data_export, get_base_url
-    ):
-        CliRunner().invoke(export, ["--app=app-1"])
-        prepare.assert_not_called()
-        move_snapshot_file.assert_called_once_with("data/data-app-1", "app-1")
-        dallinger_data_export.assert_called_once_with("app-1", local=False)
-        get_base_url.assert_not_called()
-
-    def test_export(
-        self,
-        export,
-        import_local_experiment,
-        create_export_dirs,
-        dallinger_data_export,
-        move_snapshot_file,
-        requests_get,
-        export_data,
-    ):
-        result = CliRunner().invoke(export, ["--app=app-1"])
-        import_local_experiment.assert_called_once()
-        create_export_dirs.assert_called_once_with("data/data-app-1")
-        dallinger_data_export.assert_called_once_with("app-1", local=False)
-        move_snapshot_file.assert_called_once_with("data/data-app-1", "app-1")
-        assert requests_get.call_count == 9
-        assert export_data.call_count == 9
-        export_data.assert_called_with("some_class", "data/data-app-1", 123)
-        assert result.exit_code == 0
