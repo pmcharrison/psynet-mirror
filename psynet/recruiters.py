@@ -285,7 +285,16 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         )
 
         # TODO implement SHA1
-        resonse = requests.get(self.external_submission_url + participant.assignment_id)
+        complete_redirect_url = (
+            self.external_submission_url + participant.assignment_id + "&"
+        )
+        logger.info(f"SHA1 -----> URL: {complete_redirect_url}")
+        hash = self.sha1_hash(complete_redirect_url)
+        logger.info(f"SHA1 -----> HASH: {hash}")
+        url = f"{complete_redirect_url}hash={hash}"
+        logger.info(f"SHA1 -----> URL with HASH: {url}")
+
+        resonse = requests.get(complete_redirect_url)
         logger.info(f">>>>>>>>>> LUCID RECRUITER: Response from exit route: {resonse}")
 
         exit_info = sorted(experiment.exit_info_for(participant).items())
@@ -293,6 +302,25 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             "exit_recruiter_lucid.html",
             recruiter=self.__class__.__name__,
             participant_exit_info=exit_info,
+        )
+
+    def sha1_hash(self, url):
+        import base64
+        import hashlib
+        import hmac
+
+        key = "secret_key"  # TODO
+
+        encoded_key = key.encode("utf-8")
+        encoded_URL = url.encode("utf-8")
+        hashed = hmac.new(encoded_key, msg=encoded_URL, digestmod=hashlib.sha1)
+        digested_hash = hashed.digest()
+        base64_encoded_result = base64.b64encode(digested_hash)
+        return (
+            base64_encoded_result.decode("utf-8")
+            .replace("+", "-")
+            .replace("/", "_")
+            .replace("=", "")
         )
 
 
