@@ -294,14 +294,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         url = f"{complete_redirect_url}hash={hash}"
         logger.info(f"SHA1 -----> URL with HASH: {url}")
 
-        resonse = requests.get(complete_redirect_url)
-        logger.info(f">>>>>>>>>> LUCID RECRUITER: Response from exit route: {resonse}")
-
-        exit_info = sorted(experiment.exit_info_for(participant).items())
         return flask.render_template(
             "exit_recruiter_lucid.html",
-            recruiter=self.__class__.__name__,
-            participant_exit_info=exit_info,
+            external_submit_url=complete_redirect_url,
         )
 
     def sha1_hash(self, url):
