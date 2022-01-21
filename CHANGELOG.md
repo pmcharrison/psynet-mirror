@@ -1,5 +1,14 @@
 # CHANGELOG
 
+# [5.1.1] Unreleased
+
+#### Fixed
+- Temporary fix for missing 'time_taken' in UnityPage response's metadata.
+
+#### Added
+- Added GitLab merge request template.
+- Added username attribute to HelloPrompt.
+
 # [5.1.0] Released on 2021-11-30
 
 #### Added
