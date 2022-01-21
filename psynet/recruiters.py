@@ -274,6 +274,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         Delegate to the experiment for possible values to show to the
         participant and complete the survey if no more participants are needed.
         """
+
+        # TODO remove
         if not experiment.need_more_participants:
             response_data = self.lucidservice.complete_survey(self.current_survey_id())
             logger.info(

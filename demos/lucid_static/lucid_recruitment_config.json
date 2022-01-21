@@ -4,15 +4,16 @@
 	},
 	"survey": {
         "SurveyStatusCode": "01",
-        "SurveyPriority": 11,
-        "SurveyName": "Static demo survey 1",
+        "SurveyName": "Static demo survey test",
         "CountryLanguageID": 9,
         "IndustryID": 30,
         "StudyTypeID": 1,
         "ClientCPI": 1,
         "QuotaCPI": 2,
         "Quota": 3,
-        "FulcrumExchangeAllocation": 0
+        "IsVerifyCallBack": true,
+        "UniquePID": true,
+        "UniqueIPAddress": true,
 	},
 	"qualifications": {
 		"Name": "ENG-US-QUAL",
@@ -23,17 +24,8 @@
         "PreCodes": ["13", "14", "15", "16", "17"],
         "Order": 1
 	},
-    "total_quota": {
-        "Name": "Total",
-        "SurveyQuotaType": "Total",
-        "Quota": 3,
-        "TotalQuota": 3,
-        "FieldTarget": 3,
-        "IsActive": true,
-        "Conditions": null
-    },
 	"sub_quota": {
-        "Name": "Fortytwo",
+        "Name": "Teenager",
         "SurveyQuotaType": "Client",
         "Quota": 2,
         "TotalQuota": 3,

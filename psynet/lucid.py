@@ -111,27 +111,10 @@ class LucidService(object):
                 ">>>>>>>>>> LUCID: 'Create qualifications' request was invalid for unknown reason."
             )
         logger.info(
-            f'>>>>>>>>>> LUCID: Qualifications ({response_data["ResultCount"]}) created successfully.'
+            f">>>>>>>>>> LUCID: Qualifications ({response_data}) created successfully."
         )
 
-        # Create total quota
-        request_data = json.dumps(self.recruitment_config["total_quota"])
-        response = requests.post(
-            f"{self.request_base_url_v1}/SurveyQuotas/Create/{survey_id}",
-            data=request_data,
-            headers=self.headers,
-        )
-        response_data = response.json()
-
-        if "ResultCount" not in response_data:
-            raise LucidServiceException(
-                ">>>>>>>>>> LUCID: 'Create quota' request was invalid for unknown reason."
-            )
-        logger.info(
-            f'>>>>>>>>>> LUCID: Quota ({response_data["ResultCount"]}) created successfully.'
-        )
-
-        # Create subquota
+        # Create Quota
         request_data = json.dumps(self.recruitment_config["sub_quota"])
         response = requests.post(
             f"{self.request_base_url_v1}/SurveyQuotas/Create/{survey_id}",
@@ -144,9 +127,7 @@ class LucidService(object):
             raise LucidServiceException(
                 ">>>>>>>>>> LUCID: 'Create subquota' request was invalid for unknown reason."
             )
-        logger.info(
-            f'>>>>>>>>>> LUCID: Subquota ({response_data["ResultCount"]}) created successfully.'
-        )
+        logger.info(f">>>>>>>>>> LUCID: Quota ({response_data}) created successfully.")
 
         return response_data
 
