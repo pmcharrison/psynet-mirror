@@ -1,13 +1,30 @@
 # CHANGELOG
 
-# [5.1.1] Unreleased
+# [5.2.0] Released on 2022-01-21
 
 #### Fixed
-- Temporary fix for missing 'time_taken' in UnityPage response's metadata.
+- Fixed `psynet export` failure for large databases.
+- Temporary fix for missing `time_taken` in `UnityPage` response's metadata.
+- Fixed breaking changes of new `time_estiamte` in demo `imitation_chain`.
+- Improved the error message for duplicated module IDs.
 
 #### Added
+- Added a new parameter `fail_on_timeout` (default = `True`) to `wait_while`;
+  if this is set to `False`, the participant is no longer failed once the
+  `max_wait_time` is exceeded, but instead continues with the experiment.
+- Added `source` and `participant` attributes for `Network` classes.
+- Added command-line tool `psynet rpdb`, which is an alias for `nc` allowing
+  to easily perform (remote) debugging.
+- Added `degree` and `phase` as `export_vars` in `ChainSource`.
+- Added `phase` as `export_var` in `ChainNode`.
+- Added `degree`, `phase` and `node_id` as `export_vars` in `ChainTrial`.
 - Added GitLab merge request template.
-- Added username attribute to HelloPrompt.
+- Added `username` attribute to `HelloPrompt`.
+- Added regression test for data export.
+- Added Monterey installation documentation.
+
+#### Changed
+- Link 'Edit in GitLab' button to `master`, not `docs-staging` branch.
 
 # [5.1.0] Released on 2021-11-30
 
