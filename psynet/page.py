@@ -166,6 +166,7 @@ class UnityPage(Page):
             "resources": self.resources,
             "contents": self.contents,
             "session_id": self.session_id,
+            "time_taken": None,
         }
 
 
@@ -207,6 +208,7 @@ def wait_while(
     max_wait_time: float = 20.0,
     wait_page=WaitPage,
     log_message: Optional[str] = None,
+    fail_on_timeout = True,
 ):
     """
     Displays the participant a waiting page while a given condition
@@ -240,6 +242,11 @@ def wait_while(
     log_message
         Optional message to display in the log.
 
+    fail_on_timeout
+        Whether the participants should be failed when the ``max_loop_time`` is reached.
+        Setting this to ``False`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
+        but allow them to proceed to the next page.
+
     Returns
     -------
 
@@ -267,6 +274,7 @@ def wait_while(
             logic=logic,
             expected_repetitions=expected_repetitions,
             max_loop_time=max_wait_time,
+            fail_on_timeout=fail_on_timeout
         ),
     )
 

@@ -9,7 +9,7 @@ import sys
 from shutil import rmtree, which
 
 import click
-import requests
+import dallinger.data
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.command_line import data as dallinger_data
@@ -29,7 +29,6 @@ from dallinger.models import (
     Transmission,
     Vector,
 )
-from dallinger.utils import get_base_url
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -442,6 +441,10 @@ def export(app, local):
     json:
         Contains the experiment data in JSON format.
     """
+    export_(app, local)
+
+
+def export_(app, local):
     dallinger_log(header)
     import_local_experiment()
 
@@ -454,42 +457,32 @@ def export(app, local):
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
 
-    dallinger_log("Exporting 'json' and 'csv' files.")
-    from dallinger.config import get_config
+    dallinger_zip_path = os.path.join(data_dir_path, "db-snapshot", f"{app}-data.zip")
 
-    config = get_config()
-    if not config.ready:
-        config.load()
-    base_url = get_base_url() if local else f"https://dlgr-{app}.herokuapp.com"
+    if not local:
+        dallinger_log("Populating the local database with the downloaded data.")
+        populate_db_from_zip_file(dallinger_zip_path)
+
+    dallinger_log("Exporting 'json' and 'csv' files.")
 
     for dallinger_model in dallinger_models():
         class_name = dallinger_model.__name__
 
-        result = requests.get(f"{base_url}/export", params={"class_name": class_name})
+        from psynet.data import export
 
-        # debugging json_decode_error
-        retries = 0
-        while True:
-            import json.decoder
+        class_data = export(class_name)
 
-            try:
-                json_text = result.content.decode("utf8")
-                json_data = json.loads(json_text)
-                break
-            except json.decoder.JSONDecodeError as e:
-                dallinger_log(f"A JSONDecoder error occurred for {class_name}.")
-                if retries <= 3:
-                    dallinger_log("Retrying...")
-                    retries += 1
-                else:
-                    dallinger_log(f"The problematic string was: {json_text}")
-                    raise e
-
-        for model_name, json_data in json_data.items():
+        for model_name, model_data in class_data.items():
             base_filename = model_name_to_snake_case(model_name)
             print(f"Exporting {base_filename} data...")
-            export_data(base_filename, data_dir_path, json_data)
+            export_data(base_filename, data_dir_path, model_data)
+
     dallinger_log("Export completed.")
+
+
+def populate_db_from_zip_file(zip_path):
+    db.init_db(drop_all=True)
+    dallinger.data.ingest_zip(zip_path)
 
 
 def dallinger_models():
@@ -532,17 +525,30 @@ def create_export_dirs(data_dir_path):
 
 
 def move_snapshot_file(data_dir_path, app):
-    try:
-        db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
-        filename = f"{app}-data.zip"
-        shutil.move(
-            os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
-        )
-    except OSError as e:
-        if e.errno != errno.EEXIST or not os.path.isdir(db_snapshot_path):
-            raise
+    db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
+    filename = f"{app}-data.zip"
+    shutil.move(
+        os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
+    )
 
 
 def format_seconds(seconds):
     minutes_and_seconds = divmod(seconds, 60)
     return f"{round(minutes_and_seconds[0])} min {round(minutes_and_seconds[1])} sec"
+
+
+@psynet.command()
+@click.option(
+    "--ip",
+    default="127.0.0.1",
+    help="IP address",
+)
+@click.option("--port", default="4444", help="Port")
+def rpdb(ip, port):
+    """
+    Alias for `nc <ip> <port>`.
+    """
+    subprocess.run(
+        ["nc %s %s" % (ip, port)],
+        shell=True,
+    )

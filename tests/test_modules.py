@@ -7,7 +7,8 @@ from psynet.timeline import Module, Timeline
 
 def test_repeated_modules():
     with pytest.raises(
-        ValueError, match="duplicated module ID\\(s\\): my-module, my-module-2"
+        ValueError,
+        match="The following module ID\\(s\\) were duplicated in your timeline: my-module, my-module-2",
     ):
         Timeline(
             NoConsent(),
