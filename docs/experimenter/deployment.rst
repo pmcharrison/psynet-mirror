@@ -148,7 +148,7 @@ Add a new section ``Docker`` containing the key ``docker_image_base_name`` to yo
 Build Docker image
 ++++++++++++++++++
 
-*This step is optional as `dallinger docker-ssh deploy` will also build the image if it has changed or does not exist yet.*
+*This step is optional as `dallinger docker-ssh deploy` will also build the image if it does not exist yet. Note however, when changing the experiment code you have to run the build command explicitly each time*
 
 The Docker image will contain all necessary software to independently run in a Docker container on the remote server.
 Build it with
