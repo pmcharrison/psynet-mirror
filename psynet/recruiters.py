@@ -6,12 +6,11 @@ import flask
 import requests
 from dallinger.config import get_config
 from dallinger.db import session
-from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
 
-from .lucid import LucidService, LucidServiceException
+from .lucid import LucidService
 from .utils import get_logger
 
 logger = get_logger()
@@ -140,10 +139,10 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     @property
     def is_in_progress(self):
         """Does an Lucid survey for the current experiment ID already exist?"""
-        return self.current_survey_id() is not None
+        return self.current_survey_number() is not None
 
     @property
-    def survey_id_storage_key(self):
+    def survey_number_storage_key(self):
         experiment_id = self.config.get("id")
         return "{}:{}".format(self.__class__.__name__, experiment_id)
 
@@ -152,15 +151,15 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         experiment_id = self.config.get("id")
         return "{}:{}:QUOTA".format(self.__class__.__name__, experiment_id)
 
-    def current_survey_id(self):
+    def current_survey_number(self):
         """
         Return the ID of the survey associated with the active experiment ID
         if any such survey exists.
         """
-        return self.store.get(self.survey_id_storage_key)
+        return self.store.get(self.survey_number_storage_key)
 
-    def _record_current_survey_id(self, survey_id):
-        self.store.set(self.survey_id_storage_key, survey_id)
+    def _record_current_survey_number(self, survey_number):
+        self.store.set(self.survey_number_storage_key, survey_number)
 
     def current_quota_id(self):
         """
@@ -173,7 +172,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         self.store.set(self.quota_id_storage_key, quota_id)
 
     def open_recruitment(self, n=1):
-        """Open a connection to Lucid and create a survey."""
+        """Open a connection to Lucid."""
         logger.info(
             f">>>>>>>>>> LUCID RECRUITER: Opening initial recruitment for {n} participants."
         )
@@ -182,68 +181,36 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
-        create_survey_request_params = {
-            "id": heroku_tools.app_name(self.config.get("id")),
-            "name": self.config.get("title"),
-            "live_url": self.ad_url.replace("http", "https"),
-        }
-
-        survey_info = self.lucidservice.create_survey(**create_survey_request_params)
-        self._record_current_survey_id(survey_info["SurveyNumber"])
-        url = survey_info["ClientSurveyLiveURL"]
-        logger.info(">>>>>>>>>> LUCID RECRUITER: Done creating project and survey.")
-
-        logger.info(">>>>>>>>>> LUCID RECRUITER: Creating qualifications and quota...")
-        survey_id = self.current_survey_id()
-        if survey_id is None:
-            logger.info(
-                ">>>>>>>>>> LUCID RECRUITER: No survey in progress: recruitment aborted."
-            )
-            return
-
-        try:
-            qualifications_and_quota_info = (
-                self.lucidservice.create_qualifications_and_quota(
-                    survey_id,
-                    number=n,
-                    duration_hours=self.config.get("duration"),
-                )
-            )
-            self._record_current_quota_id(
-                qualifications_and_quota_info["Quotas"][1]["SurveyQuotaID"]
-            )
-            logger.info(
-                f">>>>>>>>>> LUCID RECRUITER: Done. Quota id is '{self.current_quota_id()}'"
-            )
-        except LucidServiceException as e:
-            logger.exception(str(e))
-
-        logger.info(
-            ">>>>>>>>>> LUCID RECRUITER: Survey published to Lucid Marketplace."
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
         )
+        survey_number = lucid_recruitment_config["survey_number"]
+        self._record_current_survey_number(survey_number)
+        url = self.ad_url.replace("http", "https")
+
+        self.lucidservice.update_survey(survey_number, {"live_url": url})
+
+        logger.info(">>>>>>>>>> LUCID RECRUITER: Live URL updated successfully.")
         logger.info("----------")
-        logger.info("---------->" + url.replace("https", "http"))
+        logger.info("---------->" + url)
         logger.info("----------")
 
         return {
             "items": [url],
-            "message": "Survey published to Lucid Marketplace.",
+            "message": "Survey live_url updated.",
         }
 
     def recruit(self, n=1):
         logger.info(f">>>>>>>>>> LUCID RECRUITER: Recruiting another {n} participants.")
         response_data = None
 
-        try:
-            quotas = self.lucidservice.get_quotas(self.current_survey_id())
-            subquota = quotas["Quotas"][1]
-            if subquota["FieldTarget"] > subquota["Quota"]:
-                n = subquota["Quota"] + n
-                response_data = self.lucidservice.update_quota(
-                    self.current_survey_id(), self.current_quota_id(), number=n
-                )
-        except LucidServiceException as e:
-            logger.exception(str(e))
+        quotas = self.lucidservice.get_quotas(self.current_survey_number())
+        subquota = quotas["Quotas"][1]
+        if subquota["FieldTarget"] > subquota["Quota"]:
+            n = subquota["Quota"] + n
+            response_data = self.lucidservice.update_quota(
+                self.current_survey_number(), self.current_quota_id(), number=n
+            )
 
         logger.info(
             f">>>>>>>>>> LUCID RECRUITER: Quota with id '{self.current_quota_id()}'' updated to {n}."
@@ -277,7 +244,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         # TODO remove
         if not experiment.need_more_participants:
-            response_data = self.lucidservice.complete_survey(self.current_survey_id())
+            response_data = self.lucidservice.complete_survey(
+                self.current_survey_number()
+            )
             logger.info(
                 f"'>>>>>>>>>> LUCID RECRUITER: 'Complete survey' request returned: {response_data}"
             )
