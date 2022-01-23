@@ -166,6 +166,7 @@ class UnityPage(Page):
             "resources": self.resources,
             "contents": self.contents,
             "session_id": self.session_id,
+            "time_taken": None,
         }
 
 
