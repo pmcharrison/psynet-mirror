@@ -1053,7 +1053,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if False:  # participant.fingerprint_hash != fingerprint_hash:
+        if participant.fingerprint_hash != fingerprint_hash:
             logger.error(
                 f"Mismatch between provided fingerprint_hash ({fingerprint_hash})  "
                 + f"and actual fingerprint_hash {participant.fingerprint_hash} "
