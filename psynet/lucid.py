@@ -52,20 +52,51 @@ class LucidService(object):
     def survey_update_url(self):
         return f"{self.request_base_url}/surveys"
 
-    def update_survey(self, survey_number, data):
-        response = requests.patch(
-            f"{self.survey_update_url}/{survey_number}",
-            data=data,
+    def create_survey(
+        self,
+        id,
+        name,
+        quota,
+        live_url,
+    ):
+        """
+        Create a survey and return a dict with its properties.
+        """
+
+        # Create the survey
+        # "owner_id": 38490             # TODO: Is this correct? Got from dictionary lookup for users
+        # "business_unit_id": 2404,     # TODO: Get business unit id dynamically
+        # "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
+        params = {
+            # "project_id": response_data["id"],
+            "ClientSurveyLiveURL": live_url,
+            "TestRedirectURL": live_url,
+            "Quota": quota,
+            "name": name,
+        }
+        request_data = json.dumps({**params, **self.recruitment_config["survey"]})
+        # request_data = json.dumps({})
+        response = requests.post(
+            f"{self.request_base_url_v1}/Surveys/Create",
+            data=request_data,
             headers=self.headers,
         )
-
-        if not response.ok:
+        response_data = response.json()
+        logger.info("response_data")
+        logger.info(response_data)
+        logger.info("response_data")
+        if (
+            "SurveySID" not in response_data["Survey"]
+            or "SurveyNumber" not in response_data["Survey"]
+        ):
             raise LucidServiceException(
-                f"Error updating survey ({survey_number}): {response.text}"
+                ">>>>>>>>>> LUCID: 'Create survey' request was invalid for unknown reason."
             )
-        logger.info(f">>>>>>>>>> LUCID: Survey ({survey_number}) updated successfully.")
+        logger.info(
+            f'>>>>>>>>>> LUCID: Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
+        )
 
-        return response.json()
+        return response_data["Survey"]
 
     def update_quota(self, survey_number, quota_id, number):
         request_data = self.recruitment_config["sub_quota"]
@@ -104,9 +135,14 @@ class LucidService(object):
             raise LucidServiceException(
                 f"Error completing survey ({survey_number}): {response.text}"
             )
-        logger.info(f">>>>>>>>>> LUCID: Survey with id {survey_number} completed.")
 
+        logger.info(f">>>>>>>>>> LUCID: Survey with id {survey_number} completed.")
         return response.json()
+
+    def terminate_survey(self, survey_number):
+        logger.info(
+            f">>>>>>>>>> LUCID: TODO Securely terminating survey ({survey_number})."
+        )
 
     def get_quotas(self, survey_number):
         response = requests.get(

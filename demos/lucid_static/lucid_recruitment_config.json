@@ -1,3 +1,17 @@
 {
-	"survey_number": 16979870
+	"project": {
+		" owner_id": 38490
+	},
+	"survey": {
+        "SurveyStatusCode": "01",
+        "SurveyName": "Static demo survey test",
+        "CountryLanguageID": 9,
+        "IndustryID": 30,
+        "StudyTypeID": 1,
+        "ClientCPI": 1,
+        "QuotaCPI": 2,
+        "IsVerifyCallBack": true,
+        "UniquePID": true,
+        "UniqueIPAddress": true
+	}
 }

@@ -6,6 +6,7 @@ import flask
 import requests
 from dallinger.config import get_config
 from dallinger.db import session
+from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
@@ -118,7 +119,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
         # self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&hitId=[%RID%]&assignmentId=[%RID%]&workerId=[%RID%]"
-        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&hitId=111&assignmentId=222&workerId=333"
+        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=12345"
         self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
         self.store = kwargs.get("store") or RedisStore()
@@ -172,7 +173,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         self.store.set(self.quota_id_storage_key, quota_id)
 
     def open_recruitment(self, n=1):
-        """Open a connection to Lucid."""
+        """Open a connection to Lucid and create a survey."""
         logger.info(
             f">>>>>>>>>> LUCID RECRUITER: Opening initial recruitment for {n} participants."
         )
@@ -181,19 +182,29 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
-        lucid_recruitment_config = json.loads(
-            self.config.get("lucid_recruitment_config")
-        )
-        survey_number = lucid_recruitment_config["survey_number"]
-        self._record_current_survey_number(survey_number)
-        url = self.ad_url.replace("http", "https")
+        create_survey_request_params = {
+            "id": heroku_tools.app_name(self.config.get("id")),
+            "name": self.config.get("title"),
+            "quota": n,
+            "live_url": self.ad_url.replace("http", "https"),
+        }
 
-        self.lucidservice.update_survey(survey_number, {"live_url": url})
+        survey_info = self.lucidservice.create_survey(**create_survey_request_params)
+        self._record_current_survey_number(survey_info["SurveyNumber"])
+        url = survey_info["ClientSurveyLiveURL"]
+        logger.info(">>>>>>>>>> LUCID RECRUITER: Done creating project and survey.")
 
         logger.info(">>>>>>>>>> LUCID RECRUITER: Live URL updated successfully.")
         logger.info("----------")
-        logger.info("---------->" + url)
+        logger.info("---------->" + url.replace("https", "http"))
         logger.info("----------")
+
+        survey_id = self.current_survey_number()
+        if survey_id is None:
+            logger.info(
+                ">>>>>>>>>> LUCID RECRUITER: No survey in progress: recruitment aborted."
+            )
+            return
 
         return {
             "items": [url],
@@ -201,22 +212,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         }
 
     def recruit(self, n=1):
-        logger.info(f">>>>>>>>>> LUCID RECRUITER: Recruiting another {n} participants.")
-        response_data = None
-
-        quotas = self.lucidservice.get_quotas(self.current_survey_number())
-        subquota = quotas["Quotas"][1]
-        if subquota["FieldTarget"] > subquota["Quota"]:
-            n = subquota["Quota"] + n
-            response_data = self.lucidservice.update_quota(
-                self.current_survey_number(), self.current_quota_id(), number=n
-            )
-
-        logger.info(
-            f">>>>>>>>>> LUCID RECRUITER: Quota with id '{self.current_quota_id()}'' updated to {n}."
-        )
-
-        return response_data
+        return []
 
     def close_recruitment(self):
         logger.info(
@@ -236,32 +232,60 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             participant.status = "abandoned"
             session.commit()
 
+    def normalize_entry_information(self, entry_information):
+        """Accepts data from recruited user and returns data needed to validate,
+        create or load a Dallinger Participant.
+
+        See :func:`~dallinger.experiment.Experiment.create_participant` for
+        details.
+
+        The default implementation extracts ``hit_id``, ``assignment_id``, and
+        ``worker_id`` values directly from the ``entry_information``.
+
+        Returning a dictionary without valid ``hit_id``, ``assignment_id``, or
+        ``worker_id`` will generally result in an exception.
+        """
+
+        rid = entry_information.get("RID", entry_information.get("rid", None))
+
+        participant_data = {
+            "hit_id": rid,
+            "assignment_id": rid,
+            "worker_id": rid,
+        }
+        data = {
+            "hitId": rid,
+            "assignmentId": rid,
+            "workerId": rid,
+        }
+
+        logger.info("entry_information")
+        logger.info(entry_information)
+        if entry_information:
+            participant_data["entry_information"] = {
+                **participant_data,
+                **entry_information,
+                **data,
+            }
+        logger.info("participant_data")
+        logger.info(participant_data)
+        return participant_data
+
     def exit_response(self, experiment, participant):
         """
         Delegate to the experiment for possible values to show to the
         participant and complete the survey if no more participants are needed.
         """
-
-        # TODO remove
-        if not experiment.need_more_participants:
-            response_data = self.lucidservice.complete_survey(
-                self.current_survey_number()
-            )
-            logger.info(
-                f"'>>>>>>>>>> LUCID RECRUITER: 'Complete survey' request returned: {response_data}"
-            )
-
+        response_data = self.lucidservice.complete_survey(self.current_survey_number())
         logger.info(
-            f">>>>>>>>>> LUCID RECRUITER: Calling exit route: {self.external_submission_url + participant.assignment_id}"
+            f">>>>>>>>>> LUCID RECRUITER: 'Complete survey' request returned: {response_data}\n"
+            + f">>>>>>>>>> LUCID RECRUITER: Calling exit route: {self.external_submission_url + participant.assignment_id}"
         )
 
-        # TODO implement SHA1
         complete_redirect_url = (
             self.external_submission_url + participant.assignment_id + "&"
         )
-        logger.info(f"SHA1 -----> URL: {complete_redirect_url}")
         hash = self.sha1_hash(complete_redirect_url)
-        logger.info(f"SHA1 -----> HASH: {hash}")
         url = f"{complete_redirect_url}hash={hash}"
         logger.info(f"SHA1 -----> URL with HASH: {url}")
 
