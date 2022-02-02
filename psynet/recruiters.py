@@ -110,11 +110,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     The LucidRecruiter base class
     """
 
-    external_submission_url = (
-        "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
-    )
-    # extra_routes = mturk_routes
-
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
         self.config = get_config()
@@ -276,41 +271,21 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         Delegate to the experiment for possible values to show to the
         participant and complete the survey if no more participants are needed.
         """
-        response_data = self.lucidservice.complete_survey(self.current_survey_number())
-        logger.info(
-            f">>>>>>>>>> LUCID RECRUITER: 'Complete survey' request returned: {response_data}\n"
-            + f">>>>>>>>>> LUCID RECRUITER: Calling exit route: {self.external_submission_url + participant.assignment_id}"
-        )
+        if participant.failed:
+            redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
+        else:
+            redirect_url = (
+                "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
+            )
 
-        complete_redirect_url = (
-            self.external_submission_url + participant.assignment_id + "&"
-        )
-        hash = self.sha1_hash(complete_redirect_url)
-        url = f"{complete_redirect_url}hash={hash}"
-        logger.info(f"SHA1 -----> URL with HASH: {url}")
+        redirect_url += participant.assignment_id + "&"
+        hash = self.lucidservice.sha1_hash(redirect_url)
+        redirect_url += f"hash={hash}"
+        logger.info(f">>>>>>>>>> LUCID RECRUITER: Exit redirect: {redirect_url}")
 
         return flask.render_template(
             "exit_recruiter_lucid.html",
-            external_submit_url=complete_redirect_url,
-        )
-
-    def sha1_hash(self, url):
-        import base64
-        import hashlib
-        import hmac
-
-        key = "secret_key"  # TODO
-
-        encoded_key = key.encode("utf-8")
-        encoded_URL = url.encode("utf-8")
-        hashed = hmac.new(encoded_key, msg=encoded_URL, digestmod=hashlib.sha1)
-        digested_hash = hashed.digest()
-        base64_encoded_result = base64.b64encode(digested_hash)
-        return (
-            base64_encoded_result.decode("utf-8")
-            .replace("+", "-")
-            .replace("/", "_")
-            .replace("=", "")
+            external_submit_url=redirect_url,
         )
 
 

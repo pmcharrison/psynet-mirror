@@ -139,11 +139,6 @@ class LucidService(object):
         logger.info(f">>>>>>>>>> LUCID: Survey with id {survey_number} completed.")
         return response.json()
 
-    def terminate_survey(self, survey_number):
-        logger.info(
-            f">>>>>>>>>> LUCID: TODO Securely terminating survey ({survey_number})."
-        )
-
     def get_quotas(self, survey_number):
         response = requests.get(
             f"{self.request_base_url_v1}/SurveyQuotas/BySurveyNumber/{survey_number}",
@@ -159,3 +154,22 @@ class LucidService(object):
         )
 
         return response.json()
+
+    def sha1_hash(self, url):
+        import base64
+        import hashlib
+        import hmac
+
+        key = "secret_key"  # TODO
+
+        encoded_key = key.encode("utf-8")
+        encoded_URL = url.encode("utf-8")
+        hashed = hmac.new(encoded_key, msg=encoded_URL, digestmod=hashlib.sha1)
+        digested_hash = hashed.digest()
+        base64_encoded_result = base64.b64encode(digested_hash)
+        return (
+            base64_encoded_result.decode("utf-8")
+            .replace("+", "-")
+            .replace("/", "_")
+            .replace("=", "")
+        )

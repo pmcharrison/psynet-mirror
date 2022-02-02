@@ -5,7 +5,6 @@
 ##########################################################################################
 
 import logging
-from datetime import datetime
 
 from flask import Markup
 
@@ -21,7 +20,6 @@ from psynet.trial.static import (
     StimulusSpec,
     StimulusVersionSpec,
 )
-from psynet.utils import call_function
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -193,28 +191,3 @@ class Exp(psynet.experiment.Experiment):
         return {
             "Lucid RID": participant.assignment_id,
         }
-
-    def fail_participant(self, participant):
-        logger.info(
-            "Failing participant %i (%i routine(s) found)...",
-            participant.id,
-            len(self.participant_fail_routines),
-        )
-
-        response_data = self.lucidservice.terminate_survey(self.current_survey_number())
-
-        logger.info(f"terminate response data: {response_data}")
-        logger.info("Survey terminated.")
-
-        participant.failed = True
-        participant.time_of_death = datetime.now()
-        for i, routine in enumerate(self.participant_fail_routines):
-            logger.info(
-                "Executing fail routine %i/%i ('%s')...",
-                i + 1,
-                len(self.participant_fail_routines),
-                routine.label,
-            )
-            call_function(
-                routine.function, {"participant": participant, "experiment": self}
-            )
