@@ -82,9 +82,9 @@ class LucidService(object):
             headers=self.headers,
         )
         response_data = response.json()
-        logger.info("response_data")
+        logger.info("+++++ response_data +++++")
         logger.info(response_data)
-        logger.info("response_data")
+        logger.info("+++++ response_data +++++")
         if (
             "SurveySID" not in response_data["Survey"]
             or "SurveyNumber" not in response_data["Survey"]
@@ -97,6 +97,74 @@ class LucidService(object):
         )
 
         return response_data["Survey"]
+
+    def remove_default_qualifications_from_survey(self, survey_number):
+        """Remove default qualifications from a survey."""
+        qualifications = [
+            {
+                "Name": "ZIP",
+                "QuestionID": 45,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": False,
+                "Order": 2,
+                "PreCodes": [],
+            },
+            {
+                "Name": "STANDARD_HHI_US",
+                "QuestionID": 14785,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": False,
+                "Order": 6,
+                "PreCodes": [],
+            },
+            {
+                "Name": "ETHNICITY",
+                "QuestionID": 113,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": False,
+                "Order": 5,
+                "PreCodes": [],
+            },
+            {
+                "Name": "GENDER",
+                "QuestionID": 43,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": False,
+                "Order": 3,
+                "PreCodes": [],
+            },
+            {
+                "Name": "HISPANIC",
+                "QuestionID": 47,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": False,
+                "Order": 4,
+                "PreCodes": [],
+            },
+        ]
+
+        for qualification in qualifications:
+            request_data = json.dumps(qualification)
+            response = requests.put(
+                f"{self.request_base_url_v1}/SurveyQualifications/Update/{survey_number}",
+                data=request_data,
+                headers=self.headers,
+            )
+            response_data = response.json()
+
+        return response_data
+
+    def get_qualifications(self, survey_number):
+        response = requests.get(
+            f"{self.request_base_url_v1}/SurveyQualifications/BySurveyNumber/{survey_number}",
+            headers=self.headers,
+        )
+        return response.json()
 
     def update_quota(self, survey_number, quota_id, number):
         request_data = self.recruitment_config["sub_quota"]

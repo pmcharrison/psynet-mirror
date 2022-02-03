@@ -12,6 +12,8 @@
         "QuotaCPI": 2,
         "IsVerifyCallBack": true,
         "UniquePID": true,
-        "UniqueIPAddress": true
+        "UniqueIPAddress": true,
+        "FulcrumExchangeAllocation": 0,
+        "FulcrumExchangeHedgeAccess": true
 	}
 }

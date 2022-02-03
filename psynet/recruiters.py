@@ -112,24 +112,22 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
+        self.ad_url = (
+            f"{get_base_url()}/ad?recruiter={self.nickname}&RID=12345"  # [%RID%]
+        )
         self.config = get_config()
-        # self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&hitId=[%RID%]&assignmentId=[%RID%]&workerId=[%RID%]"
-        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=12345"
-        self.notifies_admin = admin_notifier(self.config)
         self.mailer = get_mailer(self.config)
-        self.store = kwargs.get("store") or RedisStore()
+        self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
             api_key=self.config.get("lucid_api_key"),
             sandbox=self.config.get("mode") != "live",
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
+        self.store = kwargs.get("store") or RedisStore()
 
     @property
     def survey_update_url(self):
-        """
-        On experiment completion, participants are returned to
-        the Lucid Marketplace site to submit their survey.
-        """
+        """The base URL for updating a survey"""
         return self.lucidservice.survey_update_url
 
     @property
@@ -181,15 +179,19 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             "id": heroku_tools.app_name(self.config.get("id")),
             "name": self.config.get("title"),
             "quota": n,
-            "live_url": self.ad_url.replace("http", "https"),
+            "live_url": self.ad_url.replace("http://", "https://"),
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_number(survey_info["SurveyNumber"])
+
+        if self.lucidservice.recruitment_config["survey"]["CountryLanguageID"] == 9:
+            self.lucidservice.remove_default_qualifications_from_survey(
+                self.current_survey_number()
+            )
+
         url = survey_info["ClientSurveyLiveURL"]
         logger.info(">>>>>>>>>> LUCID RECRUITER: Done creating project and survey.")
-
-        logger.info(">>>>>>>>>> LUCID RECRUITER: Live URL updated successfully.")
         logger.info("----------")
         logger.info("---------->" + url.replace("https", "http"))
         logger.info("----------")
