@@ -111,14 +111,14 @@ class CAPRecruiterAudiovisualConsent(Module):
             conditional(
                 "cap-recruiter_audiovisual_consent_conditional",
                 lambda experiment, participant: (
-                    not participant.answer["audiovisual_consent"]
+                    not participant.answer["cap-recruiter_audiovisual_consent"]
                 ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
                     "cap-recruiter_audiovisual_consent",
-                    participant.answer["audiovisual_consent"],
+                    participant.answer["cap-recruiter_audiovisual_consent"],
                 )
             ),
             CodeBlock(
@@ -154,7 +154,7 @@ class CAPRecruiterAudiovisualConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {
-                "audiovisual_consent": raw_answer,
+                "cap-recruiter_audiovisual_consent": raw_answer,
                 "demonstration_purposes_consent": kwargs["metadata"][
                     "demonstration_purposes_consent"
                 ],
@@ -185,13 +185,14 @@ class MTurkStandardConsent(Module):
             conditional(
                 "mturk_standard_consent_conditional",
                 lambda experiment, participant: (
-                    not participant.answer["standard_consent"]
+                    not participant.answer["mturk_standard_consent"]
                 ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
-                    "mturk_standard_consent", participant.answer["standard_consent"]
+                    "mturk_standard_consent",
+                    participant.answer["mturk_standard_consent"],
                 )
             ),
         )
@@ -218,7 +219,7 @@ class MTurkStandardConsent(Module):
             )
 
         def format_answer(self, raw_answer, **kwargs):
-            return {"standard_consent": raw_answer}
+            return {"mturk_standard_consent": raw_answer}
 
 
 class MTurkAudiovisualConsent(Module):
@@ -575,3 +576,66 @@ class OpenScienceConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"open_science_consent": raw_answer}
+
+
+################################################
+# Voluntary participation with no compensation #
+################################################
+class VoluntaryWithNoCompensationConsent(Module):
+    """
+    The voluntary participation with no compensation consent form.
+
+    Parameters
+    ----------
+
+    time_estimate:
+        Time estimated for the page.
+    """
+
+    def __init__(
+        self,
+        time_estimate: Optional[float] = 30,
+    ):
+        self.label = "voluntary_with_no_compensation_consent"
+        self.elts = join(
+            self.VoluntaryWithNoCompensationConsentPage(),
+            conditional(
+                "voluntary_with_no_compensation_consent_conditional",
+                lambda experiment, participant: (
+                    not participant.answer["voluntary_with_no_compensation_consent"]
+                ),
+                RejectedConsentPage(),
+            ),
+            CodeBlock(
+                lambda participant: participant.var.set(
+                    "voluntary_with_no_compensation_consent",
+                    participant.answer["voluntary_with_no_compensation_consent"],
+                )
+            ),
+        )
+        super().__init__(self.label, self.elts)
+
+    class VoluntaryWithNoCompensationConsentPage(Page, Consent):
+        """
+        This page displays the voluntary participation with no compensation consent page.
+
+        Parameters
+        ----------
+
+        time_estimate:
+            Time estimated for the page.
+        """
+
+        def __init__(
+            self,
+            time_estimate: Optional[float] = 30,
+        ):
+            super().__init__(
+                time_estimate=time_estimate,
+                template_str=get_template(
+                    "consents/voluntary_with_no_compensation_consent.html"
+                ),
+            )
+
+        def format_answer(self, raw_answer, **kwargs):
+            return {"voluntary_with_no_compensation_consent": raw_answer}

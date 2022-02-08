@@ -10,6 +10,7 @@ from psynet.consent import (
     NoConsent,
     OpenScienceConsent,
     PrincetonConsent,
+    VoluntaryWithNoCompensationConsent,
 )
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -25,6 +26,7 @@ class Exp(psynet.experiment.Experiment):
         DatabaseConsent(),
         AudiovisualConsent(),
         OpenScienceConsent(),
+        VoluntaryWithNoCompensationConsent(),
         MTurkStandardConsent(),
         MTurkAudiovisualConsent(),
         CAPRecruiterStandardConsent(),
