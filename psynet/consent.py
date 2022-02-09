@@ -166,7 +166,9 @@ class CAPRecruiterAudiovisualConsent(Module):
 #########
 class MTurkStandardConsent(Module):
     """
-    The MTurk standard consent form.
+    .. deprecated:: 5.3.0
+        Use new consent pages `MainConsent`, `DatabaseConsent`, `AudiovisualConsent`, `OpenScienceConsent`,
+        and `VoluntaryWithNoCompensationConsent` instead.
 
     Parameters
     ----------
@@ -200,7 +202,9 @@ class MTurkStandardConsent(Module):
 
     class MTurkStandardConsentPage(Page, Consent):
         """
-        This page displays the MTurk standard consent page.
+        .. deprecated:: 5.3.0
+            Use new consent pages `MainConsentPage`, `DatabaseConsentPage`, `AudiovisualConsentPage`, `OpenScienceConsentPage`,
+            and `VoluntaryWithNoCompensationConsentPage` instead.
 
         Parameters
         ----------
@@ -224,7 +228,9 @@ class MTurkStandardConsent(Module):
 
 class MTurkAudiovisualConsent(Module):
     """
-    The MTurk audiovisual recordings consent form.
+    .. deprecated:: 5.3.0
+        Use new consent pages `MainConsent`, `DatabaseConsent`, `AudiovisualConsent`, `OpenScienceConsent`,
+        and `VoluntaryWithNoCompensationConsent` instead.
 
     Parameters
     ----------
@@ -258,7 +264,9 @@ class MTurkAudiovisualConsent(Module):
 
     class MTurkAudiovisualConsentPage(Page, Consent):
         """
-        This page displays the MTurk audiovisual consent page.
+        .. deprecated:: 5.3.0
+            Use new consent pages `MainConsentPage`, `DatabaseConsentPage`, `AudiovisualConsentPage`, `OpenScienceConsentPage`,
+            and `VoluntaryWithNoCompensationConsentPage` instead.
 
         Parameters
         ----------
