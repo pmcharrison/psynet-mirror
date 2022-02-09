@@ -1042,19 +1042,21 @@ class Experiment(dallinger.experiment.Experiment):
             template_name, participant_abort_info=participant.abort_info()
         )
 
-    @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
+    @experiment_route(
+        "/timeline/<int:participant_id>/<fingerprint_hash>", methods=["GET"]
+    )
     @classmethod
-    def route_timeline(cls, participant_id, assignment_id):
+    def route_timeline(cls, participant_id, fingerprint_hash):
         from psynet.utils import error_page
 
         exp = cls.new(db.session)
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if participant.assignment_id != assignment_id:
+        if participant.fingerprint_hash != fingerprint_hash:
             logger.error(
-                f"Mismatch between provided assignment_id ({assignment_id})  "
-                + f"and actual assignment_id {participant.assignment_id} "
+                f"Mismatch between provided fingerprint_hash ({fingerprint_hash})  "
+                + f"and actual fingerprint_hash {participant.fingerprint_hash} "
                 f"for participant {participant_id}."
             )
             msg = (
