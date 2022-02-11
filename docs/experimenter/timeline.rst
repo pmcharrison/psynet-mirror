@@ -114,7 +114,7 @@ being carried out. We include the `Page` types :class:`~psynet.consent.MainConse
 experiments making use of recruitment systems, like `MTurk`, `Prolific`, and `Lucid Marketplace`. Additionally, `Page`
 types :class:`~psynet.consent.CAPRecruiterStandardConsentPage` and
 :class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage` make use of the CAP-Recruiter web application as the
-recruitment instrument, resp. One or more consent pages can be added to the start of an experiment timeline, as
+recruitment instrument, respectively. One or more consent pages can be added to the start of an experiment timeline, as
 appropriate.
 
 This should be enough to start experimenting with different kinds of page types.
