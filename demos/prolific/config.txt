@@ -17,7 +17,7 @@ browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Ad metadata]
-description = This app demos an experiment using the Prolific recruiter.
+description = Short hearing test (requires a Chrome browser and a set of headphones)
 keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
@@ -38,4 +38,4 @@ clock_on = true
 [Prolific]
 prolific_reward_cents = 25
 prolific_estimated_completion_minutes = 2
-prolific_maximum_allowed_minutes = 5
+prolific_maximum_allowed_minutes = 60
