@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Prolific test demo
+title = Prolific hearing test demo
 base_payment = 0.10
 
 [Recruitment strategy]
