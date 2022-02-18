@@ -59,8 +59,7 @@ header = r"""
            /____/
                                  {:>8}
 
-                Laboratory automation for
-       the behavioral and social sciences.
+        Taking online experiments to the next level
 """.format(
     f"v{__version__}"
 )
