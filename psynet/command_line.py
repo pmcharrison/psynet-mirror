@@ -206,6 +206,8 @@ def docs(force_rebuild):
 def run_pre_checks(mode):
     from dallinger.recruiters import MTurkRecruiter
 
+    db.init_db(drop_all=True)
+
     config = get_config()
     if not config.ready:
         config.load()
