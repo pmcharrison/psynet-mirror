@@ -1359,11 +1359,7 @@
     </style>
 
     <div id="text-input-container">
-        {% if config.one_line %}
-            <input id="text-input" class="form-control response" type="text" value=""/>
-        {% else %}
-            <textarea id="text-input" class="form-control response" type="text"></textarea>
-        {% endif %}
+        <{% if config.one_line %}input{% else %}textarea{% endif %} id="text-input" class="form-control response" type="text" value="" {% if config.block_copy_paste %}onselectstart="return false" oncut="return false" oncopy="return false" onpaste="return false" ondrag="return false" ondrop="return false"{% endif %}><{% if config.one_line %}/input{% else %}/textarea{% endif %}>
     </div>
     <p class="vspace"></p>
 
