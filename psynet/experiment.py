@@ -272,6 +272,8 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
             "show_footer": True,
             "show_progress_bar": True,
+            "window_width": 1024,
+            "window_height": 768,
         }
 
     @property
