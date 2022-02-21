@@ -138,7 +138,8 @@ def run_pre_checks_deploy(exp, config, is_mturk):
         and not click.confirm(
             f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
             f"You will not be able to recruit more than {initial_recruitment_size} participant(s), "
-            "due to a restriction in the MTurk pricing scheme."
+            "due to a restriction in the MTurk pricing scheme.",
+            default=True,
         )
     ):
         raise click.Abort
@@ -229,7 +230,8 @@ def run_pre_checks_sandbox(exp, config, is_mturk):
         and us_only
         and not click.confirm(
             "Are you sure you want to sandbox with us_only = True? "
-            "Only people with US accounts will be able to test the experiment."
+            "Only people with US accounts will be able to test the experiment.",
+            default=True,
         )
     ):
         raise click.Abort

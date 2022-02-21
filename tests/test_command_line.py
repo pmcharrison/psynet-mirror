@@ -22,6 +22,7 @@ class TestCommandLine(object):
         assert b"Commands:" in output
 
 
+@pytest.mark.usefixtures("demo_static")
 class TestDebug:
     @pytest.fixture
     def debug(self):
@@ -57,6 +58,7 @@ class TestDebug:
         )
 
 
+@pytest.mark.usefixtures("demo_static")
 class TestDeploy:
     @pytest.fixture
     def deploy(self):
@@ -95,6 +97,7 @@ class TestDeploy:
         )
 
 
+@pytest.mark.usefixtures("demo_static")
 class TestSandbox:
     @pytest.fixture
     def sandbox(self):
