@@ -18,7 +18,7 @@
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
                 let participantId = dallinger.identity.participantId;
-                dallinger.goToPage("timeline/" + participantId + "/" + dallinger.identity.assignmentId);
+                dallinger.goToPage("timeline/" + participantId + "/" + dallinger.identity.fingerprintHash);
             }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);

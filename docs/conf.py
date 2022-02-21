@@ -169,10 +169,12 @@ texinfo_documents = [
 ]
 
 # This creates an 'Edit in GitLab' button on each documentation page.
-# This will propose a commit to the 'docs-staging' branch.
-# GitHub has an even better mechanism than GitLab, which gets the user
-# to propose a new branch with its own merge request, but unfortunately
-# we can't really achieve this without migrating to GitHub.
+# This will take the user to a web IDE where they can propose changes
+# to the documentation page. When the user commits these changes, 
+# GitLab will create a new branch with a default name looking something 
+# like `pmcharrison-master-patch-68438`, 
+# and will prompt the user to create a merge request to master,
+# which will then have to be verified through code review before merging.
 #
 # See https://docs.readthedocs.io/en/stable/guides/edit-source-links-sphinx.html
 # for info on this specification.
@@ -180,6 +182,6 @@ html_context = {
     "display_gitlab": True, # Integrate Gitlab
     "gitlab_user": "computational-audition-lab", # Username
     "gitlab_repo": "psynet", # Repo name
-    "gitlab_version": "docs-staging", # Version
+    "gitlab_version": "master", # Branch to edit
     "conf_py_path": "/docs/", # Path in the checkout to the docs root
 }

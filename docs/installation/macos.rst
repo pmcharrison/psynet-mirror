@@ -1,7 +1,7 @@
 macOS
 =====
 
-The following installation instructions apply to **macOS Big Sur (11.1) and Catalina (10.15)**. They address both experiment authors as well as developers who want to work on PsyNet's source code.
+The following installation instructions apply to **macOS Monterey (12.1), Big Sur (11.1), and Catalina (10.15)**. They address both experiment authors as well as developers who want to work on PsyNet's source code.
 
 .. note::
    You must have set up your GitLab SSH keys already.
@@ -94,6 +94,12 @@ Activate virtual environment
 
    workon psynet
 
+Disable AirPlay
+~~~~~~~~~~~~~~~
+
+MacOS Monterey introduces 'AirPlay Receiver' functionality that clashes with the default ports used by Dallinger and PsyNet.
+You should disable this functionality before proceeding. To achieve this, go to System Preferences, then Sharing,
+and then untick the box labeled 'Airplay Receiver'.
 
 Dallinger
 ---------
@@ -142,8 +148,13 @@ In the example below PsyNet is cloned into the user's home directory, but you ca
    cd psynet
    pip3 install --editable .
 
-Install PsyNet on Big Sur 11.3/M1
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Legacy instructions for Big Sur 11.3/M1
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Originally when MacOS Big Sur came out, we experienced issues compiling some of PsyNet's dependencies.
+We found that we could resolve these issues by moving to the virtual environment manager `conda`.
+This fix no longer seems to be necessary, but for posterity we give our original instructions below,
+in case they are still useful to some people. By default, though, you should skip this section.
 
 In order to have PsyNet work with Big Sur 11.3 macOS with the M1 chip, we advise you use `conda` to download, install, and manage packages within your virtual environment. You can obtain this software by downloading `Miniconda <https://docs.conda.io/en/latest/miniconda.html>`_ . You could also accomplish this with `Anaconda <https://www.anaconda.com/>`_, but this will download about 5 GB worth of software that is not needed to install PsyNet. Once you have installed Miniconda, you can then type the following commands into your Terminal:
 

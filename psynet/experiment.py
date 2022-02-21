@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from platform import python_version
 from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
@@ -132,6 +133,9 @@ class Experiment(dallinger.experiment.Experiment):
     dallinger_version : `str`
         The version of the `Dallinger` package.
 
+    python_version : `str`
+        The version of the `Python`.
+
     hard_max_experiment_payment_email_sent : `bool`
         Whether an email to the experimenter has already been sent indicating the `hard_max_experiment_payment`
         had been reached. Default: `False`. Once this is `True`, no more emails will be sent about
@@ -260,6 +264,7 @@ class Experiment(dallinger.experiment.Experiment):
         return {
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
+            "python_version": python_version(),
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -1042,19 +1047,21 @@ class Experiment(dallinger.experiment.Experiment):
             template_name, participant_abort_info=participant.abort_info()
         )
 
-    @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
+    @experiment_route(
+        "/timeline/<int:participant_id>/<fingerprint_hash>", methods=["GET"]
+    )
     @classmethod
-    def route_timeline(cls, participant_id, assignment_id):
+    def route_timeline(cls, participant_id, fingerprint_hash):
         from psynet.utils import error_page
 
         exp = cls.new(db.session)
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if participant.assignment_id != assignment_id:
+        if participant.fingerprint_hash != fingerprint_hash:
             logger.error(
-                f"Mismatch between provided assignment_id ({assignment_id})  "
-                + f"and actual assignment_id {participant.assignment_id} "
+                f"Mismatch between provided fingerprint_hash ({fingerprint_hash})  "
+                + f"and actual fingerprint_hash {participant.fingerprint_hash} "
                 f"for participant {participant_id}."
             )
             msg = (

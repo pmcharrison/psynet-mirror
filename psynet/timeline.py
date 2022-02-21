@@ -1600,6 +1600,7 @@ def while_loop(
     expected_repetitions: int,
     max_loop_time: float = None,
     fix_time_credit=True,
+    fail_on_timeout=True,
 ):
     """
     Loops a series of elts while a given criterion is satisfied.
@@ -1632,6 +1633,11 @@ def while_loop(
         Whether participants should receive the same time credit irrespective of whether
         ``condition`` returns ``True`` or not; defaults to ``True``, so that all participants
         receive the same credit.
+
+    fail_on_timeout:
+        Whether the participants should be failed when the ``max_loop_time`` is reached.
+        Setting this to ``False`` will not return the ``UnsuccessfulEndPage`` when maximum time has elapsed
+        but allow them to proceed to the next page.
 
     Returns
     -------
@@ -1669,6 +1675,11 @@ def while_loop(
 
     from .page import UnsuccessfulEndPage
 
+    if fail_on_timeout is True:
+        after_timeout_logic = UnsuccessfulEndPage()
+    else:
+        after_timeout_logic = GoTo(end_while)
+
     elts = join(
         CodeBlock(
             lambda participant: participant.var.set(
@@ -1682,7 +1693,7 @@ def while_loop(
                 max_loop_time_condition,
                 {"participant": participant, "experiment": experiment},
             ),
-            UnsuccessfulEndPage(),
+            after_timeout_logic,
             fix_time_credit=False,
             log_chosen_branch=False,
         ),
