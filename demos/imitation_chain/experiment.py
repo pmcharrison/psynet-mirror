@@ -31,18 +31,14 @@ logger = get_logger()
 
 
 class FixedDigitInputPage(ModularPage):
-    def __init__(
-        self,
-        label: str,
-        prompt: str,
-    ):
+    def __init__(self, label: str, prompt: str, time_estimate: float):
         self.num_digits = 7
 
         super().__init__(
             label,
             Prompt(prompt),
             control=TextControl(
-                label,
+                block_copy_paste=True,
             ),
         )
 
