@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from platform import python_version
 from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
@@ -138,6 +139,9 @@ class Experiment(dallinger.experiment.Experiment):
     dallinger_version : `str`
         The version of the `Dallinger` package.
 
+    python_version : `str`
+        The version of the `Python`.
+
     hard_max_experiment_payment_email_sent : `bool`
         Whether an email to the experimenter has already been sent indicating the `hard_max_experiment_payment`
         had been reached. Default: `False`. Once this is `True`, no more emails will be sent about
@@ -266,6 +270,7 @@ class Experiment(dallinger.experiment.Experiment):
         return {
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
+            "python_version": python_version(),
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -278,6 +283,8 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
             "show_footer": True,
             "show_progress_bar": True,
+            "window_width": 1024,
+            "window_height": 768,
         }
 
     @property

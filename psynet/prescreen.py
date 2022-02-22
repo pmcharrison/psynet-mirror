@@ -22,6 +22,7 @@ from .modular_page import (
 from .page import InfoPage, UnsuccessfulEndPage
 from .timeline import (
     CodeBlock,
+    Event,
     Module,
     PageMaker,
     ProgressDisplay,
@@ -1569,6 +1570,10 @@ class HeadphoneTest(Module):
                         "Which sound was softest (quietest) -- 1, 2, or 3?",
                     ),
                     PushButtonControl(["1", "2", "3"]),
+                    events={
+                        "responseEnable": Event(is_triggered_by="promptEnd"),
+                        "submitEnable": Event(is_triggered_by="promptEnd"),
+                    },
                     time_estimate=self.time_estimate,
                 )
 
