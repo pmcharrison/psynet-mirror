@@ -4,7 +4,7 @@
 
 #### Fixed
 - The response buttons in the headphone screening task now are disabled until the audio has finished playing 
-  (author: Pol van Rijn, reviewer: Peter Harrison).
+  (author: Pol van Rijn, reviewer: Peter Harrison)
 - Fix deprecation warnings by replacing Selenium `find_element_by_*` commands with `find_element`
   (author: Frank Höger)
 
@@ -14,7 +14,8 @@
   `DatabaseConsentPage`,
   `AudiovisualConsentPage`,
   `OpenScienceConsentPage`,
-  `VoluntaryWithNoCompensationConsentPage`.
+  `VoluntaryWithNoCompensationConsentPage`
+  (author: Frank Höger, reviewer: Nori Jacoby)
 - Added new experiment variables `window_width` and `window_height` to allow for customization of
   the experiment window's size. Default: 1024 x 768
   (author: Fotini Deligiannaki, reviewer: Peter Harrison)
