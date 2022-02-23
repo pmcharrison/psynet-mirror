@@ -111,7 +111,7 @@ Before the start of an experiment you normally want to have the participant cons
 being carried out. We include the `Page` types :class:`~psynet.consent.MainConsent`,
 :class:`~psynet.consent.DatabaseConsent`, :class:`~psynet.consent.AudiovisualConsent`,
 :class:`~psynet.consent.OpenScienceConsent`, and :class:`~psynet.consent.VoluntaryWithNoCompensationConsent` for
-experiments making use of recruitment systems, like `MTurk`, `Prolific`, and `Lucid Marketplace`. Additionally, `Page`
+experiments making use of recruitment systems, like `MTurk` and `Prolific`. Additionally, `Page`
 types :class:`~psynet.consent.CAPRecruiterStandardConsentPage` and
 :class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage` make use of the CAP-Recruiter web application as the
 recruitment instrument, respectively. One or more consent pages can be added to the start of an experiment timeline, as
