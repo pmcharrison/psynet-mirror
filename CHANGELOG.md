@@ -41,13 +41,18 @@
   (author: Frank Höger, reviewer: Peter Harrison)
 
 #### Updated
-- Updated Dallinger to v8.0.0.
-- Updated Python to version 3.10 and Dallinger to version 8.0.0. in `.gitlab-ci.yml`.
-- Update docs to for Python 3.10.
-- Updated black, isort, and flake8 to latest versions (used when running the Git pre-commit hooks).
+- Updated Dallinger to v8.0.0
+  (author: Frank Höger)
+- Updated Python to version 3.10 and Dallinger to version 8.0.0. in `.gitlab-ci.yml`
+  (author: Frank Höger)
+- Update docs to for Python 3.10
+  (author: Frank Höger)
+- Updated black, isort, and flake8 to latest versions (used when running the Git pre-commit hooks)
+  (author: Frank Höger)
 
 #### Deprecated
-  - Deprecated `MTurkStandardConsentPage` and `MTurkAudiovisualConsentPage`.
+  - Deprecated `MTurkStandardConsentPage` and `MTurkAudiovisualConsentPage`
+  (author: Frank Höger)
 
 # [5.2.0] Released on 2022-01-21
 
