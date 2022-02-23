@@ -1,5 +1,43 @@
 # CHANGELOG
 
+# [6.0.0] Unreleased
+
+#### Fixed
+- The response buttons in the headphone screening task now are disabled until the audio has finished
+  playing.
+
+#### Added
+- Add new consent pages:
+  `MainConsentPage`,
+  `DatabaseConsentPage`,
+  `AudiovisualConsentPage`,
+  `OpenScienceConsentPage`,
+  `VoluntaryWithNoCompensationConsentPage`.
+
+- Added new experiment variables `window_width` and `window_height` to allow for customization of
+  the experiment window's size. Default: 1024 x 768.
+- Added new optional property `block_copy_paste` in `TextControl` that prevents copying, cutting and
+  pasting in text input pages.
+- Added functionality for detecting users opening the developer console in their web browser. If
+  users open the developer console, they are shown a warning message telling them that they might be
+  in trouble. The event is then logged in the participant table. This functionality can be disabled
+  by setting `check_participant_opened_devtools=False` in the experiment variables.
+- Added pre-sandbox/deploy sanity checks that check whether the values of
+  `initial_recruitment_size` and `us_only` are set appropriately.
+- Added Python version to experiment variables.
+
+#### Changed
+- Use `fingerprintHash`/`fingerprint_hash` instead of `assignmentId`/`assignment_id` to verify
+  participant identity.
+- Changed text under ASCII logo in command line output.
+
+#### Updated
+- Updated Dallinger to v8.0.0.
+- Updated Python to version 3.10 and Dallinger to version 8.0.0. in `.gitlab-ci.yml`.
+
+#### Deprecated
+  - Deprecated `MTurkStandardConsentPage` and `MTurkAudiovisualConsentPage`.
+
 # [5.2.0] Released on 2022-01-21
 
 #### Fixed
