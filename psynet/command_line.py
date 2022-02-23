@@ -9,7 +9,7 @@ import sys
 from shutil import rmtree, which
 
 import click
-import requests
+import dallinger.data
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.command_line import data as dallinger_data
@@ -18,6 +18,7 @@ from dallinger.command_line import deploy as dallinger_deploy
 from dallinger.command_line import log as dallinger_log
 from dallinger.command_line import sandbox as dallinger_sandbox
 from dallinger.command_line import verify_id as dallinger_verify_id
+from dallinger.config import get_config
 from dallinger.models import (
     Info,
     Network,
@@ -29,7 +30,6 @@ from dallinger.models import (
     Transmission,
     Vector,
 )
-from dallinger.utils import get_base_url
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -60,8 +60,7 @@ header = r"""
            /____/
                                  {:>8}
 
-                Laboratory automation for
-       the behavioral and social sciences.
+        Taking online experiments to the next level
 """.format(
     f"v{__version__}"
 )
@@ -127,6 +126,25 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     )
 
 
+##############
+# pre deploy #
+##############
+def run_pre_checks_deploy(exp, config, is_mturk):
+    initial_recruitment_size = exp.initial_recruitment_size
+
+    if (
+        is_mturk
+        and initial_recruitment_size <= 10
+        and not click.confirm(
+            f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
+            f"You will not be able to recruit more than {initial_recruitment_size} participant(s), "
+            "due to a restriction in the MTurk pricing scheme.",
+            default=True,
+        )
+    ):
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -140,6 +158,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
+    run_pre_checks("deploy")
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
@@ -179,6 +198,47 @@ def docs(force_rebuild):
     )
 
 
+##############
+# pre sandbox #
+##############
+
+
+def run_pre_checks(mode):
+    from dallinger.recruiters import MTurkRecruiter
+
+    db.init_db(drop_all=True)
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    exp_class = import_local_experiment()["class"]
+    exp = exp_class.new(db.session)
+
+    recruiter = exp.recruiter
+    is_mturk = isinstance(recruiter, MTurkRecruiter)
+
+    if mode == "sandbox":
+        run_pre_checks_sandbox(exp, config, is_mturk)
+    elif mode == "deploy":
+        run_pre_checks_deploy(exp, config, is_mturk)
+
+
+def run_pre_checks_sandbox(exp, config, is_mturk):
+    us_only = config.get("us_only")
+
+    if (
+        is_mturk
+        and us_only
+        and not click.confirm(
+            "Are you sure you want to sandbox with us_only = True? "
+            "Only people with US accounts will be able to test the experiment.",
+            default=True,
+        )
+    ):
+        raise click.Abort
+
+
 ###########
 # sandbox #
 ###########
@@ -192,6 +252,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
+    run_pre_checks("sandbox")
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
@@ -442,6 +503,10 @@ def export(app, local):
     json:
         Contains the experiment data in JSON format.
     """
+    export_(app, local)
+
+
+def export_(app, local):
     dallinger_log(header)
     import_local_experiment()
 
@@ -454,42 +519,32 @@ def export(app, local):
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
 
-    dallinger_log("Exporting 'json' and 'csv' files.")
-    from dallinger.config import get_config
+    dallinger_zip_path = os.path.join(data_dir_path, "db-snapshot", f"{app}-data.zip")
 
-    config = get_config()
-    if not config.ready:
-        config.load()
-    base_url = get_base_url() if local else f"https://dlgr-{app}.herokuapp.com"
+    if not local:
+        dallinger_log("Populating the local database with the downloaded data.")
+        populate_db_from_zip_file(dallinger_zip_path)
+
+    dallinger_log("Exporting 'json' and 'csv' files.")
 
     for dallinger_model in dallinger_models():
         class_name = dallinger_model.__name__
 
-        result = requests.get(f"{base_url}/export", params={"class_name": class_name})
+        from psynet.data import export
 
-        # debugging json_decode_error
-        retries = 0
-        while True:
-            import json.decoder
+        class_data = export(class_name)
 
-            try:
-                json_text = result.content.decode("utf8")
-                json_data = json.loads(json_text)
-                break
-            except json.decoder.JSONDecodeError as e:
-                dallinger_log(f"A JSONDecoder error occurred for {class_name}.")
-                if retries <= 3:
-                    dallinger_log("Retrying...")
-                    retries += 1
-                else:
-                    dallinger_log(f"The problematic string was: {json_text}")
-                    raise e
-
-        for model_name, json_data in json_data.items():
+        for model_name, model_data in class_data.items():
             base_filename = model_name_to_snake_case(model_name)
             print(f"Exporting {base_filename} data...")
-            export_data(base_filename, data_dir_path, json_data)
+            export_data(base_filename, data_dir_path, model_data)
+
     dallinger_log("Export completed.")
+
+
+def populate_db_from_zip_file(zip_path):
+    db.init_db(drop_all=True)
+    dallinger.data.ingest_zip(zip_path)
 
 
 def dallinger_models():
@@ -532,17 +587,30 @@ def create_export_dirs(data_dir_path):
 
 
 def move_snapshot_file(data_dir_path, app):
-    try:
-        db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
-        filename = f"{app}-data.zip"
-        shutil.move(
-            os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
-        )
-    except OSError as e:
-        if e.errno != errno.EEXIST or not os.path.isdir(db_snapshot_path):
-            raise
+    db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
+    filename = f"{app}-data.zip"
+    shutil.move(
+        os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
+    )
 
 
 def format_seconds(seconds):
     minutes_and_seconds = divmod(seconds, 60)
     return f"{round(minutes_and_seconds[0])} min {round(minutes_and_seconds[1])} sec"
+
+
+@psynet.command()
+@click.option(
+    "--ip",
+    default="127.0.0.1",
+    help="IP address",
+)
+@click.option("--port", default="4444", help="Port")
+def rpdb(ip, port):
+    """
+    Alias for `nc <ip> <port>`.
+    """
+    subprocess.run(
+        ["nc %s %s" % (ip, port)],
+        shell=True,
+    )

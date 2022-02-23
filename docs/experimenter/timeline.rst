@@ -107,15 +107,19 @@ a Pull Request (or, in GitLab terminology, a Merge Request).
 Consent pages
 ~~~~~~~~~~~~~
 
-Before the start of an experiment you normally want to have the participant consent to the data collection being carried
-out. We include the `Page` types :class:`~psynet.consent.MTurkStandardConsentPage` and
-:class:`~psynet.consent.MTurkAudiovisualConsentPage` for experiments making use of MTurk recruiting and the `Page` types
-:class:`~psynet.consent.CAPRecruiterStandardConsentPage` and :class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage`
-using the CAP-Recruiter web application as the recruitment instrument, resp. In each case (MTurk or CAP-Recruiter) one
-or both of the corresponding consent pages can be added to the start of an experiment timeline, as appropriate.
+Before the start of an experiment you normally want to have the participant consent to the data collection
+being carried out. We include the `Page` types :class:`~psynet.consent.MainConsent`,
+:class:`~psynet.consent.DatabaseConsent`, :class:`~psynet.consent.AudiovisualConsent`,
+:class:`~psynet.consent.OpenScienceConsent`, and :class:`~psynet.consent.VoluntaryWithNoCompensationConsent` for
+experiments making use of recruitment systems, like `MTurk` and `Prolific`. Additionally, `Page`
+types :class:`~psynet.consent.CAPRecruiterStandardConsentPage` and
+:class:`~psynet.consent.CAPRecruiterAudiovisualConsentPage` make use of the CAP-Recruiter web application as the
+recruitment instrument, respectively. One or more consent pages can be added to the start of an experiment timeline, as
+appropriate.
 
 This should be enough to start experimenting with different kinds of page types.
-For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`ModularPage` documentation.
+For a full understanding of the customisation possibilities, see the full :ref:`Page` and :ref:`ModularPage`
+documentation.
 
 Page makers
 -----------

@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import datetime
+from platform import python_version
 from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
@@ -123,6 +124,22 @@ class Experiment(dallinger.experiment.Experiment):
     wage_per_hour : `float`
         The payment in US dollars the participant gets per hour. Default: `9.0`.
 
+    check_participant_opened_devtools : ``bool``
+        If ``True``, whenever a participant opens the developer tools in the web browser,
+        this is logged as participant.var.opened_devtools = ``True``,
+        and the participant is shown a warning alert message.
+        Default: ``True``.
+
+    window_width : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment.
+        Default: ``1024``.
+
+    window_height : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment.
+        Default: ``768``.
+
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
 
@@ -131,6 +148,9 @@ class Experiment(dallinger.experiment.Experiment):
 
     dallinger_version : `str`
         The version of the `Dallinger` package.
+
+    python_version : `str`
+        The version of the `Python`.
 
     hard_max_experiment_payment_email_sent : `bool`
         Whether an email to the experimenter has already been sent indicating the `hard_max_experiment_payment`
@@ -260,6 +280,7 @@ class Experiment(dallinger.experiment.Experiment):
         return {
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
+            "python_version": python_version(),
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -272,6 +293,9 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
             "show_footer": True,
             "show_progress_bar": True,
+            "check_participant_opened_devtools": True,
+            "window_width": 1024,
+            "window_height": 768,
         }
 
     @property
@@ -1042,19 +1066,21 @@ class Experiment(dallinger.experiment.Experiment):
             template_name, participant_abort_info=participant.abort_info()
         )
 
-    @experiment_route("/timeline/<int:participant_id>/<assignment_id>", methods=["GET"])
+    @experiment_route(
+        "/timeline/<int:participant_id>/<fingerprint_hash>", methods=["GET"]
+    )
     @classmethod
-    def route_timeline(cls, participant_id, assignment_id):
+    def route_timeline(cls, participant_id, fingerprint_hash):
         from psynet.utils import error_page
 
         exp = cls.new(db.session)
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if participant.assignment_id != assignment_id:
+        if participant.fingerprint_hash != fingerprint_hash:
             logger.error(
-                f"Mismatch between provided assignment_id ({assignment_id})  "
-                + f"and actual assignment_id {participant.assignment_id} "
+                f"Mismatch between provided fingerprint_hash ({fingerprint_hash})  "
+                + f"and actual fingerprint_hash {participant.fingerprint_hash} "
                 f"for participant {participant_id}."
             )
             msg = (
@@ -1129,6 +1155,17 @@ class Experiment(dallinger.experiment.Experiment):
         exp.save()
         return res
 
+    @staticmethod
+    def check_assignment_id(participant, assignment_id):
+        if participant.assignment_id != assignment_id:
+            logger.warning(
+                "Received wrong assignment_id for participant %i "
+                "(expected %s, got %s).",
+                participant.id,
+                participant.assignment_id,
+                assignment_id,
+            )
+
     @experiment_route(
         "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
     )
@@ -1137,14 +1174,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         message = request.values["message"]
 
-        if participant.assignment_id != assignment_id:
-            logger.warning(
-                "Received wrong assignment_id for participant %i "
-                "(expected %s, got %s).",
-                participant_id,
-                participant.assignment_id,
-                assignment_id,
-            )
+        Experiment.check_assignment_id(participant, assignment_id)
 
         assert level in ["warning", "info", "error"]
 
@@ -1169,6 +1199,21 @@ class Experiment(dallinger.experiment.Experiment):
             + "extra_routes = Exp().extra_routes()\n\n"
             + "Please delete it from your experiment.py file and try again.\n"
         )
+
+    @experiment_route(
+        "/participant_opened_devtools/<int:participant_id>/<assignment_id>",
+        methods=["POST"],
+    )
+    @staticmethod
+    def participant_opened_devtools(participant_id, assignment_id):
+        participant = get_participant(participant_id)
+
+        Experiment.check_assignment_id(participant, assignment_id)
+
+        participant.var.opened_devtools = True
+        db.session.commit()
+
+        return success_response()
 
 
 class ExperimentNetwork(Network):

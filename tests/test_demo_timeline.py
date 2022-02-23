@@ -4,6 +4,7 @@ import re
 import time
 
 import pytest
+from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant, get_participant
 from psynet.test import assert_text, bot_class, next_page
@@ -73,15 +74,15 @@ class TestExp(object):
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
-                driver.find_element_by_id("main-body").text,
+                driver.find_element(By.ID, "main-body").text,
             )
-            button = driver.find_element_by_id("next-button")
+            button = driver.find_element(By.ID, "next-button")
             assert button.text == "Next"
             next_page(driver, "next-button")
 
             # Page 2
             assert_text(driver, "main-body", "Write me a message! Next")
-            text_input = driver.find_element_by_id("text-input")
+            text_input = driver.find_element(By.ID, "text-input")
             text_input.send_keys("Hello! I am a robot.")
             assert_text(driver, "next-button", "Next")
             next_page(driver, "next-button")
@@ -106,7 +107,7 @@ class TestExp(object):
 
             # Page 4
             assert_text(driver, "main-body", "What is your weight in kg? Next")
-            text_input = driver.find_element_by_id("number-input")
+            text_input = driver.find_element(By.ID, "number-input")
             text_input.send_keys("78.5")
             assert_text(driver, "next-button", "Next")
             next_page(driver, "next-button")
@@ -133,13 +134,13 @@ class TestExp(object):
             ]
 
             # Page 6
-            button = driver.find_element_by_id("A")
+            button = driver.find_element(By.ID, "A")
             button.click()
 
-            button = driver.find_element_by_id("C")
+            button = driver.find_element(By.ID, "C")
             button.click()
 
-            button = driver.find_element_by_id("A")
+            button = driver.find_element(By.ID, "A")
             button.click()
 
             next_page(driver, "next-button")

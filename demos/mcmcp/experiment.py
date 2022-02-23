@@ -101,18 +101,18 @@ class Exp(psynet.experiment.Experiment):
             node_class=CustomNode,
             source_class=CustomSource,
             phase="experiment",  # can be whatever you like
-            chain_type="across",  # can be "within" or "across"
+            chain_type="within",  # can be "within" or "across"
             num_trials_per_participant=10,
-            num_chains_per_participant=None,  # set to None if chain_type="across"
-            num_chains_per_experiment=10,  # set to None if chain_type="within"
-            num_iterations_per_chain=2,
+            num_chains_per_participant=2,  # set to None if chain_type="across"
+            num_chains_per_experiment=None,  # set to None if chain_type="within"
+            num_iterations_per_chain=6,
             trials_per_node=1,
             balance_across_chains=True,
             check_performance_at_end=False,
             check_performance_every_trial=False,
             fail_trials_on_participant_performance_check=True,
-            recruit_mode="num_trials",
-            target_num_participants=None,
+            recruit_mode="num_participants",
+            target_num_participants=1,
         ),
         InfoPage("You finished the experiment!", time_estimate=0),
         # CodeBlock(lambda experiment: experiment.recruit()), # only for local testing, delete on online deployment

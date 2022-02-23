@@ -1,5 +1,87 @@
 # CHANGELOG
 
+# [6.0.0] Released on 2022-02-23
+
+#### Fixed
+- The response buttons in the headphone screening task now are disabled until the audio has finished playing 
+  (author: Pol van Rijn, reviewer: Peter Harrison)
+- Fix deprecation warnings by replacing Selenium `find_element_by_*` commands with `find_element`
+  (author: Frank Höger)
+
+#### Added
+- Add new consent pages:
+  `MainConsentPage`,
+  `DatabaseConsentPage`,
+  `AudiovisualConsentPage`,
+  `OpenScienceConsentPage`,
+  `VoluntaryWithNoCompensationConsentPage`
+  (author: Frank Höger, reviewer: Nori Jacoby)
+- Added new experiment variables `window_width` and `window_height` to allow for customization of
+  the experiment window's size. Default: 1024 x 768
+  (author: Fotini Deligiannaki, reviewer: Peter Harrison)
+- Added new optional property `block_copy_paste` in `TextControl` that prevents copying, cutting and
+  pasting in text input pages
+  (author: Raja Marjieh, reviewer: Peter Harrison)
+- Added functionality for detecting users opening the developer console in their web browser. If
+  users open the developer console, they are shown a warning message telling them that they might be
+  in trouble. The event is then logged in the participant table. This functionality can be disabled
+  by setting `check_participant_opened_devtools=False` in the experiment variables 
+  (author: Pol van Rijn, reviewer: Peter Harrison)
+- Added pre-sandbox/deploy sanity checks that check whether the values of
+  `initial_recruitment_size` and `us_only` are set appropriately
+  (author: Erika Tsumaya, reviewer: Peter Harrison)
+- Added Python version to experiment variables
+  (author: Frank Höger, reviewer: Peter Harrison)
+
+#### Changed
+- Use `fingerprintHash`/`fingerprint_hash` instead of `assignmentId`/`assignment_id` to verify
+  participant identity
+  (author: Frank Höger, reviewer: Peter Harrison)
+- Changed text under ASCII logo in command line output
+  (author: Frank Höger, reviewer: Peter Harrison)
+- Changed signature of `BaseCapRecruiter.reward_bonus` method due to breaking change in Dallinger v8.0.0
+  (author: Frank Höger)
+
+#### Updated
+- Updated Dallinger to v8.0.0, see release notes at https://github.com/Dallinger/Dallinger/pull/3853
+  (author: Frank Höger)
+- Updated Python to version 3.10 and Dallinger to version 8.0.0. in `.gitlab-ci.yml`
+  (author: Frank Höger)
+- Update docs for Python 3.10
+  (author: Frank Höger)
+- Updated black, isort, and flake8 to latest versions (used when running the Git pre-commit hooks)
+  (author: Frank Höger)
+
+#### Deprecated
+  - Deprecated `MTurkStandardConsentPage` and `MTurkAudiovisualConsentPage`
+  (author: Frank Höger)
+
+# [5.2.0] Released on 2022-01-21
+
+#### Fixed
+- Fixed `psynet export` failure for large databases.
+- Temporary fix for missing `time_taken` in `UnityPage` response's metadata.
+- Fixed breaking changes of new `time_estiamte` in demo `imitation_chain`.
+- Improved the error message for duplicated module IDs.
+
+#### Added
+- Added a new parameter `fail_on_timeout` (default = `True`) to `wait_while`;
+  if this is set to `False`, the participant is no longer failed once the
+  `max_wait_time` is exceeded, but instead continues with the experiment.
+- Added `source` and `participant` attributes for `Network` classes.
+- Added command-line tool `psynet rpdb`, which is an alias for `nc` allowing
+  to easily perform (remote) debugging.
+- Added `degree` and `phase` as `export_vars` in `ChainSource`.
+- Added `phase` as `export_var` in `ChainNode`.
+- Added `degree`, `phase` and `node_id` as `export_vars` in `ChainTrial`.
+- Added GitLab merge request template.
+- Added `username` attribute to `HelloPrompt`.
+- Added regression test for data export.
+- Added Monterey installation documentation.
+
+#### Changed
+- Link 'Edit in GitLab' button to `master`, not `docs-staging` branch.
+
 # [5.1.0] Released on 2021-11-30
 
 #### Added

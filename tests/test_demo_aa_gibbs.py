@@ -16,10 +16,15 @@
 # As a temporary fix, we have renamed the test so that it runs first out of all the demos.
 
 import logging
+import os
+import shutil
 import time
 
+import pandas
 import pytest
+from selenium.webdriver.common.by import By
 
+import psynet.command_line
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
@@ -39,7 +44,7 @@ class TestExp:
             next_page(driver, participant_group)
 
             assert (
-                driver.find_element_by_id("participant-group").text
+                driver.find_element(By.ID, "participant-group").text
                 == f"Participant group = {participant_group}"
             )
 
@@ -57,3 +62,18 @@ class TestExp:
             assert network_ids == sorted(network_ids)
 
             next_page(driver, "next-button", finished=True)
+
+        self._test_export()
+
+    def _test_export(self):
+        app = "demo-app"
+        psynet.command_line.export_(app=app, local=True)
+
+        data_dir = os.path.join("data", f"data-{app}", "csv")
+        participants_file = os.path.join(data_dir, "participant.csv")
+
+        participants = pandas.read_csv(participants_file)
+        nrow = participants.shape[0]
+        assert nrow == 4
+
+        shutil.rmtree("data")

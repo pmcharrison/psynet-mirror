@@ -31,18 +31,14 @@ logger = get_logger()
 
 
 class FixedDigitInputPage(ModularPage):
-    def __init__(
-        self,
-        label: str,
-        prompt: str,
-    ):
+    def __init__(self, label: str, prompt: str, time_estimate: float):
         self.num_digits = 7
 
         super().__init__(
             label,
             Prompt(prompt),
             control=TextControl(
-                label,
+                block_copy_paste=True,
             ),
         )
 
@@ -70,9 +66,8 @@ class CustomTrial(ImitationChainTrial):
     def show_trial(self, experiment, participant):
         page_1 = InfoPage(
             f"Try to remember this 7-digit number: {self.definition:07d}",
-            time_estimate=2,
         )
-        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
+        page_2 = FixedDigitInputPage("number", "What was the number?")
 
         return [page_1, page_2]
 

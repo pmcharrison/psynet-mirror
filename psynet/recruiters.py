@@ -41,12 +41,12 @@ class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
             participant.status = "abandoned"
             session.commit()
 
-    def reward_bonus(self, assignment_id, amount, reason):
+    def reward_bonus(self, participant, amount, reason):
         """
         Return values for `basePay` and `bonus` to cap-recruiter application.
         """
         data = {
-            "assignmentId": assignment_id,
+            "assignmentId": participant.assignment_id,
             "basePayment": self.config.get("base_payment"),
             "bonus": amount,
         }

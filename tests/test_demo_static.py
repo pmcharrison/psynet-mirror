@@ -3,6 +3,7 @@ import time
 from collections import Counter
 
 import pytest
+from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
 from psynet.test import assert_text, bot_class, next_page
@@ -134,7 +135,7 @@ class TestExp:
             # the fact that the previous answer was "Very much" means that
             # the next question will be about ponies
             assert (
-                driver.find_element_by_id("question").text
+                driver.find_element(By.ID, "question").text
                 == "How much do you like ponies?"
             )
 
@@ -147,14 +148,14 @@ class TestExp:
             next_page(driver, "Very much")
             num_remaining_trials -= 1
             assert (
-                driver.find_element_by_id("question").value_of_css_property("color")
+                driver.find_element(By.ID, "question").value_of_css_property("color")
                 == "rgba(255, 0, 0, 1)"
             )
 
             next_page(driver, "Very much")
             num_remaining_trials -= 1
             assert (
-                driver.find_element_by_id("question").value_of_css_property("color")
+                driver.find_element(By.ID, "question").value_of_css_property("color")
                 == "rgba(255, 0, 0, 1)"
             )
 
