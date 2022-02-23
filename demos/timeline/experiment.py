@@ -33,6 +33,10 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    def __init__(self, session=None):
+        super().__init__(session)
+        self.initial_recruitment_size = 1
+
     variables = {
         "show_abort_button": True,
         "min_accumulated_bonus_for_abort": 0.15,
