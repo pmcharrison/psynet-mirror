@@ -124,6 +124,22 @@ class Experiment(dallinger.experiment.Experiment):
     wage_per_hour : `float`
         The payment in US dollars the participant gets per hour. Default: `9.0`.
 
+    check_participant_opened_devtools : ``bool``
+        If ``True``, whenever a participant opens the developer tools in the web browser,
+        this is logged as participant.var.opened_devtools = ``True``,
+        and the participant is shown a warning alert message.
+        Default: ``True``.
+
+    window_width : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment.
+        Default: ``1024``.
+
+    window_height : ``int``
+        Determines the width in pixels of the window that opens when the
+        participant starts the experiment.
+        Default: ``768``.
+
     There are also a few experiment variables that are set automatically and that should,
     in general, not be changed manually:
 
@@ -277,6 +293,7 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
             "show_footer": True,
             "show_progress_bar": True,
+            "check_participant_opened_devtools": True,
             "window_width": 1024,
             "window_height": 768,
         }
@@ -1138,6 +1155,17 @@ class Experiment(dallinger.experiment.Experiment):
         exp.save()
         return res
 
+    @staticmethod
+    def check_assignment_id(participant, assignment_id):
+        if participant.assignment_id != assignment_id:
+            logger.warning(
+                "Received wrong assignment_id for participant %i "
+                "(expected %s, got %s).",
+                participant.id,
+                participant.assignment_id,
+                assignment_id,
+            )
+
     @experiment_route(
         "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
     )
@@ -1146,14 +1174,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         message = request.values["message"]
 
-        if participant.assignment_id != assignment_id:
-            logger.warning(
-                "Received wrong assignment_id for participant %i "
-                "(expected %s, got %s).",
-                participant_id,
-                participant.assignment_id,
-                assignment_id,
-            )
+        Experiment.check_assignment_id(participant, assignment_id)
 
         assert level in ["warning", "info", "error"]
 
@@ -1178,6 +1199,21 @@ class Experiment(dallinger.experiment.Experiment):
             + "extra_routes = Exp().extra_routes()\n\n"
             + "Please delete it from your experiment.py file and try again.\n"
         )
+
+    @experiment_route(
+        "/participant_opened_devtools/<int:participant_id>/<assignment_id>",
+        methods=["POST"],
+    )
+    @staticmethod
+    def participant_opened_devtools(participant_id, assignment_id):
+        participant = get_participant(participant_id)
+
+        Experiment.check_assignment_id(participant, assignment_id)
+
+        participant.var.opened_devtools = True
+        db.session.commit()
+
+        return success_response()
 
 
 class ExperimentNetwork(Network):
