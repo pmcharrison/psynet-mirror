@@ -15,7 +15,7 @@ logger = logging.getLogger(__file__)
 
 
 def assert_text(driver, element_id, value):
-    element = driver.find_element_by_id(element_id)
+    element = driver.find_element(By.ID, element_id)
 
     def sanitize(x):
         pattern = re.compile(r"\s+")
@@ -104,7 +104,7 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
         return driver.execute_script("return pageUuid")
 
     def click_button():
-        button = driver.find_element_by_id(button_id)
+        button = driver.find_element(By.ID, button_id)
         button.click()
 
     def is_page_ready():
