@@ -4,7 +4,7 @@
 
 #### Fixed
 - The response buttons in the headphone screening task now are disabled until the audio has finished
-  playing.
+  playing, as was the behavior in earlier versions of PsyNet.
 - Fix deprecation warnings by replacing Selenium `find_element_by_*` commands with `find_element`.
 
 #### Added
