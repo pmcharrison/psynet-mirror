@@ -3,6 +3,7 @@ import os
 import time
 
 import pytest
+from selenium.webdriver.common.by import By
 
 from psynet.participant import get_participant
 from psynet.test import assert_text, bot_class, next_page
@@ -43,13 +44,13 @@ class TestExp:
             next_page(driver, "next-button")
 
             driver.switch_to.window(driver.window_handles[0])
-            abort_button = driver.find_element_by_id("abort-button")
+            abort_button = driver.find_element(By.ID, "abort-button")
             abort_button.click()
             driver.switch_to.window(driver.window_handles[2])
             assert_text(
                 driver, "header", "Are you sure you want to abort the experiment?"
             )
-            abort_button = driver.find_element_by_id("abort-button")
+            abort_button = driver.find_element(By.ID, "abort-button")
             abort_button.click()
             time.sleep(0.5)
 

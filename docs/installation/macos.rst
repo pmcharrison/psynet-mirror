@@ -163,7 +163,7 @@ In order to have PsyNet work with Big Sur 11.3 macOS with the M1 chip, we advise
    cd ~
    git clone git@gitlab.com:computational-audition-lab/psynet
    cd psynet
-   conda create --name psynet python=3.9 # creates a virtual environment called psynet, respond yes to prompt
+   conda create --name psynet python=3.10 # creates a virtual environment called psynet, respond yes to prompt
    conda activate psynet
    pip3 install --editable .
    conda install psycopg2 # needs to be installed , respond yes to prompt
