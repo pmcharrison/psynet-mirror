@@ -1110,7 +1110,7 @@ class TextControl(Control):
         width: Optional[str] = None,  # e.g. "100px"
         height: Optional[str] = None,
         text_align: str = "left",
-        block_copy_paste: bool = False
+        block_copy_paste: bool = False,
     ):
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")

@@ -208,7 +208,7 @@ def wait_while(
     max_wait_time: float = 20.0,
     wait_page=WaitPage,
     log_message: Optional[str] = None,
-    fail_on_timeout = True,
+    fail_on_timeout=True,
 ):
     """
     Displays the participant a waiting page while a given condition
@@ -274,7 +274,7 @@ def wait_while(
             logic=logic,
             expected_repetitions=expected_repetitions,
             max_loop_time=max_wait_time,
-            fail_on_timeout=fail_on_timeout
+            fail_on_timeout=fail_on_timeout,
         ),
     )
 
