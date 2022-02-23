@@ -45,7 +45,7 @@
   (author: Frank Höger)
 - Updated Python to version 3.10 and Dallinger to version 8.0.0. in `.gitlab-ci.yml`
   (author: Frank Höger)
-- Update docs to for Python 3.10
+- Update docs for Python 3.10
   (author: Frank Höger)
 - Updated black, isort, and flake8 to latest versions (used when running the Git pre-commit hooks)
   (author: Frank Höger)
