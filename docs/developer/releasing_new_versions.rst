@@ -10,7 +10,7 @@ Releasing new versions
 
     With semantic versioning, there are three parts to the version number, see https://semver.org/ for reference.
     When making a release you need to decide on the parts of the version number which should get bumped. It determines
-    what command you give to ``bumpversion``: ``major`` is for breaking changes, ``minor`` for new features, ``patch`` for bug fixes.
+    which command you give to ``bumpversion``: ``major`` is for breaking changes, ``minor`` for new features, ``patch`` for bug fixes.
 
     Example:
     Running ``bumpversion patch``, will change every mention of the current version in the codebase and increase it by `0.0.1`.
