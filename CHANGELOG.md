@@ -5,7 +5,6 @@
 #### Fixed
 - The response buttons in the headphone screening task now are disabled until the audio has finished playing 
   (author: Pol van Rijn, reviewer: Peter Harrison).
-
 - Fix deprecation warnings by replacing Selenium `find_element_by_*` commands with `find_element`
   (author: Frank Höger)
 
@@ -16,25 +15,20 @@
   `AudiovisualConsentPage`,
   `OpenScienceConsentPage`,
   `VoluntaryWithNoCompensationConsentPage`.
-
 - Added new experiment variables `window_width` and `window_height` to allow for customization of
   the experiment window's size. Default: 1024 x 768
   (author: Fotini Deligiannaki, reviewer: Peter Harrison)
-
 - Added new optional property `block_copy_paste` in `TextControl` that prevents copying, cutting and
   pasting in text input pages
   (author: Raja Marjieh, reviewer: Peter Harrison)
-
 - Added functionality for detecting users opening the developer console in their web browser. If
   users open the developer console, they are shown a warning message telling them that they might be
   in trouble. The event is then logged in the participant table. This functionality can be disabled
   by setting `check_participant_opened_devtools=False` in the experiment variables 
   (author: Pol van Rijn, reviewer: Peter Harrison)
-
 - Added pre-sandbox/deploy sanity checks that check whether the values of
   `initial_recruitment_size` and `us_only` are set appropriately
   (author: Erika Tsumaya, reviewer: Peter Harrison)
-
 - Added Python version to experiment variables
   (author: Frank Höger, reviewer: Peter Harrison)
 
@@ -42,7 +36,6 @@
 - Use `fingerprintHash`/`fingerprint_hash` instead of `assignmentId`/`assignment_id` to verify
   participant identity
   (author: Frank Höger, reviewer: Peter Harrison)
-  
 - Changed text under ASCII logo in command line output.
   (author: Frank Höger, reviewer: Peter Harrison)
 
