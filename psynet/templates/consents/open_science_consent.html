@@ -1,0 +1,58 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+  <div class="main-div" style="padding-bottom: 100px;">
+    <noscript>
+        <h1>Warning: Javascript is not working on your browser</h1>
+        <p>The study will not work unless Javascript is enabled on your browser.</p>
+        <p>Please enable Javascript then refresh this page.</p>
+    </noscript>
+    <h1>We need your consent to proceed!</h1>
+    <hr>
+    <p>
+        Following open science practices to improve science reusability and replicability, we may want to publish the dataset collected in this experiment as soon as the study is finished. This includes audio-visual recordings, such as a recording of your finger-tapping in response to a sound or video, or to record yourself speaking or singing. We may also want to publish certain materials as part of the scientific publication, such as a demo video of the task or part of an interview.
+    </p>
+    <div class="text-justify">
+        <div class="text-left" style="font-size:18px">
+            <h2>CONFIDENTIALITY</h2>
+            <p>
+                Since the audio-visual recordings collected in this experiment may be made public, we cannot guarantee anonymity of your data if you participate in this experiment. However, your data will  not be directly associated with your name or other identifiers in any way (we will not specify your name when presenting audio/video materials of yours).
+            </p>
+
+            <h2>SECURITY</h2>
+            <p>
+                Data will be published on open science frameworks/websites such as OSF (https://osf.io/) and will be available to everybody with internet access.
+
+            <h2>DISCLAIMER</h2>
+            <p>
+                Since some materials will be published as part of the scientific publication, you will not be able to delete such materials, as they will become public (either immediately or soon after data collection). Thus, you may wish to make sure you do not record any materials you do not want to make public. By consenting to this experiment you are committing not to use profanity while recording audio or nudity while recording video.  Although your data will not be associated with personal identifiers, it is possible to link your personal information based on audio-visual recordings.
+            </p>
+
+            <h2>CONTACT INFORMATION</h2>
+            <p>
+                If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
+            </p>
+
+            <h2>CONSENT</h2>
+            <p>
+                By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research. If you do not wish to consent, please close this page.
+            </p>
+        </div>
+        <hr>
+        <h4>Do you understand and consent to these terms?</h4>
+        <br>
+        <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
+            I agree
+        </button>
+        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
+            No, thank you (return task)
+        </button>
+      </div>
+  </div>
+
+  <style>
+    .main-div {
+      margin: 0;
+    }
+  </style>
+{% endblock %}

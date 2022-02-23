@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from dallinger.experiment import experiment_route
-
 import numpy
+from dallinger.experiment import experiment_route
 
 import psynet.experiment
 from psynet.consent import CAPRecruiterStandardConsent
@@ -34,6 +33,10 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    def __init__(self, session=None):
+        super().__init__(session)
+        self.initial_recruitment_size = 1
+
     variables = {
         "show_abort_button": True,
         "min_accumulated_bonus_for_abort": 0.15,
@@ -56,9 +59,7 @@ class Exp(psynet.experiment.Experiment):
             # You can set arbitrary variables with the participant object
             # inside code blocks. Here we set a variable called 'numpy_test',
             # and the value is an object from the numpy package (numpy.nan).
-            CodeBlock(
-                lambda participant: participant.var.set("numpy_test", numpy.nan)
-            ),
+            CodeBlock(lambda participant: participant.var.set("numpy_test", numpy.nan)),
             PageMaker(
                 lambda: InfoPage(
                     f"The current time is {datetime.now().strftime('%H:%M:%S')}."

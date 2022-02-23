@@ -1099,6 +1099,9 @@ class TextControl(Control):
 
     text_align:
         CSS width property for the alignment of the text inside the text input field. Default: `"left"`.
+
+    block_copy_paste:
+        Whether to block the copy, cut and paste options in the text input box.
     """
 
     def __init__(
@@ -1107,6 +1110,7 @@ class TextControl(Control):
         width: Optional[str] = None,  # e.g. "100px"
         height: Optional[str] = None,
         text_align: str = "left",
+        block_copy_paste: bool = False,
     ):
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
@@ -1115,6 +1119,7 @@ class TextControl(Control):
         self.width = width
         self.height = height
         self.text_align = text_align
+        self.block_copy_paste = block_copy_paste
 
     macro = "text"
 
@@ -1125,6 +1130,7 @@ class TextControl(Control):
             "width": self.width,
             "height": self.height,
             "text_align": self.text_align,
+            "block_copy_paste": self.block_copy_paste,
         }
 
 

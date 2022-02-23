@@ -18,6 +18,7 @@ from dallinger.command_line import deploy as dallinger_deploy
 from dallinger.command_line import log as dallinger_log
 from dallinger.command_line import sandbox as dallinger_sandbox
 from dallinger.command_line import verify_id as dallinger_verify_id
+from dallinger.config import get_config
 from dallinger.models import (
     Info,
     Network,
@@ -59,8 +60,7 @@ header = r"""
            /____/
                                  {:>8}
 
-                Laboratory automation for
-       the behavioral and social sciences.
+        Taking online experiments to the next level
 """.format(
     f"v{__version__}"
 )
@@ -126,6 +126,25 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     )
 
 
+##############
+# pre deploy #
+##############
+def run_pre_checks_deploy(exp, config, is_mturk):
+    initial_recruitment_size = exp.initial_recruitment_size
+
+    if (
+        is_mturk
+        and initial_recruitment_size <= 10
+        and not click.confirm(
+            f"Are you sure you want to deploy to MTurk with initial_recruitment_size set to {initial_recruitment_size}? "
+            f"You will not be able to recruit more than {initial_recruitment_size} participant(s), "
+            "due to a restriction in the MTurk pricing scheme.",
+            default=True,
+        )
+    ):
+        raise click.Abort
+
+
 ##########
 # deploy #
 ##########
@@ -139,6 +158,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
+    run_pre_checks("deploy")
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
@@ -178,6 +198,47 @@ def docs(force_rebuild):
     )
 
 
+##############
+# pre sandbox #
+##############
+
+
+def run_pre_checks(mode):
+    from dallinger.recruiters import MTurkRecruiter
+
+    db.init_db(drop_all=True)
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    exp_class = import_local_experiment()["class"]
+    exp = exp_class.new(db.session)
+
+    recruiter = exp.recruiter
+    is_mturk = isinstance(recruiter, MTurkRecruiter)
+
+    if mode == "sandbox":
+        run_pre_checks_sandbox(exp, config, is_mturk)
+    elif mode == "deploy":
+        run_pre_checks_deploy(exp, config, is_mturk)
+
+
+def run_pre_checks_sandbox(exp, config, is_mturk):
+    us_only = config.get("us_only")
+
+    if (
+        is_mturk
+        and us_only
+        and not click.confirm(
+            "Are you sure you want to sandbox with us_only = True? "
+            "Only people with US accounts will be able to test the experiment.",
+            default=True,
+        )
+    ):
+        raise click.Abort
+
+
 ###########
 # sandbox #
 ###########
@@ -191,6 +252,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
+    run_pre_checks("sandbox")
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)

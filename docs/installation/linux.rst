@@ -17,7 +17,7 @@ Update and install required system packages
 
    sudo apt update
    sudo apt upgrade
-   sudo apt install vim python3.9-dev python3.9-venv python3-pip redis-server git libenchant1c2a postgresql postgresql-contrib libpq-dev unzip
+   sudo apt install vim python3.10-dev python3.10-venv python3-pip redis-server git libenchant1c2a postgresql postgresql-contrib libpq-dev unzip
 
 Install Google Chrome
 ~~~~~~~~~~~~~~~~~~~~~
@@ -79,7 +79,7 @@ Setup virtual environment
    echo "source ~/.local/bin/virtualenvwrapper.sh" >> ~/.bashrc
    export VIRTUALENVWRAPPER_PYTHON=$(which python3)
    source ~/.local/bin/virtualenvwrapper.sh
-   mkvirtualenv psynet --python $(which python3.9)
+   mkvirtualenv psynet --python $(which python3.10)
 
 Activate virtual environment
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

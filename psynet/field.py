@@ -1,12 +1,9 @@
-import copy
 import json
-import jsonpickle
 import re
 from datetime import datetime
 
+import jsonpickle
 from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
-from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.dialects.postgresql import JSONB
 
 from .utils import get_logger
 
@@ -14,7 +11,6 @@ logger = get_logger()
 
 
 class PythonObject(TypeDecorator):
-
     @property
     def python_type(self):
         return object
