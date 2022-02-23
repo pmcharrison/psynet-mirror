@@ -39,6 +39,8 @@
   (author: Frank Höger, reviewer: Peter Harrison)
 - Changed text under ASCII logo in command line output
   (author: Frank Höger, reviewer: Peter Harrison)
+- Changed signature of `BaseCapRecruiter.reward_bonus` method due to breaking change in Dallinger v8.0.0
+  (author: Frank Höger)
 
 #### Updated
 - Updated Dallinger to v8.0.0, see release notes at https://github.com/Dallinger/Dallinger/pull/3853
