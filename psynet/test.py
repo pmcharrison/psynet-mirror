@@ -123,7 +123,7 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
 
     wait_until(
         is_page_ready,
-        max_wait=5.0,
+        max_wait=10.0,
         error_message="Page never became ready.",
     )
     old_uuid = get_uuid()
@@ -131,6 +131,6 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
     if not finished:
         wait_until(
             lambda: is_page_ready() and get_uuid() != old_uuid,
-            max_wait=5.0,
+            max_wait=10.0,
             error_message="Failed to load new page.",
         )
