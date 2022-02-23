@@ -5,7 +5,7 @@ The Ad Page
 ===========
 
 The advertisement page (ad page) is the first page being shown to a participant before starting an experiment. Depending on
-the recruitment method being used, `MTurk` or `CAP-Recruiter`, participants are presented a specific ad page, of which
+the recruitment method being used, `MTurk`, `CAP-Recruiter`, `Lucid`, and `Prolific` participants are presented a specific ad page, of which
 three sections can be customized. These are:
 
 **1. General description of the experiment**
