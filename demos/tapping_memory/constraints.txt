@@ -86,7 +86,7 @@ cryptography==36.0.1
     #   urllib3
 cycler==0.11.0
     # via matplotlib
-dallinger==7.8.0
+dallinger==8.0.0
     # via
     #   psynet
     #   tapping-extract
@@ -291,7 +291,7 @@ markupsafe==2.0.1
     #   wtforms
 matplotlib==3.5.1
     # via
-    #   -r /tmp/tmpcavvlsnb/requirements.txt
+    #   -r /tmp/tmpxg6vkqbe/requirements.txt
     #   repp
     #   reppextension
     #   tapping-extract
@@ -556,6 +556,8 @@ tabulate==0.8.9
     #   dallinger
 tapping_extract @ git+https://tapping_extract:NbfgRMYEujzRimHySJnV@gitlab.com/computational-audition-lab/tapping-mvp/tapping_extract@2dd9364524198685354bc511aac3055a796d9f99
     # via -r requirements.txt
+tenacity==8.0.1
+    # via dallinger
 termcolor==1.1.0
     # via yaspin
 terminado==0.13.1
