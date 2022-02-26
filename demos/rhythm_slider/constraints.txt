@@ -83,7 +83,7 @@ cryptography==36.0.1
     #   urllib3
 cycler==0.11.0
     # via matplotlib
-dallinger==7.8.0
+dallinger==8.0.0
     # via psynet
 datetime==4.4
     # via psynet
@@ -529,6 +529,8 @@ tabulate==0.8.9
     # via
     #   -c https://raw.githubusercontent.com/Dallinger/Dallinger/v8.0.0/dev-requirements.txt
     #   dallinger
+tenacity==8.0.1
+    # via dallinger
 termcolor==1.1.0
     # via yaspin
 terminado==0.13.1
