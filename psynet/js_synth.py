@@ -492,3 +492,132 @@ class JSSynth(Prompt):
             is_triggered_by="promptStart", delay=self.total_duration
         )  #
         events["trialFinish"].add_trigger("promptEnd")
+
+
+class JSSynthPlaylist(Prompt):
+    """
+    In construction (manu): the main difference here is that I pass both a sequence that will be played
+    (sequence_to_play) at the start of the prompt and a dictionary of sequences that are stored
+    (sequences_to_store) in the page and can be optionally played by adding
+    buttons (for example, to play each melody again). I believe this can  be integrated in the normal JSSynth
+    prompt using  more principled solution, for example as as an optional argument, but it requries discussion.
+    Note that this changes also affect the macro js_synth_playlist (which is simply a copy of js_synth but sotred the
+    sequences_to_store in th front-end and allows me to play them in the buttons by adding something like
+    onclick="play_stimulus(melodies.melody1);.
+    """
+
+    def __init__(
+        self,
+        text,
+        sequence_to_play,
+        sequences_to_store,
+        timbre="default",
+        default_duration=0.75,
+        default_silence=0.0,
+        text_align="left",
+    ):
+        super().__init__(text=text, text_align=text_align)
+
+        if timbre == "default":
+            timbre = HarmonicTimbre()
+
+        if isinstance(timbre, Timbre):
+            timbre = dict(default=timbre)
+
+        assert isinstance(timbre, dict)
+        for t in timbre.values():
+            assert isinstance(t, Timbre)
+
+        assert isinstance(sequence_to_play, list)
+        for elt in sequence_to_play:
+            if not isinstance(elt, Chord):
+                raise ValueError(
+                    f"{sequence_to_play}"
+                    "Each element in 'sequence_to_play' must be an object of type 'Chord' or 'Note'."
+                )
+
+        assert isinstance(sequences_to_store, dict)
+        for elt in sequences_to_store:
+            for e in sequences_to_store[elt]:
+                if not isinstance(e, Chord):
+                    raise ValueError(
+                        "Each elemenet in  sequence in 'sequences_to_store' must be an object of type 'Chord' or 'Note'."
+                    )
+
+        options = dict(
+            max_num_pitches=0,
+            max_num_harmonics=1,
+            max_num_octave_transpositions=0,
+            instruments=[],
+        )
+
+        def consolidate_chord(chord):
+            x = chord.copy()
+            options["max_num_pitches"] = max(
+                options["max_num_pitches"], len(x["pitches"])
+            )
+
+            if x["duration"] == "default":
+                x["duration"] = default_duration
+            if x["silence"] == "default":
+                x["silence"] = default_silence
+            # if not x["channel"] in timbre:
+            #     raise ValueError(
+            #         f"Selected timbre ({x['channel']}) was not found in timbre list ({timbre})."
+            #     )
+
+            return x
+
+        sequence_to_play = [consolidate_chord(chord) for chord in sequence_to_play]
+
+        channels = {key: {"synth": value} for key, value in timbre.items()}
+
+        for t in timbre.values():
+            if hasattr(t, "num_harmonics"):
+                options["max_num_harmonics"] = max(
+                    options["max_num_harmonics"], t.num_harmonics
+                )
+            if hasattr(t, "num_octave_transpositions"):
+                options["max_num_octave_transpositions"] = max(
+                    options["max_num_octave_transpositions"],
+                    t.num_octave_transpositions,
+                )
+            if isinstance(t, InstrumentTimbre):
+                options["instruments"].append(t["type"])
+
+        stimulus_to_store = {}
+        for elt in sequences_to_store:
+            sequences_to_store[elt] = dict(
+                notes=[consolidate_chord(chord) for chord in sequences_to_store[elt]],
+                channels=channels,
+            )
+
+        self.total_duration = 0.0
+        for chord in sequence_to_play:
+            self.total_duration += chord["duration"] + chord["silence"]
+
+        self.stimulus_to_store = stimulus_to_store
+        self.stimulus_to_play = dict(
+            notes=sequence_to_play,
+            channels=channels,
+        )
+        self.options = options
+
+    macro = "js_synth_playlist"
+
+    @property
+    def metadata(self):
+        return {
+            "stimulus_to_play": self.stimulus_to_play,
+            "stimuluis_to_store": self.stimulus_to_store,
+            "options": self.options,
+        }
+
+    def update_events(self, events):
+        super().update_events(events)
+
+        events["promptStart"] = Event(is_triggered_by="trialStart")
+        events["promptEnd"] = Event(
+            is_triggered_by="promptStart", delay=self.total_duration
+        )  #
+        events["trialFinish"].add_trigger("promptEnd")
