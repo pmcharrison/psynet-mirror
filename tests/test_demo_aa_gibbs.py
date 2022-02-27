@@ -22,6 +22,7 @@ import time
 
 import pandas
 import pytest
+from selenium.webdriver.common.by import By
 
 import psynet.command_line
 from psynet.test import bot_class, next_page
@@ -43,7 +44,7 @@ class TestExp:
             next_page(driver, participant_group)
 
             assert (
-                driver.find_element_by_id("participant-group").text
+                driver.find_element(By.ID, "participant-group").text
                 == f"Participant group = {participant_group}"
             )
 

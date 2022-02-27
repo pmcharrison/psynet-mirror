@@ -1,0 +1,109 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+  <div class="main-div" style="padding-bottom: 100px;
+  ">
+    <noscript>
+        <h1>Warning: Javascript is not working on your browser</h1>
+        <p>The study will not work unless Javascript is enabled on your browser.</p>
+        <p>Please enable Javascript then refresh this page.</p>
+    </noscript>
+    <h1>We need your consent to proceed!</h1>
+    <hr>
+    <p>
+        With this privacy policy, we would like to inform you about the personal data we collect when you register for our participant pool and for what purposes we process this data. In addition, we would like to inform you about your rights with regard to the processing of personal data.
+    </p>
+    <div class="text-justify">
+        <div class="text-left" style="font-size:18px">
+            <h2>PURPOSES OF PROCESSING</h2>
+            <p>
+                We store and process your data only for the purpose of initiating communication with you and for planning studies at the Max Planck Institute for Empirical Aesthetics (MPIEA). This data will never be shared with third parties.
+            </p>
+
+            <h2>WHICH DATA ARE STORED</h2>
+            <p>
+                In addition to your contact details (i.e., name and email) and the demographic data requested in the log in (i.e., age, gender, and nationality), we also store the date and time when you made the entry. In addition, we save the date and time when you verified your email address. If we invite you to participate in a study, we will store the date and time of this communication. If you agree to participate, we also will store the date and time of your communication of this choice, and whether you completed the experiment successfully or not.
+            </p>
+            <p>
+                Of course, before you participate in a study, you will be informed in detail about the procedure of the study and the collection of data during the study. Your consent to participate in a study will be obtained separately for each study you participate in.
+            </p>
+
+            <h2>DURATION OF DATA STORAGE</h2>
+            <p>
+                Your data will be stored in the contact database for as long as the purpose of such storage, i.e., to contact you about participating in a study, remains in effect. You may request the deletion of your data at any time. To do so, send an e-mail with the subject “Delete” to <a href="mailto:cap-information@.ae.mpg.de">cap-information@.ae.mpg.de</a>
+                Your personal data will then be deleted immediately.
+            </p>
+            <p>
+                You can also delete your data from the database by deleting your account (i.e., press "Delete account”  in the cap-recruiter log-in page). Note that all information, including the experiment and payment history will be removed from our database.
+
+            <h2>SECURITY</h2>
+            <p>
+                The data entered in the form you fill out are transferred in encrypted form to an internal server. We will then send you an e-mail with a confirmation link to verify your e-mail address.
+            </p>
+            <p>
+                We take all necessary technical and organizational security measures to protect your personal data from loss and abuse. Your data are stored in a secure operating environment that is not accessible to the public. All connections between your computer and the web server are encrypted.
+            </p>
+
+            <h2>DATA PROTECTION: RIGHTS OF DATA SUBJECTS</h2>
+            <p>
+                In order to ensure transparency with regard to the processing of personal data, the General Data Protection Regulation (GDPR) of the European Union provides information about the rights of data subjects. As a data subject whose personal data are processed with regard to your participation in our studies, you have the following rights in principle and insofar as no legal exceptions apply in individual cases:
+            </p>
+
+            <ul>
+                <li>Access (GDPR art. 15)</li>
+                <li>Rectification (GDPR art. 16)</li>
+                <li>Erasure (GDPR art. 17, para. 1)</li>
+                <li>Restriction of processing (GDPR art. 18)</li>
+                <li>Data portability (GDPR art. 20)</li>
+                <li>Withdrawal of consent (GDPR art. 7, para. 3)</li>
+                <li>Right to lodge a complaint with a supervisory authority (GDPR art. 77). For the Max Planck Society, this is the Data Protection Authority of Bavaria, Postfach 1349, 91504 Ansbach, Germany. Internet: https://www.lda.bayern.de/en</li>
+            </ul>
+            <p>
+                If you have any questions about this research, your rights, or treatment as a participant, please do not hesitate to contact the Computational Auditory Perception Group at the Max Planck Institute for Empirical Aesthetics, <a href="mailto:cap-recruiter@.ae.mpg.de">cap-recruiter@.ae.mpg.de</a>.
+            </p>
+
+            <h2>PAYMENT AND COMPENSATION</h2>
+            <p>
+                We will not store any banking information or payment information in our system.  However we do store completion records and payment details of every task you completed. This information will be available for you to review it when you login to the database. Based on this information we allow you to receive payment via an external system such as PayPAL/WISE. It is your responsibility to make sure you can receive payment through this system and that you would want to consent to use it. This system supports transferring money to most banks around the world, please search your bank in their website to ensure that you will be able to receive payment prior to taking part in our experiments. We also recommend checking the term of service and it’s privacy statement and see if you consent to use their system for payment.
+            </p>
+            <p>
+                If you cannot or would not like to receive payment via this system, we would not be able to pay you, however you can still participate in our experiments voluntarily, without payment. In this case you will not receive any compensation for your time.
+            </p>
+            <p>
+                If you have further questions regarding the General Data Protection Regulation in the context of personal data being processed in our studies, please contact the Data Protection Officer of the Max Planck Society:
+            </p>
+            <p>
+                Heidi Schuster<br>
+                Hofgartenstraße 8<br>
+                80539 München<br>
+                Germany<br>
+                Phone: +49 89 2108-1554<br>
+                E-Mail: <a href="mailto:datenschutz@mpg.de">datenschutz@mpg.de</a>
+            </p>
+            <p>
+                You may also address you inquiries directly to the Max Planck Institute for Empirical Aesthetics: <a href="mailto:dataprotect@ae.mpg.de">dataprotect@ae.mpg.de</a>
+            </p>
+
+            <h2>CONTACT INFORMATION</h2>
+            <p>
+                If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
+            </p>
+        </div>
+        <hr>
+        <h4>Do you understand and consent to these terms?</h4>
+        <br>
+        <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
+            I agree
+        </button>
+        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
+            No, thank you (return task)
+        </button>
+      </div>
+  </div>
+
+  <style>
+    .main-div {
+      margin: 0;
+    }
+  </style>
+{% endblock %}

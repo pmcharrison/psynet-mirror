@@ -1518,6 +1518,48 @@
         if (dynamicallyUpdateProgressBarAndBonus) {
             setInterval(updateProgressAndBonus, 1000);
         }
+
+        function alertParticipantOpenedDevtools(){
+            console.warn(
+                'You have opened the developer tools. ' +
+                'The experimenter is informed about this possible misconduct. ' +
+                'You might be excluded from the experiment.'
+            );
+        }
+
+        function writeToDbParticipantOpenedDevtools() {
+             dallinger.post(
+                 '/participant_opened_devtools/' + dallinger.identity.participantId
+                 + "/" + dallinger.identity.assignmentId
+             );
+        }
+
+        function logParticipantOpenedDevtools(){
+            psynet.log.warning('Participant ' + psynet.participantId + " opened the browser's developer tools.")
+        }
+
+        function isConsoleOpen() {
+            let consoleOpen = false;
+            let f = function() {}
+            f.toString = function() {
+                consoleOpen = true;
+            }
+            console.profile(f);
+            console.profileEnd(f);
+            return consoleOpen;
+        }
+
+        {% if experiment.var.check_participant_opened_devtools %}
+            let warnedDevtools = false;
+            setInterval(() => {
+                if (!warnedDevtools && isConsoleOpen()) {
+                    logParticipantOpenedDevtools();
+                    writeToDbParticipantOpenedDevtools();
+                    alertParticipantOpenedDevtools();
+                    warnedDevtools = true;
+                }
+            }, 1000);
+        {% endif %}
     </script>
 
 {% endblock %}
