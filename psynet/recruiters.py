@@ -112,9 +112,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
-        self.ad_url = (
-            f"{get_base_url()}/ad?recruiter={self.nickname}&RID=12345"  # [%RID%]
-        )
+        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
         self.config = get_config()
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
