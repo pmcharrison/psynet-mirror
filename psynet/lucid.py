@@ -228,9 +228,7 @@ class LucidService(object):
         import hashlib
         import hmac
 
-        key = "secret_key"  # TODO
-
-        encoded_key = key.encode("utf-8")
+        encoded_key = self.api_key.encode("utf-8")
         encoded_URL = url.encode("utf-8")
         hashed = hmac.new(encoded_key, msg=encoded_URL, digestmod=hashlib.sha1)
         digested_hash = hashed.digest()

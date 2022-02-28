@@ -31,7 +31,6 @@ from .recruiters import (  # noqa: F401
     DevCapRecruiter,
     LucidRecruiter,
     StagingCapRecruiter,
-    StagingLucidRecruiter,
 )
 from .timeline import (
     DatabaseCheck,

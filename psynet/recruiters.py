@@ -112,7 +112,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(BaseLucidRecruiter, self).__init__()
-        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
         self.config = get_config()
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
@@ -242,12 +241,22 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         """
 
         rid = entry_information.get("RID", entry_information.get("rid", None))
+        if rid is None:
+            rid = entry_information.get("hit_id")
+            participant_data = {
+                "hit_id": rid,
+                "assignment_id": rid,
+                "worker_id": rid,
+            }
+        else:
+            participant_data = {
+                "hit_id": rid,
+                "assignment_id": rid,
+                "worker_id": rid,
+            }
+        logger.info("participant_data 1")
+        logger.info(participant_data)
 
-        participant_data = {
-            "hit_id": rid,
-            "assignment_id": rid,
-            "worker_id": rid,
-        }
         data = {
             "hitId": rid,
             "assignmentId": rid,
@@ -258,11 +267,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         logger.info(entry_information)
         if entry_information:
             participant_data["entry_information"] = {
-                **participant_data,
+                # **participant_data,
                 **entry_information,
                 **data,
             }
-        logger.info("participant_data")
+        logger.info("participant_data 2")
         logger.info(participant_data)
         return participant_data
 
@@ -299,18 +308,9 @@ class DevLucidRecruiter(BaseLucidRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(DevLucidRecruiter, self).__init__()
-
-
-class StagingLucidRecruiter(BaseLucidRecruiter):
-    """
-    The staging Lucid recruiter.
-    Recruit sandbox participants from Lucid Marketplace
-    """
-
-    nickname = "staging-lucid-recruiter"
-
-    def __init__(self, *args, **kwargs):
-        super(StagingLucidRecruiter, self).__init__()
+        self.ad_url = (
+            f"http://localhost.cap:5000/ad?recruiter={self.nickname}&RID=[%RID%]"
+        )
 
 
 class LucidRecruiter(BaseLucidRecruiter):
@@ -323,3 +323,4 @@ class LucidRecruiter(BaseLucidRecruiter):
 
     def __init__(self, *args, **kwargs):
         super(LucidRecruiter, self).__init__()
+        self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"

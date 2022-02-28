@@ -5,6 +5,7 @@
 	"survey": {
         "SurveyStatusCode": "01",
         "SurveyName": "Static demo survey test",
+        "CollectsPII": false,
         "CountryLanguageID": 9,
         "IndustryID": 30,
         "StudyTypeID": 1,

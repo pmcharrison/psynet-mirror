@@ -6,8 +6,7 @@ title = Static demo survey barebone
 base_payment = 0.10
 
 [Recruitment strategy]
-# recruiter = DevLucidRecruiter
-recruiter = StagingLucidRecruiter
+recruiter = DevLucidRecruiter
 auto_recruit = true
 lifetime = 24
 duration = 2
