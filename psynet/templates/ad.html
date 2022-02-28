@@ -58,7 +58,7 @@ Abort Experiment
 
 {% block scripts %}
 <script>
-    /*function openwindow(event) {
+    function openwindow(event) {
       popup = window.open(
       '{{ server_location }}/consent?recruiter={{ recruiter }}&hit_id={{ hitid }}&assignment_id={{ assignmentid }}&worker_id={{ workerid }}&workerId={{ workerid }}&mode={{ mode }}',
       'Popup',
@@ -68,6 +68,6 @@ Abort Experiment
       +'');
       event.target.setAttribute("disabled", "");
     }
-    document.getElementById("begin-button").onclick = openwindow;*/
+    document.getElementById("begin-button").onclick = openwindow;
 </script>
 {% endblock %}
