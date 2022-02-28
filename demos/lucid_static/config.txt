@@ -1,5 +1,5 @@
 [Launch mode]
-mode = sandbox
+mode = live
 
 [Payment information]
 title = Static demo survey barebone
