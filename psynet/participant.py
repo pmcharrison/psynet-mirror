@@ -104,6 +104,9 @@ class Participant(dallinger.models.Participant):
     progress : float [0 <= x <= 1]
         The participant's estimated progress through the experiment.
 
+    auth_token : str
+        The participant's randomly generated authentication token.
+
     client_ip_address : str
         The participant's IP address as reported by Flask.
 
@@ -142,6 +145,9 @@ class Participant(dallinger.models.Participant):
     modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
     client_ip_address = claim_var(
         "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
+    )
+    auth_token = claim_var(
+        "auth_token", __extra_vars__, use_default=True, default=lambda: ""
     )
     answer_is_fresh = claim_var(
         "answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False
@@ -236,7 +242,7 @@ class Participant(dallinger.models.Participant):
         self.answer = value
         return self
 
-    def initialise(self, experiment, client_ip_address: str):
+    def initialise(self, experiment, client_ip_address: str, auth_token: str):
         self.elt_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
@@ -244,6 +250,7 @@ class Participant(dallinger.models.Participant):
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
         self.client_ip_address = client_ip_address
+        self.auth_token = auth_token
         self.branch_log = []
         self.initialised = True
 
