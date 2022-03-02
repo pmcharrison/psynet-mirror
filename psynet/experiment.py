@@ -1082,6 +1082,7 @@ class Experiment(dallinger.experiment.Experiment):
                 client_ip_address=cls.get_client_ip_address(),
                 auth_token=str(uuid.uuid4()),
             )
+            participant = get_participant(participant_id)
         else:
             if participant.auth_token != auth_token:
                 logger.error(
@@ -1096,7 +1097,6 @@ class Experiment(dallinger.experiment.Experiment):
                 )
                 return error_page(participant=participant, error_text=msg)
 
-        participant = get_participant(participant_id)
         page = exp.timeline.get_current_elt(exp, participant)
         page.pre_render()
         exp.save()
