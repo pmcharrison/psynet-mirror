@@ -12,8 +12,6 @@
 - Added new participant variable auth_token.
   (author: Frank Höger, reviewer: Peter Harrison)
 
-#### Changed
-
 # [6.0.0] Released on 2022-02-23
 
 #### Fixed
