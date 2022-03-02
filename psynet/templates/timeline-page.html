@@ -331,7 +331,7 @@
                         route = (
                             '/log/' + level
                             + "/" + dallinger.identity.participantId
-                            + "/" + dallinger.identity.fingerprintHash
+                            + "/{{ auth_token }}"
                         );
 
                         dallinger.post(route, {message: msg});
@@ -1278,7 +1278,7 @@
                             response.page.attributes.session_id == psynet.page.attributes.session_id
                         );
                         if (shouldRefreshPage) {
-                            dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + dallinger.identity.fingerprintHash);
+                            dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/{{ auth_token }}");
                         } else {
                             psynet.page = response.page;
                             psynet.registerEvent("pageUpdated");
