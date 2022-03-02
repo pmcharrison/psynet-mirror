@@ -1,5 +1,19 @@
 # CHANGELOG
 
+# [6.0.1] Released on 2022-03-02
+
+#### Fixed
+- Changed logic for verifying the participant identity by replacing `fingerprintHash`/`fingerprint_hash` with a randomly generated `authToken`/`auth_token` stored in the participant table.s
+  (author: Frank Höger, reviewer: Peter Harrison)
+- Fix Dallinger version in demos' constraints.
+  (author: Frank Höger)
+
+#### Added
+- Added new participant variable auth_token.
+  (author: Frank Höger, reviewer: Peter Harrison)
+
+#### Changed
+
 # [6.0.0] Released on 2022-02-23
 
 #### Fixed
