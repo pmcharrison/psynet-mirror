@@ -1,5 +1,6 @@
 import json
 import os
+import uuid
 from datetime import datetime
 from platform import python_version
 from smtplib import SMTPAuthenticationError
@@ -615,7 +616,7 @@ class Experiment(dallinger.experiment.Experiment):
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
 
-    def init_participant(self, participant_id, client_ip_address):
+    def init_participant(self, participant_id, client_ip_address, auth_token):
         logger.info(
             "Initialising participant %i, IP address %s...",
             participant_id,
@@ -623,7 +624,7 @@ class Experiment(dallinger.experiment.Experiment):
         )
 
         participant = get_participant(participant_id)
-        participant.initialise(self, client_ip_address)
+        participant.initialise(self, client_ip_address, auth_token)
 
         self.timeline.advance_page(self, participant)
 
@@ -1066,41 +1067,42 @@ class Experiment(dallinger.experiment.Experiment):
             template_name, participant_abort_info=participant.abort_info()
         )
 
-    @experiment_route(
-        "/timeline/<int:participant_id>/<fingerprint_hash>", methods=["GET"]
-    )
+    @experiment_route("/timeline/<int:participant_id>/<auth_token>", methods=["GET"])
     @classmethod
-    def route_timeline(cls, participant_id, fingerprint_hash):
+    def route_timeline(cls, participant_id, auth_token):
         from psynet.utils import error_page
 
         exp = cls.new(db.session)
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if participant.fingerprint_hash != fingerprint_hash:
-            logger.error(
-                f"Mismatch between provided fingerprint_hash ({fingerprint_hash})  "
-                + f"and actual fingerprint_hash {participant.fingerprint_hash} "
-                f"for participant {participant_id}."
+        if not participant.initialised:
+            exp.init_participant(
+                participant_id,
+                client_ip_address=cls.get_client_ip_address(),
+                auth_token=str(uuid.uuid4()),
             )
-            msg = (
-                "There was a problem authenticating your session, "
-                + "did you switch browsers? Unfortunately this is not currently "
-                + "supported by our system."
-            )
-            return error_page(participant=participant, error_text=msg)
-
+            participant = get_participant(participant_id)
         else:
-            if not participant.initialised:
-                exp.init_participant(
-                    participant_id, client_ip_address=cls.get_client_ip_address()
+            if participant.auth_token != auth_token:
+                logger.error(
+                    f"Mismatch between provided auth_token ({auth_token}) "
+                    + f"and actual auth_token {participant.auth_token} "
+                    f"for participant {participant_id}."
                 )
-            page = exp.timeline.get_current_elt(exp, participant)
-            page.pre_render()
-            exp.save()
-            if mode == "json":
-                return jsonify(page.__json__(participant))
-            return page.render(exp, participant)
+                msg = (
+                    "There was a problem authenticating your session, "
+                    + "did you switch browsers? Unfortunately this is not currently "
+                    + "supported by our system."
+                )
+                return error_page(participant=participant, error_text=msg)
+
+        page = exp.timeline.get_current_elt(exp, participant)
+        page.pre_render()
+        exp.save()
+        if mode == "json":
+            return jsonify(page.__json__(participant))
+        return page.render(exp, participant)
 
     @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
     @classmethod
