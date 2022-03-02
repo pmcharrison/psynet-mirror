@@ -1076,7 +1076,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if not get_participant(participant_id).initialised:
+        if not participant.initialised:
             exp.init_participant(
                 participant_id,
                 client_ip_address=cls.get_client_ip_address(),
