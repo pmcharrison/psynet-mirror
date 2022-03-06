@@ -26,15 +26,6 @@ organization_name = Max Planck Institute for Empirical Aesthetics
 database_url = postgresql://postgres@localhost/dallinger
 database_size = standard-2
 
-[Server]
-# Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
-dyno_type = performance-m
-num_dynos_web = 1
-num_dynos_worker = 1
-redis_size = hobby-dev
-host = 0.0.0.0
-clock_on = true
-
 [Lucid]
 lucid_recruitment_config = file:./lucid_recruitment_config.json
 
