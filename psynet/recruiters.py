@@ -254,7 +254,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
                 "assignment_id": rid,
                 "worker_id": rid,
             }
-        logger.info("participant_data 1")
+        logger.info("participant_data:")
         logger.info(participant_data)
 
         data = {
@@ -263,11 +263,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             "workerId": rid,
         }
 
-        logger.info("entry_information")
-        logger.info(entry_information)
         if entry_information:
             participant_data["entry_information"] = {
-                # **participant_data,
                 **entry_information,
                 **data,
             }

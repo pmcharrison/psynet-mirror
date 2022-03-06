@@ -24,7 +24,7 @@ class LucidService(object):
         max_wait_secs=0,
     ):
         self.api_key = api_key
-        self.sandbox = sandbox
+        self.sandbox = False  # sandbox
         self.recruitment_config = recruitment_config
         self.max_wait_secs = max_wait_secs
         self.headers = {
@@ -37,17 +37,16 @@ class LucidService(object):
     def request_base_url(self):
         url = "https://api.samplicio.us/demand/v2-beta"
         if self.sandbox:
-            logger.info("+++++ SANDBOX +++++")
-            # url = "https://api.samplicio.us/demand/v2-beta"
             url = "https://sandbox.techops.engineering/demand/v2-beta"
+        logger.info(f"API URL: {url}")
         return url
 
     @property
     def request_base_url_v1(self):
         url = "https://api.samplicio.us/Demand/v1"
         if self.sandbox:
-            logger.info("+++++ SANDBOX +++++")
             url = "https://sandbox.techops.engineering/Demand/v1"
+        logger.info(f"API URL: {url}")
         return url
 
     @property

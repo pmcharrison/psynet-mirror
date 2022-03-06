@@ -1,12 +1,12 @@
 [Launch mode]
-mode = live
+mode = sandbox
 
 [Payment information]
 title = Static demo survey barebone
 base_payment = 0.10
 
 [Recruitment strategy]
-recruiter = DevLucidRecruiter
+recruiter = LucidRecruiter
 auto_recruit = true
 lifetime = 24
 duration = 2
@@ -37,3 +37,6 @@ clock_on = true
 
 [Lucid]
 lucid_recruitment_config = file:./lucid_recruitment_config.json
+
+[Docker]
+docker_image_base_name = docker.io/kqmqneyosi8e/lucid-static-demo
