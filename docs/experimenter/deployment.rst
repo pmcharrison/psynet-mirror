@@ -76,7 +76,11 @@ Deployment from docker.io
 
 .. note::
 
-    Make sure you can logon via ssh to the server your experiment will be deployed on. Most preferably, enable ssh public key access. You may need to contact the server's administrator to set this up.
+    First, make sure you are connected to the institute's VPN network if working from outside the institute.
+
+.. note::
+
+    Second, make sure you can logon via ssh to the server your experiment will be deployed on. Most preferably, enable ssh public key access. You may need to contact the server's administrator to set this up. 
 
 This section makes use of Dallinger's ``dallinger docker-ssh`` command. In order to get a full understanding of its
 capabilities refer to the official documentation at https://dallinger.readthedocs.io/en/latest/docker_support.html,
