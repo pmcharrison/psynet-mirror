@@ -944,6 +944,7 @@ class Page(Elt):
             "experiment_title": get_config().get("title"),
             "app_id": experiment.app_id,
             "participant": participant,
+            "auth_token": participant.auth_token,
             "worker_id": participant.worker_id,
             "scripts": self.scripts,
             "css": self.css,
