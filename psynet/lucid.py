@@ -19,11 +19,13 @@ class LucidService(object):
     def __init__(
         self,
         api_key,
+        sha1_hashing_key,
         sandbox=True,
         recruitment_config=None,
         max_wait_secs=0,
     ):
         self.api_key = api_key
+        self.sha1_hashing_key = sha1_hashing_key
         self.sandbox = False  # sandbox
         self.recruitment_config = recruitment_config
         self.max_wait_secs = max_wait_secs
@@ -229,7 +231,7 @@ class LucidService(object):
         import hashlib
         import hmac
 
-        encoded_key = self.api_key.encode("utf-8")
+        encoded_key = self.sha1_hashing_key.encode("utf-8")
         encoded_URL = url.encode("utf-8")
         hashed = hmac.new(encoded_key, msg=encoded_URL, digestmod=hashlib.sha1)
         digested_hash = hashed.digest()

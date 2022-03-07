@@ -117,6 +117,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         self.notifies_admin = admin_notifier(self.config)
         self.lucidservice = LucidService(
             api_key=self.config.get("lucid_api_key"),
+            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
             sandbox=self.config.get("mode") != "live",
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
