@@ -40,7 +40,6 @@ class LucidService(object):
         url = "https://api.samplicio.us/demand/v2-beta"
         if self.sandbox:
             url = "https://sandbox.techops.engineering/demand/v2-beta"
-        logger.info(f"API URL: {url}")
         return url
 
     @property
@@ -48,7 +47,6 @@ class LucidService(object):
         url = "https://api.samplicio.us/Demand/v1"
         if self.sandbox:
             url = "https://sandbox.techops.engineering/Demand/v1"
-        logger.info(f"API URL: {url}")
         return url
 
     @property
