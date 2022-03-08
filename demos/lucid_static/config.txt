@@ -39,5 +39,5 @@ database_size = standard-2
 lucid_recruitment_config = file:./lucid_recruitment_config.json
 
 [Docker]
-docker_image_base_name = docker.io/kqmqneyosi8e/lucid-static-i
-docker_image_name = kqmqneyosi8e/lucid-static-i@sha256:95d2427d4d92a5d73a4eb667ec26f5a743428ae79b4c4d9c2c3c86fb439f6056
+docker_image_base_name = docker.io/kqmqneyosi8e/lucid-static-iii
+docker_image_name = kqmqneyosi8e/lucid-static-ii@sha256:50fd1c22df2845dd33bee96591960f55c7bc4cbd9da29786b09fc166152ba0ca
