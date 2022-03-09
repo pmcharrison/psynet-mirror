@@ -11,7 +11,6 @@
         "StudyTypeID": 1,
         "ClientCPI": 1,
         "QuotaCPI": 2,
-        "IsVerifyCallBack": true,
         "UniquePID": true,
         "UniqueIPAddress": true,
         "FulcrumExchangeAllocation": 0,
