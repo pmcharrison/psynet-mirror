@@ -57,15 +57,15 @@ class AnimalTrial(StaticTrial):
         animal = self.definition["animal"]
         block = self.block
 
-        header = f"<h4 id='trial-position'>Trial {self.position + 1}</h3>"
+        header = f"<h4 id='trial-position'>Trial {self.position + 1}</h4>"
 
         if self.is_repeat_trial:
             header = (
                 header
-                + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h3>"
+                + f"<h4>Repeat trial {self.repeat_trial_index + 1} out of {self.num_repeat_trials}</h4>"
             )
         else:
-            header = header + f"<h4>Block {block}</h3>"
+            header = header + f"<h4>Block {block}</h4>"
 
         page = ModularPage(
             "animal_trial",
