@@ -277,7 +277,6 @@
         var disableWhilePlaying = {{ config.js_vars.disable_while_playing | lower }};
         {% endautoescape %}
 
-        // Overwrites corresponding method in slider-page.html
         slider.updateLog = function() {
             slider.log.push({
                 'time': new Date(),
