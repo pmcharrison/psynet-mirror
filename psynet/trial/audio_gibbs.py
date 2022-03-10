@@ -10,7 +10,7 @@ from flask import Markup, escape
 
 from ..field import claim_var
 from ..media import make_batch_file, upload_to_s3
-from ..modular_page import AudioSliderControl, ModularPage
+from ..modular_page import MediaSliderControl, ModularPage
 from ..timeline import MediaSpec
 from ..utils import get_logger, get_object_from_module, linspace
 from .gibbs import GibbsNetwork, GibbsNode, GibbsSource, GibbsTrial, GibbsTrialMaker
@@ -271,15 +271,16 @@ class AudioGibbsTrial(GibbsTrial):
         return ModularPage(
             "gibbs_audio_trial",
             self._get_prompt(experiment, participant),
-            control=AudioSliderControl(
+            control=MediaSliderControl(
                 "slider_control",
-                audio=self.media.audio,
-                sound_locations=self.sound_locations,
+                multimedia=self.media.audio,
+                modality="audio",
+                media_locations=self.media_locations,
                 start_value=start_value,
                 min_value=vector_range[0],
                 max_value=vector_range[1],
-                num_steps="num_sounds" if self.snap_slider_before_release else 10000,
-                snap_values="sound_locations" if self.snap_slider else None,
+                num_steps="num_media" if self.snap_slider_before_release else 10000,
+                snap_values="media_locations" if self.snap_slider else None,
                 autoplay=self.autoplay,
                 disable_while_playing=self.disable_while_playing,
                 reverse_scale=self.reverse_scale,
@@ -327,7 +328,7 @@ class AudioGibbsTrial(GibbsTrial):
         )
 
     @property
-    def sound_locations(self):
+    def media_locations(self):
         res = {}
         for stimulus in self.slider_stimuli["all"]:
             res[stimulus["id"]] = stimulus["value"]
@@ -356,7 +357,7 @@ class AudioGibbsTrial(GibbsTrial):
             "trial_id": self.id,
             "start_value": self.initial_vector[self.active_index],
             "vector_range": self.vector_ranges[self.active_index],
-            "sound_locations": self.sound_locations,
+            "media_locations": self.media_locations,
         }
 
 
