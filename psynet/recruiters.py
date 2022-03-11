@@ -244,33 +244,16 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         rid = entry_information.get("RID", entry_information.get("rid", None))
         if rid is None:
             rid = entry_information.get("hit_id")
-            participant_data = {
-                "hit_id": rid,
-                "assignment_id": rid,
-                "worker_id": rid,
-            }
-        else:
-            participant_data = {
-                "hit_id": rid,
-                "assignment_id": rid,
-                "worker_id": rid,
-            }
-        logger.info("participant_data:")
-        logger.info(participant_data)
 
-        data = {
-            "hitId": rid,
-            "assignmentId": rid,
-            "workerId": rid,
+        participant_data = {
+            "hit_id": rid,
+            "assignment_id": rid,
+            "worker_id": rid,
         }
 
         if entry_information:
-            participant_data["entry_information"] = {
-                **entry_information,
-                **data,
-            }
-        logger.info("participant_data 2")
-        logger.info(participant_data)
+            participant_data["entry_information"] = entry_information
+
         return participant_data
 
     def exit_response(self, experiment, participant):
