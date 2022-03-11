@@ -76,16 +76,13 @@ class LucidService(object):
             "name": name,
         }
         request_data = json.dumps({**params, **self.recruitment_config["survey"]})
-        # request_data = json.dumps({})
         response = requests.post(
             f"{self.request_base_url_v1}/Surveys/Create",
             data=request_data,
             headers=self.headers,
         )
         response_data = response.json()
-        logger.info("+++++ response_data +++++")
-        logger.info(response_data)
-        logger.info("+++++ response_data +++++")
+
         if (
             "SurveySID" not in response_data["Survey"]
             or "SurveyNumber" not in response_data["Survey"]
