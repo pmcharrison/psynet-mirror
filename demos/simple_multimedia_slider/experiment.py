@@ -4,9 +4,12 @@ from flask import Markup, escape
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.modular_page import AudioSliderControl, ModularPage
+from psynet.modular_page import MediaSliderControl, ModularPage
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import MediaSpec, Timeline, join
+
+N_AUDIO_LOCATIONS = 472
+N_VIDEO_LOCATIONS = 17
 
 
 def print_dict(x, **kwargs):
@@ -16,28 +19,35 @@ def print_dict(x, **kwargs):
         + "</pre>"
     )
 
-    MediaSpec(
-        audio={
-            "batch": {
-                "url": "/static/stimuli/bier.batch",
-                "ids": [_id for _id, _ in kwargs["sound_locations"].items()],
-                "type": "batch",
-            }
-        }
-    )
-
 
 def new_example(description, **kwargs):
-    assert len(kwargs["sound_locations"]) == 472
-    media = MediaSpec(
-        audio={
-            "batch": {
-                "url": "/static/stimuli/bier.batch",
-                "ids": [_id for _id, _ in kwargs["sound_locations"].items()],
-                "type": "batch",
+    if "modality" not in kwargs.keys():
+        kwargs["modality"] = "audio"  # Default modality is audio
+
+    if kwargs["modality"] == "audio":
+        assert len(kwargs["media_locations"]) == N_AUDIO_LOCATIONS
+        media = MediaSpec(
+            audio={
+                "batch": {
+                    "url": "/static/stimuli/audio.batch",
+                    "ids": [_id for _id, _ in kwargs["media_locations"].items()],
+                    "type": "batch",
+                }
             }
-        }
-    )
+        )
+        multimedia = media.audio
+    elif kwargs["modality"] == "video":
+        assert len(kwargs["media_locations"]) == N_VIDEO_LOCATIONS
+        media = MediaSpec(
+            video={
+                "batch": {
+                    "url": "/static/stimuli/video.batch",
+                    "ids": [_id for _id, _ in kwargs["media_locations"].items()],
+                    "type": "batch",
+                }
+            }
+        )
+        multimedia = media.video
     prompt = Markup(
         f"""
         {escape(description)}
@@ -61,6 +71,13 @@ def new_example(description, **kwargs):
             psynet.trial.onEvent("trialConstruct", () => setInterval(update_value, 100));
 
         </script>
+        <style>
+        .video {{
+            width:256px;
+            height: 256px;
+            margin: 20px auto;
+        }}
+        </style>
         """
     )
     time_estimate = kwargs.pop("time_estimate")
@@ -69,7 +86,10 @@ def new_example(description, **kwargs):
         ModularPage(
             "slider_page",
             prompt,
-            control=AudioSliderControl("slider_control", audio=media.audio, **kwargs),
+            # No need to specify modality, as it is already in kwargs
+            control=MediaSliderControl(
+                "slider_control", multimedia=multimedia, **kwargs
+            ),
             media=media,
             time_estimate=time_estimate,
         ),
@@ -78,21 +98,36 @@ def new_example(description, **kwargs):
 
 
 class CustomExp(psynet.experiment.Experiment):
-    ids = [f"audio_{i}" for i in range(472)]
+    audio_ids = [f"audio_{i}" for i in range(N_AUDIO_LOCATIONS)]
+    video_ids = [f"video_{i}" for i in range(N_VIDEO_LOCATIONS)]
 
     timeline = Timeline(
         NoConsent(),
         new_example(
             """
-            Simple example where no slider snapping is performed. There is one stimulus
+            Simple video example where no slider snapping is performed. There is one stimulus
             located at each integer position. The user must wait 2 seconds before
             they are allowed to submit their response.
             """,
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(video_ids, [i for i in range(N_VIDEO_LOCATIONS)])),
+            snap_values=None,
+            start_value=0,
+            min_value=0,
+            max_value=N_VIDEO_LOCATIONS - 1,
+            autoplay=True,
+            minimal_time=2,
+            time_estimate=5,
+            modality="video",
+        ),
+        new_example(
+            """
+            Same example but this time with audio!
+            """,
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             snap_values=None,
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_time=2,
             time_estimate=5,
@@ -101,11 +136,11 @@ class CustomExp(psynet.experiment.Experiment):
             """
             Same example with wrapping, i.e., then slider is wrapped twice so that there are no boundary jumps.
             """,
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             snap_values=None,
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_time=2,
             time_estimate=5,
@@ -115,11 +150,11 @@ class CustomExp(psynet.experiment.Experiment):
             """
             Example with circular slider and wrapping.
             """,
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             snap_values=None,
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_time=2,
             time_estimate=5,
@@ -132,56 +167,56 @@ class CustomExp(psynet.experiment.Experiment):
             with slider snapping to sound locations
             (as close as can be achieved given the underlying step size of the slider).
             """,
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
-            snap_values="sound_locations",
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
+            snap_values="media_locations",
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=3,
             time_estimate=5,
         ),
         new_example(
             "Same example but with slider snapping to deciles.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             snap_values=11,
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=3,
             time_estimate=5,
         ),
         new_example(
             "Same example but where the slider can only be dragged through deciles.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             num_steps=11,
             snap_values=11,
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=3,
             time_estimate=5,
         ),
         new_example(
             "Same example but where the slider can only be dragged through sound locations.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             snap_values=None,
-            num_steps="num_sounds",
+            num_steps="num_media",
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=3,
             time_estimate=5,
         ),
         new_example(
             "Same example with non-directional slider.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=1,
             time_estimate=5,
@@ -189,10 +224,10 @@ class CustomExp(psynet.experiment.Experiment):
         ),
         new_example(
             "Same example with slider reversed.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=1,
             time_estimate=5,
@@ -200,10 +235,10 @@ class CustomExp(psynet.experiment.Experiment):
         ),
         new_example(
             "Same example with reversed non-directional slider.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=True,
             minimal_interactions=1,
             time_estimate=5,
@@ -212,7 +247,9 @@ class CustomExp(psynet.experiment.Experiment):
         ),
         new_example(
             "Without reversal, with non-integer sound locations.",
-            sound_locations=dict(zip(ids, [100 + i / 3 for i in range(472)])),
+            media_locations=dict(
+                zip(audio_ids, [100 + i / 3 for i in range(N_AUDIO_LOCATIONS)])
+            ),
             start_value=200,
             min_value=100,
             max_value=260,
@@ -222,11 +259,11 @@ class CustomExp(psynet.experiment.Experiment):
         ),
         new_example(
             "Without autoplay, without minimal interactions.",
-            sound_locations=dict(zip(ids, [i for i in range(472)])),
+            media_locations=dict(zip(audio_ids, [i for i in range(N_AUDIO_LOCATIONS)])),
             snap_values=None,
             start_value=200,
             min_value=0,
-            max_value=471,
+            max_value=N_AUDIO_LOCATIONS - 1,
             autoplay=False,
             minimal_interactions=0,
             time_estimate=5,
