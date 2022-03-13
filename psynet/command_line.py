@@ -9,10 +9,7 @@ import sys
 from shutil import rmtree, which
 
 import click
-import dallinger.data
-from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
-from dallinger.command_line import data as dallinger_data
 from dallinger.command_line import debug as dallinger_debug
 from dallinger.command_line import deploy as dallinger_deploy
 from dallinger.command_line import log as dallinger_log
@@ -34,8 +31,7 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-
-from .utils import (
+from psynet.utils import (
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
@@ -87,6 +83,8 @@ def prepare(force):
     Prepares all stimulus sets defined in experiment.py,
     uploading all media files to Amazon S3.
     """
+    from dallinger import db
+
     FLAGS.add("prepare")
     if force:
         FLAGS.add("force")
@@ -204,6 +202,7 @@ def docs(force_rebuild):
 
 
 def run_pre_checks(mode):
+    from dallinger import db
     from dallinger.recruiters import MTurkRecruiter
 
     db.init_db(drop_all=True)
@@ -514,6 +513,8 @@ def export_(app, local):
     create_export_dirs(data_dir_path)
 
     dallinger_log("Creating database snapshot.")
+    from dallinger import data as dallinger_data
+
     dallinger_data.export(app, local=local)
     move_snapshot_file(data_dir_path, app)
     with yaspin(text="Completed.", color="green") as spinner:
@@ -543,8 +544,12 @@ def export_(app, local):
 
 
 def populate_db_from_zip_file(zip_path):
+    from dallinger import db
+
     db.init_db(drop_all=True)
-    dallinger.data.ingest_zip(zip_path)
+    from dallinger import data as dallinger_data
+
+    dallinger_data.ingest_zip(zip_path)
 
 
 def dallinger_models():

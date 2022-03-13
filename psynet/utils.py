@@ -12,8 +12,6 @@ from datetime import datetime
 from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
-import numpy as np
-import pandas as pd
 from dallinger.config import config, get_config
 from flask import make_response, render_template, request
 from sqlalchemy.sql import func
@@ -250,6 +248,8 @@ class DuplicateKeyError(ValueError):
 
 
 def corr(x: list, y: list, method="pearson"):
+    import pandas as pd
+
     df = pd.DataFrame({"x": x, "y": y}, columns=["x", "y"])
     return float(df.corr(method=method).at["x", "y"])
 
@@ -344,6 +344,8 @@ def model_name_to_snake_case(model_name):
 
 
 def json_to_data_frame(json_data):
+    import pandas as pd
+
     columns = []
     for row in json_data:
         [columns.append(key) for key in row.keys() if key not in columns]
@@ -415,6 +417,8 @@ def get_language():
 
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
+    import numpy as np
+
     res = np.random.randn(n_dimensions, 1)
     res /= np.linalg.norm(res, axis=0)
     return res[:, 0].tolist()
