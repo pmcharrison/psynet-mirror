@@ -77,6 +77,10 @@ def psynet():
     pass
 
 
+def reset_console():
+    os.system("stty sane")
+
+
 ###########
 # prepare #
 ###########
@@ -121,9 +125,16 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     """
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
-    ctx.invoke(
-        dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers
-    )
+    try:
+        ctx.invoke(
+            dallinger_debug,
+            verbose=verbose,
+            bot=bot,
+            proxy=proxy,
+            no_browsers=no_browsers,
+        )
+    finally:
+        reset_console()
 
 
 ##############
@@ -161,7 +172,10 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     run_pre_checks("deploy")
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
-    ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    try:
+        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
 
 ########
@@ -255,7 +269,10 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     run_pre_checks("sandbox")
     dallinger_log(header)
     ctx.invoke(prepare, force=force_prepare)
-    ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+    try:
+        ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
 
 ##########
