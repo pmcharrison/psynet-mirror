@@ -120,7 +120,7 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     Run the experiment locally.
     """
     dallinger_log(header)
-    clean_heroku_processes()
+    clean_psynet_heroku_processes()
     clean_psynet_chrome_processes()
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(
@@ -128,13 +128,13 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     )
 
 
-def clean_heroku_processes():
-    heroku_processes = list_heroku_processes()
-    if len(heroku_processes) > 0:
+def clean_psynet_heroku_processes():
+    processes = list_psynet_heroku_processes()
+    if len(processes) > 0:
         dallinger_log(
-            f"Found {len(heroku_processes)} pre-existing Dallinger Heroku processes, terminating them now."
+            f"Found {len(processes)} pre-existing Dallinger Heroku processes, terminating them now."
         )
-    for p in heroku_processes:
+    for p in processes:
         p.kill()
 
 
@@ -162,13 +162,13 @@ def is_psynet_chrome_process(process):
     return False
 
 
-def list_heroku_processes():
+def list_psynet_heroku_processes():
     import psutil
 
-    return [p for p in psutil.process_iter() if is_heroku_process(p)]
+    return [p for p in psutil.process_iter() if is_psynet_heroku_process(p)]
 
 
-def is_heroku_process(process):
+def is_psynet_heroku_process(process):
     if "python" in process.name():
         for cmd in process.cmdline():
             if "dallinger_heroku_" in cmd:
