@@ -121,6 +121,7 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     """
     dallinger_log(header)
     clean_heroku_processes()
+    clean_psynet_chrome_processes()
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(
         dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers
@@ -135,6 +136,30 @@ def clean_heroku_processes():
         )
     for p in heroku_processes:
         p.kill()
+
+
+def clean_psynet_chrome_processes():
+    processes = list_psynet_chrome_processes()
+    if len(processes) > 0:
+        dallinger_log(
+            f"Found {len(processes)} pre-existing PsyNet Chrome processes, terminating them now."
+        )
+    for p in processes:
+        p.kill()
+
+
+def list_psynet_chrome_processes():
+    import psutil
+
+    return [p for p in psutil.process_iter() if is_psynet_chrome_process(p)]
+
+
+def is_psynet_chrome_process(process):
+    if "Chrome" in process.name():
+        for cmd in process.cmdline():
+            if "localhost:5000" in cmd:
+                return True
+    return False
 
 
 def list_heroku_processes():
