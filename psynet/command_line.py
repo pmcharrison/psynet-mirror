@@ -561,11 +561,10 @@ def export_(app, local):
 
 
 def populate_db_from_zip_file(zip_path):
+    from dallinger import data as dallinger_data
     from dallinger import db
 
     db.init_db(drop_all=True)
-    from dallinger import data as dallinger_data
-
     dallinger_data.ingest_zip(zip_path)
 
 
