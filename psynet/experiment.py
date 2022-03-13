@@ -10,7 +10,6 @@ import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
-from dallinger.command_line import log as dallinger_log
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
@@ -24,6 +23,7 @@ from pkg_resources import resource_filename
 from psynet import __version__, data
 
 from . import field
+from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
@@ -348,7 +348,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
-        dallinger_log(
+        log(
             "Initializing experiment with variables \n"
             + pretty_log_dict(self.variables_initial_values, 4)
         )
