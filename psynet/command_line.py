@@ -120,10 +120,35 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
     Run the experiment locally.
     """
     dallinger_log(header)
+    clean_heroku_processes()
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(
         dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers
     )
+
+
+def clean_heroku_processes():
+    heroku_processes = list_heroku_processes()
+    if len(heroku_processes) > 0:
+        dallinger_log(
+            f"Found {len(heroku_processes)} pre-existing Dallinger Heroku processes, terminating them now."
+        )
+    for p in heroku_processes:
+        p.kill()
+
+
+def list_heroku_processes():
+    import psutil
+
+    return [p for p in psutil.process_iter() if is_heroku_process(p)]
+
+
+def is_heroku_process(process):
+    if "python" in process.name():
+        for cmd in process.cmdline():
+            if "dallinger_heroku_" in cmd:
+                return True
+    return False
 
 
 ##############
