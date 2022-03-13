@@ -15,7 +15,8 @@ from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
 from psynet import __version__
-from psynet.utils import (
+
+from .utils import (
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
