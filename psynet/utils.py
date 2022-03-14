@@ -13,8 +13,6 @@ from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
 from dallinger.config import config, get_config
-from flask import make_response, render_template, request
-from sqlalchemy.sql import func
 
 
 def get_logger():
@@ -35,6 +33,8 @@ def get_arg_from_dict(x, desired: str, use_default=False, default=None):
 
 
 def sql_sample_one(x):
+    from sqlalchemy.sql import func
+
     return x.order_by(func.random()).first()
 
 
@@ -432,6 +432,8 @@ def error_page(
     request_data="",
 ):
     """Render HTML for error page."""
+    from flask import make_response, render_template, request
+
     config = get_config()
 
     if error_text is None:
