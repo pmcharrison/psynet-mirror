@@ -67,6 +67,10 @@ def psynet():
     pass
 
 
+def reset_console():
+    os.system("stty sane")
+
+
 ###########
 # prepare #
 ###########
@@ -123,14 +127,17 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
     clean_psynet_chrome_processes()
     exp_config = {"threads": str(threads)}
     ctx.invoke(prepare, force=force_prepare)
-    ctx.invoke(
-        dallinger_debug,
-        verbose=verbose,
-        bot=bot,
-        proxy=proxy,
-        no_browsers=no_browsers,
-        exp_config=exp_config,
-    )
+    try:
+        ctx.invoke(
+            dallinger_debug,
+            verbose=verbose,
+            bot=bot,
+            proxy=proxy,
+            no_browsers=no_browsers,
+            exp_config=exp_config,
+        )
+    finally:
+        reset_console()
 
 
 def clean_psynet_heroku_processes():
@@ -219,7 +226,10 @@ def deploy(ctx, verbose, app, archive, force_prepare):
 
     from dallinger.command_line import deploy as dallinger_deploy
 
-    ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    try:
+        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
 
 ########
@@ -317,7 +327,10 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 
-    ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+    try:
+        ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
 
 ##########
