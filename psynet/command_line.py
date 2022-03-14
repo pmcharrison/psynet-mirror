@@ -78,7 +78,7 @@ def psynet():
 
 
 def reset_console():
-    os.system("stty sane")
+    os.system("reset")
 
 
 ###########
