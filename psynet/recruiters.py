@@ -165,9 +165,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
-        logger.info(
-            f">>>>>>>>>> LUCID RECRUITER: Opening initial recruitment for {n} participants."
-        )
+        self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
         if self.is_in_progress:
             raise LucidRecruiterException(
                 "Tried to open_recruitment on already open recruiter."
@@ -189,16 +187,14 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             )
 
         url = survey_info["ClientSurveyLiveURL"]
-        logger.info(">>>>>>>>>> LUCID RECRUITER: Done creating project and survey.")
+        self.lucidservice.log("Done creating project and survey.")
         logger.info("----------")
         logger.info("---------->" + url.replace("https", "http"))
         logger.info("----------")
 
         survey_id = self.current_survey_number()
         if survey_id is None:
-            logger.info(
-                ">>>>>>>>>> LUCID RECRUITER: No survey in progress: recruitment aborted."
-            )
+            self.lucidservice.log("No survey in progress: recruitment aborted.")
             return
 
         return {
@@ -210,9 +206,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         return []
 
     def close_recruitment(self):
-        logger.info(
-            ">>>>>>>>>> LUCID RECRUITER: No more participants required. Recruitment stopped."
-        )
+        self.lucidservice.log("No more participants required. Recruitment stopped.")
 
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
@@ -271,7 +265,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         redirect_url += participant.assignment_id + "&"
         hash = self.lucidservice.sha1_hash(redirect_url)
         redirect_url += f"hash={hash}"
-        logger.info(f">>>>>>>>>> LUCID RECRUITER: Exit redirect: {redirect_url}")
+        self.lucidservice.log(f"Exit redirect: {redirect_url}")
 
         return flask.render_template(
             "exit_recruiter_lucid.html",

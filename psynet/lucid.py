@@ -53,6 +53,10 @@ class LucidService(object):
     def survey_update_url(self):
         return f"{self.request_base_url}/surveys"
 
+    @classmethod
+    def log(cls, text):
+        logger.info(f">>>>>>>>>> LUCID RECRUITER: {text}")
+
     def create_survey(
         self,
         id,
@@ -88,10 +92,10 @@ class LucidService(object):
             or "SurveyNumber" not in response_data["Survey"]
         ):
             raise LucidServiceException(
-                ">>>>>>>>>> LUCID: 'Create survey' request was invalid for unknown reason."
+                "LUCID: 'Create survey' request was invalid for unknown reason."
             )
-        logger.info(
-            f'>>>>>>>>>> LUCID: Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
+        self.log(
+            f'Survey with number {response_data["Survey"]["SurveyNumber"]} created successfully.'
         )
 
         return response_data["Survey"]
@@ -180,8 +184,8 @@ class LucidService(object):
             )
 
         response_data = response.json()
-        logger.info(
-            f'>>>>>>>>>> LUCID: Quota for {response_data["Quotas"][1]["Name"]} to {response_data["Quotas"][1]["Quota"]} updated successfully.'
+        self.log(
+            f'Quota for {response_data["Quotas"][1]["Name"]} to {response_data["Quotas"][1]["Quota"]} updated successfully.'
         )
 
         return response_data
@@ -202,7 +206,7 @@ class LucidService(object):
                 f"Error completing survey ({survey_number}): {response.text}"
             )
 
-        logger.info(f">>>>>>>>>> LUCID: Survey with id {survey_number} completed.")
+        self.log(f"Survey with id '{survey_number}' completed.")
         return response.json()
 
     def get_quotas(self, survey_number):
@@ -215,8 +219,8 @@ class LucidService(object):
             raise LucidServiceException(
                 f"Error getting quota for survey ({survey_number}): {response.text}"
             )
-        logger.info(
-            f">>>>>>>>>> LUCID: Quotas for survey with id '{survey_number}') successfully retrieved."
+        self.log(
+            f"Quotas for survey with id '{survey_number}') successfully retrieved."
         )
 
         return response.json()
