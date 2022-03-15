@@ -141,7 +141,7 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
 def kill_psynet_heroku_processes():
     processes = list_psynet_heroku_processes()
     if len(processes) > 0:
-        dallinger_log(
+        log(
             f"Found {len(processes)} pre-existing Dallinger Heroku processes, terminating them now."
         )
     for p in processes:
@@ -151,7 +151,7 @@ def kill_psynet_heroku_processes():
 def kill_psynet_chrome_processes():
     processes = list_psynet_chrome_processes()
     if len(processes) > 0:
-        dallinger_log(
+        log(
             f"Found {len(processes)} pre-existing PsyNet Chrome processes, terminating them now."
         )
     for p in processes:
