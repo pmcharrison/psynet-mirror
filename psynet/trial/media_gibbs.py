@@ -185,18 +185,23 @@ class MediaGibbsNetwork(GibbsNetwork):
                 if self.supports_batch:
                     vectors = []
                     range_to_sample = self.vector_ranges[active_index]
-                    values = linspace(
-                        range_to_sample[0], range_to_sample[1], granularity
+                    values, _, _, _, stimuli = _prepare_stimuli(
+                        range_to_sample,
+                        granularity,
+                        individual_stimuli_dir,
+                        self.modality,
                     )
                     for idx, value in enumerate(values):
                         _vector = vector.copy()
                         _vector[active_index] = value
                         vectors.append(_vector)
+
                     self.synth_function(
                         vector=vectors,
                         output_path=batch_path,
                         chain_definition=self.definition,
                     )
+
                 else:
                     if granularity == "custom":
                         stimuli = make_media_custom_intervals(**args)
@@ -419,6 +424,21 @@ def make_media_batch_file(stimuli, output_path):
     make_batch_file(paths, output_path)
 
 
+def _prepare_stimuli(range_to_sample, granularity, output_dir, modality):
+    logger.info(modality)
+    assert modality in ["audio", "video"]
+    ext = ".wav" if modality == "audio" else ".mp4"
+    values = linspace(range_to_sample[0], range_to_sample[1], granularity)
+    ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
+    files = [f"{_id}{ext}" for _id in ids]
+    paths = [os.path.join(output_dir, _file) for _file in files]
+    stimuli = [
+        {"id": _id, "value": _value, "path": _path}
+        for _id, _value, _path in zip(ids, values, paths)
+    ]
+    return values, ids, files, paths, stimuli
+
+
 def make_media_regular_intervals(
     modality,
     granularity,
@@ -430,14 +450,9 @@ def make_media_regular_intervals(
     synth_function,
     n_jobs,
 ):
-    logger.info(modality)
-    assert modality in ["audio", "video"]
-    ext = ".wav" if modality == "audio" else ".mp4"
-    values = linspace(range_to_sample[0], range_to_sample[1], granularity)
-
-    ids = [f"slider_stimulus_{_i}" for _i, _ in enumerate(values)]
-    files = [f"{_id}{ext}" for _id in ids]
-    paths = [os.path.join(output_dir, _file) for _file in files]
+    values, ids, files, paths, stimuli = _prepare_stimuli(
+        range_to_sample, granularity, output_dir, modality
+    )
 
     def _synth(value, path):
         _vector = vector.copy()
@@ -458,10 +473,7 @@ def make_media_regular_intervals(
         for _value, _path in zip(values, paths):
             _synth(_value, _path)
 
-    return [
-        {"id": _id, "value": _value, "path": _path}
-        for _id, _value, _path in zip(ids, values, paths)
-    ]
+    return stimuli
 
 
 def make_media_custom_intervals(
