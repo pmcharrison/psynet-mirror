@@ -114,15 +114,26 @@ def prepare(force):
     help="Skip opening browsers",
 )
 @click.option("--force-prepare", is_flag=True, help="Force override of cache.")
+@click.option(
+    "--threads",
+    default=1,
+    help="Number of threads to spawn. Fewer threads means faster start-up time.",
+)
 @click.pass_context
-def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare):
+def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
     """
     Run the experiment locally.
     """
     dallinger_log(header)
+    exp_config = {"threads": str(threads)}
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(
-        dallinger_debug, verbose=verbose, bot=bot, proxy=proxy, no_browsers=no_browsers
+        dallinger_debug,
+        verbose=verbose,
+        bot=bot,
+        proxy=proxy,
+        no_browsers=no_browsers,
+        exp_config=exp_config,
     )
 
 

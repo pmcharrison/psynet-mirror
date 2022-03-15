@@ -44,7 +44,11 @@ class TestDebug:
         CliRunner().invoke(debug, [])
         prepare.assert_called_once_with(force=False)
         dallinger_debug.assert_called_once_with(
-            verbose=False, bot=False, proxy=None, no_browsers=False
+            verbose=False,
+            bot=False,
+            proxy=None,
+            no_browsers=False,
+            exp_config={"threads": "1"},
         )
 
     def test_debug_all_non_default(self, debug, prepare, dallinger_debug):
@@ -54,7 +58,11 @@ class TestDebug:
         )
         prepare.assert_called_once_with(force=True)
         dallinger_debug.assert_called_once_with(
-            verbose=True, bot=True, proxy="5001", no_browsers=True
+            verbose=True,
+            bot=True,
+            proxy="5001",
+            no_browsers=True,
+            exp_config={"threads": "1"},
         )
 
 
