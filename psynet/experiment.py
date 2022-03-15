@@ -10,6 +10,7 @@ import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
+from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
@@ -768,6 +769,9 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_parameters(cls):
         config = get_config()
         config.register("keep_old_chrome_windows_in_debug_mode", bool)
+        config.register("lucid_api_key", unicode)
+        config.register("lucid_sha1_hashing_key", unicode)
+        config.register("lucid_recruitment_config", unicode)
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
