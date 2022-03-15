@@ -9,27 +9,8 @@ import sys
 from shutil import rmtree, which
 
 import click
-import dallinger.data
-from dallinger import db
-from dallinger.command_line import __version__ as dallinger_version
-from dallinger.command_line import data as dallinger_data
-from dallinger.command_line import debug as dallinger_debug
-from dallinger.command_line import deploy as dallinger_deploy
-from dallinger.command_line import log as dallinger_log
-from dallinger.command_line import sandbox as dallinger_sandbox
-from dallinger.command_line import verify_id as dallinger_verify_id
 from dallinger.config import get_config
-from dallinger.models import (
-    Info,
-    Network,
-    Node,
-    Notification,
-    Participant,
-    Question,
-    Transformation,
-    Transmission,
-    Vector,
-)
+from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
 
 from psynet import __path__ as psynet_path
@@ -43,6 +24,15 @@ from .utils import (
 )
 
 FLAGS = set()
+
+
+def log(msg, chevrons=True, verbose=True, **kw):
+    """Log a message to stdout."""
+    if verbose:
+        if chevrons:
+            click.echo("\n❯❯ " + msg, **kw)
+        else:
+            click.echo(msg, **kw)
 
 
 def clean_sys_modules():
@@ -87,10 +77,12 @@ def prepare(force):
     Prepares all stimulus sets defined in experiment.py,
     uploading all media files to Amazon S3.
     """
+    from dallinger import db
+
     FLAGS.add("prepare")
     if force:
         FLAGS.add("force")
-    dallinger_log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
+    log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
     experiment_class = import_local_experiment().get("class")
     experiment_instance = experiment_class.new(session=None)
     experiment_instance.pre_deploy()
@@ -124,7 +116,9 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
     """
     Run the experiment locally.
     """
-    dallinger_log(header)
+    from dallinger.command_line import debug as dallinger_debug
+
+    log(header)
     exp_config = {"threads": str(threads)}
     ctx.invoke(prepare, force=force_prepare)
     ctx.invoke(
@@ -170,8 +164,11 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     Deploy app using Heroku to MTurk.
     """
     run_pre_checks("deploy")
-    dallinger_log(header)
+    log(header)
     ctx.invoke(prepare, force=force_prepare)
+
+    from dallinger.command_line import deploy as dallinger_deploy
+
     ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
 
 
@@ -191,7 +188,7 @@ def docs(force_rebuild):
     try:
         os.chdir(docs_dir)
     except FileNotFoundError as e:
-        dallinger_log(
+        log(
             "There was an error building the documentation. Be sure to have activated your 'psynet' virtual environment."
         )
         raise SystemExit(e)
@@ -215,6 +212,7 @@ def docs(force_rebuild):
 
 
 def run_pre_checks(mode):
+    from dallinger import db
     from dallinger.recruiters import MTurkRecruiter
 
     db.init_db(drop_all=True)
@@ -264,8 +262,11 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     Deploy app using Heroku to the MTurk Sandbox.
     """
     run_pre_checks("sandbox")
-    dallinger_log(header)
+    log(header)
     ctx.invoke(prepare, force=force_prepare)
+
+    from dallinger.command_line import sandbox as dallinger_sandbox
+
     ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
 
 
@@ -368,11 +369,11 @@ def update(dallinger_version, psynet_version, verbose):
 
         _git_checkout(version, cwd, capture_output)
 
-    dallinger_log(header)
+    log(header)
     capture_output = not verbose
 
     # Dallinger
-    dallinger_log("Updating Dallinger...")
+    log("Updating Dallinger...")
     cwd = _dallinger_dir()
     if _is_editable("dallinger"):
         _prepare(
@@ -414,7 +415,7 @@ def update(dallinger_version, psynet_version, verbose):
         spinner.ok("✔")
 
     # PsyNet
-    dallinger_log("Updating PsyNet...")
+    log("Updating PsyNet...")
     cwd = _psynet_dir()
     if _is_editable("psynet"):
         _prepare(
@@ -440,7 +441,7 @@ def update(dallinger_version, psynet_version, verbose):
         )
         spinner.ok("✔")
 
-    dallinger_log(f'Updated PsyNet to version {_get_version("psynet")}')
+    log(f'Updated PsyNet to version {_get_version("psynet")}')
 
 
 ############
@@ -457,21 +458,19 @@ def estimate(mode):
     """
     Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
     """
-    dallinger_log(header)
+    log(header)
     experiment_class = import_local_experiment()["class"]
     experiment = setup_experiment_variables(experiment_class)
     if mode in ["bonus", "both"]:
         maximum_bonus = experiment_class.estimated_max_bonus(
             experiment.var.wage_per_hour
         )
-        dallinger_log(
-            f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}."
-        )
+        log(f"Estimated maximum bonus for participant: ${round(maximum_bonus, 2)}.")
     if mode in ["time", "both"]:
         completion_time = experiment_class.estimated_completion_time(
             experiment.var.wage_per_hour
         )
-        dallinger_log(
+        log(
             f"Estimated time to complete experiment: {format_seconds(completion_time)}."
         )
 
@@ -482,6 +481,12 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
+def verify_experiment_id(*args, **kwargs):
+    from dallinger.command_line import verify_id
+
+    verify_id(*args, **kwargs)
+
+
 ##########
 # export #
 ##########
@@ -490,7 +495,7 @@ def setup_experiment_variables(experiment_class):
     "--app",
     default=None,
     required=True,
-    callback=dallinger_verify_id,
+    callback=verify_experiment_id,
     help="Experiment id",
 )
 @click.option("--local", is_flag=True, help="Export local data")
@@ -518,13 +523,15 @@ def export(app, local):
 
 
 def export_(app, local):
-    dallinger_log(header)
+    log(header)
     import_local_experiment()
 
     data_dir_path = os.path.join("data", f"data-{app}")
     create_export_dirs(data_dir_path)
 
-    dallinger_log("Creating database snapshot.")
+    log("Creating database snapshot.")
+    from dallinger import data as dallinger_data
+
     dallinger_data.export(app, local=local)
     move_snapshot_file(data_dir_path, app)
     with yaspin(text="Completed.", color="green") as spinner:
@@ -533,10 +540,10 @@ def export_(app, local):
     dallinger_zip_path = os.path.join(data_dir_path, "db-snapshot", f"{app}-data.zip")
 
     if not local:
-        dallinger_log("Populating the local database with the downloaded data.")
+        log("Populating the local database with the downloaded data.")
         populate_db_from_zip_file(dallinger_zip_path)
 
-    dallinger_log("Exporting 'json' and 'csv' files.")
+    log("Exporting 'json' and 'csv' files.")
 
     for dallinger_model in dallinger_models():
         class_name = dallinger_model.__name__
@@ -550,15 +557,30 @@ def export_(app, local):
             print(f"Exporting {base_filename} data...")
             export_data(base_filename, data_dir_path, model_data)
 
-    dallinger_log("Export completed.")
+    log("Export completed.")
 
 
 def populate_db_from_zip_file(zip_path):
-    db.init_db(drop_all=True)
-    dallinger.data.ingest_zip(zip_path)
+    from dallinger import data as dallinger_data
+    from dallinger import db as dallinger_db
+
+    dallinger_db.init_db(drop_all=True)
+    dallinger_data.ingest_zip(zip_path)
 
 
 def dallinger_models():
+    from dallinger.models import (
+        Info,
+        Network,
+        Node,
+        Notification,
+        Participant,
+        Question,
+        Transformation,
+        Transmission,
+        Vector,
+    )
+
     return [
         Info,
         Network,
