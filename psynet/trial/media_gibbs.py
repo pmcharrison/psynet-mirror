@@ -4,6 +4,7 @@ import json
 import os
 import random
 import tempfile
+from datetime import datetime
 from uuid import uuid4
 
 from flask import Markup, escape
@@ -92,6 +93,7 @@ class MediaGibbsNetwork(GibbsNetwork):
     granularity = 100
     n_jobs = 1
     modality = None
+    supports_batch = False
 
     @property
     def synth_function(self):
@@ -148,6 +150,7 @@ class MediaGibbsNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
+        start = datetime.now()
         logger.info(f"Synthesising {self.modality} for network {self.id}...")
 
         node = self.head
@@ -179,20 +182,36 @@ class MediaGibbsNetwork(GibbsNetwork):
                     "n_jobs": self.n_jobs,
                 }
 
-                if granularity == "custom":
-                    stimuli = make_media_custom_intervals(**args)
-                else:
-                    stimuli = make_media_regular_intervals(
-                        modality=self.modality, granularity=granularity, **args
+                if self.supports_batch:
+                    vectors = []
+                    range_to_sample = self.vector_ranges[active_index]
+                    values = linspace(
+                        range_to_sample[0], range_to_sample[1], granularity
                     )
+                    for idx, value in enumerate(values):
+                        _vector = vector.copy()
+                        _vector[active_index] = value
+                        vectors.append(_vector)
+                    self.synth_function(
+                        vector=vectors,
+                        output_path=batch_path,
+                        chain_definition=self.definition,
+                    )
+                else:
+                    if granularity == "custom":
+                        stimuli = make_media_custom_intervals(**args)
+                    else:
+                        stimuli = make_media_regular_intervals(
+                            modality=self.modality, granularity=granularity, **args
+                        )
 
-                make_media_batch_file(stimuli, batch_path)
+                    make_media_batch_file(stimuli, batch_path)
                 batch_url = upload_to_s3(
                     batch_path, self.s3_bucket, key=batch_file, public_read=True
                 )["url"]
 
                 logger.info(
-                    f"Finished synthesising {self.modality} for network {self.id}..."
+                    f"Finished synthesising {self.modality} for network {self.id} in {datetime.now() - start}"
                 )
                 node.slider_stimuli = {"url": batch_url, "all": stimuli}
 
