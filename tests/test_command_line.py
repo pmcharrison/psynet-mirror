@@ -37,7 +37,7 @@ class TestDebug:
 
     @pytest.fixture
     def dallinger_debug(self):
-        with patch("psynet.command_line.dallinger_debug") as mock_dallinger_debug:
+        with patch("dallinger.command_line.debug") as mock_dallinger_debug:
             yield mock_dallinger_debug
 
     def test_debug(self, debug, prepare, dallinger_debug):
@@ -81,7 +81,7 @@ class TestDeploy:
 
     @pytest.fixture
     def dallinger_deploy(self):
-        with patch("psynet.command_line.dallinger_deploy") as mock_dallinger_deploy:
+        with patch("dallinger.command_line.deploy") as mock_dallinger_deploy:
             yield mock_dallinger_deploy
 
     def test_deploy(self, deploy, prepare, dallinger_deploy):
@@ -120,7 +120,7 @@ class TestSandbox:
 
     @pytest.fixture
     def dallinger_sandbox(self):
-        with patch("psynet.command_line.dallinger_sandbox") as mock_dallinger_sandbox:
+        with patch("dallinger.command_line.sandbox") as mock_dallinger_sandbox:
             yield mock_dallinger_sandbox
 
     def test_sandbox(self, sandbox, prepare, dallinger_sandbox):
