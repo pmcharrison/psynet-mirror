@@ -106,6 +106,13 @@ def call_function(function, args: dict):
     return function(*arg_values)
 
 
+def get_from_config(key, default):
+    config = get_config()
+    if not config.ready:
+        config.load()
+    return config.get(key, default=default)
+
+
 def get_function_args(f):
     return [str(x) for x in inspect.signature(f).parameters]
 
