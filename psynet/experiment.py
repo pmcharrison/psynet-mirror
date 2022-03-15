@@ -759,6 +759,11 @@ class Experiment(dallinger.experiment.Experiment):
             ),
         ]
 
+    @classmethod
+    def extra_parameters(cls):
+        config = get_config()
+        config.register("keep_old_chrome_windows_in_debug_mode", bool)
+
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
     def dashboard_timeline(cls):

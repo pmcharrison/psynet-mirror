@@ -17,6 +17,7 @@ from psynet import __path__ as psynet_path
 from psynet import __version__
 
 from .utils import (
+    get_from_config,
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
@@ -121,6 +122,12 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
     log(header)
     exp_config = {"threads": str(threads)}
     ctx.invoke(prepare, force=force_prepare)
+
+    kill_psynet_heroku_processes()
+
+    if not get_from_config("keep_old_chrome_windows_in_debug_mode", default=False):
+        kill_psynet_chrome_processes()
+
     ctx.invoke(
         dallinger_debug,
         verbose=verbose,
@@ -129,6 +136,58 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
         no_browsers=no_browsers,
         exp_config=exp_config,
     )
+
+
+def kill_psynet_heroku_processes():
+    processes = list_psynet_heroku_processes()
+    if len(processes) > 0:
+        dallinger_log(
+            f"Found {len(processes)} pre-existing Dallinger Heroku processes, terminating them now."
+        )
+    for p in processes:
+        p.kill()
+
+
+def kill_psynet_chrome_processes():
+    processes = list_psynet_chrome_processes()
+    if len(processes) > 0:
+        dallinger_log(
+            f"Found {len(processes)} pre-existing PsyNet Chrome processes, terminating them now."
+        )
+    for p in processes:
+        p.kill()
+
+
+def list_psynet_chrome_processes():
+    import psutil
+
+    return [p for p in psutil.process_iter() if is_psynet_chrome_process(p)]
+
+
+def is_psynet_chrome_process(process):
+    if "chrome" in process.name().lower():
+        for cmd in process.cmdline():
+            if "localhost:5000" in cmd:
+                return True
+    return False
+
+
+def list_psynet_heroku_processes():
+    import psutil
+
+    return [p for p in psutil.process_iter() if is_psynet_heroku_process(p)]
+
+
+def is_psynet_heroku_process(process):
+    # This version catches processes in Linux
+    if "dallinger_herok" in process.name():
+        return True
+    # This version catches process in MacOS
+    if "python" in process.name():
+        for cmd in process.cmdline():
+            if "dallinger_heroku_" in cmd:
+                return True
+    return False
 
 
 ##############

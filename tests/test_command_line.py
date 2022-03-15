@@ -24,23 +24,11 @@ class TestCommandLine(object):
 
 @pytest.mark.usefixtures("demo_static")
 class TestDebug:
-    @pytest.fixture
-    def debug(self):
+    @patch("psynet.command_line.prepare")
+    @patch("dallinger.command_line.debug")
+    def test_debug(self, dallinger_debug, prepare):
         from psynet.command_line import debug
 
-        return debug
-
-    @pytest.fixture
-    def prepare(self):
-        with patch("psynet.command_line.prepare") as mock_prepare:
-            yield mock_prepare
-
-    @pytest.fixture
-    def dallinger_debug(self):
-        with patch("dallinger.command_line.debug") as mock_dallinger_debug:
-            yield mock_dallinger_debug
-
-    def test_debug(self, debug, prepare, dallinger_debug):
         CliRunner().invoke(debug, [])
         prepare.assert_called_once_with(force=False)
         dallinger_debug.assert_called_once_with(
@@ -51,7 +39,11 @@ class TestDebug:
             exp_config={"threads": "1"},
         )
 
-    def test_debug_all_non_default(self, debug, prepare, dallinger_debug):
+    @patch("psynet.command_line.prepare")
+    @patch("dallinger.command_line.debug")
+    def test_debug_all_non_default(self, dallinger_debug, prepare):
+        from psynet.command_line import debug
+
         CliRunner().invoke(
             debug,
             ["--verbose", "--bot", "--proxy=5001", "--no-browsers", "--force-prepare"],
