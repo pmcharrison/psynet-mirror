@@ -186,6 +186,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
                 self.current_survey_number()
             )
 
+        self.lucidservice.add_qualifications_to_survey(self.current_survey_number())
+
         url = survey_info["ClientSurveyLiveURL"]
         self.lucidservice.log("Done creating project and survey.")
         logger.info("----------")

@@ -161,6 +161,40 @@ class LucidService(object):
 
         return response_data
 
+    def add_qualifications_to_survey(self, survey_number):
+        """Add platform and browser specific qualifications to a survey."""
+        qualifications = [
+            {
+                "Name": "MS_is_mobile",
+                "QuestionID": 8214,
+                "LogicalOperator": "NOT",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": True,
+                "Order": 1,
+                "PreCodes": ["true"],
+            },
+            {
+                "Name": "MS_browser_type_Non_Wurfl",
+                "QuestionID": 1035,
+                "LogicalOperator": "OR",
+                "NumberOfRequiredConditions": 0,
+                "IsActive": True,
+                "Order": 2,
+                "PreCodes": ["Chrome"],
+            },
+        ]
+
+        for qualification in qualifications:
+            request_data = json.dumps(qualification)
+            response = requests.post(
+                f"{self.request_base_url_v1}/SurveyQualifications/Create/{survey_number}",
+                data=request_data,
+                headers=self.headers,
+            )
+            response_data = response.json()
+
+        return response_data
+
     def get_qualifications(self, survey_number):
         response = requests.get(
             f"{self.request_base_url_v1}/SurveyQualifications/BySurveyNumber/{survey_number}",
