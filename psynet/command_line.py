@@ -540,10 +540,10 @@ def setup_experiment_variables(experiment_class):
     return experiment
 
 
-def verify_experiment_id(*args, **kwargs):
+def verify_experiment_id(ctx, param, app):
     from dallinger.command_line import verify_id
 
-    verify_id(*args, **kwargs)
+    return verify_id(ctx, param, app)
 
 
 ##########
