@@ -185,7 +185,7 @@ class Exp(psynet.experiment.Experiment):
 
     def __init__(self, session=None):
         super().__init__(session)
-        self.initial_recruitment_size = 3
+        self.initial_recruitment_size = 20
 
     def exit_info_for(self, participant):
         return {
