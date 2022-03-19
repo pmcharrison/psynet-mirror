@@ -129,7 +129,15 @@ class Experiment(dallinger.experiment.Experiment):
         If ``True``, whenever a participant opens the developer tools in the web browser,
         this is logged as participant.var.opened_devtools = ``True``,
         and the participant is shown a warning alert message.
-        Default: ``True``.
+        Default: ``False``.
+        Note: Chrome does not currently expose an official way of checking whether
+        the participant opens the developer tools. People therefore have to rely
+        on hacks to detect it. These hacks can often be broken by updates to Chrome.
+        We've therefore disabled this check by default, to reduce the risk of
+        false positives. Experimenters wishing to enable the check for an individual
+        experiment are recommended to verify that the check works appropriately
+        before relying on it. We'd be grateful for any contributions of updated
+        developer tools checks.
 
     window_width : ``int``
         Determines the width in pixels of the window that opens when the
@@ -294,7 +302,7 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
             "show_footer": True,
             "show_progress_bar": True,
-            "check_participant_opened_devtools": True,
+            "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
         }
