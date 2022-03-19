@@ -1097,12 +1097,7 @@ class Experiment(dallinger.experiment.Experiment):
             )
             participant = get_participant(participant_id)
         else:
-            if participant.auth_token != auth_token:
-                logger.error(
-                    f"Mismatch between provided auth_token ({auth_token}) "
-                    + f"and actual auth_token {participant.auth_token} "
-                    f"for participant {participant_id}."
-                )
+            if not cls.validate_auth_token(participant, auth_token):
                 msg = (
                     "There was a problem authenticating your session, "
                     + "did you switch browsers? Unfortunately this is not currently "
@@ -1116,6 +1111,17 @@ class Experiment(dallinger.experiment.Experiment):
         if mode == "json":
             return jsonify(page.__json__(participant))
         return page.render(exp, participant)
+
+    @staticmethod
+    def validate_auth_token(participant, auth_token):
+        valid = participant.auth_token == auth_token
+        if not valid:
+            logger.error(
+                f"Mismatch between provided auth_token ({auth_token}) "
+                + f"and actual auth_token {participant.auth_token} "
+                f"for participant {participant.id}."
+            )
+        return valid
 
     @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
     @classmethod
@@ -1170,26 +1176,14 @@ class Experiment(dallinger.experiment.Experiment):
         exp.save()
         return res
 
-    @staticmethod
-    def check_assignment_id(participant, assignment_id):
-        if participant.assignment_id != assignment_id:
-            logger.warning(
-                "Received wrong assignment_id for participant %i "
-                "(expected %s, got %s).",
-                participant.id,
-                participant.assignment_id,
-                assignment_id,
-            )
-
     @experiment_route(
-        "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
+        "/log/<level>/<int:participant_id>/<auth_token>", methods=["POST"]
     )
-    @staticmethod
-    def http_log(level, participant_id, assignment_id):
+    @classmethod
+    def http_log(cls, level, participant_id, auth_token):
         participant = get_participant(participant_id)
+        cls.validate_auth_token(participant, auth_token)
         message = request.values["message"]
-
-        Experiment.check_assignment_id(participant, assignment_id)
 
         assert level in ["warning", "info", "error"]
 
@@ -1216,14 +1210,14 @@ class Experiment(dallinger.experiment.Experiment):
         )
 
     @experiment_route(
-        "/participant_opened_devtools/<int:participant_id>/<assignment_id>",
+        "/participant_opened_devtools/<int:participant_id>/<auth_token>",
         methods=["POST"],
     )
-    @staticmethod
-    def participant_opened_devtools(participant_id, assignment_id):
+    @classmethod
+    def participant_opened_devtools(cls, participant_id, auth_token):
         participant = get_participant(participant_id)
 
-        Experiment.check_assignment_id(participant, assignment_id)
+        Experiment.validate_auth_token(participant, auth_token)
 
         participant.var.opened_devtools = True
         db.session.commit()
