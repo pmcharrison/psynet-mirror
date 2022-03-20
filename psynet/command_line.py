@@ -409,30 +409,6 @@ def update(dallinger_version, psynet_version, verbose):
     Update the locally installed `Dallinger` and `PsyNet` versions.
     """
 
-    def _dallinger_dir():
-        import dallinger as _
-
-        return pathlib.Path(_.__file__).parent.parent.resolve()
-
-    def _psynet_dir():
-        import psynet as _
-
-        return pathlib.Path(_.__file__).parent.parent.resolve()
-
-    def _get_version(project_name):
-        return (
-            subprocess.check_output([f"{project_name} --version"], shell=True)
-            .decode("utf-8")
-            .strip()
-        )
-
-    def _is_editable(project):
-        for path_item in sys.path:
-            egg_link = os.path.join(path_item, project + ".egg-link")
-            if os.path.isfile(egg_link):
-                return True
-        return False
-
     def _git_checkout(version, cwd, capture_output):
         with yaspin(text=f"Checking out {version}...", color="green") as spinner:
             subprocess.run(
@@ -493,8 +469,8 @@ def update(dallinger_version, psynet_version, verbose):
 
     # Dallinger
     log("Updating Dallinger...")
-    cwd = _dallinger_dir()
-    if _is_editable("dallinger"):
+    cwd = dallinger_dir()
+    if is_editable("dallinger"):
         _prepare(
             dallinger_version,
             "Dallinger",
@@ -502,7 +478,7 @@ def update(dallinger_version, psynet_version, verbose):
             capture_output,
         )
 
-    if _is_editable("dallinger"):
+    if is_editable("dallinger"):
         text = "Installing development requirements and base packages..."
         install_command = "pip install --editable '.[data]'"
     else:
@@ -513,7 +489,7 @@ def update(dallinger_version, psynet_version, verbose):
         text=text,
         color="green",
     ) as spinner:
-        if _is_editable("dallinger"):
+        if is_editable("dallinger"):
             subprocess.run(
                 ["pip3 install -r dev-requirements.txt"],
                 shell=True,
@@ -535,8 +511,8 @@ def update(dallinger_version, psynet_version, verbose):
 
     # PsyNet
     log("Updating PsyNet...")
-    cwd = _psynet_dir()
-    if _is_editable("psynet"):
+    cwd = psynet_dir()
+    if is_editable("psynet"):
         _prepare(
             psynet_version,
             "PsyNet",
@@ -560,7 +536,35 @@ def update(dallinger_version, psynet_version, verbose):
         )
         spinner.ok("✔")
 
-    log(f'Updated PsyNet to version {_get_version("psynet")}')
+    log(f'Updated PsyNet to version {get_version("psynet")}')
+
+
+def dallinger_dir():
+    import dallinger as _
+
+    return pathlib.Path(_.__file__).parent.parent.resolve()
+
+
+def psynet_dir():
+    import psynet as _
+
+    return pathlib.Path(_.__file__).parent.parent.resolve()
+
+
+def get_version(project_name):
+    return (
+        subprocess.check_output([f"{project_name} --version"], shell=True)
+        .decode("utf-8")
+        .strip()
+    )
+
+
+def is_editable(project):
+    for path_item in sys.path:
+        egg_link = os.path.join(path_item, project + ".egg-link")
+        if os.path.isfile(egg_link):
+            return True
+    return False
 
 
 ############
