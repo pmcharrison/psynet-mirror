@@ -152,6 +152,8 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
 
+    run_pre_debug_checks()
+
     try:
         if legacy:
             _debug_legacy(**locals())
@@ -159,6 +161,19 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
             _debug_new(**locals())
     finally:
         kill_psynet_worker_processes()
+
+
+def run_pre_debug_checks():
+    if is_editable("psynet"):
+        root_dir = str(psynet_dir())
+        root_basename = os.path.basename(root_dir)
+        if root_basename == "psynet" and root_dir in os.getcwd():
+            raise RuntimeError(
+                "If running demo experiments inside your PsyNet installation, "
+                "you will have to rename your PsyNet folder to something other than 'psynet', "
+                "for example 'psynet-package'. Otherwise Python gets confused. Sorry about that! "
+                f"The PsyNet folder you need to rename is located at {psynet_dir()}."
+            )
 
 
 def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
