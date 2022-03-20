@@ -122,6 +122,7 @@ def prepare(force):
 #########
 @psynet.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
+@click.option("--legacy", is_flag=True, help="Legacy mode")
 @click.option("--bot", is_flag=True, help="Use bot to complete experiment")
 @click.option(
     "--proxy", default=None, help="Alternate port when opening browser windows"
@@ -138,14 +139,12 @@ def prepare(force):
     help="Number of threads to spawn. Fewer threads means faster start-up time.",
 )
 @click.pass_context
-def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
+def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads):
     """
     Run the experiment locally.
     """
-    from dallinger.command_line import debug as dallinger_debug
-
     log(header)
-    exp_config = {"threads": str(threads)}
+
     ctx.invoke(prepare, force=force_prepare)
 
     kill_psynet_heroku_processes()
@@ -153,6 +152,16 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
     if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
 
+    if legacy:
+        _debug_legacy(**locals())
+    else:
+        _debug_new(**locals())
+
+
+def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
+    from dallinger.command_line import debug as dallinger_debug
+
+    exp_config = {"threads": str(threads)}
     try:
         ctx.invoke(
             dallinger_debug,
@@ -164,6 +173,20 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
         )
     finally:
         reset_console()
+
+
+def _debug_new(ctx, bot, proxy, no_browsers, **kwargs):
+    for var, var_name in [
+        (bot, "bot"),
+        (proxy, "proxy"),
+        (no_browsers, "no_browsers"),
+    ]:
+        assert (
+            not var
+        ), f"The option '{var_name}' is not supported in this mode, please add --legacy to your command."
+    from dallinger.command_line.develop import debug as dallinger_debug
+
+    ctx.invoke(dallinger_debug)
 
 
 def kill_psynet_heroku_processes():
