@@ -62,6 +62,7 @@ class LucidService(object):
         id,
         name,
         quota,
+        quota_cpi,
         live_url,
     ):
         """
@@ -77,6 +78,7 @@ class LucidService(object):
             "ClientSurveyLiveURL": live_url,
             "TestRedirectURL": live_url,
             "Quota": quota,
+            "QuotaCPI": quota_cpi,
             "name": name,
         }
         request_data = json.dumps({**params, **self.recruitment_config["survey"]})

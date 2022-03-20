@@ -10,7 +10,6 @@
         "CountryLanguageID": 9,
         "IndustryID": 30,
         "StudyTypeID": 1,
-        "QuotaCPI": 1,
         "UniquePID": true,
         "UniqueIPAddress": true,
         "FulcrumExchangeAllocation": 0,

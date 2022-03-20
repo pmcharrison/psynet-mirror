@@ -4,6 +4,7 @@ import os
 import dallinger.recruiters
 import flask
 import requests
+from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
 from dallinger.heroku import tools as heroku_tools
@@ -171,10 +172,15 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
                 "Tried to open_recruitment on already open recruiter."
             )
 
+        experiment = dallinger.experiment.load().new(db.session)
         create_survey_request_params = {
             "id": heroku_tools.app_name(self.config.get("id")),
             "name": self.config.get("title"),
             "quota": n,
+            "quota_cpi": round(
+                experiment.estimated_max_bonus(experiment.var.wage_per_hour),
+                2,
+            ),
             "live_url": self.ad_url.replace("http://", "https://"),
         }
 
