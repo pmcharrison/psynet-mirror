@@ -68,6 +68,31 @@ def psynet():
     pass
 
 
+def reset_console():
+    # Console resetting is required because of some nasty issue
+    # with the Heroku command-line tool, where killing Heroku processes
+    # ends up messing up the console.
+    # I've tracked this down to the line
+    # os.killpg(os.getpgid(self._process.pid), signal)
+    # in heroku/tools.py in Dallinger, but I haven't found a way
+    # to stop this line from messing up the terminal.
+    # Instead, the present function is designed to sort out the terminal post hoc.
+    #
+    # Originally I tried the following:
+    # os.system("reset")
+    # This works but is too aggressive, it resets the whole terminal.
+    #
+    # However, the following cheeky hack seems to work quite nicely.
+    # The 'read' command is a UNIX command that takes an arbitrary input from the user.
+    import subprocess
+
+    try:
+        # It seems that the timeout must be at least 1.0 s for this to work reliably
+        subprocess.call("read NULL", timeout=1.0, shell=True)
+    except subprocess.TimeoutExpired:
+        pass
+
+
 ###########
 # prepare #
 ###########
@@ -125,17 +150,20 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
 
     kill_psynet_heroku_processes()
 
-    if not get_from_config("keep_old_chrome_windows_in_debug_mode", default=False):
+    if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
 
-    ctx.invoke(
-        dallinger_debug,
-        verbose=verbose,
-        bot=bot,
-        proxy=proxy,
-        no_browsers=no_browsers,
-        exp_config=exp_config,
-    )
+    try:
+        ctx.invoke(
+            dallinger_debug,
+            verbose=verbose,
+            bot=bot,
+            proxy=proxy,
+            no_browsers=no_browsers,
+            exp_config=exp_config,
+        )
+    finally:
+        reset_console()
 
 
 def kill_psynet_heroku_processes():
@@ -228,7 +256,10 @@ def deploy(ctx, verbose, app, archive, force_prepare):
 
     from dallinger.command_line import deploy as dallinger_deploy
 
-    ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    try:
+        ctx.invoke(dallinger_deploy, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
 
 ########
@@ -326,7 +357,10 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 
-    ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+    try:
+        ctx.invoke(dallinger_sandbox, verbose=verbose, app=app, archive=archive)
+    finally:
+        reset_console()
 
 
 ##########

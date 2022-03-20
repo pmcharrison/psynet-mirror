@@ -156,7 +156,6 @@ class AudioPrompt(Prompt):
         self.controls = controls
 
         self.js_play_options = dict(
-            loop=loop,
             start=play_window[0],
             end=play_window[1],
             fade_in=fade_in,
@@ -1175,6 +1174,12 @@ class ModularPage(Page):
     js_vars
         Optional dictionary of arguments to instantiate as global Javascript variables.
 
+    start_trial_automatically
+        If ``True`` (default), the trial starts automatically, e.g. by the playing
+        of a queued audio file. Otherwise the trial will wait for the
+        trialPrepare event to be triggered (e.g. by clicking a 'Play' button,
+        or by calling `psynet.trial.registerEvent("trialPrepare")` in JS).
+
     **kwargs
         Further arguments to be passed to :class:`psynet.timeline.Page`.
     """
@@ -1188,6 +1193,7 @@ class ModularPage(Page):
         media: Optional[MediaSpec] = None,
         events: Optional[dict] = None,
         js_vars: Optional[dict] = None,
+        start_trial_automatically: bool = True,
         **kwargs,
     ):
         if media is None:
@@ -1234,6 +1240,7 @@ class ModularPage(Page):
                     "control": self.control.macro,
                 },
             },
+            start_trial_automatically=start_trial_automatically,
             **kwargs,
         )
 

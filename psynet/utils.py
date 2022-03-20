@@ -106,11 +106,22 @@ def call_function(function, args: dict):
     return function(*arg_values)
 
 
-def get_from_config(key, default):
+config_defaults = {
+    "keep_old_chrome_windows_in_debug_mode": False,
+}
+
+
+def get_from_config(key):
+    global config_defaults
+
     config = get_config()
     if not config.ready:
         config.load()
-    return config.get(key, default=default)
+
+    if key in config_defaults:
+        return config.get(key, default=config_defaults[key])
+    else:
+        return config.get(key)
 
 
 def get_function_args(f):

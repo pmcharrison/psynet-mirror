@@ -613,6 +613,12 @@ class Page(Elt):
     progress_display
         Optional :class:`~psynet.timeline.ProgressDisplay` object.
 
+    start_trial_automatically
+        If ``True`` (default), the trial starts automatically, e.g. by the playing
+        of a queued audio file. Otherwise the trial will wait for the
+        trialPrepare event to be triggered (e.g. by clicking a 'Play' button,
+        or by calling `psynet.trial.registerEvent("trialPrepare")` in JS).
+
     Attributes
     ----------
 
@@ -647,6 +653,7 @@ class Page(Elt):
         save_answer: bool = True,
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
+        start_trial_automatically: bool = True,
     ):
         if template_arg is None:
             template_arg = {}
@@ -688,6 +695,7 @@ class Page(Elt):
         self._contents = contents
         self.session_id = session_id
         self.save_answer = save_answer
+        self.start_trial_automatically = start_trial_automatically
 
         self.events = {
             **self.prepare_default_events(),
@@ -701,7 +709,12 @@ class Page(Elt):
     def prepare_default_events(self):
         return {
             "trialConstruct": Event(is_triggered_by=None, once=True),
-            "trialPrepare": Event(is_triggered_by="trialConstruct", once=True),
+            "trialPrepare": Event(
+                is_triggered_by="trialConstruct"
+                if self.start_trial_automatically
+                else None,
+                once=True,
+            ),
             "trialStart": Event(is_triggered_by="trialPrepare", once=True),
             "responseEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
             "submitEnable": Event(is_triggered_by="trialStart", delay=0.0, once=True),
