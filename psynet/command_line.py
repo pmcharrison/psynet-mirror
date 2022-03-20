@@ -172,7 +172,9 @@ def run_pre_debug_checks():
                 "If running demo experiments inside your PsyNet installation, "
                 "you will have to rename your PsyNet folder to something other than 'psynet', "
                 "for example 'psynet-package'. Otherwise Python gets confused. Sorry about that! "
-                f"The PsyNet folder you need to rename is located at {psynet_dir()}."
+                f"The PsyNet folder you need to rename is located at {psynet_dir()}. "
+                "After renaming it you will need to reinstall PsyNet by rerunning "
+                "pip install -e . inside that directory."
             )
 
 
