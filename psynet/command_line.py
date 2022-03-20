@@ -147,15 +147,18 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
 
     ctx.invoke(prepare, force=force_prepare)
 
-    kill_psynet_heroku_processes()
+    kill_psynet_worker_processes()
 
     if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
 
-    if legacy:
-        _debug_legacy(**locals())
-    else:
-        _debug_new(**locals())
+    try:
+        if legacy:
+            _debug_legacy(**locals())
+        else:
+            _debug_new(**locals())
+    finally:
+        kill_psynet_worker_processes()
 
 
 def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
@@ -189,11 +192,11 @@ def _debug_new(ctx, bot, proxy, no_browsers, **kwargs):
     ctx.invoke(dallinger_debug)
 
 
-def kill_psynet_heroku_processes():
-    processes = list_psynet_heroku_processes()
+def kill_psynet_worker_processes():
+    processes = list_psynet_worker_processes()
     if len(processes) > 0:
         log(
-            f"Found {len(processes)} pre-existing Dallinger Heroku processes, terminating them now."
+            f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
         )
     for p in processes:
         p.kill()
@@ -203,7 +206,7 @@ def kill_psynet_chrome_processes():
     processes = list_psynet_chrome_processes()
     if len(processes) > 0:
         log(
-            f"Found {len(processes)} pre-existing PsyNet Chrome processes, terminating them now."
+            f"Found {len(processes)} remaining PsyNet Chrome process(es), terminating them now."
         )
     for p in processes:
         p.kill()
@@ -218,23 +221,23 @@ def list_psynet_chrome_processes():
 def is_psynet_chrome_process(process):
     if "chrome" in process.name().lower():
         for cmd in process.cmdline():
-            if "localhost:5000" in cmd:
+            if "user-data-dir" in cmd:
                 return True
     return False
 
 
-def list_psynet_heroku_processes():
+def list_psynet_worker_processes():
     import psutil
 
-    return [p for p in psutil.process_iter() if is_psynet_heroku_process(p)]
+    return [p for p in psutil.process_iter() if is_psynet_worker_process(p)]
 
 
-def is_psynet_heroku_process(process):
+def is_psynet_worker_process(process):
     # This version catches processes in Linux
     if "dallinger_herok" in process.name():
         return True
     # This version catches process in MacOS
-    if "python" in process.name():
+    if "python" in process.name().lower():
         for cmd in process.cmdline():
             if "dallinger_heroku_" in cmd:
                 return True
