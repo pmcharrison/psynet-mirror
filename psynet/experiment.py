@@ -1,17 +1,20 @@
 import json
 import os
 import uuid
+from collections import OrderedDict
 from datetime import datetime
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
+import dallinger.models
 import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
+from dallinger.experiment_server import dashboard
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -35,8 +38,10 @@ from .timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
+    Response,
     Timeline,
 )
+from .trial.main import Trial
 from .utils import (
     call_function,
     get_arg_from_dict,
@@ -1224,6 +1229,20 @@ class Experiment(dallinger.experiment.Experiment):
 
         return success_response()
 
+    def monitoring_statistics(self, **kwarg):
+        stats = super().monitoring_statistics(**kwarg)
+
+        del stats["Infos"]
+
+        stats["Trials"] = OrderedDict(
+            (
+                ("count", Trial.query.count()),
+                ("failed", Trial.query.filter_by(failed=True).count()),
+            )
+        )
+
+        return stats
+
 
 class ExperimentNetwork(Network):
     __mapper_args__ = {"polymorphic_identity": "experiment_network"}
@@ -1248,3 +1267,23 @@ class ExperimentNetwork(Network):
         field.json_format_vars(x)
         x["variables"] = json.loads(x["variables"])
         return x
+
+
+def patch_dashboard_models():
+    "Determines the list of objects in the dashboard database browser."
+    dallinger.models.Trial = Trial
+    dallinger.models.Response = Response
+
+    dashboard.BROWSEABLE_MODELS = [
+        "Participant",
+        "Network",
+        "Node",
+        "Trial",
+        "Response",
+        "Transformation",
+        "Transmission",
+        "Notification",
+    ]
+
+
+patch_dashboard_models()
