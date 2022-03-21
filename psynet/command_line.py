@@ -9,6 +9,7 @@ import sys
 from shutil import rmtree, which
 
 import click
+import psutil
 from dallinger.config import get_config
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
@@ -236,10 +237,14 @@ def list_psynet_chrome_processes():
 
 
 def is_psynet_chrome_process(process):
-    if "chrome" in process.name().lower():
-        for cmd in process.cmdline():
-            if "user-data-dir" in cmd:
-                return True
+    try:
+        if "chrome" in process.name().lower():
+            for cmd in process.cmdline():
+                if "user-data-dir" in cmd:
+                    return True
+    except psutil.NoSuchProcess:
+        pass
+
     return False
 
 
@@ -250,14 +255,18 @@ def list_psynet_worker_processes():
 
 
 def is_psynet_worker_process(process):
-    # This version catches processes in Linux
-    if "dallinger_herok" in process.name():
-        return True
-    # This version catches process in MacOS
-    if "python" in process.name().lower():
-        for cmd in process.cmdline():
-            if "dallinger_heroku_" in cmd:
-                return True
+    try:
+        # This version catches processes in Linux
+        if "dallinger_herok" in process.name():
+            return True
+        # This version catches process in MacOS
+        if "python" in process.name().lower():
+            for cmd in process.cmdline():
+                if "dallinger_heroku_" in cmd:
+                    return True
+    except psutil.NoSuchProcess:
+        pass
+
     return False
 
 
