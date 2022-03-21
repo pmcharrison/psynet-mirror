@@ -158,7 +158,7 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
         if legacy:
             _debug_legacy(**locals())
         else:
-            _debug_new(**locals())
+            _debug_auto_reload(**locals())
     finally:
         kill_psynet_worker_processes()
 
@@ -195,7 +195,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
         reset_console()
 
 
-def _debug_new(ctx, bot, proxy, no_browsers, **kwargs):
+def _debug_auto_reload(ctx, bot, proxy, no_browsers, **kwargs):
     for var, var_name in [
         (bot, "bot"),
         (proxy, "proxy"),
