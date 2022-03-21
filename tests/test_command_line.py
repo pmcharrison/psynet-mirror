@@ -29,7 +29,7 @@ class TestDebug:
     def test_debug(self, dallinger_debug, prepare):
         from psynet.command_line import debug
 
-        CliRunner().invoke(debug, [])
+        CliRunner().invoke(debug, ["--legacy"])
         prepare.assert_called_once_with(force=False)
         dallinger_debug.assert_called_once_with(
             verbose=False,
@@ -46,7 +46,14 @@ class TestDebug:
 
         CliRunner().invoke(
             debug,
-            ["--verbose", "--bot", "--proxy=5001", "--no-browsers", "--force-prepare"],
+            [
+                "--legacy",
+                "--verbose",
+                "--bot",
+                "--proxy=5001",
+                "--no-browsers",
+                "--force-prepare",
+            ],
         )
         prepare.assert_called_once_with(force=True)
         dallinger_debug.assert_called_once_with(
