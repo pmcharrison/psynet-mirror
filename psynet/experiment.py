@@ -209,6 +209,9 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         self.register_pre_deployment_routines()
 
+    def participant_constructor(self, *args, **kwargs):
+        return Participant(experiment=self, *args, **kwargs)
+
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def check_database():
@@ -252,11 +255,7 @@ class Experiment(dallinger.experiment.Experiment):
     def amount_spent(cls):
         return sum(
             [
-                (
-                    0.0
-                    if (not p.initialised or p.base_payment is None)
-                    else p.base_payment
-                )
+                (0.0 if p.base_payment is None else p.base_payment)
                 + (0.0 if p.bonus is None else p.bonus)
                 for p in Participant.query.all()
             ]
@@ -628,21 +627,6 @@ class Experiment(dallinger.experiment.Experiment):
 
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
-
-    def init_participant(self, participant_id, client_ip_address, auth_token):
-        logger.info(
-            "Initialising participant %i, IP address %s...",
-            participant_id,
-            client_ip_address,
-        )
-
-        participant = get_participant(participant_id)
-        participant.initialise(self, client_ip_address, auth_token)
-
-        self.timeline.advance_page(self, participant)
-
-        self.save()
-        return success_response()
 
     def process_response(
         self,
@@ -1094,13 +1078,10 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if not participant.initialised:
-            exp.init_participant(
-                participant_id,
-                client_ip_address=cls.get_client_ip_address(),
-                auth_token=str(uuid.uuid4()),
-            )
-            participant = get_participant(participant_id)
+        participant = get_participant(participant_id)
+
+        if participant.auth_token is None:
+            participant.auth_token = str(uuid.uuid4())
         else:
             if not cls.validate_auth_token(participant, auth_token):
                 msg = (
@@ -1109,6 +1090,8 @@ class Experiment(dallinger.experiment.Experiment):
                     + "supported by our system."
                 )
                 return error_page(participant=participant, error_text=msg)
+
+        participant.client_ip_address = cls.get_client_ip_address()
 
         page = exp.timeline.get_current_elt(exp, participant)
         page.pre_render()
