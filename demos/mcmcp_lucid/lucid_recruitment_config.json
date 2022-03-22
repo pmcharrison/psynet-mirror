@@ -4,7 +4,7 @@
 	},
 	"survey": {
         "SurveyStatusCode": "01",
-        "SurveyName": "MCMCP demo survey test",
+        "SurveyName": "MCMCP experiment",
         "BidLengthOfInterview": 1,
         "CollectsPII": false,
         "CountryLanguageID": 9,
