@@ -186,6 +186,14 @@ def kill_psynet_chrome_processes():
         p.kill()
 
 
+def kill_chromedriver_processes():
+    processes = list_chromedriver_processes()
+    if len(processes) > 0:
+        log(f"Found {len(processes)} chromedriver processes, terminating them now.")
+    for p in processes:
+        p.kill()
+
+
 def list_psynet_chrome_processes():
     import psutil
 
@@ -196,6 +204,8 @@ def is_psynet_chrome_process(process):
     if "chrome" in process.name().lower():
         for cmd in process.cmdline():
             if "localhost:5000" in cmd:
+                return True
+            if "user-data-dir" in cmd:
                 return True
     return False
 
@@ -216,6 +226,16 @@ def is_psynet_heroku_process(process):
             if "dallinger_heroku_" in cmd:
                 return True
     return False
+
+
+def list_chromedriver_processes():
+    import psutil
+
+    return [p for p in psutil.process_iter() if is_chromedriver_process(p)]
+
+
+def is_chromedriver_process(process):
+    return "chromedriver" in process.name().lower()
 
 
 ##############
