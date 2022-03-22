@@ -43,4 +43,4 @@ database_size = standard-2
 lucid_recruitment_config = file:./lucid_recruitment_config.json
 
 [Docker]
-docker_image_base_name = docker.io/kqmqneyosi8e/mcmcp-lucid-20-c
+docker_image_base_name = docker.io/kqmqneyosi8e/mcmcp-lucid-20-20
