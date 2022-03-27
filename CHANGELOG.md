@@ -1,6 +1,6 @@
 # CHANGELOG
 
-# [7.0.0rc1] Unreleased as of 2022-03-26
+# [7.0.0] Released on 2022-03-27
 
 #### Fixed
 - Fixed problem in `auth_token` verification for JS logging.
