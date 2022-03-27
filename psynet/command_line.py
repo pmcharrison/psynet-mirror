@@ -9,6 +9,7 @@ import sys
 from shutil import rmtree, which
 
 import click
+import psutil
 from dallinger.config import get_config
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
@@ -122,6 +123,7 @@ def prepare(force):
 #########
 @psynet.command()
 @click.option("--verbose", is_flag=True, help="Verbose mode")
+@click.option("--legacy", is_flag=True, help="Legacy mode")
 @click.option("--bot", is_flag=True, help="Use bot to complete experiment")
 @click.option(
     "--proxy", default=None, help="Alternate port when opening browser windows"
@@ -138,21 +140,47 @@ def prepare(force):
     help="Number of threads to spawn. Fewer threads means faster start-up time.",
 )
 @click.pass_context
-def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
+def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads):
     """
     Run the experiment locally.
     """
-    from dallinger.command_line import debug as dallinger_debug
-
     log(header)
-    exp_config = {"threads": str(threads)}
+
     ctx.invoke(prepare, force=force_prepare)
 
-    kill_psynet_heroku_processes()
+    kill_psynet_worker_processes()
 
     if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
 
+    try:
+        if legacy:
+            _debug_legacy(**locals())
+        else:
+            _debug_auto_reload(**locals())
+    finally:
+        kill_psynet_worker_processes()
+
+
+def run_pre_auto_reload_checks():
+    if is_editable("psynet"):
+        root_dir = str(psynet_dir())
+        root_basename = os.path.basename(root_dir)
+        if root_basename == "psynet" and root_dir in os.getcwd():
+            raise RuntimeError(
+                "If running demo experiments inside your PsyNet installation, "
+                "you will have to rename your PsyNet folder to something other than 'psynet', "
+                "for example 'psynet-package'. Otherwise Python gets confused. Sorry about that! "
+                f"The PsyNet folder you need to rename is located at {psynet_dir()}. "
+                "After renaming it you will need to reinstall PsyNet by rerunning "
+                "pip install -e . inside that directory."
+            )
+
+
+def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
+    from dallinger.command_line import debug as dallinger_debug
+
+    exp_config = {"threads": str(threads)}
     try:
         ctx.invoke(
             dallinger_debug,
@@ -166,11 +194,27 @@ def debug(ctx, verbose, bot, proxy, no_browsers, force_prepare, threads):
         reset_console()
 
 
-def kill_psynet_heroku_processes():
-    processes = list_psynet_heroku_processes()
+def _debug_auto_reload(ctx, bot, proxy, no_browsers, **kwargs):
+    run_pre_auto_reload_checks()
+
+    for var, var_name in [
+        (bot, "bot"),
+        (proxy, "proxy"),
+        (no_browsers, "no_browsers"),
+    ]:
+        assert (
+            not var
+        ), f"The option '{var_name}' is not supported in this mode, please add --legacy to your command."
+    from dallinger.command_line.develop import debug as dallinger_debug
+
+    ctx.invoke(dallinger_debug)
+
+
+def kill_psynet_worker_processes():
+    processes = list_psynet_worker_processes()
     if len(processes) > 0:
         log(
-            f"Found {len(processes)} pre-existing Dallinger Heroku processes, terminating them now."
+            f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
         )
     for p in processes:
         p.kill()
@@ -180,7 +224,7 @@ def kill_psynet_chrome_processes():
     processes = list_psynet_chrome_processes()
     if len(processes) > 0:
         log(
-            f"Found {len(processes)} pre-existing PsyNet Chrome processes, terminating them now."
+            f"Found {len(processes)} remaining PsyNet Chrome process(es), terminating them now."
         )
     for p in processes:
         p.kill()
@@ -201,30 +245,38 @@ def list_psynet_chrome_processes():
 
 
 def is_psynet_chrome_process(process):
-    if "chrome" in process.name().lower():
-        for cmd in process.cmdline():
-            if "localhost:5000" in cmd:
-                return True
-            if "user-data-dir" in cmd:
-                return True
+    try:
+        if "chrome" in process.name().lower():
+            for cmd in process.cmdline():
+                if "localhost:5000" in cmd:
+                    return True
+                if "user-data-dir" in cmd:
+                    return True
+    except psutil.NoSuchProcess:
+        pass
+
     return False
 
 
-def list_psynet_heroku_processes():
+def list_psynet_worker_processes():
     import psutil
 
-    return [p for p in psutil.process_iter() if is_psynet_heroku_process(p)]
+    return [p for p in psutil.process_iter() if is_psynet_worker_process(p)]
 
 
-def is_psynet_heroku_process(process):
-    # This version catches processes in Linux
-    if "dallinger_herok" in process.name():
-        return True
-    # This version catches process in MacOS
-    if "python" in process.name():
-        for cmd in process.cmdline():
-            if "dallinger_heroku_" in cmd:
-                return True
+def is_psynet_worker_process(process):
+    try:
+        # This version catches processes in Linux
+        if "dallinger_herok" in process.name():
+            return True
+        # This version catches process in MacOS
+        if "python" in process.name().lower():
+            for cmd in process.cmdline():
+                if "dallinger_heroku_" in cmd:
+                    return True
+    except psutil.NoSuchProcess:
+        pass
+
     return False
 
 
@@ -403,30 +455,6 @@ def update(dallinger_version, psynet_version, verbose):
     Update the locally installed `Dallinger` and `PsyNet` versions.
     """
 
-    def _dallinger_dir():
-        import dallinger as _
-
-        return pathlib.Path(_.__file__).parent.parent.resolve()
-
-    def _psynet_dir():
-        import psynet as _
-
-        return pathlib.Path(_.__file__).parent.parent.resolve()
-
-    def _get_version(project_name):
-        return (
-            subprocess.check_output([f"{project_name} --version"], shell=True)
-            .decode("utf-8")
-            .strip()
-        )
-
-    def _is_editable(project):
-        for path_item in sys.path:
-            egg_link = os.path.join(path_item, project + ".egg-link")
-            if os.path.isfile(egg_link):
-                return True
-        return False
-
     def _git_checkout(version, cwd, capture_output):
         with yaspin(text=f"Checking out {version}...", color="green") as spinner:
             subprocess.run(
@@ -487,8 +515,8 @@ def update(dallinger_version, psynet_version, verbose):
 
     # Dallinger
     log("Updating Dallinger...")
-    cwd = _dallinger_dir()
-    if _is_editable("dallinger"):
+    cwd = dallinger_dir()
+    if is_editable("dallinger"):
         _prepare(
             dallinger_version,
             "Dallinger",
@@ -496,7 +524,7 @@ def update(dallinger_version, psynet_version, verbose):
             capture_output,
         )
 
-    if _is_editable("dallinger"):
+    if is_editable("dallinger"):
         text = "Installing development requirements and base packages..."
         install_command = "pip install --editable '.[data]'"
     else:
@@ -507,7 +535,7 @@ def update(dallinger_version, psynet_version, verbose):
         text=text,
         color="green",
     ) as spinner:
-        if _is_editable("dallinger"):
+        if is_editable("dallinger"):
             subprocess.run(
                 ["pip3 install -r dev-requirements.txt"],
                 shell=True,
@@ -529,8 +557,8 @@ def update(dallinger_version, psynet_version, verbose):
 
     # PsyNet
     log("Updating PsyNet...")
-    cwd = _psynet_dir()
-    if _is_editable("psynet"):
+    cwd = psynet_dir()
+    if is_editable("psynet"):
         _prepare(
             psynet_version,
             "PsyNet",
@@ -554,7 +582,35 @@ def update(dallinger_version, psynet_version, verbose):
         )
         spinner.ok("✔")
 
-    log(f'Updated PsyNet to version {_get_version("psynet")}')
+    log(f'Updated PsyNet to version {get_version("psynet")}')
+
+
+def dallinger_dir():
+    import dallinger as _
+
+    return pathlib.Path(_.__file__).parent.parent.resolve()
+
+
+def psynet_dir():
+    import psynet as _
+
+    return pathlib.Path(_.__file__).parent.parent.resolve()
+
+
+def get_version(project_name):
+    return (
+        subprocess.check_output([f"{project_name} --version"], shell=True)
+        .decode("utf-8")
+        .strip()
+    )
+
+
+def is_editable(project):
+    for path_item in sys.path:
+        egg_link = os.path.join(path_item, project + ".egg-link")
+        if os.path.isfile(egg_link):
+            return True
+    return False
 
 
 ############
