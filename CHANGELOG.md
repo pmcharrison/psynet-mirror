@@ -41,6 +41,7 @@ seems to be unstable, so experimenters should only enable this check at their ow
   (author: Peter Harrison, reviewer: Frank Höger)
 
 #### Updated
+- Updated Dallinger to v8.1.0, see release notes at https://github.com/Dallinger/Dallinger/releases/tag/v8.1.0
 
 # [6.0.1] Released on 2022-03-02
 
