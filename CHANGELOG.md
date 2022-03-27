@@ -1,5 +1,47 @@
 # CHANGELOG
 
+# [7.0.0rc1] Unreleased as of 2022-03-26
+
+#### Fixed
+- Fixed problem in `auth_token` verification for JS logging.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed long-standing issue where console would behave strangely after cancelling Dallinger/PsyNet commands.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- Bugfix in imitation chain demo.
+  (author: Peter Harrison)
+- Fixed out-of-date dependency in PsyNet timeline demos.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- PsyNet now uses Dallinger's functionality from PR 2324 for supporting custom Participant classes. This should solve some occasional database inconsistency errors.
+  (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Added
+- Added `start_trial_automatically` option to PsyNet pages (`default=True`), which can be used e.g. to disable autoplay for audio.
+  (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Changed
+- Remove time estimate text in new consents.
+  (author: Frank Höger)
+- Increase timeout in regression tests.
+  (author: Peter Harrison)
+- Set default number of threads to 1 in `psynet debug`, which saves about a second off the start-up time.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- Optimised some import logic to improve import times. This should become particularly relevant once this
+  Dallinger pull request has been merged.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- PsyNet now detects and kills old Heroku and Chrome sessions before starting a new debug session.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- Disabled `check_participant_opened_devtools` by default; detecting participants opening developer tools
+seems to be unstable, so experimenters should only enable this check at their own risk.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- Updated the categories in the dashboard database table to make more sense with PsyNet objects (e.g. replacing Infos with Trials).
+  (author: Peter Harrison, reviewer: Frank Höger)
+- The regression test fixtures have been updated with the goal of fixing recent problems with test unreliability.
+  (author: Peter Harrison, reviewer: Frank Höger)
+- `psynet debug` now provides hot-refresh functionality by default. This means that you can edit the experiment code and see your changes without relaunching the experiment, simply instead refreshing your web browser. This can be disabled by passing the `--legacy` option to `psynet debug`.
+  (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Updated
+
 # [6.0.1] Released on 2022-03-02
 
 #### Fixed
@@ -26,7 +68,7 @@
   `DatabaseConsentPage`,
   `AudiovisualConsentPage`,
   `OpenScienceConsentPage`,
-  `VoluntaryWithNoCompensationConsentPage`
+  `Volunt#### UpdatedaryWithNoCompensationConsentPage`
   (author: Frank Höger, reviewer: Nori Jacoby)
 - Added new experiment variables `window_width` and `window_height` to allow for customization of
   the experiment window's size. Default: 1024 x 768
