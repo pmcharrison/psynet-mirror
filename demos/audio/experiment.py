@@ -215,6 +215,7 @@ example_audio_page = ModularPage(
         "/static/audio/bier.wav",
         "This page illustrates a simple audio page with one stimulus.",
         loop=False,
+        controls=False,
     ),
     time_estimate=5,
 )
@@ -223,11 +224,16 @@ example_audio_page_2 = ModularPage(
     "audio_page",
     AudioPrompt(
         "/static/audio/bier.wav",
-        "This page adds audio playback controls.",
+        """
+        This page adds audio playback controls.
+        We've also set start_trial_automatically=False, meaning that the
+        user will have to start the audio themselves.
+        """,
         controls=True,
         loop=False,
     ),
     time_estimate=5,
+    start_trial_automatically=False,
 )
 
 example_audio_page_3 = ModularPage(

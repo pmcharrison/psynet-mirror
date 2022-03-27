@@ -1,18 +1,20 @@
 import json
 import os
 import uuid
+from collections import OrderedDict
 from datetime import datetime
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
+import dallinger.models
 import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
-from dallinger.command_line import log as dallinger_log
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
+from dallinger.experiment_server import dashboard
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -24,6 +26,7 @@ from pkg_resources import resource_filename
 from psynet import __version__, data
 
 from . import field
+from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
@@ -35,8 +38,10 @@ from .timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
+    Response,
     Timeline,
 )
+from .trial.main import Trial
 from .utils import (
     call_function,
     get_arg_from_dict,
@@ -129,7 +134,15 @@ class Experiment(dallinger.experiment.Experiment):
         If ``True``, whenever a participant opens the developer tools in the web browser,
         this is logged as participant.var.opened_devtools = ``True``,
         and the participant is shown a warning alert message.
-        Default: ``True``.
+        Default: ``False``.
+        Note: Chrome does not currently expose an official way of checking whether
+        the participant opens the developer tools. People therefore have to rely
+        on hacks to detect it. These hacks can often be broken by updates to Chrome.
+        We've therefore disabled this check by default, to reduce the risk of
+        false positives. Experimenters wishing to enable the check for an individual
+        experiment are recommended to verify that the check works appropriately
+        before relying on it. We'd be grateful for any contributions of updated
+        developer tools checks.
 
     window_width : ``int``
         Determines the width in pixels of the window that opens when the
@@ -196,6 +209,9 @@ class Experiment(dallinger.experiment.Experiment):
             self.load()
         self.register_pre_deployment_routines()
 
+    def participant_constructor(self, *args, **kwargs):
+        return Participant(experiment=self, *args, **kwargs)
+
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def check_database():
@@ -239,11 +255,7 @@ class Experiment(dallinger.experiment.Experiment):
     def amount_spent(cls):
         return sum(
             [
-                (
-                    0.0
-                    if (not p.initialised or p.base_payment is None)
-                    else p.base_payment
-                )
+                (0.0 if p.base_payment is None else p.base_payment)
                 + (0.0 if p.bonus is None else p.bonus)
                 for p in Participant.query.all()
             ]
@@ -294,7 +306,7 @@ class Experiment(dallinger.experiment.Experiment):
             "show_bonus": True,
             "show_footer": True,
             "show_progress_bar": True,
-            "check_participant_opened_devtools": True,
+            "check_participant_opened_devtools": False,
             "window_width": 1024,
             "window_height": 768,
         }
@@ -348,7 +360,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     def setup_experiment_variables(self):
         # Note: the experiment network must be setup first before we can set these variables.
-        dallinger_log(
+        log(
             "Initializing experiment with variables \n"
             + pretty_log_dict(self.variables_initial_values, 4)
         )
@@ -616,21 +628,6 @@ class Experiment(dallinger.experiment.Experiment):
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
 
-    def init_participant(self, participant_id, client_ip_address, auth_token):
-        logger.info(
-            "Initialising participant %i, IP address %s...",
-            participant_id,
-            client_ip_address,
-        )
-
-        participant = get_participant(participant_id)
-        participant.initialise(self, client_ip_address, auth_token)
-
-        self.timeline.advance_page(self, participant)
-
-        self.save()
-        return success_response()
-
     def process_response(
         self,
         participant_id,
@@ -758,6 +755,11 @@ class Experiment(dallinger.experiment.Experiment):
                 "prepare_docker_image.sh",
             ),
         ]
+
+    @classmethod
+    def extra_parameters(cls):
+        config = get_config()
+        config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
@@ -1076,20 +1078,12 @@ class Experiment(dallinger.experiment.Experiment):
         participant = get_participant(participant_id)
         mode = request.args.get("mode")
 
-        if not participant.initialised:
-            exp.init_participant(
-                participant_id,
-                client_ip_address=cls.get_client_ip_address(),
-                auth_token=str(uuid.uuid4()),
-            )
-            participant = get_participant(participant_id)
+        participant = get_participant(participant_id)
+
+        if participant.auth_token is None:
+            participant.auth_token = str(uuid.uuid4())
         else:
-            if participant.auth_token != auth_token:
-                logger.error(
-                    f"Mismatch between provided auth_token ({auth_token}) "
-                    + f"and actual auth_token {participant.auth_token} "
-                    f"for participant {participant_id}."
-                )
+            if not cls.validate_auth_token(participant, auth_token):
                 msg = (
                     "There was a problem authenticating your session, "
                     + "did you switch browsers? Unfortunately this is not currently "
@@ -1097,12 +1091,25 @@ class Experiment(dallinger.experiment.Experiment):
                 )
                 return error_page(participant=participant, error_text=msg)
 
+        participant.client_ip_address = cls.get_client_ip_address()
+
         page = exp.timeline.get_current_elt(exp, participant)
         page.pre_render()
         exp.save()
         if mode == "json":
             return jsonify(page.__json__(participant))
         return page.render(exp, participant)
+
+    @staticmethod
+    def validate_auth_token(participant, auth_token):
+        valid = participant.auth_token == auth_token
+        if not valid:
+            logger.error(
+                f"Mismatch between provided auth_token ({auth_token}) "
+                + f"and actual auth_token {participant.auth_token} "
+                f"for participant {participant.id}."
+            )
+        return valid
 
     @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
     @classmethod
@@ -1157,26 +1164,14 @@ class Experiment(dallinger.experiment.Experiment):
         exp.save()
         return res
 
-    @staticmethod
-    def check_assignment_id(participant, assignment_id):
-        if participant.assignment_id != assignment_id:
-            logger.warning(
-                "Received wrong assignment_id for participant %i "
-                "(expected %s, got %s).",
-                participant.id,
-                participant.assignment_id,
-                assignment_id,
-            )
-
     @experiment_route(
-        "/log/<level>/<int:participant_id>/<assignment_id>", methods=["POST"]
+        "/log/<level>/<int:participant_id>/<auth_token>", methods=["POST"]
     )
-    @staticmethod
-    def http_log(level, participant_id, assignment_id):
+    @classmethod
+    def http_log(cls, level, participant_id, auth_token):
         participant = get_participant(participant_id)
+        cls.validate_auth_token(participant, auth_token)
         message = request.values["message"]
-
-        Experiment.check_assignment_id(participant, assignment_id)
 
         assert level in ["warning", "info", "error"]
 
@@ -1203,19 +1198,33 @@ class Experiment(dallinger.experiment.Experiment):
         )
 
     @experiment_route(
-        "/participant_opened_devtools/<int:participant_id>/<assignment_id>",
+        "/participant_opened_devtools/<int:participant_id>/<auth_token>",
         methods=["POST"],
     )
-    @staticmethod
-    def participant_opened_devtools(participant_id, assignment_id):
+    @classmethod
+    def participant_opened_devtools(cls, participant_id, auth_token):
         participant = get_participant(participant_id)
 
-        Experiment.check_assignment_id(participant, assignment_id)
+        Experiment.validate_auth_token(participant, auth_token)
 
         participant.var.opened_devtools = True
         db.session.commit()
 
         return success_response()
+
+    def monitoring_statistics(self, **kwarg):
+        stats = super().monitoring_statistics(**kwarg)
+
+        del stats["Infos"]
+
+        stats["Trials"] = OrderedDict(
+            (
+                ("count", Trial.query.count()),
+                ("failed", Trial.query.filter_by(failed=True).count()),
+            )
+        )
+
+        return stats
 
 
 class ExperimentNetwork(Network):
@@ -1241,3 +1250,23 @@ class ExperimentNetwork(Network):
         field.json_format_vars(x)
         x["variables"] = json.loads(x["variables"])
         return x
+
+
+def patch_dashboard_models():
+    "Determines the list of objects in the dashboard database browser."
+    dallinger.models.Trial = Trial
+    dallinger.models.Response = Response
+
+    dashboard.BROWSEABLE_MODELS = [
+        "Participant",
+        "Network",
+        "Node",
+        "Trial",
+        "Response",
+        "Transformation",
+        "Transmission",
+        "Notification",
+    ]
+
+
+patch_dashboard_models()

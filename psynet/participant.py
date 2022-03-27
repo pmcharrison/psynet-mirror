@@ -5,6 +5,7 @@ import json
 from smtplib import SMTPAuthenticationError
 
 import dallinger.models
+from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
 from sqlalchemy import desc
@@ -118,7 +119,7 @@ class Participant(dallinger.models.Participant):
         Information about the participant's browser version and OS platform.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "participant"}
+    __mapper_args__ = {"polymorphic_identity": "psynet_participant"}
     __extra_vars__ = {}
 
     elt_id = field.claim_field("elt_id", __extra_vars__, int)
@@ -130,9 +131,6 @@ class Participant(dallinger.models.Participant):
     answer = field.claim_field("answer", __extra_vars__, object)
     branch_log = field.claim_field("branch_log", __extra_vars__)
 
-    initialised = claim_var(
-        "initialised", __extra_vars__, use_default=True, default=lambda: False
-    )
     failure_tags = claim_var(
         "failure_tags", __extra_vars__, use_default=True, default=lambda: []
     )
@@ -146,9 +144,7 @@ class Participant(dallinger.models.Participant):
     client_ip_address = claim_var(
         "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
     )
-    auth_token = claim_var(
-        "auth_token", __extra_vars__, use_default=True, default=lambda: ""
-    )
+    auth_token = claim_var("auth_token", __extra_vars__)
     answer_is_fresh = claim_var(
         "answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False
     )
@@ -242,17 +238,22 @@ class Participant(dallinger.models.Participant):
         self.answer = value
         return self
 
-    def initialise(self, experiment, client_ip_address: str, auth_token: str):
+    def __init__(self, experiment, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.elt_id = -1
         self.complete = False
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
-        self.client_ip_address = client_ip_address
-        self.auth_token = auth_token
+        self.client_ip_address = None
+        self.auth_token = None
         self.branch_log = []
-        self.initialised = True
+
+        db.session.add(self)
+        db.session.commit()
+
+        experiment.timeline.advance_page(experiment, participant=self)
 
     def calculate_bonus(self):
         """
@@ -515,7 +516,4 @@ class TimeCreditStore:
 
     @property
     def progress(self):
-        if self.participant.initialised:
-            return self.estimate_time_credit() / self.experiment_max_time_credit
-        else:
-            return 0.0
+        return self.estimate_time_credit() / self.experiment_max_time_credit

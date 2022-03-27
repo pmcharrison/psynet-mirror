@@ -1530,7 +1530,7 @@
         function writeToDbParticipantOpenedDevtools() {
              dallinger.post(
                  '/participant_opened_devtools/' + dallinger.identity.participantId
-                 + "/" + dallinger.identity.assignmentId
+                 + "/{{ auth_token }}"
              );
         }
 
