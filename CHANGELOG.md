@@ -25,8 +25,8 @@
   (author: Peter Harrison)
 - Set default number of threads to 1 in `psynet debug`, which saves about a second off the start-up time.
   (author: Peter Harrison, reviewer: Frank Höger)
-- Optimised some import logic to improve import times. This should become particularly relevant once this
-  Dallinger pull request has been merged.
+- Optimised some import logic to improve import times. This should become particularly relevant once a
+  pending Dallinger pull request is merged.
   (author: Peter Harrison, reviewer: Frank Höger)
 - PsyNet now detects and kills old Heroku and Chrome sessions before starting a new debug session.
   (author: Peter Harrison, reviewer: Frank Höger)
