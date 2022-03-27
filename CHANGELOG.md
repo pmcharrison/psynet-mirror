@@ -68,7 +68,7 @@ seems to be unstable, so experimenters should only enable this check at their ow
   `DatabaseConsentPage`,
   `AudiovisualConsentPage`,
   `OpenScienceConsentPage`,
-  `Volunt#### UpdatedaryWithNoCompensationConsentPage`
+  `VoluntaryWithNoCompensationConsentPage`
   (author: Frank Höger, reviewer: Nori Jacoby)
 - Added new experiment variables `window_width` and `window_height` to allow for customization of
   the experiment window's size. Default: 1024 x 768
