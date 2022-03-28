@@ -24,12 +24,18 @@ class TestCommandLine(object):
 
 @pytest.mark.usefixtures("demo_static")
 class TestDebug:
+    # Note:
+    # We do not test non-legacy debug here because of an issue whereby you
+    # can't use hot-refresh mode when running PsyNet demos unless the
+    # PsyNet installation folder is renamed to something other than 'psynet'.
+    # It's not a big deal but maybe we fix this sometime.
     @patch("psynet.command_line.prepare")
     @patch("dallinger.command_line.debug")
     def test_debug(self, dallinger_debug, prepare):
         from psynet.command_line import debug
 
-        CliRunner().invoke(debug, [])
+        CliRunner().invoke(debug, ["--legacy"], catch_exceptions=False)
+
         prepare.assert_called_once_with(force=False)
         dallinger_debug.assert_called_once_with(
             verbose=False,
@@ -46,7 +52,15 @@ class TestDebug:
 
         CliRunner().invoke(
             debug,
-            ["--verbose", "--bot", "--proxy=5001", "--no-browsers", "--force-prepare"],
+            [
+                "--legacy",
+                "--verbose",
+                "--bot",
+                "--proxy=5001",
+                "--no-browsers",
+                "--force-prepare",
+            ],
+            catch_exceptions=False,
         )
         prepare.assert_called_once_with(force=True)
         dallinger_debug.assert_called_once_with(
@@ -77,7 +91,7 @@ class TestDeploy:
             yield mock_dallinger_deploy
 
     def test_deploy(self, deploy, prepare, dallinger_deploy):
-        CliRunner().invoke(deploy, [])
+        CliRunner().invoke(deploy, [], catch_exceptions=False)
         prepare.assert_called_once_with(force=False)
         dallinger_deploy.assert_called_once_with(verbose=False, app=None, archive=None)
 
@@ -90,6 +104,7 @@ class TestDeploy:
                 "--archive=/path/to/some_archive",
                 "--force-prepare",
             ],
+            catch_exceptions=False,
         )
         prepare.assert_called_once_with(force=True)
         dallinger_deploy.assert_called_once_with(
@@ -116,7 +131,7 @@ class TestSandbox:
             yield mock_dallinger_sandbox
 
     def test_sandbox(self, sandbox, prepare, dallinger_sandbox):
-        CliRunner().invoke(sandbox, [])
+        CliRunner().invoke(sandbox, [], catch_exceptions=False)
         prepare.assert_called_once_with(force=False)
         dallinger_sandbox.assert_called_once_with(verbose=False, app=None, archive=None)
 
@@ -129,6 +144,7 @@ class TestSandbox:
                 "--archive=/path/to/some_archive",
                 "--force-prepare",
             ],
+            catch_exceptions=False,
         )
         prepare.assert_called_once_with(force=True)
         dallinger_sandbox.assert_called_once_with(
@@ -157,7 +173,7 @@ class TestEstimate:
             yield mock_import_local_experiment
 
     def test_estimate(self, estimate, import_local_experiment, prepare):
-        CliRunner().invoke(estimate, [])
+        CliRunner().invoke(estimate, [], catch_exceptions=False)
         prepare.assert_not_called()
         import_local_experiment.assert_called_once()
 
@@ -205,7 +221,7 @@ class TestExport:
             yield mock_export_data
 
     def test_export_missing_app_param(self, export):
-        result = CliRunner().invoke(export)
+        result = CliRunner().invoke(export, catch_exceptions=False)
         assert b"Usage: export [OPTIONS]" in result.stdout_bytes
         assert b"Error: Missing option '--app'." in result.stdout_bytes
         assert result.exit_code == 2
