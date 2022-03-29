@@ -878,6 +878,7 @@ class Experiment(dallinger.experiment.Experiment):
         json_data = {
             "id": participant.id,
             "assignment_id": participant.assignment_id,
+            "auth_token": participant.auth_token,
             "page_uuid": participant.page_uuid,
         }
         logger.debug(
