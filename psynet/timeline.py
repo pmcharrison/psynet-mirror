@@ -933,6 +933,7 @@ class Page(Elt):
 
     def render(self, experiment, participant):
         internal_js_vars = {
+            "authToken": participant.page_uuid,
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
