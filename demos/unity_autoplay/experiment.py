@@ -1,9 +1,8 @@
-# Imports --------------------------------------------------------------------------------------------------
 import logging
-from typing import Optional  # , Union, List
+from typing import Optional
 
 import psynet.experiment
-from psynet.consent import MTurkStandardConsent
+from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage, UnityPage
 from psynet.participant import Participant
 from psynet.timeline import Timeline
@@ -142,7 +141,7 @@ trial_maker = GameTrialMaker(
 class Exp(psynet.experiment.Experiment):
     consent_audiovisual_recordings = False
     timeline = Timeline(
-        MTurkStandardConsent(),
+        NoConsent(),
         trial_maker,  # The Unity game
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
