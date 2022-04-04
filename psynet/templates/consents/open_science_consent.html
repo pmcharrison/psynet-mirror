@@ -1,7 +1,11 @@
 {% extends "timeline-page.html" %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="/static/css/consent.css"/>
+{% endblock %}
+
 {% block main_body %}
-  <div class="main-div" style="padding-bottom: 100px;">
+  <div class="main-div" style="padding-bottom: 200px;">
     <noscript>
         <h1>Warning: Javascript is not working on your browser</h1>
         <p>The study will not work unless Javascript is enabled on your browser.</p>
@@ -14,45 +18,44 @@
     </p>
     <div class="text-justify">
         <div class="text-left" style="font-size:18px">
-            <h2>CONFIDENTIALITY</h2>
-            <p>
+            <h4>CONFIDENTIALITY</h4>
+            <p class="consent-text">
                 Since the audio-visual recordings collected in this experiment may be made public, we cannot guarantee anonymity of your data if you participate in this experiment. However, your data will  not be directly associated with your name or other identifiers in any way (we will not specify your name when presenting audio/video materials of yours).
             </p>
 
-            <h2>SECURITY</h2>
-            <p>
+            <h4>SECURITY</h4>
+            <p class="consent-text">
                 Data will be published on open science frameworks/websites such as OSF (https://osf.io/) and will be available to everybody with internet access.
 
-            <h2>DISCLAIMER</h2>
-            <p>
+            <h4>DISCLAIMER</h4>
+            <p class="consent-text">
                 Since some materials will be published as part of the scientific publication, you will not be able to delete such materials, as they will become public (either immediately or soon after data collection). Thus, you may wish to make sure you do not record any materials you do not want to make public. By consenting to this experiment you are committing not to use profanity while recording audio or nudity while recording video.  Although your data will not be associated with personal identifiers, it is possible to link your personal information based on audio-visual recordings.
             </p>
 
-            <h2>CONTACT INFORMATION</h2>
-            <p>
+            <h4>CONTACT INFORMATION</h4>
+            <p class="consent-text">
                 If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
             </p>
 
-            <h2>CONSENT</h2>
-            <p>
+            <h4>CONSENT</h4>
+            <p class="consent-text">
                 By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research. If you do not wish to consent, please close this page.
             </p>
         </div>
-        <hr>
-        <h4>Do you understand and consent to these terms?</h4>
-        <br>
-        <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-            I agree
-        </button>
-        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-            No, thank you (return task)
-        </button>
+        <div class="fixed-bottom consent-gradient">
+            <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
+                Scroll up/down to see all text <span class="up-down-arrows">&#8645;</span>
+            </div>
+            <hr style="margin-top: 5px;">
+            <h4>Do you understand and consent to these terms?</h4>
+            <br>
+            <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
+                I agree
+            </button>
+            <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
+                No, thank you (return task)
+            </button>
+        </div>
       </div>
   </div>
-
-  <style>
-    .main-div {
-      margin: 0;
-    }
-  </style>
 {% endblock %}
