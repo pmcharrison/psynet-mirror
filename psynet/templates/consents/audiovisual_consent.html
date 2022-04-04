@@ -1,7 +1,11 @@
 {% extends "timeline-page.html" %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="/static/css/consent.css"/>
+{% endblock %}
+
 {% block main_body %}
-  <div class="main-div" style="padding-bottom: 100px;">
+  <div class="main-div" style="padding-bottom: 200px;">
     <noscript>
         <h1>Warning: Javascript is not working on your browser</h1>
         <p>The study will not work unless Javascript is enabled on your browser.</p>
@@ -16,49 +20,48 @@
     </p>
     <div class="text-justify">
         <div class="text-left" style="font-size: 18px;">
-            <h2>CONFIDENTIALITY</h2>
-            <p>
+            <h4>CONFIDENTIALITY</h4>
+            <p class="consent-text">
                 All the recordings we obtain during this research will be kept confidential, and nobody outside the group of researchers will be able to share or store them. However, in some experiments, your recordings may be seen or heard by other participants in order to evaluate them in different attributes or create new materials (for example replicate a rhythm that you created, or continue a melody that you sang). Your recordings will not be associated with your name or other identifiers in any way. Your recordings will not be used to derive your real identity, and they will not be made public. Raw audio/video will not be shared with collaborators (we will only share extracted data from recordings without personal identifiers).
             </p>
-            <p>
+            <p class="consent-text">
                 Although researchers will not use your recordings to derive your real identity, personal information could be leaked if you are not in an isolated environment. You may wish to make sure that no sounds/visual material in your environment could be linked to your personal information. In addition, while you perform a recording, the microphone or camera can capture unintended audio or video, for example the camera can capture another family member, or the microphone can capture something you say to another person. If you choose to participate in the experiment, it is important and your responsibility to make sure that while you record audio and video nothing that you don’t intend to be recorded is recorded. For example, you may want to sit in a room that is isolated from the rest of the house. By consenting to this experiment, you are committing not to use profanity while recording audio or nudity while recording video.
             </p>
 
-            <h2>RESEARCH COLLABORATIONS</h2>
-            <p>
+            <h4>RESEARCH COLLABORATIONS</h4>
+            <p class="consent-text">
                 For the purpose of helping scientific progress and replication, sometimes we may share the data with research collaborators. In these cases, we may share your audio-visual material along with fully anonymized data, such as demographic, aggregated, or extracted data. We will never connect your real name or any of your personal information directly to your image or sound recording, even though it is off course possible to recognize individuals based on audio-visual material.
             </p>
 
-            <h2>SECURITY</h2>
-            <p>
+            <h4>SECURITY</h4>
+            <p class="consent-text">
                 During data collection, audio-visual material will be recorded on a separate server. Audio-visual material will not be indexed by personal information but will be linked to personal information by a key (such as “afasd12314asdasd”). Personal information will be stored separately from audio -visual materials and encrypted using a strong encryption protocol (such as Advanced Encryption Standard).
             </p>
 
-            <h2>CONTACT INFORMATION</h2>
-            <p>
+            <h4>CONTACT INFORMATION</h4>
+            <p class="consent-text">
                 If you have any questions about this research, do not hesitate to contact the main researcher in this project, Nori Jacoby at <a href="mailto:{{contact_email_on_error}}">{{contact_email_on_error}}</a>.
             </p>
 
-            <h2>CONSENT</h2>
-            <p>
+            <h4>CONSENT</h4>
+            <p class="consent-text">
                 By consenting to participate, you acknowledge that you are 18 years or older, have read this consent form, agree to its contents, and agree to take part in this research. If you do not wish to consent, please close this page.
             </p>
         </div>
-        <hr>
-        <h4>Do you understand and consent to these terms?</h4>
-        <br>
-        <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
-            I agree
-        </button>
-        <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
-            No, thank you (return task)
-        </button>
+        <div class="fixed-bottom consent-gradient">
+            <div style="margin-top: 120px; text-align: right; white-space: nowrap;">
+                Scroll up/down to see all text <span class="up-down-arrows">&#8645;</span>
+            </div>
+            <hr style="margin-top: 5px;">
+            <h4>Do you understand and consent to these terms?</h4>
+            <br>
+            <button type="button" id="consent" class="btn btn-primary btn-lg" onClick="psynet.nextPage(true);" style="float: left;">
+                I agree
+            </button>
+            <button type="button" class="btn btn-danger btn-lg" onClick="psynet.nextPage(false);" style="float: right;">
+                No, thank you (return task)
+            </button>
+        </div>
       </div>
   </div>
-
-  <style>
-    .main-div {
-      margin: 0;
-    }
-  </style>
 {% endblock %}

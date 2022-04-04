@@ -709,6 +709,10 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/dashboard_timeline.js",
             ),
             (
+                resource_filename("psynet", "resources/css/consent.css"),
+                "/static/css/consent.css",
+            ),
+            (
                 resource_filename("psynet", "resources/css/dashboard_timeline.css"),
                 "/static/css/dashboard_timeline.css",
             ),
