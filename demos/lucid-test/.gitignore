@@ -1,0 +1,10 @@
+cache/*
+data/*
+analysis/*
+snapshots/*
+env/*
+.idea/*
+server.log
+__pycache__
+*.DS_Store
+stimuli/*

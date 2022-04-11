@@ -1,0 +1,16 @@
+We wanted to find out the reasons for the high drop-off rate for the survey here:
+https://www.samplicio.us/fulcrum/next/surveys/18887427/reports?fromDate=2022-03-23&toDate=2022-03-24&sessionType=live
+
+From
+
+9 stopped at Ad page
+grep -o -w -f rids.txt logs.txt | sort | uniq -c | grep "1 " | wc -l
+9
+
+2 stopped at Consent page
+grep -o -w -f rids.txt logs.txt | sort | uniq -c | grep "2 " | wc -l
+25
+
+15 stopped at Start page
+grep -o -w -f rids.txt logs.txt | sort | uniq -c | grep "3 " | wc -l
+15

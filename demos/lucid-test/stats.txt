@@ -1,0 +1,3 @@
+cat logs.txt| grep "/ad?recruiter=lucid-recruiter&RID=" | wc -l
+91 Prescreens
+
