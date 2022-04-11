@@ -62,6 +62,7 @@ class Exp(psynet.experiment.Experiment):
     def check_pending_participant():
         import json
 
+        import requests
         from dallinger.config import get_config
 
         from psynet.participant import Participant
@@ -77,7 +78,6 @@ class Exp(psynet.experiment.Experiment):
         for participant in Participant.query.all():
             if participant.progress == 0:
                 lucidservice.log(f"Terminating participant {participant.id}")
-                redirect_url += participant.assignment_id + "&"
-                hash = lucidservice.sha1_hash(redirect_url)
-                redirect_url += f"hash={hash}"
+                redirect_url += f"{participant.assignment_id}&hash={lucidservice.sha1_hash(redirect_url)}"
                 lucidservice.log(f"Exit redirect: {redirect_url}")
+                requests.get(redirect_url)
