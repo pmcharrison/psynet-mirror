@@ -13,15 +13,14 @@ from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.dashboard import show_in_dashboard
-from psynet.data import Base, SharedMixin
+from psynet.data import Base, SharedMixin, register_table
 from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, Timeline, join, multi_page_maker
 
 
-@show_in_dashboard
+@register_table
 class Pet(Base, SharedMixin):
     __tablename__ = "pet"
 

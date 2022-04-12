@@ -17,7 +17,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import init_db
+from .data import db_models, init_db
 from .utils import (
     get_from_config,
     import_local_experiment,
@@ -731,8 +731,8 @@ def export_(app, local):
 
     log("Exporting 'json' and 'csv' files.")
 
-    for dallinger_model in dallinger_models():
-        class_name = dallinger_model.__name__
+    for db_model in db_models():
+        class_name = db_model.__name__
 
         from psynet.data import export
 
@@ -751,32 +751,6 @@ def populate_db_from_zip_file(zip_path):
 
     init_db(drop_all=True)
     dallinger_data.ingest_zip(zip_path)
-
-
-def dallinger_models():
-    from dallinger.models import (
-        Info,
-        Network,
-        Node,
-        Notification,
-        Participant,
-        Question,
-        Transformation,
-        Transmission,
-        Vector,
-    )
-
-    return [
-        Info,
-        Network,
-        Node,
-        Notification,
-        Participant,
-        Question,
-        Transformation,
-        Transmission,
-        Vector,
-    ]
 
 
 def export_data(base_filename, data_dir_path, json_data):

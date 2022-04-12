@@ -1,8 +1,10 @@
 import sys
 
+import dallinger.models
 import sqlalchemy
 from dallinger import db
 from dallinger.db import Base  # noqa
+from dallinger.experiment_server import dashboard
 from dallinger.models import Info  # noqa
 from dallinger.models import Network  # noqa
 from dallinger.models import Node  # noqa
@@ -23,6 +25,8 @@ from sqlalchemy.schema import (
 )
 
 from .participant import Participant  # noqa
+from .timeline import Response
+from .trial.main import Trial
 from .utils import classproperty
 
 
@@ -51,13 +55,12 @@ class SharedMixin(SharedMixin):
     This Mixin class is used to define custom SQLAlchemy objects. For example:
 
     ```py
-    from psynet.data import Base, SharedMixin, show_in_dashboard
+    from psynet.data import Base, SharedMixin, register_table
 
-    @show_in_dashboard
+    @register_table
     class Bird(Base, SharedMixin):
         __tablename__ = "bird"
 
-    @show_in_dashboard
     class Sparrow(Bird):
         pass
     ```
@@ -147,3 +150,62 @@ def init_db(drop_all=False):
     if drop_all:
         drop_all_db_tables()
     db.init_db()
+
+
+def dallinger_models():
+    "A list of all base models in Dallinger"
+    return [
+        Info,
+        Network,
+        Node,
+        Notification,
+        Participant,
+        Question,
+        Transformation,
+        Transmission,
+        Vector,
+    ]
+
+
+# Extra base models that are defined in PsyNet or in the experiment itself
+extra_models = []
+
+
+def db_models():
+    "Together, this list of models should cover all the base classes in the database."
+    return dallinger_models() + extra_models
+
+
+def register_table(cls):
+    """
+    This decorator should be applied whenever defining a new
+    SQLAlchemy table.
+    For example:
+
+    ``` py
+    @register_table
+    class Bird(Base, SharedMixin):
+        __tablename__ = "bird"
+    ```
+    """
+    extra_models.append(cls)
+    setattr(dallinger.models, cls.__name__, cls)
+    update_dashboard_models()
+    return cls
+
+
+def update_dashboard_models():
+    "Determines the list of objects in the dashboard database browser."
+    dallinger.models.Trial = Trial
+    dallinger.models.Response = Response
+
+    dashboard.BROWSEABLE_MODELS = [
+        "Participant",
+        "Network",
+        "Node",
+        "Trial",
+        "Response",
+        "Transformation",
+        "Transmission",
+        "Notification",
+    ] + [m.__name__ for m in extra_models]
