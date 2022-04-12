@@ -1,13 +1,13 @@
 import logging
 import os
 import shutil
+import subprocess
 import time
 
 import pandas
 import pytest
 from selenium.webdriver.common.by import By
 
-import psynet.command_line
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
@@ -51,7 +51,8 @@ class TestExp:
     def _test_export(self):
         app = "demo-app"
 
-        psynet.command_line.export_(app=app, local=True)
+        # We need to use subprocess because otherwise psynet export messes up the next tests
+        subprocess.call(["psynet", "export", "--app", app, "--local"])
 
         data_dir = os.path.join("data", f"data-{app}", "csv")
 
