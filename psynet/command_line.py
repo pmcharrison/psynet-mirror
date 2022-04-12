@@ -151,9 +151,10 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
     # which can create a problem for subsequent `dallinger debug`.
     # To avoid problems, we therefore run `psynet prepare` in a subprocess.
-    run_subprocess_with_live_output(
-        "psynet prepare" + ("--force" if force_prepare else "")
-    )
+    prepare_cmd = "psynet prepare"
+    if force_prepare:
+        prepare_cmd += " --force"
+    run_subprocess_with_live_output(prepare_cmd)
 
     kill_psynet_worker_processes()
 
@@ -217,6 +218,13 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, **kwargs):
     ctx.invoke(dallinger_debug)
 
 
+def safely_kill_process(p):
+    try:
+        p.kill()
+    except psutil.NoSuchProcess:
+        pass
+
+
 def kill_psynet_worker_processes():
     processes = list_psynet_worker_processes()
     if len(processes) > 0:
@@ -224,7 +232,7 @@ def kill_psynet_worker_processes():
             f"Found {len(processes)} remaining PsyNet worker process(es), terminating them now."
         )
     for p in processes:
-        p.kill()
+        safely_kill_process(p)
 
 
 def kill_psynet_chrome_processes():
@@ -234,7 +242,7 @@ def kill_psynet_chrome_processes():
             f"Found {len(processes)} remaining PsyNet Chrome process(es), terminating them now."
         )
     for p in processes:
-        p.kill()
+        safely_kill_process(p)
 
 
 def kill_chromedriver_processes():
@@ -242,7 +250,7 @@ def kill_chromedriver_processes():
     if len(processes) > 0:
         log(f"Found {len(processes)} chromedriver processes, terminating them now.")
     for p in processes:
-        p.kill()
+        safely_kill_process(p)
 
 
 def list_psynet_chrome_processes():

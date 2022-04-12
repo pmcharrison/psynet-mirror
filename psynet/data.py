@@ -1,5 +1,6 @@
 import sys
 
+import sqlalchemy
 from dallinger import db
 from dallinger.db import Base  # noqa
 from dallinger.models import Info  # noqa
@@ -13,7 +14,6 @@ from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
 from progress.bar import Bar
 from sqlalchemy import Column, String
-from sqlalchemy.engine.reflection import Inspector
 from sqlalchemy.schema import (
     DropConstraint,
     DropTable,
@@ -130,7 +130,7 @@ def drop_all_db_tables():
 
     con = engine.connect()
     trans = con.begin()
-    inspector = Inspector.from_engine(engine)
+    inspector = sqlalchemy.inspect(engine)
 
     # We need to re-create a minimal metadata with only the required things to
     # successfully emit drop constraints and tables commands for postgres (based
