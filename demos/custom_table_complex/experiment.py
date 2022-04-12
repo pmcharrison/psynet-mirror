@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.data import Base, SharedMixin, register_table
+from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.participant import Participant
@@ -21,7 +21,7 @@ from psynet.timeline import CodeBlock, Timeline, join, multi_page_maker
 
 
 @register_table
-class Pet(Base, SharedMixin):
+class Pet(SQLBase, SQLMixin):
     __tablename__ = "pet"
 
     base_price = None

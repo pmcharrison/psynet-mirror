@@ -7,7 +7,7 @@ from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.data import Base, SharedMixin, register_table
+from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.participant import Participant
@@ -15,7 +15,7 @@ from psynet.timeline import CodeBlock, PageMaker, Timeline, join, while_loop
 
 
 @register_table
-class Coin(Base, SharedMixin):
+class Coin(SQLBase, SQLMixin):
     __tablename__ = "coin"
 
     participant = relationship(Participant, backref="all_coins")

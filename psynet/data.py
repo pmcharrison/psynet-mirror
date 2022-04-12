@@ -3,7 +3,7 @@ import sys
 import dallinger.models
 import sqlalchemy
 from dallinger import db
-from dallinger.db import Base  # noqa
+from dallinger.db import Base as SQLBase  # noqa
 from dallinger.experiment_server import dashboard
 from dallinger.models import Info  # noqa
 from dallinger.models import Network  # noqa
@@ -50,15 +50,15 @@ def export(class_name):
     return models
 
 
-class SharedMixin(SharedMixin):
+class SQLMixin(SharedMixin):
     """
     This Mixin class is used to define custom SQLAlchemy objects. For example:
 
     ```py
-    from psynet.data import Base, SharedMixin, register_table
+    from psynet.data import SQLBase, SQLMixin, register_table
 
     @register_table
-    class Bird(Base, SharedMixin):
+    class Bird(SQLBase, SQLMixin):
         __tablename__ = "bird"
 
     class Sparrow(Bird):
@@ -184,7 +184,7 @@ def register_table(cls):
 
     ``` py
     @register_table
-    class Bird(Base, SharedMixin):
+    class Bird(SQLBase, SQLMixin):
         __tablename__ = "bird"
     ```
     """
