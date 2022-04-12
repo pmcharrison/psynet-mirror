@@ -190,6 +190,7 @@ class Experiment(dallinger.experiment.Experiment):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
+    asset_registry = AssetRegistry()
     asset_storage = NoStorage()
 
     __extra_vars__ = {}

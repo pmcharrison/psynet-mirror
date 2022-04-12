@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 from flask import Markup
 
+from .assets import link_asset_file, link_asset_folder
 from .modular_page import (
     AudioMeterControl,
     AudioPrompt,

@@ -1,8 +1,12 @@
+from dallinger import db
 from sqlalchemy import Column, String
 
-from .timeline import
+from .dashboard import show_in_dashboard
+from .data import Base, SharedMixin
+from .timeline import ExperimentSetupRoutine
 
-class AssetRegistry():
+
+class AssetRegistry:
     def link_file(self, url):
         """
         Stores a file link in the registry.
@@ -13,10 +17,16 @@ class AssetRegistry():
         url :
             URL to that file. The file should be publicly accessible from this URL.
         """
-        pass
+        asset = FileAsset(url)
+        db.session.add(asset)
+
+    def link_folder(self, url):
+        asset = FolderAsset(url)
+        db.session.add(asset)
 
 
-class Asset():
+@show_in_dashboard
+class Asset(Base, SharedMixin):
     __tablename__ = "asset"
 
     url = Column(String)
@@ -33,7 +43,7 @@ class FolderAsset(Asset):
     pass
 
 
-class Storage():
+class Storage:
     pass
 
 
@@ -44,8 +54,20 @@ class NoStorage(Storage):
 class LocalStorage(Storage):
     pass
 
+
 class S3Storage(Storage):
     pass
 
 
 def link_asset_folder(url):
+    def f(experiment):
+        experiment.asset_registry.link_folder(url)
+
+    return ExperimentSetupRoutine(f)
+
+
+def link_asset_file(url):
+    def f(experiment):
+        experiment.asset_registry.link_file(url)
+
+    return ExperimentSetupRoutine(f)
