@@ -22,6 +22,7 @@ from .utils import (
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
+    run_subprocess_with_live_output,
     serialise,
 )
 
@@ -146,7 +147,12 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     """
     log(header)
 
-    ctx.invoke(prepare, force=force_prepare)
+    # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
+    # which can create a problem for subsequent `dallinger debug`.
+    # To avoid problems, we therefore run `psynet prepare` in a subprocess.
+    run_subprocess_with_live_output(
+        "psynet prepare" + ("--force" if force_prepare else "")
+    )
 
     kill_psynet_worker_processes()
 

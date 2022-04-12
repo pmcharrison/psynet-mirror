@@ -23,7 +23,7 @@ from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
 
-from psynet import __version__, data
+from psynet import __version__
 
 from . import field
 from .command_line import log
@@ -903,6 +903,8 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/export", methods=["GET"])
     @staticmethod
     def export():
+        from psynet import data
+
         class_name = request.args.get("class_name")
         exported_data = data.export(class_name)
         return json.dumps(exported_data, default=serialise)
@@ -1274,3 +1276,12 @@ def patch_dashboard_models():
 
 
 patch_dashboard_models()
+
+
+def add_model_to_dashboard(cls):
+    """
+    Given an SQLAlchemy model class, this function registers the class
+    to be displayed in the dashboard as its own category.
+    """
+    setattr(dallinger.models, cls.__name__, cls)
+    dashboard.BROWSEABLE_MODELS.append(cls.__name__)
