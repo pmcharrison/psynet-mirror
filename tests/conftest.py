@@ -46,8 +46,8 @@ def demo_static(root):
 
 
 @pytest.fixture(scope="class")
-def demo_custom_table(root):
-    demo_setup("custom_table")
+def demo_custom_table_complex(root):
+    demo_setup("custom_table_complex")
     yield
     demo_teardown(root)
 
