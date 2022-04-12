@@ -84,7 +84,7 @@ class Pet(Base, SharedMixin):
             "pet_name",
             "What name would you like to give your new pet?",
             TextControl(),
-            time_estimate=5,
+            time_estimate=2.5,
             save_answer="temp__name",
         )
 
@@ -110,7 +110,7 @@ class Dog(Pet):
             "pet_kennel",
             "Do you want to purchase a kennel as well?",
             PushButtonControl(choices=["Yes", "No"]),
-            time_estimate=5,
+            time_estimate=2.5,
             save_answer="temp__comes_with_kennel",
         )
 
@@ -136,7 +136,7 @@ class Cat(Pet):
             "pet_hunts_mice",
             "Do you want a cat that hunts mice?",
             PushButtonControl(choices=["Yes", "No"]),
-            time_estimate=5,
+            time_estimate=2.5,
             save_answer="temp__hunts_mice",
         )
 
