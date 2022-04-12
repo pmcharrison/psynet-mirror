@@ -13,13 +13,15 @@ from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.data import Base, SharedMixin, show_in_dashboard
+from psynet.dashboard import show_in_dashboard
+from psynet.data import Base, SharedMixin
 from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, Timeline, join, multi_page_maker
 
 
+@show_in_dashboard
 class Pet(Base, SharedMixin):
     __tablename__ = "pet"
 
@@ -95,7 +97,6 @@ class Pet(Base, SharedMixin):
         self.name = participant.var.temp__name
 
 
-@show_in_dashboard
 class Dog(Pet):
     base_price = 500
     comes_with_kennel = Column(Boolean)
@@ -122,7 +123,6 @@ class Dog(Pet):
         self.comes_with_kennel = comes_with_kennel == "Yes"
 
 
-@show_in_dashboard
 class Cat(Pet):
     base_price = 400
     hunts_mice = Column(Boolean)
