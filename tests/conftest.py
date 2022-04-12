@@ -11,7 +11,7 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
 )
-from psynet.data import drop_all_db_tables, init_db
+from psynet.data import drop_all_db_tables
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -23,10 +23,11 @@ def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
     os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
-    init_db(drop_all=True)
+    drop_all_db_tables()
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
+    drop_all_db_tables()
 
 
 def demo_teardown(root):
