@@ -1,5 +1,3 @@
-import sys
-
 import dallinger.models
 import sqlalchemy
 from dallinger import db
@@ -37,7 +35,7 @@ def export(class_name):
     Collects instance data for class_name, including inheriting models.
     """
     models = {}
-    instances = getattr(sys.modules[__name__], class_name).query.all()
+    instances = db_models()[class_name].query.all()
     if len(instances) == 0:
         return models
     with Bar(f"Serializing {class_name} instances", max=len(instances)) as bar:
@@ -154,26 +152,29 @@ def init_db(drop_all=False):
 
 def dallinger_models():
     "A list of all base models in Dallinger"
-    return [
-        Info,
-        Network,
-        Node,
-        Notification,
-        Participant,
-        Question,
-        Transformation,
-        Transmission,
-        Vector,
-    ]
+    return {
+        "Info": Info,
+        "Network": Network,
+        "Node": Node,
+        "Notification": Notification,
+        "Participant": Participant,
+        "Question": Question,
+        "Transformation": Transformation,
+        "Transmission": Transmission,
+        "Vector": Vector,
+    }
 
 
 # Extra base models that are defined in PsyNet or in the experiment itself
-extra_models = []
+extra_models = {}
 
 
 def db_models():
     "Together, this list of models should cover all the base classes in the database."
-    return dallinger_models() + extra_models
+    return {
+        **dallinger_models(),
+        **extra_models,
+    }
 
 
 def register_table(cls):
@@ -188,7 +189,7 @@ def register_table(cls):
         __tablename__ = "bird"
     ```
     """
-    extra_models.append(cls)
+    extra_models[cls.__name__] = cls
     setattr(dallinger.models, cls.__name__, cls)
     update_dashboard_models()
     return cls
@@ -208,4 +209,4 @@ def update_dashboard_models():
         "Transformation",
         "Transmission",
         "Notification",
-    ] + [m.__name__ for m in extra_models]
+    ] + list(extra_models)

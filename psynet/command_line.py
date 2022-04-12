@@ -307,7 +307,10 @@ def list_chromedriver_processes():
 
 
 def is_chromedriver_process(process):
-    return "chromedriver" in process.name().lower()
+    try:
+        return "chromedriver" in process.name().lower()
+    except psutil.NoSuchProcess:
+        pass
 
 
 ##############
@@ -734,9 +737,7 @@ def export_(app, local):
 
     log("Exporting 'json' and 'csv' files.")
 
-    for db_model in db_models():
-        class_name = db_model.__name__
-
+    for class_name in db_models():
         from psynet.data import export
 
         class_data = export(class_name)
