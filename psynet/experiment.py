@@ -14,7 +14,6 @@ from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
-from dallinger.experiment_server import dashboard
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -39,7 +38,6 @@ from .timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
-    Response,
     Timeline,
 )
 from .trial.main import Trial
@@ -289,6 +287,11 @@ class Experiment(dallinger.experiment.Experiment):
     def setup(self):
         self.setup_experiment_network()
         self.setup_experiment_variables()
+
+        for elt in self.timeline.elts:
+            if isinstance(elt, ExperimentSetupRoutine):
+                elt.function(experiment=self)
+
         db.session.commit()
 
     @property
@@ -373,8 +376,6 @@ class Experiment(dallinger.experiment.Experiment):
 
     def load(self):
         for elt in self.timeline.elts:
-            if isinstance(elt, ExperimentSetupRoutine):
-                elt.function(experiment=self)
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
             if isinstance(elt, ParticipantFailRoutine):

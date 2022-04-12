@@ -1039,10 +1039,7 @@ class TrialMaker(Module):
     def experiment_setup_routine(self, experiment):
         """
         Defines a routine for setting up the experiment.
-        Note that this routine is (currently) called every time the Experiment
-        class is initialised, so it should be idempotent (calling it
-        multiple times should have no effect) and be efficient
-        (so that it doesn't incur a repeated costly overhead).
+        This is called once when the experiment launches.
 
         Parameters
         ----------
