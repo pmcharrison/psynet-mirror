@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Custom tables demo (simple)
+title = Custom tables demo (complex)
 base_payment = 0.10
 
 [Recruitment strategy]
