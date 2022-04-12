@@ -1256,32 +1256,3 @@ class ExperimentNetwork(Network):
         field.json_format_vars(x)
         x["variables"] = json.loads(x["variables"])
         return x
-
-
-def patch_dashboard_models():
-    "Determines the list of objects in the dashboard database browser."
-    dallinger.models.Trial = Trial
-    dallinger.models.Response = Response
-
-    dashboard.BROWSEABLE_MODELS = [
-        "Participant",
-        "Network",
-        "Node",
-        "Trial",
-        "Response",
-        "Transformation",
-        "Transmission",
-        "Notification",
-    ]
-
-
-patch_dashboard_models()
-
-
-def add_model_to_dashboard(cls):
-    """
-    Given an SQLAlchemy model class, this function registers the class
-    to be displayed in the dashboard as its own category.
-    """
-    setattr(dallinger.models, cls.__name__, cls)
-    dashboard.BROWSEABLE_MODELS.append(cls.__name__)

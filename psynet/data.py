@@ -46,26 +46,6 @@ def export(class_name):
     return models
 
 
-def show_in_dashboard(cls):
-    """
-    This decorator can be applied to any custom SQLAlchemy object
-    to show it as a selectable category in the dashboard.
-    For example:
-
-    ``` py
-    @show_in_dashboard
-    class Bird(Base, SharedMixin):
-        __tablename__ = "bird"
-    ```
-    """
-    from .experiment import (  # Imported here to avoid circular imports
-        add_model_to_dashboard,
-    )
-
-    add_model_to_dashboard(cls)
-    return cls
-
-
 class SharedMixin(SharedMixin):
     """
     This Mixin class is used to define custom SQLAlchemy objects. For example:
