@@ -26,6 +26,7 @@ from pkg_resources import resource_filename
 from psynet import __version__
 
 from . import field
+from .assets import AssetRegistry, NoStorage
 from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
@@ -190,6 +191,8 @@ class Experiment(dallinger.experiment.Experiment):
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
+
+    asset_storage = NoStorage()
 
     __extra_vars__ = {}
 

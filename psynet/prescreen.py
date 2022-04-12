@@ -1514,6 +1514,7 @@ class HeadphoneTest(Module):
     ):
         self.label = label
         self.elts = join(
+            link_asset_folder(url=media_url),
             self.instruction_page(),
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
