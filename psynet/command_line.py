@@ -148,6 +148,8 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     """
     log(header)
 
+    init_db(drop_all=True)
+
     # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
     # which can create a problem for subsequent `dallinger debug`.
     # To avoid problems, we therefore run `psynet prepare` in a subprocess.
