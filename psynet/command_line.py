@@ -17,6 +17,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
+from .data import init_db
 from .utils import (
     get_from_config,
     import_local_experiment,
@@ -383,7 +384,7 @@ def run_pre_checks(mode):
     from dallinger import db
     from dallinger.recruiters import MTurkRecruiter
 
-    db.init_db(drop_all=True)
+    init_db(drop_all=True)
 
     config = get_config()
     if not config.ready:
@@ -737,9 +738,8 @@ def export_(app, local):
 
 def populate_db_from_zip_file(zip_path):
     from dallinger import data as dallinger_data
-    from dallinger import db as dallinger_db
 
-    dallinger_db.init_db(drop_all=True)
+    init_db(drop_all=True)
     dallinger_data.ingest_zip(zip_path)
 
 

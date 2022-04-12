@@ -1,5 +1,6 @@
 import sys
 
+from dallinger import db
 from dallinger.db import Base  # noqa
 from dallinger.models import Info  # noqa
 from dallinger.models import Network  # noqa
@@ -12,8 +13,15 @@ from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
 from progress.bar import Bar
 from sqlalchemy import Column, String
+from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy.schema import (
+    DropConstraint,
+    DropTable,
+    ForeignKeyConstraint,
+    MetaData,
+    Table,
+)
 
-from .experiment import add_model_to_dashboard
 from .participant import Participant  # noqa
 from .utils import classproperty
 
@@ -50,6 +58,10 @@ def show_in_dashboard(cls):
         __tablename__ = "bird"
     ```
     """
+    from .experiment import (  # Imported here to avoid circular imports
+        add_model_to_dashboard,
+    )
+
     add_model_to_dashboard(cls)
     return cls
 
@@ -104,3 +116,54 @@ class SharedMixin(SharedMixin):
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.object_type
         return x
+
+
+def drop_all_db_tables():
+    """
+    Drops all tables from the Postgres database.
+    Includes a workaround for the fact that SQLAlchemy doesn't provide a CASCADE option to ``drop_all``,
+    which was causing errors with Dallinger's version of database resetting in ``init_db``.
+
+    (https://github.com/pallets-eco/flask-sqlalchemy/issues/722)
+    """
+    engine = db.engine
+
+    con = engine.connect()
+    trans = con.begin()
+    inspector = Inspector.from_engine(engine)
+
+    # We need to re-create a minimal metadata with only the required things to
+    # successfully emit drop constraints and tables commands for postgres (based
+    # on the actual schema of the running instance)
+    meta = MetaData()
+    tables = []
+    all_fkeys = []
+
+    for table_name in inspector.get_table_names():
+        fkeys = []
+
+        for fkey in inspector.get_foreign_keys(table_name):
+            if not fkey["name"]:
+                continue
+
+            fkeys.append(ForeignKeyConstraint((), (), name=fkey["name"]))
+
+        tables.append(Table(table_name, meta, *fkeys))
+        all_fkeys.extend(fkeys)
+
+    for fkey in all_fkeys:
+        con.execute(DropConstraint(fkey))
+
+    for table in tables:
+        con.execute(DropTable(table))
+
+    trans.commit()
+
+
+def init_db(drop_all=False):
+    """
+    Initialises the Dallinger database. This is a patched version of ``dallinger.db.init_db``.
+    """
+    if drop_all:
+        drop_all_db_tables()
+    db.init_db()
