@@ -163,6 +163,10 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
 
+    # This is important for resetting the state before _debug_legacy;
+    # otherwise `dallinger verify` throws an error.
+    clean_sys_modules()
+
     try:
         if legacy:
             _debug_legacy(**locals())
