@@ -17,7 +17,7 @@ EXPERIMENT = None
 
 @pytest.mark.usefixtures("demo_gibbs")
 class TestExp:
-    def test_exp(self, bot_recruits, db_session):
+    def test_exp(self, bot_recruits, db_session, experiment_module):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
@@ -46,9 +46,9 @@ class TestExp:
 
             next_page(driver, "next-button", finished=True)
 
-        self._test_export()
+        self._test_export(experiment_module)
 
-    def _test_export(self):
+    def _test_export(self, experiment_module):
         app = "demo-app"
 
         # We need to use subprocess because otherwise psynet export messes up the next tests
@@ -65,5 +65,9 @@ class TestExp:
         coins = pandas.read_csv(coins_file)
         nrow = coins.shape[0]
         assert nrow == 4
+
+        # For CI robustness
+        coins = experiment_module.Coin.query.all()
+        coins.delete()
 
         shutil.rmtree("data")
