@@ -21,7 +21,7 @@ class AssetRegistry:
         db.session.add(asset)
 
     def link_folder(self, url):
-        asset = FolderAsset(url, external=True)
+        asset = ExternalFolderAsset(url, is_)
         db.session.add(asset)
 
 
@@ -45,8 +45,19 @@ class Asset(SQLBase, SQLMixin):
 class FileAsset(Asset):
     pass
 
+class InternalAsset(Asset):
+    pass
 
-class FolderAsset(Asset):
+
+class InternalFolderAsset(Asset):
+    pass
+
+
+class ExternalAsset(Asset):
+    pass
+
+
+class ExternalFolderAsset(ExternalAsset):
     pass
 
 
