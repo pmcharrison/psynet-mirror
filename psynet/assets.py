@@ -1,8 +1,8 @@
 from dallinger import db
-from sqlalchemy import Column, String
+from sqlalchemy import Boolean, Column, String
 
 from .dashboard import show_in_dashboard
-from .data import Base, SharedMixin
+from .data import SQLBase, SQLMixin
 from .timeline import ExperimentSetupRoutine
 
 
@@ -21,14 +21,21 @@ class AssetRegistry:
         db.session.add(asset)
 
     def link_folder(self, url):
-        asset = FolderAsset(url)
+        asset = FolderAsset(url, external=True)
         db.session.add(asset)
 
 
 @show_in_dashboard
-class Asset(Base, SharedMixin):
+class Asset(SQLBase, SQLMixin):
     __tablename__ = "asset"
 
+    # Remove default SQL columns
+    creation_time = None
+    failed = None
+    failed_reason = None
+    time_of_death = None
+
+    external = Column(Boolean)
     url = Column(String)
 
     def __init__(self, url):
