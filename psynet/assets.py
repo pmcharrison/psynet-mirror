@@ -45,6 +45,7 @@ class Asset(SQLBase, SQLMixin):
 class FileAsset(Asset):
     pass
 
+
 class InternalAsset(Asset):
     pass
 
