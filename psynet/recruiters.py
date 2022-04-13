@@ -11,6 +11,9 @@ from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
+from sqlalchemy import Column, String
+
+from psynet.data import SQLBase, SQLMixin, register_table
 
 from .lucid import LucidService
 from .utils import get_logger
@@ -100,6 +103,13 @@ class DevCapRecruiter(BaseCapRecruiter):
 
 
 # Lucid
+
+
+@register_table
+class RID(SQLBase, SQLMixin):
+    __tablename__ = "rid"
+
+    rid = Column(String, index=True)
 
 
 class LucidRecruiterException(Exception):
@@ -246,6 +256,10 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         rid = entry_information.get("RID", entry_information.get("rid", None))
         if rid is None:
             rid = entry_information.get("hit_id")
+
+        # Save RID info in the database
+        db.session.add(RID(rid=rid))
+        db.session.commit()
 
         participant_data = {
             "hit_id": rid,
