@@ -6,7 +6,6 @@ import time
 
 import pandas
 import pytest
-from dallinger import db
 from selenium.webdriver.common.by import By
 
 from psynet.test import bot_class, next_page
@@ -18,7 +17,7 @@ EXPERIMENT = None
 
 @pytest.mark.usefixtures("demo_gibbs")
 class TestExp:
-    def test_exp(self, bot_recruits, db_session, experiment_module):
+    def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
@@ -47,9 +46,9 @@ class TestExp:
 
             next_page(driver, "next-button", finished=True)
 
-        self._test_export(experiment_module)
+        self._test_export()
 
-    def _test_export(self, experiment_module):
+    def _test_export(self):
         app = "demo-app"
 
         # We need to use subprocess because otherwise psynet export messes up the next tests
@@ -66,12 +65,5 @@ class TestExp:
         coins = pandas.read_csv(coins_file)
         nrow = coins.shape[0]
         assert nrow == 4
-
-        # For CI robustness
-        Coin = experiment_module.Coin
-        Coin.query.delete()
-        db.session.commit()
-        Coin.__table__.drop(db.engine)
-        db.session.commit()
 
         shutil.rmtree("data")
