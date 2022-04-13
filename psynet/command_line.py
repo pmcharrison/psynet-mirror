@@ -17,9 +17,8 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import db_models, init_db
+from .data import db_models, drop_all_db_tables, init_db
 from .utils import (
-    get_from_config,
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
@@ -148,12 +147,15 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     """
     log(header)
 
-    init_db(drop_all=True)
+    drop_all_db_tables()
     _run_prepare_in_subprocess(force_prepare)
     _cleanup_before_debug()
 
     try:
         if legacy:
+            # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
+            # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
+            # This problem manifests specifically when the experiment contains custom tables.
             _debug_legacy(**locals())
         else:
             _debug_auto_reload(**locals())
@@ -174,12 +176,12 @@ def _run_prepare_in_subprocess(force_prepare):
 def _cleanup_before_debug():
     kill_psynet_worker_processes()
 
-    if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
+    if not os.getenv("KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE"):
         kill_psynet_chrome_processes()
 
     # This is important for resetting the state before _debug_legacy;
     # otherwise `dallinger verify` throws an error.
-    clean_sys_modules()
+    clean_sys_modules()  # Unimports the PsyNet experiment
 
 
 def run_pre_auto_reload_checks():

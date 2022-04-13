@@ -14,7 +14,6 @@ from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
-from dallinger.experiment_server import dashboard
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
 from dallinger.models import Network
@@ -38,7 +37,6 @@ from .timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
-    Response,
     Timeline,
 )
 from .trial.main import Trial
@@ -762,8 +760,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def extra_parameters(cls):
-        config = get_config()
-        config.register("keep_old_chrome_windows_in_debug_mode", bool)
+        # We can put extra config variables here if we like, e.g.
+        # config = get_config()
+        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
+        pass
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
