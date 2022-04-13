@@ -68,6 +68,27 @@ def demo_gibbs(root):
 
 
 @pytest.fixture(scope="class")
+def demo_gmsi(root):
+    demo_setup("demography/gmsi")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_gmsi_short(root):
+    demo_setup("demography/gmsi_short")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_gmsi_two_modules_with_subscales(root):
+    demo_setup("demography/gmsi_two_modules_with_subscales")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_mcmcp(root):
     demo_setup("mcmcp")
     yield
@@ -77,6 +98,13 @@ def demo_mcmcp(root):
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
     demo_setup("multi_page_maker")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_timeline(root):
+    demo_setup("timeline")
     yield
     demo_teardown(root)
 
