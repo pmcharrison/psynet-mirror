@@ -67,7 +67,8 @@ class TestExp:
         assert nrow == 4
 
         # For CI robustness
-        coins = experiment_module.Coin.query.all()
-        coins.delete()
+        Coin = experiment_module.Coin
+        Coin.query.all().delete()
+        Coin.__table__.drop()
 
         shutil.rmtree("data")
