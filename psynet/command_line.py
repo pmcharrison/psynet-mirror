@@ -149,23 +149,8 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     log(header)
 
     init_db(drop_all=True)
-
-    # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
-    # which can create a problem for subsequent `dallinger debug`.
-    # To avoid problems, we therefore run `psynet prepare` in a subprocess.
-    prepare_cmd = "psynet prepare"
-    if force_prepare:
-        prepare_cmd += " --force"
-    run_subprocess_with_live_output(prepare_cmd)
-
-    kill_psynet_worker_processes()
-
-    if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
-        kill_psynet_chrome_processes()
-
-    # This is important for resetting the state before _debug_legacy;
-    # otherwise `dallinger verify` throws an error.
-    clean_sys_modules()
+    _run_prepare_in_subprocess(force_prepare)
+    _cleanup_before_debug()
 
     try:
         if legacy:
@@ -174,6 +159,27 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
             _debug_auto_reload(**locals())
     finally:
         kill_psynet_worker_processes()
+
+
+def _run_prepare_in_subprocess(force_prepare):
+    # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
+    # which can create a problem for subsequent `dallinger debug`.
+    # To avoid problems, we therefore run `psynet prepare` in a subprocess.
+    prepare_cmd = "psynet prepare"
+    if force_prepare:
+        prepare_cmd += " --force"
+    run_subprocess_with_live_output(prepare_cmd)
+
+
+def _cleanup_before_debug():
+    kill_psynet_worker_processes()
+
+    if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
+        kill_psynet_chrome_processes()
+
+    # This is important for resetting the state before _debug_legacy;
+    # otherwise `dallinger verify` throws an error.
+    clean_sys_modules()
 
 
 def run_pre_auto_reload_checks():
