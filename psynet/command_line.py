@@ -17,9 +17,8 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import init_db
+from .data import db_models, drop_all_db_tables, init_db
 from .utils import (
-    get_from_config,
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
@@ -148,8 +147,23 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
     """
     log(header)
 
-    init_db(drop_all=True)
+    drop_all_db_tables()
+    _run_prepare_in_subprocess(force_prepare)
+    _cleanup_before_debug()
 
+    try:
+        if legacy:
+            # Warning: _debug_legacy can fail if the experiment directory is imported before _debug_legacy is called.
+            # We therefore need to avoid accessing config variables, calling import_local_experiment, etc.
+            # This problem manifests specifically when the experiment contains custom tables.
+            _debug_legacy(**locals())
+        else:
+            _debug_auto_reload(**locals())
+    finally:
+        kill_psynet_worker_processes()
+
+
+def _run_prepare_in_subprocess(force_prepare):
     # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
     # which can create a problem for subsequent `dallinger debug`.
     # To avoid problems, we therefore run `psynet prepare` in a subprocess.
@@ -158,18 +172,16 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
         prepare_cmd += " --force"
     run_subprocess_with_live_output(prepare_cmd)
 
+
+def _cleanup_before_debug():
     kill_psynet_worker_processes()
 
-    if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
+    if not os.getenv("KEEP_OLD_CHROME_WINDOWS_IN_DEBUG_MODE"):
         kill_psynet_chrome_processes()
 
-    try:
-        if legacy:
-            _debug_legacy(**locals())
-        else:
-            _debug_auto_reload(**locals())
-    finally:
-        kill_psynet_worker_processes()
+    # This is important for resetting the state before _debug_legacy;
+    # otherwise `dallinger verify` throws an error.
+    clean_sys_modules()  # Unimports the PsyNet experiment
 
 
 def run_pre_auto_reload_checks():
@@ -304,7 +316,10 @@ def list_chromedriver_processes():
 
 
 def is_chromedriver_process(process):
-    return "chromedriver" in process.name().lower()
+    try:
+        return "chromedriver" in process.name().lower()
+    except psutil.NoSuchProcess:
+        pass
 
 
 ##############
@@ -731,9 +746,7 @@ def export_(app, local):
 
     log("Exporting 'json' and 'csv' files.")
 
-    for dallinger_model in dallinger_models():
-        class_name = dallinger_model.__name__
-
+    for class_name in db_models():
         from psynet.data import export
 
         class_data = export(class_name)
@@ -751,32 +764,6 @@ def populate_db_from_zip_file(zip_path):
 
     init_db(drop_all=True)
     dallinger_data.ingest_zip(zip_path)
-
-
-def dallinger_models():
-    from dallinger.models import (
-        Info,
-        Network,
-        Node,
-        Notification,
-        Participant,
-        Question,
-        Transformation,
-        Transmission,
-        Vector,
-    )
-
-    return [
-        Info,
-        Network,
-        Node,
-        Notification,
-        Participant,
-        Question,
-        Transformation,
-        Transmission,
-        Vector,
-    ]
 
 
 def export_data(base_filename, data_dir_path, json_data):

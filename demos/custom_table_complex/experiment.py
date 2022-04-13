@@ -13,14 +13,15 @@ from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.data import Base, SharedMixin, show_in_dashboard
+from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.participant import Participant
 from psynet.timeline import CodeBlock, Timeline, join, multi_page_maker
 
 
-class Pet(Base, SharedMixin):
+@register_table
+class Pet(SQLBase, SQLMixin):
     __tablename__ = "pet"
 
     base_price = None
@@ -83,7 +84,7 @@ class Pet(Base, SharedMixin):
             "pet_name",
             "What name would you like to give your new pet?",
             TextControl(),
-            time_estimate=5,
+            time_estimate=2.5,
             save_answer="temp__name",
         )
 
@@ -95,7 +96,6 @@ class Pet(Base, SharedMixin):
         self.name = participant.var.temp__name
 
 
-@show_in_dashboard
 class Dog(Pet):
     base_price = 500
     comes_with_kennel = Column(Boolean)
@@ -110,7 +110,7 @@ class Dog(Pet):
             "pet_kennel",
             "Do you want to purchase a kennel as well?",
             PushButtonControl(choices=["Yes", "No"]),
-            time_estimate=5,
+            time_estimate=2.5,
             save_answer="temp__comes_with_kennel",
         )
 
@@ -122,7 +122,6 @@ class Dog(Pet):
         self.comes_with_kennel = comes_with_kennel == "Yes"
 
 
-@show_in_dashboard
 class Cat(Pet):
     base_price = 400
     hunts_mice = Column(Boolean)
@@ -137,7 +136,7 @@ class Cat(Pet):
             "pet_hunts_mice",
             "Do you want a cat that hunts mice?",
             PushButtonControl(choices=["Yes", "No"]),
-            time_estimate=5,
+            time_estimate=2.5,
             save_answer="temp__hunts_mice",
         )
 
