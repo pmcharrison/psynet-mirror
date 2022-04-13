@@ -4,8 +4,7 @@ import shutil
 from dallinger import db
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 
-from .dashboard import show_in_dashboard
-from .data import SQLBase, SQLMixin
+from .data import SQLBase, SQLMixin, register_table
 from .timeline import ExperimentSetupRoutine
 from .utils import get_extension
 
@@ -29,7 +28,7 @@ class AssetRegistry:
         db.session.add(asset)
 
 
-class FileType():
+class AssetType:
     def get_file_size_mb(self, path):
         return self.get_file_size_bytes(path) / (1024 * 1024)
 
@@ -37,12 +36,12 @@ class FileType():
         raise NotImplementedError
 
 
-class File(FileType):
+class File(AssetType):
     def get_file_size_bytes(self):
         return os.path.getsize(self.input_path)
 
 
-class Folder(FileType):
+class Folder(AssetType):
     def get_file_size_bytes(self):
         sum(entry.stat().st_size for entry in os.scandir(file))
 
@@ -51,7 +50,7 @@ class Audio(File):
     pass
 
 
-@show_in_dashboard
+@register_table
 class Asset(SQLBase, SQLMixin):
     __tablename__ = "asset"
 
@@ -61,7 +60,7 @@ class Asset(SQLBase, SQLMixin):
     time_of_death = None
 
     host_location = Column(String)
-    file_type = Column(String)
+    type = Column(String)
     extension = Column(String)
     description = Column(String)
 
@@ -80,16 +79,16 @@ class Asset(SQLBase, SQLMixin):
     trial = relationship("Trial", back_populates="assets")
 
     def __init__(
-            self,
-            file_type="file",
-            participant_id=None,
-            trial_maker_id=None,
-            network_id=None,
-            node_id=None,
-            trial_id=None,
+        self,
+        type="file",
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
     ):
-        self.file_type = file_type
-        self._file_type = self.file_types[file_type]
+        self.type = type
+        self._type = self.types[type]
         self.extension = self.get_extension()
         self.participant_id = participant_id
         self.trial_maker_id = trial_maker_id
@@ -97,7 +96,7 @@ class Asset(SQLBase, SQLMixin):
         self.node_id = node_id
         self.trial_id = trial_id
 
-    file_types = dict(
+    types = dict(
         file=File,
         folder=Folder,
         audio=Audio,
@@ -115,21 +114,23 @@ class InternalAsset(Asset):
     deposit_time_sec = Column(Float)
 
     def __init__(
-            self,
-            input_path,
-            storage,
-            file_type=None,
-            key=None,
-            obfuscate=0,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-            participant_id=None,
-            trial_maker_id=None,
-            network_id=None,
-            node_id=None,
-            trial_id=None,
+        self,
+        input_path,
+        storage,
+        type=None,
+        key=None,
+        obfuscate=0,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
     ):
         self.input_path = input_path
         self.obfuscate = obfuscate
-        super().__init__(file_type, participant_id, trial_maker_id, network_id, node_id, trial_id)
+        super().__init__(
+            type, participant_id, trial_maker_id, network_id, node_id, trial_id
+        )
         self.size_mb = self.get_size_mb()
         self.key = key if key else self.generate_key()
         self.deposit(storage)
@@ -142,7 +143,7 @@ class InternalAsset(Asset):
         self.deposit_time_sec = info["deposit_time"]
 
     def get_size_mb(self):
-        return self._file_type.get_size_mb(input_path)
+        return self._type.get_size_mb(input_path)
 
     def generate_key(self):
         return self.generate_dir() + self.generate_filename()
@@ -175,31 +176,39 @@ class InternalAsset(Asset):
         return filename
 
 
-
-
 class ExternalAsset(Asset):
     def __init__(
-            self,
-            host_location,
-            file_type="file",
-            participant_id=None,
-            trial_maker_id=None,
-            network_id=None,
-            node_id=None,
-            trial_id=None,
+        self,
+        host_location,
+        type="file",
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
     ):
         self.host_location = host_location
-        super().__init__(file_type, participant_id, trial_maker_id, network_id, node_id, trial_id)
+        super().__init__(
+            type, participant_id, trial_maker_id, network_id, node_id, trial_id
+        )
 
     def get_extension(self):
         return get_extension(self.host_location)
 
-class Storage:
-    def deposit(self, asset):
-        info = {}
-        info["size_mb"] = asset.
 
+class Storage:
+    def __init__(self):
+        self.deployment_key = self.get_deployment_key()
+
+    def get_deployment_key(self):
+        # Time? # App ID?
         raise NotImplementedError
+
+    def deposit(self, asset):
+        start = time.perf_counter()
+        self._deposit(asset)
+        end = time.perf_counter()
+        return dict(deposit_time_sec=end - start)
 
     def _deposit(self, asset):
         raise NotImplementedError
@@ -211,8 +220,9 @@ class NoStorage(Storage):
 
 
 class LocalStorage(Storage):
-    def __init__(self, root):
-        self.root = root
+    def __init__(self, location):
+        self.location = location
+        self.root = os.path.join(location, self.deployment_key)
 
     def deposit(self, asset: InternalAsset):
         key = asset.key
@@ -221,11 +231,10 @@ class LocalStorage(Storage):
 
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
 
-        if asset.file_type == "folder":
+        if asset.type == "folder":
             shutil.copytree(input_path, target_path, dirs_exist_ok=True)
         else:
             shutil.copyfile(input_path, target_path)
-
 
     def deposit(self, asset):
         raise NotImplementedError
