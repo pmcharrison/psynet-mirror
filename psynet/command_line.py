@@ -229,7 +229,10 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, **kwargs):
         ), f"The option '{var_name}' is not supported in this mode, please add --legacy to your command."
     from dallinger.command_line.develop import debug as dallinger_debug
 
-    ctx.invoke(dallinger_debug)
+    try:
+        ctx.invoke(dallinger_debug)
+    finally:
+        reset_console()
 
 
 def safely_kill_process(p):
