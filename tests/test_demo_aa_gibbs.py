@@ -6,6 +6,7 @@ import time
 
 import pandas
 import pytest
+from dallinger import db
 from selenium.webdriver.common.by import By
 
 from psynet.test import bot_class, next_page
@@ -68,7 +69,9 @@ class TestExp:
 
         # For CI robustness
         Coin = experiment_module.Coin
-        Coin.query.all().delete()
-        Coin.__table__.drop()
+        Coin.query.delete()
+        db.session.commit()
+        Coin.__table__.drop(db.engine)
+        db.session.commit()
 
         shutil.rmtree("data")
