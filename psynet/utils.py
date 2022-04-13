@@ -534,3 +534,8 @@ def run_subprocess_with_live_output(command):
     p.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
+
+
+def get_extension(path):
+    _, extension = os.path.splitext(path)
+    return extension
