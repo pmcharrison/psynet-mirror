@@ -11,7 +11,7 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
 )
-from psynet.data import drop_all_db_tables
+from psynet.data import init_db
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -23,11 +23,11 @@ def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
     os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
-    drop_all_db_tables()
+    init_db(drop_all=True)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
-    drop_all_db_tables()
+    init_db(drop_all=True)
 
 
 def demo_teardown(root):
@@ -36,7 +36,6 @@ def demo_teardown(root):
     os.chdir(root)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
-    drop_all_db_tables()
 
 
 @pytest.fixture(scope="class")
@@ -68,6 +67,27 @@ def demo_gibbs(root):
 
 
 @pytest.fixture(scope="class")
+def demo_gmsi(root):
+    demo_setup("demography/gmsi")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_gmsi_short(root):
+    demo_setup("demography/gmsi_short")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_gmsi_two_modules_with_subscales(root):
+    demo_setup("demography/gmsi_two_modules_with_subscales")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_mcmcp(root):
     demo_setup("mcmcp")
     yield
@@ -77,6 +97,20 @@ def demo_mcmcp(root):
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
     demo_setup("multi_page_maker")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_timeline(root):
+    demo_setup("timeline")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_timeline_with_error(root):
+    demo_setup("timeline_with_error")
     yield
     demo_teardown(root)
 
