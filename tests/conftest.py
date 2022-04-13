@@ -19,21 +19,6 @@ ACTIVE_EXPERIMENT = None
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 
-@pytest.fixture
-def db_session():
-    import dallinger.db
-
-    # The drop_all call can hang without this; see:
-    # https://stackoverflow.com/questions/13882407/sqlalchemy-blocked-on-dropping-tables
-    dallinger.db.session.close()
-    drop_all_db_tables()
-    session = dallinger.db.init_db(drop_all=True)
-    yield session
-    session.rollback()
-    drop_all_db_tables()
-    session.close()
-
-
 def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
