@@ -11,7 +11,7 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
 )
-from psynet.data import drop_all_db_tables, init_db
+from psynet.data import init_db
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -36,7 +36,6 @@ def demo_teardown(root):
     os.chdir(root)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
-    drop_all_db_tables()
 
 
 @pytest.fixture(scope="class")

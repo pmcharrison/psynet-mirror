@@ -1,7 +1,7 @@
 import dallinger.models
 import sqlalchemy
-from dallinger import db
 from dallinger.db import Base as SQLBase  # noqa
+from dallinger.db import init_db  # noqa
 from dallinger.experiment_server import dashboard
 from dallinger.models import Info  # noqa
 from dallinger.models import Network  # noqa
@@ -99,7 +99,7 @@ class SQLMixin(SharedMixin):
         return x
 
 
-def drop_all_db_tables():
+def drop_all_db_tables(bind):
     """
     Drops all tables from the Postgres database.
     Includes a workaround for the fact that SQLAlchemy doesn't provide a CASCADE option to ``drop_all``,
@@ -107,7 +107,7 @@ def drop_all_db_tables():
 
     (https://github.com/pallets-eco/flask-sqlalchemy/issues/722)
     """
-    engine = db.engine
+    engine = bind
 
     con = engine.connect()
     trans = con.begin()
@@ -141,13 +141,7 @@ def drop_all_db_tables():
     trans.commit()
 
 
-def init_db(drop_all=False):
-    """
-    Initialises the Dallinger database. This is a patched version of ``dallinger.db.init_db``.
-    """
-    if drop_all:
-        drop_all_db_tables()
-    db.init_db()
+dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
 def dallinger_models():

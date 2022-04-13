@@ -17,7 +17,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import db_models, drop_all_db_tables, init_db
+from .data import db_models, init_db
 from .utils import (
     get_from_config,
     import_local_experiment,
@@ -162,9 +162,6 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads)
 
     if not get_from_config("keep_old_chrome_windows_in_debug_mode"):
         kill_psynet_chrome_processes()
-
-    # Dallinger debug prefers to work from a clean slate, so we drop all the database tables before starting.
-    drop_all_db_tables()
 
     try:
         if legacy:
