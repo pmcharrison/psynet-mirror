@@ -211,6 +211,7 @@ def collect_coin():
 
 def _collect_coin(participant):
     coin = Coin(participant)
+    coin.var.test = "123"
     db.session.add(coin)
 
 
