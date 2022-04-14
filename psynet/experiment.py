@@ -299,6 +299,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup(self):
         self.setup_experiment_network()
         self.setup_experiment_variables()
+        self.check_deployment_id()
         self.assets.on_experiment_launch()
 
         for elt in self.timeline.elts:
@@ -388,8 +389,6 @@ class Experiment(dallinger.experiment.Experiment):
             self.var.set(key, value)
 
     def load(self):
-        self.check_deployment_id()
-
         for elt in self.timeline.elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)

@@ -49,7 +49,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
     time_of_death = None
 
     key = Column(String, primary_key=True, index=True)
-    host_location = Column(String)
+    url = Column(String)
     type = Column(String)
     extension = Column(String)
 
@@ -107,16 +107,17 @@ class ExperimentAsset(Asset):
     deposit_time_sec = Column(Float)
 
     def __init__(
-        self,
-        input_path,
-        type_=None,
-        key=None,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+            self,
+            input_path,
+            type_=None,
+            key=None,
+            persistent=False,
+            obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+            participant_id=None,
+            trial_maker_id=None,
+            network_id=None,
+            node_id=None,
+            trial_id=None,
     ):
         self.deposited = False
         self.input_path = input_path
@@ -184,7 +185,7 @@ class ExperimentAsset(Asset):
 class ExternalAsset(Asset):
     def __init__(
             self,
-            host_location,
+            url,
             key,
             type_="file",
             participant_id=None,
@@ -193,14 +194,14 @@ class ExternalAsset(Asset):
             node_id=None,
             trial_id=None,
     ):
-        self.host_location = host_location
+        self.url = url
         self.key = key
         super().__init__(
             type_, participant_id, trial_maker_id, network_id, node_id, trial_id
         )
 
     def get_extension(self):
-        return get_extension(self.host_location)
+        return get_extension(self.url)
 
     def prepare_for_deployment(self, asset_storage):
         """Runs in advance of the experiment being deployed to the remote server."""
@@ -263,17 +264,24 @@ class AssetRegistry:
 
     def __init__(self, asset_storage: AssetStorage):
         self.asset_storage = asset_storage
-        self.assets = []
+        self.assets = {}
 
-    def register(self, asset):
-        self.assets.append(asset)
+    def register(self, *args):
+        for asset in [*args]:
+            assert isinstance(asset, Asset)
+            self.assets[asset.key] = asset
+        db.session.commit()
+
+    def get(self, key):
+        return self.assets[key]
+        # return Asset.query.filter_by(key=key).one()
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()
         self.asset_storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        for a in self.assets:
+        for a in self.assets.values():
             a.prepare_for_deployment(asset_storage=self.asset_storage)
         self.save_initial_asset_manifesto()
 
@@ -292,6 +300,6 @@ class AssetRegistry:
 
     def populate_db_with_initial_assets(self):
         self.assets = self.load_initial_asset_manifesto()
-        for a in self.assets:
+        for a in self.assets.values():
             db.session.add(a)
         db.session.commit()
