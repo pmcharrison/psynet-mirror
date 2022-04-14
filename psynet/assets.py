@@ -4,29 +4,11 @@ import shutil
 import jsonpickle
 from dallinger import db
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .timeline import ExperimentSetupRoutine, NullElt
 from .utils import get_extension
-
-
-# class AssetRegistry:
-#     def link_file(self, url):
-#         """
-#         Stores a file link in the registry.
-#
-#         Parameters
-#         ----------
-#
-#         url :
-#             URL to that file. The file should be publicly accessible from this URL.
-#         """
-#         asset = FileAsset(url)
-#         db.session.add(asset)
-#
-#     def link_folder(self, url):
-#         asset = ExternalFolderAsset(url, is_)
-#         db.session.add(asset)
 
 
 class AssetType:
@@ -155,6 +137,9 @@ class InternalAsset(Asset):
         time_end = time.perf_counter()
 
         self.deposit_time_sec = time_end - time_start
+        self.deposited = True
+        db.session.add(self)
+        db.session.commit()
 
     def get_size_mb(self):
         return self._type.get_size_mb(input_path)
@@ -218,44 +203,6 @@ class ExternalAsset(Asset):
         pass
 
 
-class AssetRegistry():
-    initial_asset_manifesto_path = "initial_asset_manifesto.json"
-
-    def __init__(self, internal_storage: InternalStorage):
-        self.internal_storage = internal_storage
-        self.assets = []
-
-    def register(self, asset):
-        self.assets.append(asset)
-
-    def prepare_for_deployment(self):
-        self.prepare_assets_for_deployment()
-        self.internal_storage.prepare_for_deployment()
-
-    def prepare_assets_for_deployment(self):
-        x = [a.prepare_for_deployment() for a in self.assets]
-        self.save_initial_asset_manifesto(x)
-
-    def save_initial_asset_manifesto(self, x: List(Asset)):
-        encoded = jsonpickle.encode(x)
-        with open(self.initial_asset_manifesto_path, "w") as file:
-            file.write(encoded)
-
-    def load_initial_asset_manifesto(self):
-        with open(self.initial_asset_manifesto_path, "r") as file:
-            encoded = file.read()
-        return jsonpickle.decode(encoded)
-
-    def on_experiment_launch(self):
-        self.populate_db_with_initial_assets()
-
-    def populate_db_with_initial_assets(self):
-        self.assets = self.load_initial_asset_manifesto()
-        for a in assets:
-            db.session.add(a)
-        db.session.commit()
-
-
 class InternalStorage():
     def __init__(self):
         self.deployment_key = None
@@ -306,41 +253,40 @@ class S3Storage(InternalStorage):
         raise NotImplementedError
 
 
-class Exp():
-    assets = AssetRegistry(
-        internal_storage=S3Storage(),
-        download_on_export=True
-    )
+class AssetRegistry():
+    initial_asset_manifesto_path = "initial_asset_manifesto.json"
 
-# Linking during the experiment, e.g. in a code block
-db.session.add(ExternalAsset())
+    def __init__(self, internal_storage: InternalStorage):
+        self.internal_storage = internal_storage
+        self.assets = []
 
+    def register(self, asset):
+        self.assets.append(asset)
 
-def link_external_asset(
-        host_location,
-        type="file",
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
-):
-    def f(experiment):
-        asset = ExternalAsset(host_location, type, participant_id, trial_maker_id, network_id, node_id, trial_id)
-        db.session.add(asset)
+    def prepare_for_deployment(self):
+        self.prepare_assets_for_deployment()
+        self.internal_storage.prepare_for_deployment()
 
+    def prepare_assets_for_deployment(self):
+        for a in self.assets:
+            a.prepare_for_deployment()
+        self.save_initial_asset_manifesto()
 
-def elt_external_asset
+    def save_initial_asset_manifesto(self):
+        encoded = jsonpickle.encode(self.assets)
+        with open(self.initial_asset_manifesto_path, "w") as file:
+            file.write(encoded)
 
-def link_asset_folder(url):
-    def f(experiment):
-        experiment.asset_registry.link_folder(url)
+    def load_initial_asset_manifesto(self):
+        with open(self.initial_asset_manifesto_path, "r") as file:
+            encoded = file.read()
+        return jsonpickle.decode(encoded)
 
-    return ExperimentSetupRoutine(f)
+    def on_experiment_launch(self):
+        self.populate_db_with_initial_assets()
 
-
-def link_asset_file(url):
-    def f(experiment):
-        experiment.asset_registry.link_file(url)
-
-    return ExperimentSetupRoutine(f)
+    def populate_db_with_initial_assets(self):
+        self.assets = self.load_initial_asset_manifesto()
+        for a in assets:
+            db.session.add(a)
+        db.session.commit()

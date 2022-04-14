@@ -2229,6 +2229,3 @@ class RecruitmentCriterion(NullElt):
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
-
-import pydevd_pycharm
-pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
