@@ -186,12 +186,15 @@ class Experiment(dallinger.experiment.Experiment):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
+    name = None
+
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    assets = []
-    asset_storage = NoStorage()
+    assets = AssetRegistry(
+        internal_storage=NoStorage(),
+    )
 
     __extra_vars__ = {}
 
@@ -200,6 +203,14 @@ class Experiment(dallinger.experiment.Experiment):
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
+
+        if not self.name:
+            raise RuntimeError(
+                "PsyNet now requires you to specify a descriptive name for your experiment "
+                "in your Experiment class. For example, you might write: name = 'GSP experiment with faces'"
+            )
+
+        self.load_deployment_id()
 
         self.database_checks = []
         self.participant_fail_routines = []
@@ -288,6 +299,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup(self):
         self.setup_experiment_network()
         self.setup_experiment_variables()
+        self.storage.on_experiment_launch()
 
         for elt in self.timeline.elts:
             if isinstance(elt, ExperimentSetupRoutine):
@@ -376,6 +388,8 @@ class Experiment(dallinger.experiment.Experiment):
             self.var.set(key, value)
 
     def load(self):
+        self.check_deployment_id()
+
         for elt in self.timeline.elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
@@ -384,14 +398,48 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
-                self.assets.append(elt)
+                self.storage.register(elt)
 
     @classmethod
     def pre_deploy(cls):
         cls.check_config()
+        cls.update_deployment_id()
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
+
+    @classmethod
+    def update_deployment_id(cls):
+        self.deployment_id = cls.generate_deployment_id()
+        with open("DEPLOYMENT_ID", "w") as file:
+            file.write(self.deployment_id)
+
+    @classmethod
+    def generate_deployment_id(cls):
+        return cls.name + " -- " + str(datetime.now())
+
+    @classmethod
+    def load_deployment_id(cls):
+        try:
+            with open("DEPLOYMENT_ID", "r") as file:
+                id = file.read()
+            self.deployment_id = id
+        except FileNotFoundError:
+            self.deployment_id = None
+
+    @classmethod
+    def check_deployment_id(cls):
+        if not self.deployment_id:
+            raise MissingDeploymentIdError()
+
+    class MissingDeploymentIdError(RuntimeError):
+        msg = (
+            "Experiment deployment ID not found. This could be because 'DEPLOYMENT_ID' was missing "
+            "from your experiment directory. This file should be created automatically when running psynet debug/sandbox/deploy. "
+            "Did you accidentally add it to .gitignore?"
+        )
+        def __init__(self, msg=msg, *args, **kwargs):
+            super().__init__(msg, *args, **kwargs)
 
     @classmethod
     def check_config(cls):

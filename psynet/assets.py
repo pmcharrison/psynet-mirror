@@ -1,6 +1,7 @@
 import os
 import shutil
 
+import jsonpickle
 from dallinger import db
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 
@@ -148,8 +149,12 @@ class InternalAsset(Asset):
     def deposit(self, storage):
         if self.key is None:
             self.key = self.generate_key()
-        info = storage.deposit(asset=self)
-        self.deposit_time_sec = info["deposit_time"]
+
+        time_start = time.perf_counter()
+        storage.receive_deposit(asset=self)
+        time_end = time.perf_counter()
+
+        self.deposit_time_sec = time_end - time_start
 
     def get_size_mb(self):
         return self._type.get_size_mb(input_path)
@@ -186,8 +191,7 @@ class InternalAsset(Asset):
 
     def prepare_for_deployment(self, experiment):
         "Runs in advance of the experiment being deployed to the remote server."
-        asset = self
-        experiment.asset_storage.deposit(asset)
+        self.deposit(experiment.assets.internal_storage)
 
 
 class ExternalAsset(Asset):
@@ -214,38 +218,78 @@ class ExternalAsset(Asset):
         pass
 
 
-class Storage:
+class AssetRegistry():
+    initial_asset_manifesto_path = "initial_asset_manifesto.json"
+
+    def __init__(self, internal_storage: InternalStorage):
+        self.internal_storage = internal_storage
+        self.assets = []
+
+    def register(self, asset):
+        self.assets.append(asset)
+
+    def prepare_for_deployment(self):
+        self.prepare_assets_for_deployment()
+        self.internal_storage.prepare_for_deployment()
+
+    def prepare_assets_for_deployment(self):
+        x = [a.prepare_for_deployment() for a in self.assets]
+        self.save_initial_asset_manifesto(x)
+
+    def save_initial_asset_manifesto(self, x: List(Asset)):
+        encoded = jsonpickle.encode(x)
+        with open(self.initial_asset_manifesto_path, "w") as file:
+            file.write(encoded)
+
+    def load_initial_asset_manifesto(self):
+        with open(self.initial_asset_manifesto_path, "r") as file:
+            encoded = file.read()
+        return jsonpickle.decode(encoded)
+
+    def on_experiment_launch(self):
+        self.populate_db_with_initial_assets()
+
+    def populate_db_with_initial_assets(self):
+        self.assets = self.load_initial_asset_manifesto()
+        for a in assets:
+            db.session.add(a)
+        db.session.commit()
+
+
+class InternalStorage():
     def __init__(self):
-        self.deployment_key = self.get_deployment_key()
+        self.deployment_key = None
 
-    def get_deployment_key(self):
-        # Time? # App ID?
-        raise NotImplementedError
+    def prepare_for_deployment(self):
+        self.load_deployment_key()
+
+    def load_deployment_key(self):
+        if not self.deployment_key:
+            from .experiment import Experiment
+            self.deployment_key = Experiment.get_deployment_key()
+            if self.deployment_key is None:
+                raise Experiment.MissingDeploymentIdError
 
     def deposit(self, asset):
-        start = time.perf_counter()
-        self._deposit(asset)
-        end = time.perf_counter()
-        return dict(deposit_time_sec=end - start)
-
-    def _deposit(self, asset):
-        raise NotImplementedError
+        self.load_deployment_key()
 
 
-class NoStorage(Storage):
+class NoStorage(InternalStorage):
     def deposit(self, asset):
+        super().deposit(asset)
         raise RuntimeError("Asset depositing is not supported by 'NoStorage' objects.")
 
 
-class LocalStorage(Storage):
-    def __init__(self, location):
-        self.location = location
-        self.root = os.path.join(location, self.deployment_key)
+class LocalStorage(InternalStorage):
+    def __init__(self, root):
+        self.root = root
 
     def deposit(self, asset: InternalAsset):
+        super().deposit(asset)
+
         key = asset.key
         input_path = asset.input_path
-        target_path = os.path.join(self.root, key)
+        target_path = os.path.join(self.root, self.deployment_key, key)
 
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
 
@@ -254,69 +298,19 @@ class LocalStorage(Storage):
         else:
             shutil.copyfile(input_path, target_path)
 
+
+class S3Storage(InternalStorage):
     def deposit(self, asset):
+        super().deposit(asset)
+
         raise NotImplementedError
-
-
-class S3Storage(Storage):
-    def deposit(self, asset):
-        raise NotImplementedError
-
-
-# Linking from experiment.py
-# -- maybe this should happen as part of the experiment class?
-# -- maybe people should use the class directly?
-#
-# Linking from the timeline
-
-
-# Create if exists logic? This could be applied to stimuli too
-# This would be bad for performance, I don't think we can do this. <-----
-# Check in DB, do I exist? (maybe use transaction)
-# If not, upload
-# This logic probably needs
-
-
-InternalAsset()  # <-- what if the user writes this in experiment.py?
 
 
 class Exp():
-    assets = [
-        ExternalAsset(),
-        InternalAsset(),
-        InternalAsset(),
-    ]
-
-    def register_assets(self):  # <-- happens once, at experiment setup
-        # We need some logic that allows us to upload locally and then retrieve remotely.
-        # The uploading would happen in psynet prepare, creating a manifest.
-        # When the experiment launches, that manifest is then used to populate the database.
-        # It should be possible to pickle assets (jsonpickle) and retrieve them later.
-        for a in self.assets:
-            self.storage.add(a)  # <-- includes upload
-
-    # def ensure_assets_are_uploaded(self):
-    def prepare_assets_for_deployment(self):
-        # Occurs in psynet prepare
-        for a in self.assets:
-            a.prepare_for_deployment()
-
-
-    # Each time you recreate an Asset object, the key might be different because of the obfuscation. Does this matter?
-
-    timeline = join(
-        ExperimentAssets([
-            ExternalAsset(),
-            InternalAsset(),  # <-- how do we stop redundant uploads?
-            InternalAsset(),  # <-- this is dangerous because each time the experiment loads we'll get a different random key
-        ]),
-        CodeBlock(lambda participant: InternalAsset(participant_id=participant.id)),
-
-        CodeBlock(lambda storage, participant: storage.add(InternalAsset(participant_id=participant.id))),
+    assets = AssetRegistry(
+        internal_storage=S3Storage(),
+        download_on_export=True
     )
-
-
-
 
 # Linking during the experiment, e.g. in a code block
 db.session.add(ExternalAsset())
