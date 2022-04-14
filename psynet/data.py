@@ -1,5 +1,8 @@
-import dallinger.models
 import sqlalchemy
+from sqlalchemy import event
+from sqlalchemy.orm import mapper
+
+import dallinger.models
 from dallinger import db
 from dallinger.db import Base as SQLBase  # noqa
 from dallinger.db import init_db  # noqa

@@ -5,27 +5,27 @@ from dallinger import db
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 
 from .data import SQLBase, SQLMixin, register_table
-from .timeline import ExperimentSetupRoutine
+from .timeline import ExperimentSetupRoutine, NullElt
 from .utils import get_extension
 
 
-class AssetRegistry:
-    def link_file(self, url):
-        """
-        Stores a file link in the registry.
-
-        Parameters
-        ----------
-
-        url :
-            URL to that file. The file should be publicly accessible from this URL.
-        """
-        asset = FileAsset(url)
-        db.session.add(asset)
-
-    def link_folder(self, url):
-        asset = ExternalFolderAsset(url, is_)
-        db.session.add(asset)
+# class AssetRegistry:
+#     def link_file(self, url):
+#         """
+#         Stores a file link in the registry.
+#
+#         Parameters
+#         ----------
+#
+#         url :
+#             URL to that file. The file should be publicly accessible from this URL.
+#         """
+#         asset = FileAsset(url)
+#         db.session.add(asset)
+#
+#     def link_folder(self, url):
+#         asset = ExternalFolderAsset(url, is_)
+#         db.session.add(asset)
 
 
 class AssetType:
@@ -51,7 +51,10 @@ class Audio(File):
 
 
 @register_table
-class Asset(SQLBase, SQLMixin):
+class Asset(SQLBase, SQLMixin, NullElt):
+    # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
+    # Inheriting from NullElt means that the Asset object can be placed in the timeline.
+
     __tablename__ = "asset"
 
     # Remove default SQL columns
@@ -105,10 +108,15 @@ class Asset(SQLBase, SQLMixin):
     def get_extension(self):
         raise NotImplementedError
 
+    def prepare_for_deployment(self, experiment):
+        "Runs in advance of the experiment being deployed to the remote server."
+        raise NotImplementedError
+
 
 class InternalAsset(Asset):
     input_path = Column(String)
     obfuscate = Column(Boolean)
+    deposited = Column(Boolean)
     key = Column(String)
     size_mb = Column(Float)
     deposit_time_sec = Column(Float)
@@ -116,7 +124,6 @@ class InternalAsset(Asset):
     def __init__(
         self,
         input_path,
-        storage,
         type=None,
         key=None,
         obfuscate=0,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
@@ -126,19 +133,21 @@ class InternalAsset(Asset):
         node_id=None,
         trial_id=None,
     ):
+        self.deposited = False
         self.input_path = input_path
         self.obfuscate = obfuscate
         super().__init__(
             type, participant_id, trial_maker_id, network_id, node_id, trial_id
         )
         self.size_mb = self.get_size_mb()
-        self.key = key if key else self.generate_key()
-        self.deposit(storage)
+        self.key = key
 
     def get_extension(self):
         return get_extension(self.input_path)
 
     def deposit(self, storage):
+        if self.key is None:
+            self.key = self.generate_key()
         info = storage.deposit(asset=self)
         self.deposit_time_sec = info["deposit_time"]
 
@@ -175,6 +184,11 @@ class InternalAsset(Asset):
         filename += self.extension
         return filename
 
+    def prepare_for_deployment(self, experiment):
+        "Runs in advance of the experiment being deployed to the remote server."
+        asset = self
+        experiment.asset_storage.deposit(asset)
+
 
 class ExternalAsset(Asset):
     def __init__(
@@ -194,6 +208,10 @@ class ExternalAsset(Asset):
 
     def get_extension(self):
         return get_extension(self.host_location)
+
+    def prepare_for_deployment(self, experiment):
+        "Runs in advance of the experiment being deployed to the remote server."
+        pass
 
 
 class Storage:
@@ -244,6 +262,81 @@ class S3Storage(Storage):
     def deposit(self, asset):
         raise NotImplementedError
 
+
+# Linking from experiment.py
+# -- maybe this should happen as part of the experiment class?
+# -- maybe people should use the class directly?
+#
+# Linking from the timeline
+
+
+# Create if exists logic? This could be applied to stimuli too
+# This would be bad for performance, I don't think we can do this. <-----
+# Check in DB, do I exist? (maybe use transaction)
+# If not, upload
+# This logic probably needs
+
+
+InternalAsset()  # <-- what if the user writes this in experiment.py?
+
+
+class Exp():
+    assets = [
+        ExternalAsset(),
+        InternalAsset(),
+        InternalAsset(),
+    ]
+
+    def register_assets(self):  # <-- happens once, at experiment setup
+        # We need some logic that allows us to upload locally and then retrieve remotely.
+        # The uploading would happen in psynet prepare, creating a manifest.
+        # When the experiment launches, that manifest is then used to populate the database.
+        # It should be possible to pickle assets (jsonpickle) and retrieve them later.
+        for a in self.assets:
+            self.storage.add(a)  # <-- includes upload
+
+    # def ensure_assets_are_uploaded(self):
+    def prepare_assets_for_deployment(self):
+        # Occurs in psynet prepare
+        for a in self.assets:
+            a.prepare_for_deployment()
+
+
+    # Each time you recreate an Asset object, the key might be different because of the obfuscation. Does this matter?
+
+    timeline = join(
+        ExperimentAssets([
+            ExternalAsset(),
+            InternalAsset(),  # <-- how do we stop redundant uploads?
+            InternalAsset(),  # <-- this is dangerous because each time the experiment loads we'll get a different random key
+        ]),
+        CodeBlock(lambda participant: InternalAsset(participant_id=participant.id)),
+
+        CodeBlock(lambda storage, participant: storage.add(InternalAsset(participant_id=participant.id))),
+    )
+
+
+
+
+# Linking during the experiment, e.g. in a code block
+db.session.add(ExternalAsset())
+
+
+def link_external_asset(
+        host_location,
+        type="file",
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
+):
+    def f(experiment):
+        asset = ExternalAsset(host_location, type, participant_id, trial_maker_id, network_id, node_id, trial_id)
+        db.session.add(asset)
+
+
+def elt_external_asset
 
 def link_asset_folder(url):
     def f(experiment):

@@ -25,7 +25,7 @@ from pkg_resources import resource_filename
 from psynet import __version__
 
 from . import field
-from .assets import AssetRegistry, NoStorage
+from .assets import Asset, NoStorage
 from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
@@ -190,7 +190,7 @@ class Experiment(dallinger.experiment.Experiment):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    asset_registry = AssetRegistry()
+    assets = []
     asset_storage = NoStorage()
 
     __extra_vars__ = {}
@@ -383,6 +383,8 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_participant_fail_routine(elt)
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
+            if isinstance(elt, Asset):
+                self.assets.append(elt)
 
     @classmethod
     def pre_deploy(cls):
