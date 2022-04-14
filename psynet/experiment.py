@@ -25,7 +25,7 @@ from pkg_resources import resource_filename
 from psynet import __version__
 
 from . import field
-from .assets import Asset, NoStorage
+from .assets import Asset, AssetRegistry,NoStorage
 from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
@@ -299,7 +299,7 @@ class Experiment(dallinger.experiment.Experiment):
     def setup(self):
         self.setup_experiment_network()
         self.setup_experiment_variables()
-        self.storage.on_experiment_launch()
+        self.assets.on_experiment_launch()
 
         for elt in self.timeline.elts:
             if isinstance(elt, ExperimentSetupRoutine):
@@ -398,7 +398,7 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
-                self.storage.register(elt)
+                self.assets.register(elt)
 
     @classmethod
     def pre_deploy(cls):
@@ -410,36 +410,35 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def update_deployment_id(cls):
-        self.deployment_id = cls.generate_deployment_id()
+        cls.deployment_id = cls.generate_deployment_id()
         with open("DEPLOYMENT_ID", "w") as file:
-            file.write(self.deployment_id)
+            file.write(cls.deployment_id)
 
     @classmethod
     def generate_deployment_id(cls):
         return cls.name + " -- " + str(datetime.now())
 
-    @classmethod
-    def load_deployment_id(cls):
+    def load_deployment_id(self):
         try:
             with open("DEPLOYMENT_ID", "r") as file:
-                id = file.read()
-            self.deployment_id = id
+                _id = file.read()
+            self.deployment_id = _id
         except FileNotFoundError:
             self.deployment_id = None
 
-    @classmethod
-    def check_deployment_id(cls):
+    def check_deployment_id(self):
         if not self.deployment_id:
-            raise MissingDeploymentIdError()
+            raise self.MissingDeploymentIdError()
 
     class MissingDeploymentIdError(RuntimeError):
         msg = (
             "Experiment deployment ID not found. This could be because 'DEPLOYMENT_ID' was missing "
-            "from your experiment directory. This file should be created automatically when running psynet debug/sandbox/deploy. "
-            "Did you accidentally add it to .gitignore?"
+            "from your experiment directory. This file should be created automatically when running "
+            "psynet debug/sandbox/deploy. Did you accidentally add it to .gitignore?"
         )
-        def __init__(self, msg=msg, *args, **kwargs):
-            super().__init__(msg, *args, **kwargs)
+
+        def __init__(self, msg=msg):
+            super().__init__(msg)
 
     @classmethod
     def check_config(cls):
@@ -947,6 +946,7 @@ class Experiment(dallinger.experiment.Experiment):
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
+    @staticmethod
     def render_error():
         from psynet.utils import error_page
 
