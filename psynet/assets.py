@@ -1,13 +1,15 @@
 import os
 import shutil
-
 import jsonpickle
+import time
+import uuid
+
 from dallinger import db
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
-from .timeline import ExperimentSetupRoutine, NullElt
+from .timeline import NullElt
 from .utils import get_extension
 
 
@@ -15,18 +17,18 @@ class AssetType:
     def get_file_size_mb(self, path):
         return self.get_file_size_bytes(path) / (1024 * 1024)
 
-    def get_file_size_bytes(self):
+    def get_file_size_bytes(self, path):
         raise NotImplementedError
 
 
 class File(AssetType):
-    def get_file_size_bytes(self):
-        return os.path.getsize(self.input_path)
+    def get_file_size_bytes(self, path):
+        return os.path.getsize(path)
 
 
 class Folder(AssetType):
-    def get_file_size_bytes(self):
-        sum(entry.stat().st_size for entry in os.scandir(file))
+    def get_file_size_bytes(self, path):
+        sum(entry.stat().st_size for entry in os.scandir(path))
 
 
 class Audio(File):
@@ -66,14 +68,14 @@ class Asset(SQLBase, SQLMixin, NullElt):
 
     def __init__(
         self,
-        type="file",
+        type_="file",
         participant_id=None,
         trial_maker_id=None,
         network_id=None,
         node_id=None,
         trial_id=None,
     ):
-        self.type = type
+        self.type = type_
         self._type = self.types[type]
         self.extension = self.get_extension()
         self.participant_id = participant_id
@@ -92,7 +94,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
         raise NotImplementedError
 
     def prepare_for_deployment(self, experiment):
-        "Runs in advance of the experiment being deployed to the remote server."
+        """Runs in advance of the experiment being deployed to the remote server."""
         raise NotImplementedError
 
 
@@ -107,7 +109,7 @@ class InternalAsset(Asset):
     def __init__(
         self,
         input_path,
-        type=None,
+        type_=None,
         key=None,
         obfuscate=0,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
         participant_id=None,
@@ -120,7 +122,7 @@ class InternalAsset(Asset):
         self.input_path = input_path
         self.obfuscate = obfuscate
         super().__init__(
-            type, participant_id, trial_maker_id, network_id, node_id, trial_id
+            type_, participant_id, trial_maker_id, network_id, node_id, trial_id
         )
         self.size_mb = self.get_size_mb()
         self.key = key
@@ -142,7 +144,7 @@ class InternalAsset(Asset):
         db.session.commit()
 
     def get_size_mb(self):
-        return self._type.get_size_mb(input_path)
+        return self._type.get_file_size_mb(self.input_path)
 
     def generate_key(self):
         return self.generate_dir() + self.generate_filename()
@@ -151,12 +153,12 @@ class InternalAsset(Asset):
         if self.obfuscate == 2:
             return "private/"
         else:
-            dir = ""
+            dir_ = ""
             if self.participant_id:
-                dir += f"participants/{self.participant_id}/"
+                dir_ += f"participants/{self.participant_id}/"
             if self.trial_maker_id:
-                dir += f"{self.trial_maker_id}/"
-            return dir
+                dir_ += f"{self.trial_maker_id}/"
+            return dir_
 
     def generate_filename(self):
         filename = ""
@@ -175,7 +177,7 @@ class InternalAsset(Asset):
         return filename
 
     def prepare_for_deployment(self, experiment):
-        "Runs in advance of the experiment being deployed to the remote server."
+        """Runs in advance of the experiment being deployed to the remote server."""
         self.deposit(experiment.assets.internal_storage)
 
 
@@ -183,7 +185,7 @@ class ExternalAsset(Asset):
     def __init__(
         self,
         host_location,
-        type="file",
+        type_="file",
         participant_id=None,
         trial_maker_id=None,
         network_id=None,
@@ -192,18 +194,18 @@ class ExternalAsset(Asset):
     ):
         self.host_location = host_location
         super().__init__(
-            type, participant_id, trial_maker_id, network_id, node_id, trial_id
+            type_, participant_id, trial_maker_id, network_id, node_id, trial_id
         )
 
     def get_extension(self):
         return get_extension(self.host_location)
 
     def prepare_for_deployment(self, experiment):
-        "Runs in advance of the experiment being deployed to the remote server."
+        """Runs in advance of the experiment being deployed to the remote server."""
         pass
 
 
-class InternalStorage():
+class InternalStorage:
     def __init__(self):
         self.deployment_key = None
 
@@ -213,7 +215,7 @@ class InternalStorage():
     def load_deployment_key(self):
         if not self.deployment_key:
             from .experiment import Experiment
-            self.deployment_key = Experiment.get_deployment_key()
+            self.deployment_key = Experiment.read_deployment_id()
             if self.deployment_key is None:
                 raise Experiment.MissingDeploymentIdError
 
@@ -229,6 +231,7 @@ class NoStorage(InternalStorage):
 
 class LocalStorage(InternalStorage):
     def __init__(self, root):
+        super().__init__()
         self.root = root
 
     def deposit(self, asset: InternalAsset):
@@ -253,7 +256,7 @@ class S3Storage(InternalStorage):
         raise NotImplementedError
 
 
-class AssetRegistry():
+class AssetRegistry:
     initial_asset_manifesto_path = "initial_asset_manifesto.json"
 
     def __init__(self, internal_storage: InternalStorage):
@@ -287,6 +290,6 @@ class AssetRegistry():
 
     def populate_db_with_initial_assets(self):
         self.assets = self.load_initial_asset_manifesto()
-        for a in assets:
+        for a in self.assets:
             db.session.add(a)
         db.session.commit()

@@ -210,7 +210,7 @@ class Experiment(dallinger.experiment.Experiment):
                 "in your Experiment class. For example, you might write: name = 'GSP experiment with faces'"
             )
 
-        self.load_deployment_id()
+        self.deployment_id = self.read_deployment_id()
 
         self.database_checks = []
         self.participant_fail_routines = []
@@ -418,13 +418,13 @@ class Experiment(dallinger.experiment.Experiment):
     def generate_deployment_id(cls):
         return cls.name + " -- " + str(datetime.now())
 
-    def load_deployment_id(self):
+    @classmethod
+    def read_deployment_id(cls):
         try:
             with open("DEPLOYMENT_ID", "r") as file:
-                _id = file.read()
-            self.deployment_id = _id
+                return file.read()
         except FileNotFoundError:
-            self.deployment_id = None
+            return None
 
     def check_deployment_id(self):
         if not self.deployment_id:
