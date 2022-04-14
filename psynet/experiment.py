@@ -416,7 +416,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def generate_deployment_id(cls):
-        return cls.name + " -- " + str(datetime.now())
+        return cls.name + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
     @classmethod
     def read_deployment_id(cls):

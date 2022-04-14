@@ -1,6 +1,7 @@
 import os
 import shutil
 import jsonpickle
+import requests
 import time
 import uuid
 
@@ -14,20 +15,24 @@ from .utils import get_extension
 
 
 class AssetType:
-    def get_file_size_mb(self, path):
-        return self.get_file_size_bytes(path) / (1024 * 1024)
+    @classmethod
+    def get_file_size_mb(cls, path):
+        return cls.get_file_size_bytes(path) / (1024 * 1024)
 
-    def get_file_size_bytes(self, path):
+    @classmethod
+    def get_file_size_bytes(cls, path):
         raise NotImplementedError
 
 
 class File(AssetType):
-    def get_file_size_bytes(self, path):
+    @classmethod
+    def get_file_size_bytes(cls, path):
         return os.path.getsize(path)
 
 
 class Folder(AssetType):
-    def get_file_size_bytes(self, path):
+    @classmethod
+    def get_file_size_bytes(cls, path):
         sum(entry.stat().st_size for entry in os.scandir(path))
 
 
@@ -98,6 +103,10 @@ class Asset(SQLBase, SQLMixin, NullElt):
         """Runs in advance of the experiment being deployed to the remote server."""
         raise NotImplementedError
 
+    def read_text(self):
+        response = requests.get(self.url)
+        return response.text
+
 
 class ExperimentAsset(Asset):
     input_path = Column(String)
@@ -141,8 +150,8 @@ class ExperimentAsset(Asset):
 
         self.deposit_time_sec = time_end - time_start
         self.deposited = True
-        db.session.add(self)
-        db.session.commit()
+        # db.session.add(self)
+        # db.session.commit()
 
     def get_size_mb(self):
         return self._type.get_file_size_mb(self.input_path)
@@ -222,13 +231,13 @@ class AssetStorage:
             if self.deployment_key is None:
                 raise Experiment.MissingDeploymentIdError
 
-    def deposit(self, asset):
+    def receive_deposit(self, asset):
         self.load_deployment_key()
 
 
 class NoStorage(AssetStorage):
-    def deposit(self, asset):
-        super().deposit(asset)
+    def receive_deposit(self, asset):
+        super().receive_deposit(asset)
         raise RuntimeError("Asset depositing is not supported by 'NoStorage' objects.")
 
 
@@ -237,12 +246,14 @@ class LocalStorage(AssetStorage):
         super().__init__()
         self.root = root
 
-    def deposit(self, asset: ExperimentAsset):
-        super().deposit(asset)
+    def receive_deposit(self, asset: ExperimentAsset):
+        super().receive_deposit(asset)
 
         key = asset.key
         input_path = asset.input_path
         target_path = os.path.join(self.root, self.deployment_key, key)
+
+        asset.url = "file://" + os.path.abspath(target_path)
 
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
 
@@ -253,8 +264,8 @@ class LocalStorage(AssetStorage):
 
 
 class S3Storage(AssetStorage):
-    def deposit(self, asset):
-        super().deposit(asset)
+    def receive_deposit(self, asset):
+        super().receive_deposit(asset)
 
         raise NotImplementedError
 
