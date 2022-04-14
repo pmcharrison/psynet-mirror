@@ -8,7 +8,8 @@ import numpy as np
 import pandas as pd
 from flask import Markup
 
-from .assets import link_asset_file, link_asset_folder
+from .assets import ExternalAsset
+
 from .modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -785,7 +786,7 @@ class LanguageVocabularyTest(Module):
         media_url: str = "https://s3.amazonaws.com/langauge-test-materials",
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 6,
-        num_trials: float = 7,
+        num_trials: int = 7,
     ):
         self.label = label
         self.elts = join(
@@ -839,7 +840,7 @@ class LanguageVocabularyTest(Module):
         language_code: str,
         time_estimate_per_trial: float,
         performance_threshold: int,
-        num_trials: float,
+        num_trials: int,
         words: list,
     ):
         class LanguageVocabularyTrialMaker(StaticTrialMaker):
@@ -965,7 +966,7 @@ class LexTaleTest(Module):
         performance_threshold: int = 8,
         media_url: str = "https://s3.amazonaws.com/lextale-test-materials",
         hide_after: float = 1,
-        num_trials: float = 12,
+        num_trials: int = 12,
     ):
         self.label = label
         self.elts = join(
@@ -1001,7 +1002,7 @@ class LexTaleTest(Module):
         time_estimate_per_trial: float,
         performance_threshold: int,
         hide_after: float,
-        num_trials: float,
+        num_trials: int,
     ):
         class LextaleTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
@@ -1229,7 +1230,7 @@ class ColorBlindnessTest(Module):
     label : string, optional
         The label for the color blindness test, default: "color_blindness_test".
 
-    media : string, optional
+    media_url : string, optional
         The url under which the images to be displayed can be referenced, default:
         "https://s3.amazonaws.com/ishihara-eye-test/jpg"
 
@@ -1495,7 +1496,7 @@ class HeadphoneTest(Module):
     label : string, optional
         The label for the color headphone check, default: "headphone_test".
 
-    media : string, optional
+    media_url : string, optional
         The url under which the images to be displayed can be referenced, default:
         "https://s3.amazonaws.com/headphone-check"
 
@@ -1515,7 +1516,7 @@ class HeadphoneTest(Module):
     ):
         self.label = label
         self.elts = join(
-            ExternalAsset(media_url, type="folder"),
+            ExternalAsset(media_url, type_="folder"),
             self.instruction_page(),
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
