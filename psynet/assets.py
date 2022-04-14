@@ -43,28 +43,29 @@ class Asset(SQLBase, SQLMixin, NullElt):
     __tablename__ = "asset"
 
     # Remove default SQL columns
+    id = None
     failed = None
     failed_reason = None
     time_of_death = None
 
+    key = Column(String, primary_key=True, index=True)
     host_location = Column(String)
     type = Column(String)
     extension = Column(String)
-    description = Column(String)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
-    participant = relationship("Participant", back_populates="assets")
+    participant = relationship("psynet.participant.Participant", backref="assets")
 
     trial_maker_id = Column(String)
 
     network_id = Column(Integer, ForeignKey("network.id"))
-    network = relationship("Network", back_populates="assets")
+    network = relationship("Network", backref="assets")
 
     node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship("Node", back_populates="assets")
+    node = relationship("Node", backref="assets")
 
-    trial_id = Column(Integer, ForeignKey("trial.id"))
-    trial = relationship("Trial", back_populates="assets")
+    trial_id = Column(Integer, ForeignKey("info.id"))
+    trial = relationship("Trial", backref="assets")
 
     def __init__(
         self,
@@ -76,7 +77,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
         trial_id=None,
     ):
         self.type = type_
-        self._type = self.types[type]
+        self._type = self.types[type_]
         self.extension = self.get_extension()
         self.participant_id = participant_id
         self.trial_maker_id = trial_maker_id
@@ -93,16 +94,15 @@ class Asset(SQLBase, SQLMixin, NullElt):
     def get_extension(self):
         raise NotImplementedError
 
-    def prepare_for_deployment(self, experiment):
+    def prepare_for_deployment(self, asset_storage):
         """Runs in advance of the experiment being deployed to the remote server."""
         raise NotImplementedError
 
 
-class InternalAsset(Asset):
+class ExperimentAsset(Asset):
     input_path = Column(String)
     obfuscate = Column(Boolean)
     deposited = Column(Boolean)
-    key = Column(String)
     size_mb = Column(Float)
     deposit_time_sec = Column(Float)
 
@@ -111,7 +111,7 @@ class InternalAsset(Asset):
         input_path,
         type_=None,
         key=None,
-        obfuscate=0,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
         participant_id=None,
         trial_maker_id=None,
         network_id=None,
@@ -176,23 +176,25 @@ class InternalAsset(Asset):
         filename += self.extension
         return filename
 
-    def prepare_for_deployment(self, experiment):
+    def prepare_for_deployment(self, asset_storage):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.deposit(experiment.assets.internal_storage)
+        self.deposit(asset_storage)
 
 
 class ExternalAsset(Asset):
     def __init__(
-        self,
-        host_location,
-        type_="file",
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+            self,
+            host_location,
+            key,
+            type_="file",
+            participant_id=None,
+            trial_maker_id=None,
+            network_id=None,
+            node_id=None,
+            trial_id=None,
     ):
         self.host_location = host_location
+        self.key = key
         super().__init__(
             type_, participant_id, trial_maker_id, network_id, node_id, trial_id
         )
@@ -200,12 +202,12 @@ class ExternalAsset(Asset):
     def get_extension(self):
         return get_extension(self.host_location)
 
-    def prepare_for_deployment(self, experiment):
+    def prepare_for_deployment(self, asset_storage):
         """Runs in advance of the experiment being deployed to the remote server."""
         pass
 
 
-class InternalStorage:
+class AssetStorage:
     def __init__(self):
         self.deployment_key = None
 
@@ -223,18 +225,18 @@ class InternalStorage:
         self.load_deployment_key()
 
 
-class NoStorage(InternalStorage):
+class NoStorage(AssetStorage):
     def deposit(self, asset):
         super().deposit(asset)
         raise RuntimeError("Asset depositing is not supported by 'NoStorage' objects.")
 
 
-class LocalStorage(InternalStorage):
+class LocalStorage(AssetStorage):
     def __init__(self, root):
         super().__init__()
         self.root = root
 
-    def deposit(self, asset: InternalAsset):
+    def deposit(self, asset: ExperimentAsset):
         super().deposit(asset)
 
         key = asset.key
@@ -249,7 +251,7 @@ class LocalStorage(InternalStorage):
             shutil.copyfile(input_path, target_path)
 
 
-class S3Storage(InternalStorage):
+class S3Storage(AssetStorage):
     def deposit(self, asset):
         super().deposit(asset)
 
@@ -259,8 +261,8 @@ class S3Storage(InternalStorage):
 class AssetRegistry:
     initial_asset_manifesto_path = "initial_asset_manifesto.json"
 
-    def __init__(self, internal_storage: InternalStorage):
-        self.internal_storage = internal_storage
+    def __init__(self, asset_storage: AssetStorage):
+        self.asset_storage = asset_storage
         self.assets = []
 
     def register(self, asset):
@@ -268,11 +270,11 @@ class AssetRegistry:
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()
-        self.internal_storage.prepare_for_deployment()
+        self.asset_storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
         for a in self.assets:
-            a.prepare_for_deployment()
+            a.prepare_for_deployment(asset_storage=self.asset_storage)
         self.save_initial_asset_manifesto()
 
     def save_initial_asset_manifesto(self):

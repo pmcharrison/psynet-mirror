@@ -1506,7 +1506,6 @@ class HeadphoneTest(Module):
     performance_threshold : int, optional
         The performance threshold, default: 4.
     """
-
     def __init__(
         self,
         label="headphone_test",
@@ -1516,11 +1515,12 @@ class HeadphoneTest(Module):
     ):
         self.label = label
         self.elts = join(
-            ExternalAsset(media_url, type_="folder"),
+            ExternalAsset(media_url, key="headphone_check_stimuli", type_="folder"),
             self.instruction_page(),
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
         super().__init__(self.label, self.elts)
+
 
     def instruction_page(self):
         return InfoPage(

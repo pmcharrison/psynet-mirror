@@ -25,7 +25,7 @@ from pkg_resources import resource_filename
 from psynet import __version__
 
 from . import field
-from .assets import Asset, AssetRegistry,NoStorage
+from .assets import Asset, AssetRegistry, NoStorage
 from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
@@ -193,7 +193,7 @@ class Experiment(dallinger.experiment.Experiment):
     )
 
     assets = AssetRegistry(
-        internal_storage=NoStorage(),
+        asset_storage=NoStorage()
     )
 
     __extra_vars__ = {}
@@ -219,7 +219,7 @@ class Experiment(dallinger.experiment.Experiment):
         if session:
             if not self.setup_complete:
                 self.setup()
-            self.load()
+        self.load()
         self.register_pre_deployment_routines()
 
     def participant_constructor(self, *args, **kwargs):
@@ -404,6 +404,7 @@ class Experiment(dallinger.experiment.Experiment):
     def pre_deploy(cls):
         cls.check_config()
         cls.update_deployment_id()
+        cls.assets.prepare_for_deployment()
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
