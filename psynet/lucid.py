@@ -38,22 +38,11 @@ class LucidService(object):
         }
 
     @property
-    def request_base_url(self):
-        url = "https://api.samplicio.us/demand/v2-beta"
-        if self.sandbox:
-            url = "https://sandbox.techops.engineering/demand/v2-beta"
-        return url
-
-    @property
     def request_base_url_v1(self):
         url = "https://api.samplicio.us/Demand/v1"
         if self.sandbox:
             url = "https://sandbox.techops.engineering/Demand/v1"
         return url
-
-    @property
-    def survey_update_url(self):
-        return f"{self.request_base_url}/surveys"
 
     @classmethod
     def log(cls, text):
@@ -199,54 +188,6 @@ class LucidService(object):
 
         return response_data
 
-    def get_qualifications(self, survey_number):
-        response = requests.get(
-            f"{self.request_base_url_v1}/SurveyQualifications/BySurveyNumber/{survey_number}",
-            headers=self.headers,
-        )
-        return response.json()
-
-    def update_quota(self, survey_number, quota_id, number):
-        request_data = self.recruitment_config["sub_quota"]
-        request_data.update({"SurveyQuotaID": quota_id, "Quota": number})
-        request_data = json.dumps(request_data)
-        response = requests.put(
-            f"{self.request_base_url_v1}/SurveyQuotas/Update/{survey_number}",
-            data=request_data,
-            headers=self.headers,
-        )
-
-        if not response.ok:
-            raise LucidServiceException(
-                f"Error updating quota ({survey_number}): {response.text}"
-            )
-
-        response_data = response.json()
-        self.log(
-            f'Quota for {response_data["Quotas"][1]["Name"]} to {response_data["Quotas"][1]["Quota"]} updated successfully.'
-        )
-
-        return response_data
-
-    def complete_survey(self, survey_number):
-        params = {
-            "status": "complete",
-        }
-        request_data = json.dumps(params)
-        response = requests.patch(
-            f"{self.request_base_url}/surveys/{survey_number}",
-            data=request_data,
-            headers=self.headers,
-        )
-
-        if not response.ok:
-            raise LucidServiceException(
-                f"Error completing survey ({survey_number}): {response.text}"
-            )
-
-        self.log(f"Survey with id '{survey_number}' completed.")
-        return response.json()
-
     def can_be_terminated(self, rid, participant_rids):
         self.log(f"participant_rids: {participant_rids}")
         return (
@@ -270,22 +211,6 @@ class LucidService(object):
                 self.log(
                     f"Error terminating respondent using redirect URL '{redirect_url}'."
                 )
-
-    def get_quotas(self, survey_number):
-        response = requests.get(
-            f"{self.request_base_url_v1}/SurveyQuotas/BySurveyNumber/{survey_number}",
-            headers=self.headers,
-        )
-
-        if not response.ok:
-            raise LucidServiceException(
-                f"Error getting quota for survey ({survey_number}): {response.text}"
-            )
-        self.log(
-            f"Quotas for survey with id '{survey_number}') successfully retrieved."
-        )
-
-        return response.json()
 
     def sha1_hash(self, url):
         import base64

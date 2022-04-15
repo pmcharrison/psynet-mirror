@@ -137,44 +137,21 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         self.store = kwargs.get("store") or RedisStore()
 
     @property
-    def survey_update_url(self):
-        """The base URL for updating a survey"""
-        return self.lucidservice.survey_update_url
-
-    @property
-    def is_in_progress(self):
-        """Does an Lucid survey for the current experiment ID already exist?"""
-        return self.current_survey_number() is not None
-
-    @property
     def survey_number_storage_key(self):
         experiment_id = self.config.get("id")
         return "{}:{}".format(self.__class__.__name__, experiment_id)
 
     @property
-    def quota_id_storage_key(self):
-        experiment_id = self.config.get("id")
-        return "{}:{}:QUOTA".format(self.__class__.__name__, experiment_id)
+    def is_in_progress(self):
+        """Does a Lucid survey for the current experiment ID already exist?"""
+        return self.current_survey_number() is not None
 
     def current_survey_number(self):
         """
-        Return the ID of the survey associated with the active experiment ID
+        Return the survey number associated with the active experiment ID
         if any such survey exists.
         """
         return self.store.get(self.survey_number_storage_key)
-
-    def _record_current_survey_number(self, survey_number):
-        self.store.set(self.survey_number_storage_key, survey_number)
-
-    def current_quota_id(self):
-        """
-        Return the ID of the quota associated with the active experiment ID
-        if any such quota exists.
-        """
-        return self.store.get(self.quota_id_storage_key)
-
-    def _record_current_quota_id(self, quota_id):
-        self.store.set(self.quota_id_storage_key, quota_id)
 
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
@@ -303,6 +280,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             "exit_recruiter_lucid.html",
             external_submit_url=redirect_url,
         )
+
+    def _record_current_survey_number(self, survey_number):
+        self.store.set(self.survey_number_storage_key, survey_number)
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

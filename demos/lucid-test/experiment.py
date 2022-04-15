@@ -17,7 +17,6 @@ logger = get_logger()
 ##########################################################################################
 # SETTINGS
 ##########################################################################################
-# TODO
 INITIAL_RECRUITMENT_SIZE = 1
 
 ##########################################################################################
@@ -71,9 +70,10 @@ class Exp(psynet.experiment.Experiment):
             sandbox=config.get("mode") != "live",
             recruitment_config=json.loads(config.get("lucid_recruitment_config")),
         )
-        participants = Participant.query.all()
+
         participant_rids = [
-            participant.entry_information.get("RID") for participant in participants
+            participant.entry_information.get("RID")
+            for participant in Participant.query.all()
         ]
 
         for rid in RID.query.all():
