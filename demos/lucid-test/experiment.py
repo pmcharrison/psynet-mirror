@@ -59,10 +59,10 @@ class Exp(psynet.experiment.Experiment):
     def check_pending_participant():
         import json
 
-        import requests
         from dallinger.config import get_config
 
         from psynet.participant import Participant
+        from psynet.recruiters import RID
 
         config = get_config()
         lucidservice = LucidService(
@@ -71,10 +71,10 @@ class Exp(psynet.experiment.Experiment):
             sandbox=config.get("mode") != "live",
             recruitment_config=json.loads(config.get("lucid_recruitment_config")),
         )
-        redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
-        for participant in Participant.query.all():
-            if participant.progress == 0:
-                lucidservice.log(f"Terminating participant {participant.id}")
-                redirect_url += f"{participant.assignment_id}&hash={lucidservice.sha1_hash(redirect_url)}"
-                lucidservice.log(f"Exit redirect: {redirect_url}")
-                requests.get(redirect_url)
+        participants = Participant.query.all()
+        participant_rids = [
+            participant.entry_information.get("RID") for participant in participants
+        ]
+
+        for rid in RID.query.all():
+            lucidservice.terminate_respondent(rid, participant_rids)

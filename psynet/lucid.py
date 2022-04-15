@@ -1,6 +1,8 @@
 import json
+from datetime import datetime
 
 import requests
+from dallinger.db import session
 
 from .utils import get_logger
 
@@ -244,6 +246,30 @@ class LucidService(object):
 
         self.log(f"Survey with id '{survey_number}' completed.")
         return response.json()
+
+    def can_be_terminated(self, rid, participant_rids):
+        self.log(f"participant_rids: {participant_rids}")
+        return (
+            rid.rid is not None
+            and rid.terminated_at is None
+            and rid.rid not in participant_rids
+            and (datetime.now() - rid.creation_time).seconds > 120
+        )
+
+    def terminate_respondent(self, rid, participant_rids):
+        if self.can_be_terminated(rid, participant_rids):
+            self.log(f"Terminating respondent with RID '{rid.rid}'...")
+            redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
+            redirect_url += f"{rid.rid}&hash={self.sha1_hash(redirect_url)}"
+            response = requests.get(redirect_url)
+            if response.status_code == 200:
+                rid.terminated_at = datetime.now()
+                session.commit()
+                self.log(f"Respondent terminated using redirect URL '{redirect_url}'.")
+            else:
+                self.log(
+                    f"Error terminating respondent using redirect URL '{redirect_url}'."
+                )
 
     def get_quotas(self, survey_number):
         response = requests.get(

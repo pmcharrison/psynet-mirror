@@ -11,7 +11,8 @@ from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
-from sqlalchemy import Column, String
+from sqlalchemy import Column, DateTime, String
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.data import SQLBase, SQLMixin, register_table
 
@@ -110,6 +111,7 @@ class RID(SQLBase, SQLMixin):
     __tablename__ = "rid"
 
     rid = Column(String, index=True)
+    terminated_at = Column(DateTime, index=True)
 
 
 class LucidRecruiterException(Exception):
@@ -258,8 +260,16 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             rid = entry_information.get("hit_id")
 
         # Save RID info in the database
-        db.session.add(RID(rid=rid))
-        db.session.commit()
+        try:
+            RID.query.filter_by(rid=rid).one()
+        except (NoResultFound):
+            logger.info(f"Adding new RID '{rid}'.")
+            db.session.add(RID(rid=rid))
+            db.session.commit()
+        except (MultipleResultsFound):
+            raise MultipleResultsFound(
+                f"Multiple rows for RID '{rid}' found. This should never happen."
+            )
 
         participant_data = {
             "hit_id": rid,
