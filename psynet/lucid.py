@@ -194,7 +194,7 @@ class LucidService(object):
             rid.rid is not None
             and rid.terminated_at is None
             and rid.rid not in participant_rids
-            and (datetime.now() - rid.creation_time).seconds > 120
+            and (datetime.now() - rid.creation_time).seconds > 300
         )
 
     def terminate_respondent(self, rid, participant_rids):
