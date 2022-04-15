@@ -4,6 +4,7 @@ import shutil
 import tempfile
 import time
 import uuid
+from functools import cached_property
 
 import postgres_copy
 import requests
@@ -58,6 +59,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
     time_of_death = None
 
     key = Column(String, primary_key=True, index=True)
+    host_path = Column(String)
     url = Column(String)
     type = Column(String)
     extension = Column(String)
@@ -115,10 +117,14 @@ class Asset(SQLBase, SQLMixin, NullElt):
         response = requests.get(self.url)
         return response.text
 
+    def generate_host_path(self, deployment_key: str):
+        raise NotImplementedError
+
 
 class ExperimentAsset(Asset):
     input_path = Column(String)
-    obfuscate = Column(Boolean)
+    persistent = Column(Boolean)
+    obfuscate = Column(Integer)
     deposited = Column(Boolean)
     size_mb = Column(Float)
     deposit_time_sec = Column(Float)
@@ -140,6 +146,7 @@ class ExperimentAsset(Asset):
     ):
         self.deposited = False
         self.input_path = input_path
+        self.persistent = persistent
         self.obfuscate = obfuscate
         super().__init__(
             type_,
@@ -161,10 +168,14 @@ class ExperimentAsset(Asset):
         if self.key is None:
             self.key = self.generate_key()
 
+        deployment_key = asset_registry.deployment_key
+        self.host_path = self.generate_host_path(deployment_key)
+
         time_start = time.perf_counter()
-        asset_registry.receive_deposit(asset=self)
+        info = asset_registry.receive_deposit(asset=self)
         time_end = time.perf_counter()
 
+        self.url = info["url"]
         self.deposit_time_sec = time_end - time_start
         self.deposited = True
 
@@ -206,6 +217,12 @@ class ExperimentAsset(Asset):
         filename += self.extension
         return filename
 
+    def generate_host_path(self, deployment_key: str):
+        if self.persistent:
+            return os.path.join("persistent", self.key)
+        else:
+            return os.path.join("experiments", deployment_key, self.key)
+
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         self.deposit(asset_registry)
@@ -224,6 +241,7 @@ class ExternalAsset(Asset):
         node_id=None,
         trial_id=None,
     ):
+        self.host_path = url
         self.url = url
         self.key = key
         super().__init__(
@@ -245,22 +263,11 @@ class ExternalAsset(Asset):
 
 
 class AssetStorage:
-    def __init__(self):
-        self.deployment_key = None
+    def receive_deposit(self, asset):
+        pass
 
     def prepare_for_deployment(self):
-        self.load_deployment_key()
-
-    def load_deployment_key(self):
-        if not self.deployment_key:
-            from .experiment import Experiment
-
-            self.deployment_key = Experiment.read_deployment_id()
-            if self.deployment_key is None:
-                raise Experiment.MissingDeploymentIdError
-
-    def receive_deposit(self, asset):
-        self.load_deployment_key()
+        pass
 
 
 class NoStorage(AssetStorage):
@@ -277,26 +284,23 @@ class LocalStorage(AssetStorage):
     def receive_deposit(self, asset: ExperimentAsset):
         super().receive_deposit(asset)
 
-        key = asset.key
-        input_path = asset.input_path
-
-        target_path = os.path.join(self.root, self.deployment_key, key)
-
-        asset.url = os.path.abspath(target_path)
-
-        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+        file_system_path = os.path.join(self.root, asset.host_path)
+        os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
         if asset.type == "folder":
-            shutil.copytree(input_path, target_path, dirs_exist_ok=True)
+            shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
         else:
-            shutil.copyfile(input_path, target_path)
+            shutil.copyfile(asset.input_path, file_system_path)
+
+        return dict(
+            url=os.path.abspath(file_system_path),
+        )
 
 
 class S3Storage(AssetStorage):
     def receive_deposit(self, asset):
-        super().receive_deposit(asset)
-
         raise NotImplementedError
+        return super().receive_deposit(asset)
 
 
 class AssetRegistry:
@@ -310,17 +314,28 @@ class AssetRegistry:
         if inspector.has_table("asset") and Asset.query.count() == 0:
             self.populate_db_with_initial_assets()
 
+    @cached_property
+    def deployment_key(self):
+        from .experiment import Experiment
+
+        x = Experiment.read_deployment_id()
+        if x is None:
+            raise Experiment.MissingDeploymentIdError
+
+        return x
+
     def stage(self, *args):
         for asset in [*args]:
             assert isinstance(asset, Asset)
             self.staged_assets[asset.key] = asset
 
     def receive_deposit(self, asset: Asset):
-        self.asset_storage.receive_deposit(asset)
+        return self.asset_storage.receive_deposit(asset)
 
     def get(self, key):
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        # When the experiment is running then we can get the assets from the database.
+        # However, if we want them before the experiment has been launched,
+        # we have to get them from their staging location.
         inspector = sqlalchemy.inspect(db.engine)
         if inspector.has_table("asset") and Asset.query.count() > 0:
             asset = Asset.query.filter_by(key=key).one()

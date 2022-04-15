@@ -55,7 +55,9 @@ def save_text(experiment: Exp, participant):
             description="text_box",
             participant_id=participant.id,
         )
-        asset.deposit(experiment.assets)
+        asset.deposit(
+            experiment.assets
+        )  # <-- this argument can be populated automatically
 
 
 Exp.timeline = Timeline(
