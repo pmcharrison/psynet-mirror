@@ -1,3 +1,4 @@
+import base64
 import hashlib
 import importlib
 import importlib.util
@@ -312,8 +313,23 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
 
 
-def hash_object(x):
-    return hashlib.md5(json.dumps(x).encode("utf-8")).hexdigest()
+def hash_object(x, digits=32):
+    string = json.dumps(x).encode("utf-8")
+    hashed = hashlib.sha256(string)
+    return format_hash(hashed, digits)
+
+
+def hash_file(path, digits=32):
+    with open(path, "rb") as f:
+        hashed = hashlib.sha256()
+        while chunk := f.read(8192):
+            hashed.update(chunk)
+
+    return format_hash(hashed, digits)
+
+
+def format_hash(hashed, digits=32):
+    return base64.urlsafe_b64encode(hashed.digest())[:digits].decode("utf-8")
 
 
 def import_module(name, source):

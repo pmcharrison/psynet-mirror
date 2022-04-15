@@ -16,7 +16,7 @@ from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .timeline import NullElt
-from .utils import get_extension, import_local_experiment
+from .utils import get_extension, hash_object, import_local_experiment
 
 
 class AssetType:
@@ -121,9 +121,8 @@ class Asset(SQLBase, SQLMixin, NullElt):
         raise NotImplementedError
 
 
-class ExperimentAsset(Asset):
+class ManagedAsset(Asset):
     input_path = Column(String)
-    persistent = Column(Boolean)
     obfuscate = Column(Integer)
     deposited = Column(Boolean)
     size_mb = Column(Float)
@@ -136,7 +135,6 @@ class ExperimentAsset(Asset):
         type_="file",
         extension=None,
         description=None,
-        persistent=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
         participant_id=None,
         trial_maker_id=None,
@@ -146,7 +144,6 @@ class ExperimentAsset(Asset):
     ):
         self.deposited = False
         self.input_path = input_path
-        self.persistent = persistent
         self.obfuscate = obfuscate
         super().__init__(
             type_,
@@ -173,17 +170,22 @@ class ExperimentAsset(Asset):
 
         deployment_key = asset_storage.deployment_key
         self.host_path = self.generate_host_path(deployment_key)
-
-        time_start = time.perf_counter()
-        info = asset_storage.receive_deposit(asset=self)
-        time_end = time.perf_counter()
-
-        self.url = info["url"]
-        self.deposit_time_sec = time_end - time_start
+        self.ensure_deposited(asset_storage, self.host_path)
         self.deposited = True
+        self.url = asset_storage.get_url(self.host_path)
 
         db.session.add(self)
         db.session.commit()
+
+    def ensure_deposited(self, asset_storage, host_path):
+        raise NotImplementedError
+
+    def _deposit(self, asset_storage, host_path):
+        time_start = time.perf_counter()
+        asset_storage.receive_deposit(self, host_path)
+        time_end = time.perf_counter()
+
+        self.deposit_time_sec = time_end - time_start
 
     def get_size_mb(self):
         return self._type.get_file_size_mb(self.input_path)
@@ -221,15 +223,56 @@ class ExperimentAsset(Asset):
         return filename
 
     def generate_host_path(self, deployment_key: str):
-        if self.persistent:
-            return os.path.join("persistent", self.key)
-        else:
-            return os.path.join("experiments", deployment_key, self.key)
+        raise NotImplementedError
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         storage = asset_registry.asset_storage
         self.deposit(storage)
+
+
+class ExperimentAsset(ManagedAsset):
+    def generate_host_path(self, deployment_key: str):
+        return os.path.join("experiments", deployment_key, self.key)
+
+    def ensure_deposited(self, asset_storage, host_path):
+        self._deposit(asset_storage, host_path)
+
+
+class CachedAsset(ManagedAsset):
+    hash = Column(String)
+    used_cache = Column(Boolean)
+
+    def generate_host_path(self, deployment_key: str):
+        key = self.key  # e.g. big-audio-file.wav
+        hashed = self.compute_hash()
+        base_path, extension = os.path.splitext(key)
+        if self.type == "folder":
+            # base_path = big-folder-of-stimuli
+            # extension = ""
+            return os.path.join(
+                "cached", base_path, hashed
+            )  # cached/big-folder-of-stimuli/8dn3i8en38dn83
+        else:
+            # base_path = big-audio-file
+            # extension = ".wav"
+            return (
+                os.path.join("cached", base_path, hashed) + extension
+            )  # cached/big-audio-file/8dn3i8en38dn83.wav
+
+    def generate_dir(self):
+        return os.path.join(super().generate_dir(), self.compute_hash())
+
+    def compute_hash(self):
+        self.hash = hash_object(self.input_path)
+        return self.hash
+
+    def ensure_deposited(self, asset_storage, host_path):
+        if asset_storage.asset_exists(host_path, type_=self.type):
+            self.used_cache = True
+        else:
+            self.used_cache = False
+            self._deposit(asset_storage, host_path)
 
 
 class ExternalAsset(Asset):
@@ -277,16 +320,22 @@ class AssetStorage:
 
         return x
 
-    def receive_deposit(self, asset):
+    def receive_deposit(self, asset, host_path: str):
         pass
 
     def prepare_for_deployment(self):
         pass
 
+    def get_url(self, host_path: str):
+        raise NotImplementedError
+
+    def asset_exists(self, host_path: str, type_: str):
+        raise NotImplementedError
+
 
 class NoStorage(AssetStorage):
-    def receive_deposit(self, asset):
-        super().receive_deposit(asset)
+    def receive_deposit(self, asset, host_path: str):
+        super().receive_deposit(asset, host_path)
         raise RuntimeError("Asset depositing is not supported by 'NoStorage' objects.")
 
 
@@ -295,10 +344,10 @@ class LocalStorage(AssetStorage):
         super().__init__()
         self.root = root
 
-    def receive_deposit(self, asset: ExperimentAsset):
-        super().receive_deposit(asset)
+    def receive_deposit(self, asset: ExperimentAsset, host_path: str):
+        super().receive_deposit(asset, host_path)
 
-        file_system_path = os.path.join(self.root, asset.host_path)
+        file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
         if asset.type == "folder":
@@ -310,11 +359,30 @@ class LocalStorage(AssetStorage):
             url=os.path.abspath(file_system_path),
         )
 
+    def get_file_system_path(self, host_path):
+        return os.path.join(self.root, host_path)
+
+    def get_url(self, host_path):
+        return os.path.abspath(self.get_file_system_path(host_path))
+
+    def asset_exists(self, host_path: str, type_: str):
+        file_system_path = self.get_file_system_path(host_path)
+        return os.path.exists(file_system_path) and (
+            (type_ == "folder" and os.path.isdir(file_system_path))
+            or (type_ != "folder" and os.path.isfile(file_system_path))
+        )
+
 
 class S3Storage(AssetStorage):
-    def receive_deposit(self, asset):
+    def receive_deposit(self, asset, host_path):
         raise NotImplementedError
-        return super().receive_deposit(asset)
+        return super().receive_deposit(asset, host_path)
+
+    def get_url(self, host_path):
+        raise NotImplementedError
+
+    def asset_exists(self, host_path: str, type_: str):
+        raise NotImplementedError
 
 
 class AssetRegistry:
@@ -336,8 +404,8 @@ class AssetRegistry:
             assert isinstance(asset, Asset)
             self.staged_assets[asset.key] = asset
 
-    def receive_deposit(self, asset: Asset):
-        return self.asset_storage.receive_deposit(asset)
+    def receive_deposit(self, asset: Asset, host_path: str):
+        return self.asset_storage.receive_deposit(asset, host_path)
 
     def get(self, key):
         # When the experiment is running then we can get the assets from the database.

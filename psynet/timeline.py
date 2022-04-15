@@ -172,6 +172,9 @@ class NullElt(Elt):
     def consume(self, experiment, participant):
         pass
 
+    def render(self, experiment, participant):
+        pass
+
 
 class CodeBlock(Elt):
     """

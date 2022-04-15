@@ -3,7 +3,7 @@ import tempfile
 from flask import Markup
 
 import psynet.experiment
-from psynet.assets import ExperimentAsset, ExternalAsset, LocalStorage
+from psynet.assets import CachedAsset, ExperimentAsset, ExternalAsset, LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
@@ -35,6 +35,16 @@ Exp.assets.stage(
         type_="file",
         key="config_variables.txt",
     ),
+    CachedAsset(
+        "bier.wav",
+        type_="file",
+        key="bier.wav",
+    )
+    # TODO - gracefully deal with the situation of the same asset being created twice
+    # TODO - implement export
+    # TODO - tests
+    # TODO - apply this to static experiments
+    # TODO - apply this to audio recording etc
 )
 
 
