@@ -16,7 +16,7 @@ from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .timeline import NullElt
-from .utils import get_extension
+from .utils import get_extension, import_local_experiment
 
 
 class AssetType:
@@ -164,15 +164,18 @@ class ExperimentAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def deposit(self, asset_registry):
+    def deposit(self, asset_storage=None):
+        if not asset_storage:
+            asset_storage = import_local_experiment()["class"].assets.asset_storage
+
         if self.key is None:
             self.key = self.generate_key()
 
-        deployment_key = asset_registry.deployment_key
+        deployment_key = asset_storage.deployment_key
         self.host_path = self.generate_host_path(deployment_key)
 
         time_start = time.perf_counter()
-        info = asset_registry.receive_deposit(asset=self)
+        info = asset_storage.receive_deposit(asset=self)
         time_end = time.perf_counter()
 
         self.url = info["url"]
@@ -225,7 +228,8 @@ class ExperimentAsset(Asset):
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.deposit(asset_registry)
+        storage = asset_registry.asset_storage
+        self.deposit(storage)
 
 
 class ExternalAsset(Asset):
@@ -263,6 +267,16 @@ class ExternalAsset(Asset):
 
 
 class AssetStorage:
+    @cached_property
+    def deployment_key(self):
+        from .experiment import Experiment
+
+        x = Experiment.read_deployment_id()
+        if x is None:
+            raise Experiment.MissingDeploymentIdError
+
+        return x
+
     def receive_deposit(self, asset):
         pass
 
@@ -314,15 +328,8 @@ class AssetRegistry:
         if inspector.has_table("asset") and Asset.query.count() == 0:
             self.populate_db_with_initial_assets()
 
-    @cached_property
     def deployment_key(self):
-        from .experiment import Experiment
-
-        x = Experiment.read_deployment_id()
-        if x is None:
-            raise Experiment.MissingDeploymentIdError
-
-        return x
+        return self.asset_storage.deployment_key
 
     def stage(self, *args):
         for asset in [*args]:
