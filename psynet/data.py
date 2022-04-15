@@ -1,8 +1,6 @@
-import sqlalchemy
-from sqlalchemy import event
-from sqlalchemy.orm import mapper
-
+import dallinger.data
 import dallinger.models
+import sqlalchemy
 from dallinger import db
 from dallinger.db import Base as SQLBase  # noqa
 from dallinger.db import init_db  # noqa
@@ -127,6 +125,8 @@ def drop_all_db_tables(bind=db.engine):
     """
     engine = bind
 
+    db.session.commit()
+
     con = engine.connect()
     trans = con.begin()
     inspector = sqlalchemy.inspect(engine)
@@ -204,6 +204,7 @@ def register_table(cls):
     extra_models[cls.__name__] = cls
     setattr(dallinger.models, cls.__name__, cls)
     update_dashboard_models()
+    dallinger.data.table_names.append(cls.__tablename__)
     return cls
 
 

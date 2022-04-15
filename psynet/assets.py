@@ -1,11 +1,15 @@
+import csv
 import os
 import shutil
-import jsonpickle
-import requests
+import tempfile
 import time
 import uuid
 
+import postgres_copy
+import requests
+import sqlalchemy
 from dallinger import db
+from dallinger.data import copy_db_to_csv
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -116,17 +120,17 @@ class ExperimentAsset(Asset):
     deposit_time_sec = Column(Float)
 
     def __init__(
-            self,
-            input_path,
-            type_=None,
-            key=None,
-            persistent=False,
-            obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-            participant_id=None,
-            trial_maker_id=None,
-            network_id=None,
-            node_id=None,
-            trial_id=None,
+        self,
+        input_path,
+        type_=None,
+        key=None,
+        persistent=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
     ):
         self.deposited = False
         self.input_path = input_path
@@ -193,15 +197,15 @@ class ExperimentAsset(Asset):
 
 class ExternalAsset(Asset):
     def __init__(
-            self,
-            url,
-            key,
-            type_="file",
-            participant_id=None,
-            trial_maker_id=None,
-            network_id=None,
-            node_id=None,
-            trial_id=None,
+        self,
+        url,
+        key,
+        type_="file",
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
     ):
         self.url = url
         self.key = key
@@ -227,6 +231,7 @@ class AssetStorage:
     def load_deployment_key(self):
         if not self.deployment_key:
             from .experiment import Experiment
+
             self.deployment_key = Experiment.read_deployment_id()
             if self.deployment_key is None:
                 raise Experiment.MissingDeploymentIdError
@@ -253,7 +258,7 @@ class LocalStorage(AssetStorage):
         input_path = asset.input_path
         target_path = os.path.join(self.root, self.deployment_key, key)
 
-        asset.url = "file://" + os.path.abspath(target_path)
+        asset.url = os.path.abspath(target_path)
 
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
 
@@ -271,46 +276,58 @@ class S3Storage(AssetStorage):
 
 
 class AssetRegistry:
-    initial_asset_manifesto_path = "initial_asset_manifesto.json"
+    initial_asset_manifesto_path = "pre_deployed_assets.csv"
 
     def __init__(self, asset_storage: AssetStorage):
         self.asset_storage = asset_storage
-        self.assets = {}
+        self.staged_assets = {}
 
-    def register(self, *args):
+        inspector = sqlalchemy.inspect(db.engine)
+        if inspector.has_table("asset") and Asset.query.count() == 0:
+            self.populate_db_with_initial_assets()
+
+    def stage(self, *args):
         for asset in [*args]:
             assert isinstance(asset, Asset)
-            self.assets[asset.key] = asset
-        db.session.commit()
+            self.staged_assets[asset.key] = asset
 
     def get(self, key):
-        return self.assets[key]
-        # return Asset.query.filter_by(key=key).one()
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        inspector = sqlalchemy.inspect(db.engine)
+        if inspector.has_table("asset") and Asset.query.count() > 0:
+            asset = Asset.query.filter_by(key=key).one()
+            return asset
+        else:
+            return self.staged_assets[key]
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()
         self.asset_storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        for a in self.assets.values():
+        Asset.query.delete()
+        for a in self.staged_assets.values():
             a.prepare_for_deployment(asset_storage=self.asset_storage)
+            db.session.add(a)
+        db.session.commit()
         self.save_initial_asset_manifesto()
 
     def save_initial_asset_manifesto(self):
-        encoded = jsonpickle.encode(self.assets)
-        with open(self.initial_asset_manifesto_path, "w") as file:
-            file.write(encoded)
-
-    def load_initial_asset_manifesto(self):
-        with open(self.initial_asset_manifesto_path, "r") as file:
-            encoded = file.read()
-        return jsonpickle.decode(encoded)
-
-    def on_experiment_launch(self):
-        self.populate_db_with_initial_assets()
+        with tempfile.TemporaryDirectory() as tempdir:
+            copy_db_to_csv(db.db_url, tempdir)
+            shutil.copyfile(
+                os.path.join(tempdir, "asset.csv"), self.initial_asset_manifesto_path
+            )
 
     def populate_db_with_initial_assets(self):
-        self.assets = self.load_initial_asset_manifesto()
-        for a in self.assets.values():
-            db.session.add(a)
-        db.session.commit()
+        # Patched version of dallinger.data.ingest_to_model
+        engine = db.engine
+        with open(self.initial_asset_manifesto_path, "r") as file:
+            reader = csv.reader(file)
+            columns = tuple('"{}"'.format(n) for n in next(reader))
+            postgres_copy.copy_from(
+                file, Asset, engine, columns=columns, format="csv", HEADER=False
+            )
+            # Removed because the Asset table doesn't have an autoincrementing id column
+            # fix_autoincrement(engine, model.__table__.name)

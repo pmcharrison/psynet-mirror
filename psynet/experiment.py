@@ -192,9 +192,7 @@ class Experiment(dallinger.experiment.Experiment):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    assets = AssetRegistry(
-        asset_storage=NoStorage()
-    )
+    assets = AssetRegistry(asset_storage=NoStorage())
 
     __extra_vars__ = {}
 
@@ -300,7 +298,6 @@ class Experiment(dallinger.experiment.Experiment):
         self.setup_experiment_network()
         self.setup_experiment_variables()
         self.check_deployment_id()
-        self.assets.on_experiment_launch()
 
         for elt in self.timeline.elts:
             if isinstance(elt, ExperimentSetupRoutine):
@@ -397,7 +394,7 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(elt, RecruitmentCriterion):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
-                self.assets.register(elt)
+                self.assets.stage(elt)
 
     @classmethod
     def pre_deploy(cls):

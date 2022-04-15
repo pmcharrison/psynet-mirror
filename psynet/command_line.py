@@ -111,6 +111,7 @@ def prepare(force):
     if force:
         FLAGS.add("force")
     log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
+    db.init_db(drop_all=True)
     experiment_class = import_local_experiment().get("class")
     experiment_instance = experiment_class.new(session=None)
     experiment_instance.pre_deploy()
