@@ -1,11 +1,13 @@
+import tempfile
+
 from flask import Markup
 
 import psynet.experiment
 from psynet.assets import ExperimentAsset, ExternalAsset, LocalStorage
 from psynet.consent import NoConsent
-from psynet.modular_page import AudioPrompt
+from psynet.modular_page import AudioPrompt, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
-from psynet.timeline import PageMaker, Timeline
+from psynet.timeline import CodeBlock, PageMaker, Timeline
 
 
 class Exp(psynet.experiment.Experiment):
@@ -41,6 +43,21 @@ def get_config_variables(experiment):
         return f.read()
 
 
+def save_text(experiment: Exp, participant):
+    text = participant.answer
+    with tempfile.NamedTemporaryFile("w") as file:
+        file.write(text)
+        file.flush()
+        asset = ExperimentAsset(
+            file.name,
+            type_="file",
+            extension=".txt",
+            description="text_box",
+            participant_id=participant.id,
+        )
+        asset.deposit(experiment.assets)
+
+
 Exp.timeline = Timeline(
     NoConsent(),
     PageMaker(
@@ -54,6 +71,13 @@ Exp.timeline = Timeline(
         ),
         time_estimate=5,
     ),
+    ModularPage(
+        "text_input",
+        "Please enter some text. It will be saved to a text file and stored as an experiment asset.",
+        TextControl(),
+        time_estimate=5,
+    ),
+    CodeBlock(save_text),
     [
         ModularPage(
             f"headphone_check_{i}",

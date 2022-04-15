@@ -61,6 +61,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
     url = Column(String)
     type = Column(String)
     extension = Column(String)
+    description = Column(String)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship("psynet.participant.Participant", backref="assets")
@@ -79,6 +80,8 @@ class Asset(SQLBase, SQLMixin, NullElt):
     def __init__(
         self,
         type_="file",
+        extension=None,
+        description=None,
         participant_id=None,
         trial_maker_id=None,
         network_id=None,
@@ -87,7 +90,8 @@ class Asset(SQLBase, SQLMixin, NullElt):
     ):
         self.type = type_
         self._type = self.types[type_]
-        self.extension = self.get_extension()
+        self.extension = extension if extension else self.get_extension()
+        self.description = description
         self.participant_id = participant_id
         self.trial_maker_id = trial_maker_id
         self.network_id = network_id
@@ -103,7 +107,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
     def get_extension(self):
         raise NotImplementedError
 
-    def prepare_for_deployment(self, asset_storage):
+    def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         raise NotImplementedError
 
@@ -122,8 +126,10 @@ class ExperimentAsset(Asset):
     def __init__(
         self,
         input_path,
-        type_=None,
         key=None,
+        type_="file",
+        extension=None,
+        description=None,
         persistent=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
         participant_id=None,
@@ -136,7 +142,14 @@ class ExperimentAsset(Asset):
         self.input_path = input_path
         self.obfuscate = obfuscate
         super().__init__(
-            type_, participant_id, trial_maker_id, network_id, node_id, trial_id
+            type_,
+            extension,
+            description,
+            participant_id,
+            trial_maker_id,
+            network_id,
+            node_id,
+            trial_id,
         )
         self.size_mb = self.get_size_mb()
         self.key = key
@@ -144,18 +157,19 @@ class ExperimentAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def deposit(self, storage):
+    def deposit(self, asset_registry):
         if self.key is None:
             self.key = self.generate_key()
 
         time_start = time.perf_counter()
-        storage.receive_deposit(asset=self)
+        asset_registry.receive_deposit(asset=self)
         time_end = time.perf_counter()
 
         self.deposit_time_sec = time_end - time_start
         self.deposited = True
-        # db.session.add(self)
-        # db.session.commit()
+
+        db.session.add(self)
+        db.session.commit()
 
     def get_size_mb(self):
         return self._type.get_file_size_mb(self.input_path)
@@ -178,6 +192,8 @@ class ExperimentAsset(Asset):
         filename = ""
         if self.obfuscate < 2:
             identifiers = []
+            if self.description:
+                identifiers.append(f"{self.description}")
             if self.network_id:
                 identifiers.append(f"network={self.network_id}")
             if self.node_id:
@@ -190,9 +206,9 @@ class ExperimentAsset(Asset):
         filename += self.extension
         return filename
 
-    def prepare_for_deployment(self, asset_storage):
+    def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.deposit(asset_storage)
+        self.deposit(asset_registry)
 
 
 class ExternalAsset(Asset):
@@ -201,6 +217,7 @@ class ExternalAsset(Asset):
         url,
         key,
         type_="file",
+        description=None,
         participant_id=None,
         trial_maker_id=None,
         network_id=None,
@@ -210,13 +227,19 @@ class ExternalAsset(Asset):
         self.url = url
         self.key = key
         super().__init__(
-            type_, participant_id, trial_maker_id, network_id, node_id, trial_id
+            type_,
+            description,
+            participant_id,
+            trial_maker_id,
+            network_id,
+            node_id,
+            trial_id,
         )
 
     def get_extension(self):
         return get_extension(self.url)
 
-    def prepare_for_deployment(self, asset_storage):
+    def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         pass
 
@@ -256,6 +279,7 @@ class LocalStorage(AssetStorage):
 
         key = asset.key
         input_path = asset.input_path
+
         target_path = os.path.join(self.root, self.deployment_key, key)
 
         asset.url = os.path.abspath(target_path)
@@ -291,6 +315,9 @@ class AssetRegistry:
             assert isinstance(asset, Asset)
             self.staged_assets[asset.key] = asset
 
+    def receive_deposit(self, asset: Asset):
+        self.asset_storage.receive_deposit(asset)
+
     def get(self, key):
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
@@ -308,7 +335,7 @@ class AssetRegistry:
     def prepare_assets_for_deployment(self):
         Asset.query.delete()
         for a in self.staged_assets.values():
-            a.prepare_for_deployment(asset_storage=self.asset_storage)
+            a.prepare_for_deployment(asset_registry=self)
             db.session.add(a)
         db.session.commit()
         self.save_initial_asset_manifesto()
