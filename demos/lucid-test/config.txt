@@ -45,5 +45,4 @@ heroku_python_version = 3.9.1
 lucid_recruitment_config = file:./lucid_recruitment_config.json
 
 [Docker]
-docker_image_base_name = docker.io/kqmqneyosi8e/pol-lucid-test-same-window-new-consents-20
-docker_image_name = kqmqneyosi8e/pol-lucid-test-same-window-new-consents-20@sha256:e1055f94c6f9bf19c142eb890344fd3865942b2c4bd61059feb579fe94721ecb
+docker_image_base_name = docker.io/kqmqneyosi8e/pol-lucid-test-rid-table-20
