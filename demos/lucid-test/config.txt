@@ -37,12 +37,13 @@ num_dynos_web = 1
 num_dynos_worker = 1
 redis_size = hobby-dev
 host = 0.0.0.0
-clock_on = True
-disable_when_duration_exceeded = False
-heroku_python_version = 3.9.1
+clock_on = true
+disable_when_duration_exceeded = false
+heroku_python_version = 3.9.11
 
 [Lucid]
 lucid_recruitment_config = file:./lucid_recruitment_config.json
 
 [Docker]
 docker_image_base_name = docker.io/kqmqneyosi8e/pol-lucid-test-rid-table-20
+docker_image_name = kqmqneyosi8e/pol-lucid-test-rid-table-20@sha256:e62fec1aa1f91ebd93d4407e22eb8c28500e7a0b6f2a90a21c5070f7d99f55a6
