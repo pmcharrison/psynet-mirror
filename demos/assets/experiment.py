@@ -40,7 +40,6 @@ Exp.assets.stage(
         type_="file",
         key="bier.wav",
     )
-    # TODO - fix obfuscation (seems to be ignored currently)
     # TODO - implement support for loading custom asset specifications (e.g. from previous experiments) (rename cached to persistent)
     # TODO - gracefully deal with the situation of the same asset being created twice
     # TODO - implement export (this should use the key column)

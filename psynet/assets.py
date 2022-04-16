@@ -232,11 +232,35 @@ class ManagedAsset(Asset):
 
 
 class ExperimentAsset(ManagedAsset):
-    def generate_host_path(self, deployment_key: str):
-        return os.path.join("experiments", deployment_key, self.key)
-
     def ensure_deposited(self, asset_storage, host_path):
         self._deposit(asset_storage, host_path)
+
+    def generate_host_path(self, deployment_key: str):
+        obfuscated = self.obfuscate_key(self.key)
+        return os.path.join("experiments", deployment_key, obfuscated)
+
+    def obfuscate_key(self, key, digits=32):
+        random = str(uuid.uuid4())[:digits]
+
+        if self.type == "folder":
+            base = key
+            extension = None
+        else:
+            base, extension = os.path.splitext(key)
+
+        if self.obfuscate == 0:
+            return key
+        elif self.obfuscate == 1:
+            base += "__" + random
+        elif self.obfuscate == 2:
+            base = "private/" + random
+        else:
+            raise ValueError(f"Invalid value of obfuscate: {self.obfuscate}")
+
+        if self.type == "folder":
+            return base
+        else:
+            return base + extension
 
 
 class CachedAsset(ManagedAsset):
@@ -246,19 +270,17 @@ class CachedAsset(ManagedAsset):
     def generate_host_path(self, deployment_key: str):
         key = self.key  # e.g. big-audio-file.wav
         hashed = self.compute_hash()
-        base_path, extension = os.path.splitext(key)
-        if self.type == "folder":
-            # base_path = big-folder-of-stimuli
-            # extension = ""
-            return os.path.join(
-                "cached", base_path, hashed
-            )  # cached/big-folder-of-stimuli/8dn3i8en38dn83
-        else:
-            # base_path = big-audio-file
-            # extension = ".wav"
-            return (
-                os.path.join("cached", base_path, hashed) + extension
-            )  # cached/big-audio-file/8dn3i8en38dn83.wav
+        base, extension = os.path.splitext(key)
+
+        if self.obfuscate == 2:
+            base = "private"
+
+        host_path = os.path.join("cached", base, hashed)
+
+        if self.type != "folder":
+            host_path += extension
+
+        return host_path
 
     def generate_dir(self):
         return os.path.join(super().generate_dir(), self.compute_hash())
