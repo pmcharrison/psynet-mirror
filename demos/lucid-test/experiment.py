@@ -17,7 +17,7 @@ logger = get_logger()
 ##########################################################################################
 # SETTINGS
 ##########################################################################################
-INITIAL_RECRUITMENT_SIZE = 1
+INITIAL_RECRUITMENT_SIZE = 20
 
 ##########################################################################################
 # EXPERIMENT
@@ -72,7 +72,7 @@ class Exp(psynet.experiment.Experiment):
         )
 
         participant_rids = [
-            participant.entry_information.get("RID")
+            participant.entry_information.get("rid")
             for participant in Participant.query.all()
         ]
 
