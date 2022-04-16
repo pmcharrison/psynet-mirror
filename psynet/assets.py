@@ -10,6 +10,7 @@ import requests
 import sqlalchemy
 from dallinger import db
 from dallinger.data import copy_db_to_csv
+from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -156,6 +157,7 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
         """Runs in advance of the experiment being deployed to the remote server."""
         db.session.add(self)
         self.deployment_id = asset_registry.deployment_id
+        db.session.commit()
 
     def read_text(self):
         response = requests.get(self.url)
@@ -284,6 +286,7 @@ class ManagedAsset(Asset):
         super().prepare_for_deployment(asset_registry)
         storage = asset_registry.asset_storage
         self.deposit(storage)
+        db.session.commit()
 
     @staticmethod
     def generate_uuid():
@@ -471,9 +474,11 @@ class S3Storage(AssetStorage):
 class AssetRegistry:
     initial_asset_manifesto_path = "pre_deployed_assets.csv"
 
-    def __init__(self, asset_storage: AssetStorage):
+    def __init__(self, asset_storage: AssetStorage, n_parallel=1):
         self.asset_storage = asset_storage
-        self.staged_assets = {}
+        self.n_parallel = n_parallel
+        self._staged_asset_specifications = []
+        self._staged_asset_lookup_table = {}
 
         inspector = sqlalchemy.inspect(db.engine)
         if inspector.has_table("asset") and Asset.query.count() == 0:
@@ -486,7 +491,8 @@ class AssetRegistry:
     def stage(self, *args):
         for asset in [*args]:
             assert isinstance(asset, AssetSpecification)
-            self.staged_assets[asset.key] = asset
+            self._staged_asset_specifications.append(asset)
+            self._staged_asset_lookup_table[asset.key] = asset
 
     def receive_deposit(self, asset: Asset, host_path: str):
         return self.asset_storage.receive_deposit(asset, host_path)
@@ -501,7 +507,7 @@ class AssetRegistry:
             return asset
         else:
             try:
-                return self.staged_assets[key]
+                return self._staged_asset_lookup_table[key]
             except KeyError:
                 # Sometimes an asset won't be available during staging (e.g. if the experimenter
                 # is using the InheritedAssets functionality. To prevent the experiment
@@ -514,8 +520,13 @@ class AssetRegistry:
 
     def prepare_assets_for_deployment(self):
         Asset.query.delete()
-        for a in self.staged_assets.values():
-            a.prepare_for_deployment(asset_registry=self)
+
+        Parallel(n_jobs=self.n_parallel, verbose=10)(
+            delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
+            for a in self._staged_asset_specifications
+        )
+        # for a in self._staged_asset_specifications:
+        #     a.prepare_for_deployment(asset_registry=self)
         db.session.commit()
         self.save_initial_asset_manifesto()
 

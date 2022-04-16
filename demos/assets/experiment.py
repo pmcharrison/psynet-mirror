@@ -32,16 +32,16 @@ Exp.assets.stage(
         "https://s3.amazonaws.com/headphone-check/antiphase_HC_IOS.wav",
         key="headphone_check/stimulus-2.wav",
     ),
-    ExternalAsset(
+    ExternalAsset(  # TODO confirm that the URLs are consistent
         "https://s3.amazonaws.com/headphone-check/antiphase_HC_SOI.wav",
         key="headphone_check/stimulus-3.wav",
     ),
-    ExperimentAsset(
+    ExperimentAsset(  # TODO check hashes
         "config.txt",
         type_="file",
         key="config_variables.txt",
     ),
-    CachedAsset(
+    CachedAsset(  # TODO no key problems here
         "bier.wav",
         type_="file",
         key="bier.wav",
