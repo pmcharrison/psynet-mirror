@@ -249,7 +249,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             )
 
         participant_data = {
-            "rid": rid,
             "hit_id": rid,
             "assignment_id": rid,
             "worker_id": rid,
