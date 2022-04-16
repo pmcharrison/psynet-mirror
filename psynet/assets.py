@@ -3,7 +3,7 @@ import shutil
 import tempfile
 import time
 import uuid
-from functools import cached_property
+from functools import cached_property, lru_cache
 
 import requests
 import sqlalchemy
@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, import_csv_to_db, register_table
 from .timeline import NullElt
-from .utils import get_extension, hash_directory, hash_file, import_local_experiment
+from .utils import get_extension, import_local_experiment, md5_directory, md5_file
 
 
 class AssetType:
@@ -92,6 +92,7 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
+    md5 = Column(String)
     host_path = Column(String)
     url = Column(String)
     type = Column(String)
@@ -216,6 +217,7 @@ class ManagedAsset(Asset):
 
         self.deployment_id = asset_storage.deployment_id
         self.host_path = self.generate_host_path(self.deployment_id)
+        self.md5 = self.get_md5()
         self.ensure_deposited(asset_storage, self.host_path)
         self.deposited = True
         self.url = asset_storage.get_url(self.host_path)
@@ -279,6 +281,12 @@ class ManagedAsset(Asset):
     def generate_uuid():
         return str(uuid.uuid4())
 
+    @lru_cache()
+    def get_md5(self):
+        f = md5_directory if self.type == "folder" else md5_file
+        self.md5 = f(self.input_path)
+        return self.md5
+
 
 class ExperimentAsset(ManagedAsset):
     def ensure_deposited(self, asset_storage, host_path):
@@ -316,18 +324,17 @@ class ExperimentAsset(ManagedAsset):
 
 
 class CachedAsset(ManagedAsset):
-    hash = Column(String)
     used_cache = Column(Boolean)
 
     def generate_host_path(self, deployment_id: str):
         key = self.key  # e.g. big-audio-file.wav
-        hashed = self.compute_hash()
+        md5 = self.get_md5()
         base, extension = os.path.splitext(key)
 
         if self.obfuscate == 2:
             base = "private"
 
-        host_path = os.path.join("cached", base, hashed)
+        host_path = os.path.join("cached", base, md5)
 
         if self.type != "folder":
             host_path += extension
@@ -336,11 +343,6 @@ class CachedAsset(ManagedAsset):
 
     def generate_dir(self):
         return os.path.join(super().generate_dir(), self.compute_hash())
-
-    def compute_hash(self):
-        f = hash_directory if self.type == "folder" else hash_file
-        self.hash = f(self.input_path)
-        return self.hash
 
     def ensure_deposited(self, asset_storage, host_path):
         if asset_storage.asset_exists(host_path, type_=self.type):

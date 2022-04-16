@@ -332,7 +332,7 @@ def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
     return hash
 
 
-def hash_file(filename: Union[str, Path]) -> str:
+def md5_file(filename: Union[str, Path]) -> str:
     return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
 
 
@@ -347,7 +347,7 @@ def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
     return hash
 
 
-def hash_directory(directory: Union[str, Path]) -> str:
+def md5_directory(directory: Union[str, Path]) -> str:
     return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
 
 
