@@ -39,7 +39,8 @@ Exp.assets.stage(
         "bier.wav",
         type_="file",
         key="bier.wav",
-    )
+    ),
+    # recreate_assets("recreated_assets.csv")
     # TODO - implement support for loading custom asset specifications (e.g. from previous experiments) (rename cached to persistent)
     # TODO - gracefully deal with the situation of the same asset being created twice
     # TODO - implement export (this should use the key column)
