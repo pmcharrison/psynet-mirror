@@ -4,6 +4,7 @@ import tempfile
 import time
 import uuid
 from functools import cached_property, lru_cache
+from typing import Optional
 
 import requests
 import sqlalchemy
@@ -125,6 +126,7 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
         network_id=None,
         node_id=None,
         trial_id=None,
+        variables: Optional[dict] = None,
     ):
         self.psynet_version = psynet_version
         self.type = type_
@@ -136,6 +138,10 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
         self.network_id = network_id
         self.node_id = node_id
         self.trial_id = trial_id
+
+        if variables:
+            for key, value in variables.items():
+                self.var.set(key, value)
 
     types = dict(
         file=File,
@@ -186,6 +192,7 @@ class ManagedAsset(Asset):
         network_id=None,
         node_id=None,
         trial_id=None,
+        variables: Optional[dict] = None,
     ):
         self.deposited = False
         self.input_path = input_path
@@ -199,6 +206,7 @@ class ManagedAsset(Asset):
             network_id,
             node_id,
             trial_id,
+            variables,
         )
         self.size_mb = self.get_size_mb()
 
@@ -364,6 +372,7 @@ class ExternalAsset(Asset):
         network_id=None,
         node_id=None,
         trial_id=None,
+        variables: Optional[dict] = None,
     ):
         self.host_path = url
         self.url = url
@@ -376,6 +385,7 @@ class ExternalAsset(Asset):
             network_id,
             node_id,
             trial_id,
+            variables,
         )
 
     def get_extension(self):

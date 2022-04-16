@@ -73,6 +73,10 @@ def save_text(experiment: Exp, participant):
             extension=".txt",
             description="text_box",
             participant_id=participant.id,
+            variables=dict(
+                num_characters=len(participant.answer),
+                writing_time=participant.last_response.metadata["time_taken"],
+            ),
         )
         asset.deposit()
 
