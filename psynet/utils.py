@@ -11,9 +11,12 @@ import sys
 import time
 from datetime import datetime
 from functools import reduce, wraps
+from pathlib import Path
+from typing import Union
 from urllib.parse import ParseResult, urlparse
 
 import pexpect
+from _hashlib import HASH as Hash
 from dallinger.config import config, get_config
 
 
@@ -319,13 +322,33 @@ def hash_object(x, digits=32):
     return format_hash(hashed, digits)
 
 
-def hash_file(path, digits=32):
-    with open(path, "rb") as f:
-        hashed = hashlib.sha256()
-        while chunk := f.read(8192):
-            hashed.update(chunk)
+# MD5 hashing code:
+# https://stackoverflow.com/a/54477583/8454486
+def md5_update_from_file(filename: Union[str, Path], hash: Hash) -> Hash:
+    assert Path(filename).is_file()
+    with open(str(filename), "rb") as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash.update(chunk)
+    return hash
 
-    return format_hash(hashed, digits)
+
+def hash_file(filename: Union[str, Path]) -> str:
+    return str(md5_update_from_file(filename, hashlib.md5()).hexdigest())
+
+
+def md5_update_from_dir(directory: Union[str, Path], hash: Hash) -> Hash:
+    assert Path(directory).is_dir()
+    for path in sorted(Path(directory).iterdir(), key=lambda p: str(p).lower()):
+        hash.update(path.name.encode())
+        if path.is_file():
+            hash = md5_update_from_file(path, hash)
+        elif path.is_dir():
+            hash = md5_update_from_dir(path, hash)
+    return hash
+
+
+def hash_directory(directory: Union[str, Path]) -> str:
+    return str(md5_update_from_dir(directory, hashlib.md5()).hexdigest())
 
 
 def format_hash(hashed, digits=32):

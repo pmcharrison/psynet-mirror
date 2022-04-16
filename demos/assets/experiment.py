@@ -7,8 +7,8 @@ from psynet.assets import (
     CachedAsset,
     ExperimentAsset,
     ExternalAsset,
+    InheritedAssets,
     LocalStorage,
-    RecreatedAssets,
 )
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
@@ -46,7 +46,7 @@ Exp.assets.stage(
         type_="file",
         key="bier.wav",
     ),
-    RecreatedAssets("recreated_assets.csv", key="recreated_assets")
+    InheritedAssets("inherited_assets.csv", key="previous_experiment")
     # TODO - implement support for loading custom asset specifications (e.g. from previous experiments) (rename cached to persistent)
     # TODO - load from zip with custom tables / assets
     # TODO - gracefully deal with the situation of the same asset being created twice

@@ -15,7 +15,7 @@ from sqlalchemy.orm import relationship
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, import_csv_to_db, register_table
 from .timeline import NullElt
-from .utils import get_extension, hash_object, import_local_experiment
+from .utils import get_extension, hash_directory, hash_file, import_local_experiment
 
 
 class AssetType:
@@ -53,7 +53,7 @@ class AssetCollection(AssetSpecification):
     pass
 
 
-class RecreatedAssets(AssetCollection):
+class InheritedAssets(AssetCollection):
     def __init__(self, path, key: str):
         self.path = path
         self.key = key
@@ -67,6 +67,10 @@ class RecreatedAssets(AssetCollection):
             Asset,
             fix_id_col=False,
             clear_columns=Asset.foreign_keyed_columns,
+            replace_columns=dict(
+                inherited=True,
+                inherited_from=self.key,
+            ),
         )
 
 
@@ -84,6 +88,9 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
     time_of_death = None
 
     psynet_version = Column(String)
+    deployment_id = Column(String)
+    inherited = Column(Boolean, default=False)
+    inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
     host_path = Column(String)
     url = Column(String)
@@ -141,12 +148,13 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         db.session.add(self)
+        self.deployment_id = asset_registry.deployment_id
 
     def read_text(self):
         response = requests.get(self.url)
         return response.text
 
-    def generate_host_path(self, deployment_key: str):
+    def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
 
 
@@ -206,8 +214,8 @@ class ManagedAsset(Asset):
         if self.key is None:
             self.key = self.generate_key()
 
-        deployment_key = asset_storage.deployment_key
-        self.host_path = self.generate_host_path(deployment_key)
+        self.deployment_id = asset_storage.deployment_id
+        self.host_path = self.generate_host_path(self.deployment_id)
         self.ensure_deposited(asset_storage, self.host_path)
         self.deposited = True
         self.url = asset_storage.get_url(self.host_path)
@@ -258,7 +266,7 @@ class ManagedAsset(Asset):
         filename += self.extension
         return filename
 
-    def generate_host_path(self, deployment_key: str):
+    def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
 
     def prepare_for_deployment(self, asset_registry):
@@ -276,9 +284,9 @@ class ExperimentAsset(ManagedAsset):
     def ensure_deposited(self, asset_storage, host_path):
         self._deposit(asset_storage, host_path)
 
-    def generate_host_path(self, deployment_key: str):
+    def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
-        return os.path.join("experiments", deployment_key, obfuscated)
+        return os.path.join("experiments", deployment_id, obfuscated)
 
     def obfuscate_key(self, key):
         random = self.generate_uuid()
@@ -311,7 +319,7 @@ class CachedAsset(ManagedAsset):
     hash = Column(String)
     used_cache = Column(Boolean)
 
-    def generate_host_path(self, deployment_key: str):
+    def generate_host_path(self, deployment_id: str):
         key = self.key  # e.g. big-audio-file.wav
         hashed = self.compute_hash()
         base, extension = os.path.splitext(key)
@@ -330,7 +338,8 @@ class CachedAsset(ManagedAsset):
         return os.path.join(super().generate_dir(), self.compute_hash())
 
     def compute_hash(self):
-        self.hash = hash_object(self.input_path)
+        f = hash_directory if self.type == "folder" else hash_file
+        self.hash = f(self.input_path)
         return self.hash
 
     def ensure_deposited(self, asset_storage, host_path):
@@ -373,7 +382,7 @@ class ExternalAsset(Asset):
 
 class AssetStorage:
     @cached_property
-    def deployment_key(self):
+    def deployment_id(self):
         from .experiment import Experiment
 
         x = Experiment.read_deployment_id()
@@ -458,8 +467,9 @@ class AssetRegistry:
         if inspector.has_table("asset") and Asset.query.count() == 0:
             self.populate_db_with_initial_assets()
 
-    def deployment_key(self):
-        return self.asset_storage.deployment_key
+    @property
+    def deployment_id(self):
+        return self.asset_storage.deployment_id
 
     def stage(self, *args):
         for asset in [*args]:
@@ -482,7 +492,7 @@ class AssetRegistry:
                 return self.staged_assets[key]
             except KeyError:
                 # Sometimes an asset won't be available during staging (e.g. if the experimenter
-                # is using the RecreatedAssets functionality. To prevent the experiment
+                # is using the InheritedAssets functionality. To prevent the experiment
                 # from failing to compile, we therefore return a mock asset.
                 return MockAsset()
 

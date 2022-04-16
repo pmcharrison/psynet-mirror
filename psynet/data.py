@@ -234,7 +234,11 @@ def update_dashboard_models():
 
 
 def import_csv_to_db(
-    path, model, fix_id_col=True, clear_columns: Optional[List] = None
+    path,
+    model,
+    fix_id_col=True,
+    clear_columns: Optional[List] = None,
+    replace_columns: Optional[dict] = None,
 ):
     """
     Imports a CSV file to the database.
@@ -252,17 +256,18 @@ def import_csv_to_db(
     clear_columns :
         Optional list of columns to clear when importing the CSV file.
         This is useful in the case of foreign-key constraints (e.g. participant IDs).
+
+    replace_columns :
+        Optional dictionary of values to set for particular columns.
     """
     # Patched version of dallinger.data.ingest_to_model
-    if clear_columns:
+    if clear_columns or replace_columns:
         with tempfile.TemporaryDirectory() as temp_dir:
             patched_csv = os.path.join(temp_dir, "patched.csv")
-            # print(f"infile: {path}")
-            # print(f"outfilefile: {patched_csv}")
-            clear_csv_columns(path, patched_csv, clear_columns)
-            # import pydevd_pycharm
-            # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-            import_csv_to_db(patched_csv, model, fix_id_col, clear_columns=None)
+            patch_csv(path, patched_csv, clear_columns, replace_columns)
+            import_csv_to_db(
+                patched_csv, model, fix_id_col, clear_columns=None, replace_columns=None
+            )
     else:
         with open(path, "r") as file:
             engine = db.engine
@@ -275,9 +280,12 @@ def import_csv_to_db(
                 fix_autoincrement(engine, model.__table__.name)
 
 
-def clear_csv_columns(infile, outfile, columns):
+def patch_csv(infile, outfile, clear_columns, replace_columns):
     df = pandas.read_csv(infile)
-    for c in columns:
-        assert c in df.columns
-        df[c] = pandas.NA
+
+    _replace_columns = {**{col: pandas.NA for col in clear_columns}, **replace_columns}
+
+    for col, value in _replace_columns.items():
+        df[col] = value
+
     df.to_csv(outfile, index=False)
