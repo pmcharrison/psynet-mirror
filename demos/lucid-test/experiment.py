@@ -72,7 +72,7 @@ class Exp(psynet.experiment.Experiment):
         )
 
         participant_rids = [
-            participant.entry_information.get("RID")
+            participant.entry_information.get("worker_id")
             for participant in Participant.query.all()
         ]
 
