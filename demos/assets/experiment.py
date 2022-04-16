@@ -47,9 +47,8 @@ Exp.assets.stage(
         key="bier.wav",
     ),
     InheritedAssets("inherited_assets.csv", key="previous_experiment")
-    # TODO - implement support for loading custom asset specifications (e.g. from previous experiments) (rename cached to persistent)
-    # TODO - load from zip with custom tables / assets
     # TODO - gracefully deal with the situation of the same asset being created twice
+    # TODO - load from zip with custom tables / assets
     # TODO - implement export (this should use the key column)
     # TODO - implement S3 support
     # TODO - tests
