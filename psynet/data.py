@@ -1,7 +1,15 @@
+import csv
+import os
+import tempfile
+from typing import List, Optional
+
 import dallinger.data
 import dallinger.models
+import pandas
+import postgres_copy
 import sqlalchemy
 from dallinger import db
+from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
 from dallinger.db import init_db  # noqa
 from dallinger.experiment_server import dashboard
@@ -223,3 +231,53 @@ def update_dashboard_models():
         "Transmission",
         "Notification",
     ] + list(extra_models)
+
+
+def import_csv_to_db(
+    path, model, fix_id_col=True, clear_columns: Optional[List] = None
+):
+    """
+    Imports a CSV file to the database.
+
+    Parameters
+    ----------
+    path :
+        Path to csv file.
+    model :
+        SQLAlchemy class corresponding to the objects that should be created.
+
+    fix_id_col :
+        Fixes the auto-incrementing counter of the id column.
+
+    clear_columns :
+        Optional list of columns to clear when importing the CSV file.
+        This is useful in the case of foreign-key constraints (e.g. participant IDs).
+    """
+    # Patched version of dallinger.data.ingest_to_model
+    if clear_columns:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            patched_csv = os.path.join(temp_dir, "patched.csv")
+            # print(f"infile: {path}")
+            # print(f"outfilefile: {patched_csv}")
+            clear_csv_columns(path, patched_csv, clear_columns)
+            # import pydevd_pycharm
+            # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+            import_csv_to_db(patched_csv, model, fix_id_col, clear_columns=None)
+    else:
+        with open(path, "r") as file:
+            engine = db.engine
+            reader = csv.reader(file)
+            columns = tuple('"{}"'.format(n) for n in next(reader))
+            postgres_copy.copy_from(
+                file, model, engine, columns=columns, format="csv", HEADER=False
+            )
+            if fix_id_col:
+                fix_autoincrement(engine, model.__table__.name)
+
+
+def clear_csv_columns(infile, outfile, columns):
+    df = pandas.read_csv(infile)
+    for c in columns:
+        assert c in df.columns
+        df[c] = pandas.NA
+    df.to_csv(outfile, index=False)

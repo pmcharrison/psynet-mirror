@@ -3,7 +3,13 @@ import tempfile
 from flask import Markup
 
 import psynet.experiment
-from psynet.assets import CachedAsset, ExperimentAsset, ExternalAsset, LocalStorage
+from psynet.assets import (
+    CachedAsset,
+    ExperimentAsset,
+    ExternalAsset,
+    LocalStorage,
+    RecreatedAssets,
+)
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
@@ -40,8 +46,9 @@ Exp.assets.stage(
         type_="file",
         key="bier.wav",
     ),
-    # recreate_assets("recreated_assets.csv")
+    RecreatedAssets("recreated_assets.csv", key="recreated_assets")
     # TODO - implement support for loading custom asset specifications (e.g. from previous experiments) (rename cached to persistent)
+    # TODO - load from zip with custom tables / assets
     # TODO - gracefully deal with the situation of the same asset being created twice
     # TODO - implement export (this should use the key column)
     # TODO - implement S3 support

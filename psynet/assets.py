@@ -1,4 +1,3 @@
-import csv
 import os
 import shutil
 import tempfile
@@ -6,7 +5,6 @@ import time
 import uuid
 from functools import cached_property
 
-import postgres_copy
 import requests
 import sqlalchemy
 from dallinger import db
@@ -14,7 +12,8 @@ from dallinger.data import copy_db_to_csv
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from .data import SQLBase, SQLMixin, register_table
+from . import __version__ as psynet_version
+from .data import SQLBase, SQLMixin, import_csv_to_db, register_table
 from .timeline import NullElt
 from .utils import get_extension, hash_object, import_local_experiment
 
@@ -45,8 +44,34 @@ class Audio(File):
     pass
 
 
+class AssetSpecification:
+    def prepare_for_deployment(self, asset_registry):
+        raise NotImplementedError
+
+
+class AssetCollection(AssetSpecification):
+    pass
+
+
+class RecreatedAssets(AssetCollection):
+    def __init__(self, path, key: str):
+        self.path = path
+        self.key = key
+
+    def prepare_for_deployment(self, asset_registry):
+        self.ingest_specification_to_db()
+
+    def ingest_specification_to_db(self):
+        import_csv_to_db(
+            self.path,
+            Asset,
+            fix_id_col=False,
+            clear_columns=Asset.foreign_keyed_columns,
+        )
+
+
 @register_table
-class Asset(SQLBase, SQLMixin, NullElt):
+class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
@@ -58,6 +83,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
     failed_reason = None
     time_of_death = None
 
+    psynet_version = Column(String)
     key = Column(String, primary_key=True, index=True)
     host_path = Column(String)
     url = Column(String)
@@ -79,6 +105,8 @@ class Asset(SQLBase, SQLMixin, NullElt):
     trial_id = Column(Integer, ForeignKey("info.id"))
     trial = relationship("Trial", backref="assets")
 
+    foreign_keyed_columns = ["participant_id", "network_id", "node_id", "trial_id"]
+
     def __init__(
         self,
         type_="file",
@@ -90,6 +118,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
         node_id=None,
         trial_id=None,
     ):
+        self.psynet_version = psynet_version
         self.type = type_
         self._type = self.types[type_]
         self.extension = extension if extension else self.get_extension()
@@ -111,7 +140,7 @@ class Asset(SQLBase, SQLMixin, NullElt):
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        raise NotImplementedError
+        db.session.add(self)
 
     def read_text(self):
         response = requests.get(self.url)
@@ -119,6 +148,12 @@ class Asset(SQLBase, SQLMixin, NullElt):
 
     def generate_host_path(self, deployment_key: str):
         raise NotImplementedError
+
+
+class MockAsset(Asset):
+    @property
+    def url(self):
+        return "The asset database has not yet loaded, so here's a placeholder URL."
 
 
 class ManagedAsset(Asset):
@@ -228,6 +263,7 @@ class ManagedAsset(Asset):
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
+        super().prepare_for_deployment(asset_registry)
         storage = asset_registry.asset_storage
         self.deposit(storage)
 
@@ -334,10 +370,6 @@ class ExternalAsset(Asset):
     def get_extension(self):
         return get_extension(self.url)
 
-    def prepare_for_deployment(self, asset_registry):
-        """Runs in advance of the experiment being deployed to the remote server."""
-        pass
-
 
 class AssetStorage:
     @cached_property
@@ -431,7 +463,7 @@ class AssetRegistry:
 
     def stage(self, *args):
         for asset in [*args]:
-            assert isinstance(asset, Asset)
+            assert isinstance(asset, AssetSpecification)
             self.staged_assets[asset.key] = asset
 
     def receive_deposit(self, asset: Asset, host_path: str):
@@ -446,7 +478,13 @@ class AssetRegistry:
             asset = Asset.query.filter_by(key=key).one()
             return asset
         else:
-            return self.staged_assets[key]
+            try:
+                return self.staged_assets[key]
+            except KeyError:
+                # Sometimes an asset won't be available during staging (e.g. if the experimenter
+                # is using the RecreatedAssets functionality. To prevent the experiment
+                # from failing to compile, we therefore return a mock asset.
+                return MockAsset()
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()
@@ -456,7 +494,6 @@ class AssetRegistry:
         Asset.query.delete()
         for a in self.staged_assets.values():
             a.prepare_for_deployment(asset_registry=self)
-            db.session.add(a)
         db.session.commit()
         self.save_initial_asset_manifesto()
 
@@ -468,13 +505,5 @@ class AssetRegistry:
             )
 
     def populate_db_with_initial_assets(self):
-        # Patched version of dallinger.data.ingest_to_model
-        engine = db.engine
-        with open(self.initial_asset_manifesto_path, "r") as file:
-            reader = csv.reader(file)
-            columns = tuple('"{}"'.format(n) for n in next(reader))
-            postgres_copy.copy_from(
-                file, Asset, engine, columns=columns, format="csv", HEADER=False
-            )
-            # Removed because the Asset table doesn't have an autoincrementing id column
-            # fix_autoincrement(engine, model.__table__.name)
+        # Asset doesn't have an ID column to fix
+        import_csv_to_db(self.initial_asset_manifesto_path, Asset, fix_id_col=False)
