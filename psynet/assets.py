@@ -155,9 +155,37 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        db.session.add(self)
+        self.register(asset_registry)
+
+    def register(self, asset_registry):
+        """Registers the asset as long as no duplicates are found."""
         self.deployment_id = asset_registry.deployment_id
-        db.session.commit()
+
+        if self.key is None:
+            self.key = self.generate_key()
+
+        duplicate = self.find_duplicate()
+        if duplicate:
+            if duplicate.get_comparison_key() == self.get_comparison_key():
+                pass
+            else:
+                raise DuplicateKeyError(self, duplicate)
+        else:
+            self._register(asset_registry)
+            db.session.add(self)
+            db.session.commit()
+
+    def _register(self, asset_registry):
+        """Performs the actual registration, confident that no duplicates exist."""
+        raise NotImplementedError
+
+    def find_duplicate(self):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
+        return Asset.query.filter_by(key=self.key).one_or_none()
 
     def read_text(self):
         response = requests.get(self.url)
@@ -171,6 +199,21 @@ class MockAsset(Asset):
     @property
     def url(self):
         return "The asset database has not yet loaded, so here's a placeholder URL."
+
+
+class DuplicateKeyError(KeyError):
+    """Raised when trying to add two assets with the same key."""
+
+    def __init__(self, obj1, obj2):
+        comparison_key_1 = obj1.get_comparison_key()
+        comparison_key_2 = obj2.get_comparison_key()
+        message = (
+            f"Tried to deposit an asset with a key of {self.key}, "
+            "but there already exists such an asset in the database, "
+            "and their contents do not match "
+            f"('{comparison_key_1}' != '{comparison_key_2}')."
+        )
+        super().__init__(message)
 
 
 class ManagedAsset(Asset):
@@ -218,16 +261,24 @@ class ManagedAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
+    def prepare_for_deployment(self, asset_registry):
+        """Runs in advance of the experiment being deployed to the remote server."""
+        super().prepare_for_deployment(asset_registry)
+        storage = asset_registry.asset_storage
+        self.deposit(storage)
+        db.session.commit()
+
+    def _register(self, asset_registry=None):
+        super()._register(asset_registry)
+        self.deposit(asset_registry.asset_storage)
+
     def deposit(self, asset_storage=None):
         if not asset_storage:
             asset_storage = import_local_experiment()["class"].assets.asset_storage
 
-        if self.key is None:
-            self.key = self.generate_key()
-
         self.deployment_id = asset_storage.deployment_id
         self.host_path = self.generate_host_path(self.deployment_id)
-        self.md5 = self.get_md5()
+
         self.ensure_deposited(asset_storage, self.host_path)
         self.deposited = True
         self.url = asset_storage.get_url(self.host_path)
@@ -237,6 +288,9 @@ class ManagedAsset(Asset):
 
     def ensure_deposited(self, asset_storage, host_path):
         raise NotImplementedError
+
+    def get_comparison_key(self):
+        return self.get_md5()
 
     def _deposit(self, asset_storage, host_path):
         time_start = time.perf_counter()
@@ -280,13 +334,6 @@ class ManagedAsset(Asset):
 
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
-
-    def prepare_for_deployment(self, asset_registry):
-        """Runs in advance of the experiment being deployed to the remote server."""
-        super().prepare_for_deployment(asset_registry)
-        storage = asset_registry.asset_storage
-        self.deposit(storage)
-        db.session.commit()
 
     @staticmethod
     def generate_uuid():
@@ -393,6 +440,12 @@ class ExternalAsset(Asset):
 
     def get_extension(self):
         return get_extension(self.url)
+
+    def get_comparison_key(self):
+        return self.url
+
+    def _register(self, asset_registry):
+        pass
 
 
 class AssetStorage:
@@ -525,8 +578,7 @@ class AssetRegistry:
             delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
             for a in self._staged_asset_specifications
         )
-        # for a in self._staged_asset_specifications:
-        #     a.prepare_for_deployment(asset_registry=self)
+
         db.session.commit()
         self.save_initial_asset_manifesto()
 
