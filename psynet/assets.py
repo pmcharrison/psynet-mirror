@@ -187,11 +187,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
         self.register_and_deposit(asset_registry)
+        db.session.commit()
 
     def register_and_deposit(self, asset_registry, replace=None):
         if replace is None:
             replace = self.replace_existing
         registered_asset = self.register(asset_registry, replace)
+
         registered_asset.deposit(asset_registry.asset_storage, replace)
 
     def register(self, asset_registry, replace=False):
@@ -206,8 +208,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             if duplicate:
                 try:
                     self.assert_identifiers_are_consistent(self, duplicate)
-                    return duplicate
-                except self.InconsistentIdentifiersError:
+                    self.assert_content_ids_match(
+                        self, duplicate
+                    )  # but what if you don't have content yet!
+                except (
+                    self.InconsistentIdentifiersError,
+                    self.InconsistentContentError,
+                ):
                     if replace:
                         duplicate.delete()
                     else:
@@ -275,15 +282,16 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     class InconsistentContentError(AssertionError):
         pass
 
-    def assert_content_is_consistent_with_metadata(self):
-        assert self.deposited
-        old = self.content_id
-        new = self.get_content_id()
+    @classmethod
+    def assert_content_ids_match(cls, new, old):
+        _new = new.get_content_id()
+        _old = old.content_id
+
         if old != new:
-            raise self.InconsistentContentError(
-                f"Initiated a new deposit for pre-existing asset ({old.key}), "
+            raise cls.InconsistentContentError(
+                f"Initiated a new deposit for pre-existing asset ({new.key}), "
                 "but replace=False and the content IDs did not match "
-                f"(old: {old}, new: {new}), implying that their content differs."
+                f"(old: {_old}, new: {_new}), implying that their content differs."
             )
 
     def get_content_id(self):
@@ -309,6 +317,9 @@ class MockAsset(Asset):
     @property
     def url(self):
         return "The asset database has not yet loaded, so here's a placeholder URL."
+
+    def get_extension(self):
+        return ""
 
 
 class DuplicateKeyError(KeyError):
@@ -375,13 +386,6 @@ class ManagedAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def prepare_for_deployment(self, asset_registry):
-        """Runs in advance of the experiment being deployed to the remote server."""
-        super().prepare_for_deployment(asset_registry)
-        storage = asset_registry.asset_storage
-        self.deposit(storage)
-        db.session.commit()
-
     def _register(self, asset_registry=None):
         super()._register(asset_registry)
         self.host_path = self.generate_host_path(self.deployment_id)
@@ -389,12 +393,6 @@ class ManagedAsset(Asset):
 
     def deposit_if_not_already_deposited(self, asset_storage, host_path):
         raise NotImplementedError
-
-    def assert_content_is_consistent_with_metadata(self):
-        """
-        This checks for the case where the user performs a duplicate deposit
-        and the content changes for the second deposit.
-        """
 
     def get_comparison_key(self):
         return self.get_md5()
@@ -550,9 +548,6 @@ class ExternalAsset(Asset):
 
     def get_extension(self):
         return get_extension(self.url)
-
-    def get_comparison_key(self):
-        return self.url
 
     def _register(self, asset_registry):
         pass
