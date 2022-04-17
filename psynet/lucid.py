@@ -4,6 +4,8 @@ from datetime import datetime
 import requests
 from dallinger.db import session
 
+from psynet.participant import Participant
+
 from .utils import get_logger
 
 logger = get_logger()
@@ -197,20 +199,35 @@ class LucidService(object):
             and (datetime.now() - rid.creation_time).seconds > 300
         )
 
-    def terminate_respondent(self, rid, participant_rids):
-        if self.can_be_terminated(rid, participant_rids):
-            self.log(f"Terminating respondent with RID '{rid.rid}'...")
-            redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
-            redirect_url += f"{rid.rid}&hash={self.sha1_hash(redirect_url)}"
-            response = requests.get(redirect_url)
-            if response.status_code == 200:
-                rid.terminated_at = datetime.now()
-                session.commit()
-                self.log(f"Respondent terminated using redirect URL '{redirect_url}'.")
-            else:
-                self.log(
-                    f"Error terminating respondent using redirect URL '{redirect_url}'."
-                )
+    def terminate_invalid_respondents(self):
+        from psynet.recruiters import RID
+
+        for rid in RID.query.all():
+            participant_rids = [
+                participant.entry_information.get("worker_id")
+                for participant in Participant.query.all()
+            ]
+
+            if self.can_be_terminated(rid, participant_rids):
+                self.log(f"Terminating respondent with RID '{rid.rid}'...")
+                redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
+                redirect_url += f"{rid.rid}&hash={self.sha1_hash(redirect_url)}"
+                response = requests.get(redirect_url)
+                if response.status_code == 200:
+                    rid.terminated_at = datetime.now()
+                    session.commit()
+                    self.log(
+                        f"Respondent terminated using redirect URL '{redirect_url}'."
+                    )
+                else:
+                    self.log(
+                        f"Error terminating respondent using redirect URL '{redirect_url}':"
+                    )
+                    self.log(response.text)
+                    self.log(response.__dict__)
+                import time
+
+                time.sleep(1)
 
     def sha1_hash(self, url):
         import base64

@@ -1,3 +1,6 @@
+import json
+
+from dallinger.config import get_config
 from flask import Markup
 
 import psynet.experiment
@@ -53,28 +56,13 @@ class Exp(psynet.experiment.Experiment):
 
     from dallinger.experiment import scheduled_task
 
-    @scheduled_task("interval", minutes=0.1, max_instances=1)
+    @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
-    def check_pending_participant():
-        import json
-
-        from dallinger.config import get_config
-
-        from psynet.participant import Participant
-        from psynet.recruiters import RID
-
+    def terminate_invalid_respondents():
         config = get_config()
-        lucidservice = LucidService(
+        LucidService(
             api_key=config.get("lucid_api_key"),
             sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
             sandbox=config.get("mode") != "live",
             recruitment_config=json.loads(config.get("lucid_recruitment_config")),
-        )
-
-        participant_rids = [
-            participant.entry_information.get("worker_id")
-            for participant in Participant.query.all()
-        ]
-
-        for rid in RID.query.all():
-            lucidservice.terminate_respondent(rid, participant_rids)
+        ).terminate_invalid_respondents()

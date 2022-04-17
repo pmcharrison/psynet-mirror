@@ -186,7 +186,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         url = survey_info["ClientSurveyLiveURL"]
         self.lucidservice.log("Done creating project and survey.")
         logger.info("----------")
-        logger.info("---------->" + url.replace("https", "http"))
+        logger.info("---------> " + url.replace("https", "http"))
         logger.info("----------")
 
         survey_id = self.current_survey_number()
