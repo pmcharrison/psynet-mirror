@@ -10,7 +10,7 @@ import re
 import sys
 import time
 from datetime import datetime
-from functools import reduce, wraps
+from functools import cache, reduce, wraps
 from pathlib import Path
 from typing import Union
 from urllib.parse import ParseResult, urlparse
@@ -578,3 +578,7 @@ def run_subprocess_with_live_output(command):
 def get_extension(path):
     _, extension = os.path.splitext(path)
     return extension
+
+
+def cached_class_property(f):
+    return classmethod(property(cache(f)))

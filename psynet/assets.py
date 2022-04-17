@@ -6,7 +6,6 @@ import uuid
 from functools import cached_property, lru_cache
 from typing import Optional
 
-import requests
 import sqlalchemy
 from dallinger import db
 from dallinger.data import copy_db_to_csv
@@ -17,7 +16,13 @@ from sqlalchemy.orm import relationship
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, import_csv_to_db, register_table
 from .timeline import NullElt
-from .utils import get_extension, import_local_experiment, md5_directory, md5_file
+from .utils import (
+    cached_class_property,
+    get_extension,
+    import_local_experiment,
+    md5_directory,
+    md5_file,
+)
 
 
 class AssetType:
@@ -47,6 +52,9 @@ class Audio(File):
 
 
 class AssetSpecification:
+    def __init__(self, key):
+        self.key = key
+
     def prepare_for_deployment(self, asset_registry):
         raise NotImplementedError
 
@@ -57,8 +65,9 @@ class AssetCollection(AssetSpecification):
 
 class InheritedAssets(AssetCollection):
     def __init__(self, path, key: str):
+        super().__init__(key)
+
         self.path = path
-        self.key = key
 
     def prepare_for_deployment(self, asset_registry):
         self.ingest_specification_to_db()
@@ -77,7 +86,7 @@ class InheritedAssets(AssetCollection):
 
 
 @register_table
-class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
+class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
@@ -91,15 +100,18 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
 
     psynet_version = Column(String)
     deployment_id = Column(String)
+    registered = Column(Boolean)
+    deposited = Column(Boolean)
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
-    md5 = Column(String)
+    content_id = Column(String)
     host_path = Column(String)
     url = Column(String)
     type = Column(String)
     extension = Column(String)
     description = Column(String)
+    num_skipped_registrations = Column(Integer, default=0)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship("psynet.participant.Participant", backref="assets")
@@ -119,8 +131,10 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
 
     def __init__(
         self,
+        key=None,
         type_="file",
         extension=None,
+        replace_existing=False,
         description=None,
         participant_id=None,
         trial_maker_id=None,
@@ -129,7 +143,10 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
         trial_id=None,
         variables: Optional[dict] = None,
     ):
+        super().__init__(key)
         self.psynet_version = psynet_version
+        self.registered = False
+        self.replace_existing = replace_existing
         self.type = type_
         self._type = self.types[type_]
         self.extension = extension if extension else self.get_extension()
@@ -150,49 +167,142 @@ class Asset(SQLBase, SQLMixin, AssetSpecification, NullElt):
         audio=Audio,
     )
 
+    @property
+    def identifiers(self):
+        attr = [
+            "key",
+            "type",
+            "extension",
+            "participant_id",
+            "trial_maker_id",
+            "network_id",
+            "node_id",
+            "trial_id",
+        ]
+        return {a: getattr(self, a) for a in attr}
+
     def get_extension(self):
         raise NotImplementedError
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.register(asset_registry)
+        self.register_and_deposit(asset_registry)
 
-    def register(self, asset_registry):
-        """Registers the asset as long as no duplicates are found."""
+    def register_and_deposit(self, asset_registry, replace=None):
+        if replace is None:
+            replace = self.replace_existing
+        registered_asset = self.register(asset_registry, replace)
+        registered_asset.deposit(asset_registry.asset_storage, replace)
+
+    def register(self, asset_registry, replace=False):
+        """Registers the asset but does not deposit it yet."""
         self.deployment_id = asset_registry.deployment_id
 
         if self.key is None:
             self.key = self.generate_key()
 
         duplicate = self.find_duplicate()
-        if duplicate:
-            if duplicate.get_comparison_key() == self.get_comparison_key():
-                pass
-            else:
-                raise DuplicateKeyError(self, duplicate)
-        else:
+        try:
+            if duplicate:
+                try:
+                    self.assert_identifiers_are_consistent(self, duplicate)
+                    return duplicate
+                except self.InconsistentIdentifiersError:
+                    if replace:
+                        duplicate.delete()
+                    else:
+                        raise
             self._register(asset_registry)
+            self.registered = True
             db.session.add(self)
+            return self
+        finally:
             db.session.commit()
 
     def _register(self, asset_registry):
         """Performs the actual registration, confident that no duplicates exist."""
-        raise NotImplementedError
+        pass
+
+    def deposit(self, asset_storage=None, replace=None):
+        if not asset_storage:
+            asset_storage = self.default_asset_storage
+
+        if replace is None:
+            replace = self.replace_existing
+
+        if not self.registered:
+            self.register(self.asset_registry, replace)
+
+        if self.deposited:
+            try:
+                self.assert_content_is_consistent_with_metadata()
+                return
+            except self.InconsistentContentError:
+                if replace:
+                    pass
+                else:
+                    raise
+
+        self.content_id = self.get_content_id()
+        self._deposit(asset_storage)
+        self.deposited = True
+
+        db.session.add(self)
+        db.session.commit()
+
+    def _deposit(self, asset_storage):
+        """Performs the actual deposit, confident that no duplicates exist."""
+        pass
 
     def find_duplicate(self):
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
         return Asset.query.filter_by(key=self.key).one_or_none()
 
-    def read_text(self):
-        response = requests.get(self.url)
-        return response.text
+    class InconsistentIdentifiersError(AssertionError):
+        pass
+
+    @classmethod
+    def assert_identifiers_are_consistent(cls, old, new):
+        _old = old.identifiers
+        _new = new.identifiers
+        if _old != _new:
+            raise cls.InconsistentIdentifiersError(
+                f"Tried to add duplicate assets with the same key ({old.key}, "
+                "but they had inconsistent identifiers.\n"
+                f"Old asset: {old.identifiers}\n"
+                f"New asset: {new.identifiers}"
+            )
+
+    class InconsistentContentError(AssertionError):
+        pass
+
+    def assert_content_is_consistent_with_metadata(self):
+        assert self.deposited
+        old = self.content_id
+        new = self.get_content_id()
+        if old != new:
+            raise self.InconsistentContentError(
+                f"Initiated a new deposit for pre-existing asset ({old.key}), "
+                "but replace=False and the content IDs did not match "
+                f"(old: {old}, new: {new}), implying that their content differs."
+            )
+
+    def get_content_id(self):
+        raise NotImplementedError
 
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError
+
+    @cached_class_property
+    def experiment_class(cls):  # noqa
+        return import_local_experiment()["class"]
+
+    @cached_class_property
+    def asset_registry(cls):  # noqa
+        return cls.experiment_class.assets
+
+    @cached_class_property
+    def default_asset_storage(cls):  # noqa
+        return cls.asset_registry.asset_storage
 
 
 class MockAsset(Asset):
@@ -208,7 +318,7 @@ class DuplicateKeyError(KeyError):
         comparison_key_1 = obj1.get_comparison_key()
         comparison_key_2 = obj2.get_comparison_key()
         message = (
-            f"Tried to deposit an asset with a key of {self.key}, "
+            f"Tried to deposit an asset with a key of {obj1.key}, "
             "but there already exists such an asset in the database, "
             "and their contents do not match "
             f"('{comparison_key_1}' != '{comparison_key_2}')."
@@ -220,7 +330,7 @@ class ManagedAsset(Asset):
     input_path = Column(String)
     autogenerate_key = Column(Boolean)
     obfuscate = Column(Integer)
-    deposited = Column(Boolean)
+    md5 = Column(String)
     size_mb = Column(Float)
     deposit_time_sec = Column(Float)
 
@@ -230,6 +340,7 @@ class ManagedAsset(Asset):
         key=None,
         type_="file",
         extension=None,
+        replace_existing=False,
         description=None,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
         participant_id=None,
@@ -243,8 +354,10 @@ class ManagedAsset(Asset):
         self.input_path = input_path
         self.obfuscate = obfuscate
         super().__init__(
+            key,
             type_,
             extension,
+            replace_existing,
             description,
             participant_id,
             trial_maker_id,
@@ -254,9 +367,10 @@ class ManagedAsset(Asset):
             variables,
         )
         self.size_mb = self.get_size_mb()
-
-        self.key = key
         self.autogenerate_key = key is None
+
+    def get_content_id(self):
+        return self.get_md5()
 
     def get_extension(self):
         return get_extension(self.input_path)
@@ -270,31 +384,26 @@ class ManagedAsset(Asset):
 
     def _register(self, asset_registry=None):
         super()._register(asset_registry)
-        self.deposit(asset_registry.asset_storage)
-
-    def deposit(self, asset_storage=None):
-        if not asset_storage:
-            asset_storage = import_local_experiment()["class"].assets.asset_storage
-
-        self.deployment_id = asset_storage.deployment_id
         self.host_path = self.generate_host_path(self.deployment_id)
+        self.url = asset_registry.asset_storage.get_url(self.host_path)
 
-        self.ensure_deposited(asset_storage, self.host_path)
-        self.deposited = True
-        self.url = asset_storage.get_url(self.host_path)
-
-        db.session.add(self)
-        db.session.commit()
-
-    def ensure_deposited(self, asset_storage, host_path):
+    def deposit_if_not_already_deposited(self, asset_storage, host_path):
         raise NotImplementedError
+
+    def assert_content_is_consistent_with_metadata(self):
+        """
+        This checks for the case where the user performs a duplicate deposit
+        and the content changes for the second deposit.
+        """
 
     def get_comparison_key(self):
         return self.get_md5()
 
-    def _deposit(self, asset_storage, host_path):
+    def _deposit(self, asset_storage):
+        self.md5 = self.get_md5()
+
         time_start = time.perf_counter()
-        asset_storage.receive_deposit(self, host_path)
+        self._deposit_(asset_storage, self.host_path)
         time_end = time.perf_counter()
 
         self.deposit_time_sec = time_end - time_start
@@ -342,13 +451,12 @@ class ManagedAsset(Asset):
     @lru_cache()
     def get_md5(self):
         f = md5_directory if self.type == "folder" else md5_file
-        self.md5 = f(self.input_path)
-        return self.md5
+        return f(self.input_path)
 
 
 class ExperimentAsset(ManagedAsset):
-    def ensure_deposited(self, asset_storage, host_path):
-        self._deposit(asset_storage, host_path)
+    def _deposit_(self, asset_storage, host_path):
+        asset_storage.receive_deposit(self, host_path)
 
     def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
@@ -402,12 +510,12 @@ class CachedAsset(ManagedAsset):
     def generate_dir(self):
         return os.path.join(super().generate_dir(), self.compute_hash())
 
-    def ensure_deposited(self, asset_storage, host_path):
+    def _deposit_(self, asset_storage, host_path):
         if asset_storage.asset_exists(host_path, type_=self.type):
             self.used_cache = True
         else:
             self.used_cache = False
-            self._deposit(asset_storage, host_path)
+            asset_storage.receive_deposit(self, host_path)
 
 
 class ExternalAsset(Asset):
@@ -416,6 +524,7 @@ class ExternalAsset(Asset):
         url,
         key,
         type_="file",
+        replace_existing=False,
         description=None,
         participant_id=None,
         trial_maker_id=None,
@@ -426,9 +535,10 @@ class ExternalAsset(Asset):
     ):
         self.host_path = url
         self.url = url
-        self.key = key
         super().__init__(
+            key,
             type_,
+            replace_existing,
             description,
             participant_id,
             trial_maker_id,
@@ -446,6 +556,19 @@ class ExternalAsset(Asset):
 
     def _register(self, asset_registry):
         pass
+
+    def _deposit(self, asset_storage):
+        pass
+
+    @property
+    def identifiers(self):
+        return {
+            **super().identifiers,
+            "url": self.url,
+        }
+
+    def get_content_id(self):
+        return self.url
 
 
 class AssetStorage:
@@ -514,8 +637,8 @@ class LocalStorage(AssetStorage):
 
 class S3Storage(AssetStorage):
     def receive_deposit(self, asset, host_path):
+        super().receive_deposit(asset, host_path)
         raise NotImplementedError
-        return super().receive_deposit(asset, host_path)
 
     def get_url(self, host_path):
         raise NotImplementedError
