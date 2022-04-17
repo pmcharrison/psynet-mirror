@@ -94,6 +94,7 @@ def reset_console():
         subprocess.call("read NULL", timeout=1.0, shell=True)
     except subprocess.TimeoutExpired:
         pass
+    subprocess.call("stty sane", shell=True)
 
 
 ###########
@@ -736,7 +737,11 @@ def verify_experiment_id(ctx, param, app):
     help="Experiment id",
 )
 @click.option("--local", is_flag=True, help="Export local data")
-def export(app, local):
+@click.option("--assets", is_flag=True, help="Additionally export assets")
+@click.option(
+    "--n_parallel", default=8, help="Number of parallel jobs for exporting assets"
+)
+def export(app, local, assets, n_parallel):
     """
     Export data from an experiment.
 
@@ -756,10 +761,10 @@ def export(app, local):
     json:
         Contains the experiment data in JSON format.
     """
-    export_(app, local)
+    export_(app, local, include_assets=assets, n_parallel=n_parallel)
 
 
-def export_(app, local, include_assets):
+def export_(app, local, include_assets, n_parallel):
     log(header)
     import_local_experiment()
 
@@ -794,7 +799,7 @@ def export_(app, local, include_assets):
 
     if include_assets:
         log("Exporting assets...")
-        export_assets(os.path.join(data_dir_path, "assets"))
+        export_assets(os.path.join(data_dir_path, "assets"), n_parallel)
 
     log("Export completed.")
 

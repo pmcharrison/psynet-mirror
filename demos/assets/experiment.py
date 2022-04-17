@@ -26,10 +26,10 @@ Exp.assets.asset_storage = LocalStorage(root="/Users/peter/psynet-storage")
 
 Exp.assets.stage(
     ExternalAsset(
-        url="https://via.placeholder.com/150",
-        key="placeholder_image.png",
-        description="A placeholder image for your website",
-        variables=dict(dimensions="150x150"),
+        url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
+        key="psynet-logo.svg",
+        description="The PsyNet logo",
+        variables=dict(dimensions="150x150"),  # broken for some reason
     ),
     ExternalS3Asset(
         key="headphone_check/stimulus-1.wav",
@@ -63,7 +63,6 @@ Exp.assets.stage(
     ),
     InheritedAssets("inherited_assets.csv", key="previous_experiment")
     # TODO - implement export (this should use the key column)
-    # TODO - implement S3 support
     # TODO - tests
     # TODO - apply this to static experiments
     # TODO - apply this to audio recording etc

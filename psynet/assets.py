@@ -300,7 +300,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         return cls.asset_registry.asset_storage
 
     def export(self, root):
-        self.asset_storage.export(self)
+        try:
+            self.asset_storage.export(self, root)
+        except Exception:
+            from .command_line import log
+
+            log(f"Failed to export the following asset: {self.key}")
+            raise
 
 
 class MockAsset(Asset):
@@ -498,8 +504,11 @@ class CachedAsset(ManagedAsset):
 
         return host_path
 
-    def generate_dir(self):
-        return os.path.join(super().generate_dir(), self.compute_hash())
+    def generate_dir(self, obfuscate, participant_id, trial_maker_id):
+        return os.path.join(
+            super().generate_dir(obfuscate, participant_id, trial_maker_id),
+            self.compute_hash(),
+        )
 
     def _deposit_(self, asset_storage, host_path):
         if asset_storage.asset_exists(host_path, type_=self.type):
@@ -515,6 +524,7 @@ class ExternalAsset(Asset):
         url,
         key,
         type_="file",
+        extension=None,
         replace_existing=False,
         description=None,
         participant_id=None,
@@ -529,6 +539,7 @@ class ExternalAsset(Asset):
         super().__init__(
             key,
             type_,
+            extension,
             replace_existing,
             description,
             participant_id,
@@ -557,7 +568,7 @@ class ExternalAsset(Asset):
 
     @cached_class_property
     def default_asset_storage(cls):  # noqa
-        return WebStorage
+        return WebStorage()
 
 
 class ExternalS3Asset(ExternalAsset):
@@ -661,10 +672,8 @@ class WebStorage(AssetStorage):
 
     def export_file(self, asset, root):
         target = os.path.join(root, asset.key)
+        breakpoint()
         urllib.request.urlretrieve(asset.url, target)
-
-
-WebStorage()
 
 
 class NoStorage(AssetStorage):
@@ -724,7 +733,8 @@ class S3Storage(AssetStorage):
     def receive_deposit(self, asset, host_path):
         super().receive_deposit(asset, host_path)
 
-        self.upload(asset.input_path, os.path.join(self.root, host_path))
+        recursive = asset.type == "folder"
+        self.upload(asset.input_path, os.path.join(self.root, host_path), recursive)
 
         return dict(
             url=self.get_url(host_path),
@@ -740,7 +750,7 @@ class S3Storage(AssetStorage):
         if type_ == "folder":
             return self.folder_exists(s3_key)
         else:
-            return self.file_exists(os.s3_key)
+            return self.file_exists(s3_key)
 
     @cached_property
     def boto3_session(self):
@@ -788,7 +798,7 @@ class S3Storage(AssetStorage):
 
         if bucket != self.s3_bucket:
             raise ValueError(
-                f"The provided URL ({url}) seems inconsistent with the provided S3 bucket name ({self.bucket})."
+                f"The provided URL ({url}) seems inconsistent with the provided S3 bucket name ({self.s3_bucket})."
             )
 
         target = os.path.join(root, asset.key)
