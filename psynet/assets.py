@@ -100,7 +100,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
     psynet_version = Column(String)
     deployment_id = Column(String)
-    registered = Column(Boolean)
     deposited = Column(Boolean)
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
@@ -111,7 +110,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     type = Column(String)
     extension = Column(String)
     description = Column(String)
-    num_skipped_registrations = Column(Integer, default=0)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship("psynet.participant.Participant", backref="assets")
@@ -145,7 +143,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     ):
         super().__init__(key)
         self.psynet_version = psynet_version
-        self.registered = False
         self.replace_existing = replace_existing
         self.type = type_
         self._type = self.types[type_]
@@ -186,76 +183,47 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.register_and_deposit(asset_registry)
+        self.deposit(asset_registry.asset_storage)
         db.session.commit()
-
-    def register_and_deposit(self, asset_registry, replace=None):
-        if replace is None:
-            replace = self.replace_existing
-        registered_asset = self.register(asset_registry, replace)
-
-        registered_asset.deposit(asset_registry.asset_storage, replace)
-
-    def register(self, asset_registry, replace=False):
-        """Registers the asset but does not deposit it yet."""
-        self.deployment_id = asset_registry.deployment_id
-
-        if self.key is None:
-            self.key = self.generate_key()
-
-        duplicate = self.find_duplicate()
-        try:
-            if duplicate:
-                try:
-                    self.assert_identifiers_are_consistent(self, duplicate)
-                    self.assert_content_ids_match(
-                        self, duplicate
-                    )  # but what if you don't have content yet!
-                except (
-                    self.InconsistentIdentifiersError,
-                    self.InconsistentContentError,
-                ):
-                    if replace:
-                        duplicate.delete()
-                    else:
-                        raise
-            self._register(asset_registry)
-            self.registered = True
-            db.session.add(self)
-            return self
-        finally:
-            db.session.commit()
-
-    def _register(self, asset_registry):
-        """Performs the actual registration, confident that no duplicates exist."""
-        pass
 
     def deposit(self, asset_storage=None, replace=None):
-        if not asset_storage:
-            asset_storage = self.default_asset_storage
+        try:
+            if replace is None:
+                replace = self.replace_existing
 
-        if replace is None:
-            replace = self.replace_existing
+            if asset_storage is None:
+                asset_storage = self.default_asset_storage
 
-        if not self.registered:
-            self.register(self.asset_registry, replace)
+            self.deployment_id = self.asset_registry.deployment_id
+            self.content_id = self.get_content_id()
 
-        if self.deposited:
-            try:
-                self.assert_content_is_consistent_with_metadata()
-                return
-            except self.InconsistentContentError:
-                if replace:
-                    pass
-                else:
-                    raise
+            if self.key is None:
+                self.key = self.generate_key()
 
-        self.content_id = self.get_content_id()
-        self._deposit(asset_storage)
-        self.deposited = True
+            asset_to_use = self
+            duplicate = self.find_duplicate()
 
-        db.session.add(self)
-        db.session.commit()
+            if duplicate:
+                try:
+                    self.assert_assets_are_equivalent(self, duplicate)
+                    asset_to_use = duplicate
+                except self.InconsistentAssetsError:
+                    if replace:
+                        db.session.delete(duplicate)
+                        asset_to_use = self
+                    else:
+                        raise
+
+            if asset_to_use == self:
+                db.session.add(self)
+
+                self._deposit(asset_storage)
+                self.deposited = True
+
+            return asset_to_use
+
+        finally:
+            db.session.commit()
 
     def _deposit(self, asset_storage):
         """Performs the actual deposit, confident that no duplicates exist."""
@@ -264,28 +232,36 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def find_duplicate(self):
         return Asset.query.filter_by(key=self.key).one_or_none()
 
-    class InconsistentIdentifiersError(AssertionError):
+    class InconsistentAssetsError(AssertionError):
+        pass
+
+    class InconsistentIdentifiersError(InconsistentAssetsError):
+        pass
+
+    class InconsistentContentError(InconsistentAssetsError):
         pass
 
     @classmethod
-    def assert_identifiers_are_consistent(cls, old, new):
+    def assert_assets_are_equivalent(cls, old, new):
+        cls.assert_identifiers_are_equivalent(old, new)
+        cls.assert_content_ids_are_equivalent(old, new)
+
+    @classmethod
+    def assert_identifiers_are_equivalent(cls, old, new):
         _old = old.identifiers
         _new = new.identifiers
         if _old != _new:
             raise cls.InconsistentIdentifiersError(
                 f"Tried to add duplicate assets with the same key ({old.key}, "
                 "but they had inconsistent identifiers.\n"
-                f"Old asset: {old.identifiers}\n"
-                f"New asset: {new.identifiers}"
+                f"\nOld asset: {old.identifiers}\n"
+                f"\nNew asset: {new.identifiers}"
             )
 
-    class InconsistentContentError(AssertionError):
-        pass
-
     @classmethod
-    def assert_content_ids_match(cls, new, old):
-        _new = new.get_content_id()
+    def assert_content_ids_are_equivalent(cls, old, new):
         _old = old.content_id
+        _new = new.content_id
 
         if old != new:
             raise cls.InconsistentContentError(
@@ -320,21 +296,6 @@ class MockAsset(Asset):
 
     def get_extension(self):
         return ""
-
-
-class DuplicateKeyError(KeyError):
-    """Raised when trying to add two assets with the same key."""
-
-    def __init__(self, obj1, obj2):
-        comparison_key_1 = obj1.get_comparison_key()
-        comparison_key_2 = obj2.get_comparison_key()
-        message = (
-            f"Tried to deposit an asset with a key of {obj1.key}, "
-            "but there already exists such an asset in the database, "
-            "and their contents do not match "
-            f"('{comparison_key_1}' != '{comparison_key_2}')."
-        )
-        super().__init__(message)
 
 
 class ManagedAsset(Asset):
@@ -386,18 +347,10 @@ class ManagedAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def _register(self, asset_registry=None):
-        super()._register(asset_registry)
-        self.host_path = self.generate_host_path(self.deployment_id)
-        self.url = asset_registry.asset_storage.get_url(self.host_path)
-
-    def deposit_if_not_already_deposited(self, asset_storage, host_path):
-        raise NotImplementedError
-
-    def get_comparison_key(self):
-        return self.get_md5()
-
     def _deposit(self, asset_storage):
+        super()._deposit(asset_storage)
+        self.host_path = self.generate_host_path(self.deployment_id)
+        self.url = self.asset_registry.asset_storage.get_url(self.host_path)
         self.md5 = self.get_md5()
 
         time_start = time.perf_counter()
@@ -548,9 +501,6 @@ class ExternalAsset(Asset):
 
     def get_extension(self):
         return get_extension(self.url)
-
-    def _register(self, asset_registry):
-        pass
 
     def _deposit(self, asset_storage):
         pass
