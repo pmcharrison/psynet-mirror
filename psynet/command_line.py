@@ -18,7 +18,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import db_models, drop_all_db_tables, ingest_zip, init_db
+from .data import db_models, drop_all_db_tables, export_assets, ingest_zip, init_db
 from .utils import (
     import_local_experiment,
     json_to_data_frame,
@@ -759,7 +759,7 @@ def export(app, local):
     export_(app, local)
 
 
-def export_(app, local):
+def export_(app, local, include_assets):
     log(header)
     import_local_experiment()
 
@@ -791,6 +791,10 @@ def export_(app, local):
             base_filename = model_name_to_snake_case(model_name)
             print(f"Exporting {base_filename} data...")
             export_data(base_filename, data_dir_path, model_data)
+
+    if include_assets:
+        log("Exporting assets...")
+        export_assets(os.path.join(data_dir_path, "assets"))
 
     log("Export completed.")
 

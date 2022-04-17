@@ -41,6 +41,7 @@ setuptools.setup(
     ],
     extras_require={
         "dev": [
+            "awscli",
             "isort",
             "mock",
             "pre-commit",

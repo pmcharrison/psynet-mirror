@@ -1,11 +1,15 @@
 import os
+import re
 import shutil
 import tempfile
 import time
+import urllib.request
 import uuid
 from functools import cached_property, lru_cache
 from typing import Optional
 
+import boto3
+import jsonpickle
 import sqlalchemy
 from dallinger import db
 from dallinger.data import copy_db_to_csv
@@ -15,6 +19,8 @@ from sqlalchemy.orm import relationship
 
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
+from .field import claim_var
+from .media import get_aws_credentials, run_aws_cli_command
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -77,7 +83,6 @@ class InheritedAssets(AssetCollection):
             ingest_to_model(
                 file,
                 Asset,
-                fix_id_col=False,
                 clear_columns=Asset.foreign_keyed_columns,
                 replace_columns=dict(
                     inherited=True,
@@ -111,6 +116,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     type = Column(String)
     extension = Column(String)
     description = Column(String)
+
+    asset_storage = claim_var(
+        "asset_storage", {}, serialise=jsonpickle.encode, unserialise=jsonpickle.decode
+    )
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship("psynet.participant.Participant", backref="assets")
@@ -184,7 +193,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
     def prepare_for_deployment(self, asset_registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.deposit(asset_registry.asset_storage)
+        self.deposit(self.default_asset_storage)
         db.session.commit()
 
     def deposit(self, asset_storage=None, replace=None):
@@ -194,6 +203,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
             if asset_storage is None:
                 asset_storage = self.default_asset_storage
+            self.asset_storage = asset_storage
 
             self.deployment_id = self.asset_registry.deployment_id
             self.content_id = self.get_content_id()
@@ -218,7 +228,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             if asset_to_use == self:
                 db.session.add(self)
 
-                self._deposit(asset_storage)
+                self._deposit(self.asset_storage)
                 self.deposited = True
 
             return asset_to_use
@@ -288,6 +298,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     @cached_class_property
     def default_asset_storage(cls):  # noqa
         return cls.asset_registry.asset_storage
+
+    def export(self, root):
+        self.asset_storage.export(self)
 
 
 class MockAsset(Asset):
@@ -387,16 +400,13 @@ class ManagedAsset(Asset):
 
     @classmethod
     def generate_dir(cls, obfuscate, participant_id, trial_maker_id):
-        if obfuscate == 2:
-            return "private"
-        else:
-            dir_ = []
-            if participant_id:
-                dir_.append("participants")
-                dir_.append(str(participant_id))
-            if trial_maker_id:
-                dir_.append(str(trial_maker_id))
-            return os.path.join(*dir_)
+        dir_ = []
+        if participant_id:
+            dir_.append("participants")
+            dir_.append(str(participant_id))
+        if trial_maker_id:
+            dir_.append(str(trial_maker_id))
+        return os.path.join(*dir_)
 
     @classmethod
     def generate_filename(
@@ -545,6 +555,64 @@ class ExternalAsset(Asset):
     def get_content_id(self):
         return self.url
 
+    @cached_class_property
+    def default_asset_storage(cls):  # noqa
+        return WebStorage
+
+
+class ExternalS3Asset(ExternalAsset):
+    s3_bucket = Column(String)
+    s3_key = Column(String)
+
+    def __init__(
+        self,
+        key,
+        s3_bucket: str,
+        s3_key: str,
+        type_="file",
+        replace_existing=False,
+        description=None,
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
+        variables: Optional[dict] = None,
+    ):
+        self.s3_bucket = s3_bucket
+        self.s3_key = s3_key
+
+        url = self.generate_url()
+
+        super().__init__(
+            url,
+            key,
+            type_,
+            replace_existing,
+            description,
+            participant_id,
+            trial_maker_id,
+            network_id,
+            node_id,
+            trial_id,
+            variables,
+        )
+
+    def generate_url(self):
+        return f"https://s3.amazonaws.com/{self.s3_bucket}/{self.s3_key}"
+
+    @property
+    def identifiers(self):
+        return {
+            **super().identifiers,
+            "s3_bucket": self.s3_bucket,
+            "s3_key": self.s3_key,
+        }
+
+    @cached_property
+    def default_asset_storage(self):  # noqa
+        return S3Storage(self.s3_bucket, root="")
+
 
 class AssetStorage:
     @cached_property
@@ -560,6 +628,9 @@ class AssetStorage:
     def receive_deposit(self, asset, host_path: str):
         pass
 
+    def export(self, asset, root):
+        raise NotImplementedError
+
     def prepare_for_deployment(self):
         pass
 
@@ -568,6 +639,32 @@ class AssetStorage:
 
     def asset_exists(self, host_path: str, type_: str):
         raise NotImplementedError
+
+
+class WebStorage(AssetStorage):
+    def export(self, asset, root):
+        if asset.type == "folder":
+            self.export_folder(asset, root)
+        else:
+            self.export_file(asset, root)
+
+    def export_folder(self, asset, root):
+        target = os.path.join(root, asset.key)
+        with open(target, "w") as f:
+            f.write(
+                "It is not possible to automatically export ExternalAssets "
+                "with type='folder'. This is because the internet provides "
+                "no standard way to list the contents of a folder hosted "
+                "on an arbitrary web server. You can avoid this issue in the "
+                "future by listing each asset as a separate file."
+            )
+
+    def export_file(self, asset, root):
+        target = os.path.join(root, asset.key)
+        urllib.request.urlretrieve(asset.url, target)
+
+
+WebStorage()
 
 
 class NoStorage(AssetStorage):
@@ -587,14 +684,22 @@ class LocalStorage(AssetStorage):
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
-        if asset.type == "folder":
-            shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
-        else:
-            shutil.copyfile(asset.input_path, file_system_path)
+        self.copy_asset(asset, asset.input_path, file_system_path)
 
         return dict(
             url=os.path.abspath(file_system_path),
         )
+
+    def copy_asset(self, asset, from_, to_):
+        if asset.type == "folder":
+            shutil.copytree(from_, to_, dirs_exist_ok=True)
+        else:
+            shutil.copyfile(from_, to_)
+
+    def export(self, asset, root):
+        from_ = self.get_file_system_path(asset.host_path)
+        to_ = os.path.join(root, asset.key)
+        self.copy_asset(asset, from_, to_)
 
     def get_file_system_path(self, host_path):
         return os.path.join(self.root, host_path)
@@ -611,15 +716,108 @@ class LocalStorage(AssetStorage):
 
 
 class S3Storage(AssetStorage):
+    def __init__(self, s3_bucket, root):
+        super().__init__()
+        self.s3_bucket = s3_bucket
+        self.root = root
+
     def receive_deposit(self, asset, host_path):
         super().receive_deposit(asset, host_path)
-        raise NotImplementedError
 
-    def get_url(self, host_path):
-        raise NotImplementedError
+        self.upload(asset.input_path, os.path.join(self.root, host_path))
+
+        return dict(
+            url=self.get_url(host_path),
+        )
+
+    def get_url(self, host_path: str):
+        return os.path.join(
+            "https://s3.amazonaws.com", self.s3_bucket, self.root, host_path
+        )
 
     def asset_exists(self, host_path: str, type_: str):
-        raise NotImplementedError
+        s3_key = os.path.join(self.root, host_path)
+        if type_ == "folder":
+            return self.folder_exists(s3_key)
+        else:
+            return self.file_exists(os.s3_key)
+
+    @cached_property
+    def boto3_session(self):
+        credentials = get_aws_credentials()
+        return boto3.Session(
+            aws_access_key_id=credentials["aws_access_key_id"],
+            aws_secret_access_key=credentials["aws_secret_access_key"],
+        )
+
+    @cached_property
+    def boto3_s3_resource(self):
+        return self.boto3_session.resource("s3")
+
+    @cached_property
+    def boto3_bucket(self):
+        return self.boto3_s3_resource.Bucket(self.s3_bucket)
+
+    def file_exists(self, s3_key):
+        candidates = self.boto3_bucket.objects.filter(Prefix=s3_key)
+        if any([x.key == s3_key for x in candidates]):
+            return True
+
+    def folder_exists(self, s3_key):
+        return len(self.list_folder(s3_key)) > 0
+
+    def list_folder(self, folder):
+        # cmd = f"aws s3 ls {s3_bucket}/{folder}/"
+        # from subprocess import PIPE
+        # credentials = psynet.media.get_aws_credentials()
+        # cmd = ""
+        # cmd += f"export AWS_ACCESS_KEY_ID={credentials['aws_access_key_id']}; "
+        # cmd += f"export AWS_SECRET_ACCESS_KEY={credentials['aws_secret_access_key']}; "
+        # cmd += f"aws s3 ls {s3_bucket} "
+        # x = subprocess.run(cmd, stdout=PIPE, stderr=PIPE, universal_newlines=True, shell=True)
+        # breakpoint()
+        return [x.key for x in self.boto3_bucket.objects.filter(Prefix="folder" + "/")]
+
+    @cached_property
+    def regex_pattern(self):
+        return re.compile("https://s3.amazonaws.com/(.*)/(.*)")
+
+    def export(self, asset, root):
+        url = asset.url
+        bucket, s3_key = re.match(self.regex_pattern, url)
+
+        if bucket != self.s3_bucket:
+            raise ValueError(
+                f"The provided URL ({url}) seems inconsistent with the provided S3 bucket name ({self.bucket})."
+            )
+
+        target = os.path.join(root, asset.key)
+        recursive = asset.type == "folder"
+        self.download(s3_key, target, recursive=recursive)
+
+    def download(self, s3_key, target_path, recursive):
+        """
+        This function relies on the AWS CLI. You can install it with pip install awscli.
+        """
+        url = f"s3://{self.s3_bucket}/{s3_key}"
+        cmd = f"aws s3 cp {url} {target_path}"
+
+        if recursive:
+            cmd += " --recursive"
+
+        run_aws_cli_command(cmd)
+
+    def upload(self, input_path, s3_key, recursive):
+        """
+        This function relies on the AWS CLI. You can install it with pip install awscli.
+        """
+        url = f"s3://{self.s3_bucket}/{s3_key}"
+        cmd = f"aws s3 cp {input_path} {url}"
+
+        if recursive:
+            cmd += " --recursive"
+
+        run_aws_cli_command(cmd)
 
 
 class AssetRegistry:

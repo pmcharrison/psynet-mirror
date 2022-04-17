@@ -25,6 +25,7 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
+from joblib import Parallel, delayed
 from progress.bar import Bar
 from sqlalchemy import Column, String
 from sqlalchemy.schema import (
@@ -342,3 +343,13 @@ def ingest_zip(path, engine=None):
 
 dallinger.data.ingest_zip = ingest_zip
 dallinger.data.ingest_to_model = ingest_to_model
+
+
+def export_assets(path, n_parallel=8):
+    # Assumes we already have loaded the experiment into the local database,
+    # as would be the case if the function is called from psynet export.
+    from .assets import Asset
+
+    Parallel(n_jobs=n_parallel, verbose=10)(
+        delayed(lambda a: a.export(root=path))(a) for a in Asset.query.all()
+    )

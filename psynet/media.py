@@ -4,6 +4,7 @@ import shutil
 import struct
 import tempfile
 import uuid
+from functools import cache
 from pathlib import Path
 
 import boto3
@@ -12,13 +13,37 @@ import botocore.exceptions
 import parselmouth
 from dallinger.config import get_config
 
-from .utils import get_logger, log_time_taken
+from .utils import get_logger, log_time_taken, run_subprocess_with_live_output
 
 logger = get_logger()
 
 # For debugging, currently only partly implemented
 LOCAL_S3 = False
 LOCAL_S3_CLONE = "local-s3-clone"
+
+
+# These two functions seem unreliable
+# def set_aws_cli_credentials():
+#     credentials = get_aws_credentials()
+#     for key, value in credentials.items():
+#         os.environ[key] = value
+
+# def with_aws_cli_credentials(func):
+#     @wraps(func)
+#     def wrapper(*args, **kwargs):
+#         set_aws_cli_credentials()
+#         return func(*args, **kwargs)
+#
+#     return wrapper
+
+
+def run_aws_cli_command(cmd):
+    credentials = get_aws_credentials()
+    _cmd = ""
+    _cmd += f"export AWS_ACCESS_KEY_ID={credentials['aws_access_key_id']}; "
+    _cmd += f"export AWS_SECRET_ACCESS_KEY={credentials['aws_secret_access_key']}; "
+    _cmd += cmd
+    run_subprocess_with_live_output(_cmd)
 
 
 def make_batch_file(in_files, output_path):
@@ -30,6 +55,7 @@ def make_batch_file(in_files, output_path):
                 output.write(i.read())
 
 
+@cache
 def get_aws_credentials():
     config = get_config()
     if not config.ready:

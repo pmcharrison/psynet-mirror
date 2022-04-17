@@ -7,6 +7,7 @@ from psynet.assets import (
     CachedAsset,
     ExperimentAsset,
     ExternalAsset,
+    ExternalS3Asset,
     InheritedAssets,
     LocalStorage,
 )
@@ -25,35 +26,42 @@ Exp.assets.asset_storage = LocalStorage(root="/Users/peter/psynet-storage")
 
 Exp.assets.stage(
     ExternalAsset(
-        "https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
+        url="https://via.placeholder.com/150",
+        key="placeholder_image.png",
+        description="A placeholder image for your website",
+        variables=dict(dimensions="150x150"),
+    ),
+    ExternalS3Asset(
         key="headphone_check/stimulus-1.wav",
+        s3_bucket="headphone-check",
+        s3_key="antiphase_HC_ISO.wav",
     ),
-    ExternalAsset(
-        "https://s3.amazonaws.com/headphone-check/antiphase_HC_IOS.wav",
+    ExternalS3Asset(
         key="headphone_check/stimulus-2.wav",
+        s3_bucket="headphone-check",
+        s3_key="antiphase_HC_IOS.wav",
     ),
-    ExternalAsset(
-        "https://s3.amazonaws.com/headphone-check/antiphase_HC_SOI.wav",
+    ExternalS3Asset(
         key="headphone_check/stimulus-3.wav",
+        s3_bucket="headphone-check",
+        s3_key="antiphase_HC_SOI.wav",
+    ),
+    ExternalS3Asset(
+        key="headphone_check_folder",
+        s3_bucket="headphone-check",
+        s3_key="",
     ),
     ExperimentAsset(
         "config.txt",
         type_="file",
         key="config_variables.txt",
     ),
-    # ExperimentAsset(
-    #     "requirements.txt",
-    #     type_="file",
-    #     key="config_variables.txt",
-    #     replace_existing=True,
-    # ),
     CachedAsset(
         "bier.wav",
         type_="file",
         key="bier.wav",
     ),
     InheritedAssets("inherited_assets.csv", key="previous_experiment")
-    # TODO - load from zip with custom tables / assets
     # TODO - implement export (this should use the key column)
     # TODO - implement S3 support
     # TODO - tests
