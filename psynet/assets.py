@@ -362,34 +362,63 @@ class ManagedAsset(Asset):
     def get_size_mb(self):
         return self._type.get_file_size_mb(self.input_path)
 
-    def generate_key(self):
-        return self.generate_dir() + self.generate_filename()
+    @classmethod
+    def generate_key(
+        cls,
+        extension="",
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        description=None,
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
+    ):
+        dir_ = cls.generate_dir(obfuscate, participant_id, trial_maker_id)
+        filename = cls.generate_filename(
+            description,
+            network_id,
+            node_id,
+            trial_id,
+            extension,
+        )
+        return os.path.join(dir_, filename)
 
-    def generate_dir(self):
-        if self.obfuscate == 2:
-            return "private/"
+    @classmethod
+    def generate_dir(cls, obfuscate, participant_id, trial_maker_id):
+        if obfuscate == 2:
+            return "private"
         else:
-            dir_ = ""
-            if self.participant_id:
-                dir_ += f"participants/{self.participant_id}/"
-            if self.trial_maker_id:
-                dir_ += f"{self.trial_maker_id}/"
-            return dir_
+            dir_ = []
+            if participant_id:
+                dir_.append("participants")
+                dir_.append(str(participant_id))
+            if trial_maker_id:
+                dir_.append(str(trial_maker_id))
+            return os.path.join(*dir_)
 
-    def generate_filename(self):
+    @classmethod
+    def generate_filename(
+        cls,
+        description,
+        network_id,
+        node_id,
+        trial_id,
+        extension,
+    ):
         filename = ""
         identifiers = []
-        if self.description:
-            identifiers.append(f"{self.description}")
-        if self.network_id:
-            identifiers.append(f"network={self.network_id}")
-        if self.node_id:
-            identifiers.append(f"node={self.node_id}")
-        if self.trial_id:
-            identifiers.append(f"trial={self.trial_id}")
-        identifiers.append(self.generate_uuid())  # ensures uniqueness
+        if description:
+            identifiers.append(f"{description}")
+        if network_id:
+            identifiers.append(f"network={network_id}")
+        if node_id:
+            identifiers.append(f"node={node_id}")
+        if trial_id:
+            identifiers.append(f"trial={trial_id}")
+        identifiers.append(cls.generate_uuid())  # ensures uniqueness
         filename += "__".join(identifiers)
-        filename += self.extension
+        filename += extension
         return filename
 
     def generate_host_path(self, deployment_id: str):

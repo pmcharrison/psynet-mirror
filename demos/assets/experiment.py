@@ -32,12 +32,8 @@ Exp.assets.stage(
         "https://s3.amazonaws.com/headphone-check/antiphase_HC_IOS.wav",
         key="headphone_check/stimulus-2.wav",
     ),
-    ExternalAsset(  # TODO confirm that the URLs are consistent
+    ExternalAsset(
         "https://s3.amazonaws.com/headphone-check/antiphase_HC_SOI.wav",
-        key="headphone_check/stimulus-3.wav",
-    ),
-    ExternalAsset(  # TODO confirm that the URLs are consistent
-        "https://s3.amazonaws.com/headphone-check/antiphase_HC_SOI12334.wav",
         key="headphone_check/stimulus-3.wav",
     ),
     ExperimentAsset(
@@ -57,7 +53,6 @@ Exp.assets.stage(
         key="bier.wav",
     ),
     InheritedAssets("inherited_assets.csv", key="previous_experiment")
-    # TODO - gracefully deal with the situation of the same asset being created twice
     # TODO - load from zip with custom tables / assets
     # TODO - implement export (this should use the key column)
     # TODO - implement S3 support
