@@ -14,7 +14,7 @@ from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from . import __version__ as psynet_version
-from .data import SQLBase, SQLMixin, import_csv_to_db, register_table
+from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -73,16 +73,17 @@ class InheritedAssets(AssetCollection):
         self.ingest_specification_to_db()
 
     def ingest_specification_to_db(self):
-        import_csv_to_db(
-            self.path,
-            Asset,
-            fix_id_col=False,
-            clear_columns=Asset.foreign_keyed_columns,
-            replace_columns=dict(
-                inherited=True,
-                inherited_from=self.key,
-            ),
-        )
+        with open(self.path, "r") as file:
+            ingest_to_model(
+                file,
+                Asset,
+                fix_id_col=False,
+                clear_columns=Asset.foreign_keyed_columns,
+                replace_columns=dict(
+                    inherited=True,
+                    inherited_from=self.key,
+                ),
+            )
 
 
 @register_table
@@ -687,5 +688,5 @@ class AssetRegistry:
             )
 
     def populate_db_with_initial_assets(self):
-        # Asset doesn't have an ID column to fix
-        import_csv_to_db(self.initial_asset_manifesto_path, Asset, fix_id_col=False)
+        with open(self.initial_asset_manifesto_path, "r") as file:
+            ingest_to_model(file, Asset)

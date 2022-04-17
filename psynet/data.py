@@ -1,12 +1,15 @@
 import csv
+import io
 import os
 import tempfile
 from typing import List, Optional
+from zipfile import ZipFile
 
 import dallinger.data
 import dallinger.models
 import pandas
 import postgres_copy
+import six
 import sqlalchemy
 from dallinger import db
 from dallinger.data import fix_autoincrement
@@ -233,10 +236,10 @@ def update_dashboard_models():
     ] + list(extra_models)
 
 
-def import_csv_to_db(
-    path,
+def ingest_to_model(
+    file,
     model,
-    fix_id_col=True,
+    engine=None,
     clear_columns: Optional[List] = None,
     replace_columns: Optional[dict] = None,
 ):
@@ -245,13 +248,11 @@ def import_csv_to_db(
 
     Parameters
     ----------
-    path :
-        Path to csv file.
+    file :
+        CSV file to import (specified as a file handler, created for example by open())
+
     model :
         SQLAlchemy class corresponding to the objects that should be created.
-
-    fix_id_col :
-        Fixes the auto-incrementing counter of the id column.
 
     clear_columns :
         Optional list of columns to clear when importing the CSV file.
@@ -261,23 +262,26 @@ def import_csv_to_db(
         Optional dictionary of values to set for particular columns.
     """
     # Patched version of dallinger.data.ingest_to_model
+    if engine is None:
+        engine = db.engine
+
     if clear_columns or replace_columns:
         with tempfile.TemporaryDirectory() as temp_dir:
             patched_csv = os.path.join(temp_dir, "patched.csv")
-            patch_csv(path, patched_csv, clear_columns, replace_columns)
-            import_csv_to_db(
-                patched_csv, model, fix_id_col, clear_columns=None, replace_columns=None
-            )
+            patch_csv(file, patched_csv, clear_columns, replace_columns)
+            with open(patched_csv, "r") as patched_csv_file:
+                ingest_to_model(
+                    patched_csv_file, model, clear_columns=None, replace_columns=None
+                )
     else:
-        with open(path, "r") as file:
-            engine = db.engine
-            reader = csv.reader(file)
-            columns = tuple('"{}"'.format(n) for n in next(reader))
-            postgres_copy.copy_from(
-                file, model, engine, columns=columns, format="csv", HEADER=False
-            )
-            if fix_id_col:
-                fix_autoincrement(engine, model.__table__.name)
+        inspector = sqlalchemy.inspect(db.engine)
+        reader = csv.reader(file)
+        columns = tuple('"{}"'.format(n) for n in next(reader))
+        postgres_copy.copy_from(
+            file, model, engine, columns=columns, format="csv", HEADER=False
+        )
+        if "id" in inspector.get_columns(model.__table__):
+            fix_autoincrement(engine, model.__table__.name)
 
 
 def patch_csv(infile, outfile, clear_columns, replace_columns):
@@ -289,3 +293,52 @@ def patch_csv(infile, outfile, clear_columns, replace_columns):
         df[col] = value
 
     df.to_csv(outfile, index=False)
+
+
+def ingest_zip(path, engine=None):
+    """
+    Given a path to a zip file created with `export()`, recreate the
+    database with the data stored in the included .csv files.
+    This is a patched version of dallinger.data.ingest_zip that incorporates
+    support for custom tables.
+    """
+
+    if engine is None:
+        engine = db.engine
+
+    inspector = sqlalchemy.inspect(engine)
+    all_table_names = inspector.get_table_names()
+
+    import_order = [
+        "network",
+        "participant",
+        "node",
+        "info",
+        "notification",
+        "question",
+        "transformation",
+        "vector",
+        "transmission",
+    ]
+
+    for n in all_table_names:
+        if n not in import_order:
+            import_order.append(n)
+
+    with ZipFile(path, "r") as archive:
+        filenames = archive.namelist()
+        for name in import_order:
+            filename = f"data/{name}.csv"
+            if filename not in filenames:
+                continue
+
+            model_name = name.capitalize()
+            model = db_models()[model_name]
+            file = archive.open(filename)
+            if six.PY3:
+                file = io.TextIOWrapper(file, encoding="utf8", newline="")
+            ingest_to_model(file, model, engine)
+
+
+dallinger.data.ingest_zip = ingest_zip
+dallinger.data.ingest_to_model = ingest_to_model

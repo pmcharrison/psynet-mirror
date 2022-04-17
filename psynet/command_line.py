@@ -10,6 +10,7 @@ from shutil import rmtree, which
 
 import click
 import psutil
+from dallinger import db
 from dallinger.config import get_config
 from dallinger.version import __version__ as dallinger_version
 from yaspin import yaspin
@@ -17,7 +18,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import db_models, drop_all_db_tables, init_db
+from .data import db_models, drop_all_db_tables, ingest_zip, init_db
 from .utils import (
     import_local_experiment,
     json_to_data_frame,
@@ -141,16 +142,21 @@ def prepare(force):
     default=1,
     help="Number of threads to spawn. Fewer threads means faster start-up time.",
 )
+@click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def debug(ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads):
+def debug(
+    ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads, archive
+):
     """
     Run the experiment locally.
     """
     log(header)
 
     drop_all_db_tables()
-    _run_prepare_in_subprocess(force_prepare)
-    _cleanup_before_debug()
+
+    if archive is None:
+        _run_prepare_in_subprocess(force_prepare)
+        _cleanup_before_debug()
 
     try:
         if legacy:
@@ -217,7 +223,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
         reset_console()
 
 
-def _debug_auto_reload(ctx, bot, proxy, no_browsers, **kwargs):
+def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, **kwargs):
     run_pre_auto_reload_checks()
 
     for var, var_name in [
@@ -228,12 +234,38 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, **kwargs):
         assert (
             not var
         ), f"The option '{var_name}' is not supported in this mode, please add --legacy to your command."
+
     from dallinger.command_line.develop import debug as dallinger_debug
+    from dallinger.deployment import DevelopmentDeployment
+
+    DevelopmentDeployment.archive = archive
 
     try:
         ctx.invoke(dallinger_debug)
     finally:
         reset_console()
+
+
+def patch_dallinger_develop():
+    from dallinger.deployment import DevelopmentDeployment
+
+    old_run = DevelopmentDeployment.run
+
+    def new_run(self):
+        old_run(self)
+        if self.archive:
+            archive_path = os.path.abspath(self.archive)
+            if not os.path.exists(archive_path):
+                raise click.BadParameter(
+                    'Experiment archive "{}" does not exist.'.format(archive_path)
+                )
+            init_db()
+            ingest_zip(archive_path, engine=db.engine)
+
+    DevelopmentDeployment.run = new_run
+
+
+patch_dallinger_develop()
 
 
 def safely_kill_process(p):
