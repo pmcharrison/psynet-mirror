@@ -3,6 +3,7 @@ from datetime import datetime
 
 import requests
 from dallinger.db import session
+from requests.exceptions import ContentDecodingError
 
 from psynet.participant import Participant
 
@@ -190,8 +191,11 @@ class LucidService(object):
 
         return response_data
 
-    def can_be_terminated(self, rid, participant_rids):
-        self.log(f"participant_rids: {participant_rids}")
+    def can_be_terminated(self, rid):
+        participant_rids = [
+            participant.entry_information.get("worker_id")
+            for participant in Participant.query.all()
+        ]
         return (
             rid.rid is not None
             and rid.terminated_at is None
@@ -203,28 +207,30 @@ class LucidService(object):
         from psynet.recruiters import RID
 
         for rid in RID.query.all():
-            participant_rids = [
-                participant.entry_information.get("worker_id")
-                for participant in Participant.query.all()
-            ]
-
-            if self.can_be_terminated(rid, participant_rids):
-                self.log(f"Terminating respondent with RID '{rid.rid}'...")
+            if self.can_be_terminated(rid):
                 redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
                 redirect_url += f"{rid.rid}&hash={self.sha1_hash(redirect_url)}"
-                response = requests.get(redirect_url)
-                if response.status_code == 200:
-                    rid.terminated_at = datetime.now()
-                    session.commit()
+                self.log(
+                    f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
+                )
+                try:
+                    response = requests.get(redirect_url)
+                    if response.status_code == 200:
+                        rid.terminated_at = datetime.now()
+                        session.commit()
+                        self.log(
+                            f"Respondent terminated using redirect URL '{redirect_url}'."
+                        )
+                    else:
+                        self.log(
+                            f"Error terminating respondent using redirect URL '{redirect_url}'."
+                        )
+                        self.log(response.text)
+                        self.log(response.__dict__)
+                except ContentDecodingError as e:
                     self.log(
-                        f"Respondent terminated using redirect URL '{redirect_url}'."
+                        f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
                     )
-                else:
-                    self.log(
-                        f"Error terminating respondent using redirect URL '{redirect_url}':"
-                    )
-                    self.log(response.text)
-                    self.log(response.__dict__)
                 import time
 
                 time.sleep(1)
