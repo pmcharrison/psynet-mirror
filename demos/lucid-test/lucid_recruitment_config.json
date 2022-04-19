@@ -1,18 +1,14 @@
 {
-    "project": {
-        " owner_id": 38490
-    },
     "survey": {
-        "SurveyStatusCode": "01",
-        "SurveyName": "Short tests [~6 min]",
-        "BidLengthOfInterview": 1,
+        "BidIncidence": 60,
         "CollectsPII": false,
         "CountryLanguageID": 9,
+        "FulcrumExchangeAllocation": 0,
+        "FulcrumExchangeHedgeAccess": true,
         "IndustryID": 30,
         "StudyTypeID": 1,
-        "UniquePID": true,
+        "SurveyStatusCode": "01",
         "UniqueIPAddress": true,
-        "FulcrumExchangeAllocation": 0,
-        "FulcrumExchangeHedgeAccess": true
+        "UniquePID": true
     }
 }

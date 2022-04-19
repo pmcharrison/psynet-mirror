@@ -53,11 +53,11 @@ class LucidService(object):
 
     def create_survey(
         self,
-        id,
+        bid_length_of_interview,
+        live_url,
         name,
         quota,
         quota_cpi,
-        live_url,
     ):
         """
         Create a survey and return a dict with its properties.
@@ -66,15 +66,16 @@ class LucidService(object):
         # Create the survey
         # "owner_id": 38490             # TODO: Is this correct? Got from dictionary lookup for users
         # "business_unit_id": 2404,     # TODO: Get business unit id dynamically
-        # "project_manager_id": 38490,  # TODO: Is this correct? Got from dictionary lookup for users
         params = {
-            # "project_id": response_data["id"],
+            "BidLengthOfInterview": bid_length_of_interview,
             "ClientSurveyLiveURL": live_url,
-            "TestRedirectURL": live_url,
             "Quota": quota,
             "QuotaCPI": quota_cpi,
-            "name": name,
+            "SurveyName": name,
+            "TestRedirectURL": live_url,
         }
+
+        # Apply survey configuration from 'lucid_recruitment_config.json'
         request_data = json.dumps({**params, **self.recruitment_config["survey"]})
         response = requests.post(
             f"{self.request_base_url_v1}/Surveys/Create",
@@ -233,9 +234,6 @@ class LucidService(object):
                     self.log(
                         f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
                     )
-                import time
-
-                time.sleep(1)
 
     def sha1_hash(self, url):
         import base64

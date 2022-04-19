@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Short test (~ 6 min.)
+title = Short tests (~ 6 min.)
 base_payment = 0.10
 
 [Recruitment strategy]

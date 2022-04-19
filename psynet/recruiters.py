@@ -1,5 +1,6 @@
 import json
 import os
+from math import ceil
 
 import dallinger.recruiters
 import flask
@@ -7,7 +8,6 @@ import requests
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.db import session
-from dallinger.heroku import tools as heroku_tools
 from dallinger.notifications import admin_notifier, get_mailer
 from dallinger.recruiters import RedisStore
 from dallinger.utils import get_base_url
@@ -163,14 +163,16 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         experiment = dallinger.experiment.load().new(db.session)
         create_survey_request_params = {
-            "id": heroku_tools.app_name(self.config.get("id")),
+            "bid_length_of_interview": ceil(
+                experiment.estimated_completion_time(experiment.var.wage_per_hour) / 60
+            ),
+            "live_url": self.ad_url.replace("http://", "https://"),
             "name": self.config.get("title"),
             "quota": n,
             "quota_cpi": round(
                 experiment.estimated_max_bonus(experiment.var.wage_per_hour),
                 2,
             ),
-            "live_url": self.ad_url.replace("http://", "https://"),
         }
 
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
