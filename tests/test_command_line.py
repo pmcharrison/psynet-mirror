@@ -36,7 +36,10 @@ class TestDebug:
 
         CliRunner().invoke(debug, ["--legacy"], catch_exceptions=False)
 
-        prepare.assert_called_once_with(force=False)
+        # We can no longer run this test for prepare, because it is now called in a subprocess,
+        # so isn't caught by the mock.
+        # prepare.assert_called_once_with(force=False)
+
         dallinger_debug.assert_called_once_with(
             verbose=False,
             bot=False,
@@ -62,7 +65,11 @@ class TestDebug:
             ],
             catch_exceptions=False,
         )
-        prepare.assert_called_once_with(force=True)
+
+        # We can no longer run this test for prepare, because it is now called in a subprocess,
+        # so isn't caught by the mock.
+        # prepare.assert_called_once_with(force=True)
+
         dallinger_debug.assert_called_once_with(
             verbose=True,
             bot=True,
@@ -92,7 +99,11 @@ class TestDeploy:
 
     def test_deploy(self, deploy, prepare, dallinger_deploy):
         CliRunner().invoke(deploy, [], catch_exceptions=False)
-        prepare.assert_called_once_with(force=False)
+
+        # We can no longer run this test for prepare, because it is now called in a subprocess,
+        # so isn't caught by the mock.
+        # prepare.assert_called_once_with(force=False)
+
         dallinger_deploy.assert_called_once_with(verbose=False, app=None, archive=None)
 
     def test_deploy_all_non_default(self, deploy, prepare, dallinger_deploy):
@@ -106,7 +117,11 @@ class TestDeploy:
             ],
             catch_exceptions=False,
         )
-        prepare.assert_called_once_with(force=True)
+
+        # We can no longer run this test for prepare, because it is now called in a subprocess,
+        # so isn't caught by the mock.
+        # prepare.assert_called_once_with(force=True)
+
         dallinger_deploy.assert_called_once_with(
             verbose=True, app="some_app_name", archive="/path/to/some_archive"
         )
@@ -132,7 +147,11 @@ class TestSandbox:
 
     def test_sandbox(self, sandbox, prepare, dallinger_sandbox):
         CliRunner().invoke(sandbox, [], catch_exceptions=False)
-        prepare.assert_called_once_with(force=False)
+
+        # We can no longer run this test for prepare, because it is now called in a subprocess,
+        # so isn't caught by the mock.
+        # prepare.assert_called_once_with(force=False)
+
         dallinger_sandbox.assert_called_once_with(verbose=False, app=None, archive=None)
 
     def test_sandbox_all_non_default(self, sandbox, prepare, dallinger_sandbox):
@@ -146,7 +165,11 @@ class TestSandbox:
             ],
             catch_exceptions=False,
         )
-        prepare.assert_called_once_with(force=True)
+
+        # We can no longer run this test for prepare, because it is now called in a subprocess,
+        # so isn't caught by the mock.
+        # prepare.assert_called_once_with(force=True)
+
         dallinger_sandbox.assert_called_once_with(
             verbose=True, app="some_app_name", archive="/path/to/some_archive"
         )
