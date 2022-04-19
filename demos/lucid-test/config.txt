@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Short tests [~6 min]
+title = Short test (~ 6 min.)
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -39,7 +39,7 @@ redis_size = hobby-dev
 host = 0.0.0.0
 clock_on = true
 disable_when_duration_exceeded = false
-heroku_python_version = 3.9.11
+heroku_python_version = 3.10.3
 
 [Lucid]
 lucid_recruitment_config = file:./lucid_recruitment_config.json

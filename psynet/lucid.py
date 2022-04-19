@@ -200,7 +200,7 @@ class LucidService(object):
             rid.rid is not None
             and rid.terminated_at is None
             and rid.rid not in participant_rids
-            and (datetime.now() - rid.creation_time).seconds > 300
+            and (datetime.now() - rid.creation_time).seconds > 120
         )
 
     def terminate_invalid_respondents(self):
@@ -208,8 +208,10 @@ class LucidService(object):
 
         for rid in RID.query.all():
             if self.can_be_terminated(rid):
-                redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
-                redirect_url += f"{rid.rid}&hash={self.sha1_hash(redirect_url)}"
+                redirect_url = (
+                    f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
+                )
+                redirect_url += f"hash={self.sha1_hash(redirect_url)}"
                 self.log(
                     f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
                 )
