@@ -7,12 +7,17 @@
 import random
 from typing import List, Union
 
+from dallinger import db
 from flask import Markup
+from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.consent import NoConsent
+from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
 from psynet.page import InfoPage, Prompt, SuccessfulEndPage
+from psynet.participant import Participant
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
@@ -181,6 +186,35 @@ trial_maker = CustomTrialMaker(
     num_repeat_trials=3,
 )
 
+###################
+# This code is borrowed from the custom_table_simple demo.
+# It is totally irrelevant for the Gibbs implementation.
+# We just include it so we can test the export functionality
+# in the regression tests.
+
+
+@register_table
+class Coin(SQLBase, SQLMixin):
+    __tablename__ = "coin"
+
+    participant = relationship(Participant, backref="all_coins")
+    participant_id = Column(Integer, ForeignKey("participant.id"))
+
+    def __init__(self, participant):
+        self.participant = participant
+        self.participant_id = participant.id
+
+
+def collect_coin():
+    return CodeBlock(_collect_coin)
+
+
+def _collect_coin(participant):
+    coin = Coin(participant)
+    coin.var.test = "123"
+    db.session.add(coin)
+
+
 ##########################################################################################
 # Experiment
 ##########################################################################################
@@ -204,6 +238,7 @@ class Exp(psynet.experiment.Experiment):
             )
         ),
         trial_maker,
+        collect_coin(),
         SuccessfulEndPage(),
     )
 
