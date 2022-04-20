@@ -1,7 +1,0 @@
-Initial recruitment list:
-https://dlgr-a646e410.134.76.24.59.nip.io/ad?recruiter=lucid-recruiter&RID=[%RID%]
-Additional details:
-Survey live_url updated.
-To display the logs for this experiment you can run:
-ssh cap@cap-experiments.ae.mpg.de docker-compose -f '~/dallinger/dlgr-a646e410/docker-compose.yml' logs -f
-You can now log in to the console at https://dlgr-a646e410.134.76.24.59.nip.io/dashboard as user admin using password 6dfJ7hEqCac
