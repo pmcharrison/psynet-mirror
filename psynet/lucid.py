@@ -199,11 +199,7 @@ class LucidService(object):
             for participant in Participant.query.all()
         ]
 
-        if (
-            rid.rid is None
-            or rid.terminated_at is not None
-            or (datetime.now() - rid.creation_time).seconds <= 120
-        ):
+        if (datetime.now() - rid.creation_time).seconds <= 120:
             return False
 
         if rid.rid not in participant_rids:
@@ -227,7 +223,7 @@ class LucidService(object):
     def terminate_invalid_respondents(self):
         from psynet.recruiters import RID
 
-        for rid in RID.query.all():
+        for rid in RID.query.filter_by(terminated_at=None).all():
             if self.can_be_terminated(rid):
                 redirect_url = (
                     f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
