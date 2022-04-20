@@ -4,6 +4,7 @@ from datetime import datetime
 import requests
 from dallinger.db import session
 from requests.exceptions import ContentDecodingError
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.participant import Participant
 
@@ -197,12 +198,31 @@ class LucidService(object):
             participant.entry_information.get("worker_id")
             for participant in Participant.query.all()
         ]
-        return (
-            rid.rid is not None
-            and rid.terminated_at is None
-            and rid.rid not in participant_rids
-            and (datetime.now() - rid.creation_time).seconds > 120
-        )
+
+        if (
+            rid.rid is None
+            or rid.terminated_at is not None
+            or (datetime.now() - rid.creation_time).seconds <= 120
+        ):
+            return False
+
+        if rid.rid not in participant_rids:
+            return True
+
+        try:
+            participant = Participant.query.filter_by(worker_id=rid.rid).one()
+        except (NoResultFound):
+            raise NoResultFound(
+                f"No participant for RID '{rid}' found. This should never happen."
+            )
+        except (MultipleResultsFound):
+            raise MultipleResultsFound(
+                f"Multiple participants for RID '{rid}' found. This should never happen."
+            )
+        if participant.progress == 0:
+            return True
+
+        return False
 
     def terminate_invalid_respondents(self):
         from psynet.recruiters import RID
