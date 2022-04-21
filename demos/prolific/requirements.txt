@@ -1,2 +1,1 @@
-psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@310_add-new-consents#egg=psynet
--e git://github.com/Dallinger/Dallinger.git@master#egg=dallinger
+psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet@prolific#egg=psynet
