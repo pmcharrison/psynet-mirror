@@ -5,11 +5,10 @@ import tempfile
 import time
 import urllib.request
 import uuid
-from functools import cached_property, lru_cache
+from functools import cache, cached_property
 from typing import Optional
 
 import boto3
-import jsonpickle
 import sqlalchemy
 from dallinger import db
 from dallinger.data import copy_db_to_csv
@@ -19,7 +18,7 @@ from sqlalchemy.orm import relationship
 
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
-from .field import claim_var
+from .field import PythonObject
 from .media import get_aws_credentials, run_aws_cli_command
 from .timeline import NullElt
 from .utils import (
@@ -28,6 +27,7 @@ from .utils import (
     import_local_experiment,
     md5_directory,
     md5_file,
+    md5_object,
 )
 
 
@@ -116,10 +116,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     type = Column(String)
     extension = Column(String)
     description = Column(String)
-
-    asset_storage = claim_var(
-        "asset_storage", {}, serialise=jsonpickle.encode, unserialise=jsonpickle.decode
-    )
+    asset_storage = Column(PythonObject)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship("psynet.participant.Participant", backref="assets")
@@ -322,7 +319,7 @@ class ManagedAsset(Asset):
     input_path = Column(String)
     autogenerate_key = Column(Boolean)
     obfuscate = Column(Integer)
-    md5 = Column(String)
+    md5_contents = Column(String)
     size_mb = Column(Float)
     deposit_time_sec = Column(Float)
 
@@ -358,11 +355,18 @@ class ManagedAsset(Asset):
             trial_id,
             variables,
         )
-        self.size_mb = self.get_size_mb()
         self.autogenerate_key = key is None
 
     def get_content_id(self):
-        return self.get_md5()
+        return self.get_md5_contents()
+
+    def get_md5_contents(self):
+        self._get_md5_contents(self.input_path, self.type)
+
+    @cache
+    def _get_md5_contents(self, path, type_):
+        f = md5_directory if type_ == "folder" else md5_file
+        return f(path)
 
     def get_extension(self):
         return get_extension(self.input_path)
@@ -371,12 +375,13 @@ class ManagedAsset(Asset):
         super()._deposit(asset_storage)
         self.host_path = self.generate_host_path(self.deployment_id)
         self.url = self.asset_registry.asset_storage.get_url(self.host_path)
-        self.md5 = self.get_md5()
 
         time_start = time.perf_counter()
         self._deposit_(asset_storage, self.host_path)
         time_end = time.perf_counter()
 
+        self.size_mb = self.get_size_mb()
+        self.md5_contents = self.get_md5_contents()
         self.deposit_time_sec = time_end - time_start
 
     def get_size_mb(self):
@@ -445,11 +450,6 @@ class ManagedAsset(Asset):
     def generate_uuid():
         return str(uuid.uuid4())
 
-    @lru_cache()
-    def get_md5(self):
-        f = md5_directory if self.type == "folder" else md5_file
-        return f(self.input_path)
-
 
 class ExperimentAsset(ManagedAsset):
     def _deposit_(self, asset_storage, host_path):
@@ -489,15 +489,19 @@ class ExperimentAsset(ManagedAsset):
 class CachedAsset(ManagedAsset):
     used_cache = Column(Boolean)
 
+    @cached_property
+    def cache_key(self):
+        return self.get_md5_contents()
+
     def generate_host_path(self, deployment_id: str):
         key = self.key  # e.g. big-audio-file.wav
-        md5 = self.get_md5()
+        cache_key = self.cache_key
         base, extension = os.path.splitext(key)
 
         if self.obfuscate == 2:
             base = "private"
 
-        host_path = os.path.join("cached", base, md5)
+        host_path = os.path.join("cached", base, cache_key)
 
         if self.type != "folder":
             host_path += extension
@@ -515,7 +519,96 @@ class CachedAsset(ManagedAsset):
             self.used_cache = True
         else:
             self.used_cache = False
-            asset_storage.receive_deposit(self, host_path)
+            self._deposit__(asset_storage, host_path)
+
+    def _deposit__(self, asset_storage, host_path):
+        asset_storage.receive_deposit(self, host_path)
+
+    def retrieve_contents(self):
+        pass
+
+
+class CachedFunctionAsset(CachedAsset):
+    function = Column(PythonObject)
+    arguments = Column(PythonObject)
+    computation_time_sec = Column(Float)
+
+    def __init__(
+        self,
+        function,
+        arguments: dict,
+        extension,
+        key=None,
+        type_="file",
+        replace_existing=False,
+        description=None,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+        participant_id=None,
+        trial_maker_id=None,
+        network_id=None,
+        node_id=None,
+        trial_id=None,
+        variables: Optional[dict] = None,
+    ):
+        self.function = function
+        self.arguments = arguments
+        self.temp_dir = None
+        super().__init__(
+            key=key,
+            input_path=None,
+            type_=type_,
+            extension=extension,
+            replace_existing=replace_existing,
+            description=description,
+            obfuscate=obfuscate,
+            participant_id=participant_id,
+            trial_maker_id=trial_maker_id,
+            network_id=network_id,
+            node_id=node_id,
+            trial_id=trial_id,
+            variables=variables,
+        )
+
+    @property
+    def cache_key(self):
+        return self.get_md5_instructions()
+
+    def get_md5_contents(self):
+        if self.input_path is None:
+            return None
+        else:
+            return super().get_md5_contents()
+
+    def get_size_mb(self):
+        if self.input_path is None:
+            return None
+        else:
+            return super().get_size_mb()
+
+    def get_md5_instructions(self):
+        return md5_object(self.instructions)
+
+    def _deposit__(self, asset_storage, host_path):
+        self.temp_dir = tempfile.TemporaryDirectory()
+        self.input_path = os.path.join(
+            self.temp_dir.name, "cached-function-output" + self.extension
+        )
+
+        time_start = time.perf_counter()
+        self.function(path=self.input_path, **self.arguments)
+        time_end = time.perf_counter()
+
+        self.md5_contents = self.get_md5_contents()
+        self.computation_time_sec = time_end - time_start
+        asset_storage.receive_deposit(self, host_path)
+
+    def __del__(self):
+        if self.temp_dir:
+            self.temp_dir.cleanup()
+
+    @property
+    def instructions(self):
+        return dict(function=self.function, arguments=self.arguments)
 
 
 class ExternalAsset(Asset):

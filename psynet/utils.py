@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Union
 from urllib.parse import ParseResult, urlparse
 
+import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from dallinger.config import config, get_config
@@ -316,10 +317,13 @@ def query_yes_no(question, default="yes"):
             sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
 
 
-def hash_object(x, digits=32):
-    string = json.dumps(x).encode("utf-8")
-    hashed = hashlib.sha256(string)
-    return format_hash(hashed, digits)
+def md5_object(x):
+    string = jsonpickle.encode(x).encode("utf-8")
+    hashed = hashlib.md5(string)
+    return str(hashed.hexdigest())
+
+
+hash_object = md5_object
 
 
 # MD5 hashing code:
@@ -576,8 +580,11 @@ def run_subprocess_with_live_output(command, timeout=None):
 
 
 def get_extension(path):
-    _, extension = os.path.splitext(path)
-    return extension
+    if path:
+        _, extension = os.path.splitext(path)
+        return extension
+    else:
+        return None
 
 
 def cached_class_property(f):

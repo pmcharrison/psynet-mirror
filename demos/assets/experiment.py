@@ -1,10 +1,13 @@
+import random
 import tempfile
+import time
 
 from flask import Markup
 
 import psynet.experiment
 from psynet.assets import (
     CachedAsset,
+    CachedFunctionAsset,
     ExperimentAsset,
     ExternalAsset,
     ExternalS3Asset,
@@ -17,6 +20,13 @@ from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, PageMaker, Timeline
 
 
+def slow_computation(path, n, k):
+    time.sleep(1)
+    x = random.sample(range(n), k)
+    with open(path, "w") as f:
+        f.write(str(x))
+
+
 class Exp(psynet.experiment.Experiment):
     name = "Assets demo"
 
@@ -25,6 +35,12 @@ Exp.assets.asset_storage = LocalStorage(root="/Users/peter/psynet-storage")
 
 
 Exp.assets.stage(
+    CachedFunctionAsset(
+        function=slow_computation,
+        arguments=dict(n=200, k=5),
+        key="slow_computation.txt",
+        extension=".txt",
+    ),
     ExternalAsset(
         url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
         key="psynet-logo.svg",
@@ -62,7 +78,6 @@ Exp.assets.stage(
         key="bier.wav",
     ),
     InheritedAssets("inherited_assets.csv", key="previous_experiment")
-    # TODO - implement export (this should use the key column)
     # TODO - tests
     # TODO - apply this to static experiments
     # TODO - apply this to audio recording etc
