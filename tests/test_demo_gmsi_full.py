@@ -1,4 +1,3 @@
-import os
 import time
 
 import pytest
@@ -7,24 +6,11 @@ from psynet.participant import get_participant
 from psynet.test import bot_class, next_page
 
 PYTEST_BOT_CLASS = bot_class()
+EXPERIMENT = None
 
 
-@pytest.fixture(scope="class")
-def exp_dir(root):
-    os.chdir(os.path.join(os.path.dirname(__file__), "../demos/demography/gmsi"))
-    yield
-    os.chdir(root)
-
-
-@pytest.mark.usefixtures("exp_dir")
+@pytest.mark.usefixtures("demo_gmsi")
 class TestExp(object):
-    @pytest.fixture
-    def demo(self, db_session):
-        from psynet.demos.timeline.experiment import Exp
-
-        instance = Exp(db_session)
-        yield instance
-
     def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver

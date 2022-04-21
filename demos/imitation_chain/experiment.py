@@ -40,6 +40,7 @@ class FixedDigitInputPage(ModularPage):
             control=TextControl(
                 block_copy_paste=True,
             ),
+            time_estimate=time_estimate,
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -66,8 +67,9 @@ class CustomTrial(ImitationChainTrial):
     def show_trial(self, experiment, participant):
         page_1 = InfoPage(
             f"Try to remember this 7-digit number: {self.definition:07d}",
+            time_estimate=2,
         )
-        page_2 = FixedDigitInputPage("number", "What was the number?")
+        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
 
         return [page_1, page_2]
 

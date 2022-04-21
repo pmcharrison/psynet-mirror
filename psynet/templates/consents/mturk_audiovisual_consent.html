@@ -1,8 +1,11 @@
 {% extends "timeline-page.html" %}
 
+{% block stylesheets %}
+    <link rel="stylesheet" href="/static/css/consent.css"/>
+{% endblock %}
+
 {% block main_body %}
-  <div class="main-div" style="padding-bottom: 100px;
-  ">
+  <div class="main-div" style="padding-bottom: 100px;">
     <noscript>
         <h1>Warning: Javascript is not working on your browser</h1>
         <p>The study will not work unless Javascript is enabled on your browser.</p>
@@ -74,12 +77,4 @@
         </button>
       </div>
   </div>
-
-  {% block stylesheets %}
-  <style>
-    .main-div {
-      margin: 0;
-    }
-  </style>
-  {% endblock %}
 {% endblock %}

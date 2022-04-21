@@ -1,5 +1,4 @@
 import logging
-import os
 import time
 
 import pytest
@@ -13,14 +12,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.fixture(scope="class")
-def exp_dir(root):
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/timeline"))
-    yield
-    os.chdir(root)
-
-
-@pytest.mark.usefixtures("exp_dir")
+@pytest.mark.usefixtures("demo_timeline")
 class TestExp:
     def test_variables(self, db_session):
         from psynet.utils import import_local_experiment

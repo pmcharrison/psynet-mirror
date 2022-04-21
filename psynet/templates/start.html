@@ -17,8 +17,11 @@
         dallinger.identity.participantId = "undefined";
         dallinger.createParticipant().done(function(resp) {
             setTimeout(function() {
-                let participantId = dallinger.identity.participantId;
-                dallinger.goToPage("timeline/" + participantId + "/" + dallinger.identity.fingerprintHash);
+                let auth_token = "start";
+                if ("{{ auth_token }}".length > 0) {
+                    auth_token = "{{ auth_token }}";
+                }
+                dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + auth_token);
             }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);

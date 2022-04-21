@@ -6,6 +6,12 @@ import sqlalchemy.exc
 from dallinger.models import Network, Node
 from dallinger.nodes import Source
 
+import psynet.utils
+from psynet.command_line import (
+    kill_chromedriver_processes,
+    kill_psynet_chrome_processes,
+)
+from psynet.data import init_db
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -13,86 +19,100 @@ ACTIVE_EXPERIMENT = None
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 
+def demo_setup(demo):
+    global ACTIVE_EXPERIMENT
+    ACTIVE_EXPERIMENT = demo
+    os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
+    init_db(drop_all=True)
+    kill_psynet_chrome_processes()
+    kill_chromedriver_processes()
+    psynet.utils.import_local_experiment()
+    init_db(drop_all=True)
+
+
+def demo_teardown(root):
+    global ACTIVE_EXPERIMENT
+    ACTIVE_EXPERIMENT = None
+    os.chdir(root)
+    kill_psynet_chrome_processes()
+    kill_chromedriver_processes()
+
+
 @pytest.fixture(scope="class")
 def demo_static(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "static"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/static"))
-    import psynet.utils
-
-    psynet.utils.import_local_experiment()
+    demo_setup("static")
     yield
-    os.chdir(root)
-    ACTIVE_EXPERIMENT = None
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_custom_table_complex(root):
+    demo_setup("custom_table_complex")
+    yield
+    demo_teardown(root)
 
 
 @pytest.fixture(scope="class")
 def demo_dense_color(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "dense_color"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/dense_color"))
-
-    import psynet.utils
-
-    psynet.utils.import_local_experiment()
+    demo_setup("dense_color")
     yield
-
-    os.chdir(root)
-    ACTIVE_EXPERIMENT = None
+    demo_teardown(root)
 
 
 @pytest.fixture(scope="class")
 def demo_gibbs(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "gibbs"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/gibbs"))
-
-    import psynet.utils
-
-    psynet.utils.import_local_experiment()
-
+    demo_setup("gibbs")
     yield
-    os.chdir(root)
-    ACTIVE_EXPERIMENT = None
+    demo_teardown(root)
 
 
-# @pytest.fixture(scope="class")
-# def demo_singing_iterated(root):
-#     global ACTIVE_EXPERIMENT
-#     ACTIVE_EXPERIMENT = "singing_iterated"
-#     os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/singing_iterated"))
-#     import psynet.utils
-#
-#     psynet.utils.import_local_experiment()
-#     yield
-#     os.chdir(root)
-#     ACTIVE_EXPERIMENT = None
+@pytest.fixture(scope="class")
+def demo_gmsi(root):
+    demo_setup("demography/gmsi")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_gmsi_short(root):
+    demo_setup("demography/gmsi_short")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_gmsi_two_modules_with_subscales(root):
+    demo_setup("demography/gmsi_two_modules_with_subscales")
+    yield
+    demo_teardown(root)
 
 
 @pytest.fixture(scope="class")
 def demo_mcmcp(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "mcmcp"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/mcmcp"))
-    import psynet.utils
-
-    psynet.utils.import_local_experiment()
+    demo_setup("mcmcp")
     yield
-    os.chdir(root)
-    ACTIVE_EXPERIMENT = None
+    demo_teardown(root)
 
 
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = "multi_page_maker"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demos/multi_page_maker"))
-    import psynet.utils
-
-    psynet.utils.import_local_experiment()
+    demo_setup("multi_page_maker")
     yield
-    os.chdir(root)
-    ACTIVE_EXPERIMENT = None
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_timeline(root):
+    demo_setup("timeline")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_timeline_with_error(root):
+    demo_setup("timeline_with_error")
+    yield
+    demo_teardown(root)
 
 
 @pytest.fixture
@@ -115,9 +135,14 @@ def experiment_object(experiment_class, db_session):
 
 
 @pytest.fixture
-def participant(db_session):
+def participant(db_session, experiment_object):
     p = Participant(
-        recruiter_id="x", worker_id="x", assignment_id="x", hit_id="x", mode="debug"
+        experiment=experiment_object,
+        recruiter_id="x",
+        worker_id="x",
+        assignment_id="x",
+        hit_id="x",
+        mode="debug",
     )
     db_session.add(p)
     db_session.commit()

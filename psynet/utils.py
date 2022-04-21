@@ -12,11 +12,8 @@ from datetime import datetime
 from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
-import numpy as np
-import pandas as pd
+import pexpect
 from dallinger.config import config, get_config
-from flask import make_response, render_template, request
-from sqlalchemy.sql import func
 
 
 def get_logger():
@@ -37,6 +34,8 @@ def get_arg_from_dict(x, desired: str, use_default=False, default=None):
 
 
 def sql_sample_one(x):
+    from sqlalchemy.sql import func
+
     return x.order_by(func.random()).first()
 
 
@@ -106,6 +105,24 @@ def call_function(function, args: dict):
     requested_args = get_function_args(function)
     arg_values = [args[requested] for requested in requested_args]
     return function(*arg_values)
+
+
+config_defaults = {
+    "keep_old_chrome_windows_in_debug_mode": False,
+}
+
+
+def get_from_config(key):
+    global config_defaults
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    if key in config_defaults:
+        return config.get(key, default=config_defaults[key])
+    else:
+        return config.get(key)
 
 
 def get_function_args(f):
@@ -250,6 +267,8 @@ class DuplicateKeyError(ValueError):
 
 
 def corr(x: list, y: list, method="pearson"):
+    import pandas as pd
+
     df = pd.DataFrame({"x": x, "y": y}, columns=["x", "y"])
     return float(df.corr(method=method).at["x", "y"])
 
@@ -344,6 +363,8 @@ def model_name_to_snake_case(model_name):
 
 
 def json_to_data_frame(json_data):
+    import pandas as pd
+
     columns = []
     for row in json_data:
         [columns.append(key) for key in row.keys() if key not in columns]
@@ -415,6 +436,8 @@ def get_language():
 
 
 def sample_from_surface_of_unit_sphere(n_dimensions):
+    import numpy as np
+
     res = np.random.randn(n_dimensions, 1)
     res /= np.linalg.norm(res, axis=0)
     return res[:, 0].tolist()
@@ -428,6 +451,8 @@ def error_page(
     request_data="",
 ):
     """Render HTML for error page."""
+    from flask import make_response, render_template, request
+
     config = get_config()
 
     if error_text is None:
@@ -465,3 +490,47 @@ def error_page(
         ),
         500,
     )
+
+
+class ClassPropertyDescriptor(object):
+    def __init__(self, fget, fset=None):
+        self.fget = fget
+        self.fset = fset
+
+    def __get__(self, obj, cls=None):
+        if cls is None:
+            cls = type(obj)
+        return self.fget.__get__(obj, cls)()
+
+    def __set__(self, obj, value):
+        if not self.fset:
+            raise AttributeError("can't set attribute")
+        type_ = type(obj)
+        return self.fset.__get__(obj, type_)(value)
+
+    def setter(self, func):
+        if not isinstance(func, (classmethod, staticmethod)):
+            func = classmethod(func)
+        self.fset = func
+        return self
+
+
+def classproperty(func):
+    """
+    Defines an analogous version of @property but for classes,
+    after https://stackoverflow.com/questions/5189699/how-to-make-a-class-property.
+    """
+    if not isinstance(func, (classmethod, staticmethod)):
+        func = classmethod(func)
+
+    return ClassPropertyDescriptor(func)
+
+
+def run_subprocess_with_live_output(command):
+    p = pexpect.spawn(command)
+    while not p.eof():
+        line = p.readline().decode("utf-8")
+        print(line, end="")
+    p.close()
+    if p.exitstatus > 0:
+        sys.exit(p.exitstatus)
