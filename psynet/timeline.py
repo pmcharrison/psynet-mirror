@@ -741,6 +741,7 @@ class Page(Elt):
         return {
             "session_id": self.session_id,
             "type": type(self).__name__,
+            "auth_token": participant.auth_token,
             "page_uuid": participant.page_uuid,
             "is_unity_page": isinstance(self, UnityPage),
         }
@@ -933,6 +934,7 @@ class Page(Elt):
 
     def render(self, experiment, participant):
         internal_js_vars = {
+            "authToken": participant.auth_token,
             "pageUuid": participant.page_uuid,
             "dynamicallyUpdateProgressBarAndBonus": self.dynamically_update_progress_bar_and_bonus,
         }
