@@ -187,9 +187,9 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         url = survey_info["ClientSurveyLiveURL"]
         self.lucidservice.log("Done creating project and survey.")
-        logger.info("----------")
-        logger.info("---------> " + url.replace("https", "http"))
-        logger.info("----------")
+        self.lucidservice.log("----------")
+        self.lucidservice.log("---------> " + url.replace("https", "http"))
+        self.lucidservice.log("----------")
 
         survey_id = self.current_survey_number()
         if survey_id is None:
@@ -221,14 +221,17 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             session.commit()
 
     def normalize_entry_information(self, entry_information):
-        """Accepts data from recruited user and returns data needed to validate,
+        """Accepts data from the recruited user and returns data needed to validate,
         create or load a Dallinger Participant.
 
         See :func:`~dallinger.experiment.Experiment.create_participant` for
         details.
 
         The default implementation extracts ``hit_id``, ``assignment_id``, and
-        ``worker_id`` values directly from the ``entry_information``.
+        ``worker_id`` values directly from ``entry_information``.
+
+        This implementation extracts the ``RID``/``rid`` from ``entry_information``
+        and assigns the value to ``hit_id``, ``assignment_id``, and ``worker_id``.
 
         Returning a dictionary without valid ``hit_id``, ``assignment_id``, or
         ``worker_id`` will generally result in an exception.
@@ -238,16 +241,16 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         if rid is None:
             rid = entry_information.get("hit_id")
 
-        # Save RID info in the database
+        # Save RID info into the database
         try:
             RID.query.filter_by(rid=rid).one()
         except (NoResultFound):
-            logger.info(f"Adding new RID '{rid}'.")
+            self.lucidservice.log(f"Saving RID '{rid}' to the database.")
             db.session.add(RID(rid=rid))
             db.session.commit()
         except (MultipleResultsFound):
             raise MultipleResultsFound(
-                f"Multiple rows for RID '{rid}' found. This should never happen."
+                f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
             )
 
         participant_data = {
@@ -289,8 +292,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
 class DevLucidRecruiter(BaseLucidRecruiter):
     """
-    The development Lucid recruiter.
-    Recruit sandbox participants from Lucid Marketplace
+    Development recruiter for the Lucid Marketplace.
     """
 
     nickname = "dev-lucid-recruiter"
@@ -305,7 +307,7 @@ class DevLucidRecruiter(BaseLucidRecruiter):
 class LucidRecruiter(BaseLucidRecruiter):
     """
     The production Lucid recruiter.
-    Recruit participants from Lucid Marketplace
+    Recruit participants from the Lucid Marketplace.
     """
 
     nickname = "lucid-recruiter"
