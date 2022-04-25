@@ -1,0 +1,19 @@
+.main-div {
+    margin: 0;
+}
+
+.consent-text {
+    font-size: smaller;
+}
+
+.consent-gradient {
+    background: linear-gradient(to top, rgb(255 255 255) 0%, rgb(255 255 255) 62%, rgb(251 251 251 / 22%) 68%, rgba(125, 185, 232, 0) 100%);
+    z-index: 10000;
+    bottom: 60px;
+    padding: 0% 10% 20px 10%;
+}
+
+.up-down-arrows {
+    font-size: 24px;
+    font-weight: bold;
+}

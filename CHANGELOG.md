@@ -1,5 +1,54 @@
 # CHANGELOG
 
+# [7.1.0] Released on 2022-04-25
+
+#### Fixed
+- Fixed developer mode by calling reset_console
+  (author: Peter Harrison, reviewer: Frank Höger)
+
+- Fixed an error which occasionally happened when PsyNet tried to close down zombie processes,
+  when the process would close itself before PsyNet managed to close it, causing a
+  psutil.NoProcessFound error. Now such errors are ignored. The implementation uses a new function
+  called psynet.command_line.safely_kill_process.
+  (author: Peter Harrison, reviewer: Pol van Rijn)
+
+- Fixed Unity demo by replacing it with a new autoplay version containing updated WebGL files.
+  (author: Ofer Tchernichovski , reviewers: Peter Harrison, Frank Höger)
+
+#### Added
+- PsyNet now supports the definition of custom SQL classes that are not subclasses of pre-existing
+  PsyNet/Dallinger objects.
+  (author: Peter Harrison, reviewer: Pol van Rijn)
+
+  These objects are stored in their own tables and can be seen in the dashboard. The API is very simple:
+
+  ```py
+  from psynet.data import SQLBase, SQLMixin, register_table
+
+  @register_table
+  class Bird(SQLBase, SQLMixin):
+      __tablename__ = "bird"
+
+  class Sparrow(Bird):
+      pass
+
+  class Robin(Bird):
+      pass
+  ```
+
+  The above example defines a new database table called 'bird', in which we can store robins and sparrows.
+
+- Added new demos custom_table_simple and custom_table_complex that illustrate sqlalchemy usage via this new PsyNet feature.
+  (author: Peter Harrison, reviewer: Pol van Rijn)
+- Added a new, more robust version of init_db for resetting database state: psynet.data.init_db
+  (author: Peter Harrison, reviewer: Pol van Rijn)
+- Added auth_token and authToken to be used by the Unity API.
+  (author: Frank Höger, reviewer: Peter Harrison)
+
+#### Changed
+- Changed the visual behavior of the five consent pages recently introduced by always showing the buttons at the bottom of the pages and making the text overall smaller.
+  (author: Frank Höger, reviewer: Peter Harrison)
+
 # [7.0.0] Released on 2022-03-27
 
 #### Fixed
@@ -41,6 +90,7 @@ seems to be unstable, so experimenters should only enable this check at their ow
   (author: Peter Harrison, reviewer: Frank Höger)
 
 #### Updated
+- Updated Dallinger to v8.1.0, see release notes at https://github.com/Dallinger/Dallinger/releases/tag/v8.1.0
 
 # [6.0.1] Released on 2022-03-02
 
