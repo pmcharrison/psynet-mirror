@@ -199,7 +199,9 @@ class LucidService(object):
             for participant in Participant.query.all()
         ]
 
-        if (datetime.now() - rid.creation_time).seconds <= 120:
+        if (datetime.now() - rid.creation_time).seconds <= self.recruitment_config[
+            "termination_time_in_s"
+        ]:
             return False
 
         if rid.rid not in participant_rids:
