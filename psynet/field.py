@@ -1,4 +1,3 @@
-import json
 import re
 from datetime import datetime
 
@@ -368,7 +367,7 @@ def json_format_vars(x):
             (value is None)
             or isinstance(value, (int, float, str, bool, list, datetime))
         ):
-            new_val = json.dumps(value)
+            new_val = jsonpickle.encode(value)
         else:
             new_val = value
         x[key] = new_val
