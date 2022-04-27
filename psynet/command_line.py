@@ -240,6 +240,7 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, **kwargs):
     from dallinger.deployment import DevelopmentDeployment
 
     DevelopmentDeployment.archive = archive
+    patch_dallinger_develop()
 
     try:
         ctx.invoke(dallinger_debug)
@@ -250,20 +251,24 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, **kwargs):
 def patch_dallinger_develop():
     from dallinger.deployment import DevelopmentDeployment
 
-    old_run = DevelopmentDeployment.run
+    if not (
+        hasattr(DevelopmentDeployment, "patched") and DevelopmentDeployment.patched
+    ):
+        old_run = DevelopmentDeployment.run
 
-    def new_run(self):
-        old_run(self)
-        if self.archive:
-            archive_path = os.path.abspath(self.archive)
-            if not os.path.exists(archive_path):
-                raise click.BadParameter(
-                    'Experiment archive "{}" does not exist.'.format(archive_path)
-                )
-            init_db()
-            ingest_zip(archive_path, engine=db.engine)
+        def new_run(self):
+            old_run(self)
+            if self.archive:
+                archive_path = os.path.abspath(self.archive)
+                if not os.path.exists(archive_path):
+                    raise click.BadParameter(
+                        'Experiment archive "{}" does not exist.'.format(archive_path)
+                    )
+                init_db()
+                ingest_zip(archive_path, engine=db.engine)
 
-    DevelopmentDeployment.run = new_run
+        DevelopmentDeployment.run = new_run
+        DevelopmentDeployment.patched = True
 
 
 patch_dallinger_develop()
