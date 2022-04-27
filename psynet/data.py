@@ -328,10 +328,19 @@ def ingest_zip(path, engine=None):
 
     with ZipFile(path, "r") as archive:
         filenames = archive.namelist()
+
         for name in import_order:
-            filename = f"data/{name}.csv"
-            if filename not in filenames:
+            filename_template = f"data/{name}.csv"
+
+            matches = [f for f in filenames if filename_template in f]
+            if len(matches) == 0:
                 continue
+            elif len(matches) > 1:
+                raise IOError(
+                    f"Multiple matches for {filename_template} found in archive: {matches}"
+                )
+            else:
+                filename = matches[0]
 
             model_name = name.capitalize()
             model = db_models()[model_name]
