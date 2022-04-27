@@ -2,23 +2,26 @@
 mode = sandbox
 
 [Payment information]
-title = Unity WebGL demo 
-base_payment = 0.10
+title = 3D coin collecting game with up to $1 bonus
+base_payment = 0.01
 
 [Recruitment strategy]
+#recruiter = hotair
 auto_recruit = true
 lifetime = 24
-duration = 2
+duration = 10
 us_only = true
 approve_requirement = 95
 ad_group = Game
+group_name = FerryBan2
+assign_qualifications = true
+qualification_blacklist = FerryBan2, cap-usr-list
 browser_exclude_rule = MSIE, mobile, tablet
-disable_when_duration_exceeded = False
 
-[Ad metadata]
-description = This app demos Unity WebGL 'Ferry Game' experiment.
-keywords = unity
-contact_email_on_error = computational.audition+online_running@gmail.com
+[Advert metadata]
+description = In this short 3D game you will collect coins, ride ferries and cross bridges. Fun and easy + up to $1 bonus
+keywords = non_adaptive
+contact_email_on_error = computational.audition+online_running_ofer@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics
 
 [Database]
@@ -32,4 +35,8 @@ num_dynos_web = 1
 num_dynos_worker = 1
 redis_size = hobby-dev
 host = 0.0.0.0
-clock_on = true
+clock_on = True
+disable_when_duration_exceeded = False
+dashboard_password = capcapcap2021!
+dashboard_user = cap
+
