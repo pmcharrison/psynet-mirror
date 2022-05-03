@@ -211,15 +211,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         """A recruiter may provide a means to directly compensate a worker."""
         raise RuntimeError("Compensation is not implemented.")
 
-    def notify_duration_exceeded(self, participants, reference_time):
-        """
-        The participant has been working longer than the time defined in
-        the "duration" config value.
-        """
-        for participant in participants:
-            participant.status = "abandoned"
-            session.commit()
-
     def normalize_entry_information(self, entry_information):
         """Accepts data from the recruited user and returns data needed to validate,
         create or load a Dallinger Participant.
