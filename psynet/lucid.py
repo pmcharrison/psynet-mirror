@@ -254,6 +254,10 @@ class LucidService(object):
                     )
 
     def sha1_hash(self, url):
+        """
+        The algorithm for the generation of the SHA1 hash was taken from the following page:
+        https://hash.lucidhq.engineering/submit/
+        """
         import base64
         import hashlib
         import hmac
