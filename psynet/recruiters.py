@@ -107,8 +107,8 @@ class DevCapRecruiter(BaseCapRecruiter):
 
 
 @register_table
-class RID(SQLBase, SQLMixin):
-    __tablename__ = "rid"
+class LucidRID(SQLBase, SQLMixin):
+    __tablename__ = "lucid_rid"
 
     rid = Column(String, index=True)
     terminated_at = Column(DateTime, index=True)
@@ -124,7 +124,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     """
 
     def __init__(self, *args, **kwargs):
-        super(BaseLucidRecruiter, self).__init__()
+        super().__init__()
         self.config = get_config()
         self.mailer = get_mailer(self.config)
         self.notifies_admin = admin_notifier(self.config)
@@ -142,7 +142,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         return "{}:{}".format(self.__class__.__name__, experiment_id)
 
     @property
-    def is_in_progress(self):
+    def in_progress(self):
         """Does a Lucid survey for the current experiment ID already exist?"""
         return self.current_survey_number() is not None
 
@@ -156,7 +156,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def open_recruitment(self, n=1):
         """Open a connection to Lucid and create a survey."""
         self.lucidservice.log(f"Opening initial recruitment for {n} participants.")
-        if self.is_in_progress:
+        if self.in_progress:
             raise LucidRecruiterException(
                 "Tried to open_recruitment on already open recruiter."
             )
@@ -232,9 +232,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         This implementation extracts the ``RID``/``rid`` from ``entry_information``
         and assigns the value to ``hit_id``, ``assignment_id``, and ``worker_id``.
-
-        Returning a dictionary without valid ``hit_id``, ``assignment_id``, or
-        ``worker_id`` will generally result in an exception.
         """
 
         rid = entry_information.get("RID", entry_information.get("rid", None))
@@ -243,10 +240,10 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         # Save RID info into the database
         try:
-            RID.query.filter_by(rid=rid).one()
+            LucidRID.query.filter_by(rid=rid).one()
         except (NoResultFound):
             self.lucidservice.log(f"Saving RID '{rid}' to the database.")
-            db.session.add(RID(rid=rid))
+            db.session.add(LucidRID(rid=rid))
             db.session.commit()
         except (MultipleResultsFound):
             raise MultipleResultsFound(

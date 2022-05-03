@@ -211,11 +211,11 @@ class LucidService(object):
             participant = Participant.query.filter_by(worker_id=rid.rid).one()
         except (NoResultFound):
             raise NoResultFound(
-                f"No participant for RID '{rid}' found. This should never happen."
+                f"No participant for Lucid RID '{rid}' found. This should never happen."
             )
         except (MultipleResultsFound):
             raise MultipleResultsFound(
-                f"Multiple participants for RID '{rid}' found. This should never happen."
+                f"Multiple participants for Lucid RID '{rid}' found. This should never happen."
             )
         if participant.progress == 0:
             return True
@@ -223,9 +223,9 @@ class LucidService(object):
         return False
 
     def terminate_invalid_respondents(self):
-        from psynet.recruiters import RID
+        from psynet.recruiters import LucidRID
 
-        for rid in RID.query.filter_by(terminated_at=None).all():
+        for rid in LucidRID.query.filter_by(terminated_at=None).all():
             if self.can_be_terminated(rid):
                 redirect_url = (
                     f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
