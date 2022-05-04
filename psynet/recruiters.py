@@ -206,7 +206,11 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         return []
 
     def close_recruitment(self):
-        self.lucidservice.log("No more participants required. Recruitment stopped.")
+        """
+        Lucid automatically ends recruitment when the number of completes has reached the
+        target.
+        """
+        self.lucidservice.log("Recruitment is automatically handled by Lucid.")
 
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
