@@ -202,6 +202,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         }
 
     def recruit(self, n=1):
+        """Incremental recruitment isn't implemented for now, so we return an empty list."""
         return []
 
     def close_recruitment(self):
