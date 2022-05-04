@@ -255,7 +255,10 @@ class LucidService(object):
 
     def sha1_hash(self, url):
         """
-        The algorithm for the generation of the SHA1 hash was taken from the following page:
+        To allow for secure callbacks to Lucid Marketplace a hash needs to be appended to the URL
+        which is used to e.g. terminate a participant or trigger a successful 'complete'.
+        The algorithm for the generation of the SHA1 hash function makes use of a secret key
+        which is provided by Lucid. The implementation below was taken from
         https://hash.lucidhq.engineering/submit/
         """
         import base64
