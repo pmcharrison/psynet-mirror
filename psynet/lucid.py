@@ -18,9 +18,7 @@ class LucidServiceException(Exception):
 
 
 class LucidService(object):
-    """
-    Facade for Lucid Marketplace services provided via its HTTP API.
-    """
+    """Facade for Lucid Marketplace services provided via its HTTP API."""
 
     def __init__(
         self,
@@ -63,10 +61,6 @@ class LucidService(object):
         """
         Create a survey and return a dict with its properties.
         """
-
-        # Create the survey
-        # "owner_id": 38490             # TODO: Is this correct? Got from dictionary lookup for users
-        # "business_unit_id": 2404,     # TODO: Get business unit id dynamically
         params = {
             "BidLengthOfInterview": bid_length_of_interview,
             "ClientSurveyLiveURL": live_url,
@@ -76,7 +70,7 @@ class LucidService(object):
             "TestRedirectURL": live_url,
         }
 
-        # Apply survey configuration from 'lucid_recruitment_config.json'
+        # Apply survey configuration from 'lucid_recruitment_config.json' file.
         request_data = json.dumps({**params, **self.recruitment_config["survey"]})
         response = requests.post(
             f"{self.request_base_url_v1}/Surveys/Create",
