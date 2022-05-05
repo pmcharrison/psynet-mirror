@@ -178,6 +178,10 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         survey_info = self.lucidservice.create_survey(**create_survey_request_params)
         self._record_current_survey_number(survey_info["SurveyNumber"])
 
+        # Lucid Marketplace automatically adds 6 qualifications to US studies
+        # when a survey is created (Age, Gender, Zip, Ethnicity, Hispanic, Standard HHI US).
+        # We update the qualifications in this case to remove these constraints on the participants.
+        # See https://developer.lucidhq.com/#post-create-a-survey
         if self.lucidservice.recruitment_config["survey"]["CountryLanguageID"] == 9:
             self.lucidservice.remove_default_qualifications_from_survey(
                 self.current_survey_number()
