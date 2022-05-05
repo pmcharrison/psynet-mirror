@@ -1,0 +1,934 @@
+import hashlib
+import random
+from collections import Counter
+from html import escape, unescape
+from typing import Optional
+
+import requests
+from dallinger import db
+from dallinger.models import Notification, Participant
+from flask import Markup
+from tqdm import tqdm
+
+from psynet.modular_page import (
+    AudioPrompt,
+    Control,
+    ImagePrompt,
+    ModularPage,
+    VideoPrompt,
+)
+from psynet.page import InfoPage
+from psynet.trial.imitation_chain import (
+    ImitationChainNetwork,
+    ImitationChainNode,
+    ImitationChainSource,
+    ImitationChainTrial,
+    ImitationChainTrialMaker,
+)
+from psynet.utils import get_logger
+
+logger = get_logger()
+
+
+class AdjectiveControl(Control):
+    macro = "adjective_input"
+
+    def __init__(self, template_args={}):
+        super().__init__()
+        self.template_args = template_args
+
+    @property
+    def metadata(self):
+        return {
+            "template_args": self.template_args,
+        }
+
+
+class AdjectiveTrial(ImitationChainTrial):
+    __mapper_args__ = {"polymorphic_identity": "adjective_trial"}
+    wait_for_feedback = True
+
+    @staticmethod
+    def user_creation_query(participant_id):
+        """
+        Query all the adjectives created by a participant.
+        """
+        return Notification.query.filter_by(property3=str(participant_id)).filter_by(
+            event_type="creation"
+        )
+
+    def url_and_tag_created_by_user(self, participant_id):
+        """
+        Get's all urls and tags created by a participant.
+        """
+        return [
+            (adj.property1, adj.property2)
+            for adj in self.user_creation_query(participant_id).all()
+        ]
+
+    @staticmethod
+    def get_usernames(worker_ids):
+        """
+        Looks up participants from a list of ids. If the participants have a field called `username` we'll return it, if
+        not we return "worker <participant.id>".
+        """
+        query = Participant.query.filter(Participant.id.in_(worker_ids))
+        if query.count() > 0:
+            usernames = []
+            for participant in query.all():
+                usernames.append(
+                    participant.var.username
+                    if participant.var.has("username")
+                    else f"worker {participant.id}"
+                )
+            return usernames
+        else:
+            logger.warn(f"No usernames found for {worker_ids}")
+            return []
+
+    @staticmethod
+    def get_feedback_new_word(new_word, bonus):
+        """
+        Prints the feedback if the participant discovered a completely new word. This method can easily be overwritten.
+        """
+        return f"""
+            You just unlocked an entirely new word: "{new_word}"<br><br>
+            We award you with a bonus of {bonus}$!
+            <br><br>
+            <div class="alert alert-warning" role="alert">
+            <strong>Note:</strong> Please keep in mind that if your tags are later flagged as irrelevant,
+            your experiment will terminate early.
+            </div>
+            """
+
+    def check_new_word(self, participant, trial_maker, feedback_dictionary):
+        """
+        Checks if the participant added an entirely new word in the last trials
+        """
+
+        # We can only give feedback if the participant did at least 1 trial
+        if self.user_creation_query(participant.id).count() > 0:
+            # We want to find out which adjectives were used in the experiment so far and how often they were used
+            adjective_count = Counter(
+                [
+                    adj.property2
+                    for adj in Notification.query.filter_by(event_type="creation").all()
+                ]
+            )
+
+            # Avoid to give the same bonus for an unique word over and over again
+            if not participant.var.has("bonussed_unique_words"):
+                participant.var.set(
+                    "bonussed_unique_words", feedback_dictionary["new_word"]["history"]
+                )
+            else:
+                feedback_dictionary["new_word"]["history"] = participant.var.get(
+                    "bonussed_unique_words"
+                )
+
+            # Now we grab the adjectives that are created by the user and occur only once in all adjectives
+            unique_user_adjectives = [
+                adj.property2
+                for adj in self.user_creation_query(participant.id).all()
+                if adj.property2 not in feedback_dictionary["new_word"]["history"]
+                and adjective_count[adj.property2] == 1
+            ]
+            if len(unique_user_adjectives) > 0:
+                feedback_dictionary["new_word"]["available"] = True
+                new_word = unique_user_adjectives[0]
+                feedback_dictionary["new_word"]["history"].append(new_word)
+                feedback_dictionary["new_word"]["message"] = self.get_feedback_new_word(
+                    new_word, trial_maker.new_word_bonus
+                )
+        return feedback_dictionary
+
+    @staticmethod
+    def preview_stimulus_in_html(url, file_extensions):
+        """
+        Creates a HTML snippet to display a stimulus, which can be embedded into some markdown.
+        """
+        if url.endswith(tuple(file_extensions["audio"])):
+            raise NotImplementedError("Audio not implemented yet!")
+        elif url.endswith(tuple(file_extensions["video"])):
+            # TODO test: does this work?
+            source = (
+                f'<source src="{url}" type="video/mp4">'
+                if url.endswith("mp4")
+                else f'<source src="{url}" type="video/webm">'
+            )
+            return f"""
+            <video width="560" controls>{source} Your browser does not support the video tag.</video>
+            """
+        elif url.endswith(tuple(file_extensions["image"])):
+            return f'<img src="{url}" alt="flagged image" class="img-thumbnail">'
+        else:
+            raise NotImplementedError("Unsupported media type!")
+
+    @staticmethod
+    def get_stimulus_type(url, file_extensions):
+        """
+        Returns the type of media from a url.
+        """
+        if url.endswith(tuple(file_extensions["audio"])):
+            return "audio"
+        elif url.endswith(tuple(file_extensions["video"])):
+            return "video"
+        elif url.endswith(tuple(file_extensions["image"])):
+            return "image"
+        else:
+            raise NotImplementedError("Unsupported media type!")
+
+    def get_feedback_flagged(self, flagged_adjectives, trial_maker):
+        """
+        Prints the feedback in case a word of a participant was flagged. This method can easily be overwritten.
+        """
+        flagged_lines = []
+        flagging_threshold = trial_maker.flagging_threshold
+
+        for flagged_adjective in flagged_adjectives:
+            worker_ids = flagged_adjective["worker_ids"]
+            users = ", ".join(self.get_usernames(worker_ids))
+            tag = flagged_adjective["tag"]
+            url = flagged_adjective["url"]
+            stimulus_type = self.get_stimulus_type(url, trial_maker.file_extensions)
+            html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
+            flagged_lines.append(
+                f'{users} flagged your label "{tag}" for {stimulus_type}. {html_emb}'
+            )
+
+        message = "<br>".join(flagged_lines) + "<br>br>"
+
+        if len(flagged_adjectives) >= flagging_threshold:
+            message += "<b>You will now be excluded from the experiment</b>"
+        elif len(flagged_adjectives) == (flagging_threshold - 1):
+            message += (
+                "<b>If this happens again, you will be excluded from the experiment</b>"
+            )
+        else:
+            message += "<b>If this keeps happening, you will be excluded from the experiment</b>"
+        return message
+
+    def check_flagged(self, participant, trial_maker, feedback_dictionary):
+        """
+        Checks if the participant added a word which has been flagged by other users
+        """
+
+        # We can only give feedback if the participant did at least 1 trial
+        if self.user_creation_query(participant.id).count() > 0:
+            # Let's check if the participant got flagged before
+            if not participant.var.has("flagged_creations"):
+                participant.var.set(
+                    "flagged_creations", feedback_dictionary["flagged"]["history"]
+                )
+            else:
+                feedback_dictionary["flagged"]["history"] = participant.var.get(
+                    "flagged_creations"
+                )
+
+            flagged_adjectives = []
+            for url, tag in self.url_and_tag_created_by_user(participant.id):
+                query = (
+                    Notification.query.filter_by(property1=url)
+                    .filter_by(property2=tag)
+                    .filter_by(event_type="flag")
+                )
+
+                if query.count() > 0:
+                    # The adjective was flagged by at least one other participant
+                    flagged_adjectives.append(
+                        {
+                            "worker_ids": [adj.property3 for adj in query.all()],
+                            "url": url,
+                            "tag": tag,
+                        }
+                    )
+
+                    if tag not in feedback_dictionary["flagged"]["history"]:
+                        feedback_dictionary["flagged"]["history"].append(tag)
+                        feedback_dictionary["flagged"]["available"] = True
+                        feedback_dictionary["flagged"][
+                            "message"
+                        ] = self.get_feedback_flagged(flagged_adjectives, trial_maker)
+        return feedback_dictionary
+
+    def get_feedback_upvoted(self, trial_maker, tag, url, worker_ids, bonus):
+        """
+        Prints the feedback in case of an upvote. This method can easily be overwritten.
+        """
+        users = ", ".join(self.get_usernames(worker_ids))
+        stimulus_type = self.get_stimulus_type(url, trial_maker.file_extensions)
+        html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
+        return f"""
+            {users} upvoted your label "{tag}" for {stimulus_type} {html_emb}<br><br>
+            <b>You will receive a bonus of {bonus} $</b>
+            """
+
+    def check_upvoted(self, participant, trial_maker, feedback_dictionary):
+        """
+        Checks if the participant added a word which has been upvoted by other users
+        """
+
+        # We can only give feedback if the participant did at least 1 trial
+        if self.user_creation_query(participant.id).count() > 0:
+            if not participant.var.has("upvoted_creations"):
+                participant.var.set(
+                    "upvoted_creations", feedback_dictionary["upvoted"]["history"]
+                )
+            else:
+                feedback_dictionary["upvoted"]["history"] = participant.var.get(
+                    "upvoted_creations"
+                )
+
+            upvote_options = [str(s + 1) for s in range(trial_maker.upvote_n_buttons)]
+
+            for url, tag in self.url_and_tag_created_by_user(participant.id):
+                # Only give a bonus for a tag once -> i.e. same tag for two stimuli will not be awarded twice
+                if tag not in feedback_dictionary["upvoted"]["history"]:
+                    query = (
+                        Notification.query.filter_by(property1=url)
+                        .filter_by(property2=tag)
+                        .filter(Notification.event_type.in_(upvote_options))
+                    )
+                    if query.count() > 0:
+                        worker_ids = [adj.property3 for adj in query.all()]
+                        feedback_dictionary["upvoted"]["available"] = True
+                        feedback_dictionary["upvoted"][
+                            "message"
+                        ] = self.get_feedback_upvoted(
+                            trial_maker, tag, url, worker_ids, trial_maker.upvoted_bonus
+                        )
+                        feedback_dictionary["upvoted"]["history"].append(tag)
+                        break
+        return feedback_dictionary
+
+    def create_feedback(self, experiment, participant):
+        """
+        Performs multiple feedback checks and returns the result
+        """
+        trial_maker = experiment.timeline.get_trial_maker(self.network.trial_maker_id)
+        EVENTS = ["new_word", "upvoted", "flagged"]
+        feedback_dictionary = {
+            event: {"available": False, "message": None, "history": []}
+            for event in EVENTS
+        }
+
+        feedback_dictionary = self.check_new_word(
+            participant, trial_maker, feedback_dictionary
+        )
+        feedback_dictionary = self.check_flagged(
+            participant, trial_maker, feedback_dictionary
+        )
+        feedback_dictionary = self.check_upvoted(
+            participant, trial_maker, feedback_dictionary
+        )
+
+        return feedback_dictionary
+
+    def gives_feedback(self, experiment, participant):
+        """
+        This function makes the decision if there is any trial-to-trial feedback for the participant or not. If there
+        is feedback available, it is stored in the participant object.
+        """
+
+        # Don't give intermediate feedback from trial to trial during practice
+        if self.network.role == "practice":
+            return False
+
+        logger.info(
+            f"Checking if feedback is available for participant {participant.id}"
+        )
+        feedback_dictionary = self.create_feedback(experiment, participant)
+
+        feedback_available = [
+            feedback["available"] for feedback in feedback_dictionary.values()
+        ]
+
+        if not any(feedback_available):
+            logger.info(f"No feedback available for participant {participant.id}")
+            return False
+
+        # Always immediately display feedback to the user
+        if feedback_dictionary["flagged"]["available"]:
+            # Here we update the flagged creations
+            participant.var.set(
+                "flagged_creations", feedback_dictionary["flagged"]["history"]
+            )
+            participant.var.set(
+                "feedback", escape(feedback_dictionary["flagged"]["message"])
+            )
+            participant.var.set("custom_bonus", 0)
+            return True
+        else:
+
+            # On average display this positive feedback every `show_positive_feedback_every` pages
+            trial_maker = experiment.timeline.get_trial_maker(
+                self.network.trial_maker_id
+            )
+            give_feedback = (
+                random.randint(0, trial_maker.show_positive_feedback_every - 1) == 0
+            )
+
+            if not give_feedback:
+                # We decided to give no feedback this time!
+                return False
+            else:
+                available_feedback = {
+                    key: feedback
+                    for key, feedback in feedback_dictionary.items()
+                    if feedback["available"]
+                }
+                idx = random.randint(0, len(available_feedback) - 1)
+
+                key = list(available_feedback.keys())[idx]
+
+                if key == "upvoted":
+                    participant.var.set(
+                        "upvoted_creations", available_feedback[key]["history"]
+                    )
+                    participant.inc_performance_bonus(trial_maker.upvoted_bonus)
+                elif key == "new_word":
+                    participant.var.set(
+                        "bonussed_unique_words", available_feedback[key]["history"]
+                    )
+                    participant.inc_performance_bonus(trial_maker.new_word_bonus)
+
+                participant.var.set(
+                    "feedback", escape(available_feedback[key]["message"])
+                )
+                return True
+
+    def show_feedback(self, experiment, participant):
+        """
+        Defines how we show the feedback. The decision to present feedback was made in `gives_feedback`. Feedback is
+        stored in the participant object.
+        """
+        feedback_page = InfoPage(Markup(unescape(participant.var.get("feedback"))))
+        return feedback_page
+
+    def get_adjective_control(self, template_args):
+        """
+        Makes sure all expected template arguments (`template_args`) are present
+        """
+        if "stimulus_type_singular" in template_args.keys():
+            stimulus_type = template_args["stimulus_type_singular"]
+
+            if "initial_instruction" not in template_args.keys():
+                logger.info(
+                    f"Creating generic initial instruction for stimulus type: {stimulus_type}"
+                )
+
+                template_args["initial_instruction"] = Markup(
+                    f"""
+                                <h3 for="new_tags">Add some initial tags</h3>
+                                <div class="alert alert-primary" role="alert">
+                                Type in tags describing the {stimulus_type}. You can either select tags from a dropdown
+                                 list or create entirely new ones. Submit your response for a new tag by pressing the
+                                enter key. <strong>You can add more than one tag.</strong>
+                                </div>
+                                """
+                )
+
+            if "later_instruction" not in template_args.keys():
+                logger.info(
+                    f"Creating generic instruction displayed after first iteration for stimulus type: {stimulus_type}"
+                )
+
+                template_args["later_instruction"] = Markup(
+                    f"""
+                <h3 for="new_tags">Are any tags missing?</h3>
+                <div class="alert alert-primary" role="alert">
+                Type in words describing the {stimulus_type}, that are missing above. You can either select tags
+                from a dropdown list or create entirely new ones. Submit your response for a new tag by pressing the
+                 enter key.
+                <strong>You can add more than one tag.</strong>
+                </div>
+                """
+                )
+
+        assert (
+            sum(
+                [
+                    key in template_args.keys()
+                    for key in ["initial_instruction", "later_instruction"]
+                ]
+            )
+            == 2
+        ), "You must supply an instruction to the adjective trial!"
+
+        return AdjectiveControl(template_args)
+
+    @staticmethod
+    def audio_visual_js_injection(
+        stimulus_type, play_duration=None, randomize_start=None
+    ):
+        attach_to_id = (
+            "prompt-text" if stimulus_type == "audio" else "prompt-video-container"
+        )
+        if stimulus_type == "video":
+            try:
+                float(play_duration)
+            except ValueError:
+                logger.error(
+                    "`play_duration` is not convertible to a float! Silently defaulting to 0."
+                )
+                play_duration = 0
+            end_row = (
+                "" if play_duration == 0 else "endAt = startAt + min_play_duration;"
+            )
+            media_duration = (
+                "psynet.audio.prompt.buffer.duration"
+                if stimulus_type == "audio"
+                else "psynet.video.prompt.player.duration"
+            )
+            start_str = (
+                f"({media_duration} - min_play_duration) * Math.random()"
+                if randomize_start
+                else "0"
+            )
+            prepare_media_fn = f"""prepare_media = function(){{
+                    var min_play_duration = {play_duration};
+                    startAt = {start_str};
+                    {end_row}
+                    psynet.log.info('Video starting at: ' + startAt)
+                }}"""
+        else:
+            if sum([arg is None for arg in [play_duration, randomize_start]]) < 2:
+                logger.warn(
+                    "The arguments play_duration and randomize_start may only be used for video!"
+                )
+            prepare_media_fn = "prepare_media = function(){}"
+        return f"""
+        <script>
+                {prepare_media_fn}
+                psynet.trial.onEvent("submitEnable", psynet.submit.disable);
+                custom_play = function() {{
+                    psynet.page.prompt.stop();
+                    prepare_media();
+                    psynet.page.prompt.play();
+                    $('.btn').each(function (idx, x) {{
+                        x.disabled = true
+                    }})
+                }}
+                enable_buttons = function() {{
+                    $('.btn').each(function (idx, x) {{
+                        x.disabled = false
+                    }})
+                }}
+                $( document ).ready(function(){{
+                    $('#{attach_to_id}').append(createElementFromHTML('<button class="btn btn-secondary mt-3" id="play_button" onclick="custom_play();">Play again</button>'))
+                    psynet.trial.onEvent("promptStart", custom_play);
+                    psynet.trial.onEvent("promptEnd", enable_buttons);
+                }})
+                </script>
+        """
+
+    def show_trial(self, experiment, participant):
+        """
+        Shows the adjective trial
+        """
+        tags = self.definition["tags"]
+        hashes = [hashlib.sha1(t.encode()).hexdigest() for t in tags]
+        logger.info(self.definition)
+        url = self.definition["url"]
+        trial_maker = experiment.timeline.get_trial_maker(self.network.trial_maker_id)
+
+        template_args = {
+            "tag_dict": dict(zip(hashes, tags)),
+            "available_adjectives": self.get_all_adjectives(),
+            "upvote_n_buttons": trial_maker.upvote_n_buttons,
+            "upvote_icon": trial_maker.upvote_icon,
+            **trial_maker.template_args,
+        }
+
+        def get_if_exists(dict_obj, key, fallback):
+            return dict_obj[key] if key in dict_obj.keys() else fallback
+
+        width = get_if_exists(template_args, "width", 400)
+
+        if url.endswith(tuple(trial_maker.file_extensions["audio"])):
+            prompt = AudioPrompt(
+                url,
+                # TODO insert custom script for playing again
+                Markup(
+                    f"""{self.audio_visual_js_injection('audio')}
+                """
+                ),
+            )
+        elif url.endswith(tuple(trial_maker.file_extensions["video"])):
+            play_duration = get_if_exists(template_args, "play_duration", 0)
+            randomize_start = get_if_exists(template_args, "randomize_start", False)
+            prompt = VideoPrompt(
+                url,
+                Markup(
+                    f"""
+                <style>
+                    #prompt-video-container {{
+                        width: {width}px;
+                        position: fixed;
+                        right: 2em;
+                        display: block !important;
+                    }}
+                    #content {{
+                        width: calc(100% - {width}px);
+                    }}
+                </style>
+                {self.audio_visual_js_injection('video', play_duration, randomize_start)}
+                """
+                ),
+                text_align="center",
+                width=f"{width}px",
+                hide_when_finished=False,
+            )
+        elif url.endswith(tuple(trial_maker.file_extensions["image"])):
+            height = get_if_exists(template_args, "height", 400)
+            prompt = ImagePrompt(
+                url,
+                Markup(
+                    f"""
+                <style>
+                    #prompt-image {{
+                        width: {width}px;
+                        position: fixed;
+                        right: 2em;
+                    }}
+                    #content {{
+                        width: calc(100% - {width}px);
+                    }}
+                </style>
+                """
+                ),
+                width=width,
+                height=height,
+            )
+        else:
+            raise NotImplementedError("Unsupported media type!")
+
+        return ModularPage(
+            "rate_trial",
+            prompt,
+            control=self.get_adjective_control(template_args),
+        )
+
+    def get_all_adjectives(self):
+        """
+        Returns all adjectives produced in the main part of the experiment (i.e. not during the practice session)
+        """
+        return list(
+            set(
+                [
+                    adj.property2
+                    for adj in Notification.query.filter_by(event_type="creation").all()
+                ]
+            )
+        )
+
+
+class AdjectiveNetwork(ImitationChainNetwork):
+    """
+    Defines each adjective network
+    """
+
+    __mapper_args__ = {"polymorphic_identity": "adjective_network"}
+
+    def make_definition(self):
+        trial_maker = self.experiment.timeline.get_trial_maker(self.trial_maker_id)
+        urls = trial_maker.media_urls
+        idx = self.id % len(urls)
+        url = urls[idx]
+        logger.info(f"Prepopulate networks {trial_maker.prepopulate_networks}")
+        initial_tags = trial_maker.prepopulate_networks[idx]
+        return {
+            "url": url,
+            "initial_tags": initial_tags,
+            "stimulus_type": AdjectiveTrial.get_stimulus_type(
+                url, trial_maker.file_extensions
+            ),
+        }
+
+
+class AdjectiveSource(ImitationChainSource):
+    """
+    Defines the initial state of each adjective chain
+    """
+
+    __mapper_args__ = {"polymorphic_identity": "adjective_source"}
+
+    def generate_seed(self, network, experiment, participant):
+        return {
+            "url": network.definition["url"],
+            "tags": network.definition["initial_tags"],
+        }
+
+
+class AdjectivePipeline(ImitationChainTrialMaker):
+    """
+    High level abstraction of the adjective pipeline (Work In Progress!)
+    """
+
+    response_timeout_sec = 60
+    check_timeout_interval_sec = 30
+
+    def __init__(
+        self,
+        *,
+        id_,
+        media_urls: list,
+        num_trials_per_participant: int,
+        base_time_estimate: int,
+        # TODO is 1 sec a reasonable default?
+        tag_rating_time_estimate: int = 1,
+        phase: str,
+        min_iterations: int = 10,
+        max_iterations: int = 20,
+        stop_early_if: dict = {"mean_rating": 3, "num_adjectives": 2},
+        upvote_icon: str = "star",
+        upvote_n_buttons: int = 5,
+        flagging_threshold: int = 2,
+        prune_flags: bool = False,
+        network_class=AdjectiveNetwork,
+        source_class=AdjectiveSource,
+        trial_class=AdjectiveTrial,
+        new_word_bonus: Optional[float] = None,
+        upvote_bonus: Optional[float] = None,
+        show_positive_feedback_every: int = 0,
+        practice_threshold: int = 0,
+        template_args: dict = dict(),
+        prepopulate_networks=False,
+    ):
+        # Assertions
+        assert phase in [
+            "experiment",
+            "practice",
+        ], "Only experiment and practice phase are supported!"
+        assert len(media_urls) > 0, "You need to specify at least one url"
+
+        self.file_extensions = {
+            "audio": [".wav"],
+            "video": [".mp4", ".webm"],
+            "image": [".jpg", ".png"],
+        }
+        flat_extensions = tuple(
+            [item for ext in self.file_extensions.values() for item in ext]
+        )
+        assert all(
+            [url.endswith(flat_extensions) for url in media_urls]
+        ), "Some urls have a non-supported file extension!"
+
+        assert num_trials_per_participant > 0
+        if phase == "practice":
+            assert num_trials_per_participant == len(media_urls)
+        assert base_time_estimate > 0
+        assert tag_rating_time_estimate > 0
+        assert min_iterations > 0
+        assert max_iterations > min_iterations
+
+        assert stop_early_if is None or all(
+            [key in ["mean_rating", "num_adjectives"] for key in stop_early_if.keys()]
+        )
+
+        # TODO add support for 'dot' and 'plus'
+        assert upvote_icon in ["star"], "Currently only star icons are supported"
+        self.upvote_icon = upvote_icon
+        assert upvote_n_buttons > 0
+        self.upvote_n_buttons = upvote_n_buttons
+
+        assert flagging_threshold >= 0
+
+        prepare_n_bonus = sum([b is not None for b in [new_word_bonus, upvote_bonus]])
+        assert (show_positive_feedback_every == 0 and prepare_n_bonus == 0) or (
+            show_positive_feedback_every > 0 and prepare_n_bonus > 0
+        ), "If you want to show a bonus to the participant, you need to specify at least one bonus amount!"
+
+        assert practice_threshold >= 0
+        practice_n_repeat_trials = (
+            0 if phase == "experiment" else num_trials_per_participant
+        )
+        assert (
+            phase == "experiment"
+            and practice_threshold == 0
+            and practice_n_repeat_trials == 0
+        ) or (phase == "practice" and practice_threshold <= practice_n_repeat_trials)
+
+        if not prepopulate_networks:
+            prepopulate_networks = [[] for _ in range(len(media_urls))]
+        else:
+            assert (
+                type(prepopulate_networks) == list
+            ), "If you specify existing for a warm start, you must use a list"
+            assert all(
+                [type(chain) == list for chain in prepopulate_networks]
+            ), "The tags for each chain must consist of lists of strings"
+            assert all(
+                [type(tag) == str for chain in prepopulate_networks for tag in chain]
+            ), "All tags must be strings!"
+
+        self.prepopulate_networks = prepopulate_networks
+
+        # Ad hoc classes
+        trial_class.time_estimate = base_time_estimate
+
+        class AdjectiveNode(ImitationChainNode):
+            __mapper_args__ = {"polymorphic_identity": "adjective_node"}
+
+            def summarize_trials(self, trials: list, experiment, participant):
+                trial = trials[len(trials) - 1]
+                return AdjectivePipeline._summarize_trial(trial, False)
+
+        self.media_urls = media_urls
+        num_chains_per_experiment = len(media_urls)
+        self.network_class = network_class
+        self.source_class = source_class
+        self.trial_class = trial_class
+        self.phase = phase
+        self.template_args = template_args
+        self.show_positive_feedback_every = show_positive_feedback_every
+        self.practice_threshold = practice_threshold
+        self.flagging_threshold = flagging_threshold
+        self.prune_flags = prune_flags
+        self.new_word_bonus = new_word_bonus
+        self.upvote_bonus = upvote_bonus
+
+        check_performance_at_end = practice_threshold > 0 and phase == "practice"
+        check_performance_every_trial = (
+            phase == "experiment" and show_positive_feedback_every > 0
+        )
+
+        if phase == "experiment":
+            num_iterations_per_chain = max_iterations
+        else:
+            num_iterations_per_chain = int(
+                (num_trials_per_participant / num_chains_per_experiment)
+                * max_iterations
+            )
+
+        super().__init__(
+            id_=id_,
+            network_class=network_class,
+            trial_class=trial_class,
+            node_class=AdjectiveNode,
+            source_class=source_class,
+            phase=phase,
+            chain_type="across",
+            # Logic: Make sure practice trials don't go out
+            num_trials_per_participant=num_trials_per_participant,
+            num_repeat_trials=practice_n_repeat_trials,  # Only applies if phase == 'practice'
+            num_iterations_per_chain=num_iterations_per_chain,
+            num_chains_per_participant=None,
+            num_chains_per_experiment=num_chains_per_experiment,
+            trials_per_node=1,
+            balance_across_chains=True,
+            check_performance_at_end=check_performance_at_end,
+            check_performance_every_trial=check_performance_every_trial,
+            recruit_mode="num_trials",
+            target_num_participants=None,
+        )
+
+    def finalize_trial(self, answer, trial, experiment, participant):
+        super().finalize_trial(answer, trial, experiment, participant)
+        is_main_experiment = trial.network.role == "experiment"
+        self._summarize_trial(trial, is_main_experiment)
+
+        # TODO double check if it is safe to pay out the bonus per adjective --> double check reloading the page
+
+    @staticmethod
+    def _summarize_trial(trial, is_main_experiment):
+        def create_notification(url, adjective, event_type, worker_id):
+            # Create notifications
+            notif = Notification(assignment_id=0, event_type=event_type)
+            notif.failed = False
+            notif.property1 = url
+            notif.property2 = adjective
+            notif.property3 = worker_id
+            db.session.add(notif)
+            db.session.commit()
+
+        url = trial.definition["url"]
+        tags = []
+        logger.info(f"Answer: {trial.answer}")
+
+        if len(trial.answer["ratings"]) > 0:
+            for tag, rating in trial.answer["ratings"].items():
+                if rating == "flag":
+                    logger.warn(f'The tag "{tag}" was flagged f')
+
+                tags.append(tag)
+
+                if is_main_experiment:
+                    # Only store flags and upvotes during the main experiment
+                    create_notification(url, tag, rating, trial.participant_id)
+
+        if "new_tags" in trial.answer.keys():
+            for new_tag in trial.answer["new_tags"]:
+                tags.append(new_tag.lower())
+                if is_main_experiment:
+                    # Only store new words during the main experiment
+                    create_notification(
+                        url, new_tag.lower(), "creation", trial.participant_id
+                    )
+
+        # TODO remove adjectives when they are flagged more than twice
+        #  Unclear if the tags can re-emerge
+
+        # TODO if we have completed the minimal number of iterations and fulfill the requirements for early exiting
+        #  we can mark the network as done
+        return {"url": url, "tags": tags}
+
+    def performance_check(self, experiment, participant, participant_trials):
+        if self.phase == "experiment":
+            # Feedback during the main experiment
+            if not participant.var.has("flagged_creations"):
+                flagged_creations = []
+                participant.var.set("flagged_creations", flagged_creations)
+            else:
+                flagged_creations = participant.var.get("flagged_creations")
+
+            return {
+                "score": len(flagged_creations),
+                "passed": len(flagged_creations) < self.flagging_threshold,
+            }
+        else:
+            # Feedback after the practice
+            response_dict = {}
+            repeat_dict = {}
+            for trial in participant_trials:
+                url = trial.definition["url"]
+                if trial.is_repeat_trial:
+                    repeat_dict[url] = list(trial.answer["ratings"].values())
+                else:
+                    response_dict[url] = list(trial.answer["ratings"].values())
+
+            response_urls = sorted(response_dict)
+            repeat_urls = sorted(repeat_dict)
+            assert response_urls == repeat_urls
+
+            # TODO do inline flattening here
+            initial_response = []
+            [initial_response.extend(response_dict[url]) for url in repeat_urls]
+
+            # TODO do inline flattening here too
+            repeat_response = []
+            [repeat_response.extend(repeat_dict[url]) for url in repeat_urls]
+
+            if len(initial_response) == 0 and len(repeat_response) == 0:
+                # Let the first participants of the chain always pass
+                score = 1
+            else:
+                summed_matches = sum(
+                    [
+                        repeat_response[idx] == resp
+                        for idx, resp in enumerate(initial_response)
+                    ]
+                )
+                score = summed_matches / len(repeat_response)
+            return {"score": score, "passed": score >= self.practice_threshold}
+
+    @staticmethod
+    def check_urls_exist(urls):
+        def url_exists(url):
+            return requests.get(url).status_code != 200
+
+        urls_not_exist = [url_exists(url) for url in tqdm(urls, desc="Checking urls")]
+        if any(urls_not_exist):
+            raise FileNotFoundError(
+                f"Following urls are down: {[urls[idx] for idx, exists in enumerate(urls_not_exist) if exists]}"
+            )
