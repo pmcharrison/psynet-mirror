@@ -226,19 +226,26 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         The default implementation extracts ``hit_id``, ``assignment_id``, and
         ``worker_id`` values directly from ``entry_information``.
 
-        This implementation extracts the ``RID``/``rid`` from ``entry_information``
+        This implementation extracts the ``RID`` from ``entry_information``
         and assigns the value to ``hit_id``, ``assignment_id``, and ``worker_id``.
         """
 
-        rid = entry_information.get("RID", entry_information.get("rid", None))
+        rid = entry_information.get("RID")
+        hit_id = entry_information.get("hit_id")
+
+        if rid is None and hit_id is None:
+            raise LucidRecruiterException(
+                "Either `RID` or `hit_id` has to be present in `entry_information`."
+            )
+
         if rid is None:
-            rid = entry_information.get("hit_id")
+            rid = hit_id
 
         # Save RID info into the database
         try:
             LucidRID.query.filter_by(rid=rid).one()
         except (NoResultFound):
-            self.lucidservice.log(f"Saving RID '{rid}' to the database.")
+            self.lucidservice.log(f"Saving RID '{rid}' into the database.")
             db.session.add(LucidRID(rid=rid))
             db.session.commit()
         except (MultipleResultsFound):
