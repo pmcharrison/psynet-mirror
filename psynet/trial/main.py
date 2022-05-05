@@ -2294,6 +2294,7 @@ class TrialNetwork(Network, AsyncProcessOwner):
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
         AsyncProcessOwner.__init__(self)
+        self.experiment = experiment
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
