@@ -228,7 +228,9 @@ class Experiment(dallinger.experiment.Experiment):
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def run_recruiter_checks():
-        eval(get_config().get("recruiter")).run_checks()
+        exp_class = dallinger.experiment.load()
+        exp = exp_class.new(db.session)
+        exp.recruiter.run_checks()
 
     @property
     def base_payment(self):

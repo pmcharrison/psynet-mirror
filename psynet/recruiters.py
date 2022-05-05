@@ -282,7 +282,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def run_checks():
+    def run_checks(self):
         config = get_config()
         LucidService(
             api_key=config.get("lucid_api_key"),
