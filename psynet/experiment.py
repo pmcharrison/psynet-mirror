@@ -51,6 +51,7 @@ from .utils import (
     call_function,
     get_arg_from_dict,
     get_logger,
+    pretty_format_seconds,
     pretty_log_dict,
     serialise,
     serialise_datetime,
@@ -640,6 +641,25 @@ class Experiment(dallinger.experiment.Experiment):
 
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
+
+    def with_lucid_recruitment(self):
+        return self.recruiter.__class__.__name__ in [
+            "DevLucidRecruiter",
+            "LucidRecruiter",
+        ]
+
+    # Currently only to be used in the context of Lucid recruitment
+    def termination_time_in_min(self):
+        if not self.with_lucid_recruitment():
+            raise RuntimeError(
+                "This method is currently only to be used in the context of Lucid recruitment!"
+            )
+        lucid_recruitment_config = json.loads(
+            get_config().get("lucid_recruitment_config")
+        )
+        return pretty_format_seconds(
+            lucid_recruitment_config.get("termination_time_in_s")
+        )
 
     def process_response(
         self,
