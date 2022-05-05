@@ -43,6 +43,3 @@ heroku_python_version = 3.10.3
 
 [Lucid]
 lucid_recruitment_config = file:./lucid_recruitment_config.json
-
-[Docker]
-docker_image_base_name = docker.io/kqmqneyosi8e/lucid-demo
