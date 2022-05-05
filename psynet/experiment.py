@@ -225,7 +225,7 @@ class Experiment(dallinger.experiment.Experiment):
         for c in exp.database_checks:
             c.run()
 
-    @scheduled_task("interval", minutes=0.1, max_instances=1)
+    @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def run_recruiter_checks():
         eval(get_config().get("recruiter")).run_checks()
