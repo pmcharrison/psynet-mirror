@@ -14,10 +14,9 @@ from dallinger.utils import get_base_url
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
-from psynet.data import SQLBase, SQLMixin, register_table
-
+from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
-from .utils import get_logger
+from .utils import get_logger, pretty_format_seconds
 
 logger = get_logger()
 
@@ -294,13 +293,20 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         self.store.set(self.survey_number_storage_key, survey_number)
 
     def run_checks(self):
-        config = get_config()
         LucidService(
-            api_key=config.get("lucid_api_key"),
-            sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
-            sandbox=config.get("mode") != "live",
-            recruitment_config=json.loads(config.get("lucid_recruitment_config")),
+            api_key=self.config.get("lucid_api_key"),
+            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
+            sandbox=self.config.get("mode") != "live",
+            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         ).terminate_invalid_respondents()
+
+    def termination_time_in_min(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
+        )
+        return pretty_format_seconds(
+            lucid_recruitment_config.get("termination_time_in_s")
+        )
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):

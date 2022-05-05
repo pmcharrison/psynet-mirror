@@ -12,7 +12,7 @@
             If your browser is not compatible we have to reject the survey.
         </p>
         <p style="text-align: left;">
-            You will also see one or more consent pages and have up to <span style="font-weight: bold;">{{ experiment.termination_time_in_min() }}</span> to read and accept/reject them.
+            You will also see one or more consent pages and have up to <span style="font-weight: bold;">{{ experiment.recruiter.termination_time_in_min() }}</span> to read and accept/reject them.
         </p>
         {% endif %}
         <p style="clear: both;">
