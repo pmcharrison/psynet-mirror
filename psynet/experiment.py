@@ -1026,10 +1026,10 @@ class Experiment(dallinger.experiment.Experiment):
         else:
             return request.environ["HTTP_X_FORWARDED_FOR"]
 
-    @experiment_route("/resume/<assignment_id>", methods=["GET"])
+    @experiment_route("/resume/<auth_token>", methods=["GET"])
     @classmethod
-    def route_resume(cls, assignment_id):
-        return render_template("resume.html", assignment_id=assignment_id)
+    def route_resume(cls, auth_token):
+        return render_template("resume.html", auth_token=auth_token)
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod

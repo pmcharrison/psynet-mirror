@@ -129,4 +129,4 @@
     </table>
 {% endmacro %}
 
-{% macro get_resume_url(participant) %}{{ app_base_url }}/resume/{{ participant.assignment_id }}{% endmacro %}
+{% macro get_resume_url(participant) %}{{ app_base_url }}/resume/{{ participant.auth_token }}{% endmacro %}
