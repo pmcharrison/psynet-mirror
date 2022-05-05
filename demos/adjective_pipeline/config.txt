@@ -1,0 +1,35 @@
+[Launch mode]
+mode = sandbox
+
+[Payment information]
+title = Timeline demo
+base_payment = 0.10
+
+[Recruitment strategy]
+auto_recruit = true
+lifetime = 24
+duration = 2
+us_only = false
+approve_requirement = 95
+ad_group = Game
+browser_exclude_rule = MSIE, mobile, tablet
+disable_when_duration_exceeded = False
+
+[Ad metadata]
+description = This app is for previewing the monitor page.
+keywords = monitor
+contact_email_on_error = computational.audition+online_running@gmail.com
+organization_name = Max Planck Institute for Empirical Aesthetics
+
+[Database]
+database_url = postgresql://postgres@localhost/dallinger
+database_size = standard-2
+
+[Server]
+# Dyno types: hobby, standard-1x, standard-2x, performance-m, performance-l, probably performance-m is best
+dyno_type = standard-1x
+num_dynos_web = 1
+num_dynos_worker = 1
+redis_size = hobby-dev
+host = 0.0.0.0
+clock_on = true

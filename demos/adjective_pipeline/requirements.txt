@@ -1,0 +1,1 @@
+psynet@git+https://psynet:DbsyggsVovh7UJTtxRtC@gitlab.com/computational-audition-lab/psynet#egg=psynet@18106c9006b3e6f3f3d70c6d3d3011c81dc11a71
