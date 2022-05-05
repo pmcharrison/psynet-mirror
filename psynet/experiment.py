@@ -33,6 +33,7 @@ from .participant import Participant, get_participant
 from .recruiters import (  # noqa: F401
     CapRecruiter,
     DevCapRecruiter,
+    DevLucidRecruiter,
     LucidRecruiter,
     StagingCapRecruiter,
 )
@@ -223,6 +224,11 @@ class Experiment(dallinger.experiment.Experiment):
         exp = exp_class.new(db.session)
         for c in exp.database_checks:
             c.run()
+
+    @scheduled_task("interval", minutes=0.1, max_instances=1)
+    @staticmethod
+    def run_recruiter_checks():
+        eval(get_config().get("recruiter")).run_checks()
 
     @property
     def base_payment(self):

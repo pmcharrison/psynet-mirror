@@ -1,6 +1,3 @@
-import json
-
-from dallinger.config import get_config
 from flask import Markup
 
 import psynet.experiment
@@ -8,7 +5,6 @@ import psynet.media
 from psynet.consent import MainConsent
 from psynet.demography.general import BasicDemography
 from psynet.demography.gmsi import GMSI
-from psynet.lucid import LucidService
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import AttentionTest, HeadphoneTest, LexTaleTest
 from psynet.timeline import Timeline
@@ -53,16 +49,3 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
-
-    from dallinger.experiment import scheduled_task
-
-    @scheduled_task("interval", minutes=1, max_instances=1)
-    @staticmethod
-    def terminate_invalid_respondents():
-        config = get_config()
-        LucidService(
-            api_key=config.get("lucid_api_key"),
-            sha1_hashing_key=config.get("lucid_sha1_hashing_key"),
-            sandbox=config.get("mode") != "live",
-            recruitment_config=json.loads(config.get("lucid_recruitment_config")),
-        ).terminate_invalid_respondents()
