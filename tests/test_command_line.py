@@ -197,7 +197,9 @@ class TestEstimate:
 
     @pytest.fixture
     def pretty_format_seconds(self):
-        with patch("psynet.utils.pretty_format_seconds") as mock_pretty_format_seconds:
+        with patch(
+            "psynet.command_line.pretty_format_seconds"
+        ) as mock_pretty_format_seconds:
             yield mock_pretty_format_seconds
 
     def test_estimate(
