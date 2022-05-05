@@ -300,6 +300,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         ).terminate_invalid_respondents()
 
+    @property
     def termination_time_in_min(self):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
