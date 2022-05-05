@@ -1,5 +1,6 @@
 import hashlib
 import random
+import time
 from collections import Counter
 from html import escape, unescape
 from typing import Optional
@@ -635,8 +636,11 @@ class AdjectiveNetwork(ImitationChainNetwork):
         urls = trial_maker.media_urls
         idx = self.id % len(urls)
         url = urls[idx]
-        logger.info(f"Prepopulate networks {trial_maker.prepopulate_networks}")
         initial_tags = trial_maker.prepopulate_networks[idx]
+        if initial_tags != []:
+            logger.info(
+                f"Prepopulate network {self.id} with: {trial_maker.prepopulate_networks}"
+            )
         return {
             "url": url,
             "initial_tags": initial_tags,
@@ -925,7 +929,19 @@ class AdjectivePipeline(ImitationChainTrialMaker):
     @staticmethod
     def check_urls_exist(urls):
         def url_exists(url):
-            return requests.get(url).status_code != 200
+            n_tries = 0
+            max_tries = 3
+
+            while n_tries < max_tries:
+                try:
+                    request = requests.get(url)
+                    return request.status_code != 200
+                except Exception:
+                    logger.warning(f"Request timed out: {url}. Trying again.")
+                    n_tries += 1
+                    time.sleep(n_tries * 3)
+            if n_tries == max_tries:
+                logger.error("Request failed: {url}")
 
         urls_not_exist = [url_exists(url) for url in tqdm(urls, desc="Checking urls")]
         if any(urls_not_exist):
