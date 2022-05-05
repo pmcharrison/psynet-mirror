@@ -50,7 +50,7 @@ class LucidService(object):
 
     @classmethod
     def log(cls, text):
-        logger.info(f">>>>>>>>>> LUCID RECRUITER: {text}")
+        logger.info(f"LUCID RECRUITER: {text}")
 
     def create_survey(
         self,
