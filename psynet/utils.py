@@ -412,6 +412,15 @@ def is_valid_html5_id(str):
     return True
 
 
+def pretty_format_seconds(seconds):
+    minutes_and_seconds = divmod(seconds, 60)
+    seconds = round(minutes_and_seconds[1])
+    formatted_time = f"{round(minutes_and_seconds[0])} min"
+    if seconds > 0:
+        formatted_time += f" {seconds} sec"
+    return formatted_time
+
+
 def pretty_log_dict(dict, spaces_for_indentation=0):
     return "\n".join(
         " " * spaces_for_indentation
