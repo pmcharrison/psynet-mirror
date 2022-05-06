@@ -711,6 +711,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         practice_threshold: int = 0,
         template_args=None,
         prepopulate_networks=False,
+        allow_revisiting: bool = False,
     ):
         # Avoid default arguments to be mutable
         if template_args is None:
@@ -771,6 +772,13 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         logger.info(
             f"Setting the response timeout for trialmaker {id_} to {(self.response_timeout_sec / 60):.2f} minutes"
         )
+
+        if allow_revisiting:
+            logger.warning(
+                """
+            You set `allow_revisiting` to True. This should only be used for debugging. NEVER USE THIS WHEN DEPLOYING!
+            """
+            )
 
         assert flagging_threshold >= 0
 
@@ -852,7 +860,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             source_class=source_class,
             phase=phase,
             chain_type="across",
-            # Logic: Make sure practice trials don't go out
             num_trials_per_participant=num_trials_per_participant,
             num_repeat_trials=practice_n_repeat_trials,  # Only applies if phase == 'practice'
             num_iterations_per_chain=num_iterations_per_chain,
@@ -864,6 +871,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             check_performance_every_trial=check_performance_every_trial,
             recruit_mode="num_trials",
             target_num_participants=None,
+            allow_revisiting_networks_in_across_chains=allow_revisiting,
         )
 
     def finalize_trial(self, answer, trial, experiment, participant):
