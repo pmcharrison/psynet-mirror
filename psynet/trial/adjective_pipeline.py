@@ -31,11 +31,20 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+# TODO The practice trials are currently problematic. It biases people as they only view a limited number of initial
+#  starting stimuli with their tags. Also, since we are using across chains it might be that people occupy all the spots
+#  in the training phase meaning that not all participants do the same number of practice trials
+#  Alternatives are to take within chains for practice, but this would require prepopulated chains and this also biases
+#  the participant…
+
+
 class AdjectiveControl(Control):
     macro = "adjective_input"
 
-    def __init__(self, template_args={}):
+    def __init__(self, template_args=None):
         super().__init__()
+        if template_args is None:
+            template_args = {}
         self.template_args = template_args
 
     @property
@@ -84,17 +93,17 @@ class AdjectiveTrial(ImitationChainTrial):
                 )
             return usernames
         else:
-            logger.warn(f"No usernames found for {worker_ids}")
+            logger.warning(f"No usernames found for {worker_ids}")
             return []
 
-    @staticmethod
-    def get_feedback_new_word(new_word, bonus):
+    def get_feedback_new_word(self, trial_maker, tag, url):
         """
         Prints the feedback if the participant discovered a completely new word. This method can easily be overwritten.
         """
+        html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
         return f"""
-            You just unlocked an entirely new word: "{new_word}"<br><br>
-            We award you with a bonus of {bonus}$!
+            You just unlocked an entirely new word: "{tag}" for {html_emb}<br><br>
+            We award you with a bonus of {trial_maker.new_word_bonus}$!
             <br><br>
             <div class="alert alert-warning" role="alert">
             <strong>Note:</strong> Please keep in mind that if your tags are later flagged as irrelevant,
@@ -128,18 +137,18 @@ class AdjectiveTrial(ImitationChainTrial):
                 )
 
             # Now we grab the adjectives that are created by the user and occur only once in all adjectives
-            unique_user_adjectives = [
-                adj.property2
+            unique_user_adjectives_with_url = [
+                [adj.property1, adj.property2]
                 for adj in self.user_creation_query(participant.id).all()
                 if adj.property2 not in feedback_dictionary["new_word"]["history"]
                 and adjective_count[adj.property2] == 1
             ]
-            if len(unique_user_adjectives) > 0:
+            if len(unique_user_adjectives_with_url) > 0:
                 feedback_dictionary["new_word"]["available"] = True
-                new_word = unique_user_adjectives[0]
+                url, new_word = unique_user_adjectives_with_url[0]
                 feedback_dictionary["new_word"]["history"].append(new_word)
                 feedback_dictionary["new_word"]["message"] = self.get_feedback_new_word(
-                    new_word, trial_maker.new_word_bonus
+                    trial_maker, new_word, url
                 )
         return feedback_dictionary
 
@@ -149,9 +158,11 @@ class AdjectiveTrial(ImitationChainTrial):
         Creates a HTML snippet to display a stimulus, which can be embedded into some markdown.
         """
         if url.endswith(tuple(file_extensions["audio"])):
-            raise NotImplementedError("Audio not implemented yet!")
+            return f"""<audio id="audio" controls>
+                    <source src="{url}" type="audio/wav">
+                    Your browser does not support the audio element.
+                    </audio>"""
         elif url.endswith(tuple(file_extensions["video"])):
-            # TODO test: does this work?
             source = (
                 f'<source src="{url}" type="video/mp4">'
                 if url.endswith("mp4")
@@ -197,7 +208,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 f'{users} flagged your label "{tag}" for {stimulus_type}. {html_emb}'
             )
 
-        message = "<br>".join(flagged_lines) + "<br>br>"
+        message = "<br>".join(flagged_lines) + "<br><br>"
 
         if len(flagged_adjectives) >= flagging_threshold:
             message += "<b>You will now be excluded from the experiment</b>"
@@ -231,10 +242,12 @@ class AdjectiveTrial(ImitationChainTrial):
                 query = (
                     Notification.query.filter_by(property1=url)
                     .filter_by(property2=tag)
+                    .filter_by(property4=trial_maker.id)
                     .filter_by(event_type="flag")
                 )
 
-                if query.count() > 0:
+                # We reset the flagging for an adjective, once the adjective has been added again
+                if query.count() % trial_maker.flagging_threshold > 0:
                     # The adjective was flagged by at least one other participant
                     flagged_adjectives.append(
                         {
@@ -280,23 +293,26 @@ class AdjectiveTrial(ImitationChainTrial):
                     "upvoted_creations"
                 )
 
-            upvote_options = [str(s + 1) for s in range(trial_maker.upvote_n_buttons)]
-
             for url, tag in self.url_and_tag_created_by_user(participant.id):
                 # Only give a bonus for a tag once -> i.e. same tag for two stimuli will not be awarded twice
                 if tag not in feedback_dictionary["upvoted"]["history"]:
+                    creation_ids = trial_maker.get_creation_ids(url, tag)
                     query = (
                         Notification.query.filter_by(property1=url)
                         .filter_by(property2=tag)
-                        .filter(Notification.event_type.in_(upvote_options))
+                        .filter_by(property4=trial_maker.id)
+                        # Ignore all the upvotes that happened before the adjective was flagged
+                        .filter(Notification.id > max(creation_ids))
+                        .filter(Notification.event_type.in_(trial_maker.upvote_options))
                     )
+
                     if query.count() > 0:
                         worker_ids = [adj.property3 for adj in query.all()]
                         feedback_dictionary["upvoted"]["available"] = True
                         feedback_dictionary["upvoted"][
                             "message"
                         ] = self.get_feedback_upvoted(
-                            trial_maker, tag, url, worker_ids, trial_maker.upvoted_bonus
+                            trial_maker, tag, url, worker_ids, trial_maker.upvote_bonus
                         )
                         feedback_dictionary["upvoted"]["history"].append(tag)
                         break
@@ -386,7 +402,7 @@ class AdjectiveTrial(ImitationChainTrial):
                     participant.var.set(
                         "upvoted_creations", available_feedback[key]["history"]
                     )
-                    participant.inc_performance_bonus(trial_maker.upvoted_bonus)
+                    participant.inc_performance_bonus(trial_maker.upvote_bonus)
                 elif key == "new_word":
                     participant.var.set(
                         "bonussed_unique_words", available_feedback[key]["history"]
@@ -494,7 +510,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 }}"""
         else:
             if sum([arg is None for arg in [play_duration, randomize_start]]) < 2:
-                logger.warn(
+                logger.warning(
                     "The arguments play_duration and randomize_start may only be used for video!"
                 )
             prepare_media_fn = "prepare_media = function(){}"
@@ -549,7 +565,6 @@ class AdjectiveTrial(ImitationChainTrial):
         if url.endswith(tuple(trial_maker.file_extensions["audio"])):
             prompt = AudioPrompt(
                 url,
-                # TODO insert custom script for playing again
                 Markup(
                     f"""{self.audio_visual_js_injection('audio')}
                 """
@@ -638,9 +653,11 @@ class AdjectiveNetwork(ImitationChainNetwork):
         url = urls[idx]
         initial_tags = trial_maker.prepopulate_networks[idx]
         if initial_tags != []:
-            logger.info(
-                f"Prepopulate network {self.id} with: {trial_maker.prepopulate_networks}"
-            )
+            logger.info(f"Prepopulate network {self.id} with: {initial_tags}")
+            for tag in initial_tags:
+                trial_maker.create_notification(
+                    url, tag.lower(), "creation", "experiment", trial_maker.id
+                )
         return {
             "url": url,
             "initial_tags": initial_tags,
@@ -669,9 +686,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
     High level abstraction of the adjective pipeline (Work In Progress!)
     """
 
-    response_timeout_sec = 60
-    check_timeout_interval_sec = 30
-
     def __init__(
         self,
         *,
@@ -679,12 +693,11 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         media_urls: list,
         num_trials_per_participant: int,
         base_time_estimate: int,
-        # TODO is 1 sec a reasonable default?
         tag_rating_time_estimate: int = 1,
         phase: str,
         min_iterations: int = 10,
         max_iterations: int = 20,
-        stop_early_if: dict = {"mean_rating": 3, "num_adjectives": 2},
+        stop_early_if=None,
         upvote_icon: str = "star",
         upvote_n_buttons: int = 5,
         flagging_threshold: int = 2,
@@ -696,9 +709,15 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         upvote_bonus: Optional[float] = None,
         show_positive_feedback_every: int = 0,
         practice_threshold: int = 0,
-        template_args: dict = dict(),
+        template_args=None,
         prepopulate_networks=False,
     ):
+        # Avoid default arguments to be mutable
+        if template_args is None:
+            template_args = dict()
+        if stop_early_if is None:
+            stop_early_if = {"mean_rating": 3, "num_adjectives": 2, "min_upvotes": 3}
+
         # Assertions
         assert phase in [
             "experiment",
@@ -725,16 +744,33 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         assert tag_rating_time_estimate > 0
         assert min_iterations > 0
         assert max_iterations > min_iterations
+        self.min_iterations = min_iterations
 
         assert stop_early_if is None or all(
-            [key in ["mean_rating", "num_adjectives"] for key in stop_early_if.keys()]
+            [
+                key in ["mean_rating", "num_adjectives", "min_upvotes"]
+                for key in stop_early_if.keys()
+            ]
         )
+        self.stop_early_if = stop_early_if
 
         # TODO add support for 'dot' and 'plus'
         assert upvote_icon in ["star"], "Currently only star icons are supported"
         self.upvote_icon = upvote_icon
         assert upvote_n_buttons > 0
         self.upvote_n_buttons = upvote_n_buttons
+        self.upvote_options = [str(s + 1) for s in range(upvote_n_buttons)]
+
+        # Find an upper bound of the maximum trial duration. We set this based on the stimulus viewing
+        # duration + time per rating X the max expected number of words
+        self.response_timeout_sec = max(
+            60,  # at least a minute
+            base_time_estimate * 5 + max_iterations * 10 * tag_rating_time_estimate,
+        )
+
+        logger.info(
+            f"Setting the response timeout for trialmaker {id_} to {(self.response_timeout_sec / 60):.2f} minutes"
+        )
 
         assert flagging_threshold >= 0
 
@@ -770,13 +806,15 @@ class AdjectivePipeline(ImitationChainTrialMaker):
 
         # Ad hoc classes
         trial_class.time_estimate = base_time_estimate
+        pipeline_obj = self
 
         class AdjectiveNode(ImitationChainNode):
             __mapper_args__ = {"polymorphic_identity": "adjective_node"}
 
             def summarize_trials(self, trials: list, experiment, participant):
                 trial = trials[len(trials) - 1]
-                return AdjectivePipeline._summarize_trial(trial, False)
+                trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
+                return pipeline_obj._summarize_trial(trial, False, trial_maker)
 
         self.media_urls = media_urls
         num_chains_per_experiment = len(media_urls)
@@ -831,7 +869,8 @@ class AdjectivePipeline(ImitationChainTrialMaker):
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
         is_main_experiment = trial.network.role == "experiment"
-        self._summarize_trial(trial, is_main_experiment)
+        trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
+        self._summarize_trial(trial, is_main_experiment, trial_maker)
         bonus_per_rating = experiment.var.wage_per_hour * (
             self.tag_rating_time_estimate / 60 ** 2
         )
@@ -842,18 +881,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         )
         participant.inc_performance_bonus(full_rating_bonus)
 
-    @staticmethod
-    def _summarize_trial(trial, is_main_experiment):
-        def create_notification(url, adjective, event_type, worker_id):
-            # Create notifications
-            notif = Notification(assignment_id=0, event_type=event_type)
-            notif.failed = False
-            notif.property1 = url
-            notif.property2 = adjective
-            notif.property3 = worker_id
-            db.session.add(notif)
-            db.session.commit()
-
+    def _summarize_trial(self, trial, is_main_experiment, trial_maker):
         url = trial.definition["url"]
         tags = []
         logger.info(f"Answer: {trial.answer}")
@@ -861,28 +889,101 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         if len(trial.answer["ratings"]) > 0:
             for tag, rating in trial.answer["ratings"].items():
                 if rating == "flag":
-                    logger.warn(f'The tag "{tag}" was flagged f')
+                    logger.warning(f'The tag "{tag}" was flagged')
 
                 tags.append(tag)
 
                 if is_main_experiment:
                     # Only store flags and upvotes during the main experiment
-                    create_notification(url, tag, rating, trial.participant_id)
+                    trial_maker.create_notification(
+                        url, tag, rating, trial.participant_id, trial.trial_maker_id
+                    )
 
         if "new_tags" in trial.answer.keys():
             for new_tag in trial.answer["new_tags"]:
                 tags.append(new_tag.lower())
                 if is_main_experiment:
                     # Only store new words during the main experiment
-                    create_notification(
-                        url, new_tag.lower(), "creation", trial.participant_id
+                    trial_maker.create_notification(
+                        url,
+                        new_tag.lower(),
+                        "creation",
+                        trial.participant_id,
+                        trial.trial_maker_id,
                     )
 
-        # TODO remove adjectives when they are flagged more than twice
-        #  Unclear if the tags can re-emerge
+        flagged_adj_dict = Counter(
+            [
+                adj.property2
+                for adj in Notification.query.filter_by(property1=url)
+                .filter_by(property4=trial.trial_maker_id)
+                .filter_by(event_type="flag")
+                .all()
+            ]
+        )
 
-        # TODO if we have completed the minimal number of iterations and fulfill the requirements for early exiting
-        #  we can mark the network as done
+        created_adj_dict = Counter(
+            [
+                adj.property2
+                for adj in Notification.query.filter_by(property1=url)
+                .filter_by(property4=trial.trial_maker_id)
+                .filter_by(event_type="creation")
+                .all()
+            ]
+        )
+
+        # Remove adjectives when they are flagged more than `flagging_threshold`
+        #  The removed tags can re-emerge
+        for tag, total_n_flags in flagged_adj_dict.items():
+            total_n_creations = created_adj_dict[tag]
+            relative_n_flags = total_n_flags - self.flagging_threshold * (
+                total_n_creations - 1
+            )
+            # logger.info(f'Relative number of flags for tag "{tag}": {relative_n_flags}')
+            if relative_n_flags == self.flagging_threshold:
+                logger.warning(
+                    f'Removing tag "{tag}" from {tags}. The tag "{tag}" can be added again in later iterations.'
+                )
+                tags = [old_tag for old_tag in tags if tag != old_tag]
+
+        if (
+            trial.degree >= trial_maker.min_iterations
+            and trial_maker.stop_early_if is not None
+        ):
+            n_qualifying_adjectives = 0
+            for tag in tags:
+                creation_ids = trial_maker.get_creation_ids(url, tag)
+                upvotes_per_tag = [
+                    int(upvote.event_type)
+                    for upvote in (
+                        Notification.query.filter_by(property1=url)
+                        .filter_by(property2=tag)
+                        .filter_by(property4=trial_maker.id)
+                        # Ignore all the upvotes that happened before the adjective was flagged
+                        .filter(Notification.id > max(creation_ids))
+                        .filter(Notification.event_type.in_(trial_maker.upvote_options))
+                        .all()
+                    )
+                ]
+
+                n_upvotes = len(upvotes_per_tag)
+                if n_upvotes < trial_maker.stop_early_if["min_upvotes"]:
+                    continue
+                mean_rating = sum(upvotes_per_tag) / n_upvotes
+                if mean_rating < trial_maker.stop_early_if["mean_rating"]:
+                    continue
+                n_qualifying_adjectives += 1
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=2343, stdoutToServer=True, stderrToServer=True
+            )
+            if n_qualifying_adjectives >= trial_maker.stop_early_if["num_adjectives"]:
+                logger.info(
+                    f"Network {trial.network_id} converged early at iteration {trial.degree}"
+                )
+                trial.network.full = True
+
         return {"url": url, "tags": tags}
 
     def performance_check(self, experiment, participant, participant_trials):
@@ -913,11 +1014,11 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             repeat_urls = sorted(repeat_dict)
             assert response_urls == repeat_urls
 
-            # TODO do inline flattening here
+            # FUTURE: do inline flattening here
             initial_response = []
             [initial_response.extend(response_dict[url]) for url in repeat_urls]
 
-            # TODO do inline flattening here too
+            # FUTURE: do inline flattening here too
             repeat_response = []
             [repeat_response.extend(repeat_dict[url]) for url in repeat_urls]
 
@@ -933,6 +1034,32 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 )
                 score = summed_matches / len(repeat_response)
             return {"score": score, "passed": score >= self.practice_threshold}
+
+    @staticmethod
+    def create_notification(url, adjective, event_type, worker_id, trial_maker_id):
+        # Create notifications
+        notif = Notification(assignment_id=0, event_type=event_type)
+        notif.failed = False
+        notif.property1 = url
+        notif.property2 = adjective
+        notif.property3 = worker_id
+        notif.property4 = trial_maker_id
+        db.session.add(notif)
+        db.session.commit()
+
+    def get_creation_ids(self, url, tag):
+        # Add id of 1 to never return an empty sequence
+        # This may happen in entirely new chains without any tag
+        return [
+            creation.id
+            for creation in (
+                Notification.query.filter_by(property1=url)
+                .filter_by(property2=tag)
+                .filter_by(property4=self.id)
+                .filter_by(event_type="creation")
+                .all()
+            )
+        ] + [1]
 
     @staticmethod
     def check_urls_exist(urls):
