@@ -791,6 +791,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self.prune_flags = prune_flags
         self.new_word_bonus = new_word_bonus
         self.upvote_bonus = upvote_bonus
+        self.tag_rating_time_estimate = tag_rating_time_estimate
 
         check_performance_at_end = practice_threshold > 0 and phase == "practice"
         check_performance_every_trial = (
@@ -831,8 +832,15 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         super().finalize_trial(answer, trial, experiment, participant)
         is_main_experiment = trial.network.role == "experiment"
         self._summarize_trial(trial, is_main_experiment)
-
-        # TODO double check if it is safe to pay out the bonus per adjective --> double check reloading the page
+        bonus_per_rating = experiment.var.wage_per_hour * (
+            self.tag_rating_time_estimate / 60 ** 2
+        )
+        n_ratings = len(answer["ratings"])
+        full_rating_bonus = n_ratings * bonus_per_rating
+        logger.info(
+            f"Paying participant {participant.id} a performance bonus of {full_rating_bonus}$ for {n_ratings} ratings"
+        )
+        participant.inc_performance_bonus(full_rating_bonus)
 
     @staticmethod
     def _summarize_trial(trial, is_main_experiment):
