@@ -950,6 +950,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                     time.sleep(n_tries * 3)
             if n_tries == max_tries:
                 logger.error("Request failed: {url}")
+            return False
 
         urls_not_exist = [url_exists(url) for url in tqdm(urls, desc="Checking urls")]
         if any(urls_not_exist):
