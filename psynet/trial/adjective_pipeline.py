@@ -1,15 +1,12 @@
 import hashlib
 import random
-import time
 from collections import Counter
 from html import escape, unescape
 from typing import Optional
 
-import requests
 from dallinger import db
 from dallinger.models import Notification, Participant
 from flask import Markup
-from tqdm import tqdm
 
 from psynet.modular_page import (
     AudioPrompt,
@@ -1068,27 +1065,3 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 .all()
             )
         ] + [1]
-
-    @staticmethod
-    def check_urls_exist(urls):
-        def url_exists(url):
-            n_tries = 0
-            max_tries = 3
-
-            while n_tries < max_tries:
-                try:
-                    request = requests.get(url)
-                    return request.status_code != 200
-                except Exception:
-                    logger.warning(f"Request timed out: {url}. Trying again.")
-                    n_tries += 1
-                    time.sleep(n_tries * 3)
-            if n_tries == max_tries:
-                logger.error("Request failed: {url}")
-            return False
-
-        urls_not_exist = [url_exists(url) for url in tqdm(urls, desc="Checking urls")]
-        if any(urls_not_exist):
-            raise FileNotFoundError(
-                f"Following urls are down: {[urls[idx] for idx, exists in enumerate(urls_not_exist) if exists]}"
-            )
