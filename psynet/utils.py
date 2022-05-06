@@ -527,7 +527,7 @@ def classproperty(func):
 
 
 def run_subprocess_with_live_output(command):
-    p = pexpect.spawn(command)
+    p = pexpect.spawn(command, timeout=None)
     while not p.eof():
         line = p.readline().decode("utf-8")
         print(line, end="")
