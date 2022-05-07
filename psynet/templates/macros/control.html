@@ -1739,6 +1739,7 @@
     <script src="/static/scripts/bootstrap-tagsinput-0.8.0.js"></script>
     <script src="/static/scripts/typeahead-0.11.1.js"></script>
     <script>
+        var metadata = {};
         var new_tags;
         get_data = function () {
             return {
@@ -1767,7 +1768,7 @@
             } else if ($('.bootstrap-tagsinput input')[1].value !== '') {
                 alert('There is still some unsubmitted text in the tag field. Either remove it or submit the tag by pressing enter before continuing.')
             } else {
-                psynet.nextPage(get_data());
+                psynet.nextPage(get_data(), metadata);
             }
         }
         /* App.js */

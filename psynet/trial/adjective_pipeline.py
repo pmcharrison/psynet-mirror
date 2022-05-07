@@ -1,4 +1,5 @@
 import hashlib
+import json
 import random
 from collections import Counter
 from html import escape, unescape
@@ -499,12 +500,19 @@ class AdjectiveTrial(ImitationChainTrial):
                 if randomize_start
                 else "0"
             )
-            prepare_media_fn = f"""prepare_media = function(){{
-                    var min_play_duration = {play_duration};
-                    startAt = {start_str};
-                    {end_row}
-                    psynet.log.info('Video starting at: ' + startAt)
-                }}"""
+            prepare_media_fn = f"""
+                    $( document ).ready(function(){{
+                        // Initialize an empty array to store the starting times of the video
+                        metadata['start_times_video'] = [];
+                    }})
+                    prepare_media = function(){{
+                        var min_play_duration = {play_duration};
+                        startAt = {start_str};
+                        {end_row}
+                        psynet.log.info('Video starting at: ' + startAt)
+                        metadata['start_times_video'].push(startAt);
+                    }}
+                """
         else:
             if sum([arg is None for arg in [play_duration, randomize_start]]) < 2:
                 logger.warning(
@@ -877,6 +885,9 @@ class AdjectivePipeline(ImitationChainTrialMaker):
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
+        # Store all metadata in the details column
+        trial.details = json.dumps(trial.response.metadata)
+
         is_main_experiment = trial.network.role == "experiment"
         trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
         self._summarize_trial(trial, is_main_experiment, trial_maker)
