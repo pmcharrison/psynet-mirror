@@ -1,5 +1,4 @@
 import hashlib
-import json
 import random
 from collections import Counter
 from html import escape, unescape
@@ -885,14 +884,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
-        # TODO continue here
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=2343, stdoutToServer=True, stderrToServer=True
-        )
-        # Store all metadata in the details column
-        trial.details = json.dumps(trial.response.metadata)
 
         is_main_experiment = trial.network.role == "experiment"
         trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
@@ -1022,17 +1013,12 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                     continue
                 n_qualifying_adjectives += 1
 
-            # TODO remove all pydevd_pycharm statements
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=2343, stdoutToServer=True, stderrToServer=True
-            )
             if n_qualifying_adjectives >= trial_maker.stop_early_if["num_adjectives"]:
                 logger.info(
                     f"Network {trial.network_id} converged early at iteration {trial.degree}"
                 )
                 trial.network.full = True
+                db.session.commit()  # Make sure it's committed
 
         return {"url": url, "tags": tags}
 
