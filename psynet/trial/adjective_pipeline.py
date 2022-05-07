@@ -691,6 +691,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         num_trials_per_participant: int,
         base_time_estimate: int,
         tag_rating_time_estimate: int = 1,
+        new_tag_time_estimate: int = 4,
         phase: str,
         min_iterations: int = 10,
         max_iterations: int = 20,
@@ -763,7 +764,9 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         # duration + time per rating X the max expected number of words
         self.response_timeout_sec = max(
             60,  # at least a minute
-            base_time_estimate * 5 + max_iterations * 10 * tag_rating_time_estimate,
+            base_time_estimate * 2
+            + new_tag_time_estimate * 5
+            + max_iterations * 10 * tag_rating_time_estimate,
         )
 
         logger.info(
@@ -835,6 +838,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self.new_word_bonus = new_word_bonus
         self.upvote_bonus = upvote_bonus
         self.tag_rating_time_estimate = tag_rating_time_estimate
+        self.new_tag_time_estimate = new_tag_time_estimate
 
         check_performance_at_end = practice_threshold > 0 and phase == "practice"
         check_performance_every_trial = (
@@ -881,10 +885,32 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         )
         n_ratings = len(answer["ratings"])
         full_rating_bonus = n_ratings * bonus_per_rating
-        logger.info(
-            f"Paying participant {participant.id} a performance bonus of {full_rating_bonus}$ for {n_ratings} ratings"
+
+        bonus_per_new_tag = experiment.var.wage_per_hour * (
+            self.new_tag_time_estimate / 60 ** 2
         )
-        participant.inc_performance_bonus(full_rating_bonus)
+        n_new_tags = len(answer["new_tags"])
+        full_new_tag_bonus = n_new_tags * bonus_per_new_tag
+
+        total_performance_bonus = full_rating_bonus + full_new_tag_bonus
+
+        bonus_payment_lines = []
+
+        def append_payment_line(n, bonus, singular, plural):
+            if n > 0:
+                word = singular if n == 1 else plural
+                bonus_payment_lines.append(f"{bonus}$ for {n} {word}")
+
+        append_payment_line(n_ratings, full_rating_bonus, "rating", "ratings")
+        append_payment_line(n_new_tags, full_new_tag_bonus, "new tag", "new tags")
+
+        logger.info(
+            f"""
+            Paying participant {participant.id} a total performance bonus of {total_performance_bonus}$ consisting of:
+            {' and '.join(bonus_payment_lines)}.
+            """
+        )
+        participant.inc_performance_bonus(total_performance_bonus)
 
     def _summarize_trial(self, trial, is_main_experiment, trial_maker):
         url = trial.definition["url"]
