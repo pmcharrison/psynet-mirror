@@ -885,6 +885,12 @@ class AdjectivePipeline(ImitationChainTrialMaker):
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
+        # TODO continue here
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=2343, stdoutToServer=True, stderrToServer=True
+        )
         # Store all metadata in the details column
         trial.details = json.dumps(trial.response.metadata)
 
@@ -1015,6 +1021,8 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 if mean_rating < trial_maker.stop_early_if["mean_rating"]:
                     continue
                 n_qualifying_adjectives += 1
+
+            # TODO remove all pydevd_pycharm statements
             import pydevd_pycharm
 
             pydevd_pycharm.settrace(
