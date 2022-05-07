@@ -699,6 +699,8 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         base_time_estimate: int,
         tag_rating_time_estimate: int = 1,
         new_tag_time_estimate: int = 4,
+        max_new_tags: int = 10,
+        max_rating: int = 15,
         phase: str,
         min_iterations: int = 10,
         max_iterations: int = 20,
@@ -772,8 +774,8 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self.response_timeout_sec = max(
             60,  # at least a minute
             base_time_estimate * 2
-            + new_tag_time_estimate * 5
-            + max_iterations * 10 * tag_rating_time_estimate,
+            + new_tag_time_estimate * max_new_tags
+            + max_iterations * max_rating * tag_rating_time_estimate,
         )
 
         logger.info(
@@ -846,6 +848,8 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self.upvote_bonus = upvote_bonus
         self.tag_rating_time_estimate = tag_rating_time_estimate
         self.new_tag_time_estimate = new_tag_time_estimate
+        self.max_new_tags = max_new_tags
+        self.max_rating = max_rating
 
         check_performance_at_end = practice_threshold > 0 and phase == "practice"
         check_performance_every_trial = (
@@ -882,6 +886,49 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             allow_revisiting_networks_in_across_chains=allow_revisiting,
         )
 
+        n_stimuli = len(media_urls)
+        # For each stimuli we only do the minimum number of iterations
+        # and pay participants for watching the stimulus + giving one rating or new tag
+
+        min_payment_trial_maker = self.seconds_to_dollars(
+            n_stimuli
+            * min_iterations
+            * (
+                base_time_estimate
+                + max(new_tag_time_estimate, tag_rating_time_estimate)
+            )
+        )
+
+        # For each stimulus we do the MAXIMUM number of iterations
+        # and pay participants for watching the stimulus
+        # participants give the maximum number of tags
+        # participants give the maximum number of ratings
+        # assume payment of a bonus (upvote or new word) after every trial
+        max_payment_trial_maker = (
+            n_stimuli
+            * max_iterations
+            * (
+                self.seconds_to_dollars(
+                    base_time_estimate
+                    + max_new_tags * new_tag_time_estimate
+                    + max_rating * tag_rating_time_estimate
+                )
+                + max(
+                    [
+                        new_word_bonus if new_word_bonus is not None else 0,
+                        upvote_bonus if upvote_bonus is not None else 0,
+                    ]
+                )
+            )
+        )
+
+        logger.info(
+            f"""
+                    In the best case scenario we pay {min_payment_trial_maker:.2f}$ to annotate {n_stimuli} stimuli in
+                    trialmaker {self.id}. In the worst case we pay {max_payment_trial_maker:.2f}$.
+                """
+        )
+
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
 
@@ -891,13 +938,26 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         bonus_per_rating = experiment.var.wage_per_hour * (
             self.tag_rating_time_estimate / 60 ** 2
         )
-        n_ratings = len(answer["ratings"])
+        n_given_ratings = len(answer["ratings"])
+        n_ratings = min(self.max_rating, n_given_ratings)
+        if n_given_ratings > self.max_rating:
+            logger.warning(
+                f"Participant {participant.id} in trial {trial.id} rated {n_given_ratings} tags which is more than"
+                f" the maximum allowed number of ratings per trial, which is {self.max_rating}."
+            )
+
         full_rating_bonus = n_ratings * bonus_per_rating
 
         bonus_per_new_tag = experiment.var.wage_per_hour * (
             self.new_tag_time_estimate / 60 ** 2
         )
-        n_new_tags = len(answer["new_tags"])
+        n_given_tags = len(answer["new_tags"])
+        n_new_tags = min(self.max_new_tags, n_given_tags)
+        if n_given_tags > self.max_new_tags:
+            logger.warning(
+                f"Participant {participant.id} in trial {trial.id} entered {n_given_tags} new tags which is more than"
+                f" the maximum allowed number of tags, which is {self.max_new_tags}."
+            )
         full_new_tag_bonus = n_new_tags * bonus_per_new_tag
 
         total_performance_bonus = full_rating_bonus + full_new_tag_bonus
@@ -919,6 +979,10 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             """
         )
         participant.inc_performance_bonus(total_performance_bonus)
+
+    # TODO fix the hard coded 9 dollars an hour
+    def seconds_to_dollars(self, seconds, wage_per_hour=9):
+        return wage_per_hour * (seconds / 60 ** 2)
 
     def _summarize_trial(self, trial, is_main_experiment, trial_maker):
         url = trial.definition["url"]
