@@ -6,6 +6,7 @@
         "FulcrumExchangeAllocation": 0,
         "FulcrumExchangeHedgeAccess": true,
         "IndustryID": 30,
+        "IsVerifyCallBack": true,
         "StudyTypeID": 1,
         "SurveyStatusCode": "01",
         "UniqueIPAddress": true,
