@@ -1,7 +1,12 @@
 {% extends "timeline-page.html" %}
 
 {% block main_body %}
-    {{content}}
+    Unfortunately the experiment must end early.
+    {% if experiment.var.show_bonus %}
+        However, you will still be paid for the time you spent already.
+        {% include "final-page-bonuses.html" %}
+    {% endif %}
+    Thank you for taking part.
 
     <p class="vspace"></p>
     <p>

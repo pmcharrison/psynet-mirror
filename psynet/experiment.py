@@ -12,6 +12,7 @@ import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
 from dallinger.command_line import __version__ as dallinger_version
+from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
@@ -29,7 +30,13 @@ from .command_line import log
 from .field import VarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
-from .recruiters import CapRecruiter, DevCapRecruiter, StagingCapRecruiter  # noqa: F401
+from .recruiters import (  # noqa: F401
+    CapRecruiter,
+    DevCapRecruiter,
+    DevLucidRecruiter,
+    LucidRecruiter,
+    StagingCapRecruiter,
+)
 from .timeline import (
     DatabaseCheck,
     ExperimentSetupRoutine,
@@ -217,6 +224,14 @@ class Experiment(dallinger.experiment.Experiment):
         exp = exp_class.new(db.session)
         for c in exp.database_checks:
             c.run()
+
+    @scheduled_task("interval", minutes=1, max_instances=1)
+    @staticmethod
+    def run_recruiter_checks():
+        exp = dallinger.experiment.load().new(db.session)
+        recruiter = exp.recruiter
+        if hasattr(recruiter, "run_checks"):
+            recruiter.run_checks()
 
     @property
     def base_payment(self):
@@ -626,6 +641,12 @@ class Experiment(dallinger.experiment.Experiment):
     def outstanding_base_payments(self):
         return self.num_working_participants * self.base_payment
 
+    def with_lucid_recruitment(self):
+        return self.recruiter.__class__.__name__ in [
+            "DevLucidRecruiter",
+            "LucidRecruiter",
+        ]
+
     def process_response(
         self,
         participant_id,
@@ -761,9 +782,11 @@ class Experiment(dallinger.experiment.Experiment):
     @classmethod
     def extra_parameters(cls):
         # We can put extra config variables here if we like, e.g.
-        # config = get_config()
+        config = get_config()
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
-        pass
+        config.register("lucid_api_key", unicode)
+        config.register("lucid_sha1_hashing_key", unicode)
+        config.register("lucid_recruitment_config", unicode)
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod

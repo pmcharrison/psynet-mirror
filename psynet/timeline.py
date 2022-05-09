@@ -1186,40 +1186,17 @@ def multi_page_maker(
 
 
 class EndPage(PageMaker):
-    def __init__(self):
+    def __init__(self, template_filename):
         def f(participant):
             return Page(
                 time_estimate=0,
-                template_str=get_template("final-page.html"),
-                template_arg={"content": self.get_content(participant)},
+                template_str=get_template(template_filename),
+                template_arg={"participant": participant},
             )
 
         super().__init__(
             f, time_estimate=0
         )  # Temporary hotfix for time/bonus estimation bug introduced in d64c1ee505f6
-
-    def get_content(self, participant):
-        return flask.Markup(
-            "That's the end of the experiment! "
-            + self.get_time_bonus_message(participant)
-            + self.get_performance_bonus_message(participant)
-            + " Thank you for taking part."
-        )
-
-    def get_time_bonus_message(self, participant):
-        time_bonus = participant.time_credit.get_bonus()
-        return f"""
-            In addition to your base payment of <strong>&#36;{participant.base_payment:.2f}</strong>,
-            you will receive a bonus of <strong>&#36;{time_bonus:.2f}</strong> for the
-            time you spent on the experiment.
-        """
-
-    def get_performance_bonus_message(self, participant):
-        bonus = participant.performance_bonus
-        if bonus > 0.0:
-            return f"You have also been awarded a performance bonus of <strong>&#36;{bonus:.2f}</strong>!"
-        else:
-            return ""
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)

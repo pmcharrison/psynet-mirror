@@ -284,6 +284,10 @@ class SuccessfulEndPage(EndPage):
     Indicates a successful end to the experiment.
     """
 
+    def __init__(self, show_bonus: bool = True):
+        super().__init__("final-page-successful.html")
+        self.show_bonus = show_bonus
+
     def finalize_participant(self, experiment, participant):
         participant.complete = True
 
@@ -293,18 +297,10 @@ class UnsuccessfulEndPage(EndPage):
     Indicates an unsuccessful end to the experiment.
     """
 
-    def get_content(self, participant):
-        return Markup(
-            "Unfortunately the experiment must end early. "
-            + "However, you will still be paid for the time you spent already. "
-            + self.get_time_bonus_message(participant)
-            + self.get_performance_bonus_message(participant)
-            + " Thank you for taking part."
-        )
-
-    def __init__(self, failure_tags: Optional[List] = None):
-        super().__init__()
+    def __init__(self, show_bonus: bool = True, failure_tags: Optional[List] = None):
+        super().__init__("final-page-unsuccessful.html")
         self.failure_tags = failure_tags
+        self.show_bonus = show_bonus
 
     def finalize_participant(self, experiment, participant):
         if self.failure_tags:
@@ -318,11 +314,8 @@ class RejectedConsentPage(EndPage):
     Indicates a consent that has been rejected.
     """
 
-    def get_content(self, participant):
-        return Markup("Consent was rejected. End of experiment.")
-
     def __init__(self, failure_tags: Optional[List] = None):
-        super().__init__()
+        super().__init__("final-page-rejected-consent.html")
 
     def finalize_participant(self, experiment, participant):
         experiment.fail_participant(participant)

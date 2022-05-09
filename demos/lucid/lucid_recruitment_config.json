@@ -1,0 +1,15 @@
+{
+    "survey": {
+        "BidIncidence": 24,
+        "CollectsPII": false,
+        "CountryLanguageID": 9,
+        "FulcrumExchangeAllocation": 0,
+        "FulcrumExchangeHedgeAccess": true,
+        "IndustryID": 30,
+        "StudyTypeID": 1,
+        "SurveyStatusCode": "01",
+        "UniqueIPAddress": true,
+        "UniquePID": true
+    },
+    "termination_time_in_s": 120
+}
