@@ -1164,3 +1164,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 .all()
             )
         ] + [1]
+
+    def export(self, path_app_archive, output_file):
+        # TODO
+        raise NotImplementedError()
