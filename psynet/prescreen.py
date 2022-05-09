@@ -1033,7 +1033,7 @@ class LexTaleTest(Module):
                     ImagePrompt(
                         self.definition["url"],
                         "Does this word exist?",
-                        width="100",
+                        width="100px",
                         height="100px",
                         hide_after=hide_after,
                         margin_bottom="15px",
