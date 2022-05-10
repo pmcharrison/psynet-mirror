@@ -220,6 +220,17 @@ example_audio_page = ModularPage(
     time_estimate=5,
 )
 
+example_audio_page_1 = ModularPage(
+    "audio_page",
+    AudioPrompt(
+        "/static/audio/bier.wav",
+        "This page loops the same stimulus.",
+        loop=True,
+        controls=False,
+    ),
+    time_estimate=5,
+)
+
 example_audio_page_2 = ModularPage(
     "audio_page",
     AudioPrompt(
@@ -392,6 +403,7 @@ class Exp(psynet.experiment.Experiment):
         example_js_synth_3,
         example_js_synth_4,
         example_audio_page,
+        example_audio_page_1,
         example_audio_page_2,
         example_audio_page_3,
         example_audio_meter,
