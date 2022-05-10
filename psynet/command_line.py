@@ -23,6 +23,7 @@ from .utils import (
     import_local_experiment,
     json_to_data_frame,
     model_name_to_snake_case,
+    pretty_format_seconds,
     run_subprocess_with_live_output,
     serialise,
 )
@@ -714,7 +715,7 @@ def estimate(mode):
             experiment.var.wage_per_hour
         )
         log(
-            f"Estimated time to complete experiment: {format_seconds(completion_time)}."
+            f"Estimated time to complete experiment: {pretty_format_seconds(completion_time)}."
         )
 
 
@@ -847,11 +848,6 @@ def move_snapshot_file(data_dir_path, app):
     shutil.move(
         os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
     )
-
-
-def format_seconds(seconds):
-    minutes_and_seconds = divmod(seconds, 60)
-    return f"{round(minutes_and_seconds[0])} min {round(minutes_and_seconds[1])} sec"
 
 
 @psynet.command()

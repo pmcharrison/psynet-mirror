@@ -9,7 +9,6 @@ import pandas as pd
 from flask import Markup
 
 from .assets import ExternalAsset
-
 from .modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -1035,7 +1034,7 @@ class LexTaleTest(Module):
                     ImagePrompt(
                         self.definition["url"],
                         "Does this word exist?",
-                        width="100",
+                        width="100px",
                         height="100px",
                         hide_after=hide_after,
                         margin_bottom="15px",
@@ -1506,6 +1505,7 @@ class HeadphoneTest(Module):
     performance_threshold : int, optional
         The performance threshold, default: 4.
     """
+
     def __init__(
         self,
         label="headphone_test",
@@ -1520,7 +1520,6 @@ class HeadphoneTest(Module):
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
         super().__init__(self.label, self.elts)
-
 
     def instruction_page(self):
         return InfoPage(

@@ -1,24 +1,33 @@
 {% extends "base/consent.html" %}
 
 {% block body %}
-    <div style="margin-top: 130px;text-align: -webkit-center;">
+    <div style="margin-top: 130px; text-align: -webkit-center;">
       <div style="max-width: max-content;">
         <div class="col-xs-2">
           <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
         </div>
-        <h3 style="clear: both;">
-          To proceed, please click the button below
-        </h3>
-        <div style="float: right;">
+        {% if experiment.with_lucid_recruitment() %}
+        <p style="clear: both; text-align: left;">
+            We are now going to test your browser for compatibility.<br>
+            If your browser is not compatible we have to reject the survey.
+        </p>
+        <p style="text-align: left;">
+            You will also see one or more consent pages and have up to <span style="font-weight: bold;">{{ experiment.recruiter.termination_time_in_min }}</span> to read and accept/reject them.
+        </p>
+        {% endif %}
+        <p style="clear: both;">
+          <h3 style="text-align: right;">
+            To proceed, click the button below.
+          </h3>
           <button
             type="button"
             class="btn btn-primary btn-lg"
             id="consent"
-            style="margin-top: 20px;"
+            style="float: right;"
             onClick="start();">
             Next
           </button>
-        </div>
+        </p>
       </div>
     </div>
 {% endblock %}

@@ -1,0 +1,18 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+    Unfortunately the experiment must end early.
+    {% if experiment.var.show_bonus %}
+        However, you will still be paid for the time you spent already.
+        {% include "final-page-bonuses.html" %}
+    {% endif %}
+    Thank you for taking part.
+
+    <p class="vspace"></p>
+    <p>
+        Please click "Finish" to complete the HIT.
+    </p>
+    <p class="vspace"></p>
+
+    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">Finish</button>
+{% endblock %}

@@ -1995,6 +1995,7 @@ class NetworkTrialMaker(TrialMaker):
     def finalize_trial(self, answer, trial, experiment, participant):
         # pylint: disable=unused-argument,no-self-use,no-member
         super().finalize_trial(answer, trial, experiment, participant)
+        db.session.commit()
         if trial.run_async_post_trial:
             trial.queue_async_method("call_async_post_trial")
             db.session.commit()
