@@ -61,8 +61,11 @@ class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
             "basePayment": self.config.get("base_payment"),
             "bonus": amount,
         }
+        url = self.external_submission_url
+        url += "/fail" if participant.failed else "/complete"
+
         requests.post(
-            self.external_submission_url,
+            url,
             json=data,
             headers={"Authorization": os.environ.get("CAP_RECRUITER_AUTH_TOKEN")},
             verify=False,  # Temporary fix because of SSLCertVerificationError
@@ -77,7 +80,7 @@ class CapRecruiter(BaseCapRecruiter):
     """
 
     nickname = "cap-recruiter"
-    external_submission_url = "https://cap-recruiter.ae.mpg.de/hits/complete"
+    external_submission_url = "https://cap-recruiter.ae.mpg.de/hits"
 
 
 class StagingCapRecruiter(BaseCapRecruiter):
@@ -88,7 +91,7 @@ class StagingCapRecruiter(BaseCapRecruiter):
     """
 
     nickname = "staging-cap-recruiter"
-    external_submission_url = "https://staging-cap-recruiter.ae.mpg.de/hits/complete"
+    external_submission_url = "https://staging-cap-recruiter.ae.mpg.de/hits"
 
 
 class DevCapRecruiter(BaseCapRecruiter):
@@ -99,7 +102,7 @@ class DevCapRecruiter(BaseCapRecruiter):
     """
 
     nickname = "dev-cap-recruiter"
-    external_submission_url = "http://localhost:8000/hits/complete"
+    external_submission_url = "http://localhost:8000/hits"
 
 
 # Lucid
@@ -318,7 +321,7 @@ class DevLucidRecruiter(BaseLucidRecruiter):
     nickname = "dev-lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        super(DevLucidRecruiter, self).__init__()
+        super().__init__()
         self.ad_url = (
             f"http://localhost.cap:5000/ad?recruiter={self.nickname}&RID=[%RID%]"
         )
@@ -333,5 +336,5 @@ class LucidRecruiter(BaseLucidRecruiter):
     nickname = "lucid-recruiter"
 
     def __init__(self, *args, **kwargs):
-        super(LucidRecruiter, self).__init__()
+        super().__init__()
         self.ad_url = f"{get_base_url()}/ad?recruiter={self.nickname}&RID=[%RID%]"
