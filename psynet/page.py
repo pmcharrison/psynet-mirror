@@ -297,8 +297,13 @@ class UnsuccessfulEndPage(EndPage):
     Indicates an unsuccessful end to the experiment.
     """
 
-    def __init__(self, show_bonus: bool = True, failure_tags: Optional[List] = None):
-        super().__init__("final-page-unsuccessful.html")
+    def __init__(
+        self,
+        show_bonus: bool = True,
+        failure_tags: Optional[List] = None,
+        template_filename: str = "final-page-unsuccessful.html",
+    ):
+        super().__init__(template_filename)
         self.failure_tags = failure_tags
         self.show_bonus = show_bonus
 
@@ -309,18 +314,16 @@ class UnsuccessfulEndPage(EndPage):
         experiment.fail_participant(participant)
 
 
-class RejectedConsentPage(EndPage):
+class RejectedConsentPage(UnsuccessfulEndPage):
     """
     Indicates a consent that has been rejected.
     """
 
     def __init__(self, failure_tags: Optional[List] = None):
-        super().__init__("final-page-rejected-consent.html")
-
-    def finalize_participant(self, experiment, participant):
-        experiment.fail_participant(participant)
-        if experiment.need_more_participants:
-            experiment.recruiter.recruit(n=1)
+        super().__init__(
+            failure_tags=failure_tags,
+            template_filename="final-page-rejected-consent.html",
+        )
 
 
 class NAFCPage(ModularPage):

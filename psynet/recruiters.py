@@ -60,6 +60,7 @@ class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
             "assignmentId": participant.assignment_id,
             "basePayment": self.config.get("base_payment"),
             "bonus": amount,
+            "failed_reason": participant.failure_tags,
         }
         url = self.external_submission_url
         url += "/fail" if participant.failed else "/complete"

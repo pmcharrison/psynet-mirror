@@ -32,14 +32,12 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            assert list(get_participant(1).modules.keys()) == [
-                "cap-recruiter_standard_consent"
-            ]
+            assert list(get_participant(1).modules.keys()) == ["main_consent"]
 
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard-consent")
+            next_page(driver, "consent")
 
             assert_text(driver, "main-body", "Welcome to the experiment! Next")
             next_page(driver, "next-button")
@@ -49,7 +47,7 @@ class TestExp(object):
             modules = participant.modules
 
             assert list(modules.keys()) == [
-                "cap-recruiter_standard_consent",
+                "main_consent",
                 "introduction",
             ]
             assert set(list(modules["introduction"].keys())) == {
@@ -59,10 +57,10 @@ class TestExp(object):
             assert len(modules["introduction"]["time_started"]) == 1
             assert len(modules["introduction"]["time_finished"]) == 0
             assert participant.started_modules == [
-                "cap-recruiter_standard_consent",
+                "main_consent",
                 "introduction",
             ]
-            assert participant.finished_modules == ["cap-recruiter_standard_consent"]
+            assert participant.finished_modules == ["main_consent"]
             assert participant.current_module == "introduction"
 
             assert re.search(
@@ -158,7 +156,7 @@ class TestExp(object):
             participant = get_participant(1)
             modules = participant.modules
             assert set(list(modules.keys())) == {
-                "cap-recruiter_standard_consent",
+                "main_consent",
                 "chocolate",
                 "weight",
                 "introduction",
@@ -168,13 +166,13 @@ class TestExp(object):
             assert len(modules["chocolate"]["time_started"]) == 1
             assert len(modules["chocolate"]["time_finished"]) == 0
             assert participant.started_modules == [
-                "cap-recruiter_standard_consent",
+                "main_consent",
                 "introduction",
                 "weight",
                 "chocolate",
             ]
             assert participant.finished_modules == [
-                "cap-recruiter_standard_consent",
+                "main_consent",
                 "introduction",
                 "weight",
             ]

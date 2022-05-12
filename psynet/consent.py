@@ -51,14 +51,14 @@ class CAPRecruiterStandardConsent(Module):
             conditional(
                 "cap-recruiter_standard_consent_conditional",
                 lambda experiment, participant: (
-                    not participant.answer["standard_consent"]
+                    not participant.answer["cap-recruiter_standard_consent"]
                 ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
                     "cap-recruiter_standard_consent",
-                    participant.answer["standard_consent"],
+                    participant.answer["cap-recruiter_standard_consent"],
                 )
             ),
         )
@@ -87,7 +87,7 @@ class CAPRecruiterStandardConsent(Module):
             )
 
         def format_answer(self, raw_answer, **kwargs):
-            return {"standard_consent": raw_answer}
+            return {"cap-recruiter_standard_consent": raw_answer}
 
 
 class CAPRecruiterAudiovisualConsent(Module):
@@ -311,12 +311,14 @@ class PrincetonConsent(Module):
             self.PrincetonConsentPage(),
             conditional(
                 "princeton_consent_conditional",
-                lambda experiment, participant: (not participant.answer["consent"]),
+                lambda experiment, participant: (
+                    not participant.answer["princeton_consent"]
+                ),
                 RejectedConsentPage(),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
-                    "princeton_consent", participant.answer["consent"]
+                    "princeton_consent", participant.answer["princeton_consent"]
                 )
             ),
         )
@@ -343,7 +345,7 @@ class PrincetonConsent(Module):
             )
 
         def format_answer(self, raw_answer, **kwargs):
-            return {"consent": raw_answer}
+            return {"princeton_consent": raw_answer}
 
 
 ########
@@ -372,7 +374,7 @@ class MainConsent(Module):
                 lambda experiment, participant: (
                     not participant.answer["main_consent"]
                 ),
-                RejectedConsentPage(),
+                RejectedConsentPage(failure_tags=["main_consent_rejected"]),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
@@ -432,7 +434,7 @@ class DatabaseConsent(Module):
                 lambda experiment, participant: (
                     not participant.answer["database_consent"]
                 ),
-                RejectedConsentPage(),
+                RejectedConsentPage(failure_tags=["database_consent_rejected"]),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
@@ -492,7 +494,7 @@ class AudiovisualConsent(Module):
                 lambda experiment, participant: (
                     not participant.answer["audiovisual_consent"]
                 ),
-                RejectedConsentPage(),
+                RejectedConsentPage(failure_tags=["audiovisual_consent_rejected"]),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
@@ -552,7 +554,7 @@ class OpenScienceConsent(Module):
                 lambda experiment, participant: (
                     not participant.answer["open_science_consent"]
                 ),
-                RejectedConsentPage(),
+                RejectedConsentPage(failure_tags=["open_science_consent_rejected"]),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
@@ -612,7 +614,9 @@ class VoluntaryWithNoCompensationConsent(Module):
                 lambda experiment, participant: (
                     not participant.answer["voluntary_with_no_compensation_consent"]
                 ),
-                RejectedConsentPage(),
+                RejectedConsentPage(
+                    failure_tags=["voluntary_with_no_compensation_consent_rejected"]
+                ),
             ),
             CodeBlock(
                 lambda participant: participant.var.set(
