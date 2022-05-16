@@ -17,6 +17,14 @@
 
     <script>
         var audioPromptPlayerOptions = {{ config.js_play_options | tojson }};
+
+        let loopAudio = {{ config.loop | tojson }};
+
+        psynet.trial.onEvent("trialFinished", function() {
+            if (loopAudio) {
+                psynet.trial.restart();
+            }
+        });
     </script>
 
     {% if config.controls %}
@@ -53,8 +61,6 @@
         </div>
 
         <script>
-        let loopAudio = {{ config.loop | tojson }};
-
         $(document).ready(function() {
             $("#audio-prompt-play").on("click", function() {
                 psynet.trial.restart();
@@ -69,12 +75,6 @@
 
         psynet.trial.onEvent("trialConstruct", function() {
             $(".audio-prompt-button").prop("disabled", false)
-        });
-
-        psynet.trial.onEvent("trialFinished", function() {
-            if (loopAudio) {
-                psynet.trial.restart();
-            }
         });
         </script>
     {% endif %}

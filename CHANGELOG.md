@@ -1,5 +1,38 @@
 # CHANGELOG
 
+# [7.2.0] Released on 2022-05-16
+
+#### Fixed
+- Fixed broken loop in `AudioPrompt` when `controls=False`
+  (author: Peter Harrison, reviewer: Frank Höger)
+- More aggressive DB commits in `finalize_trial`
+  (author: Peter Harrison)
+- More robust jsonification in data export
+  (author: Peter Harrison)
+- Remove unintended timeout behavior from `run_subprocess_with_live_output`
+  (author: Peter Harrison)
+- Fixed participant resuming via the dashboard, which was broken by the introduction of the `auth_token`
+  functionality.
+  (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Added
+- Added LUCID Marketplace recruiting integration:
+  * Added `DevLucidRecruiter` and `LucidRecruiter` classes.
+  * Added HTML templates for final pages for the three cases 'successful', 'unsuccessful',
+    and 'rejected consent').
+  * Added LUCID recruiting demo.
+  NOTE: Currently only to be used in conjunction with Dallinger branch `docker-clock`.
+  (author: Frank Höger, reviewer: Peter Harrison)
+- Added `failure_tags` to `RejectedConsentPage`; added `failed_reason` to data returned from
+  `BaseCapRecruiter`'s `reward_bonus` method.
+  (author: Frank Höger, reviewer: Peter Harrison)
+- Notify the CAP-Recruiter API when a participant has failed.
+  (author: Frank Höger, reviewer: Peter Harrison)
+
+#### Changed
+- Replaced deprecated MTurk consents in demos with new consents `AudiovisualConsent` and `MainConsent`.
+  (author: Frank Höger, reviewer: Peter Harrison)
+
 # [7.1.0] Released on 2022-04-25
 
 #### Fixed

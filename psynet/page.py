@@ -284,6 +284,10 @@ class SuccessfulEndPage(EndPage):
     Indicates a successful end to the experiment.
     """
 
+    def __init__(self, show_bonus: bool = True):
+        super().__init__("final-page-successful.html")
+        self.show_bonus = show_bonus
+
     def finalize_participant(self, experiment, participant):
         participant.complete = True
 
@@ -293,18 +297,15 @@ class UnsuccessfulEndPage(EndPage):
     Indicates an unsuccessful end to the experiment.
     """
 
-    def get_content(self, participant):
-        return Markup(
-            "Unfortunately the experiment must end early. "
-            + "However, you will still be paid for the time you spent already. "
-            + self.get_time_bonus_message(participant)
-            + self.get_performance_bonus_message(participant)
-            + " Thank you for taking part."
-        )
-
-    def __init__(self, failure_tags: Optional[List] = None):
-        super().__init__()
+    def __init__(
+        self,
+        show_bonus: bool = True,
+        failure_tags: Optional[List] = None,
+        template_filename: str = "final-page-unsuccessful.html",
+    ):
+        super().__init__(template_filename)
         self.failure_tags = failure_tags
+        self.show_bonus = show_bonus
 
     def finalize_participant(self, experiment, participant):
         if self.failure_tags:
@@ -313,21 +314,16 @@ class UnsuccessfulEndPage(EndPage):
         experiment.fail_participant(participant)
 
 
-class RejectedConsentPage(EndPage):
+class RejectedConsentPage(UnsuccessfulEndPage):
     """
     Indicates a consent that has been rejected.
     """
 
-    def get_content(self, participant):
-        return Markup("Consent was rejected. End of experiment.")
-
     def __init__(self, failure_tags: Optional[List] = None):
-        super().__init__()
-
-    def finalize_participant(self, experiment, participant):
-        experiment.fail_participant(participant)
-        if experiment.need_more_participants:
-            experiment.recruiter.recruit(n=1)
+        super().__init__(
+            failure_tags=failure_tags,
+            template_filename="final-page-rejected-consent.html",
+        )
 
 
 class NAFCPage(ModularPage):

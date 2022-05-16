@@ -1,0 +1,13 @@
+{% extends "timeline-page.html" %}
+
+{% block main_body %}
+    Consent was rejected. End of experiment.
+
+    <p class="vspace"></p>
+    <p>
+        Please click "Finish" to complete the HIT.
+    </p>
+    <p class="vspace"></p>
+
+    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">Finish</button>
+{% endblock %}
