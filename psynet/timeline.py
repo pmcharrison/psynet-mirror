@@ -1010,22 +1010,25 @@ class PageMaker(Elt):
         participant.page_uuid = experiment.make_uuid()
 
     def resolve(self, experiment, participant):
-        page = call_function(
+        res = call_function(
             self.function,
             {"self": self, "experiment": experiment, "participant": participant},
         )
-        if not isinstance(page, Page):
+        if isinstance(res, CodeBlock):
+            pass
+        elif isinstance(res, Page):
+            if res.time_estimate is None:
+                res.time_estimate = self.time_estimate
+            if res.time_estimate != self.time_estimate:
+                logger.info(
+                    f"Warning: Generated page had a different time estimate ({res.time_estimate}) "
+                    + f"to that specified by the page maker ({self.time_estimate})."
+                )
+        else:
             raise TypeError(
-                "The PageMaker function must return an object of class Page."
+                "The PageMaker function must return an object of class Page or CodeBlock."
             )
-        if page.time_estimate is None:
-            page.time_estimate = self.time_estimate
-        if page.time_estimate != self.time_estimate:
-            logger.info(
-                f"Warning: Generated page had a different time estimate ({page.time_estimate}) "
-                + f"to that specified by the page maker ({self.time_estimate})."
-            )
-        return page
+        return res
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
@@ -1041,7 +1044,7 @@ def multi_page_maker(
     check_num_pages: bool = True,
 ):
     """
-    Generalises the notion of PageMaker to multiple pages at a time.
+    Generalises the notion of PageMaker to multiple pages (or code blocks) at a time.
 
     Parameters
     ----------
@@ -1051,6 +1054,7 @@ def multi_page_maker(
 
     function
         Function to generate the pages, taking the arguments ``experiment`` and ``participant``.
+        The function should return a list of pages and/or code blocks.
 
     expected_num_pages
         Expected number of pages to be returned in the output of ``function``.
@@ -1090,7 +1094,7 @@ def multi_page_maker(
     def check_pages(pages):
         if check_num_pages and len(pages) != expected_num_pages:
             logger.info(
-                f"The multi-page maker '{label}' returned a list of {len(pages)} pages, "
+                f"The multi-page maker '{label}' returned a list of {len(pages)} pages/code blocks, "
                 + f"which differs from the expected number {expected_num_pages}. "
                 + f"If this multi-page maker was created directly, consider setting expected_num_pages to {len(pages)}. "
                 + "If this message is occurring in the context of a multi-page trial, consider setting "
@@ -1105,9 +1109,9 @@ def multi_page_maker(
         pages = get_page_list(experiment, participant)
         check_pages(pages)
         page = pages[pos]
-        if not isinstance(page, Page):
+        if not isinstance(page, (CodeBlock, Page)):
             raise RuntimeError(
-                "The function in multi_page_maker must return a list of Page objects."
+                "The function in multi_page_maker must return a list of Page or CodeBlock objects."
             )
         return page
 
@@ -1354,10 +1358,10 @@ class Timeline:
         while not finished:
             participant.elt_id += 1
 
-            new_elt = self.get_current_elt(experiment, participant, resolve=False)
+            new_elt = self.get_current_elt(experiment, participant, resolve=True)
             new_elt.consume(experiment, participant)
 
-            if isinstance(new_elt, Page) or isinstance(new_elt, PageMaker):
+            if isinstance(new_elt, Page):
                 finished = True
 
     def estimated_max_bonus(self, wage_per_hour):

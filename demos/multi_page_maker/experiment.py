@@ -1,6 +1,6 @@
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.modular_page import PushButtonControl
+from psynet.modular_page import NumberControl, PushButtonControl
 from psynet.page import CodeBlock, InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline, multi_page_maker
 from psynet.utils import get_logger
@@ -35,6 +35,38 @@ class Exp(psynet.experiment.Experiment):
             ],
             total_time_estimate=3,
             expected_num_pages=3,
+        ),
+        InfoPage(
+            "We'll now test a multi-page maker that contains a code block.",
+            time_estimate=5,
+        ),
+        multi_page_maker(
+            "code_block_in_multi_page_maker",
+            lambda participant: [
+                ModularPage(
+                    "number_input",
+                    "Give me a number to multiply by 2...",
+                    NumberControl(),
+                    time_estimate=5,
+                    save_answer="number_to_multiply",
+                ),
+                CodeBlock(
+                    lambda participant: participant.var.set(
+                        "multiplied_number",
+                        int(participant.var.get("number_to_multiply")) * 2,
+                    )
+                ),
+                InfoPage(
+                    # Note that we have to use default values here so that we don't get an error
+                    # when the function is evaluated before number_input and multiplied_number
+                    # have been set.
+                    f"{participant.var.get('number_to_multiply', has_default=True, default=0.0)} * 2 = "
+                    f"{participant.var.get('multiplied_number', has_default=True, default=0.0)}",
+                    time_estimate=5,
+                ),
+            ],
+            expected_num_pages=2,
+            total_time_estimate=10,
         ),
         SuccessfulEndPage(),
     )

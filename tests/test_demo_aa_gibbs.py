@@ -40,6 +40,10 @@ class TestExp:
             from psynet.participant import Participant
 
             pt = Participant.query.filter_by(id=participant + 1).one()
+
+            # This variable is set in a code block within the trial
+            assert pt.var.test_variable == 123
+
             trials = pt.trials()
             trials.sort(key=lambda x: x.id)
             network_ids = [t.network.id for t in trials]
