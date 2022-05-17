@@ -1006,9 +1006,6 @@ class PageMaker(Elt):
         self.time_estimate = time_estimate
         self.expected_repetitions = 1
 
-    def consume(self, experiment, participant):
-        participant.page_uuid = experiment.make_uuid()
-
     def resolve(self, experiment, participant):
         res = call_function(
             self.function,
@@ -1186,18 +1183,12 @@ def multi_page_maker(
     )
 
 
-class EndPage(PageMaker):
+class EndPage(Page):
     def __init__(self, template_filename):
-        def f(participant):
-            return Page(
-                time_estimate=0,
-                template_str=get_template(template_filename),
-                template_arg={"participant": participant},
-            )
-
         super().__init__(
-            f, time_estimate=0
-        )  # Temporary hotfix for time/bonus estimation bug introduced in d64c1ee505f6
+            time_estimate=0,
+            template_str=get_template(template_filename),
+        )
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
