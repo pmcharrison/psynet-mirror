@@ -1014,9 +1014,7 @@ class PageMaker(Elt):
             self.function,
             {"self": self, "experiment": experiment, "participant": participant},
         )
-        if isinstance(res, CodeBlock):
-            pass
-        elif isinstance(res, Page):
+        if isinstance(res, Page):
             if res.time_estimate is None:
                 res.time_estimate = self.time_estimate
             if res.time_estimate != self.time_estimate:
@@ -1024,11 +1022,10 @@ class PageMaker(Elt):
                     f"Warning: Generated page had a different time estimate ({res.time_estimate}) "
                     + f"to that specified by the page maker ({self.time_estimate})."
                 )
+        if isinstance(res, PageMaker):
+            return res.resolve(experiment, participant)
         else:
-            raise TypeError(
-                "The PageMaker function must return an object of class Page or CodeBlock."
-            )
-        return res
+            return res
 
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
