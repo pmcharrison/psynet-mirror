@@ -469,6 +469,7 @@ class TextInputPage(ModularPage):
                 height=height,
             ),
             time_estimate=time_estimate,
+            **kwargs,
         )
 
     def metadata(self, **kwargs):
