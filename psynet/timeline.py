@@ -1103,9 +1103,9 @@ def multi_page_maker(
         pages = get_page_list(experiment, participant)
         check_pages(pages)
         page = pages[pos]
-        if not isinstance(page, (CodeBlock, Page)):
+        if not isinstance(page, Elt):
             raise RuntimeError(
-                "The function in multi_page_maker must return a list of Page or CodeBlock objects."
+                "The function in multi_page_maker must return a list of Elt objects."
             )
         return page
 
