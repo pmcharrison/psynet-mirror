@@ -1,8 +1,11 @@
 import re
 from datetime import datetime
 
+import json
 import jsonpickle
 from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
+from sqlalchemy.ext.mutable import Mutable
+from sqlalchemy.types import TypeDecorator, VARCHAR
 
 from .utils import get_logger
 
@@ -26,6 +29,49 @@ class PythonObject(TypeDecorator):
         if value is None:
             return None
         return jsonpickle.decode(value)
+
+
+class JSONEncodedDict(TypeDecorator):
+    "Represents an immutable structure as a json-encoded string."
+
+    impl = VARCHAR
+
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            value = json.dumps(value)
+        return value
+
+    def process_result_value(self, value, dialect):
+        if value is not None:
+            value = json.loads(value)
+        return value
+
+
+class MutableDict(Mutable, dict):
+    # Like a dict, but tracks in-place changes
+
+    @classmethod
+    def coerce(cls, key, value):
+        if not isinstance(value, MutableDict):
+            if isinstance(value, dict):
+                return MutableDict(value)
+            return Mutable.coerce(key, value)
+        else:
+            return value
+
+    def __delitem(self, key):
+        dict.__delitem__(self, key)
+        self.changed()
+
+    def __setitem__(self, key, value):
+        dict.__setitem__(self, key, value)
+        self.changed()
+
+    def __getstate__(self):
+        return dict(self)
+
+    def __setstate__(self, state):
+        self.update(self)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -56,6 +102,9 @@ def claim_field(name: str, extra_vars: dict, field_type=object):
         col = Column(Boolean, nullable=True)
     elif field_type is str:
         col = Column(String, nullable=True)
+    elif field_type is dict:
+        # This 'MutableDict' catches in-place modifications
+        col = Column(MutableDict.as_mutable(JSONEncodedDict), nullable=True)
     elif field_type is object:
         col = Column(PythonObject, nullable=True)
     else:

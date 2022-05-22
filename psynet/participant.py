@@ -50,24 +50,21 @@ class Participant(dallinger.models.Participant):
     id : int
         The participant's unique ID.
 
-    elt_id : int
+    elt_id : list
         Represents the participant's position in the timeline.
         Should not be modified directly.
-        Stored in the database as ``property1``.
 
     page_uuid : str
         A long unique string that is randomly generated when the participant advances
         to a new page, used as a passphrase to guarantee the security of
         data transmission from front-end to back-end.
         Should not be modified directly.
-        Stored in the database as ``property2``.
 
     complete : bool
         Whether the participant has successfully completed the experiment.
         A participant is considered to have successfully completed the experiment
         once they hit a :class:`~psynet.timeline.SuccessfulEndPage`.
         Should not be modified directly.
-        Stored in the database as ``property3``.
 
     aborted : bool
         Whether the participant has aborted the experiment.
@@ -78,7 +75,6 @@ class Participant(dallinger.models.Participant):
         The most recent answer submitted by the participant.
         Can take any form that can be automatically serialized to JSON.
         Should not be modified directly.
-        Stored in the database as ``property4``.
 
     response : Response
         An object of class :class:`~psynet.timeline.Response`
@@ -89,7 +85,6 @@ class Participant(dallinger.models.Participant):
         Stores the conditional branches that the participant has taken
         through the experiment.
         Should not be modified directly.
-        Stored in the database as ``property5``.
 
     failure_tags : list
         Stores tags that identify the reason that the participant has failed
@@ -122,7 +117,7 @@ class Participant(dallinger.models.Participant):
     __mapper_args__ = {"polymorphic_identity": "psynet_participant"}
     __extra_vars__ = {}
 
-    elt_id = field.claim_field("elt_id", __extra_vars__, int)
+    elt_id = field.claim_field("elt_id", __extra_vars__, field_type=dict)
     page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
     aborted = claim_var(
         "aborted", __extra_vars__, use_default=True, default=lambda: False
@@ -238,9 +233,10 @@ class Participant(dallinger.models.Participant):
         self.answer = value
         return self
 
+
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.elt_id = -1
+        self.elt_id = {"base": -1}
         self.complete = False
         self.time_credit.initialise(experiment)
         self.performance_bonus = 0.0

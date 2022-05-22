@@ -194,6 +194,7 @@ class CodeBlock(Elt):
             self.function,
             {"self": self, "experiment": experiment, "participant": participant},
         )
+        db.session.commit()
 
 
 class FixTime(Elt):
@@ -228,11 +229,12 @@ class GoTo(Elt):
         return self.target
 
     def consume(self, experiment, participant):
-        # We subtract 1 because elt_id will be incremented again when
-        # we return to the start of the advance page loop.
         target_elt = self.get_target(experiment, participant)
         target_elt_id = target_elt.id
-        participant.elt_id = target_elt_id - 1
+        participant.elt_id = target_elt_id
+        # We subtract 1 from elt_id["base"] because elt_id["base"] will be incremented again when
+        # we return to the start of the advance page loop.
+        participant.elt_id["base"] -= 1
 
 
 class ReactiveGoTo(GoTo):
@@ -1077,12 +1079,17 @@ def multi_page_maker(
             return prefix
         return f"{prefix}__{x}"
 
-    def get_elt_list(experiment, participant):
+    def get_elt_list(experiment, participant, pos):
         res = call_function(
             function, {"experiment": experiment, "participant": participant}
         )
         if isinstance(res, Elt):
-            return [res]
+            res = [res]
+        for i, elt in enumerate(res):
+            elt.id = {
+                **participant.elt_id,
+                label: i,
+            }
         return res
 
     def check_elts(pages):
@@ -1101,7 +1108,8 @@ def multi_page_maker(
             )
 
     def new_function(experiment, participant):
-        pos = participant.var.get(with_namespace("pos"))
+        logger.info("Calling new_function")
+        pos = participant.elt_id[label]
         elts = get_elt_list(experiment, participant)
         check_elts(elts)
         elt = elts[pos]
@@ -1114,10 +1122,18 @@ def multi_page_maker(
     def prepare_participant(participant):
         (
             participant.var.set(with_namespace("complete"), False)
-            .set(with_namespace("pos"), 0)
             .set(with_namespace("seq_length"), expected_num_pages)
             .set(with_namespace("answer"), [])
         )
+        if label in participant.elt_id:
+            raise RuntimeError(
+                f"Detected nested multi-page-makers with the same label ({label}), this is not permitted. "
+                "Please use distinct labels."
+            )
+        participant.elt_id[label] = 0
+        participant.elt_id = participant.elt_id.copy()  # to ensure SQLAlchemy propagation
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         if accumulate_answers:
             participant.var.set(with_namespace("accumulated_answers"), [])
 
@@ -1127,6 +1143,7 @@ def multi_page_maker(
         return len(get_elt_list(experiment, participant))
 
     def get_updated_answer(participant):
+        # TODO - delete this function, it's not used anywwhere
         if participant.answer_is_fresh:
             if accumulate_answers:
                 return participant.var.get(with_namespace("answer")) + [
@@ -1138,6 +1155,7 @@ def multi_page_maker(
             return participant.var.get(with_namespace("answer"))
 
     def update(participant, experiment):
+        logger.info("Calling update function")
         if accumulate_answers:
             if participant.answer_is_fresh:
                 prev_answers = participant.var.get(
@@ -1150,10 +1168,11 @@ def multi_page_maker(
 
         participant.var.set(
             with_namespace("complete"),
-            participant.var.get(with_namespace("pos"))
+            participant.elt_id[label]
             >= get_actual_num_pages(experiment, participant) - 1,
         )
-        participant.var.inc(with_namespace("pos"))
+        participant.elt_id[label] += 1
+        participant.elt_id = participant.elt_id.copy() # to ensure SQLAlchemy change detection
 
     update_logic = CodeBlock(update)
 
@@ -1165,6 +1184,8 @@ def multi_page_maker(
         return not participant.var.get(with_namespace("complete"))
 
     def wrapup(participant):
+        del participant.elt_id[label]
+        participant.elt_id = participant.elt_id.copy()  # to ensure SQLAlchemy propagation
         if accumulate_answers:
             participant.answer = participant.var.get(
                 with_namespace("accumulated_answers")
@@ -1312,9 +1333,9 @@ class Timeline:
 
     def add_elt_ids(self):
         for i, elt in enumerate(self.elts):
-            elt.id = i
+            elt.id = {"base": i}
         for i, elt in enumerate(self.elts):
-            if elt.id != i:
+            if elt.id["base"] != i:
                 raise ValueError(
                     "Failed to set unique IDs for each element in the timeline "
                     + f"(the element at 0-indexed position {i} ended up with the ID {elt.id}). "
@@ -1330,7 +1351,7 @@ class Timeline:
         return self.elts[key]
 
     def get_current_elt(self, experiment, participant, resolve=True):
-        n = participant.elt_id
+        n = participant.elt_id["base"]
         N = len(self)
         if n >= N:
             raise ValueError(
@@ -1346,11 +1367,12 @@ class Timeline:
     def advance_page(self, experiment, participant):
         finished = False
         while not finished:
-            participant.elt_id += 1
+            participant.elt_id["base"] += 1
+            participant.elt_id = participant.elt_id.copy()  # to ensure SQLAlchemy propagation
 
             new_elt = self.get_current_elt(experiment, participant, resolve=True)
             new_elt.consume(experiment, participant)
-
+            logger.info(f"advanced to elt_id: {participant.elt_id}")
             if isinstance(new_elt, Page):
                 finished = True
 

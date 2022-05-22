@@ -1124,6 +1124,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant.client_ip_address = cls.get_client_ip_address()
 
         page = exp.timeline.get_current_elt(exp, participant)
+        logger.info(f"rendering elt_id: {participant.elt_id}")
         page.pre_render()
         exp.save()
         if mode == "json":
