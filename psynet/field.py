@@ -1,11 +1,11 @@
+import json
 import re
 from datetime import datetime
 
-import json
 import jsonpickle
-from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
+from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import Mutable
-from sqlalchemy.types import TypeDecorator, VARCHAR
+from sqlalchemy.types import VARCHAR, TypeDecorator
 
 from .utils import get_logger
 

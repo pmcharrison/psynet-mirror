@@ -14,28 +14,28 @@ logger = get_logger()
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
-        # ModularPage(
-        #     "choose_number",
-        #     Prompt("What number would you like to count to?"),
-        #     control=PushButtonControl(
-        #         ["1", "2", "3", "4", "5"], arrange_vertically=False
-        #     ),
-        #     time_estimate=0,
-        # ),
-        # CodeBlock(
-        #     lambda participant: participant.var.set(
-        #         "num_pages", int(participant.answer)
-        #     )
-        # ),
-        # multi_page_maker(
-        #     "example_multi_page_maker",
-        #     lambda participant: [
-        #         InfoPage(f"Page {i + 1}/{participant.var.num_pages}", time_estimate=1)
-        #         for i in range(participant.var.num_pages)
-        #     ],
-        #     total_time_estimate=3,
-        #     expected_num_pages=3,
-        # ),
+        ModularPage(
+            "choose_number",
+            Prompt("What number would you like to count to?"),
+            control=PushButtonControl(
+                ["1", "2", "3", "4", "5"], arrange_vertically=False
+            ),
+            time_estimate=0,
+        ),
+        CodeBlock(
+            lambda participant: participant.var.set(
+                "num_pages", int(participant.answer)
+            )
+        ),
+        multi_page_maker(
+            "example_multi_page_maker",
+            lambda participant: [
+                InfoPage(f"Page {i + 1}/{participant.var.num_pages}", time_estimate=1)
+                for i in range(participant.var.num_pages)
+            ],
+            total_time_estimate=3,
+            expected_num_pages=3,
+        ),
         # InfoPage(
         #     "We'll now test a multi-page maker that contains a code block.",
         #     time_estimate=5,
@@ -72,9 +72,7 @@ class Exp(psynet.experiment.Experiment):
             "We'll now test a multi-page maker that contains a while loop.",
             time_estimate=5,
         ),
-        CodeBlock(
-            lambda participant: participant.var.set("while_loop_counter", 0)
-        ),
+        CodeBlock(lambda participant: participant.var.set("while_loop_counter", 0)),
         multi_page_maker(
             "while_loop_in_multi_page_maker",
             lambda participant: while_loop(
@@ -85,12 +83,12 @@ class Exp(psynet.experiment.Experiment):
                     InfoPage(
                         f"You are on iteration {[participant.var.while_loop_counter]}/3.",
                         time_estimate=5,
-                    )
+                    ),
                 ],
                 expected_repetitions=3,
             ),
             expected_num_pages=3,
-            total_time_estimate=5*3,
+            total_time_estimate=5 * 3,
         ),
         SuccessfulEndPage(),
     )

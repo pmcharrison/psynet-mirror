@@ -1079,7 +1079,7 @@ def multi_page_maker(
             return prefix
         return f"{prefix}__{x}"
 
-    def get_elt_list(experiment, participant, pos):
+    def get_elt_list(experiment, participant):
         res = call_function(
             function, {"experiment": experiment, "participant": participant}
         )
@@ -1131,9 +1131,10 @@ def multi_page_maker(
                 "Please use distinct labels."
             )
         participant.elt_id[label] = 0
-        participant.elt_id = participant.elt_id.copy()  # to ensure SQLAlchemy propagation
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        logger.info(f"set participant.elt_id to: {participant.elt_id}")
+        participant.elt_id = (
+            participant.elt_id.copy()
+        )  # to ensure SQLAlchemy propagation
         if accumulate_answers:
             participant.var.set(with_namespace("accumulated_answers"), [])
 
@@ -1172,7 +1173,9 @@ def multi_page_maker(
             >= get_actual_num_pages(experiment, participant) - 1,
         )
         participant.elt_id[label] += 1
-        participant.elt_id = participant.elt_id.copy() # to ensure SQLAlchemy change detection
+        participant.elt_id = (
+            participant.elt_id.copy()
+        )  # to ensure SQLAlchemy change detection
 
     update_logic = CodeBlock(update)
 
@@ -1185,7 +1188,9 @@ def multi_page_maker(
 
     def wrapup(participant):
         del participant.elt_id[label]
-        participant.elt_id = participant.elt_id.copy()  # to ensure SQLAlchemy propagation
+        participant.elt_id = (
+            participant.elt_id.copy()
+        )  # to ensure SQLAlchemy propagation
         if accumulate_answers:
             participant.answer = participant.var.get(
                 with_namespace("accumulated_answers")
@@ -1368,7 +1373,9 @@ class Timeline:
         finished = False
         while not finished:
             participant.elt_id["base"] += 1
-            participant.elt_id = participant.elt_id.copy()  # to ensure SQLAlchemy propagation
+            participant.elt_id = (
+                participant.elt_id.copy()
+            )  # to ensure SQLAlchemy propagation
 
             new_elt = self.get_current_elt(experiment, participant, resolve=True)
             new_elt.consume(experiment, participant)

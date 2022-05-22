@@ -233,7 +233,6 @@ class Participant(dallinger.models.Participant):
         self.answer = value
         return self
 
-
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.elt_id = {"base": -1}
