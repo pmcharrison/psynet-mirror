@@ -1077,7 +1077,7 @@ def multi_page_maker(
             return prefix
         return f"{prefix}__{x}"
 
-    def get_page_list(experiment, participant):
+    def get_elt_list(experiment, participant):
         res = call_function(
             function, {"experiment": experiment, "participant": participant}
         )
@@ -1085,7 +1085,9 @@ def multi_page_maker(
             return [res]
         return res
 
-    def check_pages(pages):
+    def check_elts(pages):
+        # I am planning to remove expected_num_pages in a future iteration,
+        # so this function will become redundant.
         if check_num_pages and len(pages) != expected_num_pages:
             logger.info(
                 f"The multi-page maker '{label}' returned a list of {len(pages)} pages/code blocks, "
@@ -1100,14 +1102,14 @@ def multi_page_maker(
 
     def new_function(experiment, participant):
         pos = participant.var.get(with_namespace("pos"))
-        pages = get_page_list(experiment, participant)
-        check_pages(pages)
-        page = pages[pos]
-        if not isinstance(page, Elt):
+        elts = get_elt_list(experiment, participant)
+        check_elts(elts)
+        elt = elts[pos]
+        if not isinstance(elt, Elt):
             raise RuntimeError(
                 "The function in multi_page_maker must return a list of Elt objects."
             )
-        return page
+        return elt
 
     def prepare_participant(participant):
         (
@@ -1122,7 +1124,7 @@ def multi_page_maker(
     prepare_logic = CodeBlock(prepare_participant)
 
     def get_actual_num_pages(experiment, participant):
-        return len(get_page_list(experiment, participant))
+        return len(get_elt_list(experiment, participant))
 
     def get_updated_answer(participant):
         if participant.answer_is_fresh:
