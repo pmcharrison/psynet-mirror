@@ -1,5 +1,23 @@
 # CHANGELOG
 
+# [8.0.0] Released on 2022-05-23
+
+#### Breaking changes
+- Dropped support for Python 3.7.
+
+#### Fixed
+- Fixed bug whereby kwargs were not propagated properly in `TextInputPage`.
+  (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Added
+- `var.get()` now supports default arguments.
+  (author: Peter Harrison, reviewer, Frank Höger)
+
+#### Updated
+- Updated `Dallinger` to `v9.0.0`, see release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.0.0.
+  Includes a bugfix which adds `clock` support in Docker.
+- Update Google Chrome and driver to version 101.x in `.gitlab-ci.yml`.
+
 # [7.2.0] Released on 2022-05-16
 
 #### Fixed
