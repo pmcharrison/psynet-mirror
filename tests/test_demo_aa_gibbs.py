@@ -52,10 +52,7 @@ class TestExp:
             with pytest.raises(UndefinedVariableError):
                 pt.var.get("uninitialized_variable")
 
-            assert (
-                pt.var.get("uninitialized_variable", has_default=True, default=123)
-                == 123
-            )
+            assert pt.var.get("uninitialized_variable", default=123) == 123
 
             next_page(driver, "next-button", finished=True)
 
