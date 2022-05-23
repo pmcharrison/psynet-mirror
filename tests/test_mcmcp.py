@@ -96,13 +96,10 @@ def test_summarize(experiment_module, experiment_object, participant):
         == node.definition["current_state"]
     )
 
-    assert (
-        summarize_trials(
-            trial_class,
-            experiment_object,
-            node,
-            participant,
-            answers=[{"role": "proposal"}, {"role": "current_state"}],
-        )
-        in [node.definition["current_state"], node.definition["proposal"]]
-    )
+    assert summarize_trials(
+        trial_class,
+        experiment_object,
+        node,
+        participant,
+        answers=[{"role": "proposal"}, {"role": "current_state"}],
+    ) in [node.definition["current_state"], node.definition["proposal"]]

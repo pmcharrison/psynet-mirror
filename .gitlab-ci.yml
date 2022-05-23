@@ -11,7 +11,7 @@ variables:
   DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 before_script:
-  - git clone --branch v8.1.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+  - git clone --branch v9.0.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
   - pip install -e .[dev]
@@ -23,8 +23,8 @@ tests:
   - curl https://cli-assets.heroku.com/install.sh | sh
   - apt-get -f -y install curl redis-server
   - service redis-server start
-  - wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_96.0.4664.45-1_amd64.deb
-  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/96.0.4664.45/chromedriver_linux64.zip
+  - wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_101.0.4951.64-1_amd64.deb
+  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_linux64.zip
   - apt-get -f -y install ./chrome.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
