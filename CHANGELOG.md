@@ -11,12 +11,14 @@
 
 #### Added
 - `var.get()` now supports default arguments.
-  (author: Peter Harrison, reviewer, Frank Höger)
+  (author: Peter Harrison, reviewer: Frank Höger)
 
 #### Updated
 - Updated `Dallinger` to `v9.0.0`, see release notes at https://github.com/Dallinger/Dallinger/releases/tag/v9.0.0.
   Includes a bugfix which adds `clock` support in Docker.
+  (author: Frank Höger, reviewer: Peter Harrison)
 - Update Google Chrome and driver to version 101.x in `.gitlab-ci.yml`.
+  (author: Frank Höger)
 
 # [7.2.0] Released on 2022-05-16
 
