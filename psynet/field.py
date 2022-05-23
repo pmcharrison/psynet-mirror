@@ -8,6 +8,8 @@ from .utils import get_logger
 
 logger = get_logger()
 
+marker = object()
+
 
 class PythonObject(TypeDecorator):
     @property
@@ -193,7 +195,7 @@ class VarStore:
         # SQLAlchemy won't notice if we change it later.
         self.__dict__["_owner"].details = vars_.copy()
 
-    def get(self, name: str, unserialise: bool = True):
+    def get(self, name: str, default=marker):
         """
         Gets a variable with a specified name.
 
@@ -202,6 +204,9 @@ class VarStore:
 
         name
             Name of variable to retrieve.
+
+        default
+            Optional default value to return when the variable is uninitialized.
 
 
         Returns
@@ -214,9 +219,15 @@ class VarStore:
         ------
 
         UndefinedVariableError
-            Thrown if the variable doesn't exist.
+            Thrown if the variable doesn't exist and no default value is provided.
         """
-        return self.__getattr__(name)
+        try:
+            return self.__getattr__(name)
+        except UndefinedVariableError:
+            if default == marker:
+                raise
+            else:
+                return default
 
     def set(self, name, value):
         """

@@ -195,10 +195,20 @@ class TestEstimate:
         ) as mock_import_local_experiment:
             yield mock_import_local_experiment
 
-    def test_estimate(self, estimate, import_local_experiment, prepare):
+    @pytest.fixture
+    def pretty_format_seconds(self):
+        with patch(
+            "psynet.command_line.pretty_format_seconds"
+        ) as mock_pretty_format_seconds:
+            yield mock_pretty_format_seconds
+
+    def test_estimate(
+        self, estimate, prepare, import_local_experiment, pretty_format_seconds
+    ):
         CliRunner().invoke(estimate, [], catch_exceptions=False)
         prepare.assert_not_called()
         import_local_experiment.assert_called_once()
+        pretty_format_seconds.assert_called_once()
 
 
 @pytest.mark.usefixtures("demo_static")

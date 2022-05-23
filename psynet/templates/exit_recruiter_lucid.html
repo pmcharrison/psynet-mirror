@@ -1,0 +1,44 @@
+{% extends "layout.html" %}
+
+{% block stylesheets %}
+    <style>
+      body {
+          padding:0px;
+          margin: 0px;
+          background-color: white;
+          color: black;
+          font-weight: 300;
+          font-size: 13pt;
+      }
+
+      #adlogo {
+          float: right;
+          width: 140px;
+          padding: 2px;
+          border: none;
+      }
+
+      #container {
+          position: absolute;
+          top: 0px; /* Header Height */
+          bottom: 0px; /* Footer Height */
+          left: 0px;
+          right: 0px;
+          padding: 100px;
+          padding-top: 5%;
+          border: 18px solid #f3f3f3;
+          background: white;
+      }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div id="container">
+      <div class="well">
+        <h1>Lucid Survey Submission</h1>
+        <hr>
+        <p>To complete your Lucid Survey, click the button below.</p>
+        <a href="{{ external_submit_url }}" class="btn btn-success btn-large" style="width: auto;">Complete Survey</a>
+      </div>
+    </div>
+{% endblock %}

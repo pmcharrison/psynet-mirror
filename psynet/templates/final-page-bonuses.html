@@ -1,0 +1,6 @@
+In addition to your base payment of <span style="font-weight: bold;">${{ "%.2f"|format(participant.base_payment) }}</span>,
+you will receive a bonus of <span style="font-weight: bold;">${{ "%.2f"|format(participant.time_credit.get_bonus()) }}</span>
+for the time you spent on the experiment.
+{% if participant.performance_bonus > 0.0 %}
+    You have also been awarded a performance bonus of <span style="font-weight: bold;">${{ "%.2f"|format(participant.performance_bonus) }}</span>!
+{% endif %}

@@ -8,7 +8,7 @@ from melody.resources import GenderSplit, SingingCalibration, ToneJSVolumeTest
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent
+from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import JSSynth, Note
 from psynet.media import make_bucket_public, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioRecordControl, ModularPage
@@ -432,8 +432,8 @@ class Exp(psynet.experiment.Experiment):
                 "create_new_bucket": True,
             },
         ),
-        MTurkStandardConsent(),
-        MTurkAudiovisualConsent(),
+        MainConsent(),
+        AudiovisualConsent(),
         Welcome,
         GenderSplit,
         ToneJSVolumeTest,

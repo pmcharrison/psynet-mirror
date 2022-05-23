@@ -12,7 +12,7 @@ from flask import Markup
 from scipy import stats
 
 import psynet.experiment
-from psynet.consent import MTurkStandardConsent
+from psynet.consent import MainConsent
 from psynet.graphics import Circle, Frame, GraphicPrompt
 from psynet.modular_page import ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -428,7 +428,7 @@ class CustomTrialMaker(GraphChainTrialMaker):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        MTurkStandardConsent(),
+        MainConsent(),
         InfoPage(
             Markup(
                 """
