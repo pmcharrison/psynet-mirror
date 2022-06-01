@@ -1099,15 +1099,16 @@ class Experiment(dallinger.experiment.Experiment):
             template_name, participant_abort_info=participant.abort_info()
         )
 
-    @experiment_route("/timeline/<int:participant_id>/<auth_token>", methods=["GET"])
+    @experiment_route("/timeline", methods=["GET"])
     @classmethod
-    def route_timeline(cls, participant_id, auth_token):
+    def route_timeline(cls):
+        participant_id = request.args.get("participant_id")
+        auth_token = request.args.get("auth_token")
+
         from psynet.utils import error_page
 
         exp = cls.new(db.session)
-        participant = get_participant(participant_id)
         mode = request.args.get("mode")
-
         participant = get_participant(participant_id)
 
         if participant.auth_token is None:
