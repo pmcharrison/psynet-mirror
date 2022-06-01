@@ -169,8 +169,6 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
     A Network class for media imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "media_imitation_chain_network"}
-
     s3_bucket = ""
 
     media_extension = None
@@ -213,7 +211,6 @@ class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
     :meth:`~psynet.trial.MediaImitationChainTrial.analyze_recording`.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "media_imitation_chain_trial"}
     __extra_vars__ = {
         **RecordTrial.__extra_vars__,
         **ImitationChainTrial.__extra_vars__,
@@ -227,7 +224,6 @@ class MediaImitationChainNode(ImitationChainNode):
     :meth:`~psynet.trial.audio.MediaImitationChainNode.synthesize_target` method.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "media_imitation_chain_node"}
     __extra_vars__ = ImitationChainNode.__extra_vars__.copy()
 
     target_url = claim_var("target_url", __extra_vars__)
@@ -246,7 +242,7 @@ class MediaImitationChainSource(ImitationChainSource):
     A Source class for media imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "media_imitation_chain_source"}
+    pass
 
 
 class MediaImitationChainTrialMaker(ImitationChainTrialMaker):

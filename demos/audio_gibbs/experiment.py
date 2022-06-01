@@ -41,8 +41,6 @@ assert NUM_TRIALS_PER_PARTICIPANT == 2 * 7 * 2
 
 
 class CustomNetwork(AudioGibbsNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
-
     synth_function_location = {
         "module_name": "custom_synth",
         "function_name": "synth_stimulus",
@@ -60,8 +58,6 @@ class CustomNetwork(AudioGibbsNetwork):
 
 
 class CustomTrial(AudioGibbsTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     snap_slider = SNAP_SLIDER
     autoplay = AUTOPLAY
     debug = DEBUG
@@ -77,11 +73,11 @@ class CustomTrial(AudioGibbsTrial):
 
 
 class CustomNode(AudioGibbsNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
+    pass
 
 
 class CustomSource(AudioGibbsSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
+    pass
 
 
 class CustomTrialMaker(AudioGibbsTrialMaker):

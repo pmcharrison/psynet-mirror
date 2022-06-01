@@ -26,8 +26,6 @@ class GibbsNetwork(ChainNetwork):
         that is manipulated during the Gibbs sampling procedure.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "gibbs_network"}
-
     vector_length = None
 
     def make_definition(self):
@@ -85,7 +83,6 @@ class GibbsTrial(ChainTrial):
         The updated vector after the participant has responded.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "gibbs_trial"}
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     resample_free_parameter = True
@@ -180,8 +177,6 @@ class GibbsNode(ChainNode):
     """
     A Node class for Gibbs sampler chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "gibbs_node"}
 
     @property
     def vector(self):
@@ -338,8 +333,6 @@ class GibbsSource(ChainSource):
     """
     A Source class for Gibbs sampler chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "gibbs_source"}
 
     def generate_seed(self, network, experiment, participant):
         """

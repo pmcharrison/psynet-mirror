@@ -1,19 +1,37 @@
 image: python:3.10
 
-services:
-  - postgres:12.2-alpine
+# Originally we used the GitLab Postgres service.
+# However, it seemed to be a bit buggy, so we are now installing
+# Postgres locally. Here is the config that we used to use:
+#
+#services:
+#  - postgres:12.2-alpine
+#
+#variables:
+#  POSTGRES_DB: dallinger
+#  POSTGRES_USER: dallinger
+#  POSTGRES_PASSWORD: ""
+#  POSTGRES_HOST_AUTH_METHOD: trust
+#  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 variables:
   POSTGRES_DB: dallinger
   POSTGRES_USER: dallinger
-  POSTGRES_PASSWORD: ""
-  POSTGRES_HOST_AUTH_METHOD: trust
-  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
+  POSTGRES_PASSWORD: "dallinger"
+  DATABASE_URL: postgresql://dallinger:dallinger@localhost:5432/dallinger
 
 before_script:
+# Install and setup PostgreSQL
+  - apt-get update && apt-get install -y postgresql postgresql-contrib libpq-dev
+  - service postgresql start
+  - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
+  - chown postgres:postgres postgres_setup.sql
+  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition-lab/psynet/postgres_setup.sql"'
+# Install Dallinger
   - git clone --branch v9.0.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
+# Install PsyNet
   - pip install -e .[dev]
 
 tests:

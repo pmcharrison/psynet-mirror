@@ -58,7 +58,10 @@ class TestExp:
         app = "demo-app"
 
         # We need to use subprocess because otherwise psynet export messes up the next tests
-        subprocess.call(["psynet", "export", "--app", app, "--local"])
+        try:
+            subprocess.check_output(["psynet", "export", "--app", app, "--local"])
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error in psynet export: {e.output}")
 
         data_dir = os.path.join("data", f"data-{app}", "csv")
 

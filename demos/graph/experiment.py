@@ -258,8 +258,6 @@ class NecklaceInteractivePage(ModularPage):
 
 
 class CustomTrial(GraphChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     num_pages = 2
     accumulate_answers = True
     time_estimate = 5
@@ -285,12 +283,10 @@ class CustomTrial(GraphChainTrial):
 
 
 class CustomNetwork(GraphChainNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+    pass
 
 
 class CustomNode(GraphChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def summarize_trials(self, trials: list, experiment, paricipant):
         answers = np.array([trial.answer[1] for trial in trials])
         summary = stats.mode(answers)
@@ -298,8 +294,6 @@ class CustomNode(GraphChainNode):
 
 
 class CustomSource(GraphChainSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     @staticmethod
     def generate_class_seed():
         return [

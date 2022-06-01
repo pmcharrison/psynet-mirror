@@ -12,12 +12,14 @@ import flask
 import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
-from dallinger.models import Question
 from dominate import tags
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy.orm import relationship
 
 from . import templates
-from .field import VarStore, claim_field, claim_var
+from .data import SQLBase, SQLMixin
+from .field import claim_field
+from .participant import Participant
 from .utils import (
     call_function,
     check_function_args,
@@ -1437,15 +1439,25 @@ class FailedValidation:
         self.message = message
 
 
-class Response(Question):
+class _Response(SQLBase, SQLMixin):
+    """
+    This virtual class is not to be used directly.
+    We use it as the parent class for the ``Response`` class
+    to sidestep the following SQLAlchemy error:
+
+    sqlalchemy.exc.InvalidRequestError: Attribute name 'metadata'
+    is reserved for the MetaData instance when using a declarative base class.
+    """
+
+    __tablename__ = "response"
+
+
+class Response(_Response):
     """
     A database-backed object that stores the participant's response to a
     :class:`~psynet.timeline.Page`.
     By default, one such object is created each time the participant
     tries to advance to a new page.
-
-    This class subclasses the Dallinger :class:`~dallinger.models.Question` class,
-    and hence can be found in the ``question`` table of the database.
 
     Attributes
     ----------
@@ -1466,44 +1478,20 @@ class Response(Question):
         The participant's IP address as reported by Flask.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "response"}
     __extra_vars__ = {}
 
+    participant = relationship(Participant, backref="all_responses")
+    participant_id = Column(Integer, ForeignKey("participant.id"))
+
+    question = claim_field("question", __extra_vars__, str)
+    answer = claim_field("answer", __extra_vars__)
     page_type = claim_field("page_type", __extra_vars__, str)
     successful_validation = claim_field("successful_validation", __extra_vars__, bool)
+    client_ip_address = claim_field("client_ip_address", __extra_vars__, str)
 
-    client_ip_address = claim_var(
-        "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
-    )
-
-    @hybrid_property
-    def answer(self):
-        if self.response is None:
-            return None
-        else:
-            return json.loads(self.response)
-
-    @answer.setter
-    def answer(self, answer):
-        # Ideally we'd want to save NULL if the answer is None,
-        # but the response field is non-nullable.
-        self.response = json.dumps(answer)
-
-    @property
-    def var(self):
-        return VarStore(self)
-
-    def __init__(
-        self, participant, label, answer, page_type, metadata, client_ip_address
-    ):
-        super().__init__(
-            participant=participant, question=label, response="", number=-1
-        )
-        self.answer = answer
-        self.metadata = metadata
-        self.page_type = page_type
-        self.metadata = metadata
-        self.client_ip_address = client_ip_address
+    # metadata is a protected attribute in SQLAlchemy, hence the underscore
+    # and the functional setter/getter.
+    metadata_ = claim_field("metadata", __extra_vars__)
 
     @property
     def metadata(self):
@@ -1511,11 +1499,22 @@ class Response(Question):
         A dictionary of metadata associated with the Response object.
         Stored in the ``details`` field in the database.
         """
-        return self.details
+        return self.metadata_
 
     @metadata.setter
     def metadata(self, metadata):
-        self.details = metadata
+        self.metadata_ = metadata
+
+    def __init__(
+        self, participant, label, answer, page_type, metadata, client_ip_address
+    ):
+        self.participant_id = participant.id
+        self.question = label
+        self.answer = answer
+        self.metadata = metadata
+        self.page_type = page_type
+        self.metadata = metadata
+        self.client_ip_address = client_ip_address
 
 
 def is_list_of(x: list, what):

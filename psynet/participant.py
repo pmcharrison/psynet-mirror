@@ -11,8 +11,8 @@ from dallinger.notifications import admin_notifier
 from sqlalchemy import desc
 
 from . import field
-from .field import VarStore, claim_var, extra_var
-from .timeline import Response
+from .data import SQLMixinDallinger
+from .field import claim_var, extra_var
 from .utils import get_logger, serialise_datetime, unserialise_datetime
 
 logger = get_logger()
@@ -20,7 +20,7 @@ logger = get_logger()
 # pylint: disable=unused-import
 
 
-class Participant(dallinger.models.Participant):
+class Participant(SQLMixinDallinger, dallinger.models.Participant):
     """
     Represents an individual participant taking the experiment.
     The object is linked to the database - when you make changes to the
@@ -119,7 +119,9 @@ class Participant(dallinger.models.Participant):
         Information about the participant's browser version and OS platform.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "psynet_participant"}
+    # We set the polymorphic_identity manually to differentiate the class
+    # from the Dallinger Participant class.
+    __mapper_args__ = {"polymorphic_identity": "PsyNetParticipant"}
     __extra_vars__ = {}
 
     elt_id = field.claim_field("elt_id", __extra_vars__, int)
@@ -153,11 +155,8 @@ class Participant(dallinger.models.Participant):
     )
 
     def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
+        x = SQLMixinDallinger.__json__(self)
         del x["modules"]
-        field.json_format_vars(x)
         return x
 
     def trials(self, failed=False, complete=True, is_repeat_trial=False):
@@ -174,6 +173,8 @@ class Participant(dallinger.models.Participant):
     def last_response(self):
         if self.last_response_id is None:
             return None
+        from .timeline import Response
+
         return Response.query.filter_by(id=self.last_response_id).one()
 
     @property
@@ -336,6 +337,8 @@ class Participant(dallinger.models.Participant):
 
     @property
     def response(self):
+        from .timeline import Response
+
         return (
             Response.query.filter_by(participant_id=self.id)
             .order_by(desc(Response.id))
@@ -351,10 +354,6 @@ class Participant(dallinger.models.Participant):
     @extra_var(__extra_vars__)
     def estimated_bonus(self):
         return self.time_credit.estimate_bonus()
-
-    @property
-    def var(self):
-        return VarStore(self)
 
     @property
     def time_credit(self):

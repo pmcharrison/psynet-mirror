@@ -66,7 +66,9 @@ class Prompt:
 
     @property
     def metadata(self):
-        return {"text": self.text}
+        # Sometimes self.text will be a flask.Markup object, which will be encoded
+        # strangely by jsonpickle. We call str() to ensure a simpler representation.
+        return {"text": str(self.text)}
 
     @property
     def media(self):
