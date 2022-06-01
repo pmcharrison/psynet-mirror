@@ -12,8 +12,6 @@ class MCMCPNetwork(ChainNetwork):
     A Network class for MCMCP chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "mcmcp_network"}
-
     def make_definition(self):
         return {}
 
@@ -36,7 +34,6 @@ class MCMCPTrial(ChainTrial):
         of the chain's free parameters.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "mcmcp_trial"}
     __extra_vars__ = ChainTrial.__extra_vars__.copy()
 
     def make_definition(self, experiment, participant):
@@ -90,8 +87,6 @@ class MCMCPNode(ChainNode):
     """
     A Node class for MCMCP chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "mcmcp_node"}
 
     def get_proposal(self, state, experiment, participant):
         """
@@ -170,8 +165,6 @@ class MCMCPSource(ChainSource):
     """
     A Source class for MCMCP chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "mcmcp_source"}
 
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError

@@ -25,6 +25,9 @@ class TestExp:
             stimuli = Stimulus.query.all()
             stimulus_versions = StimulusVersion.query.all()
 
+            assert networks[0].type == "StaticNetwork"
+            assert stimuli[0].type == "Stimulus"
+
             assert len(networks) == 3
             assert len(stimuli) == len(networks) * 4
             assert len(stimulus_versions) == len(stimuli) * 3
@@ -41,6 +44,7 @@ class TestExp:
 
             trial = StaticTrial.query.filter_by(id=1).one()
             assert trial.answer == "A little"
+            assert trial.type == "AnimalTrial"
 
             assert_text(driver, "trial-position", "Trial 2")
 

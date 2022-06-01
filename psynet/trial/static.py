@@ -80,7 +80,6 @@ class Stimulus(TrialNode, HasDefinition):
         can complete, if such a quota exists.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "stimulus"}
     __extra_vars__ = {
         **TrialNode.__extra_vars__.copy(),
         **HasDefinition.__extra_vars__.copy(),
@@ -253,7 +252,6 @@ class StimulusVersion(TrialNode, HasDefinition):
         The associated block.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "stimulus_version"}
     __extra_vars__ = {**TrialNode.__extra_vars__, **HasDefinition.__extra_vars__}
 
     stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
@@ -692,7 +690,6 @@ class StaticTrial(Trial):
         The block in which the trial is situated.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "static_trial"}
     __extra_vars__ = Trial.__extra_vars__.copy()
 
     stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
@@ -1476,7 +1473,6 @@ class StaticNetwork(TrialNetwork):
 
     # pylint: disable=abstract-method
 
-    __mapper_args__ = {"polymorphic_identity": "static_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     participant_group = claim_field("participant_group", __extra_vars__, str)

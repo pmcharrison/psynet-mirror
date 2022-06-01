@@ -131,7 +131,6 @@ class ChainNetwork(TrialNetwork):
     """
 
     # pylint: disable=abstract-method
-    __mapper_args__ = {"polymorphic_identity": "chain_network"}
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
     participant_id = claim_field("participant_id", __extra_vars__, int)
@@ -491,7 +490,6 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         i.e. all trials that have not failed.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "chain_node"}
     __extra_vars__ = {
         **HasSeed.__extra_vars__.copy(),
         **HasDefinition.__extra_vars__.copy(),
@@ -726,7 +724,6 @@ class ChainSource(TrialSource, HasSeed):
     """
 
     # pylint: disable=abstract-method
-    __mapper_args__ = {"polymorphic_identity": "chain_source"}
     __extra_vars__ = {
         **TrialSource.__extra_vars__.copy(),
         **HasSeed.__extra_vars__.copy(),
@@ -932,7 +929,6 @@ class ChainTrial(Trial):
     """
 
     # pylint: disable=abstract-method
-    __mapper_args__ = {"polymorphic_identity": "chain_trial"}
     __extra_vars__ = Trial.__extra_vars__.copy()
 
     @property

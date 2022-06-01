@@ -17,7 +17,6 @@ from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
-from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
@@ -25,9 +24,8 @@ from pkg_resources import resource_filename
 
 from psynet import __version__
 
-from . import field
 from .command_line import log
-from .field import VarStore
+from .data import SQLBase, SQLMixin, register_table
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import (  # noqa: F401
@@ -240,11 +238,11 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def var(self):
-        return self.experiment_network.var
+        return self.experiment_config.var
 
     @property
-    def experiment_network(self):
-        return ExperimentNetwork.query.one()
+    def experiment_config(self):
+        return ExperimentConfig.query.one()
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
@@ -284,20 +282,20 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def setup_complete(self):
-        return self.experiment_network_exists
+        return self.experiment_config_exists
 
     @property
-    def experiment_network_exists(self):
-        return ExperimentNetwork.query.count() > 0
+    def experiment_config_exists(self):
+        return ExperimentConfig.query.count() > 0
 
-    def setup_experiment_network(self):
-        logger.info("Setting up ExperimentNetwork.")
-        network = ExperimentNetwork()
+    def setup_experiment_config(self):
+        logger.info("Setting up ExperimentConfig.")
+        network = ExperimentConfig()
         db.session.add(network)
         db.session.commit()
 
     def setup(self):
-        self.setup_experiment_network()
+        self.setup_experiment_config()
         self.setup_experiment_variables()
         db.session.commit()
 
@@ -914,6 +912,7 @@ class Experiment(dallinger.experiment.Experiment):
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
+    @staticmethod
     def render_error():
         from psynet.utils import error_page
 
@@ -1258,26 +1257,18 @@ class Experiment(dallinger.experiment.Experiment):
         return stats
 
 
-class ExperimentNetwork(Network):
-    __mapper_args__ = {"polymorphic_identity": "experiment_network"}
-    __extra_vars__ = {}
+@register_table
+class ExperimentConfig(SQLBase, SQLMixin):
+    """
+    This SQL-backed class provides a way to store experiment configuration variables
+    that can change over the course of the experiment.
+    See :class:`psynet.experiment.Experiment` documentation for example usage.
+    """
 
-    def __init__(self):
-        self.role = "experiment"
-        self.max_size = 0
+    __tablename__ = "experiment"
 
-    @property
-    def var(self):
-        return VarStore(self)
-
-    def __json__(self):
-        x = {
-            **super().__json__(),
-            "type": "experiment_network",
-            "variables": self.details,
-            "role": self.role,
-        }
-        field.json_clean(x, details=True)
-        field.json_format_vars(x)
-        x["variables"] = json.loads(x["variables"])
-        return x
+    # Removing these fields because they don't make much sense for the experiment configuration object
+    creation_time = None
+    failed = None
+    failed_reason = None
+    time_of_death = None

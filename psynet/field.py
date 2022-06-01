@@ -1,6 +1,8 @@
+import pickle
 import re
 from datetime import datetime
 
+import flask
 import jsonpickle
 from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
 
@@ -28,6 +30,24 @@ class PythonObject(TypeDecorator):
         if value is None:
             return None
         return jsonpickle.decode(value)
+
+
+# These classes cannot be reliably pickled by the `jsonpickle` library.
+# Instead we fall back to Python's built-in pickle library.
+no_json_classes = [flask.Markup]
+
+
+class NoJSONHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, state):
+        state["bytes"] = pickle.dumps(obj, 0).decode("ascii")
+        return state
+
+    def restore(self, state):
+        return pickle.loads(state["bytes"].encode("ascii"))
+
+
+for cls in no_json_classes:
+    jsonpickle.register(cls, NoJSONHandler)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -341,7 +361,10 @@ class VarStore:
 
 def json_clean(x, details=False, contents=False):
     for i in range(5):
-        del x[f"property{i + 1}"]
+        try:
+            del x[f"property{i + 1}"]
+        except KeyError:
+            pass
 
     if details:
         del x["details"]
