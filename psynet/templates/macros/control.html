@@ -945,20 +945,20 @@
             });
 
             $("#btn-record-upload").on("click", function() {
-                let spinner = $("#btn-record-upload-spinner");
                 let button = $(this);
-                button.prop("disabled", true);
-                let resetButton = function() {
+                let spinner = $("#btn-record-upload-spinner");
+
+                let disableResponse = function() {
                     button.prop("disabled", true);
+                    spinner.show();
+                }
+                let enableResponse = function() {
+                    button.prop("disabled", false);
                     spinner.hide();
                 }
-                spinner.show();
-                psynet.trial.registerEvent("uploadStart");
-                psynet.trial.onEvent("uploadEnd", () => {
-                    spinner.hide();
-                    $("#next-button").click()
-                });
-                psynet.trial.onEvent("uploadFail", resetButton);
+                disableResponse();
+                psynet.trial.onEvent("submitFail", enableResponse);
+                $("#next-button").click();
             });
         });
 
@@ -974,9 +974,9 @@
             $("#btn-record-play-all").attr("disabled", false);
             $("#btn-record-upload").prop("disabled", false);
 
-            if (!recorderControls) {
-                psynet.trial.registerEvent("uploadStart");
-            }
+            psynet.response.staged.blobs["cameraRecording"] = psynet.media.data["videoBlob"];
+            psynet.response.staged.blobs["screenRecording"] = psynet.media.data["screenBlob"];
+
         }, {
             priority: -100 // ensures that this is only executed once all the media processing completes
         });
@@ -1008,20 +1008,16 @@
             $("#btn-record-record").prop("disabled", false);
         }, {priority: - 1000});
 
-        function uploadToS3(blob, presignedUrl) {
-            return new Promise(resolve => {
-                // TODO upload if LOCAL_S3
-                let xhr = new XMLHttpRequest();
-                xhr.open('PUT', presignedUrl, true);
+        psynet.trial.onEvent("autoSubmit", () => {
+            let submitButton = $("#next-button");
+            let enableButton = () => submitButton.prop("disabled", false);
+            let disableButton = () => submitButton.prop("disabled", true);
 
-                xhr.onload = function(e) {
-                    resolve(true);
-                };
-
-                let wavFile = new File([blob], "s3_upload.wav")
-                xhr.send(wavFile);
-            });
-        };
+            psynet.trial.onEvent("submitFail", enableButton);
+            enableButton();
+            submitButton.click();
+            disableButton();
+        });
 
     </script>
 
@@ -1034,10 +1030,6 @@
 
     <script>
         {% include "macros/control/recorder.js" %}
-
-        {% autoescape off %}
-        var presignedUrl = "{{ config.presigned_url }}";
-        {% endautoescape %}
 
         var recorder;
         var hasRecorded = false;
@@ -1070,20 +1062,9 @@
             if (!replayMode) {
                 await recorder.stop();
                 recordingBlob = await getAudioRecording();
+                psynet.response.staged.blobs["audioRecording"] = recordingBlob;
                 let buffer = await psynet.media.blobToArrayBuffer(recordingBlob);
                 await psynet.media.addExtraAudioStimulus(buffer, "recording");
-            }
-        });
-
-        psynet.trial.onEvent("uploadStart", async function() {
-            try {
-                await uploadToS3(recordingBlob, presignedUrl);
-                // We don't want to wait for the following line, not sure how to get round
-                // the linter complaining here.
-                psynet.trial.registerEvent("uploadEnd", {info: {url: presignedUrl}});
-            } catch(e) {
-                psynet.trial.registerEvent("uploadFail");
-                throw e;
             }
         });
 
@@ -1107,12 +1088,6 @@
                 resolve();
             });
         }));
-
-        retrieveResponse = function() {
-            return {
-                rawAnswer: presignedUrl
-            }
-        }
     </script>
 {% endmacro %}
 
@@ -1147,11 +1122,6 @@
     <script>
         {% include "macros/control/RecordRTC.js" %}
         {% include "macros/control/adapter.js" %}
-
-        {% autoescape off %}
-        psynet.media.presignedUrlCamera = "{{ config.presigned_url_camera }}";
-        psynet.media.presignedUrlScreen = "{{ config.presigned_url_screen }}";
-        {% endautoescape %}
 
         let videoPreviewPlayer = document.getElementById('video-control');
         let screenVideo = document.getElementById('screen-recording');
@@ -1314,32 +1284,6 @@
                 await screenRecorder.reset();
             });
 
-        }
-
-        psynet.trial.onEvent("uploadStart", async function() {
-            let promises = [];
-            if (recordingCamera) {
-                promises.push(uploadToS3(psynet.media.data["videoBlob"], psynet.media.presignedUrlCamera));
-            }
-            if (recordingScreen) {
-                promises.push(uploadToS3(psynet.media.data["screenBlob"], psynet.media.presignedUrlScreen));
-            }
-            try {
-                await Promise.all(promises);
-                psynet.trial.registerEvent("uploadEnd");
-            } catch(e) {
-                psynet.trial.registerEvent("uploadFail");
-                throw e;
-            }
-        });
-
-        function retrieveResponse() {
-            return {
-                rawAnswer: {
-                    'camera': psynet.media.presignedUrlCamera,
-                    'screen': psynet.media.presignedUrlScreen,
-                }
-            }
         }
     </script>
 {% endmacro %}
