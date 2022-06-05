@@ -734,7 +734,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         assert len(media_urls) > 0, "You need to specify at least one url"
 
         self.file_extensions = {
-            "audio": [".wav"],
+            "audio": [".wav", ".mp3"],
             "video": [".mp4", ".webm"],
             "image": [".jpg", ".png"],
         }
