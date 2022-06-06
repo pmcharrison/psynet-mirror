@@ -8,7 +8,8 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import desc
+from sqlalchemy import Column, ForeignKey, Integer, desc
+from sqlalchemy.orm import relationship
 
 from . import field
 from .data import SQLMixinDallinger
@@ -153,6 +154,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     browser_platform = claim_var(
         "browser_platform", __extra_vars__, use_default=True, default=lambda: ""
     )
+
+    current_trial_id = Column(
+        Integer, ForeignKey("info.id")
+    )  # 'info.id' because trials are stored in the info table
+    current_trial = relationship("Trial")
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)

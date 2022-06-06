@@ -1488,10 +1488,7 @@ class TrialMaker(Module):
             trial = self._prepare_repeat_trial(
                 experiment=experiment, participant=participant
             )
-        if trial is not None:
-            participant.var.current_trial = trial.id
-        else:
-            participant.var.current_trial = None
+        participant.current_trial = trial
         experiment.save()
 
     def _prepare_repeat_trial(self, experiment, participant):
@@ -1525,7 +1522,7 @@ class TrialMaker(Module):
         participant.var.set(self.with_namespace("repeat_trial_index"), 0)
 
     def _show_trial(self, experiment, participant):
-        trial = self._get_current_trial(participant)
+        trial = participant.current_trial
         return trial.show_trial(experiment=experiment, participant=participant)
 
     def postprocess_answer(self, answer, trial, participant):
@@ -1533,11 +1530,11 @@ class TrialMaker(Module):
 
     def _postprocess_answer(self, experiment, participant):
         answer = participant.answer
-        trial = self._get_current_trial(participant)
+        trial = participant.current_trial
         participant.answer = self.postprocess_answer(answer, trial, participant)
 
     def _finalize_trial(self, experiment, participant):
-        trial = self._get_current_trial(participant)
+        trial = participant.current_trial
         answer = participant.answer
         self.finalize_trial(
             answer=answer, trial=trial, experiment=experiment, participant=participant
@@ -1545,31 +1542,21 @@ class TrialMaker(Module):
         if not trial.awaiting_async_process:
             trial.mark_as_finalized()
 
-    def _get_current_trial(self, participant):
-        trial_id = participant.var.current_trial
-        if trial_id is None:
-            return None
-        return self.trial_class.query.get(trial_id)
-
     def _construct_feedback_logic(self):
         return conditional(
             label=self.with_namespace("feedback"),
             condition=lambda experiment, participant: (
-                self._get_current_trial(participant).gives_feedback(
-                    experiment, participant
-                )
+                participant.current_trial.gives_feedback(experiment, participant)
             ),
             logic_if_true=join(
                 wait_while(
-                    lambda participant: not self._get_current_trial(
-                        participant
-                    ).ready_for_feedback,
+                    lambda participant: participant.current_trial.ready_for_feedback,
                     expected_wait=0,
                     log_message="Waiting for feedback to be ready.",
                 ),
                 PageMaker(
                     lambda experiment, participant: (
-                        self._get_current_trial(participant).show_feedback(
+                        participant.current_trial.show_feedback(
                             experiment=experiment, participant=participant
                         )
                     ),
@@ -1584,11 +1571,11 @@ class TrialMaker(Module):
         return participant.time_credit.confirmed_credit
 
     def _log_time_credit_before_trial(self, participant):
-        trial = self._get_current_trial(participant)
+        trial = participant.current_trial
         trial.time_credit_before_trial = self._get_current_time_credit(participant)
 
     def _log_time_credit_after_trial(self, participant):
-        trial = self._get_current_trial(participant)
+        trial = participant.current_trial
         trial.time_credit_after_trial = self._get_current_time_credit(participant)
         trial.time_credit_from_trial = (
             trial.time_credit_after_trial - trial.time_credit_before_trial
@@ -1616,8 +1603,7 @@ class TrialMaker(Module):
             CodeBlock(self._prepare_trial),
             while_loop(
                 self.with_namespace("trial_loop"),
-                lambda experiment, participant: self._get_current_trial(participant)
-                is not None,
+                lambda participant: participant.current_trial is not None,
                 logic=join(
                     CodeBlock(self._log_time_credit_before_trial),
                     multi_page_maker(
