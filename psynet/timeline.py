@@ -781,6 +781,7 @@ class Page(Elt):
             metadata=metadata,
             experiment=experiment,
             participant=participant,
+            trial=participant.current_trial,
         )
         extra_metadata = self.metadata(
             metadata=metadata,

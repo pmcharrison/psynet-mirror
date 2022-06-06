@@ -2,7 +2,6 @@ import itertools
 import json
 import os
 import tempfile
-import uuid
 from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
@@ -490,7 +489,8 @@ class Control:
     external_template = None
 
     def __init__(self):
-        pass
+        self.page = None
+        self.label = None
 
     @property
     def macro(self):
@@ -531,6 +531,11 @@ class Control:
             4. ``participant``:
                An instantiation of :class:`psynet.participant.Participant`,
                corresponding to the current participant.
+
+            5. ``trial``:
+               An instantiation of :class:`psynet.trial.main.Trial`,
+               corresponding to the participant's current trial,
+               or ``None`` if the participant is not currently taking a trial.
 
         Returns
         -------
@@ -609,6 +614,8 @@ class OptionControl(Control):
         labels: Optional[List[str]] = None,
         style: str = "",
     ):
+        super().__init__()
+
         self.choices = choices
         self.labels = choices if labels is None else labels
         self.style = style
@@ -1066,6 +1073,7 @@ class NumberControl(Control):
     def __init__(
         self, width: Optional[str] = "120px", text_align: Optional[str] = "right"
     ):
+        super().__init__()
         self.width = width
         self.text_align = text_align
 
@@ -1114,6 +1122,8 @@ class TextControl(Control):
         text_align: str = "left",
         block_copy_paste: bool = False,
     ):
+        super().__init__()
+
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
 
@@ -1210,6 +1220,18 @@ class ModularPage(Page):
 
         self.prompt = prompt
         self.control = control
+
+        if self.control.page is not None:
+            raise ValueError(
+                "This `Control` object already belongs to another `ModularPage` object. "
+                "This usually happens if you create a single `Control` object and assign it "
+                "to multiple modular pages. This pattern is not supported. Please instead "
+                "create a fresh `Control` object to pass to this modular page. "
+                "Hint: try replacing your original `Control` definition with a function that returns "
+                "a fresh `Control` object each time."
+            )
+        self.control.page = self
+        self.control.label = label
 
         template_str = f"""
         {{% extends "timeline-page.html" %}}
@@ -1355,6 +1377,8 @@ class AudioMeterControl(Control):
     def __init__(
         self, calibrate: bool = False, submit_button: bool = True, min_time: float = 0.0
     ):
+        super().__init__()
+
         self.calibrate = calibrate
         self.submit_button = submit_button
         self.min_time = min_time
@@ -1574,6 +1598,8 @@ class SliderControl(Control):
         template_filename: Optional[str] = None,
         template_args: Optional[Dict] = None,
     ):
+        super().__init__()
+
         if snap_values is not None and input_type == "circular_slider":
             raise ValueError(
                 "Snapping values is currently not supported for circular sliders, set snap_values=None"
@@ -1938,6 +1964,8 @@ class RecordControl(Control):
         auto_advance: bool = False,
         show_meter: bool = False,
     ):
+        super().__init__()
+
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.public_read = public_read
@@ -2001,37 +2029,31 @@ class AudioRecordControl(RecordControl):
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
         audio = blobs["audioRecording"]
+        participant = kwargs["participant"]
+        trial = kwargs["trial"]
 
         with tempfile.NamedTemporaryFile() as tmp_file:
             audio.save(tmp_file.name)
-            # tmp_file.write(audio.content)
-            key = str(uuid.uuid4()) + ".wav"
 
-            import psynet.media
+            from .assets import ExperimentAsset
 
-            url = psynet.media.upload_to_s3(
-                local_path=tmp_file.name,
-                bucket_name=self.s3_bucket,
-                key=key,
-                public_read=self.public_read,
-            )["url"]
+            asset = ExperimentAsset(
+                input_path=tmp_file.name,
+                type_="file",
+                extension=".wav",
+                description=self.label,  # TODO - should this be called `label` instead?
+                participant=participant,
+                trial=trial,
+                variables=dict(),
+            )
+            asset.deposit()  # CAREFUL - if we make this asynchronous, what happens to the temporary file handler?
 
-        # def upload_to_s3(
-        #         local_path: str,
-        #         bucket_name: str,
-        #         key: str,
-        #         public_read: bool,
-        #         create_new_bucket: bool = False,
-        # ):
-
-        # filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "origin": "AudioRecordControl",
             "supports_record_trial": True,
-            "s3_bucket": self.s3_bucket,
-            "key": key,  # Leave key for backward compatibility
-            "url": url,
-            "duration_sec": self.duration,
+            "key": asset.key,
+            "url": asset.url,
+            "duration_sec": self.duration,  # TODO - base this on the actual audio file?
         }
 
     def visualize_response(self, answer, response, trial):
@@ -2182,6 +2204,8 @@ class VideoSliderControl(Control):
         directional: bool = True,
         hide_slider: bool = False,
     ):
+        super().__init__()
+
         assert 0 <= starting_value <= 1
 
         self.url = url

@@ -59,6 +59,8 @@ class Audio(File):
 
 class AssetSpecification:
     def __init__(self, key):
+        if key is None:
+            key = f"pending--{uuid.uuid4()}"
         self.key = key
 
     def prepare_for_deployment(self, asset_registry):
@@ -141,11 +143,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         extension=None,
         replace_existing=False,
         description=None,
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+        participant=None,
+        network=None,
+        node=None,
+        trial=None,
         variables: Optional[dict] = None,
     ):
         super().__init__(key)
@@ -155,15 +156,33 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self._type = self.types[type_]
         self.extension = extension if extension else self.get_extension()
         self.description = description
-        self.participant_id = participant_id
-        self.trial_maker_id = trial_maker_id
-        self.network_id = network_id
-        self.node_id = node_id
-        self.trial_id = trial_id
+        self.participant = participant
+        self.network = network
+        self.node = node
+        self.trial = trial
 
+        self.set_trial_maker_id()
+        self.set_variables(variables)
+        self.infer_missing_parents()
+
+    def set_trial_maker_id(self):
+        for obj in [self.trial, self.node, self.network]:
+            try:
+                self.trial_maker_id = getattr(obj, "trial_maker_id")
+                break
+            except AttributeError:
+                pass
+
+    def set_variables(self, variables):
         if variables:
             for key, value in variables.items():
                 self.var.set(key, value)
+
+    def infer_missing_parents(self):
+        if self.node is None and self.trial is not None:
+            self.node = self.trial.origin
+        if self.network is None and self.node is not None:
+            self.network = self.node.network
 
     types = dict(
         file=File,
@@ -205,7 +224,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             self.deployment_id = self.asset_registry.deployment_id
             self.content_id = self.get_content_id()
 
-            if self.key is None:
+            if self.autogenerate_key:
                 self.key = self.generate_key()
 
             asset_to_use = self
@@ -332,11 +351,10 @@ class ManagedAsset(Asset):
         replace_existing=False,
         description=None,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+        participant=None,
+        network=None,
+        node=None,
+        trial=None,
         variables: Optional[dict] = None,
     ):
         self.deposited = False
@@ -348,11 +366,10 @@ class ManagedAsset(Asset):
             extension,
             replace_existing,
             description,
-            participant_id,
-            trial_maker_id,
-            network_id,
-            node_id,
-            trial_id,
+            participant,
+            network,
+            node,
+            trial,
             variables,
         )
         self.autogenerate_key = key is None
@@ -387,60 +404,39 @@ class ManagedAsset(Asset):
     def get_size_mb(self):
         return self._type.get_file_size_mb(self.input_path)
 
-    @classmethod
-    def generate_key(
-        cls,
-        extension="",
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-        description=None,
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
-    ):
-        dir_ = cls.generate_dir(obfuscate, participant_id, trial_maker_id)
-        filename = cls.generate_filename(
-            description,
-            network_id,
-            node_id,
-            trial_id,
-            extension,
+    def generate_key(self):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
         )
+        dir_ = self.generate_dir()
+        filename = self.generate_filename()
         return os.path.join(dir_, filename)
 
-    @classmethod
-    def generate_dir(cls, obfuscate, participant_id, trial_maker_id):
+    def generate_dir(self):
         dir_ = []
-        if participant_id:
+        if self.participant_id:
             dir_.append("participants")
-            dir_.append(str(participant_id))
-        if trial_maker_id:
-            dir_.append(str(trial_maker_id))
-        return os.path.join(*dir_)
+            dir_.append(str(self.participant_id))
+        if self.trial_maker_id:
+            dir_.append(str(self.trial_maker_id))
+        return "/".join(dir_)
 
-    @classmethod
-    def generate_filename(
-        cls,
-        description,
-        network_id,
-        node_id,
-        trial_id,
-        extension,
-    ):
+    def generate_filename(self):
         filename = ""
         identifiers = []
-        if description:
-            identifiers.append(f"{description}")
-        if network_id:
-            identifiers.append(f"network={network_id}")
-        if node_id:
-            identifiers.append(f"node={node_id}")
-        if trial_id:
-            identifiers.append(f"trial={trial_id}")
-        identifiers.append(cls.generate_uuid())  # ensures uniqueness
+        if self.description:
+            identifiers.append(f"{self.description}")
+        if self.network_id:
+            identifiers.append(f"network={self.network_id}")
+        if self.node_id:
+            identifiers.append(f"node={self.node_id}")
+        if self.trial_id:
+            identifiers.append(f"trial={self.trial_id}")
+        identifiers.append(self.generate_uuid())  # ensures uniqueness
         filename += "__".join(identifiers)
-        filename += extension
+        filename += self.extension
         return filename
 
     def generate_host_path(self, deployment_id: str):
@@ -543,11 +539,10 @@ class CachedFunctionAsset(CachedAsset):
         replace_existing=False,
         description=None,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+        participant=None,
+        network=None,
+        node=None,
+        trial=None,
         variables: Optional[dict] = None,
     ):
         self.function = function
@@ -561,11 +556,10 @@ class CachedFunctionAsset(CachedAsset):
             replace_existing=replace_existing,
             description=description,
             obfuscate=obfuscate,
-            participant_id=participant_id,
-            trial_maker_id=trial_maker_id,
-            network_id=network_id,
-            node_id=node_id,
-            trial_id=trial_id,
+            participant=participant,
+            network=network,
+            node=node,
+            trial=trial,
             variables=variables,
         )
 
@@ -620,11 +614,10 @@ class ExternalAsset(Asset):
         extension=None,
         replace_existing=False,
         description=None,
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+        participant=None,
+        network=None,
+        node=None,
+        trial=None,
         variables: Optional[dict] = None,
     ):
         self.host_path = url
@@ -635,11 +628,10 @@ class ExternalAsset(Asset):
             extension,
             replace_existing,
             description,
-            participant_id,
-            trial_maker_id,
-            network_id,
-            node_id,
-            trial_id,
+            participant,
+            network,
+            node,
+            trial,
             variables,
         )
 
@@ -676,11 +668,10 @@ class ExternalS3Asset(ExternalAsset):
         type_="file",
         replace_existing=False,
         description=None,
-        participant_id=None,
-        trial_maker_id=None,
-        network_id=None,
-        node_id=None,
-        trial_id=None,
+        participant=None,
+        network=None,
+        node=None,
+        trial=None,
         variables: Optional[dict] = None,
     ):
         self.s3_bucket = s3_bucket
@@ -694,11 +685,10 @@ class ExternalS3Asset(ExternalAsset):
             type_,
             replace_existing,
             description,
-            participant_id,
-            trial_maker_id,
-            network_id,
-            node_id,
-            trial_id,
+            participant,
+            network,
+            node,
+            trial,
             variables,
         )
 
