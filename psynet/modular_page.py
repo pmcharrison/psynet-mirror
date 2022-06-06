@@ -1,6 +1,8 @@
 import itertools
 import json
 import os
+import tempfile
+import uuid
 from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
@@ -8,7 +10,6 @@ from dominate import tags
 from dominate.util import raw
 from flask import Markup
 
-from .media import generate_presigned_url
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
 
@@ -1951,15 +1952,13 @@ class RecordControl(Control):
     def metadata(self):
         return {}
 
-    def pre_render(self):
-        self.presigned_url = generate_presigned_url(self.s3_bucket, "wav")
-        logger.info(f"Generated presigned url: {self.presigned_url}")
-
     def update_events(self, events):
         events["recordStart"] = Event(Trigger("responseEnable"))
         events["recordEnd"] = Event(Trigger("recordStart", delay=self.duration))
-        events["submitEnable"].add_triggers("uploadEnd")
-        events["uploadEnd"] = Event(is_triggered_by=[])
+        events["submitEnable"].add_triggers("recordEnd")
+        if self.auto_advance:
+            events["autoSubmit"] = Event(is_triggered_by="submitEnable")
+        # events["uploadEnd"] = Event(is_triggered_by=[])
 
 
 class AudioRecordControl(RecordControl):
@@ -2000,13 +1999,38 @@ class AudioRecordControl(RecordControl):
         self.num_channels = num_channels
 
     def format_answer(self, raw_answer, **kwargs):
-        filename = os.path.basename(urlparse(raw_answer).path)
+        blobs = kwargs["blobs"]
+        audio = blobs["audioRecording"]
+
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            audio.save(tmp_file.name)
+            # tmp_file.write(audio.content)
+            key = str(uuid.uuid4()) + ".wav"
+
+            import psynet.media
+
+            url = psynet.media.upload_to_s3(
+                local_path=tmp_file.name,
+                bucket_name=self.s3_bucket,
+                key=key,
+                public_read=self.public_read,
+            )["url"]
+
+        # def upload_to_s3(
+        #         local_path: str,
+        #         bucket_name: str,
+        #         key: str,
+        #         public_read: bool,
+        #         create_new_bucket: bool = False,
+        # ):
+
+        # filename = os.path.basename(urlparse(raw_answer).path)
         return {
             "origin": "AudioRecordControl",
             "supports_record_trial": True,
             "s3_bucket": self.s3_bucket,
-            "key": filename,  # Leave key for backward compatibility
-            "url": strip_url_parameters(raw_answer),
+            "key": key,  # Leave key for backward compatibility
+            "url": url,
             "duration_sec": self.duration,
         }
 
@@ -2087,8 +2111,6 @@ class VideoRecordControl(RecordControl):
         self.controls = controls
         self.loop_playback = loop_playback
         self.mirrored = mirrored
-        self.presigned_url_camera = None
-        self.presigned_url_screen = None
 
         if self.record_audio is False:
             self.audio_num_channels = 0
@@ -2138,14 +2160,6 @@ class VideoRecordControl(RecordControl):
                     style="max-width: 640px;",
                 )
             return html.render()
-
-    def pre_render(self):
-        if self.recording_source in ["camera", "both"]:
-            self.presigned_url_camera = generate_presigned_url(self.s3_bucket, "webm")
-            logger.info(f"Generated presigned url: {self.presigned_url_camera}")
-        if self.recording_source in ["screen", "both"]:
-            self.presigned_url_screen = generate_presigned_url(self.s3_bucket, "webm")
-            logger.info(f"Generated presigned url: {self.presigned_url_screen}")
 
     def update_events(self, events):
         super().update_events(events)
