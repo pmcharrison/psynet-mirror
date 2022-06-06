@@ -28,6 +28,7 @@ from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
 from progress.bar import Bar
 from sqlalchemy import Column, String
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import (
     DropConstraint,
     DropTable,
@@ -38,9 +39,6 @@ from sqlalchemy.schema import (
 
 from . import field
 from .field import VarStore
-from .participant import Participant  # noqa
-from .timeline import Response
-from .trial.main import Trial
 from .utils import classproperty
 
 
@@ -64,18 +62,20 @@ def export(class_name):
     return models
 
 
-class SQLMixin(SharedMixin):
+class SQLMixinDallinger(SharedMixin):
     """
-    This Mixin class is used to define custom SQLAlchemy objects. For example:
+    We apply this Mixin class when subclassing Dallinger classes,
+    for example ``Network`` and ``Info``.
+    It adds a few useful exporting features,
+    but most importantly it adds automatic mapping logic,
+    so that polymorphic identities are constructed automatically from
+    class names instead of having to be specified manually.
+    For example:
 
     ```py
-    from psynet.data import SQLBase, SQLMixin, register_table
+    from dallinger.models import Info
 
-    @register_table
-    class Bird(SQLBase, SQLMixin):
-        __tablename__ = "bird"
-
-    class Sparrow(Bird):
+    class CustomInfo(Info)
         pass
     ```
     """
@@ -111,9 +111,7 @@ class SQLMixin(SharedMixin):
     def inherits_table(cls):
         return hasattr(cls.parent_class, "__table_name__")
 
-    object_type = Column(String(50))
-
-    @classproperty
+    @declared_attr
     def __mapper_args__(cls):
         """
         This programmatic definition of polymorphic_identity and polymorphic_on
@@ -123,8 +121,30 @@ class SQLMixin(SharedMixin):
         """
         x = {"polymorphic_identity": cls.__name__}
         if not cls.inherits_table:
-            x["polymorphic_on"] = cls.object_type
+            x["polymorphic_on"] = cls.type
         return x
+
+
+class SQLMixin(SQLMixinDallinger):
+    """
+    We apply this mixin when creating our own SQL-backed
+    classes from scratch. For example:
+
+    ```
+    from psynet.data import SQLBase, SQLMixin, register_table
+
+    @register_table
+    class Bird(SQLBase, SQLMixin):
+        __tablename__ = "bird"
+
+    class Sparrow(Bird):
+        pass
+    ```
+    """
+
+    @declared_attr
+    def type(cls):
+        return Column(String(50))
 
 
 def drop_all_db_tables(bind=db.engine):
@@ -176,6 +196,8 @@ dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 def dallinger_models():
     "A list of all base models in Dallinger"
+    from .participant import Participant
+
     return {
         "Info": Info,
         "Network": Network,
@@ -222,6 +244,9 @@ def register_table(cls):
 
 def update_dashboard_models():
     "Determines the list of objects in the dashboard database browser."
+    from .timeline import Response
+    from .trial.main import Trial
+
     dallinger.models.Trial = Trial
     dallinger.models.Response = Response
 

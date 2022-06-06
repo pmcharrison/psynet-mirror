@@ -1,12 +1,16 @@
+import pickle
 import re
 from datetime import datetime
 
+import flask
 import jsonpickle
 from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
 
 from .utils import get_logger
 
 logger = get_logger()
+
+marker = object()
 
 
 class PythonObject(TypeDecorator):
@@ -26,6 +30,24 @@ class PythonObject(TypeDecorator):
         if value is None:
             return None
         return jsonpickle.decode(value)
+
+
+# These classes cannot be reliably pickled by the `jsonpickle` library.
+# Instead we fall back to Python's built-in pickle library.
+no_json_classes = [flask.Markup]
+
+
+class NoJSONHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, state):
+        state["bytes"] = pickle.dumps(obj, 0).decode("ascii")
+        return state
+
+    def restore(self, state):
+        return pickle.loads(state["bytes"].encode("ascii"))
+
+
+for cls in no_json_classes:
+    jsonpickle.register(cls, NoJSONHandler)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -193,7 +215,7 @@ class VarStore:
         # SQLAlchemy won't notice if we change it later.
         self.__dict__["_owner"].details = vars_.copy()
 
-    def get(self, name: str, unserialise: bool = True):
+    def get(self, name: str, default=marker):
         """
         Gets a variable with a specified name.
 
@@ -202,6 +224,9 @@ class VarStore:
 
         name
             Name of variable to retrieve.
+
+        default
+            Optional default value to return when the variable is uninitialized.
 
 
         Returns
@@ -214,9 +239,15 @@ class VarStore:
         ------
 
         UndefinedVariableError
-            Thrown if the variable doesn't exist.
+            Thrown if the variable doesn't exist and no default value is provided.
         """
-        return self.__getattr__(name)
+        try:
+            return self.__getattr__(name)
+        except UndefinedVariableError:
+            if default == marker:
+                raise
+            else:
+                return default
 
     def set(self, name, value):
         """
@@ -330,7 +361,10 @@ class VarStore:
 
 def json_clean(x, details=False, contents=False):
     for i in range(5):
-        del x[f"property{i + 1}"]
+        try:
+            del x[f"property{i + 1}"]
+        except KeyError:
+            pass
 
     if details:
         del x["details"]

@@ -1242,9 +1242,19 @@
 
                     psynet.pageLoadTime = new Date();
                     psynet.pageLoaded = true;
-                    psynet.authToken = "{{auth_token}}";
+                    psynet.authToken = "{{ auth_token }}";
                     psynet.participantId = dallinger.identity.participantId;
                     updateProgressAndBonus();
+
+                    // In some cases (e.g. the first timeline page) the auth_token
+                    // may not yet be set in the browser's URL string.
+                    // This is problematic if the participant refreshes the page.
+                    // The following code therefore sets the auth_token using
+                    // the value provided by the backend.
+                    let urlParams = new URLSearchParams(window.location.search);
+                    urlParams.set("auth_token", "{{ auth_token }}");
+                    let fixedUrl = window.location.origin + window.location.pathname + "?" + urlParams;
+                    window.history.replaceState({}, null, fixedUrl);
 
                     setTimeout(() => psynet.trial.init(), 25);
                 };
@@ -1279,7 +1289,7 @@
                             response.page.attributes.session_id == psynet.page.attributes.session_id
                         );
                         if (shouldRefreshPage) {
-                            dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/{{ auth_token }}");
+                            window.location = "/timeline?participant_id=" + dallinger.identity.participantId + "&auth_token=" + "{{ auth_token }}";
                         } else {
                             psynet.page = response.page;
                             psynet.registerEvent("pageUpdated");

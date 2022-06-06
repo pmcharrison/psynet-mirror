@@ -64,8 +64,6 @@ class FixedDigitInputPage(ModularPage):
 
 
 class CustomTrial(ImitationChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     num_pages = 3
     accumulate_answers = True
 
@@ -85,12 +83,10 @@ class CustomTrial(ImitationChainTrial):
 
 
 class CustomNetwork(ImitationChainNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+    pass
 
 
 class CustomNode(ImitationChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def summarize_trials(self, trials: list, experiment, participant):
         def get_answer(trial):
             # Slices the list to get the answers from the second and third pages, then take the mean
@@ -100,8 +96,6 @@ class CustomNode(ImitationChainNode):
 
 
 class CustomSource(ImitationChainSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 

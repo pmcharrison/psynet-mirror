@@ -88,8 +88,6 @@ class ColorSliderPage(ModularPage):
 
 
 class CustomNetwork(GibbsNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
-
     vector_length = 3
 
     def random_sample(self, i):
@@ -103,8 +101,6 @@ class CustomNetwork(GibbsNetwork):
 
 
 class CustomTrial(GibbsTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
     resample_free_parameter = True
@@ -130,11 +126,11 @@ class CustomTrial(GibbsTrial):
 
 
 class CustomNode(GibbsNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
+    pass
 
 
 class CustomSource(GibbsSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
+    pass
 
 
 class CustomTrialMaker(GibbsTrialMaker):

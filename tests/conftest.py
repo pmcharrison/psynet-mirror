@@ -1,4 +1,5 @@
 import os
+import time
 import warnings
 
 import pytest
@@ -11,7 +12,8 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
 )
-from psynet.data import init_db
+
+# from psynet.data import init_db
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -23,11 +25,21 @@ def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
     os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
-    init_db(drop_all=True)
+    # Originally we used to aggressively reinitialize the database as part of
+    # these regression tests. However, it seems this was at the route of
+    # errors of the following form:
+    # "duplicate key value violates unique constraint".
+    # It seems that these errors would occur when trying to create database tables
+    # before the process deleting those tables had fully completed.
+    # Instead we now just have a little 'sleep', hoping that SQL processes
+    # will terminate in the meantime...
+    #
+    # init_db(drop_all=True)
+    time.sleep(2.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
-    init_db(drop_all=True)
+    # init_db(drop_all=True)
 
 
 def demo_teardown(root):
@@ -97,6 +109,13 @@ def demo_mcmcp(root):
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
     demo_setup("multi_page_maker")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_pickle_page(root):
+    demo_setup("pickle_page")
     yield
     demo_teardown(root)
 

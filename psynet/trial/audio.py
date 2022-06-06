@@ -29,8 +29,6 @@ class AudioImitationChainNetwork(MediaImitationChainNetwork):
     A Network class for audio imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_network"}
-
     media_extension = "wav"
 
 
@@ -42,7 +40,7 @@ class AudioImitationChainTrial(AudioRecordTrial, MediaImitationChainTrial):
     :meth:`~psynet.trial.audio_imitation_chain.show_trial`.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_trial"}
+    pass
 
 
 class AudioImitationChainNode(MediaImitationChainNode):
@@ -52,7 +50,7 @@ class AudioImitationChainNode(MediaImitationChainNode):
     :meth:`~psynet.trial.audio.AudioImitationChainNode.synthesize_target` method.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_node"}
+    pass
 
 
 class AudioImitationChainSource(MediaImitationChainSource):
@@ -60,7 +58,7 @@ class AudioImitationChainSource(MediaImitationChainSource):
     A Source class for audio imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_imitation_chain_source"}
+    pass
 
 
 class AudioImitationChainTrialMaker(MediaImitationChainTrialMaker):

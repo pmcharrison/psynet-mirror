@@ -265,8 +265,6 @@ class JSONSerializer(json.JSONEncoder):
 
 
 class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "free_tapping_record_trial"}
-
     time_estimate = 10
 
     def show_trial(self, experiment, participant):
@@ -531,8 +529,6 @@ class FreeTappingRecordTest(Module):
 
 
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "markers_test_trial"}
-
     time_estimate = 12
 
     def show_trial(self, experiment, participant):
@@ -863,8 +859,6 @@ class LanguageVocabularyTest(Module):
 
     def trial(self, time_estimate_: float):
         class LanguageVocabularyTrial(StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "language_vocabulary_trial"}
-
             time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
@@ -1024,8 +1018,6 @@ class LexTaleTest(Module):
 
     def trial(self, time_estimate_: float, hide_after: float):
         class LextaleTrial(StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "lextale_trial"}
-
             time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
@@ -1310,8 +1302,6 @@ class ColorBlindnessTest(Module):
 
     def trial(self, time_estimate_: float, hide_after: float):
         class ColorBlindnessTrial(StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "color_blindness_trial"}
-
             time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
@@ -1446,8 +1436,6 @@ class ColorVocabularyTest(Module):
 
     def trial(self, time_estimate_: float):
         class ColorVocabularyTrial(StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "color_vocabulary_trial"}
-
             time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
@@ -1560,8 +1548,6 @@ class HeadphoneTest(Module):
 
     def trial(self, time_estimate_: float):
         class HeadphoneTrial(StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "headphone_trial"}
-
             time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):
@@ -1757,8 +1743,6 @@ class AudioForcedChoiceTest(Module):
 
     def trial(self, time_estimate_: float):
         class AudioForcedChoiceTrial(StaticTrial):
-            __mapper_args__ = {"polymorphic_identity": "audio_forced_choice_trial"}
-
             time_estimate = time_estimate_
 
             def show_trial(self, experiment, participant):

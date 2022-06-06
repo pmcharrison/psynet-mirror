@@ -33,8 +33,6 @@ class CameraImitationChainNetwork(MediaImitationChainNetwork):
     A Network class for camera imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "video_imitation_chain_network"}
-
     media_extension = "webm"
 
 
@@ -46,7 +44,7 @@ class CameraImitationChainTrial(CameraRecordTrial, MediaImitationChainTrial):
     :meth:`~psynet.trial.video_imitation_chain.show_trial`.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "video_imitation_chain_trial"}
+    pass
 
 
 class CameraImitationChainNode(MediaImitationChainNode):
@@ -56,7 +54,7 @@ class CameraImitationChainNode(MediaImitationChainNode):
     :meth:`~psynet.trial.audio.VideoImitationChainNode.synthesize_target` method.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "video_imitation_chain_node"}
+    pass
 
 
 class CameraImitationChainSource(MediaImitationChainSource):
@@ -64,7 +62,7 @@ class CameraImitationChainSource(MediaImitationChainSource):
     A Source class for camera imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "video_imitation_chain_source"}
+    pass
 
 
 class CameraImitationChainTrialMaker(MediaImitationChainTrialMaker):

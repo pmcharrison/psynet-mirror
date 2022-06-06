@@ -8,8 +8,6 @@ class ImitationChainNetwork(ChainNetwork):
     A Network class for imitation chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "imitation_chain_network"}
-
     def make_definition(self):
         return {}
 
@@ -18,8 +16,6 @@ class ImitationChainTrial(ChainTrial):
     """
     A Trial class for imitation chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "imitation_chain_trial"}
 
     def make_definition(self, experiment, participant):
         """
@@ -50,8 +46,6 @@ class ImitationChainNode(ChainNode):
     """
     A Node class for imitation chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "imitation_chain_node"}
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -124,8 +118,6 @@ class ImitationChainSource(ChainSource):
     """
     A Source class for imitation chains.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "imitation_chain_source"}
 
     def generate_seed(self, network, experiment, participant):
         raise NotImplementedError

@@ -8,6 +8,7 @@ import pandas
 import pytest
 from selenium.webdriver.common.by import By
 
+from psynet.field import UndefinedVariableError
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
@@ -44,6 +45,11 @@ class TestExp:
             network_ids = [t.network.id for t in trials]
             assert network_ids == sorted(network_ids)
 
+            with pytest.raises(UndefinedVariableError):
+                pt.var.get("uninitialized_variable")
+
+            assert pt.var.get("uninitialized_variable", default=123) == 123
+
             next_page(driver, "next-button", finished=True)
 
         self._test_export()
@@ -52,7 +58,10 @@ class TestExp:
         app = "demo-app"
 
         # We need to use subprocess because otherwise psynet export messes up the next tests
-        subprocess.call(["psynet", "export", "--app", app, "--local"])
+        try:
+            subprocess.check_output(["psynet", "export", "--app", app, "--local"])
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError(f"Error in psynet export: {e.output}")
 
         data_dir = os.path.join("data", f"data-{app}", "csv")
 

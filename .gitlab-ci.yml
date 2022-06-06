@@ -1,19 +1,37 @@
 image: python:3.10
 
-services:
-  - postgres:12.2-alpine
+# Originally we used the GitLab Postgres service.
+# However, it seemed to be a bit buggy, so we are now installing
+# Postgres locally. Here is the config that we used to use:
+#
+#services:
+#  - postgres:12.2-alpine
+#
+#variables:
+#  POSTGRES_DB: dallinger
+#  POSTGRES_USER: dallinger
+#  POSTGRES_PASSWORD: ""
+#  POSTGRES_HOST_AUTH_METHOD: trust
+#  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
 
 variables:
   POSTGRES_DB: dallinger
   POSTGRES_USER: dallinger
-  POSTGRES_PASSWORD: ""
-  POSTGRES_HOST_AUTH_METHOD: trust
-  DATABASE_URL: postgresql://dallinger@postgres:5432/dallinger
+  POSTGRES_PASSWORD: "dallinger"
+  DATABASE_URL: postgresql://dallinger:dallinger@localhost:5432/dallinger
 
 before_script:
-  - git clone --branch v8.1.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
+# Install and setup PostgreSQL
+  - apt-get update && apt-get install -y postgresql postgresql-contrib libpq-dev
+  - service postgresql start
+  - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
+  - chown postgres:postgres postgres_setup.sql
+  - runuser -l postgres -c 'psql -c "\i /builds/computational-audition-lab/psynet/postgres_setup.sql"'
+# Install Dallinger
+  - git clone --branch v9.0.0 https://github.com/Dallinger/Dallinger.git /tmp/dallinger
   - pip install -r /tmp/dallinger/dev-requirements.txt
   - pip install -e /tmp/dallinger[data]
+# Install PsyNet
   - pip install -e .[dev]
 
 tests:
@@ -23,8 +41,8 @@ tests:
   - curl https://cli-assets.heroku.com/install.sh | sh
   - apt-get -f -y install curl redis-server
   - service redis-server start
-  - wget -O chrome.deb https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_96.0.4664.45-1_amd64.deb
-  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/96.0.4664.45/chromedriver_linux64.zip
+  - wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_101.0.4951.64-1_amd64.deb
+  - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_linux64.zip
   - apt-get -f -y install ./chrome.deb
   - apt-get -f -y install -yqq unzip
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/

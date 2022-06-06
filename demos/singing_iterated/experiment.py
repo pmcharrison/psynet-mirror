@@ -8,7 +8,7 @@ from melody.resources import GenderSplit, SingingCalibration, ToneJSVolumeTest
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import MTurkAudiovisualConsent, MTurkStandardConsent
+from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import JSSynth, Note
 from psynet.media import make_bucket_public, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioRecordControl, ModularPage
@@ -54,8 +54,6 @@ DESIGN_PARAMS = {
 
 # experiment parts
 class CustomTrial(AudioImitationChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     time_estimate = TIME_ESTIMATE_TRIAL
 
     def make_definition(self, experiment, participant):
@@ -194,8 +192,6 @@ class CustomTrial(AudioImitationChainTrial):
 
 
 class CustomTrialPractice(CustomTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial_practice"}
-
     wait_for_feedback = True
 
     def gives_feedback(self, experiment, participant):
@@ -258,23 +254,17 @@ class CustomTrialPractice(CustomTrial):
 
 
 class CustomNetwork(AudioImitationChainNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
-
     run_async_post_grow_network = False
     s3_bucket = BUCKET_NAME
 
 
 class CustomNode(AudioImitationChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def summarize_trials(self, trials: list, experiment, participant):
         sung_intervals = [trial.analysis["sung_intervals"] for trial in trials]
         return dict(intervals=[mean(x) for x in zip(*sung_intervals)])
 
 
 class CustomSource(AudioImitationChainSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     def generate_seed(self, network, experiment, participant):
         if self.network.phase == "experiment":
             intervals = utils.sample_interval_sequence(
@@ -432,8 +422,8 @@ class Exp(psynet.experiment.Experiment):
                 "create_new_bucket": True,
             },
         ),
-        MTurkStandardConsent(),
-        MTurkAudiovisualConsent(),
+        MainConsent(),
+        AudiovisualConsent(),
         Welcome,
         GenderSplit,
         ToneJSVolumeTest,

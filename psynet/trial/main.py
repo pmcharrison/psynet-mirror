@@ -21,7 +21,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
-from .. import field
+from ..data import SQLMixinDallinger
 from ..field import (
     UndefinedVariableError,
     VarStore,
@@ -221,7 +221,7 @@ class AsyncProcessOwner:
         self.failed_async_processes = failed_async_processes
 
 
-class Trial(Info, AsyncProcessOwner, HasDefinition):
+class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -402,8 +402,8 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     """
 
     # pylint: disable=unused-argument
-    __mapper_args__ = {"polymorphic_identity": "trial"}
     __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
         **AsyncProcessOwner.__extra_vars__.copy(),
         **HasDefinition.__extra_vars__.copy(),
     }
@@ -446,13 +446,6 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
 
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
-
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True, contents=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
 
     @property
     def parent_trial(self):
@@ -2179,7 +2172,7 @@ class NetworkTrialMaker(TrialMaker):
                     return False
 
 
-class TrialNetwork(Network, AsyncProcessOwner):
+class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
@@ -2244,18 +2237,13 @@ class TrialNetwork(Network, AsyncProcessOwner):
         method to run after the network is grown.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "trial_network"}
-    __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
+    __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
+        **AsyncProcessOwner.__extra_vars__.copy(),
+    }
 
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
-
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
 
     def calculate_full(self):
         "A more efficient version of Dallinger's built-in calculate_full method."
@@ -2382,9 +2370,9 @@ class TrialNetwork(Network, AsyncProcessOwner):
         )
 
 
-class TrialNode(dallinger.models.Node, AsyncProcessOwner):
-    __mapper_args__ = {"polymorphic_identity": "trial_node"}
+class TrialNode(SQLMixinDallinger, dallinger.models.Node, AsyncProcessOwner):
     __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
         **AsyncProcessOwner.__extra_vars__.copy(),
     }
 
@@ -2392,21 +2380,6 @@ class TrialNode(dallinger.models.Node, AsyncProcessOwner):
         super().__init__(network=network, participant=participant)
         AsyncProcessOwner.__init__(self)
 
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
 
-
-class TrialSource(dallinger.nodes.Source):
-    __mapper_args__ = {"polymorphic_identity": "trial_source"}
-    __extra_vars__ = {}
-
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
+class TrialSource(TrialNode):
+    pass

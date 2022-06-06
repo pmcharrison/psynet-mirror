@@ -59,8 +59,6 @@ class FixedDigitInputPage(ModularPage):
 
 
 class CustomTrial(ImitationChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     num_pages = 2
     time_estimate = 2 + 3
 
@@ -75,19 +73,15 @@ class CustomTrial(ImitationChainTrial):
 
 
 class CustomNetwork(ImitationChainNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
+    pass
 
 
 class CustomNode(ImitationChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def summarize_trials(self, trials: list, experiment, paricipant):
         return round(mean([trial.answer for trial in trials]))
 
 
 class CustomSource(ImitationChainSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     def generate_seed(self, network, experiment, participant):
         return random.randint(0, 9999999)
 

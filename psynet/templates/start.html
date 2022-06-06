@@ -21,7 +21,7 @@
                 if ("{{ auth_token }}".length > 0) {
                     auth_token = "{{ auth_token }}";
                 }
-                dallinger.goToPage("timeline/" + dallinger.identity.participantId + "/" + auth_token);
+                window.location = "/timeline?participant_id=" + dallinger.identity.participantId + "&auth_token=" + auth_token;
             }, 500);
         }).fail(function(resp) {
             dallinger.error(resp);
