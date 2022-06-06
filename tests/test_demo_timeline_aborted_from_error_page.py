@@ -34,7 +34,7 @@ class TestExp:
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard-consent")
+            next_page(driver, "consent")
             next_page(driver, "next-button")
             next_page(driver, "next-button")
 

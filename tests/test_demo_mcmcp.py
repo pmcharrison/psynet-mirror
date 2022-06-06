@@ -25,7 +25,7 @@ class TestExp:
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
-            next_page(driver, "standard-consent")
+            next_page(driver, "consent")
 
             # Testing that network.participant works correctly
             # (we are in a within-participant experiment, so each chain

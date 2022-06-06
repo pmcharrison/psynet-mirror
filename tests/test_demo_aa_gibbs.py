@@ -8,6 +8,7 @@ import pandas
 import pytest
 from selenium.webdriver.common.by import By
 
+from psynet.field import UndefinedVariableError
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
@@ -43,6 +44,11 @@ class TestExp:
             trials.sort(key=lambda x: x.id)
             network_ids = [t.network.id for t in trials]
             assert network_ids == sorted(network_ids)
+
+            with pytest.raises(UndefinedVariableError):
+                pt.var.get("uninitialized_variable")
+
+            assert pt.var.get("uninitialized_variable", default=123) == 123
 
             next_page(driver, "next-button", finished=True)
 
