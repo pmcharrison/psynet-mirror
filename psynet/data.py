@@ -385,5 +385,6 @@ def export_assets(path, n_parallel=8):
     from .assets import Asset
 
     Parallel(n_jobs=n_parallel, verbose=10)(
-        delayed(lambda a: a.export(root=path))(a) for a in Asset.query.all()
+        delayed(lambda a: a.export(path=os.path.join(path, a.key)))(a)
+        for a in Asset.query.all()
     )

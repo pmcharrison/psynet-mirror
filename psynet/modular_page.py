@@ -2034,9 +2034,9 @@ class AudioRecordControl(RecordControl):
         with tempfile.NamedTemporaryFile() as tmp_file:
             audio.save(tmp_file.name)
 
-            from .trial.record import RecordAsset
+            from .trial.record import Recording
 
-            asset = RecordAsset(
+            asset = Recording(
                 label=self.label,
                 input_path=tmp_file.name,
                 data_type="file",

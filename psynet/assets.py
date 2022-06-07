@@ -267,6 +267,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         """Performs the actual deposit, confident that no duplicates exist."""
         pass
 
+    def download(self, path):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
+
     def find_duplicate(self):
         return Asset.query.filter_by(key=self.key).one_or_none()
 
@@ -326,13 +333,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def default_asset_storage(cls):  # noqa
         return cls.asset_registry.asset_storage
 
-    def export(self, root):
+    def export(self, path):
         try:
-            self.asset_storage.export(self, root)
+            self.asset_storage.export(self, path)
         except Exception:
             from .command_line import log
 
-            log(f"Failed to export the following asset: {self.key}")
+            log(f"Failed to export the asset {self.key} to path {path}.")
             raise
 
 
@@ -434,13 +441,13 @@ class ManagedAsset(Asset):
         identifiers = []
         if self.label:
             identifiers.append(f"{self.label}")
-        if self.network_id:
-            identifiers.append(f"network={self.network_id}")
-        if self.node_id:
-            identifiers.append(f"node={self.node_id}")
         if self.trial_id:
             identifiers.append(f"trial={self.trial_id}")
-        # identifiers.append(self.generate_uuid())  # ensures uniqueness
+        if self.node_id:
+            identifiers.append(f"node={self.node_id}")
+        if self.network_id:
+            identifiers.append(f"network={self.network_id}")
+
         filename += "__".join(identifiers)
         filename += self.extension
         return filename
@@ -731,7 +738,7 @@ class AssetStorage:
     def receive_deposit(self, asset, host_path: str):
         pass
 
-    def export(self, asset, root):
+    def export(self, asset, path):
         raise NotImplementedError
 
     def prepare_for_deployment(self):
@@ -745,15 +752,14 @@ class AssetStorage:
 
 
 class WebStorage(AssetStorage):
-    def export(self, asset, root):
+    def export(self, asset, path):
         if asset.type == "folder":
-            self.export_folder(asset, root)
+            self.export_folder(asset, path)
         else:
-            self.export_file(asset, root)
+            self.export_file(asset, path)
 
-    def export_folder(self, asset, root):
-        target = os.path.join(root, asset.key)
-        with open(target, "w") as f:
+    def export_folder(self, asset, path):
+        with open(path, "w") as f:
             f.write(
                 "It is not possible to automatically export ExternalAssets "
                 "with type='folder'. This is because the internet provides "
@@ -762,10 +768,8 @@ class WebStorage(AssetStorage):
                 "future by listing each asset as a separate file."
             )
 
-    def export_file(self, asset, root):
-        target = os.path.join(root, asset.key)
-        breakpoint()
-        urllib.request.urlretrieve(asset.url, target)
+    def export_file(self, asset, path):
+        urllib.request.urlretrieve(asset.url, path)
 
 
 class NoStorage(AssetStorage):
@@ -797,9 +801,9 @@ class LocalStorage(AssetStorage):
         else:
             shutil.copyfile(from_, to_)
 
-    def export(self, asset, root):
+    def export(self, asset, path):
         from_ = self.get_file_system_path(asset.host_path)
-        to_ = os.path.join(root, asset.key)
+        to_ = path
         self.copy_asset(asset, from_, to_)
 
     def get_file_system_path(self, host_path):
@@ -884,7 +888,7 @@ class S3Storage(AssetStorage):
     def regex_pattern(self):
         return re.compile("https://s3.amazonaws.com/(.*)/(.*)")
 
-    def export(self, asset, root):
+    def export(self, asset, path):
         url = asset.url
         bucket, s3_key = re.match(self.regex_pattern, url)
 
@@ -893,9 +897,8 @@ class S3Storage(AssetStorage):
                 f"The provided URL ({url}) seems inconsistent with the provided S3 bucket name ({self.s3_bucket})."
             )
 
-        target = os.path.join(root, asset.key)
         recursive = asset.type == "folder"
-        self.download(s3_key, target, recursive=recursive)
+        self.download(s3_key, path, recursive=recursive)
 
     def download(self, s3_key, target_path, recursive):
         """

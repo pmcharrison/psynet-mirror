@@ -7,7 +7,7 @@ from dallinger import db
 
 from ..assets import ExperimentAsset
 from ..field import claim_var, extra_var
-from ..media import download_from_s3, get_s3_url, upload_to_s3
+from ..media import upload_to_s3
 from ..utils import get_logger
 from .imitation_chain import (
     ImitationChainNetwork,
@@ -20,21 +20,32 @@ from .imitation_chain import (
 logger = get_logger()
 
 
-class RecordAsset(ExperimentAsset):
+class Recording(ExperimentAsset):
+    pass
+
+
+class RecordingAnalysisPlot(ExperimentAsset):
     pass
 
 
 class RecordTrial:
-    assert False, "TODO -- refactor this class using asset management"
     __extra_vars__ = {}
 
-    run_async_post_trial = True
     analysis = claim_var("analysis", __extra_vars__)
+
+    run_async_post_trial = True
     recording_url_key_name = None
     recording_key_name = None
 
     @property
     def media_answer(self):
+        """
+        This logic is here to cope with cases where the trial contains multiple answers
+        and we need to pluck out the right answer that corresponds to the recording.
+        I'm not a big fan of this logic, but I don't want to refactor it until we've changed
+        the ``accumulate_answers`` functionality into using dictionaries instead of lists
+        (https://gitlab.com/computational-audition-lab/psynet/-/issues/373)
+        """
         if isinstance(self.answer, list):  # multipage
             for a in self.answer:
                 try:
@@ -46,12 +57,37 @@ class RecordTrial:
             return self.answer
 
     @property
-    def recording_info(self):
-        import pydevd_pycharm
+    def recording(self):
+        recordings = [
+            asset for asset in self.assets.values() if isinstance(asset, Recording)
+        ]
+        if len(recordings) == 0:
+            return None
+        elif len(recordings) == 1:
+            return recordings[0]
+        else:
+            raise ValueError(
+                "This trial contains multiple recordings and we don't know which to use."
+            )
 
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
+    @property
+    def recording_analysis_plot(self):
+        plots = [
+            asset
+            for asset in self.assets.values()
+            if isinstance(asset, RecordingAnalysisPlot)
+        ]
+        if len(plots) == 0:
+            return None
+        elif len(plots) == 1:
+            return plots[0]
+        else:
+            raise ValueError(
+                "This trial contains multiple recording analyses and we don't know which to use."
+            )
+
+    @property
+    def recording_info(self):
         answer = self.media_answer
         if answer is None:
             return None
@@ -74,7 +110,6 @@ class RecordTrial:
     @property
     @extra_var(__extra_vars__)
     def plot_key(self):
-        assert False, "TODO"
         if self.has_recording:
             base = os.path.splitext(self.recording_info["key"])[0]
             return base + ".png"
@@ -82,9 +117,8 @@ class RecordTrial:
     @property
     @extra_var(__extra_vars__)
     def plot_url(self):
-        assert False, "TODO"
-        if self.has_recording:
-            return get_s3_url(self.s3_bucket, self.plot_key)
+        if self.recording_analysis_plot is not None:
+            return self.recording_analysis_plot.url
 
     @property
     @extra_var(__extra_vars__)
@@ -109,7 +143,7 @@ class RecordTrial:
         logger.info("Analyzing recording for trial %i...", self.id)
         with tempfile.NamedTemporaryFile() as temp_recording:
             with tempfile.NamedTemporaryFile() as temp_plot:
-                self.download_recording(temp_recording.name)
+                self.recording.export(temp_recording.name)
                 self.sanitize_recording(temp_recording.name)
                 self.analysis = self.analyze_recording(
                     temp_recording.name, temp_plot.name
@@ -129,17 +163,19 @@ class RecordTrial:
                 finally:
                     db.session.commit()
 
-    def download_recording(self, local_path):
-        recording_info = self.recording_info
-        download_from_s3(local_path, recording_info["s3_bucket"], recording_info["key"])
-
     def upload_plot(self, local_path):
-        upload_to_s3(
-            local_path,
-            self.recording_info["s3_bucket"],
-            self.plot_key,
-            public_read=True,
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
         )
+        asset = RecordingAnalysisPlot(
+            label="recording_analysis_plot",
+            input_path=local_path,
+            extension=".png",
+            trial=self.recording.trial,
+        )
+        asset.deposit()
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         """
