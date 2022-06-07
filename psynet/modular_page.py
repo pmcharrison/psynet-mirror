@@ -2039,7 +2039,7 @@ class AudioRecordControl(RecordControl):
 
             asset = ExperimentAsset(
                 input_path=tmp_file.name,
-                type_="file",
+                data_type="file",
                 extension=".wav",
                 description=self.label,  # TODO - should this be called `label` instead?
                 participant=participant,

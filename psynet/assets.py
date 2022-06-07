@@ -14,7 +14,8 @@ from dallinger import db
 from dallinger.data import copy_db_to_csv
 from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
@@ -31,7 +32,7 @@ from .utils import (
 )
 
 
-class AssetType:
+class DataType:
     @classmethod
     def get_file_size_mb(cls, path):
         return cls.get_file_size_bytes(path) / (1024 * 1024)
@@ -41,13 +42,13 @@ class AssetType:
         raise NotImplementedError
 
 
-class File(AssetType):
+class File(DataType):
     @classmethod
     def get_file_size_bytes(cls, path):
         return os.path.getsize(path)
 
 
-class Folder(AssetType):
+class Folder(DataType):
     @classmethod
     def get_file_size_bytes(cls, path):
         sum(entry.stat().st_size for entry in os.scandir(path))
@@ -112,12 +113,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
+    description = Column(String)
     content_id = Column(String)
     host_path = Column(String)
     url = Column(String)
-    type = Column(String)
+    data_type = Column(String)
     extension = Column(String)
-    description = Column(String)
     asset_storage = Column(PythonObject)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
@@ -132,14 +133,19 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     node = relationship("Node", backref="assets")
 
     trial_id = Column(Integer, ForeignKey("info.id"))
-    trial = relationship("Trial", backref="assets")
+    trial = relationship(
+        "Trial",
+        backref=backref(
+            "assets", collection_class=attribute_mapped_collection("description")
+        ),
+    )
 
     foreign_keyed_columns = ["participant_id", "network_id", "node_id", "trial_id"]
 
     def __init__(
         self,
         key=None,
-        type_="file",
+        data_type="file",
         extension=None,
         replace_existing=False,
         description=None,
@@ -152,8 +158,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         super().__init__(key)
         self.psynet_version = psynet_version
         self.replace_existing = replace_existing
-        self.type = type_
-        self._type = self.types[type_]
+        self.data_type = data_type
+        self._data_type = self.data_types[data_type]
         self.extension = extension if extension else self.get_extension()
         self.description = description
         self.participant = participant
@@ -184,7 +190,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         if self.network is None and self.node is not None:
             self.network = self.node.network
 
-    types = dict(
+    data_types = dict(
         file=File,
         folder=Folder,
         audio=Audio,
@@ -194,7 +200,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def identifiers(self):
         attr = [
             "key",
-            "type",
+            "data_type",
             "extension",
             "participant_id",
             "trial_maker_id",
@@ -346,7 +352,7 @@ class ManagedAsset(Asset):
         self,
         input_path,
         key=None,
-        type_="file",
+        data_type="file",
         extension=None,
         replace_existing=False,
         description=None,
@@ -362,7 +368,7 @@ class ManagedAsset(Asset):
         self.obfuscate = obfuscate
         super().__init__(
             key,
-            type_,
+            data_type,
             extension,
             replace_existing,
             description,
@@ -381,8 +387,8 @@ class ManagedAsset(Asset):
         self._get_md5_contents(self.input_path, self.type)
 
     @cache
-    def _get_md5_contents(self, path, type_):
-        f = md5_directory if type_ == "folder" else md5_file
+    def _get_md5_contents(self, path, data_type):
+        f = md5_directory if data_type == "folder" else md5_file
         return f(path)
 
     def get_extension(self):
@@ -402,14 +408,9 @@ class ManagedAsset(Asset):
         self.deposit_time_sec = time_end - time_start
 
     def get_size_mb(self):
-        return self._type.get_file_size_mb(self.input_path)
+        return self._data_type.get_file_size_mb(self.input_path)
 
     def generate_key(self):
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
         dir_ = self.generate_dir()
         filename = self.generate_filename()
         return os.path.join(dir_, filename)
@@ -511,7 +512,7 @@ class CachedAsset(ManagedAsset):
         )
 
     def _deposit_(self, asset_storage, host_path):
-        if asset_storage.asset_exists(host_path, type_=self.type):
+        if asset_storage.asset_exists(host_path, data_type=self.type):
             self.used_cache = True
         else:
             self.used_cache = False
@@ -535,7 +536,7 @@ class CachedFunctionAsset(CachedAsset):
         arguments: dict,
         extension,
         key=None,
-        type_="file",
+        data_type="file",
         replace_existing=False,
         description=None,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
@@ -551,7 +552,7 @@ class CachedFunctionAsset(CachedAsset):
         super().__init__(
             key=key,
             input_path=None,
-            type_=type_,
+            data_type=data_type,
             extension=extension,
             replace_existing=replace_existing,
             description=description,
@@ -610,7 +611,7 @@ class ExternalAsset(Asset):
         self,
         url,
         key,
-        type_="file",
+        data_type="file",
         extension=None,
         replace_existing=False,
         description=None,
@@ -624,7 +625,7 @@ class ExternalAsset(Asset):
         self.url = url
         super().__init__(
             key,
-            type_,
+            data_type,
             extension,
             replace_existing,
             description,
@@ -665,7 +666,7 @@ class ExternalS3Asset(ExternalAsset):
         key,
         s3_bucket: str,
         s3_key: str,
-        type_="file",
+        data_type="file",
         replace_existing=False,
         description=None,
         participant=None,
@@ -682,7 +683,7 @@ class ExternalS3Asset(ExternalAsset):
         super().__init__(
             url,
             key,
-            type_,
+            data_type,
             replace_existing,
             description,
             participant,
@@ -731,7 +732,7 @@ class AssetStorage:
     def get_url(self, host_path: str):
         raise NotImplementedError
 
-    def asset_exists(self, host_path: str, type_: str):
+    def asset_exists(self, host_path: str, data_type: str):
         raise NotImplementedError
 
 
@@ -799,11 +800,11 @@ class LocalStorage(AssetStorage):
     def get_url(self, host_path):
         return os.path.abspath(self.get_file_system_path(host_path))
 
-    def asset_exists(self, host_path: str, type_: str):
+    def asset_exists(self, host_path: str, data_type: str):
         file_system_path = self.get_file_system_path(host_path)
         return os.path.exists(file_system_path) and (
-            (type_ == "folder" and os.path.isdir(file_system_path))
-            or (type_ != "folder" and os.path.isfile(file_system_path))
+            (data_type == "folder" and os.path.isdir(file_system_path))
+            or (data_type != "folder" and os.path.isfile(file_system_path))
         )
 
 
@@ -828,9 +829,9 @@ class S3Storage(AssetStorage):
             "https://s3.amazonaws.com", self.s3_bucket, self.root, host_path
         )
 
-    def asset_exists(self, host_path: str, type_: str):
+    def asset_exists(self, host_path: str, data_type: str):
         s3_key = os.path.join(self.root, host_path)
-        if type_ == "folder":
+        if data_type == "folder":
             return self.folder_exists(s3_key)
         else:
             return self.file_exists(s3_key)

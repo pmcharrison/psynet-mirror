@@ -46,7 +46,6 @@ class RecordTrial:
             return None
         try:
             return {
-                "s3_bucket": answer["s3_bucket"],
                 "key": answer[self.recording_key_name],
                 "url": answer[self.recording_url_key_name],
             }
@@ -67,12 +66,6 @@ class RecordTrial:
         if self.has_recording:
             base = os.path.splitext(self.recording_info["key"])[0]
             return base + ".png"
-
-    @property
-    @extra_var(__extra_vars__)
-    def s3_bucket(self):
-        if self.has_recording:
-            return self.recording_info["s3_bucket"]
 
     @property
     @extra_var(__extra_vars__)
