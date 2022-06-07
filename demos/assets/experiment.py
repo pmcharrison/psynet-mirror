@@ -36,14 +36,14 @@ Exp.assets.asset_storage = LocalStorage(root="/Users/peter/psynet-storage")
 
 Exp.assets.stage(
     CachedFunctionAsset(
+        key="slow_computation.txt",
         function=slow_computation,
         arguments=dict(n=200, k=5),
-        key="slow_computation.txt",
         extension=".txt",
     ),
     ExternalAsset(
-        url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
         key="psynet-logo.svg",
+        url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
         description="The PsyNet logo",
         variables=dict(dimensions="150x150"),  # broken for some reason
     ),

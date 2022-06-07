@@ -5,6 +5,7 @@ from uuid import uuid4
 import dominate.tags as tags
 from dallinger import db
 
+from ..assets import ExperimentAsset
 from ..field import claim_var, extra_var
 from ..media import download_from_s3, get_s3_url, upload_to_s3
 from ..utils import get_logger
@@ -19,7 +20,12 @@ from .imitation_chain import (
 logger = get_logger()
 
 
+class RecordAsset(ExperimentAsset):
+    pass
+
+
 class RecordTrial:
+    assert False, "TODO -- refactor this class using asset management"
     __extra_vars__ = {}
 
     run_async_post_trial = True
@@ -41,6 +47,11 @@ class RecordTrial:
 
     @property
     def recording_info(self):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
         answer = self.media_answer
         if answer is None:
             return None
@@ -63,6 +74,7 @@ class RecordTrial:
     @property
     @extra_var(__extra_vars__)
     def plot_key(self):
+        assert False, "TODO"
         if self.has_recording:
             base = os.path.splitext(self.recording_info["key"])[0]
             return base + ".png"
@@ -70,6 +82,7 @@ class RecordTrial:
     @property
     @extra_var(__extra_vars__)
     def plot_url(self):
+        assert False, "TODO"
         if self.has_recording:
             return get_s3_url(self.s3_bucket, self.plot_key)
 

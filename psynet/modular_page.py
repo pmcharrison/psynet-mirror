@@ -2029,20 +2029,18 @@ class AudioRecordControl(RecordControl):
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
         audio = blobs["audioRecording"]
-        participant = kwargs["participant"]
         trial = kwargs["trial"]
 
         with tempfile.NamedTemporaryFile() as tmp_file:
             audio.save(tmp_file.name)
 
-            from .assets import ExperimentAsset
+            from .trial.record import RecordAsset
 
-            asset = ExperimentAsset(
+            asset = RecordAsset(
+                label=self.label,
                 input_path=tmp_file.name,
                 data_type="file",
                 extension=".wav",
-                description=self.label,  # TODO - should this be called `label` instead?
-                participant=participant,
                 trial=trial,
                 variables=dict(),
             )

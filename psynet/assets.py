@@ -59,10 +59,13 @@ class Audio(File):
 
 
 class AssetSpecification:
-    def __init__(self, key):
+    def __init__(self, key, label):
         if key is None:
             key = f"pending--{uuid.uuid4()}"
+        if label is None:
+            label = key
         self.key = key
+        self.label = label
 
     def prepare_for_deployment(self, asset_registry):
         raise NotImplementedError
@@ -113,7 +116,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
-    description = Column(String)
+    label = Column(String)
     content_id = Column(String)
     host_path = Column(String)
     url = Column(String)
@@ -136,7 +139,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     trial = relationship(
         "Trial",
         backref=backref(
-            "assets", collection_class=attribute_mapped_collection("description")
+            "assets", collection_class=attribute_mapped_collection("label")
         ),
     )
 
@@ -145,23 +148,23 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def __init__(
         self,
         key=None,
+        label=None,
         data_type="file",
         extension=None,
-        replace_existing=False,
-        description=None,
-        participant=None,
-        network=None,
-        node=None,
         trial=None,
+        participant=None,
+        node=None,
+        network=None,
+        replace_existing=False,
         variables: Optional[dict] = None,
     ):
-        super().__init__(key)
+        super().__init__(key, label)
+
         self.psynet_version = psynet_version
         self.replace_existing = replace_existing
         self.data_type = data_type
         self._data_type = self.data_types[data_type]
         self.extension = extension if extension else self.get_extension()
-        self.description = description
         self.participant = participant
         self.network = network
         self.node = node
@@ -185,6 +188,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
                 self.var.set(key, value)
 
     def infer_missing_parents(self):
+        if self.participant is None and self.trial is not None:
+            self.participant = self.trial.participant
         if self.node is None and self.trial is not None:
             self.node = self.trial.origin
         if self.network is None and self.node is not None:
@@ -350,35 +355,35 @@ class ManagedAsset(Asset):
 
     def __init__(
         self,
+        label,
         input_path,
-        key=None,
         data_type="file",
         extension=None,
-        replace_existing=False,
-        description=None,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-        participant=None,
-        network=None,
-        node=None,
         trial=None,
+        participant=None,
+        node=None,
+        network=None,
+        key=None,
         variables: Optional[dict] = None,
+        replace_existing=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         self.deposited = False
         self.input_path = input_path
         self.obfuscate = obfuscate
-        super().__init__(
-            key,
-            data_type,
-            extension,
-            replace_existing,
-            description,
-            participant,
-            network,
-            node,
-            trial,
-            variables,
-        )
         self.autogenerate_key = key is None
+        super().__init__(
+            key=key,
+            label=label,
+            data_type=data_type,
+            extension=extension,
+            trial=trial,
+            participant=participant,
+            node=node,
+            network=network,
+            replace_existing=replace_existing,
+            variables=variables,
+        )
 
     def get_content_id(self):
         return self.get_md5_contents()
@@ -427,15 +432,15 @@ class ManagedAsset(Asset):
     def generate_filename(self):
         filename = ""
         identifiers = []
-        if self.description:
-            identifiers.append(f"{self.description}")
+        if self.label:
+            identifiers.append(f"{self.label}")
         if self.network_id:
             identifiers.append(f"network={self.network_id}")
         if self.node_id:
             identifiers.append(f"node={self.node_id}")
         if self.trial_id:
             identifiers.append(f"trial={self.trial_id}")
-        identifiers.append(self.generate_uuid())  # ensures uniqueness
+        # identifiers.append(self.generate_uuid())  # ensures uniqueness
         filename += "__".join(identifiers)
         filename += self.extension
         return filename
@@ -528,41 +533,44 @@ class CachedAsset(ManagedAsset):
 class CachedFunctionAsset(CachedAsset):
     function = Column(PythonObject)
     arguments = Column(PythonObject)
-    computation_time_sec = Column(Float)
 
     def __init__(
         self,
+        key,
         function,
         arguments: dict,
-        extension,
-        key=None,
         data_type="file",
-        replace_existing=False,
-        description=None,
-        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
-        participant=None,
-        network=None,
-        node=None,
+        extension=None,
         trial=None,
+        participant=None,
+        node=None,
+        network=None,
+        label=None,
         variables: Optional[dict] = None,
+        replace_existing=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         self.function = function
         self.arguments = arguments
         self.temp_dir = None
+        input_path = None
+        label = key
         super().__init__(
-            key=key,
-            input_path=None,
+            label=label,
+            input_path=input_path,
             data_type=data_type,
             extension=extension,
-            replace_existing=replace_existing,
-            description=description,
-            obfuscate=obfuscate,
-            participant=participant,
-            network=network,
-            node=node,
             trial=trial,
+            participant=participant,
+            node=node,
+            network=network,
+            key=key,
             variables=variables,
+            replace_existing=replace_existing,
+            obfuscate=obfuscate,
         )
+
+    computation_time_sec = Column(Float)
 
     @property
     def cache_key(self):
@@ -609,12 +617,12 @@ class CachedFunctionAsset(CachedAsset):
 class ExternalAsset(Asset):
     def __init__(
         self,
-        url,
         key,
+        url,
         data_type="file",
         extension=None,
         replace_existing=False,
-        description=None,
+        label=None,
         participant=None,
         network=None,
         node=None,
@@ -623,17 +631,18 @@ class ExternalAsset(Asset):
     ):
         self.host_path = url
         self.url = url
+
         super().__init__(
-            key,
-            data_type,
-            extension,
-            replace_existing,
-            description,
-            participant,
-            network,
-            node,
-            trial,
-            variables,
+            key=key,
+            label=label,
+            data_type=data_type,
+            extension=extension,
+            trial=trial,
+            participant=participant,
+            node=node,
+            network=network,
+            replace_existing=replace_existing,
+            variables=variables,
         )
 
     def get_extension(self):
@@ -668,7 +677,7 @@ class ExternalS3Asset(ExternalAsset):
         s3_key: str,
         data_type="file",
         replace_existing=False,
-        description=None,
+        label=None,
         participant=None,
         network=None,
         node=None,
@@ -677,20 +686,19 @@ class ExternalS3Asset(ExternalAsset):
     ):
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
-
         url = self.generate_url()
 
         super().__init__(
-            url,
-            key,
-            data_type,
-            replace_existing,
-            description,
-            participant,
-            network,
-            node,
-            trial,
-            variables,
+            key=key,
+            url=url,
+            data_type=data_type,
+            replace_existing=replace_existing,
+            label=label,
+            participant=participant,
+            network=network,
+            node=node,
+            trial=trial,
+            variables=variables,
         )
 
     def generate_url(self):
