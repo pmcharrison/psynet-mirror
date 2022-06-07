@@ -205,7 +205,7 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         return {
             "items": [url],
-            "message": "Lucid survey created succesfully",
+            "message": "Lucid survey created successfully.",
         }
 
     def recruit(self, n=1):
