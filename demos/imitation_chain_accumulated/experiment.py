@@ -64,9 +64,7 @@ class FixedDigitInputPage(ModularPage):
 
 
 class CustomTrial(ImitationChainTrial):
-    num_pages = 3
     accumulate_answers = True
-
     time_estimate = 5 + 3 + 3
 
     def show_trial(self, experiment, participant):

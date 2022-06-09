@@ -114,7 +114,7 @@ class CustomTrial(GibbsTrial):
             "<p>Adjust the slider to match the following word as well as possible: "
             f"<strong>{target}</strong></p>"
         )
-        return ColorSliderPage(
+        page = ColorSliderPage(
             "color_trial",
             prompt,
             starting_values=self.initial_vector,
@@ -123,6 +123,12 @@ class CustomTrial(GibbsTrial):
             directional=False,
             time_estimate=5,
         )
+        return [
+            page,
+            # You can also include code blocks within a trial.
+            # This one doesn't do anything useful, it's just there for demonstration purposes.
+            CodeBlock(lambda participant: participant.var.set("test_variable", 123)),
+        ]
 
 
 class CustomNode(GibbsNode):
