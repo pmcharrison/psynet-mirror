@@ -2,7 +2,14 @@ import pytest
 
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import CreditEstimate, MediaSpec, Timeline, switch, while_loop
+from psynet.timeline import (
+    CreditEstimate,
+    MediaSpec,
+    Timeline,
+    join,
+    switch,
+    while_loop,
+)
 from psynet.trial.chain import (
     ChainNetwork,
     ChainNode,
@@ -182,3 +189,11 @@ def test_switch_with_trial_maker():
     )
     assert timeline.get_trial_maker("tm-1") == tm_1
     assert timeline.get_trial_maker("tm-2") == tm_2
+
+
+def test_join_1():
+    page = InfoPage("Test")
+    x = join(None, page, None)
+    assert isinstance(x, list)
+    assert len(x) == 1
+    assert x[0] == page

@@ -208,7 +208,7 @@ class TestExp(object):
             assert_text(
                 driver,
                 "main-body",
-                "The multi-page-maker allows you to make multiple pages in one function. Each can generate its own answer. Next",
+                "It is possible to generate multiple pages from the same PageMaker, as in the following example: Next",
             )
             next_page(driver, "next-button")
 

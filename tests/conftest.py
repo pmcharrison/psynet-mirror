@@ -12,8 +12,7 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
 )
-
-# from psynet.data import init_db
+from psynet.data import init_db
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -34,7 +33,7 @@ def demo_setup(demo):
     # Instead we now just have a little 'sleep', hoping that SQL processes
     # will terminate in the meantime...
     #
-    # init_db(drop_all=True)
+    init_db(drop_all=True)
     time.sleep(2.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
@@ -108,7 +107,7 @@ def demo_mcmcp(root):
 
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
-    demo_setup("multi_page_maker")
+    demo_setup("page_maker")
     yield
     demo_teardown(root)
 

@@ -4,6 +4,7 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 
+from psynet.participant import Participant
 from psynet.test import bot_class, next_page
 
 logger = logging.getLogger(__file__)
@@ -17,6 +18,10 @@ class TestExp(object):
             driver = bot.driver
 
             time.sleep(1)
+
+            assert Participant.inherits_table
+            assert not experiment_module.Pet.inherits_table
+            assert experiment_module.Cat.inherits_table
 
             next_page(driver, "Cat")  # What kind of pet do you want?
 

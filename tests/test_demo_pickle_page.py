@@ -17,6 +17,7 @@ class TestExp(object):
             driver = bot.driver
             time.sleep(1)
 
+            next_page(driver, "next-button")
             assert_text(
                 driver, "main-body", "This page was pickled in the database. Next"
             )

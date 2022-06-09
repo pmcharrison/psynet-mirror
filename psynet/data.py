@@ -91,12 +91,14 @@ class SQLMixinDallinger(SharedMixin):
         return cls.__mapper__.column_attrs.keys()
 
     @classproperty
-    def parent_class(cls):
-        return cls.__mro__[1]
-
-    @classproperty
     def inherits_table(cls):
-        return hasattr(cls.parent_class, "__table_name__")
+        for ancestor_cls in cls.__mro__[1:]:
+            if (
+                hasattr(ancestor_cls, "__tablename__")
+                and ancestor_cls.__tablename__ is not None
+            ):
+                return True
+        return False
 
     @declared_attr
     def __mapper_args__(cls):

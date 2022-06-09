@@ -911,10 +911,6 @@ class ChainTrial(Trial):
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
 
-    num_pages : int
-        The number of pages that this trial comprises.
-        Defaults to 1; override it for trials comprising multiple pages.
-
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 

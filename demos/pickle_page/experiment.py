@@ -13,6 +13,10 @@ logger = get_logger()
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
+        InfoPage(
+            "This demo illustrates page pickling.",
+            time_estimate=5,
+        ),
         CodeBlock(
             lambda participant: participant.var.set(
                 "page", InfoPage("This page was pickled in the database.")
