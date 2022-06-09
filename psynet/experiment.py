@@ -1080,6 +1080,8 @@ class Experiment(dallinger.experiment.Experiment):
     def route_abort(cls, assignment_id):
         try:
             template_name = "abort_not_possible.html"
+            participant = None
+            participant_abort_info = None
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
                 if (
@@ -1087,6 +1089,7 @@ class Experiment(dallinger.experiment.Experiment):
                     >= cls.new(db.session).var.min_accumulated_bonus_for_abort
                 ):
                     template_name = "abort_possible.html"
+                    participant_abort_info = participant.abort_info()
         except ValueError:
             logger.error("Invalid assignment ID.")
         except sqlalchemy.orm.exc.NoResultFound:
@@ -1095,7 +1098,9 @@ class Experiment(dallinger.experiment.Experiment):
             logger.error("Found multiple participants matching those specifications.")
 
         return render_template(
-            template_name, participant_abort_info=participant.abort_info()
+            template_name,
+            participant=participant,
+            participant_abort_info=participant_abort_info,
         )
 
     @experiment_route("/timeline", methods=["GET"])
