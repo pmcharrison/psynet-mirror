@@ -57,6 +57,7 @@ Abort Experiment
 {% endblock live %}
 
 {% block scripts %}
+{{ super() }}
 <script>
     function openwindow(event) {
       popup = window.open(
