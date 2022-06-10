@@ -4,6 +4,7 @@ import warnings
 
 import pytest
 import sqlalchemy.exc
+from dallinger.db import Base, engine
 from dallinger.models import Network, Node
 from dallinger.nodes import Source
 
@@ -47,6 +48,7 @@ def demo_teardown(root):
     os.chdir(root)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
+    Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
 
 
 @pytest.fixture(scope="class")
