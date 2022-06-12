@@ -39,7 +39,7 @@ def demo_setup(demo):
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
-    # init_db(drop_all=True)
+    init_db(drop_all=True)
 
 
 def demo_teardown(root):
@@ -156,6 +156,11 @@ def experiment_object(experiment_class, db_session):
 
 @pytest.fixture
 def participant(db_session, experiment_object):
+    from dallinger.config import get_config
+
+    config = get_config()
+    if not config.ready:
+        config.load()
     p = Participant(
         experiment=experiment_object,
         recruiter_id="x",
