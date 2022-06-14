@@ -6,8 +6,8 @@ title = Short tests (~ 6 min.)
 base_payment = 0.10
 
 [Recruitment strategy]
-debug_recruiter = DevLucidRecruiter
-# recruiter = LucidRecruiter
+# debug_recruiter = DevLucidRecruiter
+recruiter = LucidRecruiter
 auto_recruit = true
 lifetime = 2
 duration = 1
