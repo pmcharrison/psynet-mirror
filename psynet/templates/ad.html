@@ -57,11 +57,11 @@ Abort Experiment
 {% endblock live %}
 
 {% block scripts %}
-{{ super() }}
+
 <script>
     function proceedToConsentPage(event) {
       let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
-      if ("{{ experiment.recruiter.config.recruiter }}" == "LucidRecruiter") {
+      if ("{{ experiment.recruiter.start_experiment_in_popup_window }}" == "True") {
         window.location = url;
       } else {
         popup = window.open(
