@@ -714,6 +714,14 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/images/logo.svg",
             ),
             (
+                resource_filename("psynet", "resources/images/icons/flag-fill.svg"),
+                "/static/images/icons/flag-fill.svg",
+            ),
+            (
+                resource_filename("psynet", "resources/images/icons/star.svg"),
+                "/static/images/icons/star.svg",
+            ),
+            (
                 resource_filename("psynet", "resources/images/princeton-consent.png"),
                 "/static/images/princeton-consent.png",
             ),
@@ -764,6 +772,19 @@ class Experiment(dallinger.experiment.Experiment):
             (
                 resource_filename("psynet", "resources/libraries/Tonejs"),
                 "/static/scripts/Tonejs",
+            ),
+            (
+                resource_filename(
+                    "psynet",
+                    "resources/libraries/bootstrap-tagsinput/bootstrap-tagsinput-0.8.0.js",
+                ),
+                "/static/scripts/bootstrap-tagsinput-0.8.0.js",
+            ),
+            (
+                resource_filename(
+                    "psynet", "resources/libraries/typeahead/typeahead-0.11.1.js"
+                ),
+                "/static/scripts/typeahead-0.11.1.js",
             ),
             (
                 resource_filename("psynet", "templates/mturk_error.html"),
