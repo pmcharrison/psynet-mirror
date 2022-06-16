@@ -124,7 +124,16 @@ class LucidRecruiterException(Exception):
 class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
     """
     The LucidRecruiter base class
+
+    ...
+
+    Attributes
+    ----------
+    start_experiment_in_popup_window : bool
+        Whether to start the experiment in a popup-window or not, Default: True
     """
+
+    start_experiment_in_popup_window = True
 
     def __init__(self, *args, **kwargs):
         super().__init__()
