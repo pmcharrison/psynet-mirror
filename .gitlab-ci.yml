@@ -22,20 +22,19 @@ variables:
 
 before_script:
 # General setup
-  - apt-get update
-  - curl https://cli-assets.heroku.com/install.sh | sh
-  - apt-get -f -y install curl redis-server
+  - apt update
+  - apt -f -y install curl redis-server unzip
   - service redis-server start
+  - curl https://cli-assets.heroku.com/install.sh | sh
   - wget -O chrome.deb http://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_101.0.4951.64-1_amd64.deb
   - wget -O chrome-driver.zip https://chromedriver.storage.googleapis.com/101.0.4951.41/chromedriver_linux64.zip
-  - apt-get -f -y install ./chrome.deb
-  - apt-get -f -y install -yqq unzip
+  - apt -f -y install ./chrome.deb
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
-  - export HEADLESS=TRUE
   - pip install "git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments[extract]"
   - pip install pytest-test-groups
+  - export HEADLESS=TRUE
 # Install and setup PostgreSQL
-  - apt-get install -y postgresql postgresql-contrib libpq-dev
+  - apt install -y postgresql postgresql-contrib libpq-dev
   - service postgresql start
   - runuser -l postgres -c 'echo -e "dallinger\ndallinger" | createuser -P -e dallinger'
   - chown postgres:postgres postgres_setup.sql
@@ -51,7 +50,7 @@ tests:
   parallel: 5
   stage: test
   script:
-  - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --chrome tests
+  - pytest --test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX --test-group-random-seed=12345 --ignore=tests/local_only tests --chrome tests
 
 tests_isolated:
   stage: test
