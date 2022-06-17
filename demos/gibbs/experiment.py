@@ -88,8 +88,6 @@ class ColorSliderPage(ModularPage):
 
 
 class CustomNetwork(GibbsNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
-
     vector_length = 3
 
     def random_sample(self, i):
@@ -103,8 +101,6 @@ class CustomNetwork(GibbsNetwork):
 
 
 class CustomTrial(GibbsTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
     resample_free_parameter = True
@@ -118,7 +114,7 @@ class CustomTrial(GibbsTrial):
             "<p>Adjust the slider to match the following word as well as possible: "
             f"<strong>{target}</strong></p>"
         )
-        return ColorSliderPage(
+        page = ColorSliderPage(
             "color_trial",
             prompt,
             starting_values=self.initial_vector,
@@ -127,14 +123,20 @@ class CustomTrial(GibbsTrial):
             directional=False,
             time_estimate=5,
         )
+        return [
+            page,
+            # You can also include code blocks within a trial.
+            # This one doesn't do anything useful, it's just there for demonstration purposes.
+            CodeBlock(lambda participant: participant.var.set("test_variable", 123)),
+        ]
 
 
 class CustomNode(GibbsNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
+    pass
 
 
 class CustomSource(GibbsSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
+    pass
 
 
 class CustomTrialMaker(GibbsTrialMaker):

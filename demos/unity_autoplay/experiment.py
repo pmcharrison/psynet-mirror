@@ -59,7 +59,6 @@ class UnityGamePage(UnityPage):
 
 
 class GameTrial(StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "Game_trial"}
     accumulate_answers = False  # we create pages one by one, saves only one page
     time_estimate = 1
 

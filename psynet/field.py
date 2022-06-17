@@ -1,13 +1,16 @@
+import pickle
 import re
 from datetime import datetime
 
+import flask
 import jsonpickle
-from sqlalchemy import Boolean, Column, Float, Integer, String, TypeDecorator, types
+from sqlalchemy import Boolean, Column, Float, Integer, String, types
+from sqlalchemy.ext.mutable import MutableDict, MutableList
+from sqlalchemy.types import TypeDecorator
 
 from .utils import get_logger
 
 logger = get_logger()
-
 marker = object()
 
 
@@ -18,8 +21,14 @@ class PythonObject(TypeDecorator):
 
     impl = types.String
 
+    def sanitize(self, value):
+        return value
+
     def process_bind_param(self, value, dialect):
-        return jsonpickle.encode(value)
+        if value is None:
+            return value
+        sanitized = self.sanitize(value)
+        return jsonpickle.encode(sanitized)
 
     def process_literal_param(self, value, dialect):
         return value
@@ -28,6 +37,34 @@ class PythonObject(TypeDecorator):
         if value is None:
             return None
         return jsonpickle.decode(value)
+
+
+class PythonDict(PythonObject):
+    def sanitize(self, value):
+        return dict(value)
+
+
+class PythonList(PythonObject):
+    def sanitize(self, value):
+        return list(value)
+
+
+# These classes cannot be reliably pickled by the `jsonpickle` library.
+# Instead we fall back to Python's built-in pickle library.
+no_json_classes = [flask.Markup]
+
+
+class NoJSONHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, state):
+        state["bytes"] = pickle.dumps(obj, 0).decode("ascii")
+        return state
+
+    def restore(self, state):
+        return pickle.loads(state["bytes"].encode("ascii"))
+
+
+for cls in no_json_classes:
+    jsonpickle.register(cls, NoJSONHandler)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -58,6 +95,10 @@ def claim_field(name: str, extra_vars: dict, field_type=object):
         col = Column(Boolean, nullable=True)
     elif field_type is str:
         col = Column(String, nullable=True)
+    elif field_type is list:
+        col = Column(MutableList.as_mutable(PythonList), nullable=True)
+    elif field_type is dict:
+        col = Column(MutableDict.as_mutable(PythonDict), nullable=True)
     elif field_type is object:
         col = Column(PythonObject, nullable=True)
     else:
@@ -341,7 +382,10 @@ class VarStore:
 
 def json_clean(x, details=False, contents=False):
     for i in range(5):
-        del x[f"property{i + 1}"]
+        try:
+            del x[f"property{i + 1}"]
+        except KeyError:
+            pass
 
     if details:
         del x["details"]

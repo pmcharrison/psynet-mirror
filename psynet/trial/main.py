@@ -21,7 +21,7 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql.expression import cast
 
-from .. import field
+from ..data import SQLMixinDallinger
 from ..field import (
     UndefinedVariableError,
     VarStore,
@@ -42,7 +42,6 @@ from ..timeline import (
     Response,
     conditional,
     join,
-    multi_page_maker,
     switch,
     while_loop,
 )
@@ -221,7 +220,7 @@ class AsyncProcessOwner:
         self.failed_async_processes = failed_async_processes
 
 
-class Trial(Info, AsyncProcessOwner, HasDefinition):
+class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -342,15 +341,6 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
 
-    num_pages : int
-        Class attribute, corresponding to the number of pages that this trial comprises.
-        Defaults to 1; override this for trials comprising multiple pages.
-
-    check_num_pages : bool
-        Class attribute, defaulting to ``True``.
-        If ``True``, then the number of pages produced by ``show_trial`` will be compared against
-        ``num_pages``, and a warning message returned if the two are inconsistent.
-
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
@@ -402,8 +392,8 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
     """
 
     # pylint: disable=unused-argument
-    __mapper_args__ = {"polymorphic_identity": "trial"}
     __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
         **AsyncProcessOwner.__extra_vars__.copy(),
         **HasDefinition.__extra_vars__.copy(),
     }
@@ -438,21 +428,8 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
 
     check_time_credit_received = True
 
-    # Override this if you intend to return multiple pages
-    num_pages = 1
-
-    # Set to False to disable warning messages about the wrong number of pages being return by show_trial.
-    check_num_pages = True
-
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
-
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True, contents=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
 
     @property
     def parent_trial(self):
@@ -464,10 +441,6 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         if self.response_id is None:
             return None
         return Response.query.filter_by(id=self.response_id).one()
-
-    # @property
-    # def num_pages(self):
-    #     raise NotImplementedError
 
     # VarStore occupies the <details> slot.
     @property
@@ -685,10 +658,6 @@ class Trial(Info, AsyncProcessOwner, HasDefinition):
         Returns a :class:`~psynet.timeline.Page` object,
         or alternatively a list of such objects,
         that solicits an answer from the participant.
-        If this method returns a list,
-        then the :attr:`~psynet.trial.main.Trial.num_pages` attribute
-        should be updated to correspond to the (estimated) length of this list,
-        so that PsyNet can provide an appropriate progress bar.
 
         Parameters
         ----------
@@ -1630,13 +1599,10 @@ class TrialMaker(Module):
                 is not None,
                 logic=join(
                     CodeBlock(self._log_time_credit_before_trial),
-                    multi_page_maker(
-                        "show_trial",
+                    PageMaker(
                         self._show_trial,
-                        expected_num_pages=self.trial_class.num_pages,
-                        total_time_estimate=self.trial_class.time_estimate,
+                        time_estimate=self.trial_class.time_estimate,
                         accumulate_answers=self.trial_class.accumulate_answers,
-                        check_num_pages=self.trial_class.check_num_pages,
                     ),
                     CodeBlock(self._postprocess_answer),
                     CodeBlock(self._finalize_trial),
@@ -2182,7 +2148,7 @@ class NetworkTrialMaker(TrialMaker):
                     return False
 
 
-class TrialNetwork(Network, AsyncProcessOwner):
+class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
@@ -2247,18 +2213,13 @@ class TrialNetwork(Network, AsyncProcessOwner):
         method to run after the network is grown.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "trial_network"}
-    __extra_vars__ = AsyncProcessOwner.__extra_vars__.copy()
+    __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
+        **AsyncProcessOwner.__extra_vars__.copy(),
+    }
 
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
-
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
 
     def calculate_full(self):
         "A more efficient version of Dallinger's built-in calculate_full method."
@@ -2385,9 +2346,9 @@ class TrialNetwork(Network, AsyncProcessOwner):
         )
 
 
-class TrialNode(dallinger.models.Node, AsyncProcessOwner):
-    __mapper_args__ = {"polymorphic_identity": "trial_node"}
+class TrialNode(SQLMixinDallinger, dallinger.models.Node, AsyncProcessOwner):
     __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
         **AsyncProcessOwner.__extra_vars__.copy(),
     }
 
@@ -2395,21 +2356,6 @@ class TrialNode(dallinger.models.Node, AsyncProcessOwner):
         super().__init__(network=network, participant=participant)
         AsyncProcessOwner.__init__(self)
 
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
 
-
-class TrialSource(dallinger.nodes.Source):
-    __mapper_args__ = {"polymorphic_identity": "trial_source"}
-    __extra_vars__ = {}
-
-    def __json__(self):
-        x = super().__json__()
-        field.json_clean(x, details=True)
-        field.json_add_extra_vars(x, self)
-        field.json_format_vars(x)
-        return x
+class TrialSource(TrialNode):
+    pass

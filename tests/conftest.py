@@ -1,8 +1,10 @@
 import os
+import time
 import warnings
 
 import pytest
 import sqlalchemy.exc
+from dallinger.db import Base, engine
 from dallinger.models import Network, Node
 from dallinger.nodes import Source
 
@@ -23,7 +25,17 @@ def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
     os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
+    # Originally we used to aggressively reinitialize the database as part of
+    # these regression tests. However, it seems this was at the route of
+    # errors of the following form:
+    # "duplicate key value violates unique constraint".
+    # It seems that these errors would occur when trying to create database tables
+    # before the process deleting those tables had fully completed.
+    # Instead we now just have a little 'sleep', hoping that SQL processes
+    # will terminate in the meantime...
+    #
     init_db(drop_all=True)
+    time.sleep(2.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
@@ -36,6 +48,7 @@ def demo_teardown(root):
     os.chdir(root)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
+    Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
 
 
 @pytest.fixture(scope="class")
@@ -96,7 +109,14 @@ def demo_mcmcp(root):
 
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
-    demo_setup("multi_page_maker")
+    demo_setup("page_maker")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_pickle_page(root):
+    demo_setup("pickle_page")
     yield
     demo_teardown(root)
 
@@ -111,6 +131,13 @@ def demo_timeline(root):
 @pytest.fixture(scope="class")
 def demo_timeline_with_error(root):
     demo_setup("timeline_with_error")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_unity_autoplay(root):
+    demo_setup("unity_autoplay")
     yield
     demo_teardown(root)
 
@@ -136,6 +163,11 @@ def experiment_object(experiment_class, db_session):
 
 @pytest.fixture
 def participant(db_session, experiment_object):
+    from dallinger.config import get_config
+
+    config = get_config()
+    if not config.ready:
+        config.load()
     p = Participant(
         experiment=experiment_object,
         recruiter_id="x",

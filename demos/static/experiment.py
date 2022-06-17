@@ -48,8 +48,6 @@ stimulus_set = StimulusSet(
 
 
 class AnimalTrial(StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "animal_trial"}
-
     time_estimate = 3
 
     def show_trial(self, experiment, participant):

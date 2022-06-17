@@ -20,7 +20,6 @@ from psynet.timeline import (
     PageMaker,
     Timeline,
     conditional,
-    multi_page_maker,
     switch,
     while_loop,
 )
@@ -142,16 +141,15 @@ class Exp(psynet.experiment.Experiment):
             fix_time_credit=True,
         ),
         Module(
-            "multi_page_maker",
+            "PageMaker with multiple pages",
             InfoPage(
                 """
-                The multi-page-maker allows you to make multiple pages in one function.
-                Each can generate its own answer.
+                It is possible to generate multiple pages from the same
+                PageMaker, as in the following example:
                 """,
                 time_estimate=5,
             ),
-            multi_page_maker(
-                "example_multi_page_maker",
+            PageMaker(
                 lambda participant: [
                     ModularPage(
                         "mp1",
@@ -170,8 +168,7 @@ class Exp(psynet.experiment.Experiment):
                         time_estimate=5,
                     ),
                 ],
-                expected_num_pages=2,
-                total_time_estimate=10,
+                time_estimate=10,
                 accumulate_answers=True,
             ),
             PageMaker(

@@ -48,8 +48,6 @@ CONDITIONS = ConditionList(
 
 
 class CustomTrial(SingleStimulusTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     time_estimate = 5
 
     def show_trial(self, experiment, participant):

@@ -83,8 +83,6 @@ class AudioGibbsNetwork(GibbsNetwork):
         stimuli is instead determined by the audio generation function.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_gibbs_network"}
-
     synth_function_location = {"module_name": "", "function_name": ""}
     s3_bucket = ""
     vector_length = 0
@@ -249,8 +247,6 @@ class AudioGibbsTrial(GibbsTrial):
         Defaults to `False`. If `True` then slider is wrapped twice so that there are no boundary jumps.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_gibbs_trial"}
-
     time_estimate = None
     snap_slider = False
     snap_slider_before_release = False
@@ -366,7 +362,6 @@ class AudioGibbsNode(GibbsNode):
     The user should not have to modify this.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_gibbs_node"}
     __extra_vars__ = GibbsNode.__extra_vars__.copy()
 
     slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
@@ -378,7 +373,7 @@ class AudioGibbsSource(GibbsSource):
     The user should not have to modify this.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "audio_gibbs_source"}
+    pass
 
 
 class AudioGibbsTrialMaker(GibbsTrialMaker):

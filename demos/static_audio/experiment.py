@@ -67,8 +67,6 @@ recordings_s3_bucket = "static-audio-demo-stimuli-recordings"
 
 
 class CustomTrial(StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     _time_trial = 3
     _time_feedback = 2
 
