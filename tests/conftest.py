@@ -135,6 +135,13 @@ def demo_timeline_with_error(root):
     demo_teardown(root)
 
 
+@pytest.fixture(scope="class")
+def demo_unity_autoplay(root):
+    demo_setup("unity_autoplay")
+    yield
+    demo_teardown(root)
+
+
 @pytest.fixture
 def experiment_module(db_session):
     import psynet.utils
