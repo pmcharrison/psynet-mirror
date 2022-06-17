@@ -55,7 +55,7 @@ tests:
 tests_isolated:
   stage: test
   script:
-  - pytest --chrome tests/isolated/test_demo_aa_gibbs.py
+  - pytest --chrome tests/isolated/test_demo_gibbs.py
 
 pages:
   stage: deploy
