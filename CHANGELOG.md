@@ -1,5 +1,48 @@
 # CHANGELOG
 
+# [9.0.0] Released on 2022-06-17
+
+#### Breaking changes
+- The URL format for PsyNet experiments is now a bit cleaner, looking something like this:
+  `http://127.0.0.1:5000/timeline?participant_id=1&auth_token=63252608-ee35-40cc-89be-9bbb82120c5d`
+  (author: Peter Harrison, reviewer: Frank Höger).
+
+#### Fixed
+- Fixed bug in `cls.inherits_table` (author: Peter Harrison, reviewer: Frank Höger).
+- Fixed bug in `openwindow` JavaScript function in `ad.html` which prevented propagation
+  of Prolific specific URL parameters (author: Frank Höger, reviewer: Peter Harrison).
+- Refreshing the first page of the experiment no longer causes an error,
+  as the participant's authentication token is now loaded automatically into the URL
+  (author: Peter Harrison, reviewer: Frank Höger).
+- Patched unreliable behavior in `dallinger.identity.participantId`
+  (author: Peter Harrison; reviewer: Frank Höger).
+
+#### Added
+- Added explicit support for `dict` and `list` types in `claim_field`; importantly, these now provide
+  mutation tracking, so that in-place modifications to these fields will be picked up properly
+  by SQLAlchemy (author: Peter Harrison, reviewer: Frank Höger).
+- Added demos for `Prolific` and `CAP-Recruiter` recruitment (author: Frank Höger).
+- Added Unity autoplay demo test (author: Frank Höger, reviewer: Peter Harrison).
+
+#### Changed
+
+- Updated the Unity C# code to adapt to the new URL format (author: Frank Höger, reviewer: Ofer Tchernichovski).
+- `PageMaker` has been made much more flexible. Instead of being constrained to
+  returning just one page, they may now return pretty much any kind of
+  (arbitrarily nested) logic. This flexibility likewise now applies to `show_trial`
+  and `show_feedback` (author: Peter Harrison, reviewer: Frank Höger).
+- It is no longer required to specify `num_pages` or `check_num_pages` when defining a custom `Trial` class,
+  and such specifications will be ignored (author: Peter Harrison, reviewer: Frank Höger).
+- `participant.elt_id` now takes a different form. Instead of comprising a single integer, it now
+  corresponds to a list of integers, which index into nested page makers of arbitrary depth.
+  This should not affect most PsyNet users directly (author: Peter Harrison, reviewer: Frank Höger).
+- Made the test suite more scalable by splitting the single job which ran all tests into multiple (5) smaller jobs
+  that run in parallel.The overall time to run the tests was thereby reduced from ~18 min. to ~8 min
+  (author: Frank Höger, reviewer: Peter Harrison).
+- Renamed the PsyNet base layout template to `psynet_layout.html` (author: Peter Harrison, reviewer: Frank Höger).
+- Prevented opening a new window when clicking on the `Begin Experiment` button on the Ad page
+  when using `LucidRecruiter` (author: Frank Höger, reviewer: Peter Harrison).
+
 # [8.0.0] Released on 2022-05-23
 
 #### Breaking changes
