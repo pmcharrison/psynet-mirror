@@ -7,19 +7,6 @@ Recruiters
 CAP-Recruiter
 -------------
 
-Specify extra parameter
-+++++++++++++++++++++++
-
-Add the following code inside the experiment's class:
-
-.. code-block:: python
-
-    from dallinger.config import get_config
-
-    @classmethod
-    def extra_parameters(cls):
-        get_config().register("cap_recruiter_auth_token", str, [], False)
-
 Set authentication tokens
 +++++++++++++++++++++++++
 
