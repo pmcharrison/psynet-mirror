@@ -790,10 +790,11 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_parameters(cls):
         # We can put extra config variables here if we like, e.g.
         config = get_config()
-        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
+        config.register("cap_recruiter_auth_token", unicode)
         config.register("lucid_api_key", unicode)
         config.register("lucid_sha1_hashing_key", unicode)
         config.register("lucid_recruitment_config", unicode)
+        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod

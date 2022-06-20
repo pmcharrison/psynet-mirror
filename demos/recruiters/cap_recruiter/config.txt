@@ -6,7 +6,7 @@ title = MCMCP demo
 base_payment = 0.10
 
 [Recruitment strategy]
-debug_recruiter = DevCapRecruiter
+# debug_recruiter = DevCapRecruiter
 recruiter = StagingCapRecruiter
 # recruiter = CapRecruiter
 auto_recruit = true
