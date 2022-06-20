@@ -26,6 +26,7 @@ from psynet import __version__
 
 from .command_line import log
 from .data import SQLBase, SQLMixin, register_table
+from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import (  # noqa: F401
@@ -207,10 +208,14 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria = []
 
         if session:
-            if not self.setup_complete:
-                self.setup()
+            if request and request.path == "/launch":
+                self.on_launch()
             self.load()
         self.register_pre_deployment_routines()
+
+    def on_launch(self):
+        if not self.setup_complete:
+            self.setup()
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
@@ -238,7 +243,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def var(self):
-        return self.experiment_config.var
+        if self.experiment_config_exists:
+            return self.experiment_config.var
+        else:
+            return ImmutableVarStore(self.variables_initial_values)
 
     @property
     def experiment_config(self):
@@ -289,10 +297,11 @@ class Experiment(dallinger.experiment.Experiment):
         return ExperimentConfig.query.count() > 0
 
     def setup_experiment_config(self):
-        logger.info("Setting up ExperimentConfig.")
-        network = ExperimentConfig()
-        db.session.add(network)
-        db.session.commit()
+        if not self.experiment_config_exists:
+            logger.info("Setting up ExperimentConfig.")
+            network = ExperimentConfig()
+            db.session.add(network)
+            db.session.commit()
 
     def setup(self):
         self.setup_experiment_config()
