@@ -178,11 +178,11 @@ class AdjectiveTrial(ImitationChainTrial):
         """
         Returns the type of media from a url.
         """
-        if url.endswith(tuple(file_extensions["audio"])):
+        if url.lower().endswith(tuple(file_extensions["audio"])):
             return "audio"
-        elif url.endswith(tuple(file_extensions["video"])):
+        elif url.lower().endswith(tuple(file_extensions["video"])):
             return "video"
-        elif url.endswith(tuple(file_extensions["image"])):
+        elif url.lower().endswith(tuple(file_extensions["image"])):
             return "image"
         else:
             raise NotImplementedError("Unsupported media type!")
@@ -736,13 +736,13 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self.file_extensions = {
             "audio": [".wav", ".mp3"],
             "video": [".mp4", ".webm"],
-            "image": [".jpg", ".png"],
+            "image": [".jpg", ".jpeg", ".png"],
         }
         flat_extensions = tuple(
             [item for ext in self.file_extensions.values() for item in ext]
         )
         assert all(
-            [url.endswith(flat_extensions) for url in media_urls]
+            [url.lower().endswith(flat_extensions) for url in media_urls]
         ), "Some urls have a non-supported file extension!"
 
         assert num_trials_per_participant > 0
@@ -941,7 +941,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
         self._summarize_trial(trial, is_main_experiment, trial_maker)
         bonus_per_rating = experiment.var.wage_per_hour * (
-            self.tag_rating_time_estimate / 60 ** 2
+            self.tag_rating_time_estimate / 60**2
         )
         n_given_ratings = len(answer["ratings"])
         n_ratings = min(self.max_rating, n_given_ratings)
@@ -954,7 +954,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         full_rating_bonus = n_ratings * bonus_per_rating
 
         bonus_per_new_tag = experiment.var.wage_per_hour * (
-            self.new_tag_time_estimate / 60 ** 2
+            self.new_tag_time_estimate / 60**2
         )
         n_given_tags = len(answer["new_tags"])
         n_new_tags = min(self.max_new_tags, n_given_tags)
@@ -986,7 +986,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         participant.inc_performance_bonus(total_performance_bonus)
 
     def seconds_to_dollars(self, seconds, wage_per_hour):
-        return wage_per_hour * (seconds / 60 ** 2)
+        return wage_per_hour * (seconds / 60**2)
 
     def _summarize_trial(self, trial, is_main_experiment, trial_maker):
         url = trial.definition["url"]
