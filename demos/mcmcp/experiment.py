@@ -33,22 +33,16 @@ SAMPLE_RANGE = 5
 
 
 class CustomNetwork(MCMCPNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
-
     def make_definition(self):
         return {"occupation": self.balance_across_networks(OCCUPATIONS)}
 
 
 class CustomSource(MCMCPSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     def generate_seed(self, network, experiment, participant):
         return {"age": random.randint(0, MAX_AGE)}
 
 
 class CustomTrial(MCMCPTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -71,8 +65,6 @@ class CustomTrial(MCMCPTrial):
 
 
 class CustomNode(MCMCPNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def get_proposal(self, state, experiment, participant):
         age = state["age"] + random.randint(-SAMPLE_RANGE, SAMPLE_RANGE)
         age = age % (MAX_AGE + 1)

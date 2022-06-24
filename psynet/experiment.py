@@ -17,7 +17,6 @@ from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
 from dallinger.experiment_server.utils import error_response, success_response
-from dallinger.models import Network
 from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
@@ -25,9 +24,9 @@ from pkg_resources import resource_filename
 
 from psynet import __version__
 
-from . import field
 from .command_line import log
-from .field import VarStore
+from .data import SQLBase, SQLMixin, register_table
+from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import (  # noqa: F401
@@ -209,10 +208,14 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria = []
 
         if session:
-            if not self.setup_complete:
-                self.setup()
+            if request and request.path == "/launch":
+                self.on_launch()
             self.load()
         self.register_pre_deployment_routines()
+
+    def on_launch(self):
+        if not self.setup_complete:
+            self.setup()
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
@@ -240,11 +243,14 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def var(self):
-        return self.experiment_network.var
+        if self.experiment_config_exists:
+            return self.experiment_config.var
+        else:
+            return ImmutableVarStore(self.variables_initial_values)
 
     @property
-    def experiment_network(self):
-        return ExperimentNetwork.query.one()
+    def experiment_config(self):
+        return ExperimentConfig.query.one()
 
     def register_participant_fail_routine(self, routine):
         self.participant_fail_routines.append(routine)
@@ -284,20 +290,21 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def setup_complete(self):
-        return self.experiment_network_exists
+        return self.experiment_config_exists
 
     @property
-    def experiment_network_exists(self):
-        return ExperimentNetwork.query.count() > 0
+    def experiment_config_exists(self):
+        return ExperimentConfig.query.count() > 0
 
-    def setup_experiment_network(self):
-        logger.info("Setting up ExperimentNetwork.")
-        network = ExperimentNetwork()
-        db.session.add(network)
-        db.session.commit()
+    def setup_experiment_config(self):
+        if not self.experiment_config_exists:
+            logger.info("Setting up ExperimentConfig.")
+            network = ExperimentConfig()
+            db.session.add(network)
+            db.session.commit()
 
     def setup(self):
-        self.setup_experiment_network()
+        self.setup_experiment_config()
         self.setup_experiment_variables()
         db.session.commit()
 
@@ -804,10 +811,11 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_parameters(cls):
         # We can put extra config variables here if we like, e.g.
         config = get_config()
-        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
+        config.register("cap_recruiter_auth_token", unicode)
         config.register("lucid_api_key", unicode)
         config.register("lucid_sha1_hashing_key", unicode)
         config.register("lucid_recruitment_config", unicode)
+        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
@@ -935,6 +943,7 @@ class Experiment(dallinger.experiment.Experiment):
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
+    @staticmethod
     def render_error():
         from psynet.utils import error_page
 
@@ -1102,6 +1111,8 @@ class Experiment(dallinger.experiment.Experiment):
     def route_abort(cls, assignment_id):
         try:
             template_name = "abort_not_possible.html"
+            participant = None
+            participant_abort_info = None
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
                 if (
@@ -1109,6 +1120,7 @@ class Experiment(dallinger.experiment.Experiment):
                     >= cls.new(db.session).var.min_accumulated_bonus_for_abort
                 ):
                     template_name = "abort_possible.html"
+                    participant_abort_info = participant.abort_info()
         except ValueError:
             logger.error("Invalid assignment ID.")
         except sqlalchemy.orm.exc.NoResultFound:
@@ -1117,18 +1129,21 @@ class Experiment(dallinger.experiment.Experiment):
             logger.error("Found multiple participants matching those specifications.")
 
         return render_template(
-            template_name, participant_abort_info=participant.abort_info()
+            template_name,
+            participant=participant,
+            participant_abort_info=participant_abort_info,
         )
 
-    @experiment_route("/timeline/<int:participant_id>/<auth_token>", methods=["GET"])
+    @experiment_route("/timeline", methods=["GET"])
     @classmethod
-    def route_timeline(cls, participant_id, auth_token):
+    def route_timeline(cls):
+        participant_id = request.args.get("participant_id")
+        auth_token = request.args.get("auth_token")
+
         from psynet.utils import error_page
 
         exp = cls.new(db.session)
-        participant = get_participant(participant_id)
         mode = request.args.get("mode")
-
         participant = get_participant(participant_id)
 
         if participant.auth_token is None:
@@ -1278,26 +1293,18 @@ class Experiment(dallinger.experiment.Experiment):
         return stats
 
 
-class ExperimentNetwork(Network):
-    __mapper_args__ = {"polymorphic_identity": "experiment_network"}
-    __extra_vars__ = {}
+@register_table
+class ExperimentConfig(SQLBase, SQLMixin):
+    """
+    This SQL-backed class provides a way to store experiment configuration variables
+    that can change over the course of the experiment.
+    See :class:`psynet.experiment.Experiment` documentation for example usage.
+    """
 
-    def __init__(self):
-        self.role = "experiment"
-        self.max_size = 0
+    __tablename__ = "experiment"
 
-    @property
-    def var(self):
-        return VarStore(self)
-
-    def __json__(self):
-        x = {
-            **super().__json__(),
-            "type": "experiment_network",
-            "variables": self.details,
-            "role": self.role,
-        }
-        field.json_clean(x, details=True)
-        field.json_format_vars(x)
-        x["variables"] = json.loads(x["variables"])
-        return x
+    # Removing these fields because they don't make much sense for the experiment configuration object
+    creation_time = None
+    failed = None
+    failed_reason = None
+    time_of_death = None

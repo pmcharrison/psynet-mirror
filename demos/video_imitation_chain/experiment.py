@@ -39,13 +39,10 @@ SILENT_RECORDING = "./static/5s_silence.wav"
 
 
 class CustomNetwork(CameraImitationChainNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
     s3_bucket = "video-screen-recording-dev"
 
 
 class CustomSource(CameraImitationChainSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     def generate_seed(self, network, experiment, participant):
         possibilities = ["Figure 8", "Circle", "Triangle", "Square"]
         return random.choice(possibilities)
@@ -81,8 +78,6 @@ class CustomProgressDisplay(ProgressDisplay):
 
 
 class CustomTrial(CameraImitationChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     time_estimate = 15
 
     def show_trial(self, experiment, participant):

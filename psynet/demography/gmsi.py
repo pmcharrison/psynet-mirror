@@ -126,13 +126,11 @@ class GMSI(Module):
             response
             for response in responses
             if response.question in question_data().keys()
-            and response.details["gmsi_label"] == self.label
+            and response.metadata["gmsi_label"] == self.label
         ]
         # calculate score for each question
         response_scores = {
-            response.question: self.calculate_score(
-                response.question, response.response
-            )
+            response.question: self.calculate_score(response.question, response.answer)
             for response in responses
         }
         # group scores by subscale
@@ -166,13 +164,13 @@ class GMSI(Module):
         }
 
     @staticmethod
-    def calculate_score(question, response):
-        response = response.replace('"', "")
-        if question == "q_40" and response == "19":
+    def calculate_score(question, answer):
+        answer = answer.replace('"', "")
+        if question == "q_40" and answer == "19":
             return None
         if question in ["q_32", "q_41"]:
-            return response
-        raw_value = int(response)
+            return answer
+        raw_value = int(answer)
         return (8 - raw_value) if question_data()[question]["inverted"] else raw_value
 
 

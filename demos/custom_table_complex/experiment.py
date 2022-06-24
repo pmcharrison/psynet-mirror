@@ -17,7 +17,7 @@ from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.modular_page import PushButtonControl, TextControl
 from psynet.page import InfoPage, ModularPage, SuccessfulEndPage
 from psynet.participant import Participant
-from psynet.timeline import CodeBlock, Timeline, join, multi_page_maker
+from psynet.timeline import CodeBlock, PageMaker, Timeline, join
 
 
 @register_table
@@ -48,11 +48,9 @@ class Pet(SQLBase, SQLMixin):
                 save_answer="temp__pet_kind",
             ),
             CodeBlock(cls.create_pet),
-            multi_page_maker(
-                "get_purchase_details",
+            PageMaker(
                 cls._get_purchase_details,
-                expected_num_pages=2,
-                total_time_estimate=5,
+                time_estimate=5,
             ),
             CodeBlock(cls._save_purchase_details),
         )

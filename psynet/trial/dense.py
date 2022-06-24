@@ -414,8 +414,6 @@ class SingleStimulusTrial(DenseTrial):
         A list of numbers defining the stimulus's position within the stimulus space.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "single_stimulus_trial"}
-
     def make_definition(self, experiment, participant):
         definition = super().make_definition(experiment, participant)
         dimensions = self.get_from_definition(definition, "dimensions")
@@ -470,8 +468,6 @@ class SliderCopyTrial(SingleStimulusTrial):
     chosen by the participant. The resulting score is stored in the trial's ``score`` attribute,
     and can be used for performance bonuses.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "slider_copy_trial"}
 
     def make_definition(self, experiment, participant):
         definition = super().make_definition(experiment, participant)
@@ -575,8 +571,6 @@ class PairedStimulusTrial(DenseTrial):
     of the Dimension objects.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "paired_stimulus_trial"}
-
     def make_definition(self, experiment, participant):
         definition = super().make_definition(experiment, participant)
         dimensions = self.get_from_definition(definition, "dimensions")
@@ -654,8 +648,6 @@ class SameDifferentTrial(PairedStimulusTrial):
     as the answer.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "same_different_trial"}
-
     valid_answers = ["same", "different"]
 
     def make_definition(self, experiment, participant):
@@ -719,8 +711,6 @@ class AXBTrial(PairedStimulusTrial):
     The :meth:`~psynet.trial.main.Trial.show_trial` method should return either ``AAB`` or ``ABB``
     as the answer.
     """
-
-    __mapper_args__ = {"polymorphic_identity": "axb_trial"}
 
     valid_answers = ["AAB", "ABB"]
 

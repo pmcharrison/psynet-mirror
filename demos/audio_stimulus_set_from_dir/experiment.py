@@ -38,8 +38,6 @@ experiment_stimuli = stimulus_set_from_dir(
 
 
 class CustomTrial(StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     time_estimate = 5
 
     def show_trial(self, experiment, participant):

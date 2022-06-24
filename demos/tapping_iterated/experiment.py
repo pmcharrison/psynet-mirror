@@ -83,8 +83,6 @@ def as_native_type(x):
 
 
 class CustomTrialAnalysis(AudioImitationChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial_analysis"}
-
     def analyze_recording(self, audio_file: str, output_plot: str):
         info_stimulus = self.origin.var.info_stimulus
         title_in_graph = "Participant {}".format(self.participant_id)
@@ -115,8 +113,6 @@ class CustomTrialAnalysis(AudioImitationChainTrial):
 
 
 class CustomTrial(CustomTrialAnalysis):
-    __mapper_args__ = {"polymorphic_identity": "custom_trial"}
-
     time_estimate = TIME_ESTIMATE_PER_TRIAL
 
     def show_trial(self, experiment, participant):
@@ -174,14 +170,10 @@ class CustomTrial(CustomTrialAnalysis):
 
 
 class CustomNetwork(AudioImitationChainNetwork):
-    __mapper_args__ = {"polymorphic_identity": "custom_network"}
-
     s3_bucket = BUCKET_NAME
 
 
 class CustomNode(AudioImitationChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def summarize_trials(self, trials: list, experiment, participant):
         new_rhythm = [trial.analysis["ioi_new_seed"] for trial in trials]
         return [mean(x) for x in zip(*new_rhythm)]
@@ -209,8 +201,6 @@ class CustomNode(AudioImitationChainNode):
 
 
 class CustomSource(AudioImitationChainSource):
-    __mapper_args__ = {"polymorphic_identity": "custom_source"}
-
     def generate_seed(self, network, experiment, participant):
         ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
         random_seed = [as_native_type(value) for value in ioi_seed]

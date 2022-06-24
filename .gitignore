@@ -146,5 +146,6 @@ psynet/nips/ganspace/snapshots/ganspace-code.zip
 psynet/nips/ganspace/.vscode/settings.json
 .Rproj.user
 demos/**/data
+demos/**/snapshots
 tmp/*
 typescript

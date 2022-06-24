@@ -167,8 +167,6 @@ stimulus_music_set = StimulusSet(
 
 # Experiment parts
 class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
-    __mapper_args__ = {"polymorphic_identity": "analysis_trial_metronome"}
-
     def analyze_recording(self, audio_file: str, output_plot: str):
         temp_file = self.info
         with open(temp_file, "r") as file:
@@ -202,8 +200,6 @@ class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
 
 
 class TapTrial(TapTrialAnalysis):
-    __mapper_args__ = {"polymorphic_identity": "tap_trial"}
-
     def show_trial(self, experiment, participant):
         temp_file = self.info
         with open(temp_file, "r") as file:
@@ -271,14 +267,10 @@ class TapTrial(TapTrialAnalysis):
 
 
 class TapTrialISO(TapTrial):
-    __mapper_args__ = {"polymorphic_identity": "tap_trial_ISO"}
-
     time_estimate = DURATION_ESTIMATED_TRIAL
 
 
 class TapTrialMusic(TapTrial):
-    __mapper_args__ = {"polymorphic_identity": "tap_trial_music"}
-
     time_estimate = DURATION_ESTIMATED_TRIAL
 
 
