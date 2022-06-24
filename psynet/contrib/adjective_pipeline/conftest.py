@@ -31,7 +31,7 @@ def demo_teardown(root):
 def demo_adjective_pipeline(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "adjective_pipeline"
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", "demo/experiment.py"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "demo"))
     init_db(drop_all=True)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
