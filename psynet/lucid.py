@@ -3,7 +3,6 @@ from datetime import datetime
 
 import requests
 from dallinger.db import session
-from requests.exceptions import ContentDecodingError
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet.participant import Participant
@@ -228,6 +227,8 @@ class LucidService(object):
                 self.log(
                     f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
                 )
+                rid.termination_requested_at = datetime.now()
+                session.commit()
                 try:
                     response = requests.get(redirect_url)
                     if response.status_code == 200:
@@ -242,7 +243,7 @@ class LucidService(object):
                         )
                         self.log(response.text)
                         self.log(response.__dict__)
-                except ContentDecodingError as e:
+                except Exception as e:
                     self.log(
                         f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
                     )
