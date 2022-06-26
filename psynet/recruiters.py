@@ -113,8 +113,14 @@ class DevCapRecruiter(BaseCapRecruiter):
 class LucidRID(SQLBase, SQLMixin):
     __tablename__ = "lucid_rid"
 
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+
     rid = Column(String, index=True)
     terminated_at = Column(DateTime, index=True)
+    termination_requested_at = Column(DateTime)
 
 
 class LucidRecruiterException(Exception):
