@@ -16,6 +16,11 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("demo_adjective_pipeline")
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session):  # two_iterations, bot_recruits):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=2343, stdoutToServer=True, stderrToServer=True
+        )
         for i, bot in enumerate(bot_recruits):
             driver = bot.driver
 
