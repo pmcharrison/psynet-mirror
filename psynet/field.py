@@ -146,95 +146,12 @@ class UndefinedVariableError(Exception):
     pass
 
 
-class VarStore:
-    """
-    A repository for arbitrary variables which will be serialized to JSON for storage into the
-    database, specifically in the ``details`` field. Variables can be set with the following syntax:
-    ``participant.var.my_var_name = "value_to_set"``.
-    The variable can then be accessed with ``participant.var.my_var_name``.
-    See the methods below for an alternative API.
-
-    **TIP 1:** the standard setter function is unavailable in lambda functions,
-    which are otherwise convenient to use when defining e.g.
-    :class:`~psynet.timeline.CodeBlock` objects.
-    Use :meth:`psynet.field.VarStore.set` instead, for example:
-
-    ::
-
-        from psynet.timeline import CodeBlock
-
-        CodeBlock(lambda participant: participant.var.set("my_var", 3))
-
-    **TIP 2:** by convention, the ``VarStore`` object is placed in an object's ``var`` slot.
-    The :class:`psynet.participant.Participant` object comes with one by default
-    (unfortunately the :class:`psynet.experiment.Experiment` object doesn't,
-    because it is not stored in the database).
-    You can add a ``VarStore`` object to a custom object (e.g. a Dallinger ``Node``) as follows:
-
-    ::
-
-        from dallinger.models import Node
-        from psynet.field import VarStore
-
-        class CustomNode(Node):
-            __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
-            @property
-            def var(self):
-                return VarStore(self)
-
-
-    **WARNING:** avoid storing large objects here on account of the performance cost
-    of converting to and from JSON.
-    """
-
-    def __init__(self, owner):
-        self._owner = owner
-
+class BaseVarStore:
     def __getattr__(self, name):
-        owner = self.__dict__["_owner"]
-        if name == "_owner":
-            return owner
-        elif name == "_all":
-            return self.get_vars()
-        else:
-            return self.get_var(name)
+        raise NotImplementedError
 
-    def encode_to_string(self, obj):
-        return jsonpickle.encode(obj)
-
-    def decode_string(self, string):
-        return jsonpickle.decode(string)
-
-    def get_var(self, name):
-        vars_ = self.get_vars()
-        try:
-            return self.decode_string(vars_[name])
-        except KeyError:
-            raise UndefinedVariableError(f"Undefined variable: {name}.")
-
-    def __setattr__(self, name, value):
-        if name == "_owner":
-            self.__dict__["_owner"] = value
-        else:
-            self.set_var(name, value)
-
-    def set_var(self, name, value):
-        vars_ = self.get_vars()
-        value_encoded = self.encode_to_string(value)
-        vars_[name] = value_encoded
-        self.set_vars(vars_)
-
-    def get_vars(self):
-        vars_ = self.__dict__["_owner"].details
-        if vars_ is None:
-            vars_ = {}
-        return vars_.copy()
-
-    def set_vars(self, vars_):
-        # We need to copy the dictionary otherwise
-        # SQLAlchemy won't notice if we change it later.
-        self.__dict__["_owner"].details = vars_.copy()
+    def __setattr__(self, key, value):
+        raise NotImplementedError
 
     def get(self, name: str, default=marker):
         """
@@ -375,6 +292,107 @@ class VarStore:
         if self.has(name):
             raise ValueError(f"There is already a variable called {name}.")
         self.set(name, value)
+
+
+class ImmutableVarStore(BaseVarStore, dict):
+    def __init__(self, data):
+        dict.__init__(self, **data)
+
+    def __getattr__(self, name):
+        return self[name]
+
+    def __setattr__(self, key, value):
+        raise RuntimeError(
+            "The variable store is locked and cannot currently be edited."
+        )
+
+
+class VarStore(BaseVarStore):
+    """
+    A repository for arbitrary variables which will be serialized to JSON for storage into the
+    database, specifically in the ``details`` field. Variables can be set with the following syntax:
+    ``participant.var.my_var_name = "value_to_set"``.
+    The variable can then be accessed with ``participant.var.my_var_name``.
+    See the methods below for an alternative API.
+
+    **TIP 1:** the standard setter function is unavailable in lambda functions,
+    which are otherwise convenient to use when defining e.g.
+    :class:`~psynet.timeline.CodeBlock` objects.
+    Use :meth:`psynet.field.VarStore.set` instead, for example:
+
+    ::
+
+        from psynet.timeline import CodeBlock
+
+        CodeBlock(lambda participant: participant.var.set("my_var", 3))
+
+    **TIP 2:** by convention, the ``VarStore`` object is placed in an object's ``var`` slot.
+    You can add a ``VarStore`` object to a custom object (e.g. a Dallinger ``Node``) as follows:
+
+    ::
+
+        from dallinger.models import Node
+        from psynet.field import VarStore
+
+        class CustomNode(Node):
+            __mapper_args__ = {"polymorphic_identity": "custom_node"}
+
+            @property
+            def var(self):
+                return VarStore(self)
+
+
+    **TIP 3:** avoid storing large objects here on account of the performance cost
+    of converting to and from JSON.
+    """
+
+    def __init__(self, owner):
+        self._owner = owner
+
+    def __getattr__(self, name):
+        owner = self.__dict__["_owner"]
+        if name == "_owner":
+            return owner
+        elif name == "_all":
+            return self.get_vars()
+        else:
+            return self.get_var(name)
+
+    def encode_to_string(self, obj):
+        return jsonpickle.encode(obj)
+
+    def decode_string(self, string):
+        return jsonpickle.decode(string)
+
+    def get_var(self, name):
+        vars_ = self.get_vars()
+        try:
+            return self.decode_string(vars_[name])
+        except KeyError:
+            raise UndefinedVariableError(f"Undefined variable: {name}.")
+
+    def __setattr__(self, name, value):
+        if name == "_owner":
+            self.__dict__["_owner"] = value
+        else:
+            self.set_var(name, value)
+
+    def set_var(self, name, value):
+        vars_ = self.get_vars()
+        value_encoded = self.encode_to_string(value)
+        vars_[name] = value_encoded
+        self.set_vars(vars_)
+
+    def get_vars(self):
+        vars_ = self.__dict__["_owner"].details
+        if vars_ is None:
+            vars_ = {}
+        return vars_.copy()
+
+    def set_vars(self, vars_):
+        # We need to copy the dictionary otherwise
+        # SQLAlchemy won't notice if we change it later.
+        self.__dict__["_owner"].details = vars_.copy()
 
     def list(self):
         return list(self._all.keys())
