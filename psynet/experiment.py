@@ -388,7 +388,11 @@ class Experiment(dallinger.experiment.Experiment):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
+        self.set_recruiter_specific_variables()
+
+    def set_recruiter_specific_variables(self):
         if self.with_lucid_recruitment():
+            self.var.set("show_abort_button", False)
             self.var.set("show_bonus", False)
 
     def load(self):
