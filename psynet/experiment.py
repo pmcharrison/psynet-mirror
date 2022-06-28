@@ -379,6 +379,9 @@ class Experiment(dallinger.experiment.Experiment):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
+        if self.with_lucid_recruitment():
+            self.var.set("show_bonus", False)
+
     def load(self):
         for elt in self.timeline.elts:
             if isinstance(elt, ExperimentSetupRoutine):
