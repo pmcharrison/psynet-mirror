@@ -428,9 +428,10 @@ class StimulusSet:
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
 
-        if "prepare" in command_line.FLAGS:
-            force = "force" in command_line.FLAGS
-            self.prepare_media(force=force)
+        # TODO - does this need replacing?
+        # if "prepare" in command_line.FLAGS:
+        #     force = "force" in command_line.FLAGS
+        #     self.prepare_media(force=force)
 
     @property
     def hash(self):
@@ -460,18 +461,18 @@ class StimulusSet:
     def load(self):
         return self
 
-    def prepare_media(self, force):
-        if self.has_media:
-            if not force and self.remote_media_is_up_to_date:
-                logger.info(
-                    "(%s) Remote media seems to be up-to-date, no media preparation necessary.",
-                    self.id,
-                )
-            else:
-                self.cache_media(force=force)
-                self.upload_media()
-        else:
-            logger.info("(%s) No media found to prepare.", self.id)
+    # def prepare_media(self, force):
+    #     if self.has_media:
+    #         if not force and self.remote_media_is_up_to_date:
+    #             logger.info(
+    #                 "(%s) Remote media seems to be up-to-date, no media preparation necessary.",
+    #                 self.id,
+    #             )
+    #         else:
+    #             self.cache_media(force=force)
+    #             self.upload_media()
+    #     else:
+    #         logger.info("(%s) No media found to prepare.", self.id)
 
     def cache_media(self, force):
         if os.path.exists(self.local_media_cache_dir):
