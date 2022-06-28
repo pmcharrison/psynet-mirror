@@ -8,19 +8,14 @@ from melody.resources import GenderSplit, SingingCalibration, ToneJSVolumeTest
 
 import psynet.experiment
 import psynet.media
+from psynet.assets import AssetRegistry, LocalStorage
+
+# from psynet.assets import S3Storage
 from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import JSSynth, Note
-from psynet.media import make_bucket_public, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import (
-    Event,
-    PreDeployRoutine,
-    ProgressDisplay,
-    ProgressStage,
-    Timeline,
-    join,
-)
+from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.audio import (
     AudioImitationChainNetwork,
     AudioImitationChainNode,
@@ -116,8 +111,6 @@ class CustomTrial(AudioImitationChainTrial):
             ),
             AudioRecordControl(
                 duration=params.singing_2intervals["sing_duration"],
-                s3_bucket=BUCKET_NAME,
-                public_read=True,
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
@@ -407,21 +400,21 @@ SingingMainTask1 = join(
 )
 
 
-# timeline
 class Exp(psynet.experiment.Experiment):
+    name = "Iterated singing demo"
+
+    # This seems verbose, can we simplify it?
+    # Maybe it should even go in the config? Seems difficult to be
+    # flexible enough if we put it there though.
+    #
+    # assets = AssetRegistry(asset_storage=S3Storage())
+    assets = AssetRegistry(
+        asset_storage=LocalStorage("~/Downloads/psynet_local_storage")
+    )
+
+    # TODO - create S3 bucket if it doesn't exist
+
     timeline = Timeline(
-        PreDeployRoutine(
-            "make_bucket_public", make_bucket_public, {"bucket_name": BUCKET_NAME}
-        ),
-        PreDeployRoutine(
-            "prepare_s3_bucket_for_presigned_urls",
-            prepare_s3_bucket_for_presigned_urls,
-            {
-                "bucket_name": BUCKET_NAME,
-                "public_read": True,
-                "create_new_bucket": True,
-            },
-        ),
         MainConsent(),
         AudiovisualConsent(),
         Welcome,

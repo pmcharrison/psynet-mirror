@@ -166,6 +166,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self._data_type = self.data_types[data_type]
         self.extension = extension if extension else self.get_extension()
         self.participant = participant
+        self.participant_id = (
+            participant.id
+        )  # I'm not sure this is absolutely necessary but it adds safety
         self.network = network
         self.node = node
         self.trial = trial
@@ -429,24 +432,26 @@ class ManagedAsset(Asset):
 
     def generate_dir(self):
         dir_ = []
-        if self.participant_id:
-            dir_.append("participants")
-            dir_.append(str(self.participant_id))
         if self.trial_maker_id:
             dir_.append(str(self.trial_maker_id))
+        if self.participant:
+            # For some reason, checking for self.participant_id does not always work.
+            # It seems that SQLAlchemy's propagation of `participant` to `participant_id`
+            # is not fully reliable.
+            dir_.append(f"participant_{self.participant.id}")
         return "/".join(dir_)
 
     def generate_filename(self):
         filename = ""
         identifiers = []
+        if self.trial_id:
+            identifiers.append(f"trial_{self.trial_id}")
+        if self.node_id:
+            identifiers.append(f"node_{self.node_id}")
+        if self.network_id:
+            identifiers.append(f"network_{self.network_id}")
         if self.label:
             identifiers.append(f"{self.label}")
-        if self.trial_id:
-            identifiers.append(f"trial={self.trial_id}")
-        if self.node_id:
-            identifiers.append(f"node={self.node_id}")
-        if self.network_id:
-            identifiers.append(f"network={self.network_id}")
 
         filename += "__".join(identifiers)
         filename += self.extension
@@ -780,8 +785,16 @@ class NoStorage(AssetStorage):
 
 class LocalStorage(AssetStorage):
     def __init__(self, root):
+        """
+
+        Parameters
+        ----------
+        root :
+            Path to the directory to be used for storage.
+            Tilde expansion (e.g. '~/psynet') is performed automatically.
+        """
         super().__init__()
-        self.root = root
+        self.root = os.path.expanduser(root)
 
     def receive_deposit(self, asset: ExperimentAsset, host_path: str):
         super().receive_deposit(asset, host_path)

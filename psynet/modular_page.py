@@ -1959,16 +1959,12 @@ class RecordControl(Control):
     def __init__(
         self,
         duration: float,
-        s3_bucket: str,
-        public_read: bool = False,
         auto_advance: bool = False,
         show_meter: bool = False,
     ):
         super().__init__()
 
         self.duration = duration
-        self.s3_bucket = s3_bucket
-        self.public_read = public_read
         self.auto_advance = auto_advance
 
         if show_meter:

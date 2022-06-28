@@ -164,11 +164,6 @@ class RecordTrial:
                     db.session.commit()
 
     def upload_plot(self, local_path):
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
         asset = RecordingAnalysisPlot(
             label="recording_analysis_plot",
             input_path=local_path,
