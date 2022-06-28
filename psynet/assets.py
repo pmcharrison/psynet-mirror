@@ -166,9 +166,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self._data_type = self.data_types[data_type]
         self.extension = extension if extension else self.get_extension()
         self.participant = participant
-        self.participant_id = (
-            participant.id
-        )  # I'm not sure this is absolutely necessary but it adds safety
+        # I'm not sure this is absolutely necessary but it adds safety
+        self.participant_id = participant.id
         self.network = network
         self.node = node
         self.trial = trial
