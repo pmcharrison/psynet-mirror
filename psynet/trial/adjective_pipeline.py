@@ -154,21 +154,21 @@ class AdjectiveTrial(ImitationChainTrial):
         """
         Creates a HTML snippet to display a stimulus, which can be embedded into some markdown.
         """
-        if url.endswith(tuple(file_extensions["audio"])):
+        if url.lower().endswith(tuple(file_extensions["audio"])):
             return f"""<audio id="audio" controls>
                     <source src="{url}" type="audio/wav">
                     Your browser does not support the audio element.
                     </audio>"""
-        elif url.endswith(tuple(file_extensions["video"])):
+        elif url.lower().endswith(tuple(file_extensions["video"])):
             source = (
                 f'<source src="{url}" type="video/mp4">'
-                if url.endswith("mp4")
+                if url.lower().endswith("mp4")
                 else f'<source src="{url}" type="video/webm">'
             )
             return f"""
             <video width="560" controls>{source} Your browser does not support the video tag.</video>
             """
-        elif url.endswith(tuple(file_extensions["image"])):
+        elif url.lower().endswith(tuple(file_extensions["image"])):
             return f'<img src="{url}" alt="flagged image" class="img-thumbnail">'
         else:
             raise NotImplementedError("Unsupported media type!")
@@ -566,7 +566,7 @@ class AdjectiveTrial(ImitationChainTrial):
 
         width = get_if_exists(template_args, "width", 400)
 
-        if url.endswith(tuple(trial_maker.file_extensions["audio"])):
+        if url.lower().endswith(tuple(trial_maker.file_extensions["audio"])):
             prompt = AudioPrompt(
                 url,
                 Markup(
@@ -574,7 +574,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 """
                 ),
             )
-        elif url.endswith(tuple(trial_maker.file_extensions["video"])):
+        elif url.lower().endswith(tuple(trial_maker.file_extensions["video"])):
             play_duration = get_if_exists(template_args, "play_duration", 0)
             randomize_start = get_if_exists(template_args, "randomize_start", False)
             prompt = VideoPrompt(
@@ -599,7 +599,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 width=f"{width}px",
                 hide_when_finished=False,
             )
-        elif url.endswith(tuple(trial_maker.file_extensions["image"])):
+        elif url.lower().endswith(tuple(trial_maker.file_extensions["image"])):
             height = get_if_exists(template_args, "height", 400)
             prompt = ImagePrompt(
                 url,
