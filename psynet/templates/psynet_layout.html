@@ -22,7 +22,6 @@
                 setInterval(terminate, 2000);
 
                 function terminate() {
-                    console.log("Terminating...");
                     postData = {};
                     postData["auth_token"] = "{{ auth_token }}"
                     $.post("/participant/" + "{{ participant.id }}" + "/terminate", postData);
