@@ -224,8 +224,7 @@ class LucidService(object):
             self.log(
                 f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
             )
-            rid.termination_requested_at = datetime.now()
-            session.commit()
+
             try:
                 response = requests.get(redirect_url)
                 if response.status_code == 200:

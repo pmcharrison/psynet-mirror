@@ -126,7 +126,6 @@ class LucidRID(SQLBase, SQLMixin):
 
     rid = Column(String, index=True)
     terminated_at = Column(DateTime, index=True)
-    termination_requested_at = Column(DateTime)
 
 
 class LucidRecruiterException(Exception):
