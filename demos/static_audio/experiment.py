@@ -1,6 +1,5 @@
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioMeterControl,
     AudioPrompt,
@@ -8,7 +7,7 @@ from psynet.modular_page import (
     ModularPage,
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.timeline import PreDeployRoutine, Timeline
+from psynet.timeline import Timeline
 from psynet.trial.static import (
     StaticTrial,
     StaticTrialMaker,
@@ -101,15 +100,6 @@ class CustomTrial(StaticTrial):
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
-        PreDeployRoutine(
-            "prepare_s3_bucket_for_presigned_urls",
-            prepare_s3_bucket_for_presigned_urls,
-            {
-                "bucket_name": recordings_s3_bucket,
-                "public_read": True,
-                "create_new_bucket": True,
-            },
-        ),
         VolumeCalibration(),
         ModularPage(
             "record_calibrate",
