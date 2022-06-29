@@ -215,38 +215,35 @@ class LucidService(object):
 
         return False
 
-    def terminate_invalid_respondents(self):
-        from psynet.recruiters import LucidRID
-
-        for rid in LucidRID.query.filter_by(terminated_at=None).all():
-            if self.can_be_terminated(rid):
-                redirect_url = (
-                    f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
-                )
-                redirect_url += f"hash={self.sha1_hash(redirect_url)}"
-                self.log(
-                    f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
-                )
-                rid.termination_requested_at = datetime.now()
-                session.commit()
-                try:
-                    response = requests.get(redirect_url)
-                    if response.status_code == 200:
-                        rid.terminated_at = datetime.now()
-                        session.commit()
-                        self.log(
-                            f"Respondent terminated using redirect URL '{redirect_url}'."
-                        )
-                    else:
-                        self.log(
-                            f"Error terminating respondent using redirect URL '{redirect_url}'."
-                        )
-                        self.log(response.text)
-                        self.log(response.__dict__)
-                except Exception as e:
+    def terminate_respondent(self, rid):
+        if self.can_be_terminated(rid):
+            redirect_url = (
+                f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
+            )
+            redirect_url += f"hash={self.sha1_hash(redirect_url)}"
+            self.log(
+                f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
+            )
+            rid.termination_requested_at = datetime.now()
+            session.commit()
+            try:
+                response = requests.get(redirect_url)
+                if response.status_code == 200:
+                    rid.terminated_at = datetime.now()
+                    session.commit()
                     self.log(
-                        f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
+                        f"Respondent terminated using redirect URL '{redirect_url}'."
                     )
+                else:
+                    self.log(
+                        f"Error terminating respondent using redirect URL '{redirect_url}'."
+                    )
+                    self.log(response.text)
+                    self.log(response.__dict__)
+            except Exception as e:
+                self.log(
+                    f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
+                )
 
     def sha1_hash(self, url):
         """

@@ -309,13 +309,13 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def run_checks(self):
+    def terminate_respondent(self, rid):
         LucidService(
             api_key=self.config.get("lucid_api_key"),
             sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
             sandbox=self.config.get("mode") != "live",
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        ).terminate_invalid_respondents()
+        ).terminate_respondent(rid)
 
     @property
     def termination_time_in_min(self):

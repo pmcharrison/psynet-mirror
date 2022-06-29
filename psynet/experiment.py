@@ -21,6 +21,7 @@ from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
+from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet import __version__
 
@@ -227,14 +228,6 @@ class Experiment(dallinger.experiment.Experiment):
         exp = exp_class.new(db.session)
         for c in exp.database_checks:
             c.run()
-
-    @scheduled_task("interval", minutes=1, max_instances=1)
-    @staticmethod
-    def run_recruiter_checks():
-        exp = dallinger.experiment.load().new(db.session)
-        recruiter = exp.recruiter
-        if hasattr(recruiter, "run_checks"):
-            recruiter.run_checks()
 
     @property
     def base_payment(self):
@@ -1049,6 +1042,38 @@ class Experiment(dallinger.experiment.Experiment):
         network = TrialNetwork.query.filter_by(id=network_id).one()
         network.queue_async_method("call_async_post_grow_network")
         db.session.commit()
+        return success_response()
+
+    @experiment_route("/participant/<int:participant_id>/terminate", methods=["POST"])
+    @classmethod
+    def terminate_participant(cls, participant_id):
+        from psynet.recruiters import LucidRID
+
+        participant = get_participant(participant_id)
+        # auth_token = request.values["auth_token"]
+        # Experiment.validate_auth_token(participant, auth_token)
+
+        _rid = participant.entry_information["RID"]
+
+        try:
+            rid = LucidRID.query.filter_by(rid=_rid).one()
+        except (NoResultFound):
+            raise NoResultFound(
+                f"No LucidRID for Lucid RID '{_rid}' found. This should never happen."
+            )
+        except (MultipleResultsFound):
+            raise MultipleResultsFound(
+                f"Multiple rows for Lucid RID '{_rid}' found. This should never happen."
+            )
+
+        try:
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+            if hasattr(recruiter, "terminate_respondent"):
+                recruiter.terminate_respondent(rid)
+        except Exception as e:
+            logger.error(f"Error terminating respondent with RID '{_rid}': {e}")
+
         return success_response()
 
     @staticmethod
