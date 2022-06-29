@@ -216,6 +216,19 @@ class LucidService(object):
         return False
 
     def terminate_respondent(self, rid):
+        from psynet.recruiters import LucidRID
+
+        try:
+            rid = LucidRID.query.filter_by(rid=rid).one()
+        except (NoResultFound):
+            raise NoResultFound(
+                f"No LucidRID for Lucid RID '{rid}' found. This should never happen."
+            )
+        except (MultipleResultsFound):
+            raise MultipleResultsFound(
+                f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
+            )
+
         if self.can_be_terminated(rid):
             redirect_url = (
                 f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"

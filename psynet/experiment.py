@@ -21,7 +21,6 @@ from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
-from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
 from psynet import __version__
 
@@ -1044,27 +1043,15 @@ class Experiment(dallinger.experiment.Experiment):
         db.session.commit()
         return success_response()
 
-    @experiment_route("/participant/<int:participant_id>/terminate", methods=["POST"])
+    @experiment_route("/check_participant_termination", methods=["POST"])
     @classmethod
-    def terminate_participant(cls, participant_id):
-        from psynet.recruiters import LucidRID
-
-        participant = get_participant(participant_id)
+    def terminate_participant(cls):
         # auth_token = request.values["auth_token"]
         # Experiment.validate_auth_token(participant, auth_token)
 
-        _rid = participant.entry_information["RID"]
-
-        try:
-            rid = LucidRID.query.filter_by(rid=_rid).one()
-        except (NoResultFound):
-            raise NoResultFound(
-                f"No LucidRID for Lucid RID '{_rid}' found. This should never happen."
-            )
-        except (MultipleResultsFound):
-            raise MultipleResultsFound(
-                f"Multiple rows for Lucid RID '{_rid}' found. This should never happen."
-            )
+        participant_id = request.values["participant_id"]
+        participant = get_participant(participant_id)
+        rid = participant.entry_information["RID"]
 
         try:
             exp = dallinger.experiment.load().new(db.session)
@@ -1072,7 +1059,7 @@ class Experiment(dallinger.experiment.Experiment):
             if hasattr(recruiter, "terminate_respondent"):
                 recruiter.terminate_respondent(rid)
         except Exception as e:
-            logger.error(f"Error terminating respondent with RID '{_rid}': {e}")
+            logger.error(f"Error terminating respondent with RID '{rid}': {e}")
 
         return success_response()
 

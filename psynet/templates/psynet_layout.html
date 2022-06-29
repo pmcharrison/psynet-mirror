@@ -19,12 +19,13 @@
                 }
 
                 {% if experiment.with_lucid_recruitment() %}
-                setInterval(terminate, 2000);
+                setInterval(terminate, 10000);
 
                 function terminate() {
                     postData = {};
-                    postData["auth_token"] = "{{ auth_token }}"
-                    $.post("/participant/" + "{{ participant.id }}" + "/terminate", postData);
+                    postData["auth_token"] = "{{ auth_token }}";
+                    postData["participant_id"] = parseInt("{{ participant.id }}");
+                    $.post("/check_participant_termination", postData);
                 }
                 {% endif %}
             }
