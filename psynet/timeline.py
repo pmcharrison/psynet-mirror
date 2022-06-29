@@ -1263,6 +1263,23 @@ class Timeline:
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
 
+    def verify_consents(self, experiment):
+        from .consent import Consent, LucidConsent
+
+        consents = []
+        for elt in self.elts:
+            if isinstance(elt, Consent):
+                consents.append(elt)
+
+        if experiment.with_lucid_recruitment():
+            if len(consents) > 1 or not any(
+                isinstance(consent, LucidConsent.LucidConsentPage)
+                for consent in consents
+            ):
+                raise RuntimeError(
+                    "Lucid recruitment requires one single consent 'LucidConsent'."
+                )
+
     def modules(self):
         return {
             "modules": [

@@ -216,6 +216,7 @@ class Experiment(dallinger.experiment.Experiment):
     def on_launch(self):
         if not self.setup_complete:
             self.setup()
+        self.timeline.verify_consents(self)
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
