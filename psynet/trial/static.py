@@ -200,23 +200,6 @@ class StimulusSpec:
     def has_media(self):
         return any([s.has_media for s in self.version_specs])
 
-    @property
-    def hash(self):
-        return hash_object(
-            {
-                "definition": self.definition,
-                "versions": [x.hash for x in self.version_specs],
-            }
-        )
-
-    def cache_media(self, local_media_cache_dir):
-        for s in self.version_specs:
-            s.cache_media(self.definition, local_media_cache_dir)
-
-    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
-        for s in self.version_specs:
-            s.upload_media(s3_bucket, local_media_cache_dir, remote_media_dir)
-
 
 class StimulusVersion(TrialNode, HasDefinition):
     """
@@ -310,9 +293,13 @@ class StimulusVersionSpec:
         the parent :class:`~psynet.trial.static.StimulusSpec` instance.
     """
 
-    def __init__(self, definition):
+    def __init__(self, definition, assets: Optional[dict]=None):
         assert isinstance(definition, dict)
+        if assets is None:
+            assets = {}
+
         self.definition = definition
+        self.assets = assets
 
     has_media = False
     media_ext = ""
@@ -377,16 +364,12 @@ class StimulusSet:
         self,
         id_: str,
         stimulus_specs,
-        version: str = "default",
-        s3_bucket: Optional[str] = None,
+        # version: str = "default",
     ):
         assert isinstance(stimulus_specs, list)
-        assert isinstance(version, str)
 
         self.stimulus_specs = stimulus_specs
         self.id = id_
-        self.version = version
-        self.s3_bucket = s3_bucket
         self.phase = None
 
         network_specs = set()
@@ -434,27 +417,6 @@ class StimulusSet:
         #     self.prepare_media(force=force)
 
     @property
-    def hash(self):
-        return hash_object(
-            {
-                "version": self.version,
-                "stimulus_specs": [x.hash for x in self.stimulus_specs],
-            }
-        )
-
-    local_media_cache_parent_dir = "cache"
-
-    @property
-    def local_media_cache_dir(self):
-        return os.path.join(self.local_media_cache_parent_dir, self.id, self.version)
-
-    @property
-    def remote_media_dir(self):
-        if self.s3_bucket is None:
-            return None
-        return os.path.join(self.id, self.version)
-
-    @property
     def has_media(self):
         return any([s.has_media for s in self.stimulus_specs])
 
@@ -473,87 +435,6 @@ class StimulusSet:
     #             self.upload_media()
     #     else:
     #         logger.info("(%s) No media found to prepare.", self.id)
-
-    def cache_media(self, force):
-        if os.path.exists(self.local_media_cache_dir):
-            if not force and self.get_local_media_cache_hash() == self.hash:
-                logger.info("(%s) Local media cache appears to be up-to-date.", self.id)
-                return None
-            else:
-                if force:
-                    logger.info("(%s) Forcing removal of local media cache.", self.id)
-                else:
-                    logger.info(
-                        "(%s) Local media cache appears to be out-of-date, removing.",
-                        self.id,
-                    )
-                shutil.rmtree(self.local_media_cache_dir)
-
-        os.makedirs(self.local_media_cache_dir)
-
-        with Bar("Caching media", max=len(self.stimulus_specs)) as bar:
-            for s in self.stimulus_specs:
-                s.cache_media(self.local_media_cache_dir)
-                bar.next()
-
-        self.write_local_media_cache_hash()
-        logger.info("(%s) Finished caching local media.", self.id)
-
-    def upload_media(self):
-        self.prepare_s3_bucket()
-
-        with Bar("Uploading media", max=len(self.stimulus_specs)) as bar:
-            for s in self.stimulus_specs:
-                s.upload_media(
-                    self.s3_bucket, self.local_media_cache_dir, self.remote_media_dir
-                )
-                bar.next()
-
-        self.write_remote_media_hash()
-        logger.info("(%s) Finished uploading media.", self.id)
-
-    def prepare_s3_bucket(self):
-        if not bucket_exists(self.s3_bucket):
-            create_bucket(self.s3_bucket)
-
-        make_bucket_public(self.s3_bucket)
-
-        delete_bucket_dir(self.s3_bucket, self.remote_media_dir)
-
-    @property
-    def path_to_local_cache_hash(self):
-        return os.path.join(self.local_media_cache_dir, "hash")
-
-    def get_local_media_cache_hash(self):
-        if os.path.isfile(self.path_to_local_cache_hash):
-            with open(self.path_to_local_cache_hash, "r") as file:
-                return file.read()
-        else:
-            return None
-
-    def write_local_media_cache_hash(self):
-        os.makedirs(self.local_media_cache_dir, exist_ok=True)
-        with open(self.path_to_local_cache_hash, "w") as file:
-            file.write(self.hash)
-
-    @property
-    def remote_media_is_up_to_date(self):
-        return self.get_remote_media_hash() == self.hash
-
-    @property
-    def path_to_remote_cache_hash(self):
-        return os.path.join(self.remote_media_dir, "hash")
-
-    def get_remote_media_hash(self):
-        # Returns None if the cache doesn't exist
-        if not bucket_exists(self.s3_bucket):
-            return None
-        return read_string_from_s3(self.s3_bucket, self.path_to_remote_cache_hash)
-
-    def write_remote_media_hash(self):
-        write_string_to_s3(
-            self.hash, bucket_name=self.s3_bucket, key=self.path_to_remote_cache_hash
-        )
 
 
 class VirtualStimulusSet:
