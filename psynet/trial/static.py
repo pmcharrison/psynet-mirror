@@ -196,10 +196,6 @@ class StimulusSpec:
             version = StimulusVersion(version_spec, stimulus, network, stimulus_set)
             db.session.add(version)
 
-    @property
-    def has_media(self):
-        return any([s.has_media for s in self.version_specs])
-
 
 class StimulusVersion(TrialNode, HasDefinition):
     """
@@ -241,14 +237,12 @@ class StimulusVersion(TrialNode, HasDefinition):
     phase = claim_field("phase", __extra_vars__, str)
     participant_group = claim_field("participant_group", __extra_vars__, str)
     block = claim_field("block", __extra_vars__, str)
-    has_media = claim_field("has_media", __extra_vars__, bool)
-    s3_bucket = claim_field("s3_bucket", __extra_vars__, str)
-    remote_media_dir = claim_field("remote_media_dir", __extra_vars__, str)
     media_id = claim_field("media_id", __extra_vars__, str)
 
     @property
     @extra_var(__extra_vars__)
     def media_url(self):
+        # TODO - update
         if not self.has_media:
             return None
         return get_s3_url(
@@ -265,7 +259,6 @@ class StimulusVersion(TrialNode, HasDefinition):
         self.phase = stimulus.phase
         self.participant_group = stimulus.participant_group
         self.block = stimulus.block
-        self.has_media = stimulus_version_spec.has_media
         self.s3_bucket = stimulus_set.s3_bucket
         self.remote_media_dir = stimulus_set.remote_media_dir
         self.media_id = stimulus_version_spec.media_id
@@ -301,9 +294,6 @@ class StimulusVersionSpec:
         self.definition = definition
         self.assets = assets
 
-    has_media = False
-    media_ext = ""
-
     @classmethod
     def generate_media(cls, definition, output_path):
         pass
@@ -314,27 +304,10 @@ class StimulusVersionSpec:
 
     @property
     def media_id(self):
-        if not self.has_media:
-            return None
+        # TODO - update
+        # if not self.has_media:
+        #     return None
         return self.hash + self.media_ext
-
-    def cache_media(self, parent_definition, local_media_cache_dir):
-        if self.has_media:
-            path = os.path.join(local_media_cache_dir, self.media_id)
-            definition = {**parent_definition, **self.definition}
-            self.generate_media(definition, path)
-
-    def upload_media(self, s3_bucket, local_media_cache_dir, remote_media_dir):
-        if self.has_media:
-            local_path = os.path.join(local_media_cache_dir, self.media_id)
-            remote_key = os.path.join(remote_media_dir, self.media_id)
-            if not os.path.exists(local_path):
-                raise IOError(
-                    f"Couldn't find local media cache at '{local_path}'. "
-                    "Try deleting your cache and starting again?"
-                )
-            with DisableLogger():
-                upload_to_s3(local_path, s3_bucket, remote_key, public_read=True)
 
 
 class StimulusSet:
@@ -415,10 +388,6 @@ class StimulusSet:
         # if "prepare" in command_line.FLAGS:
         #     force = "force" in command_line.FLAGS
         #     self.prepare_media(force=force)
-
-    @property
-    def has_media(self):
-        return any([s.has_media for s in self.stimulus_specs])
 
     def load(self):
         return self
@@ -1431,8 +1400,6 @@ class StaticNetwork(TrialNetwork):
 
 
 class LocalMediaStimulusVersionSpec(StimulusVersionSpec):
-    has_media = True
-
     def __init__(self, definition, media_ext):
         super().__init__(definition)
         self.media_ext = media_ext
