@@ -21,7 +21,7 @@ class TestExp(object):
             # Page 0
             time.sleep(1)
 
-            assert list(get_participant(1).modules.keys()) == ["test"]
+            assert list(get_participant(i + 1).modules.keys()) == ["test"]
             assert_text(driver, "Single video", "Single video")
             next_page(driver, "Single video")
             time.sleep(1)
@@ -30,7 +30,10 @@ class TestExp(object):
             try:
                 next_page(driver, "next_button")
             except UnexpectedAlertPresentException as e:
-                assert e.alert_text == "You need to supply at least one new tag!"
+                if i == 0:
+                    assert e.alert_text == "You need to supply at least one new tag!"
+                elif i == 1:
+                    assert e.alert_text == "You need to rate all tags!"
 
             # View stimulus
             text_input = driver.find_element(By.CLASS_NAME, "tt-input")
@@ -41,11 +44,13 @@ class TestExp(object):
             # Bonus page
             main = driver.find_element(By.ID, "main-body")
             main.text.startswith('You just unlocked an entirely new word: "a"')
-            participant = get_participant(1)
+            participant = get_participant(i + 1)
             assert (
                 participant.performance_bonus == 0.02
-            )  # 0.01 for the new tag (9*4/60^2) + 0.01 unlocked bonus
+            )  # 0.01 for the new tag (9*4/60^2) + 0.01 unlocked bonusget_participant
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
+
+            next_page(driver, "next-button")
             next_page(driver, "next-button", finished=True)
