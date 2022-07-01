@@ -30,6 +30,11 @@
         </p>
       </div>
     </div>
+    {% if experiment.with_lucid_recruitment() %}
+    <nav id="footer" class="navbar fixed-bottom" style="margin: 7px;">
+        <div id="termination-counter-text" class="footer-text" style="display: none; width: 100%; margin: auto; text-align: center;">Seconds until termination: <span id="termination-counter-seconds" style="font-weight: bold;"></span></div>
+    </nav>
+    {% endif %}
 {% endblock %}
 
 {% block libs %}
@@ -90,5 +95,29 @@
                 );
             }
         });
+
+        {% if experiment.with_lucid_recruitment() %}
+        setInterval(terminate, 1000);
+
+        function terminate() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const rid = urlParams.get('RID')
+
+            postData = {};
+            postData["auth_token"] = "{{ auth_token }}";
+            postData["rid"] = rid;
+            $.post("/check_participant_termination", postData, function(data) {
+                console.log(data);
+                if (parseInt(data) >= 0) {
+                    $("#termination-counter-text").show();
+                    $("#termination-counter-seconds").text(data);
+                    if (parseInt(data) == 0) {
+                        document.getElementById("consent").disabled = true;
+                        $("#termination-counter-text").text("Failed to consent to experiment in time");
+                    }
+                }
+            });
+        }
+        {% endif %}
     </script>
 {% endblock %}

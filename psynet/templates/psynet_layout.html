@@ -19,13 +19,21 @@
                 }
 
                 {% if experiment.with_lucid_recruitment() %}
-                setInterval(terminate, 10000);
+                setInterval(terminate, 1000);
 
                 function terminate() {
                     postData = {};
                     postData["auth_token"] = "{{ auth_token }}";
                     postData["participant_id"] = parseInt("{{ participant.id }}");
-                    $.post("/check_participant_termination", postData);
+                    $.post("/check_participant_termination", postData, function(data) {
+                        console.log(data);
+                        if (parseInt(data) > 0) {
+                            $("#termination-counter-text").show();
+                            $("#termination-counter-seconds").text(data);
+                        } else {
+                            psynet.nextPage(false);
+                        }
+                    });
                 }
                 {% endif %}
             }

@@ -215,7 +215,7 @@ class LucidService(object):
 
         return False
 
-    def terminate_respondent(self, rid):
+    def check_respondent_termination(self, rid):
         from psynet.recruiters import LucidRID
 
         try:
@@ -250,12 +250,20 @@ class LucidService(object):
                     self.log(
                         f"Error terminating respondent using redirect URL '{redirect_url}'."
                     )
-                    self.log(response.text)
-                    self.log(response.__dict__)
+                return 0
             except Exception as e:
                 self.log(
                     f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
                 )
+        else:
+            time_until_termination_in_s = (
+                self.recruitment_config["termination_time_in_s"]
+                - (datetime.now() - rid.creation_time).seconds
+            )
+            logger.info(
+                f"Seconds until termination of RID '{rid.rid}': {time_until_termination_in_s}"
+            )
+            return time_until_termination_in_s
 
     def sha1_hash(self, url):
         """

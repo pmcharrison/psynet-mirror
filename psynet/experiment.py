@@ -1049,15 +1049,17 @@ class Experiment(dallinger.experiment.Experiment):
         # auth_token = request.values["auth_token"]
         # Experiment.validate_auth_token(participant, auth_token)
 
-        participant_id = request.values["participant_id"]
-        participant = get_participant(participant_id)
-        rid = participant.entry_information["RID"]
+        rid = request.values.get("rid")
+        participant_id = request.values.get("participant_id")
+        if participant_id is not None:
+            participant = get_participant(participant_id)
+            rid = participant.entry_information["RID"]
 
         try:
             exp = dallinger.experiment.load().new(db.session)
             recruiter = exp.recruiter
-            if hasattr(recruiter, "terminate_respondent"):
-                recruiter.terminate_respondent(rid)
+            if hasattr(recruiter, "check_participant_termination"):
+                return str(recruiter.check_participant_termination(rid))
         except Exception as e:
             logger.error(f"Error terminating respondent with RID '{rid}': {e}")
 
