@@ -47,7 +47,7 @@ class TestExp(object):
             participant = get_participant(i + 1)
             assert (
                 participant.performance_bonus == 0.02
-            )  # 0.01 for the new tag (9*4/60^2) + 0.01 unlocked bonusget_participant
+            )  # 0.01 for the new tag (9*4/60^2) + 0.01 unlocked bonus
             driver.execute_script(
                 "$('html').animate({ scrollTop: $(document).height() }, 0);"
             )
