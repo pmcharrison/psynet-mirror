@@ -318,12 +318,15 @@ class BaseLucidRecruiter(PsyNetRecruiter):
 
     @property
     def termination_time_in_min(self):
+        return pretty_format_seconds(self.termination_time_in_s)
+
+    @property
+    def termination_time_in_s(self):
         lucid_recruitment_config = json.loads(
             self.config.get("lucid_recruitment_config")
         )
-        return pretty_format_seconds(
-            lucid_recruitment_config.get("termination_time_in_s")
-        )
+
+        return lucid_recruitment_config.get("termination_time_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
