@@ -1,8 +1,9 @@
+from dallinger.experiment_server.dashboard import dashboard_tab
 from flask import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.contrib.adjective_pipeline.pipeline import AdjectivePipeline
+from psynet.contrib.adjective.pipeline import AdjectivePipeline
 from psynet.modular_page import ModularPage, Prompt, PushButtonControl
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, switch
@@ -31,6 +32,12 @@ image_urls = [
 
 
 class Exp(psynet.experiment.Experiment):
+    # Add a dashboard tab
+    @dashboard_tab("Adjective pipeline", after_route="monitoring")
+    @classmethod
+    def dashboard_tab(cls):
+        return psynet.contrib.adjective.pipeline.render_adjective_pipelines_summary(cls)
+
     timeline = Timeline(
         NoConsent(),
         Module(

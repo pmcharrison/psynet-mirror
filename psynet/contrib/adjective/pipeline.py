@@ -1,12 +1,17 @@
 import hashlib
+import json
+import pathlib
 import random
+import subprocess
+import zipfile
 from collections import Counter
 from html import escape, unescape
 from typing import Optional
 
+import pandas as pd
 from dallinger import db
 from dallinger.models import Notification, Participant
-from flask import Markup
+from flask import Markup, render_template_string
 
 from psynet.modular_page import (
     AudioPrompt,
@@ -690,6 +695,14 @@ class AdjectivePipeline(ImitationChainTrialMaker):
     High level abstraction of the adjective pipeline (Work In Progress!)
     """
 
+    file_extensions = {
+        "audio": [".wav", ".mp3"],
+        "video": [".mp4", ".webm"],
+        "image": [".jpg", ".jpeg", ".png"],
+    }
+
+    upvote_n_buttons = 5
+
     def __init__(
         self,
         *,
@@ -706,7 +719,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         max_iterations: int = 20,
         stop_early_if=None,
         upvote_icon: str = "star",
-        upvote_n_buttons: int = 5,
+        upvote_n_buttons=None,
         flagging_threshold: int = 2,
         prune_flags: bool = False,
         network_class=AdjectiveNetwork,
@@ -733,11 +746,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         ], "Only experiment and practice phase are supported!"
         assert len(media_urls) > 0, "You need to specify at least one url"
 
-        self.file_extensions = {
-            "audio": [".wav", ".mp3"],
-            "video": [".mp4", ".webm"],
-            "image": [".jpg", ".jpeg", ".png"],
-        }
         flat_extensions = tuple(
             [item for ext in self.file_extensions.values() for item in ext]
         )
@@ -766,9 +774,11 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         # TODO add support for 'dot' and 'plus'
         assert upvote_icon in ["star"], "Currently only star icons are supported"
         self.upvote_icon = upvote_icon
-        assert upvote_n_buttons > 0
-        self.upvote_n_buttons = upvote_n_buttons
-        self.upvote_options = [str(s + 1) for s in range(upvote_n_buttons)]
+        if upvote_n_buttons is not None:
+            self.upvote_n_buttons = upvote_n_buttons
+        assert self.upvote_n_buttons > 0
+
+        self.upvote_options = [str(s + 1) for s in range(self.upvote_n_buttons)]
 
         # Find an upper bound of the maximum trial duration. We set this based on the stimulus viewing
         # duration + time per rating X the max expected number of words
@@ -1172,3 +1182,286 @@ class AdjectivePipeline(ImitationChainTrialMaker):
     def export(self, path_app_archive, output_file):
         # TODO
         raise NotImplementedError()
+
+
+class AdjectiveExporter:
+    @staticmethod
+    def unzip_experiment(zip_path, unzip_to):
+        with zipfile.ZipFile(zip_path, "r") as zip_ref:
+            zip_ref.extractall(unzip_to)
+        return True
+
+    @staticmethod
+    def dallinger_export(app_name, scrub=False):
+        scrub_arg = "" if scrub else " --noscrub"
+        subprocess.call(f"dallinger export --app {app_name}{scrub_arg}", shell=True)
+        data_dir = f"data/{app_name}-data/"
+        zip_path = f"data/{app_name}-data.zip"
+        AdjectiveExporter.unzip_experiment(zip_path, data_dir)
+        return data_dir
+
+    @staticmethod
+    def lookup_filetype(url):
+        for media_type, extensions in AdjectivePipeline.file_extensions.items():
+            if url.endswith(extensions):
+                return media_type
+        return None
+
+    @staticmethod
+    def save_ratings_to_csv(ratings, csv_out_path):
+        ratings.to_csv(csv_out_path, index=False)
+        return True
+
+    @staticmethod
+    def export_pipelines_from_archive(
+        data_dir, csv_out_path=None, export_only="experiment"
+    ):
+        assert export_only in ["experiment", "practice", None]
+        network_query = "type=='adjective_network'"
+        if export_only is not None:
+            network_query += f" and role=='{export_only}'"
+        networks = (
+            pd.read_csv(data_dir + "data/network.csv")
+            .sort_values("id")
+            .query(network_query)
+        )
+        network_ids = networks.id  # This is need for the trial query below
+        trials = (
+            pd.read_csv(data_dir + "data/info.csv")
+            .sort_values("id")
+            .query(
+                "type == 'adjective_trial' and failed == 'f' and is_repeat_trial == 'f' and not answer.isnull()"
+            )
+            .query("network_id.isin(@network_ids)")
+        )
+
+        ratings = pd.DataFrame()
+        for network_id in set(network_ids):
+            iteration = 0
+            for idx, row in trials.query(f"network_id == {network_id}").iterrows():
+                iteration += 1
+                if iteration == 1:
+                    continue
+                answer = json.loads(row.answer)
+                rating_dict = answer["ratings"]
+                ratings = ratings.append(
+                    pd.DataFrame(
+                        {
+                            "url": json.loads(row.definition)["url"],
+                            "iteration": iteration,
+                            "tag": list(rating_dict.keys()),
+                            "rating": list(rating_dict.values()),
+                            "new_tags": ", ".join(answer["new_tags"]),
+                            "network_id": network_id,
+                        }
+                    )
+                )
+        if csv_out_path is not None:
+            AdjectiveExporter.save_ratings_to_csv(ratings, csv_out_path)
+        return ratings
+
+    @staticmethod
+    def export_pipelines_from_database(networks, export_only=None):
+        assert export_only in ["experiment", "practice", None]
+        ratings = pd.DataFrame()
+        for network in networks:
+            if export_only is not None:
+                if network.role != export_only:
+                    continue
+            iteration = 0
+            infos = network.infos()
+            info_dict = dict(zip([info.id for info in infos], infos))
+            info_dict = dict(sorted(info_dict.items()))  # sort it
+            for info in info_dict.values():
+                if (
+                    not info.failed
+                    and not info.is_repeat_trial
+                    and info.answer is not None
+                ):
+                    iteration += 1
+                    if iteration == 1:
+                        continue
+                    answer = info.answer
+                    rating_dict = answer["ratings"]
+                    ratings = ratings.append(
+                        pd.DataFrame(
+                            {
+                                "url": network.definition["url"],
+                                "iteration": iteration,
+                                "tag": list(rating_dict.keys()),
+                                "rating": list(rating_dict.values()),
+                                "new_tags": ", ".join(answer["new_tags"]),
+                                "network_id": network.id,
+                            }
+                        )
+                    )
+        return ratings
+
+    @staticmethod
+    def required_css():
+        return read_template_string("adjective_styles.css")
+
+    @staticmethod
+    def save_html(path, string):
+        with open(path, "w") as f:
+            f.write(string)
+        return True
+
+    @staticmethod
+    def parse_html(
+        ratings,
+        html_out_path=None,
+        upvote_n_buttons=AdjectivePipeline.upvote_n_buttons,
+        title="Adjective Ratings",
+    ):
+        def print_new_tags(new_tags):
+            new_tags = [
+                f"<span class='badge badge-dark'>{tag}</span>" for tag in new_tags
+            ]
+            return f"<span>{' '.join(new_tags)}</span>"
+
+        if html_out_path is None:
+            html_out = ""
+        else:
+            html_out = (
+                """
+                                <!DOCTYPE html>
+                                <html lang="en">
+                                <head>
+                                    <meta charset="UTF-8">
+                                    <title>"""
+                + title
+                + f"""</title>
+                        </head>
+                        <body>
+                        <link rel="stylesheet"
+                        href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
+                        integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2"
+                        crossorigin="anonymous"><style>
+                        {AdjectiveExporter.required_css()}
+                        </style>
+                        """
+            )
+        html_out += '<div class="container">'
+
+        network_ids = list(set(ratings.network_id))
+
+        for network_id in network_ids:
+            network_ratings = ratings.query(f"network_id == {network_id}")
+            html_out += f"<h1>Network {network_id}</h1>"
+            html_out += AdjectiveTrial.preview_stimulus_in_html(
+                network_ratings.url.iloc[0], AdjectivePipeline.file_extensions
+            )
+
+            min_iter = min(network_ratings.iteration)
+            max_iter = max(network_ratings.iteration)
+            new_tags = network_ratings.query(f"iteration == {min_iter}").tag.to_list()
+            html_out += '<div class="media-item">'
+            html_out += print_new_tags(new_tags)
+            html_out += "</div>"
+            for iteration in range(min_iter, max_iter + 1):
+                html_out += '<div class="media-item">'
+                iteration_ratings = network_ratings.query(f"iteration == {iteration}")
+                for idx, row in iteration_ratings.iterrows():
+                    rating = row["rating"]
+                    tag = row["tag"]
+                    background = "bg-danger" if rating == "flag" else "bg-success"
+                    html_out += f"""
+                                            <div class="tag-item bg-secondary">
+                                                <div class="row tag-name {background}" id="{tag}-tag">{tag}</div>
+                                                <div class="btn-group btn-group-toggle" data-toggle="buttons">"""
+                    is_flagged = rating == "flag"
+                    rating_number = int(rating) if not is_flagged else None
+                    for n in range(1, upvote_n_buttons + 1):
+                        html_out += f"""<label class="btn btn-secondary icon rating{n} star"
+                                                       style='{'opacity: 1' if not is_flagged and n <= rating_number else 'opacity: 0.5'}'>
+                                                    <input type="radio"'>
+                                                </label>"""
+
+                    html_out += f"""<label class="btn btn-secondary icon flag {'active' if rating == 'flag' else ''}" style="{'opacity: 1' if rating == 'flag' else 'opacity: 0.5'}">
+                                                        <input type="radio" name="{tag}" id="{tag}_flag">
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            """
+                html_out += print_new_tags(
+                    iteration_ratings.new_tags.iloc[0].split(", ")
+                )
+                html_out += "</div>"
+
+        html_out += "</div>"  # Close container
+
+        if html_out_path is not None:
+            html_out += """
+                        </div>
+                        </body>
+                        </html>
+                        """
+            AdjectiveExporter.save_html(html_out_path, html_out)
+        return html_out
+
+    @staticmethod
+    def export_experiment_and_process(
+        app_name,
+        csv_out_path=None,
+        html_out_path=None,
+        scrub=False,
+        export_only="experiment",
+    ):
+        data_dir = AdjectiveExporter.dallinger_export(app_name, scrub)
+        ratings = AdjectiveExporter.export_pipelines_from_archive(
+            data_dir, csv_out_path, export_only
+        )
+        AdjectiveExporter.parse_html(ratings, html_out_path)
+
+
+def read_template_string(filename, flatten=False):
+    path = pathlib.Path(__file__).parent.resolve() / "templates" / filename
+
+    with open(path) as f:
+        lines = f.readlines()
+        if flatten:
+            lines = "".join(lines)
+        return lines
+
+
+def render_adjective_pipelines_summary(cls):
+    exp = cls.new(db.session)
+    panes = exp.monitoring_panels()
+
+    summaries = []
+
+    for d in exp.timeline.modules()["modules"]:
+        module_id = d["id"]
+        module = exp.timeline.get_trial_maker(module_id)
+        if isinstance(module, AdjectivePipeline):
+            ratings = AdjectiveExporter.export_pipelines_from_database(module.networks)
+            network_htmls = {}
+            if ratings.shape[0] > 0:
+                for network_id in set(ratings.network_id):
+                    network_htmls[network_id] = AdjectiveExporter.parse_html(
+                        ratings.query(f"network_id=={network_id}")
+                    )
+            iteration_dict = dict(Counter([n.degree - 1 for n in module.networks]))
+            iteration_dict = dict(sorted(iteration_dict.items()))  # sort it
+            breakdown = []
+            for iteration, num_networks in iteration_dict.items():
+                breakdown.append(f"{num_networks}x networks at iteration {iteration}")
+            summaries.append(
+                {
+                    "module_id": module_id,
+                    "n_complete": sum([n.full for n in module.networks]),
+                    "n_total": len(module.networks),
+                    "breakdown": breakdown,
+                    "networks": network_htmls,
+                }
+            )
+    html = read_template_string("dashboard_adjective.html")
+    return render_template_string(
+        "".join(html),
+        title="Adjective modules",
+        panes=panes,
+        summaries=summaries,
+        network_htmls=network_htmls,
+        css=AdjectiveExporter.required_css(),
+    )
