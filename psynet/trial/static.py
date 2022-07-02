@@ -10,7 +10,7 @@ from statistics import mean
 from typing import Optional
 
 from dallinger import db
-from sqlalchemy import func, Column, Integer, String, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from .. import command_line
@@ -1068,7 +1068,9 @@ class StaticNetwork(TrialNetwork):
     participant_group = Column(String)
     block = Column(String)
 
-    creation_started = claim_var("creation_started", __extra_vars__)  # TODO - migrate to SQLAlchemy datetime
+    creation_started = claim_var(
+        "creation_started", __extra_vars__
+    )  # TODO - migrate to SQLAlchemy datetime
     creation_progress = claim_var("creation_progress", __extra_vars__)
 
     def __init__(
@@ -1152,7 +1154,9 @@ def stimulus_set_from_dir(
 
 
 def compile_stimulus_set_from_dir(
-    id_: str, input_dir: str, media_ext: str,
+    id_: str,
+    input_dir: str,
+    media_ext: str,
 ):
     # example media_ext: .wav
     stimuli = []
