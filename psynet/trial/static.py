@@ -10,16 +10,13 @@ from statistics import mean
 from typing import Optional
 
 from dallinger import db
-from sqlalchemy import
 from sqlalchemy import func, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
 from .. import command_line
-from ..field import claim_field, claim_var, extra_var
-from ..media import (
-    get_s3_url,
-)
-from ..utils import DisableLogger, get_logger, hash_object
+from ..assets import CachedAsset
+from ..field import claim_var
+from ..utils import get_logger
 from .main import (
     HasDefinition,
     NetworkTrialMaker,
@@ -43,19 +40,15 @@ def query_all_completed_trials():
 class StimulusNode(TrialNode, HasDefinition):
     """
     A stimulus class for static experiments.
-    Subclasses the Dallinger :class:`dallinger.models.Node` class.
     Should not be directly instantiated by the user,
     but instead specified indirectly through an instance
-    of :class:`~psynet.trial.static.StimulusSpec`.
+    of :class:`~psynet.trial.static.Stimulus`.
 
     Attributes
     ----------
 
     definition : dict
         A dictionary containing the parameter values for the stimulus.
-
-    phase : str
-        The phase of the experiment, e.g ``"practice"``, ``"main"``.
 
     participant_group : str
         The associated participant group.
@@ -77,21 +70,10 @@ class StimulusNode(TrialNode, HasDefinition):
         **HasDefinition.__extra_vars__.copy(),
     }
 
-    target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
-
-    @property
-    def phase(self):
-        return self.network.phase
-
-    @property
-    @extra_var(__extra_vars__)
-    def participant_group(self):
-        return self.network.participant_group
-
-    @property
-    @extra_var(__extra_vars__)
-    def block(self):
-        return self.network.block
+    target_num_trials = Column(Integer)
+    participant_group = Column(String)
+    phase = Column(String)
+    block = Column(String)
 
     @property
     def _query_completed_trials(self):
@@ -99,6 +81,7 @@ class StimulusNode(TrialNode, HasDefinition):
 
     @property
     def num_completed_trials(self):
+        # TODO - revisit this logic
         return self._query_completed_trials.count()
 
     @property
@@ -118,9 +101,12 @@ class StimulusNode(TrialNode, HasDefinition):
         self.definition = stimulus_spec.definition
         source.connect(whom=self)
         self.target_num_trials = target_num_trials
+        self.phase = self.network.phase
+        self.participant_group = self.network.participant_group
+        self.block = self.network.block
 
 
-class StimulusSpec:
+class Stimulus:
     """
     Defines a stimulus for a static experiment.
     Will be translated to a database-backed
@@ -153,7 +139,7 @@ class StimulusSpec:
         if assets is None:
             assets = {}
 
-        phase = "experiment"  # We should be able to get rid of this eventually
+        phase = "experiment"  #  TODO - remove phase from PsyNet, it is redundant when we have trial maker IDs
 
         self.definition = definition
         self.phase = phase
@@ -172,12 +158,11 @@ class StimulusSpec:
         db.session.add(stimulus)
 
 
-
 class StimulusSet:
     """
     Defines a stimulus set for a static experiment.
     This stimulus set is defined as a collection of
-    :class:`~psynet.trial.static.StimulusSpec`
+    :class:`~psynet.trial.static.Stimulus`
     and :class:`~psynet.trial.static.StimulusVersionSpec`
     objects, which are translated to database-backed
     :class:`~psynet.trial.static.Stimulus`
@@ -188,12 +173,12 @@ class StimulusSet:
     ----------
 
     stimulus_specs: list
-        A list of :class:`~psynet.trial.static.StimulusSpec` objects,
+        A list of :class:`~psynet.trial.static.Stimulus` objects,
         with these objects potentially containing
         :class:`~psynet.trial.static.StimulusVersionSpec` objects.
         These objects must all correspond to the same experiment phase
         (se the ``phase`` attribute of the
-        :class:`~psynet.trial.static.StimulusSpec` objects).
+        :class:`~psynet.trial.static.Stimulus` objects).
     """
 
     def __init__(
@@ -213,15 +198,7 @@ class StimulusSet:
         self.num_stimuli = dict()
 
         for s in stimulus_specs:
-            assert isinstance(s, StimulusSpec)
-
-            if self.phase is None:
-                self.phase = s.phase
-            elif self.phase != s.phase:
-                raise ValueError(
-                    "All stimuli in StimulusSpec must have the same phase "
-                    f"(found both '{self.phase}' and '{s.phase}')."
-                )
+            assert isinstance(s, Stimulus)
 
             network_specs.add((s.phase, s.participant_group, s.block))
 
@@ -362,7 +339,7 @@ class StaticTrial(Trial):
         A dictionary of parameters defining the trial.
         This dictionary combines the dictionaries of the
         respective
-        :class:`~psynet.trial.static.StimulusSpec`
+        :class:`~psynet.trial.static.Stimulus`
         and
         :class:`~psynet.trial.static.StimulusVersionSpec`
         objects.
@@ -443,12 +420,12 @@ class StaticTrialMaker(NetworkTrialMaker):
 
     * :class:`~psynet.trial.static.StimulusSet`;
 
-    * :class:`~psynet.trial.static.StimulusSpec`;
+    * :class:`~psynet.trial.static.Stimulus`;
 
     * :class:`~psynet.trial.static.StimulusVersionSpec`;
 
     In particular, a :class:`~psynet.trial.static.StimulusSet`
-    contains a list of :class:`~psynet.trial.static.StimulusSpec` objects,
+    contains a list of :class:`~psynet.trial.static.Stimulus` objects,
     which in turn contains a list of
     :class:`~psynet.trial.static.StimulusVersionSpec` objects.
 
@@ -800,12 +777,6 @@ class StaticTrialMaker(NetworkTrialMaker):
             self.with_namespace("completed_stimuli_in_phase"), all_counters
         )
 
-    # def append_completed_stimuli_in_phase(self, participant, block, stimulus_id):
-    #     assert isinstance(value, int)
-    #     counter = self.get_completed_stimuli_in_phase(participant, block)
-    #     counter[value] += 1
-    #     self.set_completed_stimuli_in_phase(participant, block, counter)
-
     def on_complete(self, experiment, participant):
         pass
 
@@ -904,10 +875,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         return False
 
     def find_node(self, network, participant, experiment):
-        stimulus = self.find_stimulus(network, participant, experiment)
-        if stimulus is None:
-            return None
-        return self.find_stimulus_version(stimulus, participant, experiment)
+        return self.find_stimulus(network, participant, experiment)
 
     def count_completed_trials_in_network(self, network, participant):
         return self.trial_class.query.filter_by(
@@ -929,7 +897,7 @@ class StaticTrialMaker(NetworkTrialMaker):
             participant, block=network.block
         )
         allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
-        candidates = Stimulus.query.filter_by(
+        candidates = StimulusNode.query.filter_by(
             network_id=network.id
         ).all()  # networks are guaranteed to be from the correct phase
         if not self.allow_repeated_stimuli:
@@ -977,26 +945,6 @@ class StaticTrialMaker(NetworkTrialMaker):
         """
         return candidates
 
-    def custom_stimulus_version_filter(self, candidates, participant):
-        """
-        Override this function to define a custom filter for choosing the participant's next stimulus version.
-
-        Parameters
-        ----------
-        candidates:
-            The current list of candidate stimulus versions as defined by the built-in static experiment procedure.
-
-        participant:
-            The current participant.
-
-        Returns
-        -------
-
-        An updated list of candidate stimulus versions. The default implementation simply returns the original list.
-        The experimenter might alter this function to remove certain stimulus versions from the list.
-        """
-        return candidates
-
     @staticmethod
     def filter_out_repeated_stimuli(candidates, completed_stimuli):
         return [x for x in candidates if x.id not in completed_stimuli.keys()]
@@ -1021,12 +969,7 @@ class StaticTrialMaker(NetworkTrialMaker):
             if candidate_count_within == min_count_within
         ]
 
-    def get_trial_counts(self, stimuli, new=True):
-        # Old inefficient version:
-        if not new:
-            return [s.num_completed_trials for s in stimuli]
-
-        # New version:
+    def get_trial_counts(self, stimuli):
         n_trials_all_stimuli = filter_for_completed_trials(
             db.session.query(
                 StaticTrial.stimulus_id, func.count(StaticTrial.id)
@@ -1043,11 +986,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         return [get_count(stim) for stim in stimuli]
 
     def balance_across_participants(self, candidates):
-        # candidate_counts_across = [candidate.num_completed_trials for candidate in candidates]
         candidate_counts_across = self.get_trial_counts(candidates)
-        # logger.info("%s", [
-        #     (candidate.id, count) for candidate, count in zip(candidates, candidate_counts_across)
-        # ])
 
         min_count_across = (
             0 if len(candidate_counts_across) == 0 else min(candidate_counts_across)
@@ -1059,22 +998,6 @@ class StaticTrialMaker(NetworkTrialMaker):
             )
             if candidate_count_across == min_count_across
         ]
-
-    def find_stimulus_version(self, stimulus, participant, experiment):
-        # pylint: disable=unused-argument
-        candidates = StimulusVersion.query.filter_by(stimulus_id=stimulus.id).all()
-        assert len(candidates) > 0
-        candidates = self.custom_stimulus_version_filter(
-            candidates=candidates, participant=participant
-        )
-        if not isinstance(candidates, list):
-            return ValueError(
-                "custom_stimulus_version_filter must return a list of stimuli"
-            )
-        if len(candidates) == 0:
-            return ValueError("custom_stimulus_version_filter returned an empty list")
-
-        return random.choice(candidates)
 
 
 class StaticNetwork(TrialNetwork):
@@ -1215,16 +1138,6 @@ class StaticNetwork(TrialNetwork):
         return self.stimulus_query.count()
 
 
-class LocalMediaStimulusVersionSpec(StimulusVersionSpec):
-    def __init__(self, definition, media_ext):
-        super().__init__(definition)
-        self.media_ext = media_ext
-
-    @classmethod
-    def generate_media(cls, definition, output_path):
-        shutil.copyfile(definition["local_media_path"], output_path)
-
-
 def stimulus_set_from_dir(
     id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str
 ):
@@ -1239,7 +1152,7 @@ def stimulus_set_from_dir(
 
 
 def compile_stimulus_set_from_dir(
-    id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str
+    id_: str, input_dir: str, media_ext: str,
 ):
     # example media_ext: .wav
     stimuli = []
@@ -1254,19 +1167,18 @@ def compile_stimulus_set_from_dir(
             ]
             for media_name, media_path in media_files:
                 stimuli.append(
-                    StimulusSpec(
+                    Stimulus(
                         definition={
                             "name": media_name,
                         },
-                        phase=phase,
-                        versions=[
-                            LocalMediaStimulusVersionSpec(
-                                definition={"local_media_path": media_path},
-                                media_ext=media_ext,
+                        assets={
+                            "stimulus": CachedAsset(
+                                input_path=media_path,
+                                extension=media_ext,
                             )
-                        ],
+                        },
                         participant_group=participant_group,
                         block=block,
                     )
                 )
-    return StimulusSet(id_, stimuli, version=version, s3_bucket=s3_bucket)
+    return StimulusSet(id_, stimuli)
