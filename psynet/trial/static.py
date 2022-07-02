@@ -10,20 +10,14 @@ from statistics import mean
 from typing import Optional
 
 from dallinger import db
-from progress.bar import Bar
-from sqlalchemy import func
+from sqlalchemy import
+from sqlalchemy import func, Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
 
 from .. import command_line
 from ..field import claim_field, claim_var, extra_var
 from ..media import (
-    bucket_exists,
-    create_bucket,
-    delete_bucket_dir,
     get_s3_url,
-    make_bucket_public,
-    read_string_from_s3,
-    upload_to_s3,
-    write_string_to_s3,
 )
 from ..utils import DisableLogger, get_logger, hash_object
 from .main import (
@@ -46,7 +40,7 @@ def query_all_completed_trials():
     return filter_for_completed_trials(StaticTrial.query)
 
 
-class Stimulus(TrialNode, HasDefinition):
+class StimulusNode(TrialNode, HasDefinition):
     """
     A stimulus class for static experiments.
     Subclasses the Dallinger :class:`dallinger.models.Node` class.
@@ -59,8 +53,6 @@ class Stimulus(TrialNode, HasDefinition):
 
     definition : dict
         A dictionary containing the parameter values for the stimulus.
-        This excludes any parameters defined by the
-        :class:`~psynet.trial.static.StimulusVersion` class.
 
     phase : str
         The phase of the experiment, e.g ``"practice"``, ``"main"``.
@@ -132,22 +124,13 @@ class StimulusSpec:
     """
     Defines a stimulus for a static experiment.
     Will be translated to a database-backed
-    :class:`~psynet.trial.static.Stimulus` instance.
+    :class:`~psynet.trial.static.StimulusNode` instance.
 
     Parameters
     ----------
 
     definition
         A dictionary of parameters defining the stimulus.
-
-    phase
-        The associated phase of the experiment,
-        e.g. ``"practice"`` or ``"main"``.
-
-    version_specs
-        A list of
-        :class:`~psynet.trial.static.StimulusVersionSpec`
-        objects, defining different forms that the stimulus can take.
 
     participant_group
         The associated participant group.
@@ -161,29 +144,25 @@ class StimulusSpec:
     def __init__(
         self,
         definition: dict,
-        phase: str,
-        version_specs=None,
         participant_group="default",
         block="default",
+        assets=None,
     ):
         assert isinstance(definition, dict)
 
-        if version_specs is None:
-            version_specs = [StimulusVersionSpec(definition={})]
+        if assets is None:
+            assets = {}
 
-        assert isinstance(version_specs, list)
-        assert len(version_specs) > 0
-        for version_spec in version_specs:
-            assert isinstance(version_spec, StimulusVersionSpec)
+        phase = "experiment"  # We should be able to get rid of this eventually
 
         self.definition = definition
-        self.version_specs = version_specs
         self.phase = phase
         self.participant_group = participant_group
         self.block = block
+        self.assets = assets
 
     def add_stimulus_to_network(self, network, source, target_num_trials, stimulus_set):
-        stimulus = Stimulus(
+        stimulus = StimulusNode(
             self,
             network=network,
             source=source,
@@ -192,122 +171,6 @@ class StimulusSpec:
         )
         db.session.add(stimulus)
 
-        for version_spec in self.version_specs:
-            version = StimulusVersion(version_spec, stimulus, network, stimulus_set)
-            db.session.add(version)
-
-
-class StimulusVersion(TrialNode, HasDefinition):
-    """
-    A stimulus version class for static experiments.
-    Subclasses the Dallinger :class:`dallinger.models.Node` class;
-    intended to be nested within the
-    :class:`~psynet.trial.static.Stimulus` class.
-    Should not be directly instantiated by the user,
-    but instead specified indirectly through an instance
-    of :class:`~psynet.trial.static.StimulusVersionSpec`.
-
-    Attributes
-    ----------
-
-    definition : dict
-        A dictionary containing the parameter values for the stimulus version.
-        This excludes any parameters defined by the parent
-        :class:`~psynet.trial.static.Stimulus` class.
-
-    stimulus : Stimulus
-        The parent :class:`~psynet.trial.static.Stimulus` object.
-
-    stimulus_id : int
-        The ID of the parent stimulus object. Stored as ``property1`` in the database.
-
-    phase : str
-        The phase of the experiment, e.g ``"practice"``, ``"main"``.
-
-    participant_group : str
-        The associated participant group.
-
-    block : str
-        The associated block.
-    """
-
-    __extra_vars__ = {**TrialNode.__extra_vars__, **HasDefinition.__extra_vars__}
-
-    stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
-    phase = claim_field("phase", __extra_vars__, str)
-    participant_group = claim_field("participant_group", __extra_vars__, str)
-    block = claim_field("block", __extra_vars__, str)
-    media_id = claim_field("media_id", __extra_vars__, str)
-
-    @property
-    @extra_var(__extra_vars__)
-    def media_url(self):
-        # TODO - update
-        if not self.has_media:
-            return None
-        return get_s3_url(
-            self.s3_bucket, os.path.join(self.remote_media_dir, self.media_id)
-        )
-
-    @property
-    def stimulus(self):
-        return Stimulus.query.filter_by(id=self.stimulus_id).one()
-
-    def __init__(self, stimulus_version_spec, stimulus, network, stimulus_set):
-        super().__init__(network=network)
-        self.stimulus_id = stimulus.id
-        self.phase = stimulus.phase
-        self.participant_group = stimulus.participant_group
-        self.block = stimulus.block
-        self.s3_bucket = stimulus_set.s3_bucket
-        self.remote_media_dir = stimulus_set.remote_media_dir
-        self.media_id = stimulus_version_spec.media_id
-        self.definition = stimulus_version_spec.definition
-        self.connect_to_parent(stimulus)
-
-    def connect_to_parent(self, parent):
-        self.connect(parent, direction="from")
-
-
-class StimulusVersionSpec:
-    """
-    Defines a stimulus version for a static experiment.
-    Will be translated to a database-backed
-    :class:`~psynet.trial.static.StimulusVersion` instance,
-    which will be nested within a
-    :class:`~psynet.trial.static.Stimulus` instance.
-
-    Parameters
-    ----------
-
-    definition
-        A dictionary of parameters defining the stimulus version.
-        Should not include any parameters already defined in
-        the parent :class:`~psynet.trial.static.StimulusSpec` instance.
-    """
-
-    def __init__(self, definition, assets: Optional[dict]=None):
-        assert isinstance(definition, dict)
-        if assets is None:
-            assets = {}
-
-        self.definition = definition
-        self.assets = assets
-
-    @classmethod
-    def generate_media(cls, definition, output_path):
-        pass
-
-    @property
-    def hash(self):
-        return hash_object(self.definition)
-
-    @property
-    def media_id(self):
-        # TODO - update
-        # if not self.has_media:
-        #     return None
-        return self.hash + self.media_ext
 
 
 class StimulusSet:
@@ -337,7 +200,6 @@ class StimulusSet:
         self,
         id_: str,
         stimulus_specs,
-        # version: str = "default",
     ):
         assert isinstance(stimulus_specs, list)
 
@@ -384,26 +246,8 @@ class StimulusSet:
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
 
-        # TODO - does this need replacing?
-        # if "prepare" in command_line.FLAGS:
-        #     force = "force" in command_line.FLAGS
-        #     self.prepare_media(force=force)
-
     def load(self):
         return self
-
-    # def prepare_media(self, force):
-    #     if self.has_media:
-    #         if not force and self.remote_media_is_up_to_date:
-    #             logger.info(
-    #                 "(%s) Remote media seems to be up-to-date, no media preparation necessary.",
-    #                 self.id,
-    #             )
-    #         else:
-    #             self.cache_media(force=force)
-    #             self.upload_media()
-    #     else:
-    #         logger.info("(%s) No media found to prepare.", self.id)
 
 
 class VirtualStimulusSet:
@@ -543,48 +387,36 @@ class StaticTrial(Trial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = claim_field("stimulus_id", __extra_vars__, int)
+    stimulus_id = Column(Integer, ForeignKey("StimulusNode.id"))
+    stimulus = relationship(StimulusNode)
+    phase = Column(String)
+    participant_group = Column(String)
+    block = Column(String)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.stimulus_id = self.stimulus_version.stimulus_id
+        stimulus = self.origin
+        self.stimulus_id = stimulus.id
+        self.phase = self.stimulus.phase
+        self.participant_group = self.stimulus.participant_group
+        self.block = self.stimulus.block
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
 
-    @property
-    @extra_var(__extra_vars__)
-    def media_url(self):
-        return self.stimulus_version.media_url
-
-    @property
-    def stimulus_version(self):
-        return self.origin
-
-    @property
-    def stimulus(self):
-        return self.origin.stimulus
-
-    @property
-    def phase(self):
-        return self.stimulus.phase
-
-    @property
-    def participant_group(self):
-        return self.stimulus.participant_group
-
-    @property
-    def block(self):
-        return self.stimulus.block
-
-    def make_definition(self, experiment, participant):
+    def make_definition(self, experiment, participant, stimulus_definition):
         """
-        Combines the definitions of the associated
-        :class:`~psynet.trial.static.Stimulus`
-        and :class:`~psynet.trial.static.StimulusVersion`
-        objects.
+        This can be overridden to add additional randomized trial properties.
+        For example:
+
+        ```
+        return {
+            **stimulus_definition,
+            "bass_note": random.sample(10),
+        }
+        ```
         """
-        return {**self.stimulus.definition, **self.stimulus_version.definition}
+        return stimulus_definition
 
     def summarize(self):
         return {
@@ -1263,25 +1095,17 @@ class StaticNetwork(TrialNetwork):
        :class:`~psynet.trial.static.StaticTrial` classes.
 
     2. Within a given network, the first level of the hierarchy is the
-       :class:`~psynet.trial.static.Stimulus` class.
-       These objects subclass the Dallinger :class:`~dallinger.models.Node` class,
-       and are generated directly from :class:`~psynet.trial.static.StimulusSpec` instances.
+       :class:`~psynet.trial.static.StimulusNode` class.
+       These are generated directly from :class:`~psynet.trial.static.Stimulus` instances.
 
-    3. Nested within :class:`~psynet.trial.static.Stimulus` objects
-       are :class:`~psynet.trial.static.StimulusVersion` objects.
-       These also subclass the Dallinger :class:`~dallinger.models.Node` class,
-       and are generated directly from :class:`~psynet.trial.static.StimulusVersionSpec` instances.
-
-    4. Nested within :class:`~psynet.trial.static.StimulusVersion` objects
+    4. Nested within :class:`~psynet.trial.static.StimulusNode` objects
        are :class:`~psynet.trial.static.StaticTrial` objects.
-       These objects subclass the Dallinger :class:`~dallinger.models.Info` class.
 
     Attributes
     ----------
 
     target_num_trials : int or None
         Indicates the target number of trials for that network.
-        Stored as the field ``property2`` in the database.
 
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
@@ -1292,17 +1116,9 @@ class StaticNetwork(TrialNetwork):
 
     participant_group : bool
         The network's associated participant group.
-        Stored as the field ``property4`` in the database.
 
     block : str
         The network's associated block.
-        Stored as the field ``property5`` in the database.
-
-    phase : str
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set by default in the ``__init__`` function.
-        Stored as the field ``role`` in the database.
 
     num_nodes : int
         Returns the number of non-failed nodes in the network.
@@ -1326,10 +1142,10 @@ class StaticNetwork(TrialNetwork):
 
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_group = claim_field("participant_group", __extra_vars__, str)
-    block = claim_field("block", __extra_vars__, str)
+    participant_group = Column(String)
+    block = Column(String)
 
-    creation_started = claim_var("creation_started", __extra_vars__)
+    creation_started = claim_var("creation_started", __extra_vars__)  # TODO - migrate to SQLAlchemy datetime
     creation_progress = claim_var("creation_progress", __extra_vars__)
 
     def __init__(
@@ -1388,7 +1204,7 @@ class StaticNetwork(TrialNetwork):
 
     @property
     def stimulus_query(self):
-        return Stimulus.query.filter_by(network_id=self.id)
+        return StimulusNode.query.filter_by(network_id=self.id)
 
     @property
     def stimuli(self):
@@ -1443,7 +1259,7 @@ def compile_stimulus_set_from_dir(
                             "name": media_name,
                         },
                         phase=phase,
-                        version_specs=[
+                        versions=[
                             LocalMediaStimulusVersionSpec(
                                 definition={"local_media_path": media_path},
                                 media_ext=media_ext,

@@ -295,7 +295,7 @@ class Condition(StimulusSpec):
         super().__init__(
             definition=definition,
             phase=phase,
-            version_specs=None,
+            versions=None,
             participant_group=participant_group,
             block=block,
         )

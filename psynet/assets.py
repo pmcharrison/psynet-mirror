@@ -543,9 +543,10 @@ class CachedAsset(ManagedAsset):
         pass
 
 
-class CachedFunctionAsset(CachedAsset):
+class FunctionAssetMixin(ManagedAsset):
     function = Column(PythonObject)
     arguments = Column(PythonObject)
+    computation_time_sec = Column(Float)
 
     def __init__(
         self,
@@ -558,7 +559,6 @@ class CachedFunctionAsset(CachedAsset):
         participant=None,
         node=None,
         network=None,
-        label=None,
         variables: Optional[dict] = None,
         replace_existing=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
@@ -583,11 +583,16 @@ class CachedFunctionAsset(CachedAsset):
             obfuscate=obfuscate,
         )
 
-    computation_time_sec = Column(Float)
+    def __del__(self):
+        if self.temp_dir:
+            self.temp_dir.cleanup()
 
     @property
-    def cache_key(self):
-        return self.get_md5_instructions()
+    def instructions(self):
+        return dict(function=self.function, arguments=self.arguments)
+
+    def get_md5_instructions(self):
+        return md5_object(self.instructions)
 
     def get_md5_contents(self):
         if self.input_path is None:
@@ -601,13 +606,10 @@ class CachedFunctionAsset(CachedAsset):
         else:
             return super().get_size_mb()
 
-    def get_md5_instructions(self):
-        return md5_object(self.instructions)
-
     def _deposit__(self, asset_storage, host_path):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.input_path = os.path.join(
-            self.temp_dir.name, "cached-function-output" + self.extension
+            self.temp_dir.name, "function-output" + self.extension
         )
 
         time_start = time.perf_counter()
@@ -618,13 +620,15 @@ class CachedFunctionAsset(CachedAsset):
         self.computation_time_sec = time_end - time_start
         asset_storage.receive_deposit(self, host_path)
 
-    def __del__(self):
-        if self.temp_dir:
-            self.temp_dir.cleanup()
 
+class FunctionAsset(FunctionAssetMixin, ExperimentAsset):
+    pass
+
+
+class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     @property
-    def instructions(self):
-        return dict(function=self.function, arguments=self.arguments)
+    def cache_key(self):
+        return self.get_md5_instructions()
 
 
 class ExternalAsset(Asset):

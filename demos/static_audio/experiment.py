@@ -1,4 +1,5 @@
 import psynet.experiment
+from psynet.assets import AssetRegistry, LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -27,9 +28,6 @@ from .custom_synth import synth_stimulus
 
 
 class CustomStimulusVersionSpec(StimulusVersionSpec):
-    has_media = True
-    media_ext = ".wav"
-
     @classmethod
     def generate_media(cls, definition, output_path):
         synth_stimulus(definition["frequencies"], output_path)
@@ -40,7 +38,7 @@ stimuli = [
         definition={
             "frequency_gradient": frequency_gradient,
         },
-        version_specs=[
+        versions=[
             CustomStimulusVersionSpec(
                 definition={
                     "start_frequency": start_frequency,
@@ -56,14 +54,6 @@ stimuli = [
     for frequency_gradient in [-100, -50, 0, 50, 100]
 ]
 
-stimulus_set = StimulusSet(
-    "static_audio",
-    stimuli,
-    version="v3",
-    s3_bucket="static-audio-demo-stimuli",
-)
-recordings_s3_bucket = "static-audio-demo-stimuli-recordings"
-
 
 class CustomTrial(StaticTrial):
     _time_trial = 3
@@ -77,9 +67,7 @@ class CustomTrial(StaticTrial):
             AudioPrompt(
                 self.media_url, "Please imitate the spoken word as closely as possible."
             ),
-            AudioRecordControl(
-                duration=3.0, s3_bucket=recordings_s3_bucket, public_read=True
-            ),
+            AudioRecordControl(duration=3.0),
             time_estimate=self._time_trial,
         )
 
@@ -98,6 +86,12 @@ class CustomTrial(StaticTrial):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    name = "Static audio demo"
+
+    assets = AssetRegistry(
+        asset_storage=LocalStorage("~/Downloads/psynet_local_storage")
+    )
+
     timeline = Timeline(
         NoConsent(),
         VolumeCalibration(),
@@ -122,7 +116,7 @@ class Exp(psynet.experiment.Experiment):
             id_="static_audio",
             trial_class=CustomTrial,
             phase="experiment",
-            stimulus_set=stimulus_set,
+            stimuli=stimuli,
             target_num_participants=3,
             recruit_mode="num_participants",
         ),

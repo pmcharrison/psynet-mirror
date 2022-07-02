@@ -34,7 +34,7 @@ stimulus_set = StimulusSet(
     [
         StimulusSpec(
             definition={"animal": animal},
-            version_specs=[
+            versions=[
                 StimulusVersionSpec(definition={"text_color": text_color})
                 for text_color in ["red", "green", "blue"]
             ],

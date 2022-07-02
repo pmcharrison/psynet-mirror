@@ -28,8 +28,7 @@ class AudioImitationChainNetwork(MediaImitationChainNetwork):
     """
     A Network class for audio imitation chains.
     """
-
-    media_extension = "wav"
+    pass
 
 
 class AudioImitationChainTrial(AudioRecordTrial, MediaImitationChainTrial):

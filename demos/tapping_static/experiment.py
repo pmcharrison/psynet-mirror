@@ -88,9 +88,6 @@ iso_stimulus_names = ["iso_800ms", "iso_600ms"]
 
 
 class StimulusVersionSpecISO(StimulusVersionSpec):
-    has_media = True
-    media_ext = ""
-
     @classmethod
     def generate_media(cls, definition, output_path):
         if not (os.path.exists(output_path) and os.path.isdir(output_path)):
@@ -105,7 +102,7 @@ class StimulusVersionSpecISO(StimulusVersionSpec):
 stimulus_iso = [
     StimulusSpec(
         definition={},
-        version_specs=[
+        versions=[
             StimulusVersionSpecISO(definition={"stim_name": name, "list_iois": iois})
         ],
         phase="ISO_tapping",
@@ -124,9 +121,6 @@ music_text_names = ["train1.unfiltered.txt", "train7.unfiltered.txt"]
 
 
 class CStimulusVersionSpecMusic(StimulusVersionSpec):
-    has_media = True
-    media_ext = ""
-
     @classmethod
     def generate_media(cls, definition, output_path):
         if not (os.path.exists(output_path) and os.path.isdir(output_path)):
@@ -144,7 +138,7 @@ class CStimulusVersionSpecMusic(StimulusVersionSpec):
 stimulus_music = [
     StimulusSpec(
         definition={},
-        version_specs=[
+        versions=[
             CStimulusVersionSpecMusic(
                 definition={
                     "stim_name": name,
