@@ -259,8 +259,8 @@ class AdjectiveTrial(ImitationChainTrial):
                         }
                     )
 
-                    if tag not in feedback_dictionary["flagged"]["history"]:
-                        feedback_dictionary["flagged"]["history"].append(tag)
+                    if (url, tag) not in feedback_dictionary["flagged"]["history"]:
+                        feedback_dictionary["flagged"]["history"].append((url, tag))
                         feedback_dictionary["flagged"]["available"] = True
                         feedback_dictionary["flagged"][
                             "message"
@@ -383,9 +383,12 @@ class AdjectiveTrial(ImitationChainTrial):
             trial_maker = experiment.timeline.get_trial_maker(
                 self.network.trial_maker_id
             )
-            give_feedback = (
-                random.randint(0, trial_maker.show_positive_feedback_every - 1) == 0
-            )
+            if trial_maker.show_positive_feedback_every == 0:
+                give_feedback = False
+            else:
+                give_feedback = (
+                    random.randint(0, trial_maker.show_positive_feedback_every - 1) == 0
+                )
 
             if not give_feedback:
                 # We decided to give no feedback this time!
@@ -792,6 +795,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         assert flagging_threshold >= 0
 
         prepare_n_bonus = sum([b is not None for b in [new_word_bonus, upvote_bonus]])
+
         assert (show_positive_feedback_every == 0 and prepare_n_bonus == 0) or (
             show_positive_feedback_every > 0 and prepare_n_bonus > 0
         ), "If you want to show a bonus to the participant, you need to specify at least one bonus amount!"
@@ -853,9 +857,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self.max_rating = max_rating
 
         check_performance_at_end = practice_threshold > 0 and phase == "practice"
-        check_performance_every_trial = (
-            phase == "experiment" and show_positive_feedback_every > 0
-        )
+        check_performance_every_trial = phase == "experiment"
 
         if phase == "experiment":
             num_iterations_per_chain = max_iterations
@@ -1112,7 +1114,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 participant.var.set("flagged_creations", flagged_creations)
             else:
                 flagged_creations = participant.var.get("flagged_creations")
-
             return {
                 "score": len(flagged_creations),
                 "passed": len(flagged_creations) < self.flagging_threshold,
@@ -1178,10 +1179,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 .all()
             )
         ] + [1]
-
-    def export(self, path_app_archive, output_file):
-        # TODO
-        raise NotImplementedError()
 
 
 class AdjectiveExporter:

@@ -55,10 +55,6 @@ class Exp(psynet.experiment.Experiment):
                 "test_condition",
                 lambda participant: participant.answer,
                 branches={
-                    # Check:
-                    # - Early stopping after 3 iterations
-                    # - Check if participant get's paid a bonus every iteration (show_positive_feedback_every=1)
-                    # - Try to continue without entering an initial tag
                     "Single video": AdjectivePipeline(
                         id_="single_video_trial",
                         media_urls=video_url,
@@ -76,12 +72,6 @@ class Exp(psynet.experiment.Experiment):
                             "randomize_start": True,
                         },
                     ),
-                    # Check:
-                    # - are the networks are pre-populated correctly?
-                    # - are people kicked out of the practice if they are inconsistent
-                    # - do the custom
-                    # - check if you can continue without rating all tags
-                    # - try adding an adjective that is already present
                     "Mixed media practice": AdjectivePipeline(
                         id_="mixed_media_practice_trial",
                         media_urls=image_url + video_url + audio_url,
@@ -124,9 +114,9 @@ class Exp(psynet.experiment.Experiment):
                         base_time_estimate=4,
                         phase="experiment",
                         prune_flags=True,
-                        new_word_bonus=0.01,
-                        upvote_bonus=0.01,
-                        show_positive_feedback_every=5,
+                        new_word_bonus=None,
+                        upvote_bonus=None,
+                        show_positive_feedback_every=0,  # No bonus
                         template_args={"stimulus_type_singular": "vegetable"},
                     ),
                 },
