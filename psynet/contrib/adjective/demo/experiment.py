@@ -64,7 +64,7 @@ class Exp(psynet.experiment.Experiment):
                         media_urls=video_url,
                         num_trials_per_participant=1,
                         base_time_estimate=5,
-                        min_iterations=3,
+                        min_iterations=4,
                         phase="experiment",
                         prune_flags=True,
                         new_word_bonus=0.01,
