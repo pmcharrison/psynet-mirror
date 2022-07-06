@@ -1296,7 +1296,9 @@ class AdjectiveExporter:
 
     @staticmethod
     def required_css():
-        return read_template_string("adjective_styles.css")
+        return read_template_string("adjective_styles.css", flatten=True).replace(
+            "\n", ""
+        )
 
     @staticmethod
     def save_html(path, string):
