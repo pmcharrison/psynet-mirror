@@ -35,6 +35,7 @@ setuptools.setup(
         "scipy",
         "numpy",
         "statsmodels",
+        "tqdm",
         "yaspin",
         "praat-parselmouth",
         "joblib"  # Library used for internal parallelization of for loops
