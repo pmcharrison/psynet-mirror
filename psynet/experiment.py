@@ -923,15 +923,6 @@ class Experiment(dallinger.experiment.Experiment):
             participant = participant = Participant.query.first()
         return error_page(participant=participant, request_data=request_data)
 
-    @experiment_route("/export", methods=["GET"])
-    @staticmethod
-    def export():
-        from psynet import data
-
-        class_name = request.args.get("class_name")
-        exported_data = data.export(class_name)
-        return json.dumps(exported_data, default=serialise)
-
     @experiment_route("/module", methods=["POST"])
     @classmethod
     def get_module_details_as_rendered_html(cls):

@@ -1,3 +1,5 @@
+import os
+
 import dallinger.models
 import sqlalchemy
 from dallinger import db
@@ -13,7 +15,6 @@ from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
-from progress.bar import Bar
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.schema import (
@@ -23,30 +24,211 @@ from sqlalchemy.schema import (
     MetaData,
     Table,
 )
+from tqdm import tqdm
 
 from . import field
 from .field import VarStore
-from .utils import classproperty
+from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
-def export(class_name):
+def get_db_tables():
     """
-    Export data from an experiment.
+    Lists the tables in the database.
 
-    Collects instance data for class_name, including inheriting models.
+    Returns
+    -------
+
+    A dictionary where the keys identify the tables and the values are the table objects themselves.
     """
-    models = {}
-    instances = db_models()[class_name].query.all()
-    if len(instances) == 0:
-        return models
-    with Bar(f"Serializing {class_name} instances", max=len(instances)) as bar:
-        for instance in instances:
-            model = instance.__class__.__name__
-            if model not in models:
-                models[model] = []
-            models[model].append(instance.__json__())
-            bar.next()
-    return models
+    return db.Base.metadata.tables
+
+
+def _get_superclasses_by_table():
+    """
+    Returns
+    -------
+
+    A dictionary where the keys enumerate the different tables in the database
+    and the values correspond to the superclasses for each of those tables.
+    """
+    mappers = list(db.Base.registry.mappers)
+    mapped_classes = [m.class_ for m in mappers]
+    mapped_classes_by_table = organize_by_key(mapped_classes, lambda x: x.__tablename__)
+    superclasses_by_table = {
+        cls: _get_superclass(class_list)
+        for cls, class_list in mapped_classes_by_table.items()
+    }
+    return superclasses_by_table
+
+
+def _get_superclass(class_list):
+    """
+    Given a list of classes, returns the class in that list that is a superclass of
+    all other classes in that list. Assumes that exactly one such class exists
+    in that list; if this is not true, an AssertionError is raised.
+
+    Parameters
+    ----------
+    classes :
+        List of classes to check.
+
+    Returns
+    -------
+
+    A single superclass.
+    """
+    superclasses = [cls for cls in class_list if _is_global_superclass(cls, class_list)]
+    assert len(superclasses) == 1
+    cls = superclasses[0]
+    cls = _get_preferred_superclass_version(cls)
+    return cls
+
+
+def _is_global_superclass(x, class_list):
+    """
+    Parameters
+    ----------
+
+    x :
+        Class to test
+
+    class_list :
+        List of classes to test against
+
+    Returns
+    -------
+
+    ``True`` if ``x`` is a superclass of all elements of ``class_list``, ``False`` otherwise.
+    """
+    return all([issubclass(cls, x) for cls in class_list])
+
+
+def _get_preferred_superclass_version(cls):
+    """
+    Given an SQLAlchemy superclass for SQLAlchemy-mapped objects (e.g. ``Info``),
+    looks to see if there is a preferred version of this superclass (e.g. ``Trial``)
+    that still covers all instances in the database.
+
+    Parameters
+    ----------
+    cls :
+        Class to simplify
+
+    Returns
+    -------
+
+    A simplified class if one was found, otherwise the original class.
+    """
+    import dallinger.models
+
+    import psynet.timeline
+
+    preferred_superclasses = {
+        dallinger.models.Info: psynet.trial.main.Trial,
+        psynet.timeline._Response: psynet.timeline.Response,
+    }
+
+    proposed_cls = preferred_superclasses.get(cls)
+    if proposed_cls:
+        proposed_cls = preferred_superclasses[cls]
+        n_original_cls_instances = cls.query.count()
+        n_proposed_cls_instances = proposed_cls.query.count()
+        proposed_cls_has_equal_coverage = (
+            n_original_cls_instances == n_proposed_cls_instances
+        )
+        if proposed_cls_has_equal_coverage:
+            return proposed_cls
+    return cls
+
+
+def _db_class_instances_to_json(cls):
+    """
+    Given a class, retrieves all instances of that class from the database,
+    encodes them as JSON-style dictionaries, and returns the resulting list.
+
+    Parameters
+    ----------
+    cls
+        Class to retrieve
+
+    Returns
+    -------
+
+    List of dictionaries corresponding to JSON-encoded objects.
+
+    """
+    primary_keys = [c.name for c in cls.__table__.primary_key.columns]
+    obj_sql = cls.query.order_by(*primary_keys).all()
+    if len(obj_sql) == 0:
+        print(f"{cls.__name__}: skipped (nothing to export)")
+        return []
+    else:
+        obj_json = [
+            _db_instance_to_json(obj) for obj in tqdm(obj_sql, desc=cls.__name__)
+        ]
+        return obj_json
+
+
+def _db_instance_to_json(obj):
+    """
+    Converts an ORM-mapped instance to a JSON-style representation.
+
+    Parameters
+    ----------
+    obj
+        Object to convert
+
+    Returns
+    -------
+
+    JSON-style dictionary
+
+    """
+    json = obj.__json__()
+    if "class" not in json:
+        json["class"] = obj.__class__.__name__  # for the Dallinger classes
+    return json
+
+
+def _prepare_db_export():
+    """
+    Encodes the database to a JSON-style representation suitable for export.
+
+    Returns
+    -------
+
+    A dictionary keyed by class names with lists of JSON-style
+    encoded class instances as values.
+    The keys correspond to the most-specific available class names,
+    e.g. ``CustomNetwork`` as opposed to ``Network``.
+    """
+    superclasses = list(_get_superclasses_by_table().values())
+    superclasses.sort(key=lambda cls: cls.__name__)
+    res = []
+    for superclass in superclasses:
+        res.extend(_db_class_instances_to_json(superclass))
+    res = organize_by_key(res, key=lambda x: x["class"])
+    return res
+
+
+def dump_db_to_disk(dir):
+    """
+    Exports all database objects to JSON-style dictionaries
+    and writes them to CSV files, one for each class type.
+
+    Parameters
+    ----------
+
+    dir
+        Directory to which the CSV files should be exported.
+    """
+    objects_by_class = _prepare_db_export()
+
+    for cls, objects in objects_by_class.items():
+        filename = cls + ".csv"
+        filepath = os.path.join(dir, filename)
+        with open(filepath, "w") as file:
+            json_to_data_frame(objects).to_csv(file, index=False)
 
 
 class SQLMixinDallinger(SharedMixin):
@@ -80,6 +262,7 @@ class SQLMixinDallinger(SharedMixin):
         """
         x = {c: getattr(self, c) for c in self.sql_columns}
 
+        x["class"] = self.__class__.__name__
         field.json_clean(x, details=True)
         field.json_add_extra_vars(x, self)
         field.json_format_vars(x)
