@@ -7,6 +7,7 @@
 
 #### Fixed
 - Fixed problem where not all database tables were being exported. (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed problem where two 'ExperimentConfig' database objects were being created. (author: Peter Harrison, reviewer: Frank Höger)
 
 #### Changed
 - PsyNet now just exports data as CSV files, not JSON files; doing both seemed redundant. (author: Peter Harrison, reviewer: Frank Höger)
