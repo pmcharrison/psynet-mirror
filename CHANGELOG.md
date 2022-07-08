@@ -1,5 +1,18 @@
 # CHANGELOG
 
+# [9.0.1] Released on 2022-07-08
+
+#### Added
+- Added more comprehensive tests for data export. (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Fixed
+- Fixed problem where not all database tables were being exported. (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Changed
+- PsyNet now just exports data as CSV files, not JSON files; doing both seemed redundant. (author: Peter Harrison, reviewer: Frank Höger)
+- PsyNet's exported CSV files now correspond directly to the class names of the exported objects,
+  without any automatic conversion from CamelCase to snake_case. This seems more transparent and less error-prone. (author: Peter Harrison, reviewer: Frank Höger)
+
 # [9.0.0] Released on 2022-06-17
 
 #### Breaking changes

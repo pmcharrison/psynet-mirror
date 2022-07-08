@@ -543,3 +543,30 @@ def run_subprocess_with_live_output(command):
     p.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
+
+
+def organize_by_key(lst, key):
+    """
+    Sorts a list of items into groups.
+
+    Parameters
+    ----------
+    lst :
+        List to sort.
+
+    key :
+        Function applied to elements of ``lst`` which defines the grouping key.
+
+    Returns
+    -------
+
+    A dictionary keyed by the outputs of ``key``.
+
+    """
+    out = {}
+    for obj in lst:
+        _key = key(obj)
+        if _key not in out:
+            out[_key] = []
+        out[_key].append(obj)
+    return out

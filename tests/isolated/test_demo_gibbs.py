@@ -1,13 +1,16 @@
 import logging
 import os
 import shutil
-import subprocess
+import tempfile
 import time
+import zipfile
 
+import dallinger
 import pandas
 import pytest
 from selenium.webdriver.common.by import By
 
+from psynet.command_line import export_
 from psynet.field import UndefinedVariableError
 from psynet.test import bot_class, next_page
 
@@ -61,22 +64,84 @@ class TestExp:
     def _test_export(self):
         app = "demo-app"
 
-        # We need to use subprocess because otherwise psynet export messes up the next tests
-        try:
-            subprocess.check_output(["psynet", "export", "--app", app, "--local"])
-        except subprocess.CalledProcessError as e:
-            raise RuntimeError(f"Error in psynet export: {e.output}")
+        # OLD - We need to use subprocess because otherwise psynet export messes up the next tests.
+        # NEW - Running the tests in isolated mode should have fixed this problem.
+        # try:
+        #     subprocess.check_output(["psynet", "export", "--app", app, "--local"])
+        # except subprocess.CalledProcessError as e:
+        #     raise RuntimeError(f"Error in psynet export: {e.output}")
 
-        data_dir = os.path.join("data", f"data-{app}", "csv")
+        root_dir = os.path.join("data", f"data-{app}")
+        data_dir = os.path.join(root_dir, "csv")
+        zip_file = os.path.join(root_dir, "db-snapshot", f"{app}-data.zip")
+        shutil.rmtree(root_dir, ignore_errors=True)
 
-        participants_file = os.path.join(data_dir, "participant.csv")
-        participants = pandas.read_csv(participants_file)
-        nrow = participants.shape[0]
-        assert nrow == 4
+        export_(app, local=True)
 
-        coins_file = os.path.join(data_dir, "coin.csv")
-        coins = pandas.read_csv(coins_file)
-        nrow = coins.shape[0]
-        assert nrow == 4
+        def test_participants_file(data_dir):
+            participants_file = os.path.join(data_dir, "Participant.csv")
+            participants = pandas.read_csv(participants_file)
+            nrow = participants.shape[0]
+            assert nrow == 4
+
+        test_participants_file(data_dir)
+
+        def test_coins_file(data_dir):
+            coins_file = os.path.join(data_dir, "Coin.csv")
+            coins = pandas.read_csv(coins_file)
+            nrow = coins.shape[0]
+            assert nrow == 4
+
+        test_coins_file(data_dir)
+
+        from psynet.data import _prepare_db_export
+
+        def test_prepare_db_export():
+            json = _prepare_db_export()
+            assert sorted(list(json)) == [
+                "Coin",
+                "CustomNetwork",
+                "CustomNode",
+                "CustomSource",
+                "CustomTrial",
+                "ExperimentConfig",
+                "Notification",
+                "Participant",
+                "Response",
+                "Vector",
+            ]
+            assert len(json["Participant"]) == 4  # Number of participants
+
+        test_prepare_db_export()
+
+        def test_psynet_exports(data_dir):
+            assert sorted(os.listdir(data_dir)) == [
+                "Coin.csv",
+                "CustomNetwork.csv",
+                "CustomNode.csv",
+                "CustomSource.csv",
+                "CustomTrial.csv",
+                "ExperimentConfig.csv",
+                "Notification.csv",
+                "Participant.csv",
+                "Response.csv",
+                "Vector.csv",
+            ]
+
+        test_psynet_exports(data_dir)
+
+        def test_dallinger_exports(zip_file):
+            with tempfile.TemporaryDirectory() as tempdir:
+                with zipfile.ZipFile(zip_file, "r") as zip_ref:
+                    zip_ref.extractall(tempdir)
+                    dallinger_csv_files = sorted(
+                        os.listdir(os.path.join(tempdir, "data"))
+                    )
+                    db_tables = sorted(list(dallinger.db.Base.metadata.tables.keys()))
+
+                    # Dallinger CSV files should map one-to-one to database tables
+                    assert dallinger_csv_files == [t + ".csv" for t in db_tables]
+
+        test_dallinger_exports(zip_file)
 
         shutil.rmtree("data")
