@@ -65,7 +65,7 @@ public class WebRequestManager : MonoBehaviour
     {
         if (DebugMode)
         {
-            PageURL = "http://localhost:5000/timeline/";
+            PageURL = "http://localhost:5000/timeline";
             ResponseURL = "http://localhost:5000/response";
             debugParticipantsUrl = "http://localhost:5000/get_participant_info_for_debug_mode";
             //Debug.Log("Init: Sending GET request to PsyNet...");
@@ -89,7 +89,7 @@ public class WebRequestManager : MonoBehaviour
         }
         else
         {
-            PageURL = "/timeline/";
+            PageURL = "/timeline";
             ResponseURL = "/response";
             try
             {
@@ -112,7 +112,7 @@ public class WebRequestManager : MonoBehaviour
     }
     public IEnumerator GetPage(int opcode) // Get JSON data from PsyNet
     {
-        string getPageUrl = PageURL + participantId + "/" + authToken + "?mode=json";
+        string getPageUrl = PageURL +  "?participant_id=" + participantId + "&auth_token=" + authToken + "&mode=json";
         //Debug.Log("GetPage: Sending GET request to PsyNet...");
         UnityWebRequest getPageRequest = UnityWebRequest.Get(getPageUrl);
         yield return getPageRequest.SendWebRequest();

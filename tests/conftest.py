@@ -4,6 +4,7 @@ import warnings
 
 import pytest
 import sqlalchemy.exc
+from dallinger.db import Base, engine
 from dallinger.models import Network, Node
 from dallinger.nodes import Source
 
@@ -12,8 +13,7 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
 )
-
-# from psynet.data import init_db
+from psynet.data import init_db
 from psynet.participant import Participant
 
 ACTIVE_EXPERIMENT = None
@@ -34,12 +34,12 @@ def demo_setup(demo):
     # Instead we now just have a little 'sleep', hoping that SQL processes
     # will terminate in the meantime...
     #
-    # init_db(drop_all=True)
+    init_db(drop_all=True)
     time.sleep(2.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
-    # init_db(drop_all=True)
+    init_db(drop_all=True)
 
 
 def demo_teardown(root):
@@ -48,6 +48,7 @@ def demo_teardown(root):
     os.chdir(root)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
+    Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
 
 
 @pytest.fixture(scope="class")
@@ -108,7 +109,7 @@ def demo_mcmcp(root):
 
 @pytest.fixture(scope="class")
 def demo_multi_page_maker(root):
-    demo_setup("multi_page_maker")
+    demo_setup("page_maker")
     yield
     demo_teardown(root)
 
@@ -134,6 +135,13 @@ def demo_timeline_with_error(root):
     demo_teardown(root)
 
 
+@pytest.fixture(scope="class")
+def demo_unity_autoplay(root):
+    demo_setup("unity_autoplay")
+    yield
+    demo_teardown(root)
+
+
 @pytest.fixture
 def experiment_module(db_session):
     import psynet.utils
@@ -155,6 +163,11 @@ def experiment_object(experiment_class, db_session):
 
 @pytest.fixture
 def participant(db_session, experiment_object):
+    from dallinger.config import get_config
+
+    config = get_config()
+    if not config.ready:
+        config.load()
     p = Participant(
         experiment=experiment_object,
         recruiter_id="x",

@@ -21,23 +21,10 @@ from .utils import get_logger, pretty_format_seconds
 logger = get_logger()
 
 
-class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
-
+class PsyNetRecruiter(dallinger.recruiters.CLIRecruiter):
     """
-    The CapRecruiter base class
+    The PsyNetRecruiter base class
     """
-
-    def open_recruitment(self, n=1):
-        """
-        Return an empty list which otherwise would be a list of recruitment URLs.
-        """
-        return {"items": [], "message": ""}
-
-    def recruit(self, n=1):
-        return []
-
-    def close_recruitment(self):
-        logger.info("No more participants required. Recruitment stopped.")
 
     def compensate_worker(self, *args, **kwargs):
         """A recruiter may provide a means to directly compensate a worker."""
@@ -51,6 +38,25 @@ class BaseCapRecruiter(dallinger.recruiters.CLIRecruiter):
         for participant in participants:
             participant.status = "abandoned"
             session.commit()
+
+    def recruit(self, n=1):
+        """Incremental recruitment isn't implemented for now, so we return an empty list."""
+        return []
+
+
+class BaseCapRecruiter(PsyNetRecruiter):
+    """
+    The CapRecruiter base class
+    """
+
+    def open_recruitment(self, n=1):
+        """
+        Return an empty list which otherwise would be a list of recruitment URLs.
+        """
+        return {"items": [], "message": ""}
+
+    def close_recruitment(self):
+        logger.info("No more participants required. Recruitment stopped.")
 
     def reward_bonus(self, participant, amount, reason):
         """
@@ -113,18 +119,33 @@ class DevCapRecruiter(BaseCapRecruiter):
 class LucidRID(SQLBase, SQLMixin):
     __tablename__ = "lucid_rid"
 
+    # These fields are removed from the database table as they are not needed.
+    failed = None
+    failed_reason = None
+    time_of_death = None
+
     rid = Column(String, index=True)
     terminated_at = Column(DateTime, index=True)
+    termination_requested_at = Column(DateTime)
 
 
 class LucidRecruiterException(Exception):
     """Custom exception for LucidRecruiter"""
 
 
-class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
+class BaseLucidRecruiter(PsyNetRecruiter):
     """
     The LucidRecruiter base class
+
+    ...
+
+    Attributes
+    ----------
+    start_experiment_in_popup_window : bool
+        Whether to start the experiment in a popup-window or not, Default: True
     """
+
+    start_experiment_in_popup_window = True
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -205,12 +226,8 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
 
         return {
             "items": [url],
-            "message": "Lucid survey created succesfully",
+            "message": "Lucid survey created successfully.",
         }
-
-    def recruit(self, n=1):
-        """Incremental recruitment isn't implemented for now, so we return an empty list."""
-        return []
 
     def close_recruitment(self):
         """
@@ -218,10 +235,6 @@ class BaseLucidRecruiter(dallinger.recruiters.CLIRecruiter):
         target.
         """
         self.lucidservice.log("Recruitment is automatically handled by Lucid.")
-
-    def compensate_worker(self, *args, **kwargs):
-        """A recruiter may provide a means to directly compensate a worker."""
-        raise RuntimeError("Compensation is not implemented.")
 
     def normalize_entry_information(self, entry_information):
         """Accepts data from the recruited user and returns data needed to validate,

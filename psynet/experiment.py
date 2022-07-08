@@ -27,6 +27,7 @@ from psynet import __version__
 from .assets import Asset, AssetRegistry, NoStorage
 from .command_line import log
 from .data import SQLBase, SQLMixin, register_table
+from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
 from .recruiters import (  # noqa: F401
@@ -220,10 +221,14 @@ class Experiment(dallinger.experiment.Experiment):
         self.recruitment_criteria = []
 
         if session:
-            if not self.setup_complete:
-                self.setup()
+            if request and request.path == "/launch":
+                self.on_launch()
         self.load()
         self.register_pre_deployment_routines()
+
+    def on_launch(self):
+        if not self.setup_complete:
+            self.setup()
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
@@ -251,7 +256,10 @@ class Experiment(dallinger.experiment.Experiment):
 
     @property
     def var(self):
-        return self.experiment_config.var
+        if self.experiment_config_exists:
+            return self.experiment_config.var
+        else:
+            return ImmutableVarStore(self.variables_initial_values)
 
     @property
     def experiment_config(self):
@@ -302,10 +310,11 @@ class Experiment(dallinger.experiment.Experiment):
         return ExperimentConfig.query.count() > 0
 
     def setup_experiment_config(self):
-        logger.info("Setting up ExperimentConfig.")
-        network = ExperimentConfig()
-        db.session.add(network)
-        db.session.commit()
+        if not self.experiment_config_exists:
+            logger.info("Setting up ExperimentConfig.")
+            network = ExperimentConfig()
+            db.session.add(network)
+            db.session.commit()
 
     def setup(self):
         self.setup_experiment_config()
@@ -834,10 +843,11 @@ class Experiment(dallinger.experiment.Experiment):
     def extra_parameters(cls):
         # We can put extra config variables here if we like, e.g.
         config = get_config()
-        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
+        config.register("cap_recruiter_auth_token", unicode)
         config.register("lucid_api_key", unicode)
         config.register("lucid_sha1_hashing_key", unicode)
         config.register("lucid_recruitment_config", unicode)
+        # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
@@ -975,15 +985,6 @@ class Experiment(dallinger.experiment.Experiment):
         if participant_id:
             participant = participant = Participant.query.first()
         return error_page(participant=participant, request_data=request_data)
-
-    @experiment_route("/export", methods=["GET"])
-    @staticmethod
-    def export():
-        from psynet import data
-
-        class_name = request.args.get("class_name")
-        exported_data = data.export(class_name)
-        return json.dumps(exported_data, default=serialise)
 
     @experiment_route("/module", methods=["POST"])
     @classmethod
@@ -1133,6 +1134,8 @@ class Experiment(dallinger.experiment.Experiment):
     def route_abort(cls, assignment_id):
         try:
             template_name = "abort_not_possible.html"
+            participant = None
+            participant_abort_info = None
             if assignment_id is not None:
                 participant = cls.get_participant_from_assignment_id(assignment_id)
                 if (
@@ -1140,6 +1143,7 @@ class Experiment(dallinger.experiment.Experiment):
                     >= cls.new(db.session).var.min_accumulated_bonus_for_abort
                 ):
                     template_name = "abort_possible.html"
+                    participant_abort_info = participant.abort_info()
         except ValueError:
             logger.error("Invalid assignment ID.")
         except sqlalchemy.orm.exc.NoResultFound:
@@ -1148,7 +1152,9 @@ class Experiment(dallinger.experiment.Experiment):
             logger.error("Found multiple participants matching those specifications.")
 
         return render_template(
-            template_name, participant_abort_info=participant.abort_info()
+            template_name,
+            participant=participant,
+            participant_abort_info=participant_abort_info,
         )
 
     @experiment_route("/timeline", methods=["GET"])

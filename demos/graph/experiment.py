@@ -258,7 +258,6 @@ class NecklaceInteractivePage(ModularPage):
 
 
 class CustomTrial(GraphChainTrial):
-    num_pages = 2
     accumulate_answers = True
     time_estimate = 5
 

@@ -42,7 +42,6 @@ from ..timeline import (
     Response,
     conditional,
     join,
-    multi_page_maker,
     switch,
     while_loop,
 )
@@ -342,15 +341,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         parts of the experiment depending on that trial
         (for example, subsequent parts of a transmission chain).
 
-    num_pages : int
-        Class attribute, corresponding to the number of pages that this trial comprises.
-        Defaults to 1; override this for trials comprising multiple pages.
-
-    check_num_pages : bool
-        Class attribute, defaulting to ``True``.
-        If ``True``, then the number of pages produced by ``show_trial`` will be compared against
-        ``num_pages``, and a warning message returned if the two are inconsistent.
-
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
@@ -438,12 +428,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
 
     check_time_credit_received = True
 
-    # Override this if you intend to return multiple pages
-    num_pages = 1
-
-    # Set to False to disable warning messages about the wrong number of pages being return by show_trial.
-    check_num_pages = True
-
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
 
@@ -457,10 +441,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         if self.response_id is None:
             return None
         return Response.query.filter_by(id=self.response_id).one()
-
-    # @property
-    # def num_pages(self):
-    #     raise NotImplementedError
 
     # VarStore occupies the <details> slot.
     @property
@@ -678,10 +658,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         Returns a :class:`~psynet.timeline.Page` object,
         or alternatively a list of such objects,
         that solicits an answer from the participant.
-        If this method returns a list,
-        then the :attr:`~psynet.trial.main.Trial.num_pages` attribute
-        should be updated to correspond to the (estimated) length of this list,
-        so that PsyNet can provide an appropriate progress bar.
 
         Parameters
         ----------
@@ -1606,13 +1582,10 @@ class TrialMaker(Module):
                 lambda participant: participant.current_trial is not None,
                 logic=join(
                     CodeBlock(self._log_time_credit_before_trial),
-                    multi_page_maker(
-                        "show_trial",
+                    PageMaker(
                         self._show_trial,
-                        expected_num_pages=self.trial_class.num_pages,
-                        total_time_estimate=self.trial_class.time_estimate,
+                        time_estimate=self.trial_class.time_estimate,
                         accumulate_answers=self.trial_class.accumulate_answers,
-                        check_num_pages=self.trial_class.check_num_pages,
                     ),
                     CodeBlock(self._postprocess_answer),
                     CodeBlock(self._finalize_trial),
