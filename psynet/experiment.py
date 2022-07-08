@@ -47,6 +47,7 @@ from .timeline import (
     Timeline,
 )
 from .trial.main import Trial
+from .trial.static import StaticStimulusRegistry
 from .utils import (
     call_function,
     get_arg_from_dict,
@@ -219,6 +220,7 @@ class Experiment(dallinger.experiment.Experiment):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self.static_stimuli = StaticStimulusRegistry(self)
 
         if session:
             if request and request.path == "/launch":
@@ -228,7 +230,8 @@ class Experiment(dallinger.experiment.Experiment):
 
     def on_launch(self):
         if not self.setup_complete:
-            self.setup()
+            # In theory the launch route should only be called once, so the setup_complete check isn't really important
+            self.setup()  # Maybe rename this as something more informative?
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
@@ -422,6 +425,7 @@ class Experiment(dallinger.experiment.Experiment):
     def pre_deploy(cls):
         cls.check_config()
         cls.update_deployment_id()
+        cls.static_stimuli.prepare_for_deployment()
         cls.assets.prepare_for_deployment()
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")

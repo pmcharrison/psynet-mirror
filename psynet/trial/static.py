@@ -2,7 +2,6 @@ import operator
 import os
 import pickle
 import random
-import shutil
 from collections import Counter
 from functools import reduce
 from pathlib import Path
@@ -10,12 +9,16 @@ from statistics import mean
 from typing import Optional
 
 from dallinger import db
+import dallinger.models
+
 from sqlalchemy import Column, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from .. import command_line
 from ..assets import CachedAsset
+from ..data import copy_db_table_to_csv
 from ..field import claim_var
+from ..timeline import join, NullElt
 from ..utils import get_logger
 from .main import (
     HasDefinition,
@@ -29,6 +32,63 @@ from .main import (
 logger = get_logger()
 
 
+class StaticStimulusRegistry:
+    csv_path = "stimulus_registry.csv"
+
+    def __init__(self, experiment):
+        self.experiment = experiment
+        self.timeline = experiment.timeline
+        self.stimulus_sets = {}
+
+        self.compile_stimulus_sets()
+        # self.compile_stimuli()
+
+    @property
+    def stimuli(self):
+        return [s for _stimulus_set in self.stimulus_sets.values() for s in _stimulus_set.stimuli]
+
+    def compile_stimulus_sets(self):
+        for elt in self.timeline.elts:
+            if isinstance(elt, StimulusSet):
+                assert elt.id is not None
+                if elt.id in self.stimulus_sets and elt != self.stimulus_sets[elt.id]:
+                    raise RuntimeError(
+                        f"Tried to register two non-identical stimulus sets with the same ID: {elt.id}"
+                    )
+                self.stimulus_sets[elt.id] = elt
+
+    def prepare_for_deployment(self):
+        self.add_stimuli_to_db()
+        self.update_stimulus_asset_metadata()
+        self.export_db_spec()
+
+    def add_stimuli_to_db(self):
+        for stimulus in self.stimuli:
+            db.session.add(stimulus)
+        db.session.commit()
+
+    def update_stimulus_asset_metadata(self):
+        for stimulus in self.stimuli:
+            stimulus.update_asset_metadata()
+
+    def export_db_spec(self):
+        self.assert_node_table_only_contains_stimuli()
+        copy_db_table_to_csv("node", self.csv_path)
+
+    @staticmethod
+    def assert_node_table_only_contains_stimuli(self):
+        n_nodes = dallinger.models.Node.query.count()
+        n_stimuli = Stimulus.query.count()
+        if n_nodes != n_stimuli:
+            raise RuntimeError(
+                "The local database's Node table contained objects that aren't stimuli. We didn't anticipate this "
+                "and haven't accounted for it."
+            )
+
+
+
+# TOOD - should this really be in the global namespace?
+
 def filter_for_completed_trials(x):
     return x.filter_by(failed=False, complete=True, is_repeat_trial=False)
 
@@ -37,12 +97,25 @@ def query_all_completed_trials():
     return filter_for_completed_trials(StaticTrial.query)
 
 
-class StimulusNode(TrialNode, HasDefinition):
+class Stimulus(TrialNode, HasDefinition):
     """
-    A stimulus class for static experiments.
-    Should not be directly instantiated by the user,
-    but instead specified indirectly through an instance
-    of :class:`~psynet.trial.static.Stimulus`.
+    Defines a stimulus for a static experiment.
+    Will be translated to a database-backed
+    :class:`~psynet.trial.static.StimulusNode` instance.
+
+    Parameters
+    ----------
+
+    definition
+        A dictionary of parameters defining the stimulus.
+
+    participant_group
+        The associated participant group.
+        Defaults to a common participant group for all participants.
+
+    block
+        The associated block.
+        Defaults to a single block for all trials.
 
     Attributes
     ----------
@@ -58,7 +131,7 @@ class StimulusNode(TrialNode, HasDefinition):
 
     num_completed_trials : int
         The number of completed trials that this stimulus has received,
-        exluding failed trials.
+        excluding failed trials.
 
     num_trials_still_required : int
         The number of trials still required for this stimulus before the experiment
@@ -70,10 +143,64 @@ class StimulusNode(TrialNode, HasDefinition):
         **HasDefinition.__extra_vars__.copy(),
     }
 
+    stimulus_set_id = Column(String)
     target_num_trials = Column(Integer)
     participant_group = Column(String)
     phase = Column(String)
     block = Column(String)
+
+    def __init__(
+        self,
+        definition: dict,
+        participant_group="default",
+        block="default",
+        assets=None,
+    ):
+        assert isinstance(definition, dict)
+
+        if assets is None:
+            assets = {}
+
+        #  TODO - remove phase from PsyNet, it is redundant when we have trial maker IDs
+        phase = "experiment"
+
+        self.definition = definition
+        self.phase = phase
+        self.participant_group = participant_group
+        self.block = block
+        self.assets = assets
+
+        super().__init__(network=_PlaceholderNetwork(), participant=None)
+
+    def update_asset_metadata(self):
+        stimulus_id = self.id
+        assert isinstance(stimulus_id, Integer)
+
+        for key, asset in self.assets.items():
+            if asset.key is None:
+                asset.label = key
+                asset.key = f"static_stimuli/{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
+            asset.node = self
+            asset.network = self.network
+            asset.set_variables(self.definition)
+
+        db.session.commit()
+
+    def connect_to_db(self, network, source, target_num_trials, stimulus_set):
+        # TODO
+        raise NotImplementedError
+
+        assert network.phase == stimulus_spec.phase
+        assert network.participant_group == stimulus_spec.participant_group
+        assert network.block == stimulus_spec.block
+
+        super().__init__(network=network)
+        self.definition = stimulus_spec.definition
+        source.connect(whom=self)
+        self.target_num_trials = target_num_trials
+        self.phase = self.network.phase
+        self.participant_group = self.network.participant_group
+        self.block = self.network.block
 
     @property
     def _query_completed_trials(self):
@@ -92,21 +219,21 @@ class StimulusNode(TrialNode, HasDefinition):
             )
         return self.target_num_trials - self.num_completed_trials
 
-    def __init__(self, stimulus_spec, network, source, target_num_trials, stimulus_set):
-        assert network.phase == stimulus_spec.phase
-        assert network.participant_group == stimulus_spec.participant_group
-        assert network.block == stimulus_spec.block
 
-        super().__init__(network=network)
-        self.definition = stimulus_spec.definition
-        source.connect(whom=self)
-        self.target_num_trials = target_num_trials
-        self.phase = self.network.phase
-        self.participant_group = self.network.participant_group
-        self.block = self.network.block
+class _PlaceholderNetwork:
+    """
+    Dallinger requires all node objects to be initialized with pre-existing networks.
+    We create the following placeholder class to get around this obligation.
+    """
+    class Network:
+        failed = False
+        id = -1
+
+        def calculate_full(self):
+            pass
 
 
-class Stimulus:
+class Stimulus(TrialNode, HasDefinition):
     """
     Defines a stimulus for a static experiment.
     Will be translated to a database-backed
@@ -127,38 +254,8 @@ class Stimulus:
         Defaults to a single block for all trials.
     """
 
-    def __init__(
-        self,
-        definition: dict,
-        participant_group="default",
-        block="default",
-        assets=None,
-    ):
-        assert isinstance(definition, dict)
 
-        if assets is None:
-            assets = {}
-
-        phase = "experiment"  #  TODO - remove phase from PsyNet, it is redundant when we have trial maker IDs
-
-        self.definition = definition
-        self.phase = phase
-        self.participant_group = participant_group
-        self.block = block
-        self.assets = assets
-
-    def add_stimulus_to_network(self, network, source, target_num_trials, stimulus_set):
-        stimulus = StimulusNode(
-            self,
-            network=network,
-            source=source,
-            target_num_trials=target_num_trials,
-            stimulus_set=stimulus_set,
-        )
-        db.session.add(stimulus)
-
-
-class StimulusSet:
+class StimulusSet(NullElt):
     """
     Defines a stimulus set for a static experiment.
     This stimulus set is defined as a collection of
@@ -172,23 +269,18 @@ class StimulusSet:
     Parameters
     ----------
 
-    stimulus_specs: list
-        A list of :class:`~psynet.trial.static.Stimulus` objects,
-        with these objects potentially containing
-        :class:`~psynet.trial.static.StimulusVersionSpec` objects.
-        These objects must all correspond to the same experiment phase
-        (se the ``phase`` attribute of the
-        :class:`~psynet.trial.static.Stimulus` objects).
+    stimuli: list
+        A list of :class:`~psynet.trial.static.Stimulus` objects.
     """
 
     def __init__(
         self,
         id_: str,
-        stimulus_specs,
+        stimuli,
     ):
-        assert isinstance(stimulus_specs, list)
+        assert isinstance(stimuli, list)
 
-        self.stimulus_specs = stimulus_specs
+        self.stimuli = stimuli
         self.id = id_
         self.phase = None
 
@@ -197,8 +289,10 @@ class StimulusSet:
         participant_groups = set()
         self.num_stimuli = dict()
 
-        for s in stimulus_specs:
+        for s in stimuli:
             assert isinstance(s, Stimulus)
+
+            s.stimulus_set_id = self.id
 
             network_specs.add((s.phase, s.participant_group, s.block))
 
@@ -617,7 +711,11 @@ class StaticTrialMaker(NetworkTrialMaker):
                 "<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided."
             )
 
-        self.stimulus_set = stimulus_set.load()
+        if isinstance(stimulus_set, list):
+            stimulus_set = StimulusSet(id_, stimulus_set)
+
+        self.stimulus_set = stimulus_set.load()  #  TODO - delete this
+
         self.target_num_participants = target_num_participants
         self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
         self.max_trials_per_block = max_trials_per_block
@@ -645,6 +743,12 @@ class StaticTrialMaker(NetworkTrialMaker):
         )
 
         self.check_stimulus_set()
+
+    def compile_elts(self):
+        return join(
+            self.stimulus_set,
+            super().compile_elts()
+        )
 
     def check_stimulus_set(self):
         if self.phase != self.stimulus_set.phase:

@@ -942,7 +942,19 @@ class TrialMaker(Module):
         self.target_num_participants = target_num_participants
         self.num_repeat_trials = num_repeat_trials
 
-        elts = join(
+        elts = self.compile_elts()
+        label = self.with_namespace()
+
+        super().__init__(label, elts)
+
+    participant_progress_threshold = 0.1
+
+    performance_check_threshold = 0.0
+
+    introduction = None
+
+    def compile_elts(self):
+        return join(
             ExperimentSetupRoutine(self.experiment_setup_routine),
             ParticipantFailRoutine(
                 self.with_namespace(), self.participant_fail_routine
@@ -956,17 +968,9 @@ class TrialMaker(Module):
             self._trial_loop(),
             CodeBlock(self.on_complete),
             self._check_performance_logic(type="end")
-            if check_performance_at_end
+            if self.check_performance_at_end
             else None,
         )
-        label = self.with_namespace()
-        super().__init__(label, elts)
-
-    participant_progress_threshold = 0.1
-
-    performance_check_threshold = 0.0
-
-    introduction = None
 
     @property
     def num_complete_participants(self):

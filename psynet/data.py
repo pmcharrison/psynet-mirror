@@ -1,15 +1,15 @@
 import csv
 import io
+import os
 import tempfile
 from typing import List, Optional
 from zipfile import ZipFile
 
 import dallinger.data
-import os
-
 import dallinger.models
 import pandas
 import postgres_copy
+import shutil
 import six
 import sqlalchemy
 from dallinger import db
@@ -221,6 +221,17 @@ def _prepare_db_export():
         res.extend(_db_class_instances_to_json(superclass))
     res = organize_by_key(res, key=lambda x: x["class"])
     return res
+
+
+def copy_db_table_to_csv(tablename, path):
+    # TODO - improve naming of copy_db_table_to_csv and dump_db_to_disk to clarify
+    # that the former is a Dallinger export and the latter is a PsyNet export
+    with tempfile.TemporaryDirectory() as tempdir:
+        dallinger.data.copy_db_to_csv(db.db_url, tempdir)
+        temp_filename = f"{tablename}.csv"
+        shutil.copyfile(
+            os.path.join(tempdir, temp_filename), path
+        )
 
 
 def dump_db_to_disk(dir):
