@@ -13,9 +13,9 @@ from psynet.trial.static import (
     StaticTrial,
     StaticTrialMaker,
     StimulusSet,
-    StimulusSpec,
-    StimulusVersionSpec,
+    Stimulus,
 )
+from psynet.assets import CachedFunctionAsset
 
 from .custom_synth import synth_stimulus
 
@@ -34,24 +34,22 @@ class CustomStimulusVersionSpec(StimulusVersionSpec):
 
 
 stimuli = [
-    StimulusSpec(
+    Stimulus(
         definition={
             "frequency_gradient": frequency_gradient,
+            "start_frequency": start_frequency,
+            "frequencies": [start_frequency + i * frequency_gradient for i in range(5)]
         },
-        versions=[
-            CustomStimulusVersionSpec(
-                definition={
-                    "start_frequency": start_frequency,
-                    "frequencies": [
-                        start_frequency + i * frequency_gradient for i in range(5)
-                    ],
-                }
+        assets={
+            "audio": CachedFunctionAsset(
+                function=lambda path, definition: synth_stimulus(definition["frequencies"], path),
+                extension=".wav",
+                key=None,  # how to autogen this sensibly?? maybe we need to precreate the stimulus networks before we launch the app
             )
-            for start_frequency in [-100, 0, 100]
-        ],
-        phase="experiment",
+        }
     )
     for frequency_gradient in [-100, -50, 0, 50, 100]
+    for start_frequency in [-100, 0, 100]
 ]
 
 
