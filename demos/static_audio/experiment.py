@@ -1,5 +1,5 @@
 import psynet.experiment
-from psynet.assets import AssetRegistry, LocalStorage
+from psynet.assets import AssetRegistry, CachedFunctionAsset, LocalStorage
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -9,13 +9,7 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import Timeline
-from psynet.trial.static import (
-    StaticTrial,
-    StaticTrialMaker,
-    StimulusSet,
-    Stimulus,
-)
-from psynet.assets import CachedFunctionAsset
+from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus, StimulusSet
 
 from .custom_synth import synth_stimulus
 
@@ -38,15 +32,17 @@ stimuli = [
         definition={
             "frequency_gradient": frequency_gradient,
             "start_frequency": start_frequency,
-            "frequencies": [start_frequency + i * frequency_gradient for i in range(5)]
+            "frequencies": [start_frequency + i * frequency_gradient for i in range(5)],
         },
         assets={
             "audio": CachedFunctionAsset(
-                function=lambda path, definition: synth_stimulus(definition["frequencies"], path),
+                function=lambda path, definition: synth_stimulus(
+                    definition["frequencies"], path
+                ),
                 extension=".wav",
                 key=None,  # how to autogen this sensibly?? maybe we need to precreate the stimulus networks before we launch the app
             )
-        }
+        },
     )
     for frequency_gradient in [-100, -50, 0, 50, 100]
     for start_frequency in [-100, 0, 100]
