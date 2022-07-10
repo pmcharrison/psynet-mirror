@@ -135,7 +135,7 @@ def _get_preferred_superclass_version(cls):
 
     preferred_superclasses = {
         dallinger.models.Info: psynet.trial.main.Trial,
-        psynet.timeline.Response_: psynet.timeline.Response,
+        psynet.timeline._Response: psynet.timeline.Response,
     }
 
     proposed_cls = preferred_superclasses.get(cls)
