@@ -12,7 +12,10 @@ from selenium.webdriver.common.by import By
 
 from psynet.command_line import export_
 from psynet.field import UndefinedVariableError
+from psynet.participant import Participant
 from psynet.test import assert_text, bot_class, next_page
+from psynet.timeline import Response
+from psynet.trial.main import Trial
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -39,8 +42,6 @@ class TestExp:
                 next_page(driver, "next-button")
 
             next_page(driver, "next-button")
-
-            from psynet.participant import Participant
 
             pt = Participant.query.filter_by(id=participant + 1).one()
 
@@ -184,5 +185,38 @@ class TestExp:
                     assert dallinger_csv_files == [t + ".csv" for t in db_tables]
 
         test_dallinger_exports(zip_file)
+
+        def test_populate_db_from_zip_file(zip_file):
+            import pydevd_pycharm
+            from dallinger import db
+            from dallinger.db import init_db
+            from sqlalchemy.orm.session import close_all_sessions
+
+            from psynet.command_line import populate_db_from_zip_file
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
+
+            # Without this, init_db can freeze --
+            # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
+            db.session.commit()
+            close_all_sessions()
+            init_db(drop_all=True)
+            populate_db_from_zip_file(zip_file)
+
+            trials = Trial.query.all()
+            assert len(trials) > 15
+            assert all(t.participant_id in [1, 2, 3, 4] for t in trials)
+
+            participants = Participant.query.all()
+            assert len(participants) == 4
+            assert sorted([p.id for p in participants]) == [1, 2, 3, 4]
+
+            responses = Response.query.all()
+            assert len(responses) > 15
+            assert sorted([r.id for r in responses]) == [1, 2, 3, 4]
+
+        test_populate_db_from_zip_file(zip_file)
 
         shutil.rmtree("data")
