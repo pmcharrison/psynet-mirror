@@ -383,8 +383,10 @@ def drop_all_db_tables(bind=db.engine):
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
-def dallinger_table_base_classes():
+def _sql_dallinger_base_classes():
     """
+    These base classes define the basic object relational mappers for the
+    Dallinger database tables.
 
     Returns
     -------
@@ -411,14 +413,25 @@ def dallinger_table_base_classes():
 # A dictionary of base classes for additional tables that are defined in PsyNet
 # or by individual experiment implementations, keyed by table names.
 # See also dallinger_table_base_classes().
-extra_models = {}
+_sql_psynet_base_classes = {}
 
 
-def db_models():
-    "Together, this list of models should cover all the base classes in the database."
+def sql_base_classes():
+    """
+    Lists the base classes underpinning the different SQL tables used by PsyNet,
+    including both base classes defined in Dallinger (e.g. ``Node``, ``Info``)
+    and additional classes defined in custom PsyNet tables.
+
+    Returns
+    -------
+
+    A dictionary of base classes (e.g. ``Node``), keyed by the corresponding
+    table names for those base classes (e.g. `node`).
+
+    """
     return {
-        **dallinger_table_base_classes(),
-        **extra_models,
+        **_sql_dallinger_base_classes(),
+        **_sql_psynet_base_classes,
     }
 
 
@@ -434,7 +447,7 @@ def register_table(cls):
         __tablename__ = "bird"
     ```
     """
-    extra_models[cls.__tablename__] = cls
+    _sql_psynet_base_classes[cls.__tablename__] = cls
     setattr(dallinger.models, cls.__name__, cls)
     update_dashboard_models()
     return cls
@@ -452,7 +465,7 @@ def update_dashboard_models():
         "Transmission",
         "Notification",
         "Recruitment",
-    ] + [tablename.capitalize() for tablename in extra_models.keys()]
+    ] + [tablename.capitalize() for tablename in _sql_psynet_base_classes.keys()]
 
 
 def ingest_to_model(
@@ -560,14 +573,8 @@ def ingest_zip(path, engine=None):
             else:
                 filename = matches[0]
 
-            try:
-                model = db_models()[tablename]
-            except Exception:
-                import pydevd_pycharm
+            model = sql_base_classes()[tablename]
 
-                pydevd_pycharm.settrace(
-                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-                )
             file = archive.open(filename)
             if six.PY3:
                 file = io.TextIOWrapper(file, encoding="utf8", newline="")
