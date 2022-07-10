@@ -107,12 +107,6 @@ class TestExp:
         self._run_export_tests(data_csv_dir, data_zip_file)
 
     def _run_export_tests(self, data_csv_dir, data_zip_file):
-        # OLD - We need to use subprocess because otherwise psynet export messes up the next tests.
-        # NEW - Running the tests in isolated mode should have fixed this problem.
-        # try:
-        #     subprocess.check_output(["psynet", "export", "--app", app, "--local"])
-        # except subprocess.CalledProcessError as e:
-        #     raise RuntimeError(f"Error in psynet export: {e.output}")
         export_(app, local=True)
 
         def test_participants_file(data_csv_dir):
