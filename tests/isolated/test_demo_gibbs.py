@@ -196,8 +196,16 @@ class TestExp:
         test_dallinger_exports(data_zip_file)
 
     def test_populate_db_from_zip_file(self, data_zip_file, coin_class):
-        # This needs to be run after the preceding experiment regression test,
-        # which generates the zip file that we try to import.
+        """
+        Here we test the process of loading the objects described in an exported zip file
+        into the local database. This is an important part of the current implementation
+        of data export, which works by first creating the zip file via Dallinger's export function,
+        then loads it into the local database, and serializes it locally using PsyNet's
+        export functions. The function relies on the zip file created in ``test_exp``;
+        it would make sense to state this explicitly as a fixture, but it's proved
+        to difficult to make that work in practice because of the way in which Dallinger's
+        own pytest scopes have been defined.
+        """
         populate_db_from_zip_file(data_zip_file)
 
         trials = Trial.query.all()
