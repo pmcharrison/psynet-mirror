@@ -1457,7 +1457,7 @@ class FailedValidation:
 
 
 @register_table
-class Response_(SQLBase, SQLMixin):
+class _Response(SQLBase, SQLMixin):
     """
     This virtual class is not to be used directly.
     We use it as the parent class for the ``Response`` class
@@ -1470,7 +1470,7 @@ class Response_(SQLBase, SQLMixin):
     __tablename__ = "response"
 
 
-class Response(Response_):
+class Response(_Response):
     """
     A database-backed object that stores the participant's response to a
     :class:`~psynet.timeline.Page`.
