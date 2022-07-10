@@ -401,7 +401,9 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     run_pre_checks("deploy")
     log(header)
-    ctx.invoke(prepare, force=force_prepare)
+
+    if not archive:
+        ctx.invoke(prepare, force=force_prepare)
 
     from dallinger.command_line import deploy as dallinger_deploy
 
@@ -502,7 +504,9 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     run_pre_checks("sandbox")
     log(header)
-    ctx.invoke(prepare, force=force_prepare)
+
+    if not archive:
+        ctx.invoke(prepare, force=force_prepare)
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 

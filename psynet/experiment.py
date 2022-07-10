@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import uuid
 from collections import OrderedDict
 from datetime import datetime
@@ -26,7 +27,7 @@ from psynet import __version__
 
 from .assets import Asset, AssetRegistry, NoStorage
 from .command_line import log
-from .data import SQLBase, SQLMixin, register_table
+from .data import ingest_zip, SQLBase, SQLMixin, register_table
 from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
@@ -55,6 +56,7 @@ from .utils import (
     pretty_log_dict,
     serialise,
     serialise_datetime,
+    working_directory
 )
 
 logger = get_logger()
@@ -430,6 +432,7 @@ class Experiment(dallinger.experiment.Experiment):
         for routine in cls.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
+        cls.create_database_template()
 
     @classmethod
     def update_deployment_id(cls):
@@ -462,6 +465,27 @@ class Experiment(dallinger.experiment.Experiment):
 
         def __init__(self, msg=msg):
             super().__init__(msg)
+
+    database_template_path = ".database_template"
+    database_template_app_name = "template"
+
+    @classmethod
+    def create_database_template(cls):
+        shutil.rmtree(cls.database_template_path, ignore_errors=True)
+        os.mkdir(cls.database_template_path)
+
+        with working_directory(cls.database_template_path):
+            dallinger.data.export(cls.database_template_app_name, local=True, scrub_pii=False)
+
+    @classmethod
+    def load_database_template(cls):
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+
+        archive_path = "?"  # Todo -- fill this out
+
+        ingest_zip(archive_path, engine=db.engine)
+
 
     @classmethod
     def check_config(cls):

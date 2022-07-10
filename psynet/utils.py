@@ -1,4 +1,5 @@
 import base64
+import contextlib
 import hashlib
 import importlib
 import importlib.util
@@ -625,3 +626,13 @@ def organize_by_key(lst, key):
             out[_key] = []
         out[_key].append(obj)
     return out
+
+
+@contextlib.contextmanager
+def working_directory(path):
+    start_dir = os.getcwd()
+    try:
+        os.chdir(path)
+        yield
+    finally:
+        os.chdir(start_dir)
