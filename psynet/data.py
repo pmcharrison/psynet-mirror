@@ -477,6 +477,9 @@ def ingest_to_model(
 ):
     """
     Imports a CSV file to the database.
+    The implementation is similar to ``dallinger.data.ingest_to_model``,
+    but incorporates a few extra parameters (``clear_columns``, ``replace_columns``)
+    and does not fail for tables without an ``id`` column.
 
     Parameters
     ----------
@@ -493,7 +496,6 @@ def ingest_to_model(
     replace_columns :
         Optional dictionary of values to set for particular columns.
     """
-    # Patched version of dallinger.data.ingest_to_model
     if engine is None:
         engine = db.engine
 
