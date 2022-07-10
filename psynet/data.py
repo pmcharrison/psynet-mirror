@@ -330,7 +330,7 @@ class SQLMixin(SQLMixinDallinger):
 
 
 def init_db(drop_all=False, bind=db.engine):
-    # Without this, the process can freeze --
+    # Without these preliminary steps, the process can freeze --
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
     db.session.commit()
     close_all_sessions()
