@@ -409,7 +409,7 @@ def dallinger_table_base_classes():
 
 
 # A dictionary of base classes for additional tables that are defined in PsyNet
-# or by the experiment.py code, keyed by table names.
+# or by individual experiment implementations, keyed by table names.
 # See also dallinger_table_base_classes().
 extra_models = {}
 
