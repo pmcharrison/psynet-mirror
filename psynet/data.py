@@ -17,6 +17,7 @@ from dallinger.models import Vector  # noqa
 from dallinger.models import SharedMixin, timenow  # noqa
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
     DropTable,
@@ -328,6 +329,11 @@ def drop_all_db_tables(bind=db.engine):
     (https://github.com/pallets-eco/flask-sqlalchemy/issues/722)
     """
     engine = bind
+
+    # Without this, the process can freeze --
+    # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
+    db.session.commit()
+    close_all_sessions()
 
     con = engine.connect()
     trans = con.begin()
