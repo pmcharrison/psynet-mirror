@@ -12,7 +12,7 @@ from selenium.webdriver.common.by import By
 
 from psynet.command_line import export_
 from psynet.field import UndefinedVariableError
-from psynet.test import bot_class, next_page
+from psynet.test import assert_text, bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -56,6 +56,27 @@ class TestExp:
                 pt.var.get("uninitialized_variable")
 
             assert pt.var.get("uninitialized_variable", default=123) == 123
+
+            assert_text(driver, "main-body", "Did you like the experiment? Next")
+            text_input = driver.find_element(By.ID, "text-input")
+            text_input.send_keys("Yes, I loved it!")
+            next_page(driver, "next-button")
+
+            assert_text(
+                driver, "main-body", "Did you find the experiment difficult? Next"
+            )
+            text_input = driver.find_element(By.ID, "text-input")
+            text_input.send_keys("No, I found it easy.")
+            next_page(driver, "next-button")
+
+            assert_text(
+                driver,
+                "main-body",
+                "Did you encounter any technical problems during the experiment? If so, please provide a few words describing the problem. Next",
+            )
+            text_input = driver.find_element(By.ID, "text-input")
+            text_input.send_keys("No technical problems.")
+            next_page(driver, "next-button")
 
             next_page(driver, "next-button", finished=True)
 
@@ -129,6 +150,26 @@ class TestExp:
             ]
 
         test_psynet_exports(data_dir)
+
+        def test_experiment_feedback(data_dir):
+            df = pandas.read_csv(os.path.join(data_dir, "Response.csv"))
+
+            df_ = df.query("question == 'liked_experiment'")
+            assert df_.shape[0] == 4
+            assert list(df_.participant_id) == [1, 2, 3, 4]
+            assert list(df_.answer) == ["Yes, I loved it!"] * 4
+
+            df_ = df.query("question == 'find_experiment_difficult'")
+            assert df_.shape[0] == 4
+            assert list(df_.participant_id) == [1, 2, 3, 4]
+            assert list(df_.answer) == ["No, I found it easy."] * 4
+
+            df_ = df.query("question == 'encountered_technical_problems'")
+            assert df_.shape[0] == 4
+            assert list(df_.participant_id) == [1, 2, 3, 4]
+            assert list(df_.answer) == ["No technical problems."] * 4
+
+        test_experiment_feedback(data_dir)
 
         def test_dallinger_exports(zip_file):
             with tempfile.TemporaryDirectory() as tempdir:
