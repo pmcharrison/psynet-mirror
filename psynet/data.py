@@ -1,16 +1,25 @@
+import csv
+import io
 import os
+import tempfile
+from typing import List, Optional
+from zipfile import ZipFile
 
 import dallinger.models
+import pandas
+import postgres_copy
+import six
 import sqlalchemy
 from dallinger import db
+from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
-from dallinger.db import init_db  # noqa
 from dallinger.experiment_server import dashboard
 from dallinger.models import Info  # noqa
 from dallinger.models import Network  # noqa
 from dallinger.models import Node  # noqa
 from dallinger.models import Notification  # noqa
 from dallinger.models import Question  # noqa
+from dallinger.models import Recruitment  # noqa
 from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
@@ -126,7 +135,7 @@ def _get_preferred_superclass_version(cls):
 
     preferred_superclasses = {
         dallinger.models.Info: psynet.trial.main.Trial,
-        psynet.timeline._Response: psynet.timeline.Response,
+        psynet.timeline.Response_: psynet.timeline.Response,
     }
 
     proposed_cls = preferred_superclasses.get(cls)
@@ -320,6 +329,15 @@ class SQLMixin(SQLMixinDallinger):
         return Column(String(50))
 
 
+def init_db(drop_all=False, bind=db.engine):
+    # Without this, the process can freeze --
+    # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
+    db.session.commit()
+    close_all_sessions()
+
+    dallinger.db.init_db(drop_all, bind)
+
+
 def drop_all_db_tables(bind=db.engine):
     """
     Drops all tables from the Postgres database.
@@ -329,11 +347,6 @@ def drop_all_db_tables(bind=db.engine):
     (https://github.com/pallets-eco/flask-sqlalchemy/issues/722)
     """
     engine = bind
-
-    # Without this, the process can freeze --
-    # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
-    db.session.commit()
-    close_all_sessions()
 
     con = engine.connect()
     trans = con.begin()
@@ -370,31 +383,41 @@ def drop_all_db_tables(bind=db.engine):
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
-def dallinger_models():
-    "A list of all base models in Dallinger"
+def dallinger_table_base_classes():
+    """
+
+    Returns
+    -------
+
+    A dictionary of base classes for Dallinger tables
+    keyed by Dallinger table names.
+    """
     from .participant import Participant
 
     return {
-        "Info": Info,
-        "Network": Network,
-        "Node": Node,
-        "Notification": Notification,
-        "Participant": Participant,
-        "Question": Question,
-        "Transformation": Transformation,
-        "Transmission": Transmission,
-        "Vector": Vector,
+        "info": Info,
+        "network": Network,
+        "node": Node,
+        "notification": Notification,
+        "participant": Participant,
+        "question": Question,
+        "recruitment": Recruitment,
+        "transformation": Transformation,
+        "transmission": Transmission,
+        "vector": Vector,
     }
 
 
-# Extra base models that are defined in PsyNet or in the experiment itself
+# A dictionary of base classes for additional tables that are defined in PsyNet
+# or by the experiment.py code, keyed by table names.
+# See also dallinger_table_base_classes().
 extra_models = {}
 
 
 def db_models():
     "Together, this list of models should cover all the base classes in the database."
     return {
-        **dallinger_models(),
+        **dallinger_table_base_classes(),
         **extra_models,
     }
 
@@ -411,7 +434,7 @@ def register_table(cls):
         __tablename__ = "bird"
     ```
     """
-    extra_models[cls.__name__] = cls
+    extra_models[cls.__tablename__] = cls
     setattr(dallinger.models, cls.__name__, cls)
     update_dashboard_models()
     return cls
@@ -419,12 +442,6 @@ def register_table(cls):
 
 def update_dashboard_models():
     "Determines the list of objects in the dashboard database browser."
-    from .timeline import Response
-    from .trial.main import Trial
-
-    dallinger.models.Trial = Trial
-    dallinger.models.Response = Response
-
     dashboard.BROWSEABLE_MODELS = [
         "Participant",
         "Network",
@@ -434,4 +451,128 @@ def update_dashboard_models():
         "Transformation",
         "Transmission",
         "Notification",
-    ] + list(extra_models)
+        "Recruitment",
+    ] + [tablename.capitalize() for tablename in extra_models.keys()]
+
+
+def ingest_to_model(
+    file,
+    model,
+    engine=None,
+    clear_columns: Optional[List] = None,
+    replace_columns: Optional[dict] = None,
+):
+    """
+    Imports a CSV file to the database.
+
+    Parameters
+    ----------
+    file :
+        CSV file to import (specified as a file handler, created for example by open())
+
+    model :
+        SQLAlchemy class corresponding to the objects that should be created.
+
+    clear_columns :
+        Optional list of columns to clear when importing the CSV file.
+        This is useful in the case of foreign-key constraints (e.g. participant IDs).
+
+    replace_columns :
+        Optional dictionary of values to set for particular columns.
+    """
+    # Patched version of dallinger.data.ingest_to_model
+    if engine is None:
+        engine = db.engine
+
+    if clear_columns or replace_columns:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            patched_csv = os.path.join(temp_dir, "patched.csv")
+            patch_csv(file, patched_csv, clear_columns, replace_columns)
+            with open(patched_csv, "r") as patched_csv_file:
+                ingest_to_model(
+                    patched_csv_file, model, clear_columns=None, replace_columns=None
+                )
+    else:
+        inspector = sqlalchemy.inspect(db.engine)
+        reader = csv.reader(file)
+        columns = tuple('"{}"'.format(n) for n in next(reader))
+        postgres_copy.copy_from(
+            file, model, engine, columns=columns, format="csv", HEADER=False
+        )
+        if "id" in inspector.get_columns(model.__table__):
+            fix_autoincrement(engine, model.__table__.name)
+
+
+def patch_csv(infile, outfile, clear_columns, replace_columns):
+    df = pandas.read_csv(infile)
+
+    _replace_columns = {**{col: pandas.NA for col in clear_columns}, **replace_columns}
+
+    for col, value in _replace_columns.items():
+        df[col] = value
+
+    df.to_csv(outfile, index=False)
+
+
+def ingest_zip(path, engine=None):
+    """
+    Given a path to a zip file created with `export()`, recreate the
+    database with the data stored in the included .csv files.
+    This is a patched version of dallinger.data.ingest_zip that incorporates
+    support for custom tables.
+    """
+
+    if engine is None:
+        engine = db.engine
+
+    inspector = sqlalchemy.inspect(engine)
+    all_table_names = inspector.get_table_names()
+
+    import_order = [
+        "network",
+        "participant",
+        "node",
+        "info",
+        "notification",
+        "question",
+        "transformation",
+        "vector",
+        "transmission",
+    ]
+
+    for n in all_table_names:
+        if n not in import_order:
+            import_order.append(n)
+
+    with ZipFile(path, "r") as archive:
+        filenames = archive.namelist()
+
+        for tablename in import_order:
+            filename_template = f"data/{tablename}.csv"
+
+            matches = [f for f in filenames if filename_template in f]
+            if len(matches) == 0:
+                continue
+            elif len(matches) > 1:
+                raise IOError(
+                    f"Multiple matches for {filename_template} found in archive: {matches}"
+                )
+            else:
+                filename = matches[0]
+
+            try:
+                model = db_models()[tablename]
+            except Exception:
+                import pydevd_pycharm
+
+                pydevd_pycharm.settrace(
+                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+                )
+            file = archive.open(filename)
+            if six.PY3:
+                file = io.TextIOWrapper(file, encoding="utf8", newline="")
+            ingest_to_model(file, model, engine)
+
+
+dallinger.data.ingest_zip = ingest_zip
+dallinger.data.ingest_to_model = ingest_to_model

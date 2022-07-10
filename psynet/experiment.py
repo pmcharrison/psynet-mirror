@@ -1268,3 +1268,15 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+
+
+def _patch_dallinger_models():
+    # There are some Dallinger functions that rely on the ability to look up
+    # models by name in dallinger.models. One example is the code for
+    # generating dashboard tabs for SQL object types. We therefore need
+    # to patch in certain PsyNet classes so that Dallinger can access them
+    # (in particular the Trial class).
+    dallinger.models.Trial = Trial
+
+
+_patch_dallinger_models()

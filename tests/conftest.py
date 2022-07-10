@@ -4,6 +4,7 @@ import warnings
 
 import pytest
 import sqlalchemy.exc
+from dallinger import db
 from dallinger.db import Base, engine
 from dallinger.models import Network, Node
 from dallinger.nodes import Source
@@ -48,7 +49,11 @@ def demo_teardown(root):
     os.chdir(root)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
+
+    print("Resetting database...")
+    db.session.commit()  # This seems to be important to avoid the process getting stuck
     Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
+    print("...complete.")
 
 
 @pytest.fixture(scope="class")

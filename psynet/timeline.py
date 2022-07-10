@@ -18,7 +18,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from . import templates
-from .data import SQLBase, SQLMixin
+from .data import SQLBase, SQLMixin, register_table
 from .field import claim_field
 from .participant import Participant
 from .utils import (
@@ -1456,7 +1456,8 @@ class FailedValidation:
         self.message = message
 
 
-class _Response(SQLBase, SQLMixin):
+@register_table
+class Response_(SQLBase, SQLMixin):
     """
     This virtual class is not to be used directly.
     We use it as the parent class for the ``Response`` class
@@ -1469,7 +1470,7 @@ class _Response(SQLBase, SQLMixin):
     __tablename__ = "response"
 
 
-class Response(_Response):
+class Response(Response_):
     """
     A database-backed object that stores the participant's response to a
     :class:`~psynet.timeline.Page`.
