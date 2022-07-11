@@ -11,14 +11,20 @@ from typing import Optional
 import boto3
 import sqlalchemy
 from dallinger import db
-from dallinger.data import copy_db_to_csv
 from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import __version__ as psynet_version
-from .data import copy_db_table_to_csv, SQLBase, SQLMixin, ingest_to_model, register_table
+from .data import (
+    SQLBase,
+    SQLMixin,
+    copy_db_table_to_csv,
+    ingest_to_model,
+    register_table,
+)
 from .field import PythonObject
 from .media import get_aws_credentials, run_aws_cli_command
 from .timeline import NullElt
@@ -543,10 +549,21 @@ class CachedAsset(ManagedAsset):
         pass
 
 
-class FunctionAssetMixin(ManagedAsset):
-    function = Column(PythonObject)
-    arguments = Column(PythonObject)
-    computation_time_sec = Column(Float)
+class FunctionAssetMixin:
+    # The following conditional logic in the column definitions is required
+    # to prevent column conflict errors, see
+    # https://docs.sqlalchemy.org/en/13/orm/extensions/declarative/inheritance.html#resolving-column-conflicts
+    @declared_attr
+    def function(cls):
+        return cls.__table__.c.get("function", Column(PythonObject))
+
+    @declared_attr
+    def arguments(cls):
+        return cls.__table__.c.get("arguments", Column(PythonObject))
+
+    @declared_attr
+    def computation_time_sec(cls):
+        return cls.__table__.c.get("computation_time_sec", Column(Float))
 
     def __init__(
         self,
@@ -621,11 +638,11 @@ class FunctionAssetMixin(ManagedAsset):
         asset_storage.receive_deposit(self, host_path)
 
 
-class FunctionAsset(FunctionAssetMixin, ExperimentAsset):
+class FunctionAsset(ExperimentAsset, FunctionAssetMixin):
     pass
 
 
-class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
+class CachedFunctionAsset(CachedAsset, FunctionAssetMixin):
     @property
     def cache_key(self):
         return self.get_md5_instructions()

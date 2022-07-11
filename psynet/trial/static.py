@@ -8,17 +8,15 @@ from pathlib import Path
 from statistics import mean
 from typing import Optional
 
-from dallinger import db
 import dallinger.models
-
+from dallinger import db
 from sqlalchemy import Column, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from .. import command_line
 from ..assets import CachedAsset
-from ..data import copy_db_table_to_csv
 from ..field import claim_var
-from ..timeline import join, NullElt
+from ..timeline import NullElt, join
 from ..utils import get_logger
 from .main import (
     HasDefinition,
@@ -45,7 +43,11 @@ class StaticStimulusRegistry:
 
     @property
     def stimuli(self):
-        return [s for _stimulus_set in self.stimulus_sets.values() for s in _stimulus_set.stimuli]
+        return [
+            s
+            for _stimulus_set in self.stimulus_sets.values()
+            for s in _stimulus_set.stimuli
+        ]
 
     def compile_stimulus_sets(self):
         for elt in self.timeline.elts:
@@ -60,7 +62,7 @@ class StaticStimulusRegistry:
     def prepare_for_deployment(self):
         self.add_stimuli_to_db()
         self.update_stimulus_asset_metadata()
-        self.export_db_spec()
+        # self.export_db_spec()
 
     def add_stimuli_to_db(self):
         for stimulus in self.stimuli:
@@ -71,9 +73,9 @@ class StaticStimulusRegistry:
         for stimulus in self.stimuli:
             stimulus.update_asset_metadata()
 
-    def export_db_spec(self):
-        self.assert_node_table_only_contains_stimuli()
-        copy_db_table_to_csv("node", self.csv_path)
+    # def export_db_spec(self):
+    #     self.assert_node_table_only_contains_stimuli()
+    #     copy_db_table_to_csv("node", self.csv_path)
 
     @staticmethod
     def assert_node_table_only_contains_stimuli(self):
@@ -86,8 +88,8 @@ class StaticStimulusRegistry:
             )
 
 
-
 # TOOD - should this really be in the global namespace?
+
 
 def filter_for_completed_trials(x):
     return x.filter_by(failed=False, complete=True, is_repeat_trial=False)
@@ -100,8 +102,6 @@ def query_all_completed_trials():
 class Stimulus(TrialNode, HasDefinition):
     """
     Defines a stimulus for a static experiment.
-    Will be translated to a database-backed
-    :class:`~psynet.trial.static.StimulusNode` instance.
 
     Parameters
     ----------
@@ -190,17 +190,16 @@ class Stimulus(TrialNode, HasDefinition):
         # TODO
         raise NotImplementedError
 
-        assert network.phase == stimulus_spec.phase
-        assert network.participant_group == stimulus_spec.participant_group
-        assert network.block == stimulus_spec.block
-
-        super().__init__(network=network)
-        self.definition = stimulus_spec.definition
-        source.connect(whom=self)
-        self.target_num_trials = target_num_trials
-        self.phase = self.network.phase
-        self.participant_group = self.network.participant_group
-        self.block = self.network.block
+        # assert network.phase == stimulus_spec.phase
+        # assert network.participant_group == stimulus_spec.participant_group
+        # assert network.block == stimulus_spec.block
+        #
+        # self.definition = stimulus_spec.definition
+        # source.connect(whom=self)
+        # self.target_num_trials = target_num_trials
+        # self.phase = self.network.phase
+        # self.participant_group = self.network.participant_group
+        # self.block = self.network.block
 
     @property
     def _query_completed_trials(self):
@@ -225,34 +224,13 @@ class _PlaceholderNetwork:
     Dallinger requires all node objects to be initialized with pre-existing networks.
     We create the following placeholder class to get around this obligation.
     """
+
     class Network:
         failed = False
         id = -1
 
         def calculate_full(self):
             pass
-
-
-class Stimulus(TrialNode, HasDefinition):
-    """
-    Defines a stimulus for a static experiment.
-    Will be translated to a database-backed
-    :class:`~psynet.trial.static.StimulusNode` instance.
-
-    Parameters
-    ----------
-
-    definition
-        A dictionary of parameters defining the stimulus.
-
-    participant_group
-        The associated participant group.
-        Defaults to a common participant group for all participants.
-
-    block
-        The associated block.
-        Defaults to a single block for all trials.
-    """
 
 
 class StimulusSet(NullElt):
@@ -316,9 +294,6 @@ class StimulusSet(NullElt):
 
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
-
-    def load(self):
-        return self
 
 
 class VirtualStimulusSet:
@@ -458,8 +433,8 @@ class StaticTrial(Trial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = Column(Integer, ForeignKey("StimulusNode.id"))
-    stimulus = relationship(StimulusNode)
+    stimulus_id = Column(Integer, ForeignKey("Stimulus.id"))
+    stimulus = relationship(Stimulus)
     phase = Column(String)
     participant_group = Column(String)
     block = Column(String)
@@ -714,8 +689,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         if isinstance(stimulus_set, list):
             stimulus_set = StimulusSet(id_, stimulus_set)
 
-        self.stimulus_set = stimulus_set.load()  #  TODO - delete this
-
+        self.stimulus_set = stimulus_set
         self.target_num_participants = target_num_participants
         self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
         self.max_trials_per_block = max_trials_per_block
@@ -745,10 +719,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         self.check_stimulus_set()
 
     def compile_elts(self):
-        return join(
-            self.stimulus_set,
-            super().compile_elts()
-        )
+        return join(self.stimulus_set, super().compile_elts())
 
     def check_stimulus_set(self):
         if self.phase != self.stimulus_set.phase:
@@ -1001,7 +972,7 @@ class StaticTrialMaker(NetworkTrialMaker):
             participant, block=network.block
         )
         allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
-        candidates = StimulusNode.query.filter_by(
+        candidates = Stimulus.query.filter_by(
             network_id=network.id
         ).all()  # networks are guaranteed to be from the correct phase
         if not self.allow_repeated_stimuli:
@@ -1122,10 +1093,10 @@ class StaticNetwork(TrialNetwork):
        :class:`~psynet.trial.static.StaticTrial` classes.
 
     2. Within a given network, the first level of the hierarchy is the
-       :class:`~psynet.trial.static.StimulusNode` class.
+       :class:`~psynet.trial.static.Stimulus` class.
        These are generated directly from :class:`~psynet.trial.static.Stimulus` instances.
 
-    4. Nested within :class:`~psynet.trial.static.StimulusNode` objects
+    4. Nested within :class:`~psynet.trial.static.Stimulus` objects
        are :class:`~psynet.trial.static.StaticTrial` objects.
 
     Attributes
@@ -1233,7 +1204,7 @@ class StaticNetwork(TrialNetwork):
 
     @property
     def stimulus_query(self):
-        return StimulusNode.query.filter_by(network_id=self.id)
+        return Stimulus.query.filter_by(network_id=self.id)
 
     @property
     def stimuli(self):
