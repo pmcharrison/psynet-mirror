@@ -182,7 +182,7 @@ class Stimulus(TrialNode, HasDefinition):
                 asset.key = f"static_stimuli/{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
             asset.node = self
             asset.network = self.network
-            asset.set_variables(self.definition)
+            asset.add_stimulus_definition(self.definition)
 
         db.session.commit()
 
@@ -217,20 +217,6 @@ class Stimulus(TrialNode, HasDefinition):
                 "<num_trials_still_required> is not defined when <target_num_trials> is None."
             )
         return self.target_num_trials - self.num_completed_trials
-
-
-class _PlaceholderNetwork:
-    """
-    Dallinger requires all node objects to be initialized with pre-existing networks.
-    We create the following placeholder class to get around this obligation.
-    """
-
-    class Network:
-        failed = False
-        id = -1
-
-        def calculate_full(self):
-            pass
 
 
 class StimulusSet(NullElt):
@@ -1213,6 +1199,16 @@ class StaticNetwork(TrialNetwork):
     @property
     def num_stimuli(self):
         return self.stimulus_query.count()
+
+
+class _PlaceholderNetwork(dallinger.models.Network):
+    """
+    Dallinger requires all node objects to be initialized with pre-existing networks.
+    We create the following placeholder class to get around this obligation.
+    """
+
+    def calculate_full(self):
+        pass
 
 
 def stimulus_set_from_dir(

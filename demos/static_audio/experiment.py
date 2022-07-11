@@ -21,12 +21,6 @@ from .custom_synth import synth_stimulus
 # python3 experiment.py
 
 
-class CustomStimulusVersionSpec(StimulusVersionSpec):
-    @classmethod
-    def generate_media(cls, definition, output_path):
-        synth_stimulus(definition["frequencies"], output_path)
-
-
 stimuli = [
     Stimulus(
         definition={
@@ -36,11 +30,10 @@ stimuli = [
         },
         assets={
             "audio": CachedFunctionAsset(
-                function=lambda path, definition: synth_stimulus(
-                    definition["frequencies"], path
+                function=lambda path, stimulus_definition: synth_stimulus(
+                    stimulus_definition["frequencies"], path
                 ),
                 extension=".wav",
-                key=None,  # how to autogen this sensibly?? maybe we need to precreate the stimulus networks before we launch the app
             )
         },
     )

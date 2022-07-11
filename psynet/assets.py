@@ -139,7 +139,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     network = relationship("Network", backref="assets")
 
     node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship("Node", backref="assets")
+    node = relationship("Node")
 
     trial_id = Column(Integer, ForeignKey("info.id"))
     trial = relationship(
@@ -173,8 +173,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self.extension = extension if extension else self.get_extension()
 
         self.participant = participant
-        # I'm not sure this duplication is absolutely necessary but it adds safety
-        self.participant_id = participant.id
+        if participant:
+            # I'm not sure this duplication is absolutely necessary but it adds safety
+            self.participant_id = participant.id
 
         self.network = network
         self.node = node
@@ -351,6 +352,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
             log(f"Failed to export the asset {self.key} to path {path}.")
             raise
+
+    def receive_stimulus_definition(self, definition):
+        self.var.stimulus_definition = definition
 
 
 class MockAsset(Asset):
@@ -549,6 +553,9 @@ class CachedAsset(ManagedAsset):
         pass
 
 
+from .field import MutableDict, PythonDict
+
+
 class FunctionAssetMixin:
     # The following conditional logic in the column definitions is required
     # to prevent column conflict errors, see
@@ -559,7 +566,10 @@ class FunctionAssetMixin:
 
     @declared_attr
     def arguments(cls):
-        return cls.__table__.c.get("arguments", Column(PythonObject))
+        # The MutableDict stuff ensures that in-place edits like ``asset.arguments["x"] = 3`` are tracked properly
+        return cls.__table__.c.get(
+            "arguments", Column(MutableDict.as_mutable(PythonDict), nullable=True)
+        )
 
     @declared_attr
     def computation_time_sec(cls):
@@ -567,9 +577,9 @@ class FunctionAssetMixin:
 
     def __init__(
         self,
-        key,
         function,
-        arguments: dict,
+        key: Optional[str] = None,
+        arguments: Optional[dict] = None,
         data_type="file",
         extension=None,
         trial=None,
@@ -581,7 +591,7 @@ class FunctionAssetMixin:
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         self.function = function
-        self.arguments = arguments
+        self.arguments = arguments if arguments else {}
         self.temp_dir = None
         input_path = None
         label = key
@@ -637,12 +647,20 @@ class FunctionAssetMixin:
         self.computation_time_sec = time_end - time_start
         asset_storage.receive_deposit(self, host_path)
 
+    def receive_stimulus_definition(self, definition):
+        super().receive_stimulus_definition(definition)
+        self.arguments["stimulus_definition"] = definition
 
-class FunctionAsset(ExperimentAsset, FunctionAssetMixin):
+
+class FunctionAsset(FunctionAssetMixin, ExperimentAsset):
+    # FunctionAssetMixin comes first in the inheritance hierarchy
+    # because we need to use its ``__init__`` method.
     pass
 
 
-class CachedFunctionAsset(CachedAsset, FunctionAssetMixin):
+class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
+    # FunctionAssetMixin comes first in the inheritance hierarchy
+    # because we need to use its ``__init__`` method.
     @property
     def cache_key(self):
         return self.get_md5_instructions()
