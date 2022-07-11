@@ -9,7 +9,7 @@ from psynet.modular_page import (
 )
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus, StimulusSet
+from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus
 
 from .custom_synth import synth_stimulus
 
@@ -30,9 +30,7 @@ stimuli = [
         },
         assets={
             "audio": CachedFunctionAsset(
-                function=lambda path, stimulus_definition: synth_stimulus(
-                    stimulus_definition["frequencies"], path
-                ),
+                function=lambda path, frequencies: synth_stimulus(frequencies, path),
                 extension=".wav",
             )
         },

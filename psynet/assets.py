@@ -25,12 +25,13 @@ from .data import (
     ingest_to_model,
     register_table,
 )
-from .field import PythonObject
+from .field import MutableDict, PythonDict, PythonObject
 from .media import get_aws_credentials, run_aws_cli_command
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
     get_extension,
+    get_function_args,
     import_local_experiment,
     md5_directory,
     md5_file,
@@ -553,9 +554,6 @@ class CachedAsset(ManagedAsset):
         pass
 
 
-from .field import MutableDict, PythonDict
-
-
 class FunctionAssetMixin:
     # The following conditional logic in the column definitions is required
     # to prevent column conflict errors, see
@@ -649,7 +647,10 @@ class FunctionAssetMixin:
 
     def receive_stimulus_definition(self, definition):
         super().receive_stimulus_definition(definition)
-        self.arguments["stimulus_definition"] = definition
+        requested_args = get_function_args(self.function)
+        for key, value in definition.items():
+            if key in requested_args:
+                self.arguments[key] = value
 
 
 class FunctionAsset(FunctionAssetMixin, ExperimentAsset):
