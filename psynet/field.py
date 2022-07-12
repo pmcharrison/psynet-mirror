@@ -433,14 +433,20 @@ def json_add_extra_vars(x, obj):
 
 
 def json_format_vars(x):
+    def is_basic_type(value):
+        return value is None or isinstance(value, (int, float, str, bool))
+
     for key, value in x.items():
+        # TODO - revisit this? Will need some concurrent edits in Dallinger,
+        # e.g. the logic for sending __json__() outputs to the dashboard.
         if isinstance(value, datetime):
-            new_val = value.strftime("%Y-%m-%d %H:%M")
-        elif not (
-            (value is None)
-            or isinstance(value, (int, float, str, bool, list, datetime))
-        ):
-            new_val = jsonpickle.encode(value)
-        else:
-            new_val = value
-        x[key] = new_val
+            value = value.strftime("%Y-%m-%d %H:%M:%S")
+        elif isinstance(value, MutableList):
+            value = list(value)
+        elif isinstance(value, MutableDict):
+            value = dict(value)
+
+        if not is_basic_type(value):
+            value = jsonpickle.encode(value)
+
+        x[key] = value
