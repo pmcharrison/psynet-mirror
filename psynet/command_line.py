@@ -156,11 +156,14 @@ def debug(
     """
     log(header)
 
+    from .experiment import database_template_zip_path
+
     drop_all_db_tables()
 
     if archive is None:
         _run_prepare_in_subprocess(force_prepare)
         _cleanup_before_debug()
+        archive = database_template_zip_path
 
     try:
         if legacy:
@@ -214,19 +217,18 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
     from dallinger.command_line import DebugDeployment as dallinger_debug_deployment
     from dallinger.command_line import debug as dallinger_debug
 
-    from .experiment import database_template_zip_path
-
     exp_config = {"threads": str(threads)}
-    import_local_experiment()
 
     try:
-        # Ordinarily dallinger debug initializes the database itself.
-        # We take over the initialization process so we can prepopulate the database.
-        # It would be nicer if dallinger debug incorporated support for deploying from archive.
+        # Ordinarily ``dallinger debug`` initializes the database itself to an empty state.
+        # In PsyNet, we instead prepare a database snapshot located at ``database_template_zip_path``
+        # which is used to prepopulate the database. Ideally we'd pass this as the ``--archive``
+        # parameter for the Dallinger subcommands. Unfortunately, legacy ``dallinger_debug``
+        # doesn't accept an ``--archive`` parameter. Our workaround is instead to disable
+        # Dallinger's database initialization process, and just let it use the current local
+        # state of the database, which is equivalent to the snapshot we've been talking about.
         original_do_init_db = dallinger_debug_deployment.DO_INIT_DB
         dallinger_debug_deployment.DO_INIT_DB = False
-
-        populate_db_from_zip_file(database_template_zip_path)
 
         ctx.invoke(
             dallinger_debug,
@@ -413,11 +415,14 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
+    from .experiment import database_template_zip_path
+
     run_pre_checks("deploy")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
+        archive = database_template_zip_path
 
     from dallinger.command_line import deploy as dallinger_deploy
 
@@ -516,11 +521,14 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
+    from .experiment import database_template_zip_path
+
     run_pre_checks("sandbox")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
+        archive = database_template_zip_path
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 
@@ -829,6 +837,7 @@ def export_(app, local, include_assets, n_parallel):
 def populate_db_from_zip_file(zip_path):
     from dallinger import data as dallinger_data
 
+    db.session.commit()  # The process can freeze without this
     init_db(drop_all=True)
     dallinger_data.ingest_zip(zip_path)
 
@@ -866,3 +875,14 @@ def rpdb(ip, port):
         ["nc %s %s" % (ip, port)],
         shell=True,
     )
+
+
+###########
+# load #
+###########
+@psynet.command()
+@click.argument("path")
+def load(path):
+    "Populates the local database with a provided zip file."
+    import_local_experiment()
+    populate_db_from_zip_file(path)
