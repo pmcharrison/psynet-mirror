@@ -48,6 +48,9 @@ from .timeline import (
     Timeline,
 )
 from .trial.main import Trial
+from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
+    Recording,
+)
 from .trial.static import StaticStimulusRegistry
 from .utils import (
     call_function,
