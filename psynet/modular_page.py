@@ -1234,7 +1234,9 @@ class ModularPage(Page):
                 "a fresh `Control` object each time."
             )
         self.control.page = self
-        self.control.label = label
+
+        if not self.control.label:
+            self.control.label = label
 
         template_str = f"""
         {{% extends "timeline-page.html" %}}
@@ -1937,6 +1939,9 @@ class RecordControl(Control):
     See :class:`~psynet.modular_page.AudioRecordControl`
     and :class:`~psynet.modular_page.VideoRecordControl`.
 
+    label
+        Label used to tag the uploaded recording.
+
     duration
         Duration of the desired recording, in seconds.
         Note: the output recording may not be exactly this length, owing to inaccuracies
@@ -1961,12 +1966,14 @@ class RecordControl(Control):
 
     def __init__(
         self,
+        label: str,
         duration: float,
         auto_advance: bool = False,
         show_meter: bool = False,
     ):
         super().__init__()
 
+        self.label = label
         self.duration = duration
         self.auto_advance = auto_advance
 
@@ -1995,6 +2002,9 @@ class AudioRecordControl(RecordControl):
     Parameters
     ----------
 
+    label
+        Label used to tag the uploaded recording.
+
     controls
         Whether to give the user controls for the recorder (default = ``False``).
 
@@ -2013,13 +2023,14 @@ class AudioRecordControl(RecordControl):
 
     def __init__(
         self,
+        label: str,
         *,
         controls: bool = False,
         loop_playback: bool = False,
         num_channels: int = 1,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(label=label, **kwargs)
 
         self.controls = controls
         self.loop_playback = loop_playback
@@ -2076,6 +2087,9 @@ class VideoRecordControl(RecordControl):
     Parameters
     ----------
 
+    label
+        Label used to tag the uploaded recording.
+
     recording_source
         Specifies whether to record by using the camera and/or by capturing from the screen.
         Possible values are 'camera', 'screen' and 'both'.
@@ -2109,6 +2123,7 @@ class VideoRecordControl(RecordControl):
 
     def __init__(
         self,
+        label: str,
         *,
         recording_source: str = "camera",
         record_audio: bool = True,
@@ -2120,7 +2135,7 @@ class VideoRecordControl(RecordControl):
         mirrored: bool = True,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(label=label, **kwargs)
 
         self.recording_source = recording_source
         self.record_audio = record_audio

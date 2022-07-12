@@ -49,12 +49,12 @@ class CustomTrial(StaticTrial):
 
     def show_trial(self, experiment, participant):
         return ModularPage(
-            "question_page",
+            "imitation_page",
             AudioPrompt(
                 self.stimulus.assets["audio"].url,
                 "Please imitate the spoken word as closely as possible.",
             ),
-            AudioRecordControl(duration=3.0),
+            AudioRecordControl("imitation", duration=3.0),
             time_estimate=self._time_trial,
         )
 
@@ -62,7 +62,7 @@ class CustomTrial(StaticTrial):
         return ModularPage(
             "feedback_page",
             AudioPrompt(
-                participant.answer["url"],
+                self.assets["imitation"].url,
                 "Listen back to your recording. Did you do a good job?",
             ),
             time_estimate=self._time_feedback,

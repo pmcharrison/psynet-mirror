@@ -260,7 +260,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             self.deployment_id = self.asset_registry.deployment_id
             self.content_id = self.get_content_id()
 
-            if self.key is None:
+            if not self.has_key:
                 self.key = self.generate_key()
 
             asset_to_use = self
