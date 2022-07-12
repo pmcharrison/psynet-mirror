@@ -1201,7 +1201,7 @@ class ModularPage(Page):
         self,
         label: str,
         prompt: Union[str, Prompt],
-        control: Control = NullControl(),
+        control: Optional[Control] = None,
         time_estimate: Optional[float] = None,
         media: Optional[MediaSpec] = None,
         events: Optional[dict] = None,
@@ -1209,6 +1209,9 @@ class ModularPage(Page):
         start_trial_automatically: bool = True,
         **kwargs,
     ):
+        if control is None:
+            control = NullControl()
+
         if media is None:
             media = MediaSpec()
 
