@@ -177,7 +177,8 @@ class Stimulus(TrialNode, HasDefinition):
         self.block = block
         self.assets = assets
 
-        super().__init__(network=_PlaceholderNetwork(), participant=None)
+        # Note: We purposefully do not call super().__init__(), because this parent constructor
+        # requires the prior existence of the node's parent network, which is impractical for us.
 
     def update_asset_metadata(self):
         stimulus_id = self.id
@@ -1188,16 +1189,6 @@ class StaticNetwork(TrialNetwork):
     @property
     def num_stimuli(self):
         return self.stimulus_query.count()
-
-
-class _PlaceholderNetwork(dallinger.models.Network):
-    """
-    Dallinger requires all node objects to be initialized with pre-existing networks.
-    We create the following placeholder class to get around this obligation.
-    """
-
-    def calculate_full(self):
-        pass
 
 
 def stimulus_set_from_dir(
