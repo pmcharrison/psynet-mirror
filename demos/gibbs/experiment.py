@@ -15,6 +15,7 @@ from sqlalchemy.orm import relationship
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
+from psynet.demography.general import ExperimentFeedback
 from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
 from psynet.page import InfoPage, Prompt, SuccessfulEndPage
 from psynet.participant import Participant
@@ -241,6 +242,7 @@ class Exp(psynet.experiment.Experiment):
         ),
         trial_maker,
         collect_coin(),
+        ExperimentFeedback(),
         SuccessfulEndPage(),
     )
 

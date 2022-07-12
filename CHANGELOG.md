@@ -1,5 +1,20 @@
 # CHANGELOG
 
+# [9.1.0] Released on 2022-07-11
+
+#### Added
+- Added PsyNetRecruiter base class passing down the missing `notify_duration_exceeded` method to `BaseLucidRecruiter`. (author: Frank Höger; reviewer: Peter Harrison)
+
+#### Fixed
+- Fixed further issues with database tables not being exported properly. (author: Peter Harrison, reviewer: Frank Höger)
+
+#### Changed
+- Prevent opening a new window when clicking on the `Begin Experiment` button on the Ad page when using `LucidRecruiter`. (author: Frank Höger, reviewer: Peter Harrison)
+- Register `cap_recruiter_auth_token` config variable; cleanup CAP-Recruiter demo. (author: Frank Höger, reviewer: Peter Harrison)
+- Changed fields of the `LucidRIDs` database table: Removed fields `failed`, `failed_reason`, and `time_of_death`; added field `termination_requested_at`.
+ `termination_requested_at` is now set each time a termination request is made to Lucid Marketplace. (author: Frank Höger; reviewer: Peter Harrison)
+- Ensure that `Exp.setup()` only happens in the once, in the launch routine. (author: Peter Harrison, reviewer: Frank Höger)
+
 # [9.0.1] Released on 2022-07-08
 
 #### Added
@@ -7,6 +22,7 @@
 
 #### Fixed
 - Fixed problem where not all database tables were being exported. (author: Peter Harrison, reviewer: Frank Höger)
+- Fixed problem where two 'ExperimentConfig' database objects were being created. (author: Peter Harrison, reviewer: Frank Höger)
 
 #### Changed
 - PsyNet now just exports data as CSV files, not JSON files; doing both seemed redundant. (author: Peter Harrison, reviewer: Frank Höger)
