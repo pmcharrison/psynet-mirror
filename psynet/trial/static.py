@@ -10,12 +10,12 @@ from typing import Optional
 
 import dallinger.models
 from dallinger import db
-from sqlalchemy import Column, ForeignKey, Integer, String, func
+from dallinger.models import Vector
+from sqlalchemy import Column, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from .. import command_line
 from ..assets import CachedAsset
-from ..field import claim_var
 from ..timeline import NullElt, join
 from ..utils import get_logger
 from .main import (
@@ -37,7 +37,6 @@ class StaticStimulusRegistry:
         self.experiment = experiment
         self.timeline = experiment.timeline
         self.stimulus_sets = {}
-
         self.compile_stimulus_sets()
         # self.compile_stimuli()
 
@@ -52,17 +51,24 @@ class StaticStimulusRegistry:
     def compile_stimulus_sets(self):
         for elt in self.timeline.elts:
             if isinstance(elt, StimulusSet):
-                assert elt.id is not None
-                if elt.id in self.stimulus_sets and elt != self.stimulus_sets[elt.id]:
+                id_ = elt.stimulus_set_id
+                assert id_ is not None
+                if id_ in self.stimulus_sets and elt != self.stimulus_sets[id_]:
                     raise RuntimeError(
-                        f"Tried to register two non-identical stimulus sets with the same ID: {elt.id}"
+                        f"Tried to register two non-identical stimulus sets with the same ID: {id_}"
                     )
-                self.stimulus_sets[elt.id] = elt
+                self.stimulus_sets[id_] = elt
 
-    def prepare_for_deployment(self):
+    def prepare_for_deployment(self, experiment):
+        self.create_networks(experiment)
         self.add_stimuli_to_db()
         self.update_stimulus_asset_metadata()
         # self.export_db_spec()
+
+    def create_networks(self, experiment):
+        for s in self.stimulus_sets.values():
+            s.create_networks(experiment)
+        db.session.commit()
 
     def add_stimuli_to_db(self):
         for stimulus in self.stimuli:
@@ -72,6 +78,7 @@ class StaticStimulusRegistry:
     def update_stimulus_asset_metadata(self):
         for stimulus in self.stimuli:
             stimulus.update_asset_metadata()
+        db.session.commit()
 
     # def export_db_spec(self):
     #     self.assert_node_table_only_contains_stimuli()
@@ -174,7 +181,7 @@ class Stimulus(TrialNode, HasDefinition):
 
     def update_asset_metadata(self):
         stimulus_id = self.id
-        assert isinstance(stimulus_id, Integer)
+        assert isinstance(stimulus_id, int)
 
         for key, asset in self.assets.items():
             if asset.key is None:
@@ -182,24 +189,21 @@ class Stimulus(TrialNode, HasDefinition):
                 asset.key = f"static_stimuli/{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
             asset.node = self
             asset.network = self.network
-            asset.add_stimulus_definition(self.definition)
+            asset.receive_stimulus_definition(self.definition)
 
         db.session.commit()
 
-    def connect_to_db(self, network, source, target_num_trials, stimulus_set):
-        # TODO
-        raise NotImplementedError
+    def add_to_network(self, network, source, target_num_trials, stimulus_set):
+        assert network.phase == self.phase
+        assert network.participant_group == self.participant_group
+        assert network.block == self.block
 
-        # assert network.phase == stimulus_spec.phase
-        # assert network.participant_group == stimulus_spec.participant_group
-        # assert network.block == stimulus_spec.block
-        #
-        # self.definition = stimulus_spec.definition
-        # source.connect(whom=self)
-        # self.target_num_trials = target_num_trials
-        # self.phase = self.network.phase
-        # self.participant_group = self.network.participant_group
-        # self.block = self.network.block
+        self.target_num_trials = target_num_trials
+        self.network = network
+        self.network_id = network.id
+
+        v = Vector(origin=source, destination=self)
+        db.session.add(v)
 
     @property
     def _query_completed_trials(self):
@@ -243,10 +247,12 @@ class StimulusSet(NullElt):
         stimuli,
     ):
         assert isinstance(stimuli, list)
+        assert isinstance(id_, str)
 
         self.stimuli = stimuli
-        self.id = id_
+        self.stimulus_set_id = id_
         self.phase = None
+        self.trial_maker = None
 
         network_specs = set()
         blocks = set()
@@ -256,7 +262,7 @@ class StimulusSet(NullElt):
         for s in stimuli:
             assert isinstance(s, Stimulus)
 
-            s.stimulus_set_id = self.id
+            s.stimulus_set_id = self.stimulus_set_id
 
             network_specs.add((s.phase, s.participant_group, s.block))
 
@@ -280,6 +286,22 @@ class StimulusSet(NullElt):
 
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
+
+    def create_networks(self, experiment):
+        assert self.trial_maker is not None
+
+        for network_spec in self.network_specs:
+            network = network_spec.create_network(
+                trial_maker_id=self.trial_maker.id,
+                experiment=experiment,
+                target_num_trials_per_stimulus=self.trial_maker.target_num_trials_per_stimulus,
+            )
+            db.session.commit()
+            network.populate(
+                stimulus_set=self,
+                target_num_trials_per_stimulus=self.trial_maker.target_num_trials_per_stimulus,
+            )
+            db.session.commit()
 
 
 class VirtualStimulusSet:
@@ -343,7 +365,7 @@ class NetworkSpec:
             target_num_trials_per_stimulus=target_num_trials_per_stimulus,
         )
         db.session.add(network)
-        db.session.commit()
+        return network
 
 
 class StaticTrial(Trial):
@@ -419,7 +441,7 @@ class StaticTrial(Trial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = Column(Integer, ForeignKey("Stimulus.id"))
+    stimulus_id = Column(Integer)
     stimulus = relationship(Stimulus)
     phase = Column(String)
     participant_group = Column(String)
@@ -518,7 +540,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
 
-    stimulus_set
+    stimuli
         The stimulus set to be administered.
 
     recruit_mode
@@ -642,7 +664,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         id_: str,
         trial_class,
         phase: str,
-        stimulus_set: StimulusSet,
+        stimuli: StimulusSet,
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_stimulus: Optional[int] = None,
@@ -672,8 +694,10 @@ class StaticTrialMaker(NetworkTrialMaker):
                 "<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided."
             )
 
-        if isinstance(stimulus_set, list):
-            stimulus_set = StimulusSet(id_, stimulus_set)
+        stimulus_set = (
+            stimuli if isinstance(stimuli, StimulusSet) else StimulusSet(id_, stimuli)
+        )
+        stimulus_set.trial_maker = self
 
         self.stimulus_set = stimulus_set
         self.target_num_participants = target_num_participants
@@ -685,6 +709,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         self.active_balancing_across_participants = active_balancing_across_participants
 
         expected_num_trials = self.estimate_num_trials(num_repeat_trials)
+
         super().__init__(
             id_=id_,
             trial_class=trial_class,
@@ -702,17 +727,8 @@ class StaticTrialMaker(NetworkTrialMaker):
             wait_for_networks=True,
         )
 
-        self.check_stimulus_set()
-
     def compile_elts(self):
         return join(self.stimulus_set, super().compile_elts())
-
-    def check_stimulus_set(self):
-        if self.phase != self.stimulus_set.phase:
-            raise ValueError(
-                f"Trial-maker '{self.id}' has a chosen phase of '{self.phase}', "
-                + f"which contradicts the phase selected in the stimulus set ('{self.stimulus_set.phase}')."
-            )
 
     @property
     def num_trials_still_required(self):
@@ -905,15 +921,6 @@ class StaticTrialMaker(NetworkTrialMaker):
         """
         participant_groups = self.stimulus_set.participant_groups
         return random.choice(participant_groups)
-
-    def create_networks(self, experiment):
-        for network_spec in self.stimulus_set.network_specs:
-            network_spec.create_network(
-                trial_maker_id=self.id,
-                experiment=experiment,
-                target_num_trials_per_stimulus=self.target_num_trials_per_stimulus,
-            )
-        experiment.save()
 
     def find_networks(self, participant, experiment, ignore_async_processes=False):
         # pylint: disable=protected-access
@@ -1129,11 +1136,6 @@ class StaticNetwork(TrialNetwork):
     participant_group = Column(String)
     block = Column(String)
 
-    creation_started = claim_var(
-        "creation_started", __extra_vars__
-    )  # TODO - migrate to SQLAlchemy datetime
-    creation_progress = claim_var("creation_progress", __extra_vars__)
-
     def __init__(
         self,
         *,
@@ -1147,33 +1149,22 @@ class StaticNetwork(TrialNetwork):
     ):
         self.participant_group = participant_group
         self.block = block
-        self.creation_started = False
-        self.creation_progress = 0.0
         super().__init__(trial_maker_id, phase, experiment)
-        db.session.add(self)
-        if not self.creation_started:
-            self.creation_started = True
-            self.queue_async_method(
-                "populate",
-                stimulus_set=stimulus_set,
-                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
-            )
-        db.session.commit()
 
     def populate(self, stimulus_set, target_num_trials_per_stimulus):
         source = TrialSource(network=self)
         db.session.add(source)
-        stimulus_specs = [
+        stimuli = [
             x
-            for x in stimulus_set.stimulus_specs
+            for x in stimulus_set.stimuli
             if x.phase == self.phase
             and x.participant_group == self.participant_group
             and x.block == self.block
         ]
-        N = len(stimulus_specs)
+        N = len(stimuli)
         n = 0
-        for i, stimulus_spec in enumerate(stimulus_specs):
-            stimulus_spec.add_stimulus_to_network(
+        for i, stimulus in enumerate(stimuli):
+            stimulus.add_to_network(
                 network=self,
                 source=source,
                 target_num_trials=target_num_trials_per_stimulus,
@@ -1182,10 +1173,8 @@ class StaticNetwork(TrialNetwork):
             n = i + 1
             if n % 100 == 0:
                 logger.info("Populated network %i with %i/%i stimuli...", self.id, n, N)
-                self.creation_progress = (1 + i) / N
                 db.session.commit()
         logger.info("Finished populating network %i with %i/%i stimuli.", self.id, n, N)
-        self.creation_progress = 1.0
         db.session.commit()
 
     @property
