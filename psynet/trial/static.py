@@ -195,12 +195,6 @@ class Stimulus(TrialNode, HasDefinition):
 
         db.session.commit()
 
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
-
     def add_to_network(self, network, source, target_num_trials, stimulus_set):
         assert network.phase == self.phase
         assert network.participant_group == self.participant_group
