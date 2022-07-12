@@ -61,6 +61,12 @@ from .utils import (
 
 logger = get_logger()
 
+database_template_path = ".database_template"
+database_template_app_name = "template"
+database_template_zip_path = os.path.join(
+    database_template_path, "data", f"{database_template_app_name}-data.zip"
+)
+
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -423,16 +429,16 @@ class Experiment(dallinger.experiment.Experiment):
             if isinstance(elt, Asset):
                 self.assets.stage(elt)
 
-    @classmethod
-    def pre_deploy(cls):
-        cls.check_config()
-        cls.update_deployment_id()
-        cls.static_stimuli.prepare_for_deployment()
-        cls.assets.prepare_for_deployment()
-        for routine in cls.pre_deploy_routines:
+    def pre_deploy(self):
+        experiment = self
+        self.check_config()
+        self.update_deployment_id()
+        self.static_stimuli.prepare_for_deployment(experiment)
+        self.assets.prepare_for_deployment()
+        for routine in self.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
             call_function(routine.function, routine.args)
-        cls.create_database_snapshot()
+        self.create_database_snapshot()
 
     @classmethod
     def update_deployment_id(cls):
@@ -466,17 +472,14 @@ class Experiment(dallinger.experiment.Experiment):
         def __init__(self, msg=msg):
             super().__init__(msg)
 
-    database_template_path = ".database_template"
-    database_template_app_name = "template"
-
     @classmethod
     def create_database_snapshot(cls):
-        shutil.rmtree(cls.database_template_path, ignore_errors=True)
-        os.mkdir(cls.database_template_path)
+        shutil.rmtree(database_template_path, ignore_errors=True)
+        os.mkdir(database_template_path)
 
-        with working_directory(cls.database_template_path):
+        with working_directory(database_template_path):
             dallinger.data.export(
-                cls.database_template_app_name, local=True, scrub_pii=False
+                database_template_app_name, local=True, scrub_pii=False
             )
 
     @classmethod

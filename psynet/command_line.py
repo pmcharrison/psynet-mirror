@@ -211,10 +211,23 @@ def run_pre_auto_reload_checks():
 
 
 def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
+    from dallinger.command_line import DebugDeployment as dallinger_debug_deployment
     from dallinger.command_line import debug as dallinger_debug
 
+    from .experiment import database_template_zip_path
+
     exp_config = {"threads": str(threads)}
+    import_local_experiment()
+
     try:
+        # Ordinarily dallinger debug initializes the database itself.
+        # We take over the initialization process so we can prepopulate the database.
+        # It would be nicer if dallinger debug incorporated support for deploying from archive.
+        original_do_init_db = dallinger_debug_deployment.DO_INIT_DB
+        dallinger_debug_deployment.DO_INIT_DB = False
+
+        populate_db_from_zip_file(database_template_zip_path)
+
         ctx.invoke(
             dallinger_debug,
             verbose=verbose,
@@ -224,6 +237,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
             exp_config=exp_config,
         )
     finally:
+        dallinger_debug_deployment.DO_INIT_DB = original_do_init_db
         reset_console()
 
 
