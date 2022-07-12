@@ -174,7 +174,7 @@ class Stimulus(TrialNode, HasDefinition):
         self.phase = phase
         self.participant_group = participant_group
         self.block = block
-        self.assets = assets
+        self._staged_assets = assets
 
         # Note: We purposefully do not call super().__init__(), because this parent constructor
         # requires the prior existence of the node's parent network, which is impractical for us.
@@ -183,8 +183,8 @@ class Stimulus(TrialNode, HasDefinition):
         stimulus_id = self.id
         assert isinstance(stimulus_id, int)
 
-        for key, asset in self.assets.items():
-            if asset.key is None:
+        for key, asset in self._staged_assets.items():
+            if not asset.has_key:
                 asset.label = key
                 asset.key = f"static_stimuli/{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
             asset.node = self
@@ -449,10 +449,10 @@ class StaticTrial(Trial):
     participant_group = Column(String)
     block = Column(String)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        stimulus = self.origin
-        self.stimulus_id = stimulus.id
+    def __init__(self, experiment, node, *args, **kwargs):
+        self.stimulus = node
+        self.stimulus_id = node.id
+        super().__init__(experiment, node, *args, **kwargs)
         self.phase = self.stimulus.phase
         self.participant_group = self.stimulus.participant_group
         self.block = self.stimulus.block
@@ -460,7 +460,22 @@ class StaticTrial(Trial):
     def show_trial(self, experiment, participant):
         raise NotImplementedError
 
-    def make_definition(self, experiment, participant, stimulus_definition):
+    def make_definition(self, experiment, participant):
+        """
+        This can be overridden to add additional randomized trial properties.
+        For example:
+
+        ```
+        return {
+            **stimulus_definition,
+            "bass_note": random.sample(10),
+        }
+        ```
+        """
+        stimulus_definition = self.stimulus.definition
+        return self.finalize_definition(experiment, participant, stimulus_definition)
+
+    def finalize_definition(self, experiment, participant, stimulus_definition):
         """
         This can be overridden to add additional randomized trial properties.
         For example:

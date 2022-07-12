@@ -11,3 +11,14 @@ def test_lambda_function():
         str(e.value)
         == "'function' cannot be a lambda function, please provide a named function instead"
     )
+
+
+def test_key():
+    def f(path):
+        pass
+
+    asset_1 = CachedFunctionAsset(function=f)
+    asset_2 = CachedFunctionAsset(function=f, key="asset_2")
+
+    assert not asset_1.has_key
+    assert asset_2.has_key

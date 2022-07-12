@@ -51,7 +51,8 @@ class CustomTrial(StaticTrial):
         return ModularPage(
             "question_page",
             AudioPrompt(
-                self.media_url, "Please imitate the spoken word as closely as possible."
+                self.stimulus.assets["audio"].url,
+                "Please imitate the spoken word as closely as possible.",
             ),
             AudioRecordControl(duration=3.0),
             time_estimate=self._time_trial,

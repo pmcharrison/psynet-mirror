@@ -77,6 +77,12 @@ class AssetSpecification:
     def prepare_for_deployment(self, asset_registry):
         raise NotImplementedError
 
+    null_key_pattern = re.compile("^pending--.*")
+
+    @property
+    def has_key(self):
+        return self.key is not None and not self.null_key_pattern.match(self.key)
+
 
 class AssetCollection(AssetSpecification):
     pass
@@ -140,7 +146,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     network = relationship("Network", backref="assets")
 
     node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship("Node")
+    node = relationship(
+        "Node",
+        backref=backref(
+            "assets", collection_class=attribute_mapped_collection("label")
+        ),
+    )
 
     trial_id = Column(Integer, ForeignKey("info.id"))
     trial = relationship(
@@ -838,7 +849,7 @@ class NoStorage(AssetStorage):
 
 
 class LocalStorage(AssetStorage):
-    def __init__(self, root):
+    def __init__(self, root, label: str = "local_storage"):
         """
 
         Parameters
@@ -846,21 +857,43 @@ class LocalStorage(AssetStorage):
         root :
             Path to the directory to be used for storage.
             Tilde expansion (e.g. '~/psynet') is performed automatically.
+
+        label :
+            Label for the storage object.
         """
         super().__init__()
         self.root = os.path.expanduser(root)
+        self.label = label
+        self.public_path = self.create_public_path()
+        self.create_symlink()
+
+    def create_public_path(self):
+        """
+        This is the publicly exposed path by which the web browser can access the storage registry.
+        This corresponds to a (symlinked) directory inside the experiment directory.
+        """
+        return os.path.join("static", self.label)
+
+    def create_symlink(self):
+        try:
+            os.unlink(self.public_path)
+        except FileNotFoundError:
+            pass
+        os.makedirs("static", exist_ok=True)
+        os.symlink(self.root, self.public_path)
 
     def receive_deposit(self, asset: ExperimentAsset, host_path: str):
         super().receive_deposit(asset, host_path)
 
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
+        asset.var.file_system_path = file_system_path
 
         self.copy_asset(asset, asset.input_path, file_system_path)
 
-        return dict(
-            url=os.path.abspath(file_system_path),
-        )
+        # return dict(
+        #     url=os.path.abspath(file_system_path),
+        # )
 
     def copy_asset(self, asset, from_, to_):
         if asset.type == "folder":
@@ -877,7 +910,7 @@ class LocalStorage(AssetStorage):
         return os.path.join(self.root, host_path)
 
     def get_url(self, host_path):
-        return os.path.abspath(self.get_file_system_path(host_path))
+        return os.path.join(self.public_path, host_path)
 
     def asset_exists(self, host_path: str, data_type: str):
         file_system_path = self.get_file_system_path(host_path)
