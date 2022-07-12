@@ -1,6 +1,7 @@
 import csv
 import io
 import os
+import shutil
 import tempfile
 from typing import List, Optional
 from zipfile import ZipFile
@@ -9,19 +10,18 @@ import dallinger.data
 import dallinger.models
 import pandas
 import postgres_copy
-import shutil
 import six
 import sqlalchemy
 from dallinger import db
 from dallinger.data import fix_autoincrement
 from dallinger.db import Base as SQLBase  # noqa
-from dallinger.db import init_db  # noqa
 from dallinger.experiment_server import dashboard
 from dallinger.models import Info  # noqa
 from dallinger.models import Network  # noqa
 from dallinger.models import Node  # noqa
 from dallinger.models import Notification  # noqa
 from dallinger.models import Question  # noqa
+from dallinger.models import Recruitment  # noqa
 from dallinger.models import Transformation  # noqa
 from dallinger.models import Transmission  # noqa
 from dallinger.models import Vector  # noqa
@@ -29,6 +29,7 @@ from dallinger.models import SharedMixin, timenow  # noqa
 from joblib import Parallel, delayed
 from sqlalchemy import Column, String
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.orm.session import close_all_sessions
 from sqlalchemy.schema import (
     DropConstraint,
     DropTable,
@@ -229,9 +230,7 @@ def copy_db_table_to_csv(tablename, path):
     with tempfile.TemporaryDirectory() as tempdir:
         dallinger.data.copy_db_to_csv(db.db_url, tempdir)
         temp_filename = f"{tablename}.csv"
-        shutil.copyfile(
-            os.path.join(tempdir, temp_filename), path
-        )
+        shutil.copyfile(os.path.join(tempdir, temp_filename), path)
 
 
 def dump_db_to_disk(dir):
@@ -342,6 +341,15 @@ class SQLMixin(SQLMixinDallinger):
         return Column(String(50))
 
 
+def init_db(drop_all=False, bind=db.engine):
+    # Without these preliminary steps, the process can freeze --
+    # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
+    db.session.commit()
+    close_all_sessions()
+
+    dallinger.db.init_db(drop_all, bind)
+
+
 def drop_all_db_tables(bind=db.engine):
     """
     Drops all tables from the Postgres database.
@@ -389,32 +397,55 @@ def drop_all_db_tables(bind=db.engine):
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
 
 
-def dallinger_models():
-    "A list of all base models in Dallinger"
+def _sql_dallinger_base_classes():
+    """
+    These base classes define the basic object relational mappers for the
+    Dallinger database tables.
+
+    Returns
+    -------
+
+    A dictionary of base classes for Dallinger tables
+    keyed by Dallinger table names.
+    """
     from .participant import Participant
 
     return {
-        "Info": Info,
-        "Network": Network,
-        "Node": Node,
-        "Notification": Notification,
-        "Participant": Participant,
-        "Question": Question,
-        "Transformation": Transformation,
-        "Transmission": Transmission,
-        "Vector": Vector,
+        "info": Info,
+        "network": Network,
+        "node": Node,
+        "notification": Notification,
+        "participant": Participant,
+        "question": Question,
+        "recruitment": Recruitment,
+        "transformation": Transformation,
+        "transmission": Transmission,
+        "vector": Vector,
     }
 
 
-# Extra base models that are defined in PsyNet or in the experiment itself
-extra_models = {}
+# A dictionary of base classes for additional tables that are defined in PsyNet
+# or by individual experiment implementations, keyed by table names.
+# See also dallinger_table_base_classes().
+_sql_psynet_base_classes = {}
 
 
-def db_models():
-    "Together, this list of models should cover all the base classes in the database."
+def sql_base_classes():
+    """
+    Lists the base classes underpinning the different SQL tables used by PsyNet,
+    including both base classes defined in Dallinger (e.g. ``Node``, ``Info``)
+    and additional classes defined in custom PsyNet tables.
+
+    Returns
+    -------
+
+    A dictionary of base classes (e.g. ``Node``), keyed by the corresponding
+    table names for those base classes (e.g. `node`).
+
+    """
     return {
-        **dallinger_models(),
-        **extra_models,
+        **_sql_dallinger_base_classes(),
+        **_sql_psynet_base_classes,
     }
 
 
@@ -430,7 +461,7 @@ def register_table(cls):
         __tablename__ = "bird"
     ```
     """
-    extra_models[cls.__name__] = cls
+    _sql_psynet_base_classes[cls.__tablename__] = cls
     setattr(dallinger.models, cls.__name__, cls)
     update_dashboard_models()
     dallinger.data.table_names.append(cls.__tablename__)
@@ -439,12 +470,6 @@ def register_table(cls):
 
 def update_dashboard_models():
     "Determines the list of objects in the dashboard database browser."
-    from .timeline import Response
-    from .trial.main import Trial
-
-    dallinger.models.Trial = Trial
-    dallinger.models.Response = Response
-
     dashboard.BROWSEABLE_MODELS = [
         "Participant",
         "Network",
@@ -454,7 +479,8 @@ def update_dashboard_models():
         "Transformation",
         "Transmission",
         "Notification",
-    ] + list(extra_models)
+        "Recruitment",
+    ] + [tablename.capitalize() for tablename in _sql_psynet_base_classes.keys()]
 
 
 def ingest_to_model(
@@ -466,6 +492,9 @@ def ingest_to_model(
 ):
     """
     Imports a CSV file to the database.
+    The implementation is similar to ``dallinger.data.ingest_to_model``,
+    but incorporates a few extra parameters (``clear_columns``, ``replace_columns``)
+    and does not fail for tables without an ``id`` column.
 
     Parameters
     ----------
@@ -482,7 +511,6 @@ def ingest_to_model(
     replace_columns :
         Optional dictionary of values to set for particular columns.
     """
-    # Patched version of dallinger.data.ingest_to_model
     if engine is None:
         engine = db.engine
 
@@ -549,8 +577,8 @@ def ingest_zip(path, engine=None):
     with ZipFile(path, "r") as archive:
         filenames = archive.namelist()
 
-        for name in import_order:
-            filename_template = f"data/{name}.csv"
+        for tablename in import_order:
+            filename_template = f"data/{tablename}.csv"
 
             matches = [f for f in filenames if filename_template in f]
             if len(matches) == 0:
@@ -562,8 +590,8 @@ def ingest_zip(path, engine=None):
             else:
                 filename = matches[0]
 
-            model_name = name.capitalize()
-            model = db_models()[model_name]
+            model = sql_base_classes()[tablename]
+
             file = archive.open(filename)
             if six.PY3:
                 file = io.TextIOWrapper(file, encoding="utf8", newline="")
