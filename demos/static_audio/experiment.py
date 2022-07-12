@@ -11,14 +11,15 @@ from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.timeline import Timeline
 from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus
 
-from .custom_synth import synth_stimulus
+from .custom_synth import synth_prosody
 
 ##########################################################################################
 # Stimuli
 ##########################################################################################
 
-# Prepare the audio stimuli by running the following command:
-# python3 experiment.py
+
+def synth_stimulus(path, frequencies):
+    synth_prosody(vector=frequencies, output_path=path)
 
 
 stimuli = [
@@ -30,7 +31,7 @@ stimuli = [
         },
         assets={
             "audio": CachedFunctionAsset(
-                function=lambda path, frequencies: synth_stimulus(frequencies, path),
+                function=synth_stimulus,
                 extension=".wav",
             )
         },

@@ -1,13 +1,9 @@
-# Note: parselmouth must be installed with pip install praat-parselmouth
-# Note: synth_stimulus is the only function required by the Audio Gibbs Sampler;
-#       synth_batch is just here as relic from a previous implementation.
-
 import os
 
 import numpy as np
 
 
-def synth_stimulus(vector, output_path):
+def synth_prosody(vector, output_path):
     """
     Synthesises a stimulus.
 

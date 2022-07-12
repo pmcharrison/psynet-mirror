@@ -588,6 +588,12 @@ class FunctionAssetMixin:
         replace_existing=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
+        assert callable(function)
+        if function.__name__ == "<lambda>":
+            raise ValueError(
+                "'function' cannot be a lambda function, please provide a named function instead"
+            )
+
         self.function = function
         self.arguments = arguments if arguments else {}
         self.temp_dir = None
@@ -609,7 +615,7 @@ class FunctionAssetMixin:
         )
 
     def __del__(self):
-        if self.temp_dir:
+        if hasattr(self, "temp_dir") and self.temp_dir:
             self.temp_dir.cleanup()
 
     @property
@@ -637,9 +643,16 @@ class FunctionAssetMixin:
             self.temp_dir.name, "function-output" + self.extension
         )
 
-        time_start = time.perf_counter()
-        self.function(path=self.input_path, **self.arguments)
-        time_end = time.perf_counter()
+        try:
+            time_start = time.perf_counter()
+            self.function(path=self.input_path, **self.arguments)
+            time_end = time.perf_counter()
+        except Exception:
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
 
         self.md5_contents = self.get_md5_contents()
         self.computation_time_sec = time_end - time_start
@@ -1027,7 +1040,7 @@ class AssetRegistry:
         self.asset_storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        Asset.query.delete()
+        # Asset.query.delete()
 
         Parallel(n_jobs=self.n_parallel, verbose=10)(
             delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)

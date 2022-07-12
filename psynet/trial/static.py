@@ -59,15 +59,14 @@ class StaticStimulusRegistry:
                     )
                 self.stimulus_sets[id_] = elt
 
-    def prepare_for_deployment(self, experiment):
-        self.create_networks(experiment)
+    def prepare_for_deployment(self):
+        self.create_networks()
         self.add_stimuli_to_db()
-        self.update_stimulus_asset_metadata()
-        # self.export_db_spec()
+        self.stage_assets()
 
-    def create_networks(self, experiment):
+    def create_networks(self):
         for s in self.stimulus_sets.values():
-            s.create_networks(experiment)
+            s.create_networks(self.experiment)
         db.session.commit()
 
     def add_stimuli_to_db(self):
@@ -75,9 +74,9 @@ class StaticStimulusRegistry:
             db.session.add(stimulus)
         db.session.commit()
 
-    def update_stimulus_asset_metadata(self):
+    def stage_assets(self):
         for stimulus in self.stimuli:
-            stimulus.update_asset_metadata()
+            stimulus.stage_assets(self.experiment)
         db.session.commit()
 
     # def export_db_spec(self):
@@ -180,7 +179,7 @@ class Stimulus(TrialNode, HasDefinition):
         # Note: We purposefully do not call super().__init__(), because this parent constructor
         # requires the prior existence of the node's parent network, which is impractical for us.
 
-    def update_asset_metadata(self):
+    def stage_assets(self, experiment):
         stimulus_id = self.id
         assert isinstance(stimulus_id, int)
 
@@ -191,8 +190,16 @@ class Stimulus(TrialNode, HasDefinition):
             asset.node = self
             asset.network = self.network
             asset.receive_stimulus_definition(self.definition)
+            experiment.assets.stage(asset)
+            db.session.add(asset)
 
         db.session.commit()
+
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
 
     def add_to_network(self, network, source, target_num_trials, stimulus_set):
         assert network.phase == self.phase

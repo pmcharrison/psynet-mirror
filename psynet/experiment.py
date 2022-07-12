@@ -430,10 +430,9 @@ class Experiment(dallinger.experiment.Experiment):
                 self.assets.stage(elt)
 
     def pre_deploy(self):
-        experiment = self
         self.check_config()
         self.update_deployment_id()
-        self.static_stimuli.prepare_for_deployment(experiment)
+        self.static_stimuli.prepare_for_deployment()
         self.assets.prepare_for_deployment()
         for routine in self.pre_deploy_routines:
             logger.info(f"Pre-deploying '{routine.label}'...")
