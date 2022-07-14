@@ -1,5 +1,5 @@
 import psynet.experiment
-from psynet.assets import CachedFunctionAsset, LocalStorage
+from psynet.assets import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -74,7 +74,8 @@ class CustomTrial(StaticTrial):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     name = "Static audio demo"
-    asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    # asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    asset_storage = S3Storage("psynet-demos", "static-audio")
 
     timeline = Timeline(
         NoConsent(),

@@ -5,10 +5,11 @@ import tempfile
 import time
 import urllib.request
 import uuid
-from functools import cache, cached_property
+from functools import cache, cached_property, wraps
 from typing import Optional
 
 import boto3
+import botocore.exceptions
 import psutil
 import sqlalchemy
 from dallinger import db
@@ -27,7 +28,7 @@ from .data import (
     register_table,
 )
 from .field import MutableDict, PythonDict, PythonObject
-from .media import get_aws_credentials, run_aws_cli_command
+from .media import create_bucket, get_aws_credentials, run_aws_cli_command
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -921,12 +922,28 @@ class LocalStorage(AssetStorage):
         )
 
 
+def create_bucket_if_necessary(fun):
+    @wraps(fun)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return fun(self, *args, **kwargs)
+        except botocore.exceptions.ClientError as ex:
+            if ex.response["Error"]["Code"] == "NoSuchBucket":
+                create_bucket(self.s3_bucket)
+                return fun(self, *args, **kwargs)
+            else:
+                raise
+
+    return wrapper
+
+
 class S3Storage(AssetStorage):
     def __init__(self, s3_bucket, root):
         super().__init__()
         self.s3_bucket = s3_bucket
         self.root = root
 
+    @create_bucket_if_necessary
     def receive_deposit(self, asset, host_path):
         super().receive_deposit(asset, host_path)
 
@@ -942,6 +959,7 @@ class S3Storage(AssetStorage):
             "https://s3.amazonaws.com", self.s3_bucket, self.root, host_path
         )
 
+    @create_bucket_if_necessary
     def asset_exists(self, host_path: str, data_type: str):
         s3_key = os.path.join(self.root, host_path)
         if data_type == "folder":
@@ -965,14 +983,17 @@ class S3Storage(AssetStorage):
     def boto3_bucket(self):
         return self.boto3_s3_resource.Bucket(self.s3_bucket)
 
+    @create_bucket_if_necessary
     def file_exists(self, s3_key):
         candidates = self.boto3_bucket.objects.filter(Prefix=s3_key)
         if any([x.key == s3_key for x in candidates]):
             return True
 
+    @create_bucket_if_necessary
     def folder_exists(self, s3_key):
         return len(self.list_folder(s3_key)) > 0
 
+    @create_bucket_if_necessary
     def list_folder(self, folder):
         # cmd = f"aws s3 ls {s3_bucket}/{folder}/"
         # from subprocess import PIPE
@@ -1013,6 +1034,7 @@ class S3Storage(AssetStorage):
 
         run_aws_cli_command(cmd)
 
+    @create_bucket_if_necessary
     def upload(self, input_path, s3_key, recursive):
         """
         This function relies on the AWS CLI. You can install it with pip install awscli.

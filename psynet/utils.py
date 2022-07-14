@@ -580,7 +580,8 @@ def classproperty(func):
 
 
 def run_subprocess_with_live_output(command, timeout=None):
-    p = pexpect.spawn(command, timeout=timeout)
+    _command = command.replace('"', '\\"')
+    p = pexpect.spawn(f'bash -c "{_command}"', timeout=timeout)
     while not p.eof():
         line = p.readline().decode("utf-8")
         print(line, end="")
