@@ -28,7 +28,13 @@ class PythonObject(TypeDecorator):
         if value is None:
             return value
         sanitized = self.sanitize(value)
-        return jsonpickle.encode(sanitized)
+        try:
+            return jsonpickle.encode(sanitized)
+        except Exception:
+            logger.error(
+                f"An error occurred when trying to serialize the following Python object to the database: {sanitized}"
+            )
+            raise
 
     def process_literal_param(self, value, dialect):
         return value
