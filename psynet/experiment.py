@@ -76,7 +76,12 @@ def json_serial(obj):
     raise TypeError("Type not serializable")
 
 
-class Experiment(dallinger.experiment.Experiment):
+class ExperimentMeta(type):
+    def __init__(cls, name, bases, dct):
+        cls.assets = AssetRegistry(asset_storage=cls.asset_storage)
+
+
+class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # pylint: disable=abstract-method
     """
     The main experiment class from which to inherit when building experiments.
@@ -207,7 +212,7 @@ class Experiment(dallinger.experiment.Experiment):
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
     )
 
-    assets = AssetRegistry(asset_storage=NoStorage())
+    asset_storage = NoStorage()
 
     __extra_vars__ = {}
 

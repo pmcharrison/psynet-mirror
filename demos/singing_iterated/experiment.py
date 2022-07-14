@@ -8,7 +8,7 @@ from melody.resources import GenderSplit, SingingCalibration, ToneJSVolumeTest
 
 import psynet.experiment
 import psynet.media
-from psynet.assets import AssetRegistry, LocalStorage
+from psynet.assets import LocalStorage
 
 # from psynet.assets import S3Storage
 from psynet.consent import AudiovisualConsent, MainConsent
@@ -403,14 +403,8 @@ SingingMainTask1 = join(
 class Exp(psynet.experiment.Experiment):
     name = "Iterated singing demo"
 
-    # This seems verbose, can we simplify it?
-    # Maybe it should even go in the config? Seems difficult to be
-    # flexible enough if we put it there though.
-    #
     # assets = AssetRegistry(asset_storage=S3Storage())
-    assets = AssetRegistry(
-        asset_storage=LocalStorage("~/Downloads/psynet_local_storage")
-    )
+    asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
 
     # TODO - create S3 bucket if it doesn't exist
 

@@ -9,6 +9,7 @@ from functools import cache, cached_property
 from typing import Optional
 
 import boto3
+import psutil
 import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
@@ -1028,7 +1029,7 @@ class S3Storage(AssetStorage):
 class AssetRegistry:
     initial_asset_manifesto_path = "pre_deployed_assets.csv"
 
-    def __init__(self, asset_storage: AssetStorage, n_parallel=1):
+    def __init__(self, asset_storage: AssetStorage, n_parallel=None):
         self.asset_storage = asset_storage
         self.n_parallel = n_parallel
         self._staged_asset_specifications = []
@@ -1073,9 +1074,14 @@ class AssetRegistry:
         self.asset_storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
-        # Asset.query.delete()
+        if self.n_parallel:
+            n_jobs = self.n_parallel
+        elif len(self._staged_asset_specifications) < 25:
+            n_jobs = 1
+        else:
+            n_jobs = psutil.cpu_count()
 
-        Parallel(n_jobs=self.n_parallel, verbose=10)(
+        Parallel(n_jobs=n_jobs, verbose=10)(
             delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
             for a in self._staged_asset_specifications
         )
