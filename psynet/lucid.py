@@ -241,8 +241,9 @@ class LucidService(object):
             try:
                 response = requests.get(redirect_url)
                 if response.status_code == 200:
-                    rid.terminated_at = datetime.now()
-                    session.commit()
+                    if rid.terminated_at is None:
+                        rid.terminated_at = datetime.now()
+                        session.commit()
                     self.log(
                         f"Respondent terminated using redirect URL '{redirect_url}'."
                     )
