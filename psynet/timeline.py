@@ -18,7 +18,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from . import templates
-from .data import SQLBase, SQLMixin
+from .data import SQLBase, SQLMixin, register_table
 from .field import claim_field
 from .participant import Participant
 from .utils import (
@@ -1456,6 +1456,7 @@ class FailedValidation:
         self.message = message
 
 
+@register_table
 class _Response(SQLBase, SQLMixin):
     """
     This virtual class is not to be used directly.

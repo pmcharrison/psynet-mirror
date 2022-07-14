@@ -925,15 +925,6 @@ class Experiment(dallinger.experiment.Experiment):
             participant = participant = Participant.query.first()
         return error_page(participant=participant, request_data=request_data)
 
-    @experiment_route("/export", methods=["GET"])
-    @staticmethod
-    def export():
-        from psynet import data
-
-        class_name = request.args.get("class_name")
-        exported_data = data.export(class_name)
-        return json.dumps(exported_data, default=serialise)
-
     @experiment_route("/module", methods=["POST"])
     @classmethod
     def get_module_details_as_rendered_html(cls):
@@ -1301,3 +1292,15 @@ class ExperimentConfig(SQLBase, SQLMixin):
     failed = None
     failed_reason = None
     time_of_death = None
+
+
+def _patch_dallinger_models():
+    # There are some Dallinger functions that rely on the ability to look up
+    # models by name in dallinger.models. One example is the code for
+    # generating dashboard tabs for SQL object types. We therefore need
+    # to patch in certain PsyNet classes so that Dallinger can access them
+    # (in particular the Trial class).
+    dallinger.models.Trial = Trial
+
+
+_patch_dallinger_models()
