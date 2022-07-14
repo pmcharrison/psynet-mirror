@@ -5,11 +5,10 @@ import tempfile
 import time
 import urllib.request
 import uuid
-from functools import cache, cached_property, wraps
+from functools import cache, cached_property
 from typing import Optional
 
 import boto3
-import botocore.exceptions
 import psutil
 import sqlalchemy
 from dallinger import db
@@ -28,7 +27,13 @@ from .data import (
     register_table,
 )
 from .field import MutableDict, PythonDict, PythonObject
-from .media import create_bucket, get_aws_credentials, run_aws_cli_command
+from .media import (
+    bucket_exists,
+    create_bucket,
+    get_aws_credentials,
+    make_bucket_public,
+    run_aws_cli_command,
+)
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -438,7 +443,7 @@ class ManagedAsset(Asset):
         super()._deposit(asset_storage)
         self.host_path = self.generate_host_path(self.deployment_id)
         self.url = self.asset_registry.asset_storage.get_url(self.host_path)
-        self.asset_registry.asset_storage.update_asset_metadata(self)
+        self.asset_storage.update_asset_metadata(self)
 
         time_start = time.perf_counter()
         self._deposit_(asset_storage, self.host_path)
@@ -801,6 +806,9 @@ class AssetStorage:
 
         return x
 
+    def update_asset_metadata(self, asset: Asset):
+        pass
+
     def receive_deposit(self, asset, host_path: str):
         pass
 
@@ -935,11 +943,6 @@ class LocalStorage(AssetStorage):
 #     return wrapper
 
 
-from functools import cache
-
-from .media import bucket_exists
-
-
 @cache
 def get_boto3_s3_session():
     return boto3.Session(**get_aws_credentials())
@@ -953,9 +956,6 @@ def get_boto3_s3_resource():
 @cache
 def get_boto3_s3_bucket(name):
     return get_boto3_s3_resource().Bucket(name)
-
-
-from .media import make_bucket_public
 
 
 class S3Storage(AssetStorage):
@@ -1054,7 +1054,7 @@ class S3Storage(AssetStorage):
         This function relies on the AWS CLI. You can install it with pip install awscli.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = f"aws s3 cp {input_path} {url}"
+        cmd = f'aws s3 cp "{input_path}" "{url}"'
 
         if recursive:
             cmd += " --recursive"

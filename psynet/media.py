@@ -43,6 +43,7 @@ def run_aws_cli_command(cmd):
     _cmd += f"export AWS_ACCESS_KEY_ID={credentials['aws_access_key_id']}; "
     _cmd += f"export AWS_SECRET_ACCESS_KEY={credentials['aws_secret_access_key']}; "
     _cmd += cmd
+    print(cmd)
     run_subprocess_with_live_output(_cmd)
 
 
