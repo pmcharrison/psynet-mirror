@@ -438,6 +438,7 @@ class ManagedAsset(Asset):
         super()._deposit(asset_storage)
         self.host_path = self.generate_host_path(self.deployment_id)
         self.url = self.asset_registry.asset_storage.get_url(self.host_path)
+        self.asset_registry.asset_storage.update_asset_metadata(self)
 
         time_start = time.perf_counter()
         self._deposit_(asset_storage, self.host_path)
@@ -656,16 +657,9 @@ class FunctionAssetMixin:
             self.temp_dir.name, "function-output" + self.extension
         )
 
-        try:
-            time_start = time.perf_counter()
-            self.function(path=self.input_path, **self.arguments)
-            time_end = time.perf_counter()
-        except Exception:
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-            )
+        time_start = time.perf_counter()
+        self.function(path=self.input_path, **self.arguments)
+        time_end = time.perf_counter()
 
         self.md5_contents = self.get_md5_contents()
         self.computation_time_sec = time_end - time_start
@@ -884,12 +878,16 @@ class LocalStorage(AssetStorage):
         os.makedirs("static", exist_ok=True)
         os.symlink(self.root, self.public_path)
 
-    def receive_deposit(self, asset: ExperimentAsset, host_path: str):
+    def update_asset_metadata(self, asset: Asset):
+        host_path = asset.host_path
+        file_system_path = self.get_file_system_path(host_path)
+        asset.var.file_system_path = file_system_path
+
+    def receive_deposit(self, asset: Asset, host_path: str):
         super().receive_deposit(asset, host_path)
 
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
-        asset.var.file_system_path = file_system_path
 
         self.copy_asset(asset, asset.input_path, file_system_path)
 
@@ -1086,6 +1084,9 @@ class AssetRegistry:
             assert isinstance(asset, AssetSpecification)
             self._staged_asset_specifications.append(asset)
             self._staged_asset_lookup_table[asset.key] = asset
+
+    def update_asset_metadata(self, asset: Asset):
+        pass
 
     def receive_deposit(self, asset: Asset, host_path: str):
         return self.asset_storage.receive_deposit(asset, host_path)
