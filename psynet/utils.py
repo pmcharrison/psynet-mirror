@@ -1,4 +1,5 @@
 import base64
+import concurrent.futures
 import contextlib
 import hashlib
 import importlib
@@ -10,6 +11,7 @@ import os
 import re
 import sys
 import time
+import traceback
 from datetime import datetime
 from functools import cache, reduce, wraps
 from pathlib import Path
@@ -20,6 +22,8 @@ import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
 from dallinger.config import config, get_config
+from dallinger.db import redis_conn
+from rq import Queue
 
 
 def get_logger():
@@ -637,3 +641,31 @@ def working_directory(path):
         yield
     finally:
         os.chdir(start_dir)
+
+
+def run_async_command_locally(fun, *args, **kwargs):
+    """
+    This is for when want to run a command asynchronously (so that it doesn't block current execution)
+    but locally (so that we know we have access to local files).
+    """
+
+    def wrapper():
+        try:
+            fun(*args, **kwargs)
+        except Exception:
+            log_to_redis(str(traceback.format_exc()))
+            raise
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        executor.submit(wrapper)
+
+
+def log_to_redis(msg):
+    """
+    This passes the message to the Redis queue to be printed by the worker that picks it up.
+    This is useful for logging from processes that don't have access to the main logger.
+    """
+    q = Queue("default", connection=redis_conn)
+    q.enqueue_call(
+        func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
+    )
