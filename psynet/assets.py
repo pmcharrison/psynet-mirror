@@ -948,6 +948,11 @@ def get_boto3_s3_session():
 
 
 @cache
+def get_boto3_s3_client():
+    return boto3.client("s3")
+
+
+@cache
 def get_boto3_s3_resource():
     return get_boto3_s3_session().resource("s3")
 
@@ -955,6 +960,33 @@ def get_boto3_s3_resource():
 @cache
 def get_boto3_s3_bucket(name):
     return get_boto3_s3_resource().Bucket(name)
+
+
+def list_files_in_s3_bucket(
+    bucket_name: str, prefix: str = "", delimiter: str = "/", start_after: str = ""
+):
+    """
+    Lists files in an S3 bucket.
+
+    Parameters
+    ----------
+    bucket_name :
+        Bucket to list files within.
+
+    prefix :
+        Only lists files whose keys begin with this string.
+
+    Returns
+    -------
+
+    A generator that yields keys.
+
+    """
+    paginator = get_boto3_s3_client().get_paginator("list_objects_v2")
+
+    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+        for content in page.get("Contents", ()):
+            yield content["Key"]
 
 
 class S3Storage(AssetStorage):
