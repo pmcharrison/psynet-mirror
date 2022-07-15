@@ -40,6 +40,7 @@ from .utils import (
     md5_directory,
     md5_file,
     md5_object,
+    run_async_command_locally,
 )
 
 logger = get_logger()
@@ -252,7 +253,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self.deposit(self.default_asset_storage)
         db.session.commit()
 
-    def deposit(self, asset_storage=None, replace=None):
+    def deposit(self, asset_storage=None, replace=None, async_: bool = False):
         try:
             if replace is None:
                 replace = self.replace_existing
@@ -284,17 +285,29 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             if asset_to_use == self:
                 db.session.add(self)
 
-                self._deposit(self.asset_storage)
-                self.deposited = True
+                self._deposit(self.asset_storage, async_)
+                # if deposit_complete:
+                #     self.deposited = True
 
             return asset_to_use
 
         finally:
             db.session.commit()
 
-    def _deposit(self, asset_storage):
-        """Performs the actual deposit, confident that no duplicates exist."""
-        pass
+    def _deposit(self, asset_storage: "AssetStorage", async_: bool):
+        """
+        Performs the actual deposit, confident that no duplicates exist.
+
+        Returns
+        -------
+
+        Returns ``True`` if the deposit has been completed,
+        or ``False`` if the deposit has yet to be completed,
+        typically because it is being performed in an asynchronous process
+        which will take responsibility for marking the deposit as complete
+        in due course.
+        """
+        raise NotImplementedError
 
     def download(self, path):
         import pydevd_pycharm
@@ -438,19 +451,21 @@ class ManagedAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def _deposit(self, asset_storage):
-        super()._deposit(asset_storage)
+    def _deposit(self, asset_storage: "AssetStorage", async_: bool):
+        super()._deposit(asset_storage, async_)
         self.host_path = self.generate_host_path(self.deployment_id)
         self.url = self.asset_registry.asset_storage.get_url(self.host_path)
         self.asset_storage.update_asset_metadata(self)
 
         time_start = time.perf_counter()
-        self._deposit_(asset_storage, self.host_path)
+        self._deposit_(asset_storage, self.host_path, async_)
         time_end = time.perf_counter()
 
         self.size_mb = self.get_size_mb()
         self.md5_contents = self.get_md5_contents()
-        self.deposit_time_sec = time_end - time_start
+        self.deposit_time_sec = (
+            time_end - time_start
+        )  # Todo - update this - won't be correct for async deposits
 
     def get_size_mb(self):
         return self._data_type.get_file_size_mb(self.input_path)
@@ -496,8 +511,8 @@ class ManagedAsset(Asset):
 
 
 class ExperimentAsset(ManagedAsset):
-    def _deposit_(self, asset_storage, host_path):
-        asset_storage.receive_deposit(self, host_path)
+    def _deposit_(self, asset_storage, host_path, async_):
+        asset_storage.receive_deposit(self, host_path, async_)
 
     def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
@@ -558,15 +573,15 @@ class CachedAsset(ManagedAsset):
             self.compute_hash(),
         )
 
-    def _deposit_(self, asset_storage, host_path):
+    def _deposit_(self, asset_storage, host_path, async_):
         if asset_storage.check_cache(host_path, data_type=self.type):
             self.used_cache = True
         else:
             self.used_cache = False
-            self._deposit__(asset_storage, host_path)
+            self._deposit__(asset_storage, host_path, async_)
 
-    def _deposit__(self, asset_storage, host_path):
-        asset_storage.receive_deposit(self, host_path)
+    def _deposit__(self, asset_storage, host_path, async_):
+        asset_storage.receive_deposit(self, host_path, async_)
 
     def retrieve_contents(self):
         pass
@@ -655,7 +670,7 @@ class FunctionAssetMixin:
         else:
             return super().get_size_mb()
 
-    def _deposit__(self, asset_storage, host_path):
+    def _deposit__(self, asset_storage, host_path, async_):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.input_path = os.path.join(
             self.temp_dir.name, "function-output" + self.extension
@@ -667,7 +682,7 @@ class FunctionAssetMixin:
 
         self.md5_contents = self.get_md5_contents()
         self.computation_time_sec = time_end - time_start
-        asset_storage.receive_deposit(self, host_path)
+        asset_storage.receive_deposit(self, host_path, async_)
 
     def receive_stimulus_definition(self, definition):
         super().receive_stimulus_definition(definition)
@@ -725,7 +740,7 @@ class ExternalAsset(Asset):
     def get_extension(self):
         return get_extension(self.url)
 
-    def _deposit(self, asset_storage):
+    def _deposit(self, asset_storage: "AssetStorage", async_: bool):
         pass
 
     @property
@@ -808,8 +823,29 @@ class AssetStorage:
     def update_asset_metadata(self, asset: Asset):
         pass
 
-    def receive_deposit(self, asset, host_path: str):
-        pass
+    def receive_deposit(self, asset, host_path: str, async_: bool):
+        if async_:
+            f = self._async__call_receive_deposit
+        else:
+            f = self._call_receive_deposit
+
+        f(asset, host_path)
+
+    def _receive_deposit(self, asset: Asset, host_path: str):
+        raise NotImplementedError
+
+    def _call_receive_deposit(
+        self, asset: Asset, host_path: str, db_commit: bool = False
+    ):
+        self._receive_deposit(asset, host_path)
+        asset.deposited = True
+        if db_commit:
+            db.session.commit()
+
+    def _async__call_receive_deposit(self, asset: Asset, host_path: str):
+        run_async_command_locally(
+            self._call_receive_deposit, asset, host_path, db_commit=True
+        )
 
     def export(self, asset, path):
         raise NotImplementedError
@@ -859,8 +895,7 @@ class WebStorage(AssetStorage):
 
 
 class NoStorage(AssetStorage):
-    def receive_deposit(self, asset, host_path: str):
-        super().receive_deposit(asset, host_path)
+    def _receive_deposit(self, asset, host_path: str):
         raise RuntimeError("Asset depositing is not supported by 'NoStorage' objects.")
 
 
@@ -903,13 +938,14 @@ class LocalStorage(AssetStorage):
         file_system_path = self.get_file_system_path(host_path)
         asset.var.file_system_path = file_system_path
 
-    def receive_deposit(self, asset: Asset, host_path: str):
-        super().receive_deposit(asset, host_path)
+    def receive_deposit(self, asset: Asset, host_path: str, async_: bool):
+        super().receive_deposit(asset, host_path, async_)
 
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
         self.copy_asset(asset, asset.input_path, file_system_path)
+        asset.deposited = True
 
         # return dict(
         #     url=os.path.abspath(file_system_path),
@@ -1027,16 +1063,14 @@ class S3Storage(AssetStorage):
             create_bucket(self.s3_bucket)
         make_bucket_public(self.s3_bucket)
 
-    # @create_bucket_if_necessary
-    def receive_deposit(self, asset, host_path):
-        super().receive_deposit(asset, host_path)
-
+    def _receive_deposit(self, asset, host_path):
+        target_path = os.path.join(self.root, host_path)
         recursive = asset.type == "folder"
-        self.upload(asset.input_path, os.path.join(self.root, host_path), recursive)
+        self.upload(asset.input_path, target_path, recursive)
 
-        return dict(
-            url=self.get_url(host_path),
-        )
+        # return dict(
+        #     url=self.get_url(host_path),
+        # )
 
     def get_url(self, host_path: str):
         s3_key = os.path.join(self.root, host_path)
@@ -1185,8 +1219,8 @@ class AssetRegistry:
     def update_asset_metadata(self, asset: Asset):
         pass
 
-    def receive_deposit(self, asset: Asset, host_path: str):
-        return self.asset_storage.receive_deposit(asset, host_path)
+    def receive_deposit(self, asset: Asset, host_path: str, async_: bool):
+        return self.asset_storage.receive_deposit(asset, host_path, async_)
 
     def get(self, key):
         # When the experiment is running then we can get the assets from the database.
