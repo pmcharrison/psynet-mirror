@@ -14,6 +14,7 @@ from dallinger.utils import get_base_url
 from sqlalchemy import Column, DateTime, String
 from sqlalchemy.orm.exc import MultipleResultsFound, NoResultFound
 
+from .consent import AudiovisualConsent, LucidConsent, OpenScienceConsent
 from .data import SQLBase, SQLMixin, register_table
 from .lucid import LucidService
 from .utils import get_logger, pretty_format_seconds
@@ -146,6 +147,11 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     """
 
     start_experiment_in_popup_window = True
+    required_consent_page = LucidConsent.LucidConsentPage
+    optional_consent_pages = (
+        AudiovisualConsent.AudiovisualConsentPage,
+        OpenScienceConsent.OpenScienceConsentPage,
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__()
@@ -159,6 +165,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
             recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
         )
         self.store = kwargs.get("store") or RedisStore()
+        self.set_experiment_variables()
 
     @property
     def survey_number_storage_key(self):
@@ -169,6 +176,25 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def in_progress(self):
         """Does a Lucid survey for the current experiment ID already exist?"""
         return self.current_survey_number() is not None
+
+    def verify_consents(self, consents):
+        error_msg = "Lucid recruitment requires consent 'LucidConsent' and optionally one of `AudiovisualConsent` or `OpenScienceConsent` (in this order)"
+        if isinstance(consents[0], self.required_consent_page):
+            if len(consents) == 1:
+                pass
+            elif len(consents) == 2 and isinstance(
+                consents[1], self.optional_consent_pages
+            ):
+                pass
+            else:
+                raise RuntimeError(error_msg)
+        else:
+            raise RuntimeError(error_msg)
+
+    def set_experiment_variables(self):
+        experiment = dallinger.experiment.load().new(db.session)
+        experiment.var.set("show_abort_button", False)
+        experiment.var.set("show_bonus", False)
 
     def current_survey_number(self):
         """
