@@ -2,7 +2,7 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
-from psynet.consent import MainConsent
+from psynet.consent import LucidConsent
 from psynet.demography.general import BasicDemography
 from psynet.demography.gmsi import GMSI
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -28,7 +28,7 @@ INITIAL_RECRUITMENT_SIZE = 1
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
-        MainConsent(),
+        LucidConsent(),
         InfoPage(
             Markup(
                 """
