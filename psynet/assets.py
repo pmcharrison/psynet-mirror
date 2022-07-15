@@ -253,7 +253,28 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self.deposit(self.default_asset_storage)
         db.session.commit()
 
-    def deposit(self, asset_storage=None, replace=None, async_: bool = False):
+    def deposit(
+        self,
+        asset_storage=None,
+        replace=None,
+        async_: bool = False,
+        delete: bool = False,
+    ):
+        """
+
+        Parameters
+        ----------
+        asset_storage
+        replace
+        async_
+
+        delete :
+            Whether or not to delete the input file after it has been deposited.
+
+        Returns
+        -------
+
+        """
         try:
             if replace is None:
                 replace = self.replace_existing
@@ -285,7 +306,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             if asset_to_use == self:
                 db.session.add(self)
 
-                self._deposit(self.asset_storage, async_)
+                self._deposit(self.asset_storage, async_, delete)
                 # if deposit_complete:
                 #     self.deposited = True
 
@@ -294,7 +315,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         finally:
             db.session.commit()
 
-    def _deposit(self, asset_storage: "AssetStorage", async_: bool):
+    def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete: bool):
         """
         Performs the actual deposit, confident that no duplicates exist.
 
@@ -315,6 +336,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         pydevd_pycharm.settrace(
             "localhost", port=12345, stdoutToServer=True, stderrToServer=True
         )
+
+    def delete_source(self):
+        """
+        Deletes the source file(s) that make up the asset.
+        """
+        raise NotImplementedError
 
     def find_duplicate(self):
         return Asset.query.filter_by(key=self.key).one_or_none()
@@ -451,14 +478,13 @@ class ManagedAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def _deposit(self, asset_storage: "AssetStorage", async_: bool):
-        super()._deposit(asset_storage, async_)
+    def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete: bool):
         self.host_path = self.generate_host_path(self.deployment_id)
         self.url = self.asset_registry.asset_storage.get_url(self.host_path)
         self.asset_storage.update_asset_metadata(self)
 
         time_start = time.perf_counter()
-        self._deposit_(asset_storage, self.host_path, async_)
+        self._deposit_(asset_storage, self.host_path, async_, delete)
         time_end = time.perf_counter()
 
         self.size_mb = self.get_size_mb()
@@ -466,6 +492,12 @@ class ManagedAsset(Asset):
         self.deposit_time_sec = (
             time_end - time_start
         )  # Todo - update this - won't be correct for async deposits
+
+    def delete_source(self):
+        if self.data_type == "folder":
+            shutil.rmtree(self.input_path)
+        else:
+            os.remove(self.input_path)
 
     def get_size_mb(self):
         return self._data_type.get_file_size_mb(self.input_path)
@@ -511,8 +543,8 @@ class ManagedAsset(Asset):
 
 
 class ExperimentAsset(ManagedAsset):
-    def _deposit_(self, asset_storage, host_path, async_):
-        asset_storage.receive_deposit(self, host_path, async_)
+    def _deposit_(self, asset_storage, host_path, async_, delete):
+        asset_storage.receive_deposit(self, host_path, async_, delete)
 
     def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
@@ -573,17 +605,20 @@ class CachedAsset(ManagedAsset):
             self.compute_hash(),
         )
 
-    def _deposit_(self, asset_storage, host_path, async_):
+    def _deposit_(self, asset_storage, host_path, async_, delete):
         if asset_storage.check_cache(host_path, data_type=self.type):
             self.used_cache = True
         else:
             self.used_cache = False
-            self._deposit__(asset_storage, host_path, async_)
+            self._deposit__(asset_storage, host_path, async_, delete)
 
-    def _deposit__(self, asset_storage, host_path, async_):
-        asset_storage.receive_deposit(self, host_path, async_)
+    def _deposit__(self, asset_storage, host_path, async_, delete):
+        asset_storage.receive_deposit(self, host_path, async_, delete)
 
     def retrieve_contents(self):
+        pass
+
+    def delete_source(self):
         pass
 
 
@@ -670,7 +705,7 @@ class FunctionAssetMixin:
         else:
             return super().get_size_mb()
 
-    def _deposit__(self, asset_storage, host_path, async_):
+    def _deposit__(self, asset_storage, host_path, async_, delete):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.input_path = os.path.join(
             self.temp_dir.name, "function-output" + self.extension
@@ -682,7 +717,7 @@ class FunctionAssetMixin:
 
         self.md5_contents = self.get_md5_contents()
         self.computation_time_sec = time_end - time_start
-        asset_storage.receive_deposit(self, host_path, async_)
+        asset_storage.receive_deposit(self, host_path, async_, delete)
 
     def receive_stimulus_definition(self, definition):
         super().receive_stimulus_definition(definition)
@@ -740,7 +775,7 @@ class ExternalAsset(Asset):
     def get_extension(self):
         return get_extension(self.url)
 
-    def _deposit(self, asset_storage: "AssetStorage", async_: bool):
+    def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete: bool):
         pass
 
     @property
@@ -756,6 +791,9 @@ class ExternalAsset(Asset):
     @cached_class_property
     def default_asset_storage(cls):  # noqa
         return WebStorage()
+
+    def delete_source(self):
+        raise NotImplementedError
 
 
 class ExternalS3Asset(ExternalAsset):
@@ -808,6 +846,9 @@ class ExternalS3Asset(ExternalAsset):
     def default_asset_storage(self):  # noqa
         return S3Storage(self.s3_bucket, root="")
 
+    def delete_source(self):
+        raise NotImplementedError
+
 
 class AssetStorage:
     @cached_property
@@ -823,28 +864,36 @@ class AssetStorage:
     def update_asset_metadata(self, asset: Asset):
         pass
 
-    def receive_deposit(self, asset, host_path: str, async_: bool):
+    def receive_deposit(self, asset, host_path: str, async_: bool, delete: bool):
+        print(f"async = {async_}")
         if async_:
+            # import pydevd_pycharm
+            # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+            db.session.add(asset)
+            db.session.commit()
             f = self._async__call_receive_deposit
         else:
             f = self._call_receive_deposit
 
-        f(asset, host_path)
+        f(asset, host_path, delete)
 
     def _receive_deposit(self, asset: Asset, host_path: str):
         raise NotImplementedError
 
     def _call_receive_deposit(
-        self, asset: Asset, host_path: str, db_commit: bool = False
+        self, asset: Asset, host_path: str, delete: bool, db_commit: bool = False
     ):
+        assert isinstance(delete, bool)
+        asset = db.session.merge(asset)
         self._receive_deposit(asset, host_path)
         asset.deposited = True
         if db_commit:
             db.session.commit()
+        asset.delete_source()
 
-    def _async__call_receive_deposit(self, asset: Asset, host_path: str):
+    def _async__call_receive_deposit(self, asset: Asset, host_path: str, delete: bool):
         run_async_command_locally(
-            self._call_receive_deposit, asset, host_path, db_commit=True
+            self._call_receive_deposit, asset, host_path, delete, db_commit=True
         )
 
     def export(self, asset, path):

@@ -2041,7 +2041,7 @@ class AudioRecordControl(RecordControl):
         audio = blobs["audioRecording"]
         trial = kwargs["trial"]
 
-        with tempfile.NamedTemporaryFile() as tmp_file:
+        with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             audio.save(tmp_file.name)
 
             from .trial.record import Recording
@@ -2054,7 +2054,7 @@ class AudioRecordControl(RecordControl):
                 trial=trial,
                 variables=dict(),
             )
-            asset.deposit()  # CAREFUL - if we make this asynchronous, what happens to the temporary file handler?
+            asset.deposit(async_=True, delete=True)
 
         return {
             "origin": "AudioRecordControl",
@@ -2152,6 +2152,7 @@ class VideoRecordControl(RecordControl):
         assert self.recording_source in ["camera", "screen", "both"]
 
     def format_answer(self, raw_answer, **kwargs):
+        # TODO - update to match AudioRecord
         camera_key = os.path.basename(urlparse(raw_answer["camera"]).path)
         screen_key = os.path.basename(urlparse(raw_answer["screen"]).path)
         return {

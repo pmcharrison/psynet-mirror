@@ -1,10 +1,10 @@
 import base64
-import concurrent.futures
 import contextlib
 import hashlib
 import importlib
 import importlib.util
 import inspect
+import io
 import json
 import logging
 import os
@@ -650,14 +650,22 @@ def run_async_command_locally(fun, *args, **kwargs):
     """
 
     def wrapper():
-        try:
-            fun(*args, **kwargs)
-        except Exception:
-            log_to_redis(str(traceback.format_exc()))
-            raise
+        f = io.StringIO()
+        with contextlib.redirect_stdout(f):
+            try:
+                print("hellolololol")
+                fun(*args, **kwargs)
+            except Exception:
+                print(traceback.format_exc())
+        log_to_redis(f.getvalue())
 
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
-        executor.submit(wrapper)
+    import threading
+
+    thr = threading.Thread(target=wrapper)
+    thr.start()
+    # with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
+    #     executor.submit(wrapper)
+    print("finished queuing function")
 
 
 def log_to_redis(msg):
