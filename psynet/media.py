@@ -344,7 +344,10 @@ def setup_bucket_for_presigned_urls(bucket_name, public_read=False):
 
 
 def make_bucket_public(bucket_name):
-    logger.info("Ensuring bucket is publicly accessible...")
+    logger.info(
+        "Verifying that the S3 bucket '%s' is correctly configured for public access...",
+        bucket_name,
+    )
 
     if LOCAL_S3:
         return

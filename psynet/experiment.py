@@ -484,6 +484,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         shutil.rmtree(database_template_path, ignore_errors=True)
         os.mkdir(database_template_path)
 
+        logger.info("Creating a database snapshot...")
         with working_directory(database_template_path):
             dallinger.data.export(
                 database_template_app_name, local=True, scrub_pii=False

@@ -1169,6 +1169,7 @@ class StaticNetwork(TrialNetwork):
         super().__init__(trial_maker_id, phase, experiment)
 
     def populate(self, stimulus_set, target_num_trials_per_stimulus):
+        logger.info("Creating stimulus network (id = %i)...", self.id)
         source = TrialSource(network=self)
         db.session.add(source)
         stimuli = [

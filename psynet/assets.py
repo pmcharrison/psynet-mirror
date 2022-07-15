@@ -559,7 +559,7 @@ class CachedAsset(ManagedAsset):
         )
 
     def _deposit_(self, asset_storage, host_path):
-        if asset_storage.asset_exists(host_path, data_type=self.type):
+        if asset_storage.check_cache(host_path, data_type=self.type):
             self.used_cache = True
         else:
             self.used_cache = False
@@ -820,7 +820,20 @@ class AssetStorage:
     def get_url(self, host_path: str):
         raise NotImplementedError
 
-    def asset_exists(self, host_path: str, data_type: str):
+    def check_cache(self, host_path: str, data_type: str):
+        """
+        Checks whether the registry can find an asset cached at ``host_path``.
+        The implementation is permitted to make optimizations for speed
+        that may result in missed caches, i.e. returning ``False`` when
+        the cache did actually exists. However, the implementation should
+        only return ``True`` if it is certain that the asset cache exists.
+
+        Returns
+        -------
+
+        ``True`` or ``False``.
+
+        """
         raise NotImplementedError
 
 
@@ -919,7 +932,7 @@ class LocalStorage(AssetStorage):
     def get_url(self, host_path):
         return os.path.join(self.public_path, host_path)
 
-    def asset_exists(self, host_path: str, data_type: str):
+    def check_cache(self, host_path: str, data_type: str):
         file_system_path = self.get_file_system_path(host_path)
         return os.path.exists(file_system_path) and (
             (data_type == "folder" and os.path.isdir(file_system_path))
@@ -963,7 +976,8 @@ def get_boto3_s3_bucket(name):
 
 
 def list_files_in_s3_bucket(
-    bucket_name: str, prefix: str = "", delimiter: str = "/", start_after: str = ""
+    bucket_name: str,
+    prefix: str = "",
 ):
     """
     Lists files in an S3 bucket.
@@ -982,16 +996,29 @@ def list_files_in_s3_bucket(
     A generator that yields keys.
 
     """
+    logger.info(
+        "Listing files in S3 bucket %s with prefix '%s'...", bucket_name, prefix
+    )
     paginator = get_boto3_s3_client().get_paginator("list_objects_v2")
 
-    for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
-        for content in page.get("Contents", ()):
-            yield content["Key"]
+    return list(
+        [
+            content["Key"]
+            for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix)
+            for content in page.get("Contents", ())
+        ]
+    )
+
+
+@cache
+def list_files_in_s3_bucket__cached(*args, **kwargs):
+    return list_files_in_s3_bucket(*args, **kwargs)
 
 
 class S3Storage(AssetStorage):
     def __init__(self, s3_bucket, root):
         super().__init__()
+        assert not root.endswith("/")
         self.s3_bucket = s3_bucket
         self.root = root
 
@@ -1022,25 +1049,47 @@ class S3Storage(AssetStorage):
         return urllib.parse.quote_plus(s3_key, safe="/~()*!.'")
 
     # @create_bucket_if_necessary
-    def asset_exists(self, host_path: str, data_type: str):
+    def check_cache(self, host_path: str, data_type: str):
         s3_key = os.path.join(self.root, host_path)
         if data_type == "folder":
-            return self.folder_exists(s3_key)
+            return self.check_cache_folder(s3_key)
         else:
-            return self.file_exists(s3_key)
+            return self.check_cache_file(s3_key)
 
-    @property
-    def boto3_bucket(self):
-        return get_boto3_s3_bucket(self.s3_bucket)
+    def check_cache_file(self, s3_key):
+        # from .command_line import FLAGS
+        return self._check_cache_file__preparation_phase(s3_key)
+        # if "PREPARE" in FLAGS:
+        #     return self._check_cache_file__preparation_phase(s3_key)
+        # else:
+        #     assert False
+        #     return self._check_cache__deployed_phase(s3_key)
 
-    # @create_bucket_if_necessary
-    def file_exists(self, s3_key):
-        candidates = self.boto3_bucket.objects.filter(Prefix=s3_key)
+    def _check_cache_file__preparation_phase(self, s3_key):
+        # If we are in the 'preparation' phase of deployment, then we rely on a cached listing
+        # of the files in the S3 bucket. This is necessary because the preparation phase
+        # may involve checking caches for thousands of files at a time, and it would be slow
+        # to talk to S3 separately for each one. This wouldn't catch situations where
+        # the cache has been added during the preparation phase itself, but this shouldn't happen very often,
+        # so doesn't need to be optimized for just yet.
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        return s3_key in list_files_in_s3_bucket__cached(
+            self.s3_bucket, prefix=self.root + "/"
+        )
+
+    def _check_cache__deployed_phase(self, s3_key):
+        # If we are in the 'deployed' phase of the experiment, then we don't use a cache,
+        # and instead talk to the S3 server directly. This is important because we want
+        # we wouldn't be uploading many assests at the same time at this point;
+        # it is desirable because we want to be able to have a dynamic cache during this phase.
+        candidates = get_boto3_s3_bucket(self.s3_bucket).objects.filter(Prefix=s3_key)
         if any([x.key == s3_key for x in candidates]):
             return True
+        return False
 
     # @create_bucket_if_necessary
-    def folder_exists(self, s3_key):
+    def folder_exists__slow(self, s3_key):
         return len(self.list_folder(s3_key)) > 0
 
     # @create_bucket_if_necessary
@@ -1168,6 +1217,7 @@ class AssetRegistry:
         else:
             n_jobs = psutil.cpu_count()
 
+        logger.info("Preparing assets for deployment...")
         Parallel(n_jobs=n_jobs, verbose=10)(
             delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
             for a in self._staged_asset_specifications
