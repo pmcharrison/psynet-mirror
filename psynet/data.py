@@ -10,6 +10,7 @@ import dallinger.data
 import dallinger.models
 import pandas
 import postgres_copy
+import psutil
 import six
 import sqlalchemy
 from dallinger import db
@@ -602,12 +603,28 @@ dallinger.data.ingest_zip = ingest_zip
 dallinger.data.ingest_to_model = ingest_to_model
 
 
-def export_assets(path, n_parallel=8):
+def export_assets(path, n_parallel=None):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
+    if n_parallel:
+        n_jobs = n_parallel
+    else:
+        n_jobs = psutil.cpu_count()
+
     from .assets import Asset
 
-    Parallel(n_jobs=n_parallel, verbose=10)(
-        delayed(lambda a: a.export(path=os.path.join(path, a.key)))(a)
-        for a in Asset.query.all()
+    asset_keys = [a.key for a in db.session.query(Asset.key)]
+
+    Parallel(n_jobs=n_jobs, verbose=10)(
+        delayed(lambda key: export_asset(key, path=os.path.join(path, key)))(key)
+        for key in asset_keys
     )
+
+
+def export_asset(key, path):
+    from .assets import Asset
+    from .utils import import_local_experiment
+
+    import_local_experiment()
+    a = Asset.query.filter_by(key=key).one()
+    a.export(path)

@@ -773,7 +773,7 @@ def verify_experiment_id(ctx, param, app):
 @click.option("--local", is_flag=True, help="Export local data")
 @click.option("--assets", is_flag=True, help="Additionally export assets")
 @click.option(
-    "--n_parallel", default=8, help="Number of parallel jobs for exporting assets"
+    "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
 )
 def export(app, local, assets, n_parallel):
     """

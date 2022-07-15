@@ -331,13 +331,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         """
         raise NotImplementedError
 
-    def download(self, path):
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
-
     def delete_source(self):
         """
         Deletes the source file(s) that make up the asset.
@@ -404,6 +397,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         return cls.asset_registry.asset_storage
 
     def export(self, path):
+        # db.session.merge(self)
+        # import psynet.experiment
+        # import_local_experiment()
+        # from psynet.trial.main import Trial
         try:
             self.asset_storage.export(self, path)
         except Exception:
@@ -1127,10 +1124,13 @@ class S3Storage(AssetStorage):
         # )
 
     def get_url(self, host_path: str):
-        s3_key = os.path.join(self.root, host_path)
+        s3_key = self.get_s3_key(host_path)
         return os.path.join(
             "https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key)
         )
+
+    def get_s3_key(self, host_path: str):
+        return os.path.join(self.root, host_path)
 
     def escape_s3_key(self, s3_key):
         # This might need revisiting as and when we find special characters that aren't quoted correctly
@@ -1193,19 +1193,12 @@ class S3Storage(AssetStorage):
         # breakpoint()
         return [x.key for x in self.boto3_bucket.objects.filter(Prefix="folder" + "/")]
 
-    @cached_property
-    def regex_pattern(self):
-        return re.compile("https://s3.amazonaws.com/(.*)/(.*)")
+    # @cached_property
+    # def regex_pattern(self):
+    #     return re.compile("https://s3.amazonaws.com/(.*)/(.*)")
 
     def export(self, asset, path):
-        url = asset.url
-        bucket, s3_key = re.match(self.regex_pattern, url)
-
-        if bucket != self.s3_bucket:
-            raise ValueError(
-                f"The provided URL ({url}) seems inconsistent with the provided S3 bucket name ({self.s3_bucket})."
-            )
-
+        s3_key = self.get_s3_key(asset.host_path)
         recursive = asset.type == "folder"
         self.download(s3_key, path, recursive=recursive)
 
