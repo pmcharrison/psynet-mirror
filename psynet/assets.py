@@ -21,13 +21,7 @@ from sqlalchemy.orm import backref, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import __version__ as psynet_version
-from .data import (
-    SQLBase,
-    SQLMixin,
-    copy_db_table_to_csv,
-    ingest_to_model,
-    register_table,
-)
+from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import MutableDict, PythonDict, PythonObject
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
 from .timeline import NullElt
@@ -193,12 +187,19 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
         self.participant = participant
         if participant:
-            # I'm not sure this duplication is absolutely necessary but it adds safety
             self.participant_id = participant.id
 
         self.network = network
+        if network:
+            self.network_id = network.id
+
         self.node = node
+        if node:
+            self.node_id = node.id
+
         self.trial = trial
+        if trial:
+            self.trial_id = trial.id
 
         self.set_trial_maker_id()
         self.set_variables(variables)
@@ -1145,7 +1146,6 @@ class S3Storage(AssetStorage):
             return self.check_cache_file(s3_key)
 
     def check_cache_file(self, s3_key):
-        # from .command_line import FLAGS
         return self._check_cache_file__preparation_phase(s3_key)
         # if "PREPARE" in FLAGS:
         #     return self._check_cache_file__preparation_phase(s3_key)
@@ -1249,9 +1249,9 @@ class AssetRegistry:
         self._staged_asset_specifications = []
         self._staged_asset_lookup_table = {}
 
-        inspector = sqlalchemy.inspect(db.engine)
-        if inspector.has_table("asset") and Asset.query.count() == 0:
-            self.populate_db_with_initial_assets()
+        # inspector = sqlalchemy.inspect(db.engine)
+        # if inspector.has_table("asset") and Asset.query.count() == 0:
+        #     self.populate_db_with_initial_assets()
 
     @property
     def deployment_id(self):
@@ -1305,11 +1305,11 @@ class AssetRegistry:
         )
 
         db.session.commit()
-        self.save_initial_asset_manifesto()
+        # self.save_initial_asset_manifesto()
 
-    def save_initial_asset_manifesto(self):
-        copy_db_table_to_csv("asset", self.initial_asset_manifesto_path)
+    # def save_initial_asset_manifesto(self):
+    #     copy_db_table_to_csv("asset", self.initial_asset_manifesto_path)
 
-    def populate_db_with_initial_assets(self):
-        with open(self.initial_asset_manifesto_path, "r") as file:
-            ingest_to_model(file, Asset)
+    # def populate_db_with_initial_assets(self):
+    #     with open(self.initial_asset_manifesto_path, "r") as file:
+    #         ingest_to_model(file, Asset)

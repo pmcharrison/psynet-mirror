@@ -14,7 +14,6 @@ from dallinger.models import Vector
 from sqlalchemy import Column, Integer, String, func
 from sqlalchemy.orm import relationship
 
-from .. import command_line
 from ..assets import CachedAsset
 from ..timeline import NullElt, join
 from ..utils import get_logger
@@ -307,12 +306,13 @@ class StimulusSet(NullElt):
 
 
 class VirtualStimulusSet:
+    # TODO - revisit, this probably won't work any more
     def __init__(self, id_: str, version: str, construct):
         self.id = id_
         self.version = version
         self.construct = construct
 
-        if "prepare" in command_line.FLAGS or not self.cache_exists:
+        if not self.cache_exists:
             self.build_cache()
 
         # if len(sys.argv) > 1 and sys.argv[1] == "prepare":

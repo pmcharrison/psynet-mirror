@@ -52,6 +52,7 @@ from ..utils import (
     import_local_experiment,
     serialise_datetime,
     unserialise_datetime,
+    wait_until,
 )
 
 logger = get_logger()
@@ -719,6 +720,14 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         raise NotImplementedError
 
     def call_async_post_trial(self):
+        wait_until(
+            # Note: This code could be made more efficient by not blocking the process
+            # while we wait for the asset deposit to complete.
+            lambda: not self.awaiting_asset_deposit,
+            max_wait=120,
+            poll_interval=1.0,
+            error_message="The trial's asset deposit didn't complete in time.",
+        )
         experiment = dallinger.experiment.load()
         trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
         self.async_post_trial()

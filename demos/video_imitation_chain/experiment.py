@@ -3,11 +3,10 @@ Video Imitation Chain Demo
 """
 import random
 import shutil
-import tempfile
 
 import psynet.experiment
+from psynet.assets import S3Storage
 from psynet.consent import NoConsent
-from psynet.media import download_from_s3, prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioMeterControl,
     ModularPage,
@@ -16,14 +15,7 @@ from psynet.modular_page import (
     VideoRecordControl,
 )
 from psynet.page import SuccessfulEndPage
-from psynet.timeline import (
-    Event,
-    PreDeployRoutine,
-    ProgressDisplay,
-    ProgressStage,
-    Timeline,
-    join,
-)
+from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline, join
 from psynet.trial.video import (
     CameraImitationChainNetwork,
     CameraImitationChainNode,
@@ -39,7 +31,7 @@ SILENT_RECORDING = "./static/5s_silence.wav"
 
 
 class CustomNetwork(CameraImitationChainNetwork):
-    s3_bucket = "video-screen-recording-dev"
+    pass
 
 
 class CustomSource(CameraImitationChainSource):
@@ -51,12 +43,11 @@ class CustomSource(CameraImitationChainSource):
 class CustomVideoRecordControl(VideoRecordControl):
     def __init__(self):
         super().__init__(
+            label="webcam_recording",
             duration=5.0,
-            s3_bucket="video-screen-recording-dev",
             recording_source="camera",
             audio_num_channels=2,
             controls=True,
-            public_read=True,
             show_preview=True,
         )
 
@@ -83,7 +74,7 @@ class CustomTrial(CameraImitationChainTrial):
     def show_trial(self, experiment, participant):
         if self.origin.degree == 1:
             instruction = f"Please trace out a {self.origin.seed} in the air \
-                            for the camera using you hands or fingers."
+                            for the camera using your hands or fingers."
             return ModularPage(
                 "first-iteration-record",
                 Prompt(text=instruction, text_align="center"),
@@ -124,13 +115,10 @@ class CustomCameraImitationTrialMaker(CameraImitationChainTrialMaker):
 
 
 class CustomNode(CameraImitationChainNode):
-    __mapper_args__ = {"polymorphic_identity": "custom_node"}
-
     def summarize_trials(self, trials, experiment, participant):
-        recording_info = trials[0].recording_info
-        logger.info("RECORDING INFO: {}".format(recording_info))
-        analysis = trials[0].analysis
-        return dict(recording_info=recording_info, analysis=analysis)
+        assert len(trials) == 1
+        trial = trials[0]
+        return dict(recording_info=trial.recording_info, analysis=trial.analysis)
 
     def synthesize_target(self, output_file):
         """
@@ -140,30 +128,17 @@ class CustomNode(CameraImitationChainNode):
             shutil.copyfile(SILENT_RECORDING, output_file)
             return output_file
         else:
-            prev_trial = self.definition
-            with tempfile.NamedTemporaryFile() as temp_file:
-                recording = prev_trial["recording_info"]
-                download_from_s3(
-                    temp_file.name, recording["s3_bucket"], recording["key"]
-                )
-                # Processing of temp_file.name file.
-                shutil.copyfile(temp_file.name, output_file)
-                return output_file
+            input_recording = self.parent.assets["webcam_recording"]
+            input_recording.export(output_file)
 
 
 ####################################################################################################
 class Exp(psynet.experiment.Experiment):
+    name = "Video imitation chain demo"
+    asset_storage = S3Storage("psynet-demos", "video-imitation-chain")
+
     timeline = Timeline(
         NoConsent(),
-        PreDeployRoutine(
-            "prepare_s3_bucket_for_presigned_urls",
-            prepare_s3_bucket_for_presigned_urls,
-            {
-                "bucket_name": "video-screen-recording-dev",
-                "public_read": True,
-                "create_new_bucket": True,
-            },
-        ),
         ModularPage(
             "record_calibrate",
             """

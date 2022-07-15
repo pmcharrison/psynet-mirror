@@ -1,16 +1,14 @@
 import itertools
 import json
-import os
 import tempfile
 from typing import Dict, List, Optional, Union
-from urllib.parse import urlparse
 
 from dominate import tags
 from dominate.util import raw
 from flask import Markup
 
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
-from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
+from .utils import get_logger, is_valid_html5_id, linspace
 
 logger = get_logger()
 
@@ -1964,6 +1962,8 @@ class RecordControl(Control):
         to calibrate their volume.
     """
 
+    file_extension = None
+
     def __init__(
         self,
         label: str,
@@ -2020,6 +2020,7 @@ class AudioRecordControl(RecordControl):
     """
 
     macro = "audio_record"
+    file_extension = ".wav"
 
     def __init__(
         self,
@@ -2050,7 +2051,7 @@ class AudioRecordControl(RecordControl):
                 label=self.label,
                 input_path=tmp_file.name,
                 data_type="file",
-                extension=".wav",
+                extension=self.file_extension,
                 trial=trial,
                 variables=dict(),
             )
@@ -2120,6 +2121,7 @@ class VideoRecordControl(RecordControl):
     """
 
     macro = "video_record"
+    file_extension = ".webm"
 
     def __init__(
         self,
@@ -2151,27 +2153,56 @@ class VideoRecordControl(RecordControl):
 
         assert self.recording_source in ["camera", "screen", "both"]
 
+    @property
+    def recording_sources(self):
+        return dict(camera=["camera"], screen=["screen"], both=["camera", "screen"])[
+            self.recording_source
+        ]
+
     def format_answer(self, raw_answer, **kwargs):
-        # TODO - update to match AudioRecord
-        camera_key = os.path.basename(urlparse(raw_answer["camera"]).path)
-        screen_key = os.path.basename(urlparse(raw_answer["screen"]).path)
-        return {
-            "s3_bucket": self.s3_bucket,
-            "camera_url": strip_url_parameters(raw_answer["camera"])
-            if raw_answer is not None
-            else None,
-            "screen_url": strip_url_parameters(raw_answer["screen"])
-            if raw_answer is not None
-            else None,
-            "duration_sec": self.duration,
-            "origin": "VideoRecordControl",
-            "supports_record_trial": True,
-            "camera_key": camera_key,
-            "screen_key": screen_key,
-            "recording_source": self.recording_source,
-            "record_audio": self.record_audio,
-            "mirrored": self.mirrored,
-        }
+        blobs = kwargs["blobs"]
+        trial = kwargs["trial"]
+
+        summary = {}
+
+        for source in self.recording_sources:
+            blob_id = source + "Recording"
+            blob = blobs[blob_id]
+
+            with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+                blob.save(tmp_file.name)
+
+                from .trial.record import Recording
+
+                label = self.label
+                if len(self.recording_sources) > 1:
+                    label += "_" + source
+
+                asset = Recording(
+                    label=label,
+                    input_path=tmp_file.name,
+                    data_type="file",
+                    extension=self.file_extension,
+                    trial=trial,
+                    variables=dict(),
+                )
+                asset.deposit(async_=True, delete=True)
+
+                summary[source + "_key"] = asset.key
+                summary[source + "_url"] = asset.url
+
+        summary.update(
+            {
+                "duration_sec": self.duration,
+                "origin": "VideoRecordControl",
+                "supports_record_trial": True,
+                "recording_source": self.recording_source,
+                "record_audio": self.record_audio,
+                "mirrored": self.mirrored,
+            }
+        )
+
+        return summary
 
     def visualize_response(self, answer, response, trial):
         if answer is None:

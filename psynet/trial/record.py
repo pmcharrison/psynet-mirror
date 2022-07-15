@@ -1,13 +1,11 @@
 import os
 import tempfile
-from uuid import uuid4
 
 import dominate.tags as tags
 from dallinger import db
 
 from ..assets import ExperimentAsset
 from ..field import claim_var, extra_var
-from ..media import upload_to_s3
 from ..utils import get_logger
 from .imitation_chain import (
     ImitationChainNetwork,
@@ -206,15 +204,7 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
     A Network class for media imitation chains.
     """
 
-    s3_bucket = ""
-
     media_extension = None
-
-    def validate(self):
-        if self.s3_bucket == "":
-            raise ValueError(
-                "The MediaImitationChainNetwork must possess a valid s3_bucket attribute."
-            )
 
     run_async_post_grow_network = True
 
@@ -230,15 +220,18 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
             )
         else:
             with tempfile.NamedTemporaryFile() as temp_file:
+                from ..assets import ExperimentAsset
+
                 node.synthesize_target(temp_file.name)
-                target_key = f"{uuid4()}.{self.media_extension}"
-                node.target_url = upload_to_s3(
-                    temp_file.name,
-                    self.s3_bucket,
-                    key=target_key,
-                    public_read=True,
-                    create_new_bucket=True,
-                )["url"]
+                asset = ExperimentAsset(
+                    label="stimulus",
+                    input_path=temp_file.name,
+                    extension=self.media_extension,
+                    node=node,
+                )
+                asset.deposit()
+                node.target_url = asset.url
+                db.session.commit()
 
 
 class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
@@ -268,8 +261,6 @@ class MediaImitationChainNode(ImitationChainNode):
     def synthesize_target(self, output_file):
         """
         Generates the target stimulus (i.e. the stimulus to be imitated by the participant).
-        This method will typically rely on the ``self.definition`` attribute,
-        which carries the definition of the current node.
         """
         raise NotImplementedError
 

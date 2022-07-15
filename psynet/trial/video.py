@@ -33,7 +33,7 @@ class CameraImitationChainNetwork(MediaImitationChainNetwork):
     A Network class for camera imitation chains.
     """
 
-    media_extension = "webm"
+    media_extension = ".webm"
 
 
 class CameraImitationChainTrial(CameraRecordTrial, MediaImitationChainTrial):

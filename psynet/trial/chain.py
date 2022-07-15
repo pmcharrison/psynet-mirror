@@ -346,6 +346,7 @@ class ChainNetwork(TrialNetwork):
             previous_head = self.get_node_with_degree(node.degree - 1)
             previous_head.connect(whom=node)
             previous_head.child = node
+            node.parent = previous_head
         if self.num_nodes >= self.target_num_nodes:
             self.full = True
 
@@ -581,6 +582,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
 
     degree = claim_field("degree", __extra_vars__, int)
     child_id = claim_field("child_id", __extra_vars__, int)
+    parent_id = claim_field("parent_id", __extra_vars__, int)
 
     propagate_failure = claim_var("propagate_failure", __extra_vars__)
 
@@ -602,6 +604,16 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
     @child.setter
     def child(self, child):
         self.child_id = child.id
+
+    @property
+    def parent(self):
+        if self.parent_id is None:
+            return None
+        return ChainNode.query.filter_by(id=self.parent_id).one()
+
+    @parent.setter
+    def parent(self, parent):
+        self.parent_id = parent.id
 
     @property
     @extra_var(__extra_vars__)

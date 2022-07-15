@@ -30,8 +30,6 @@ from .utils import (
     run_subprocess_with_live_output,
 )
 
-FLAGS = set()
-
 
 def log(msg, chevrons=True, verbose=True, **kw):
     """Log a message to stdout."""
@@ -104,18 +102,13 @@ def reset_console():
 # prepare #
 ###########
 @psynet.command()
-@click.option("--force", is_flag=True, help="Force override of cache.")
-def prepare(force):
+def prepare():
     """
     Prepares all stimulus sets defined in experiment.py,
     uploading all media files to Amazon S3.
     """
     from dallinger import db
 
-    FLAGS.add("prepare")
-    if force:
-        FLAGS.add("force")
-    log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
     db.init_db(drop_all=True)
     experiment_class = import_local_experiment().get("class")
     experiment_instance = experiment_class.new(session=None)
