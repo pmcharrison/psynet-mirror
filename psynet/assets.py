@@ -1,8 +1,10 @@
 import os
 import re
 import shutil
+import subprocess
 import tempfile
 import time
+import urllib
 import urllib.request
 import uuid
 from functools import cache, cached_property
@@ -27,23 +29,20 @@ from .data import (
     register_table,
 )
 from .field import MutableDict, PythonDict, PythonObject
-from .media import (
-    bucket_exists,
-    create_bucket,
-    get_aws_credentials,
-    make_bucket_public,
-    run_aws_cli_command,
-)
+from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
     get_extension,
     get_function_args,
+    get_logger,
     import_local_experiment,
     md5_directory,
     md5_file,
     md5_object,
 )
+
+logger = get_logger()
 
 
 class DataType:
@@ -981,9 +980,14 @@ class S3Storage(AssetStorage):
         )
 
     def get_url(self, host_path: str):
+        s3_key = os.path.join(self.root, host_path)
         return os.path.join(
-            "https://s3.amazonaws.com", self.s3_bucket, self.root, host_path
+            "https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key)
         )
+
+    def escape_s3_key(self, s3_key):
+        # This might need revisiting as and when we find special characters that aren't quoted correctly
+        return urllib.parse.quote_plus(s3_key, safe="/~()*!.'")
 
     # @create_bucket_if_necessary
     def asset_exists(self, host_path: str, data_type: str):
@@ -1041,12 +1045,18 @@ class S3Storage(AssetStorage):
         This function relies on the AWS CLI. You can install it with pip install awscli.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = f"aws s3 cp {url} {target_path}"
+        cmd = ["aws", "s3", "cp", url, target_path]
 
         if recursive:
-            cmd += " --recursive"
+            cmd.append("--recursive")
 
-        run_aws_cli_command(cmd)
+        logger.info(f"Downloading from AWS with command: {cmd}")
+
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+        except subprocess.CalledProcessError as err:
+            logger.error(f"{err} {err.stderr.decode('utf8')}")
+            raise
 
     # @create_bucket_if_necessary
     def upload(self, input_path, s3_key, recursive):
@@ -1054,12 +1064,18 @@ class S3Storage(AssetStorage):
         This function relies on the AWS CLI. You can install it with pip install awscli.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = f'aws s3 cp "{input_path}" "{url}"'
+        cmd = ["aws", "s3", "cp", input_path, url]
 
         if recursive:
-            cmd += " --recursive"
+            cmd.append("--recursive")
 
-        run_aws_cli_command(cmd)
+        logger.info(f"Uploading to AWS with command: {cmd}")
+
+        try:
+            subprocess.run(cmd, check=True, capture_output=True)
+        except subprocess.CalledProcessError as err:
+            logger.error(f"{err} {err.stderr.decode('utf8')}")
+            raise
 
 
 class AssetRegistry:
