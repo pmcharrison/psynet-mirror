@@ -510,9 +510,21 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         """
         Determines whether a trial is ready to give feedback to the participant.
         """
-        return self.complete and (
-            (not self.wait_for_feedback) or (not self.awaiting_async_process)
-        )
+        if not self.complete:
+            return False
+        if self.wait_for_feedback:
+            if self.awaiting_async_process or self.awaiting_asset_deposit:
+                print("not ready for feedback")
+                return False
+        return True
+
+    @property
+    def awaiting_asset_deposit(self):
+        db.session.commit()
+        db.session.refresh(self)
+        for a in self.assets.values():
+            print(f"asset.id = {a.id}, deposited = {a.deposited}")
+        return any([not a.deposited for a in self.assets.values()])
 
     @property
     @extra_var(__extra_vars__)
@@ -1533,6 +1545,7 @@ class TrialMaker(Module):
                     lambda participant: not participant.current_trial.ready_for_feedback,
                     expected_wait=0,
                     log_message="Waiting for feedback to be ready.",
+                    check_interval=1.0,
                 ),
                 PageMaker(
                     lambda experiment, participant: (

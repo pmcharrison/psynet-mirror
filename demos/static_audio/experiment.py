@@ -46,6 +46,7 @@ class CustomTrial(StaticTrial):
     _time_feedback = 2
 
     time_estimate = _time_trial + _time_feedback
+    wait_for_feedback = True
 
     def show_trial(self, experiment, participant):
         return ModularPage(

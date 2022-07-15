@@ -653,7 +653,6 @@ def run_async_command_locally(fun, *args, **kwargs):
         f = io.StringIO()
         with contextlib.redirect_stdout(f):
             try:
-                print("hellolololol")
                 fun(*args, **kwargs)
             except Exception:
                 print(traceback.format_exc())

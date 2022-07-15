@@ -305,6 +305,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
             if asset_to_use == self:
                 db.session.add(self)
+                db.session.commit()
 
                 self._deposit(self.asset_storage, async_, delete)
                 # if deposit_complete:
@@ -883,13 +884,17 @@ class AssetStorage:
     def _call_receive_deposit(
         self, asset: Asset, host_path: str, delete: bool, db_commit: bool = False
     ):
-        assert isinstance(delete, bool)
+        # We include this for compatibility with threaded dispatching.
+        # Without it, SQLAlchemy complains that the object has become disconnected
+        # from the SQLAlchemy session. This command 'merges' it back into the session.
         asset = db.session.merge(asset)
+
         self._receive_deposit(asset, host_path)
         asset.deposited = True
         if db_commit:
             db.session.commit()
-        asset.delete_source()
+        if delete:
+            asset.delete_source()
 
     def _async__call_receive_deposit(self, asset: Asset, host_path: str, delete: bool):
         run_async_command_locally(
