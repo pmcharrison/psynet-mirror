@@ -22,7 +22,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
-from .field import MutableDict, PythonDict, PythonObject
+from .field import PythonDict, PythonObject
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
 from .timeline import NullElt
 from .utils import (
@@ -203,8 +203,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             self.trial_id = trial.id
 
         self.set_trial_maker_id()
-        self.set_variables(variables)
         self.infer_missing_parents()
+
+        self.set_variables(variables)
 
     def set_trial_maker_id(self):
         for obj in [self.trial, self.node, self.network]:
@@ -222,10 +223,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def infer_missing_parents(self):
         if self.participant is None and self.trial is not None:
             self.participant = self.trial.participant
+            self.participant_id = self.participant.id
         if self.node is None and self.trial is not None:
             self.node = self.trial.origin
+            self.node_id = self.node.id
         if self.network is None and self.node is not None:
             self.network = self.node.network
+            self.network_id = self.network.id
 
     data_types = dict(
         file=File,
@@ -636,9 +640,7 @@ class FunctionAssetMixin:
     @declared_attr
     def arguments(cls):
         # The MutableDict stuff ensures that in-place edits like ``asset.arguments["x"] = 3`` are tracked properly
-        return cls.__table__.c.get(
-            "arguments", Column(MutableDict.as_mutable(PythonDict), nullable=True)
-        )
+        return cls.__table__.c.get("arguments", Column(PythonDict))
 
     @declared_attr
     def computation_time_sec(cls):

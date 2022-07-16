@@ -34,6 +34,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
+from .process import AsyncProcess
 from .recruiters import (  # noqa: F401
     CapRecruiter,
     DevCapRecruiter,
@@ -1152,10 +1153,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     )
     @staticmethod
     def call_async_post_grow_network(network_id):
+        from .timeline import get_trial_maker
         from .trial.main import TrialNetwork
 
         network = TrialNetwork.query.filter_by(id=network_id).one()
-        network.queue_async_method("call_async_post_grow_network")
+        trial_maker = get_trial_maker(network.trial_maker_id)
+
+        AsyncProcess(
+            "post_grow_network",
+            network.async_post_grow_network,
+            arguments=dict(network=network),
+            timeout=trial_maker.async_timeout_sec,
+        )
         db.session.commit()
         return success_response()
 

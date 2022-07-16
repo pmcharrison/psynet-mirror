@@ -4,17 +4,14 @@ import datetime
 import random
 from math import isnan
 from typing import Optional, Union
-from uuid import uuid4
 
 import dallinger.experiment
 import dallinger.models
 import dallinger.nodes
 from dallinger import db
-from dallinger.db import redis_conn
 from dallinger.models import Info, Network, Node
 from dominate import tags
 from flask import Markup
-from rq import Queue
 from sqlalchemy import Column, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
@@ -31,6 +28,7 @@ from ..field import (
 )
 from ..page import InfoPage, UnsuccessfulEndPage, wait_while
 from ..participant import Participant
+from ..process import AsyncProcess
 from ..timeline import (
     CodeBlock,
     DatabaseCheck,
@@ -45,16 +43,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import (
-    call_function,
-    corr,
-    deep_copy,
-    get_logger,
-    import_local_experiment,
-    serialise_datetime,
-    unserialise_datetime,
-    wait_until,
-)
+from ..utils import call_function, corr, deep_copy, get_logger, wait_until
 
 logger = get_logger()
 
@@ -97,132 +86,7 @@ class HasDefinition:
     register_extra_var(__extra_vars__, "definition", field_type=dict)
 
 
-class AsyncProcessOwner:
-    __extra_vars__ = {}
-
-    awaiting_async_process = claim_field("awaiting_async_process", __extra_vars__, bool)
-    pending_async_processes = claim_field("pending_async_processes", __extra_vars__)
-    failed_async_processes = claim_field("failed_async_processes", __extra_vars__)
-
-    def __init__(self):
-        self.awaiting_async_process = False
-        self.pending_async_processes = {}
-        self.failed_async_processes = {}
-
-    @property
-    def earliest_async_process_start_time(self):
-        return min(
-            [
-                unserialise_datetime(x["start_time"])
-                for x in self.pending_async_processes.values()
-            ]
-        )
-
-    def queue_async_method(self, method_name: str, *args, **kwargs):
-        """
-        Queues an object's method to be run asynchronously in a worker process.
-        This is useful for scheduling long-running processes without blocking
-        the main server thread.
-
-        Parameters
-        ----------
-
-        method_name:
-            The name of the method to call. Typically this method will have been
-            custom-implemented for the particular experiment.
-            For example, suppose we have implemented a method called ``do_heavy_computation``.
-            We would ordinarily call this synchronously as follows: ``obj.do_heavy_computation()``.
-            To call this method asynchronously, we write ``method_name="do_heavy_computation"``.
-            The outputs of this heavy computation typically need to be saved somehow in the database;
-            for example, within the ``do_heavy_computation`` function one might write
-            ``self.var.computation_output = result``.
-
-        args, kwargs:
-            Optional arguments which will be pickled under-the-hood using ``pickle.dumps``.
-            Be careful passing complex objects here (e.g. SQLAlchemy objects),
-            as they might not be serialized properly. Better instead to pass object IDs
-            and recreate the SQLAlchemy objects within the asynchronous function.
-
-        Returns
-        -------
-
-        ``None``, as the asynchronous function call is non-blocking.
-
-        """
-        process_id = str(uuid4())
-        self.push_async_process(process_id)
-        db.session.commit()
-        q = Queue("default", connection=redis_conn)
-        q.enqueue_call(
-            func=self._run_async_method,
-            args=tuple(args),
-            kwargs=dict(
-                object_id=self.id,
-                process_id=process_id,
-                method_name=method_name,
-                **kwargs,
-            ),
-            timeout=1e10,  # PsyNet deals with timeouts itself (it's useful to log them in the database)
-        )  # pylint: disable=no-member
-
-    @classmethod
-    def _run_async_method(cls, object_id, process_id, method_name, *args, **kwargs):
-        import_local_experiment()
-        obj = cls.query.filter_by(id=object_id).one()
-        try:
-            if process_id in obj.pending_async_processes:
-                method = getattr(obj, method_name)
-                method(*args, **kwargs)
-                obj.pop_async_process(process_id)
-            else:
-                logger.info(
-                    "Skipping async method %s (%s) as it is no longer queued.",
-                    method_name,
-                    process_id,
-                )
-        except BaseException:
-            obj.fail_async_processes(
-                reason=f"exception in async method '{method_name}'"
-            )
-            raise
-        finally:
-            db.session.commit()  # pylint: disable=no-member
-
-    def push_async_process(self, process_id):
-        pending_processes = self.pending_async_processes.copy()
-        pending_processes[process_id] = {
-            "start_time": serialise_datetime(datetime.datetime.now())
-        }
-        self.pending_async_processes = pending_processes
-        self.awaiting_async_process = True
-
-    def pop_async_process(self, process_id):
-        pending_processes = self.pending_async_processes.copy()
-        if process_id not in pending_processes:
-            raise ValueError(
-                f"process_id {process_id} not found in pending async processes"
-                + f" for {self.__class__.__name__} {self.id}."
-            )
-        del pending_processes[process_id]
-        self.pending_async_processes = pending_processes
-        self.awaiting_async_process = len(pending_processes) > 0
-
-    def fail_async_processes(self, reason):
-        pending_processes = self.pending_async_processes
-        for process_id, _ in pending_processes.items():
-            self.register_failed_process(process_id, reason)
-            self.pop_async_process(process_id)
-
-    def register_failed_process(self, process_id, reason):
-        failed_async_processes = self.failed_async_processes.copy()
-        failed_async_processes[process_id] = {
-            "time": serialise_datetime(datetime.datetime.now()),
-            "reason": reason,
-        }
-        self.failed_async_processes = failed_async_processes
-
-
-class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
+class Trial(SQLMixinDallinger, Info, HasDefinition):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -396,7 +260,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
     # pylint: disable=unused-argument
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
-        **AsyncProcessOwner.__extra_vars__.copy(),
         **HasDefinition.__extra_vars__.copy(),
     }
 
@@ -545,7 +408,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         num_repeat_trials=None,  # Only relevant if the trial is a repeat trial
     ):
         super().__init__(origin=node)
-        AsyncProcessOwner.__init__(self)
         self.complete = False
         self.finalized = False
         self.awaiting_async_process = False
@@ -1142,7 +1004,7 @@ class TrialMaker(Module):
     def check_timeout(self):
         # pylint: disable=no-member
         self.check_old_trials()
-        self.check_async_trials()
+        AsyncProcess.check_timeouts()
         db.session.commit()
 
     def selected_recruit_criterion(self, experiment):
@@ -1295,25 +1157,7 @@ class TrialMaker(Module):
         logger.info("Found %i old trial(s) to fail.", len(trials_to_fail))
         for trial in trials_to_fail:
             trial.fail(reason="response_timeout")
-
-    def check_async_trials(self):
-        trials_awaiting_processes = self.trial_class.query.filter_by(
-            awaiting_async_process=True
-        ).all()
-        time_threshold = datetime.datetime.now() - datetime.timedelta(
-            seconds=self.async_timeout_sec
-        )
-        trials_to_fail = [
-            t
-            for t in trials_awaiting_processes
-            if t.earliest_async_process_start_time < time_threshold
-        ]
-        logger.info(
-            "Found %i trial(s) with long-pending asynchronous processes to fail.",
-            len(trials_to_fail),
-        )
-        for trial in trials_to_fail:
-            trial.fail_async_processes(reason="async_process_timeout")
+        db.session.commit()
 
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -2048,7 +1892,12 @@ class NetworkTrialMaker(TrialMaker):
         super().finalize_trial(answer, trial, experiment, participant)
         db.session.commit()
         if trial.run_async_post_trial:
-            trial.queue_async_method("call_async_post_trial")
+            AsyncProcess(
+                "post_trial",
+                trial.call_async_post_trial,
+                arguments=dict(trial=trial),
+                timeout=self.async_timeout_sec,
+            )
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
 
@@ -2057,7 +1906,12 @@ class NetworkTrialMaker(TrialMaker):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            network.queue_async_method("call_async_post_grow_network")
+            AsyncProcess(
+                "post_grow_network",
+                network.async_post_grow_network,
+                arguments=dict(network=network),
+                timeout=self.async_timeout_sec,
+            )
             db.session.commit()
 
     @property
@@ -2073,30 +1927,6 @@ class NetworkTrialMaker(TrialMaker):
     @property
     def networks(self):
         return self.network_query.all()
-
-    def check_timeout(self):
-        super().check_timeout()
-        self.check_async_networks()
-        db.session.commit()  # pylint: disable=no-member
-
-    def check_async_networks(self):
-        time_threshold = datetime.datetime.now() - datetime.timedelta(
-            seconds=self.async_timeout_sec
-        )
-        networks_awaiting_processes = self.network_class.query.filter_by(
-            awaiting_async_process=True
-        ).all()
-        networks_to_fail = [
-            n
-            for n in networks_awaiting_processes
-            if n.earliest_async_process_start_time < time_threshold
-        ]
-        logger.info(
-            "Found %i network(s) with long-pending asynchronous processes to clear.",
-            len(networks_to_fail),
-        )
-        for network in networks_to_fail:
-            network.fail_async_processes(reason="long-pending network process")
 
     performance_threshold = -1.0
     min_nodes_for_performance_check = 2
@@ -2230,7 +2060,7 @@ class NetworkTrialMaker(TrialMaker):
                     return False
 
 
-class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
+class TrialNetwork(SQLMixinDallinger, Network):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
     The user must override the abstract method :meth:`~psynet.trial.main.TrialNetwork.add_node`.
@@ -2297,7 +2127,6 @@ class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
 
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
-        **AsyncProcessOwner.__extra_vars__.copy(),
     }
 
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
@@ -2337,7 +2166,6 @@ class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
 
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
-        AsyncProcessOwner.__init__(self)
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase
@@ -2428,15 +2256,13 @@ class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
         )
 
 
-class TrialNode(SQLMixinDallinger, dallinger.models.Node, AsyncProcessOwner):
+class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
-        **AsyncProcessOwner.__extra_vars__.copy(),
     }
 
     def __init__(self, network, participant=None):
         super().__init__(network=network, participant=participant)
-        AsyncProcessOwner.__init__(self)
 
 
 class TrialSource(TrialNode):

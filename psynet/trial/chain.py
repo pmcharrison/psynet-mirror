@@ -364,10 +364,6 @@ class ChainNetwork(TrialNetwork):
         else:
             return self.target_num_trials - self.num_completed_trials
 
-    def fail_async_processes(self, reason):
-        super().fail_async_processes(reason)
-        self.head.fail(reason=reason)
-
 
 class ChainNode(TrialNode, HasSeed, HasDefinition):
     """

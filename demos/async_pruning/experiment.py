@@ -24,6 +24,7 @@ from psynet.consent import NoConsent
 from psynet.experiment import scheduled_task
 from psynet.modular_page import SliderControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
+from psynet.process import AsyncProcess
 from psynet.timeline import Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
@@ -250,6 +251,11 @@ class Exp(psynet.experiment.Experiment):
                 # for a pre-existing asynchronous process to complete.
                 # One might implement more complex checks here, for example only running the
                 # task for trials that have already received a response from the participant.
-                t.queue_async_method(
-                    "expensive_computation", seed=random.randint(0, 10)
+                AsyncProcess(
+                    "expensive_computation",
+                    function=CustomTrial.expensive_computation,
+                    arguments={
+                        "trial": t,
+                        "seed": random.randint(0, 10),
+                    },
                 )

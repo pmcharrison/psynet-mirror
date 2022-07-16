@@ -45,14 +45,20 @@ class PythonObject(TypeDecorator):
         return jsonpickle.decode(value)
 
 
-class PythonDict(PythonObject):
+class _PythonDict(PythonObject):
     def sanitize(self, value):
         return dict(value)
 
 
-class PythonList(PythonObject):
+PythonDict = MutableDict.as_mutable(_PythonDict)
+
+
+class _PythonList(PythonObject):
     def sanitize(self, value):
         return list(value)
+
+
+PythonList = MutableList.as_mutable(_PythonList)
 
 
 # These classes cannot be reliably pickled by the `jsonpickle` library.
@@ -102,9 +108,9 @@ def claim_field(name: str, extra_vars: dict, field_type=object):
     elif field_type is str:
         col = Column(String, nullable=True)
     elif field_type is list:
-        col = Column(MutableList.as_mutable(PythonList), nullable=True)
+        col = Column(PythonList, nullable=True)
     elif field_type is dict:
-        col = Column(MutableDict.as_mutable(PythonDict), nullable=True)
+        col = Column(PythonDict, nullable=True)
     elif field_type is object:
         col = Column(PythonObject, nullable=True)
     else:
