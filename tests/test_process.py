@@ -2,6 +2,7 @@ import tempfile
 import time
 
 import pytest
+from dallinger import db
 
 import psynet.experiment  # noqa -- to ensure that all SQLAlchemy classes are registered
 from psynet.process import AsyncProcess
@@ -33,7 +34,7 @@ def test_local_process():
     message = "Hello!"
 
     with tempfile.NamedTemporaryFile(delete=False) as file:
-        AsyncProcess(
+        process = AsyncProcess(
             sleep_then_write_to_file,
             dict(
                 duration=0.125,
@@ -50,3 +51,7 @@ def test_local_process():
 
         with open(file.name, "r") as file_reader:
             assert file_reader.readline() == message
+
+        db.session.refresh(process)
+        assert process.finished
+        assert abs(process.time_taken - 0.125) < 0.01
