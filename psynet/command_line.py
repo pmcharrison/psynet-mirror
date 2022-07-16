@@ -133,7 +133,6 @@ def prepare():
     is_flag=True,
     help="Skip opening browsers",
 )
-@click.option("--force-prepare", is_flag=True, help="Force override of cache.")
 @click.option(
     "--threads",
     default=1,
@@ -141,9 +140,7 @@ def prepare():
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
 @click.pass_context
-def debug(
-    ctx, legacy, verbose, bot, proxy, no_browsers, force_prepare, threads, archive
-):
+def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive):
     """
     Run the experiment locally.
     """
@@ -154,7 +151,7 @@ def debug(
     drop_all_db_tables()
 
     if archive is None:
-        _run_prepare_in_subprocess(force_prepare)
+        run_prepare_in_subprocess()
         _cleanup_before_debug()
         archive = database_template_zip_path
 
@@ -170,13 +167,11 @@ def debug(
         kill_psynet_worker_processes()
 
 
-def _run_prepare_in_subprocess(force_prepare):
+def run_prepare_in_subprocess():
     # `psynet prepare` runs `import_local_experiment`, which registers SQLAlchemy tables,
     # which can create a problem for subsequent `dallinger debug`.
     # To avoid problems, we therefore run `psynet prepare` in a subprocess.
     prepare_cmd = "psynet prepare"
-    if force_prepare:
-        prepare_cmd += " --force"
     run_subprocess_with_live_output(prepare_cmd)
 
 

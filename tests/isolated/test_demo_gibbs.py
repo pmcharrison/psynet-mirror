@@ -26,8 +26,9 @@ app = "demo-app"
 
 @pytest.fixture(scope="session")
 def data_root_dir():
-    yield os.path.join("data", f"data-{app}")
-    shutil.rmtree(data_root_dir, ignore_errors=True)
+    path = os.path.join("data", f"data-{app}")
+    yield path
+    shutil.rmtree(path, ignore_errors=True)
 
 
 @pytest.fixture
@@ -67,6 +68,12 @@ class TestExp:
             next_page(driver, "next-button")
 
             pt = Participant.query.filter_by(id=participant + 1).one()
+
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
 
             # This variable is set in a code block within the trial
             assert pt.var.test_variable == 123

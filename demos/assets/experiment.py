@@ -28,7 +28,7 @@ def slow_computation(path, n, k):
 
 
 class Exp(psynet.experiment.Experiment):
-    name = "Assets demo"
+    label = "Assets demo"
 
 
 Exp.assets.asset_storage = LocalStorage(root="/Users/peter/psynet-storage")

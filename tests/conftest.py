@@ -13,6 +13,7 @@ import psynet.utils
 from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
+    run_prepare_in_subprocess,
 )
 from psynet.data import init_db
 from psynet.participant import Participant
@@ -41,6 +42,7 @@ def demo_setup(demo):
     kill_chromedriver_processes()
     psynet.utils.import_local_experiment()
     init_db(drop_all=True)
+    run_prepare_in_subprocess()
 
 
 def demo_teardown(root):

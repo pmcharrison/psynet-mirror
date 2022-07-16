@@ -32,7 +32,7 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    name = "Timeline demo"
+    label = "Timeline demo"
 
     def __init__(self, session=None):
         super().__init__(session)

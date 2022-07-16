@@ -401,7 +401,7 @@ SingingMainTask1 = join(
 
 
 class Exp(psynet.experiment.Experiment):
-    name = "Iterated singing demo"
+    label = "Iterated singing demo"
 
     # assets = AssetRegistry(asset_storage=S3Storage())
     asset_storage = LocalStorage("~/Downloads/psynet_local_storage")

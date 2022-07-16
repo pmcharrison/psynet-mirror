@@ -5,6 +5,7 @@
 ##########################################################################################
 
 import random
+import time
 from typing import List, Union
 
 from dallinger import db
@@ -100,12 +101,19 @@ class CustomNetwork(GibbsNetwork):
             "participant_group": self.balance_across_networks(["A", "B"]),
         }
 
+    def async_post_grow_network(self):
+        from psynet.field import UndefinedVariableError
+
+        try:
+            self.var.growth_counter += 1
+        except UndefinedVariableError:
+            self.var.growth_counter = 1
+
 
 class CustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
     resample_free_parameter = True
-
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
@@ -130,6 +138,10 @@ class CustomTrial(GibbsTrial):
             # This one doesn't do anything useful, it's just there for demonstration purposes.
             CodeBlock(lambda participant: participant.var.set("test_variable", 123)),
         ]
+
+    def async_post_trial(self):
+        time.sleep(1)
+        self.var.async_post_trial_completed = True
 
 
 class CustomNode(GibbsNode):
@@ -227,6 +239,8 @@ def _collect_coin(participant):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Gibbs demo"
+
     timeline = Timeline(
         NoConsent(),
         ModularPage(

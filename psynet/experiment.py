@@ -229,10 +229,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
 
-        if not self.name:
+        if not self.label:
             raise RuntimeError(
-                "PsyNet now requires you to specify a descriptive name for your experiment "
-                "in your Experiment class. For example, you might write: name = 'GSP experiment with faces'"
+                "PsyNet now requires you to specify a descriptive label for your experiment "
+                "in your Experiment class. For example, you might write: label = 'GSP experiment with faces'"
             )
 
         self.deployment_id = self.read_deployment_id()
@@ -459,7 +459,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def generate_deployment_id(cls):
-        return cls.name + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
+        return cls.label + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
     @classmethod
     def read_deployment_id(cls):

@@ -134,7 +134,7 @@ class CustomNode(CameraImitationChainNode):
 
 ####################################################################################################
 class Exp(psynet.experiment.Experiment):
-    name = "Video imitation chain demo"
+    label = "Video imitation chain demo"
     asset_storage = S3Storage("psynet-demos", "video-imitation-chain")
 
     timeline = Timeline(
