@@ -1,3 +1,4 @@
+import functools
 import operator
 import os
 import pickle
@@ -463,30 +464,14 @@ class StaticTrial(Trial):
         self.participant_group = self.stimulus.participant_group
         self.block = self.stimulus.block
 
-    def generate_asset_key(self, label, asset):
-        f"{self.trial_maker_id}/block_{asset.block}__stimulus_{asset.stimulus_id}__trial_{asset.trial_id}__{asset.label}{asset.extension}"
+    def generate_asset_key(self, asset):
+        return f"{self.trial_maker_id}/block_{self.block}__stimulus_{self.stimulus_id}__trial_{self.id}__{asset.label}{asset.extension}"
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
 
     def make_definition(self, experiment, participant):
-        definition = deep_copy(self.stimulus.definition)
-        self.finalize_definition(experiment, participant, definition)
-        return definition
-
-    def finalize_definition(self, experiment, participant, definition):
-        """
-        This can be overridden to add additional randomized trial properties.
-        For example:
-
-        ```
-        return {
-            **stimulus_definition,
-            "bass_note": random.sample(10),
-        }
-        ```
-        """
-        return definition
+        return deep_copy(self.stimulus.definition)
 
     def summarize(self):
         return {
@@ -499,6 +484,9 @@ class StaticTrial(Trial):
             "stimulus_id": self.stimulus.id,
             "stimulus_version_id": self.stimulus_version.id,
         }
+
+
+functools.partial
 
 
 class StaticTrialMaker(NetworkTrialMaker):

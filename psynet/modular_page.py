@@ -2055,7 +2055,7 @@ class AudioRecordControl(RecordControl):
                 trial=trial,
                 variables=dict(),
             )
-            asset.deposit(async_=True, delete=True)
+            asset.deposit(async_=True, delete_input=True)
 
         return {
             "origin": "AudioRecordControl",
@@ -2186,7 +2186,7 @@ class VideoRecordControl(RecordControl):
                     trial=trial,
                     variables=dict(),
                 )
-                asset.deposit(async_=True, delete=True)
+                asset.deposit(async_=True, delete_input=True)
 
                 summary[source + "_key"] = asset.key
                 summary[source + "_url"] = asset.url

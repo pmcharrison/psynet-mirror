@@ -48,6 +48,7 @@ from ..timeline import (
 from ..utils import (
     call_function,
     corr,
+    deep_copy,
     get_logger,
     import_local_experiment,
     serialise_datetime,
@@ -561,8 +562,18 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         if is_repeat_trial:
             self.definition = parent_trial.definition
         else:
-            self.definition = self.make_definition(experiment, participant)
+            # We use deep copies to protect users from unexpected side-effects of in-place modifications
+            self.definition = deep_copy(self.make_definition(experiment, participant))
+            assert self.definition is not None
+
+            self.definition = deep_copy(
+                self.finalize_definition(self.definition, experiment, participant)
+            )
+            assert self.definition is not None
+
+            db.session.add(self)
             db.session.commit()
+
             self._finalize_assets()
 
     def mark_as_finalized(self):
@@ -601,6 +612,11 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
             self.add_asset(label, asset)
 
     def add_asset(self, label, asset):
+        db.session.add(self)
+        db.session.commit()
+
+        assert self.id is not None
+
         asset.trial = self
         asset.trial_id = self.id
 
@@ -620,7 +636,7 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         db.session.commit()
 
     def generate_asset_key(self, asset):
-        f"{self.trial_maker_id}/network_{asset.network_id}__node_{asset.node_id}__trial_{asset.trial_id}__{asset.label}{asset.extension}"
+        return f"{self.trial_maker_id}/network_{asset.network_id}__node_{asset.node_id}__trial_{asset.trial_id}__{asset.label}{asset.extension}"
 
     def score_answer(self, answer, definition):
         """
@@ -692,10 +708,35 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
         """
         raise NotImplementedError
 
+    def finalize_definition(self, experiment, participant, definition):
+        """
+        This can be overridden to add additional randomized trial properties.
+        For example:
+
+        ```
+        definition["bass_note"] = random.sample(10)
+        ```
+
+        It can also be used to add FastFunctionAssets:
+
+        ```
+        self.add_assets({
+            "audio": FastFunctionAsset(
+                function=synth_stimulus,
+                extension=".wav",
+            )
+        })
+        ```
+        """
+        return definition
+
     def _finalize_assets(self):
         db.session.refresh(self)
+        assert self.id is not None
         for a in self.assets.values():
             a.receive_stimulus_definition(self.definition)
+            if not a.deposited:
+                a.deposit()
         db.session.commit()
 
     def show_trial(self, experiment, participant):

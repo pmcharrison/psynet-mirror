@@ -1020,10 +1020,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         )
         return json.dumps(json_data, default=serialise)
 
-    @experiment_route("/fast-function-asset/<key>", methods=["GET"])
+    @experiment_route("/fast-function-asset", methods=["GET"])
     @staticmethod
-    def get_fast_function_asset(key):
+    def get_fast_function_asset():
+        key = request.args.get("key")
         secret = request.args.get("secret")
+
+        assert key
         assert secret
 
         key_parsed = urllib.parse.unquote(key)
