@@ -1,6 +1,8 @@
 import json
 import os
 import shutil
+import tempfile
+import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
@@ -9,6 +11,7 @@ from smtplib import SMTPAuthenticationError
 
 import dallinger.experiment
 import dallinger.models
+import flask
 import rpdb
 import sqlalchemy.orm.exc
 from dallinger import db
@@ -25,7 +28,7 @@ from pkg_resources import resource_filename
 
 from psynet import __version__
 
-from .assets import Asset, AssetRegistry, NoStorage
+from .assets import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .command_line import log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
@@ -1016,6 +1019,21 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Returning from /get_participant_info_for_debug_mode: {json_data}"
         )
         return json.dumps(json_data, default=serialise)
+
+    @experiment_route("/fast-function-asset/<key>", methods=["GET"])
+    @staticmethod
+    def get_fast_function_asset(key):
+        secret = request.args.get("secret")
+        assert secret
+
+        key_parsed = urllib.parse.unquote(key)
+
+        asset = FastFunctionAsset.query.filter_by(key=key_parsed).one()
+
+        with tempfile.NamedTemporaryFile() as temp_file:
+            asset.export(temp_file.name)
+
+            return flask.send_file(temp_file.name, cache_timeout=0)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
     @staticmethod

@@ -479,7 +479,7 @@ class ManagedAsset(Asset):
 
     def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete: bool):
         self.host_path = self.generate_host_path(self.deployment_id)
-        self.url = self.asset_registry.asset_storage.get_url(self.host_path)
+        self.url = self.get_url()
         self.asset_storage.update_asset_metadata(self)
 
         time_start = time.perf_counter()
@@ -491,6 +491,9 @@ class ManagedAsset(Asset):
         self.deposit_time_sec = (
             time_end - time_start
         )  # Todo - update this - won't be correct for async deposits
+
+    def get_url(self):
+        return self.asset_registry.asset_storage.get_url(self.host_path)
 
     def delete_source(self):
         if self.data_type == "folder":
@@ -732,9 +735,30 @@ class FunctionAsset(FunctionAssetMixin, ExperimentAsset):
     pass
 
 
+class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
+    def _deposit__(self, asset_storage, host_path, async_, delete):
+        # Don't create any files on depositing; files will be created on demand instead
+        pass
+
+    def export(self, path):
+        self.function(input_path=path, **self.arguments)
+
+    def get_url(self):
+        key_encoded = urllib.parse.quote(self.key)
+        secret = self.secret
+        return f"/fast-function-asset/{key_encoded}?secret={secret}"
+
+    def generate_host_path(self):
+        return None
+
+
 class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
     # FunctionAssetMixin comes first in the inheritance hierarchy
     # because we need to use its ``__init__`` method.
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.secret = uuid.uuid4()  # Used to protect unauthorized access
+
     @property
     def cache_key(self):
         return self.get_md5_instructions()

@@ -16,7 +16,7 @@ from sqlalchemy.orm import relationship
 
 from ..assets import CachedAsset
 from ..timeline import NullElt, join
-from ..utils import get_logger
+from ..utils import deep_copy, get_logger
 from .main import (
     HasDefinition,
     NetworkTrialMaker,
@@ -185,10 +185,16 @@ class Stimulus(TrialNode, HasDefinition):
         for key, asset in self._staged_assets.items():
             if not asset.has_key:
                 asset.label = key
-                asset.key = f"static_stimuli/{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
+                asset.key = f"{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
+
             asset.node = self
+            asset.node_id = self.id
+
             asset.network = self.network
+            asset.network_id = self.network_id
+
             asset.receive_stimulus_definition(self.definition)
+
             experiment.assets.stage(asset)
             db.session.add(asset)
 
@@ -457,10 +463,18 @@ class StaticTrial(Trial):
         self.participant_group = self.stimulus.participant_group
         self.block = self.stimulus.block
 
+    def generate_asset_key(self, label, asset):
+        f"{self.trial_maker_id}/block_{asset.block}__stimulus_{asset.stimulus_id}__trial_{asset.trial_id}__{asset.label}{asset.extension}"
+
     def show_trial(self, experiment, participant):
         raise NotImplementedError
 
     def make_definition(self, experiment, participant):
+        definition = deep_copy(self.stimulus.definition)
+        self.finalize_definition(experiment, participant, definition)
+        return definition
+
+    def finalize_definition(self, experiment, participant, definition):
         """
         This can be overridden to add additional randomized trial properties.
         For example:
@@ -472,22 +486,7 @@ class StaticTrial(Trial):
         }
         ```
         """
-        stimulus_definition = self.stimulus.definition
-        return self.finalize_definition(experiment, participant, stimulus_definition)
-
-    def finalize_definition(self, experiment, participant, stimulus_definition):
-        """
-        This can be overridden to add additional randomized trial properties.
-        For example:
-
-        ```
-        return {
-            **stimulus_definition,
-            "bass_note": random.sample(10),
-        }
-        ```
-        """
-        return stimulus_definition
+        return definition
 
     def summarize(self):
         return {

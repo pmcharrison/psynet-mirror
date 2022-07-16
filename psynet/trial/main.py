@@ -523,8 +523,6 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
     def awaiting_asset_deposit(self):
         db.session.commit()
         db.session.refresh(self)
-        for a in self.assets.values():
-            print(f"asset.id = {a.id}, deposited = {a.deposited}")
         return any([not a.deposited for a in self.assets.values()])
 
     @property
@@ -564,6 +562,8 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
             self.definition = parent_trial.definition
         else:
             self.definition = self.make_definition(experiment, participant)
+            db.session.commit()
+            self._finalize_assets()
 
     def mark_as_finalized(self):
         """
@@ -595,6 +595,32 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
             self.participant.id,
             self.id,
         )
+
+    def add_assets(self, assets: dict):
+        for label, asset in assets.items():
+            self.add_asset(label, asset)
+
+    def add_asset(self, label, asset):
+        asset.trial = self
+        asset.trial_id = self.id
+
+        asset.node = self.origin
+        asset.node_id = self.origin_id
+
+        asset.network = self.network
+        asset.network_id = self.network_id
+
+        if not asset.has_key:
+            asset.label = label
+            asset.key = self.generate_asset_key(asset)
+
+        asset.receive_stimulus_definition(self.definition)
+
+        db.session.add(asset)
+        db.session.commit()
+
+    def generate_asset_key(self, asset):
+        f"{self.trial_maker_id}/network_{asset.network_id}__node_{asset.node_id}__trial_{asset.trial_id}__{asset.label}{asset.extension}"
 
     def score_answer(self, answer, definition):
         """
@@ -665,6 +691,12 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
             corresponding to the current participant.
         """
         raise NotImplementedError
+
+    def _finalize_assets(self):
+        db.session.refresh(self)
+        for a in self.assets.values():
+            a.receive_stimulus_definition(self.definition)
+        db.session.commit()
 
     def show_trial(self, experiment, participant):
         """

@@ -34,6 +34,10 @@ def get_logger():
 logger = get_logger()
 
 
+def deep_copy(x):
+    return jsonpickle.decode(jsonpickle.encode(x))
+
+
 def get_arg_from_dict(x, desired: str, use_default=False, default=None):
     if desired not in x:
         if use_default:
