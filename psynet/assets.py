@@ -24,6 +24,7 @@ from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
+from .process import AsyncProcess
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -34,7 +35,6 @@ from .utils import (
     md5_directory,
     md5_file,
     md5_object,
-    run_async_command_locally,
 )
 
 logger = get_logger()
@@ -935,8 +935,14 @@ class AssetStorage:
     def _async__call_receive_deposit(
         self, asset: Asset, host_path: str, delete_input: bool
     ):
-        run_async_command_locally(
-            self._call_receive_deposit, asset, host_path, delete_input, db_commit=True
+        AsyncProcess(
+            self._call_receive_deposit,
+            dict(
+                asset=asset,
+                host_path=host_path,
+                delete_input=delete_input,
+                db_commit=True,
+            ),
         )
 
     def export(self, asset, path):
