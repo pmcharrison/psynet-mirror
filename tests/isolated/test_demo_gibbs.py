@@ -47,6 +47,10 @@ def coin_class(experiment_module):
     return experiment_module.Coin
 
 
+def big_sleep():
+    time.sleep(10)
+
+
 @pytest.mark.usefixtures("demo_gibbs")
 class TestExp:
     def test_exp(
@@ -71,6 +75,7 @@ class TestExp:
             next_page(driver, "next-button")
 
             pt = Participant.query.filter_by(id=participant + 1).one()
+            time.sleep(1)
 
             import pydevd_pycharm
 

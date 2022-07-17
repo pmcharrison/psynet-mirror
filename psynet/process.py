@@ -56,7 +56,7 @@ class AsyncProcess(SQLBase, SQLMixin):
     def __init__(
         self,
         function,
-        arguments,
+        arguments=None,
         trial=None,
         participant=None,
         node=None,
@@ -66,6 +66,9 @@ class AsyncProcess(SQLBase, SQLMixin):
     ):
         if not label:
             label = function.__name__
+
+        if not arguments:
+            arguments = {}
 
         self.check_function(function)
 
@@ -157,6 +160,7 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     def cancel(self):
         self.cancelled = True
+        self.pending = False
         self.fail("Cancelled asynchronous process")
         db.session.commit()
 
@@ -261,7 +265,15 @@ class WorkerAsyncProcess(AsyncProcess):
 
     def __init__(
         self,
-        timeout,
+        function,
+        arguments,
+        trial=None,
+        participant=None,
+        node=None,
+        network=None,
+        asset=None,
+        label=None,
+        timeout=None,  # <-- new argument for this class
     ):
         self.timeout = timeout
         if timeout:
