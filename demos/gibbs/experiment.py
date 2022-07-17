@@ -5,6 +5,7 @@
 ##########################################################################################
 
 import random
+import tempfile
 import time
 from typing import List, Union
 
@@ -14,6 +15,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
+from psynet.assets import ExperimentAsset
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback
@@ -140,8 +142,18 @@ class CustomTrial(GibbsTrial):
         ]
 
     def async_post_trial(self):
+        # You could put a time-consuming analysis here, perhaps one that generates a plot...
         time.sleep(1)
         self.var.async_post_trial_completed = True
+        with tempfile.NamedTemporaryFile("w") as file:
+            file.write(f"completed async_post_trial for trial {self.id}")
+            asset = ExperimentAsset(
+                label="async_post_trial",
+                input_path=file.name,
+                extension=".txt",
+                trial=self,
+            )
+            asset.deposit()
 
 
 class CustomNode(GibbsNode):
