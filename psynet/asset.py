@@ -15,16 +15,16 @@ import psutil
 import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import backref, relationship
+from sqlalchemy.orm import backref, column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
-from .process import LocalAsyncProcess
+from .process import AsyncProcess, LocalAsyncProcess
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -161,6 +161,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         backref=backref(
             "assets", collection_class=attribute_mapped_collection("label")
         ),
+    )
+
+    awaiting_async_process = column_property(
+        select(AsyncProcess)
+        .where(AsyncProcess.asset_key == key, AsyncProcess.pending)
+        .exists()
     )
 
     foreign_keyed_columns = ["participant_id", "network_id", "node_id", "trial_id"]

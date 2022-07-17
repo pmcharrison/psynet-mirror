@@ -13,6 +13,7 @@ from selenium.webdriver.common.by import By
 from psynet.command_line import export_, populate_db_from_zip_file
 from psynet.field import UndefinedVariableError
 from psynet.participant import Participant
+from psynet.process import AsyncProcess
 from psynet.test import assert_text, bot_class, next_page
 from psynet.timeline import Response
 from psynet.trial.main import Trial
@@ -48,7 +49,9 @@ def coin_class(experiment_module):
 
 @pytest.mark.usefixtures("demo_gibbs")
 class TestExp:
-    def test_exp(self, bot_recruits, db_session, data_csv_dir, data_zip_file):
+    def test_exp(
+        self, bot_recruits, db_session, data_root_dir, data_csv_dir, data_zip_file
+    ):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
@@ -74,6 +77,11 @@ class TestExp:
             pydevd_pycharm.settrace(
                 "localhost", port=12345, stdoutToServer=True, stderrToServer=True
             )
+
+            async_processes = AsyncProcess.query.all()
+            assert len(async_processes > 0)
+
+            # TODO - write more tests here
 
             # This variable is set in a code block within the trial
             assert pt.var.test_variable == 123
@@ -114,7 +122,7 @@ class TestExp:
         self._run_export_tests(data_csv_dir, data_zip_file)
 
     def _run_export_tests(self, data_csv_dir, data_zip_file):
-        export_(app, local=True)
+        export_(app, local=True, include_assets=True)
 
         def test_participants_file(data_csv_dir):
             participants_file = os.path.join(data_csv_dir, "Participant.csv")
@@ -201,6 +209,15 @@ class TestExp:
                     assert dallinger_csv_files == [t + ".csv" for t in db_tables]
 
         test_dallinger_exports(data_zip_file)
+
+        def test_asset_exports(data_root_dir):
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
+
+        test_asset_exports()
 
     def test_populate_db_from_zip_file(self, data_zip_file, coin_class):
         """

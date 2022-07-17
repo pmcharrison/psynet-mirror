@@ -27,11 +27,12 @@ class AsyncProcess(SQLBase, SQLMixin):
     label = Column(String)
     function = Column(PythonObject)
     arguments = Column(PythonDict)
+    pending = Column(Boolean)
     finished = Column(Boolean, default=False)
+    cancelled = Column(Boolean, default=False)
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
     time_taken = Column(Float)
-    cancelled = Column(Boolean, default=False)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship(
@@ -94,6 +95,7 @@ class AsyncProcess(SQLBase, SQLMixin):
             self.trial_id = trial.id
 
         self.infer_missing_parents()
+        self.pending = True
 
         db.session.add(self)
         db.session.commit()
@@ -190,6 +192,7 @@ class AsyncProcess(SQLBase, SQLMixin):
             process.fail(f"Exception in asynchronous process: {repr(err)}")
             raise
         finally:
+            process.pending = False
             db.session.commit()
             db.session.close()
 

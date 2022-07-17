@@ -899,7 +899,6 @@ class ChainTrial(Trial):
     awaiting_async_process : bool
         Whether the trial is waiting for some asynchronous process
         to complete (e.g. to synthesise audiovisual material).
-        The user should not typically change this directly.
 
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.

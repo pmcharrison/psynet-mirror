@@ -12,10 +12,11 @@ from dallinger import db
 from dallinger.models import Info, Network, Node
 from dominate import tags
 from flask import Markup
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import column_property
 from sqlalchemy.sql.expression import cast
 
 from ..data import SQLMixinDallinger
@@ -28,7 +29,7 @@ from ..field import (
 )
 from ..page import InfoPage, UnsuccessfulEndPage, wait_while
 from ..participant import Participant
-from ..process import WorkerAsyncProcess
+from ..process import AsyncProcess, WorkerAsyncProcess
 from ..timeline import (
     CodeBlock,
     DatabaseCheck,
@@ -288,6 +289,12 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         "time_credit_from_trial", __extra_vars__, float
     )
 
+    awaiting_async_process = column_property(
+        select(AsyncProcess)
+        .where(AsyncProcess.trial_id == Info.id, AsyncProcess.pending)
+        .exists()
+    )
+
     # It is compulsory to override this time_estimate parameter for the specific experiment implementation.
     time_estimate = None
 
@@ -410,7 +417,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         super().__init__(origin=node)
         self.complete = False
         self.finalized = False
-        self.awaiting_async_process = False
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
@@ -570,7 +576,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         """
         raise NotImplementedError
 
-    def finalize_definition(self, experiment, participant, definition):
+    def finalize_definition(self, definition, experiment, participant):
         """
         This can be overridden to add additional randomized trial properties.
         For example:
@@ -2089,7 +2095,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
-        Set by default to ``False`` in the ``__init__`` function.
 
     phase : str
         Arbitrary label for this phase of the experiment, e.g.
@@ -2162,12 +2167,19 @@ class TrialNetwork(SQLMixinDallinger, Network):
     def phase(self):
         return cast(self.role, String)
 
+    awaiting_async_process = column_property(
+        select(AsyncProcess)
+        .where(
+            AsyncProcess.network_id == dallinger.models.Network.id, AsyncProcess.pending
+        )
+        .exists()
+    )
+
     ####
 
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
         self.trial_maker_id = trial_maker_id
-        self.awaiting_async_process = False
         self.phase = phase
 
     @property
@@ -2260,6 +2272,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
+
+    awaiting_async_process = column_property(
+        select(AsyncProcess)
+        .where(AsyncProcess.node_id == dallinger.models.Node.id, AsyncProcess.pending)
+        .exists()
+    )
 
     def __init__(self, network, participant=None):
         super().__init__(network=network, participant=participant)

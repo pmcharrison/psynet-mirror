@@ -31,7 +31,11 @@ logger = get_logger()
 
 
 def deep_copy(x):
-    return jsonpickle.decode(jsonpickle.encode(x))
+    try:
+        return jsonpickle.decode(jsonpickle.encode(x))
+    except Exception:
+        logger.error(f"Failed to copy the following object: {x}")
+        raise
 
 
 def get_arg_from_dict(x, desired: str, use_default=False, default=None):

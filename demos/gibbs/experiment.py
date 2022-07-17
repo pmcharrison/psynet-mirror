@@ -92,6 +92,8 @@ class ColorSliderPage(ModularPage):
 
 
 class CustomNetwork(GibbsNetwork):
+    run_async_post_grow_network = True
+
     vector_length = 3
 
     def random_sample(self, i):
@@ -115,6 +117,7 @@ class CustomNetwork(GibbsNetwork):
 class CustomTrial(GibbsTrial):
     # If True, then the starting value for the free parameter is resampled
     # on each trial.
+    run_async_post_trial = True
     resample_free_parameter = True
     time_estimate = 5
 

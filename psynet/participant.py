@@ -8,12 +8,13 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Column, ForeignKey, Integer, desc
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, ForeignKey, Integer, desc, select
+from sqlalchemy.orm import column_property, relationship
 
 from . import field
 from .data import SQLMixinDallinger
 from .field import claim_var, extra_var
+from .process import AsyncProcess
 from .utils import get_logger, serialise_datetime, unserialise_datetime
 
 logger = get_logger()
@@ -179,6 +180,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         Integer, ForeignKey("info.id")
     )  # 'info.id' because trials are stored in the info table
     current_trial = relationship("Trial")
+
+    awaiting_async_process = column_property(
+        select(AsyncProcess)
+        .where(
+            AsyncProcess.participant_id == dallinger.models.Participant.id,
+            AsyncProcess.pending,
+        )
+        .exists()
+    )
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)

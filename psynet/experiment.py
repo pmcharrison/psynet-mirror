@@ -28,7 +28,7 @@ from pkg_resources import resource_filename
 
 from psynet import __version__
 
-from .assets import Asset, AssetRegistry, FastFunctionAsset, NoStorage
+from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .command_line import log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
