@@ -27,15 +27,11 @@ class AsyncProcess(SQLBase, SQLMixin):
     label = Column(String)
     function = Column(PythonObject)
     arguments = Column(PythonDict)
-    local = Column(Boolean)
-    dispatcher = Column(PythonObject)
-    cancelled = Column(Boolean, default=False)
     finished = Column(Boolean, default=False)
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
     time_taken = Column(Float)
-    time_out = Column(Float)  # note -- currently only applies to non-local proceses
-    time_out_when = Column(DateTime)
+    cancelled = Column(Boolean, default=False)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship(
@@ -60,8 +56,6 @@ class AsyncProcess(SQLBase, SQLMixin):
         self,
         function,
         arguments,
-        local=False,
-        timeout=None,
         trial=None,
         participant=None,
         node=None,
@@ -77,15 +71,12 @@ class AsyncProcess(SQLBase, SQLMixin):
         self.label = label
         self.function = function
         self.arguments = arguments
-        self.local = local
-
-        self.timeout = timeout
-        if timeout:
-            self.timeout_when = datetime.datetime.now() + datetime.timedelta(
-                seconds=timeout
-            )
 
         # TODO - Refactor this and analogous sections in the PsyNet codebase to be more concise
+        self.asset = asset
+        if asset:
+            self.asset_key = asset.key
+
         self.participant = participant
         if participant:
             self.participant_id = participant.id
@@ -104,15 +95,10 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         self.infer_missing_parents()
 
-        if self.local:
-            self.dispatcher = LocalProcessDispatcher
-        else:
-            self.dispatcher = DistributedProcessDispatcher
-
         db.session.add(self)
         db.session.commit()
 
-        self.dispatch()
+        self.start()
 
         db.session.commit()
 
@@ -123,25 +109,6 @@ class AsyncProcess(SQLBase, SQLMixin):
                 "or class level, rather than being a lambda function or a temporary function defined within "
                 "another function."
             )
-
-    @classmethod
-    def check_timeouts(cls):
-        processes = (
-            cls.query.filter(
-                ~cls.failed,
-                ~cls.timeout == None,  # noqa -- this is special SQLAlchemy syntax
-                cls.timeout_when < datetime.now(),
-            )
-            .filter()
-            .all()
-        )
-        for p in processes:
-            p.fail("Asynchronous process timed out")
-            db.session.commit()
-
-    def dispatch(self):
-        print("dispatch 1")
-        self.dispatcher.dispatch(self)
 
     def log_time_started(self):
         self.time_started = datetime.now()
@@ -183,16 +150,13 @@ class AsyncProcess(SQLBase, SQLMixin):
         candidates = [self.trial, self.node]
         return [[obj] for obj in candidates if obj is not None]
 
+    def start(self):
+        raise NotImplementedError
+
     def cancel(self):
         self.cancelled = True
         self.fail("Cancelled asynchronous process")
         db.session.commit()
-
-
-class Dispatcher:
-    @classmethod
-    def dispatch(cls, process):
-        raise NotImplementedError
 
     @classproperty
     def redis_queue(cls):
@@ -200,6 +164,9 @@ class Dispatcher:
 
     @classmethod
     def call_function(cls, process_id):
+        """
+        Calls the defining function of a given process.
+        """
         import_local_experiment()
 
         process = AsyncProcess.query.filter_by(id=process_id).one()
@@ -228,6 +195,9 @@ class Dispatcher:
 
     @classmethod
     def preprocess_args(cls, arguments):
+        """
+        Preprocesses the arguments that are passed to the process's function.
+        """
         return {key: cls.preprocess_arg(value) for key, value in arguments.items()}
 
     @classmethod
@@ -240,26 +210,25 @@ class Dispatcher:
         return arg
 
 
-class LocalProcessDispatcher(Dispatcher):
-    @classmethod
-    def dispatch(cls, process):
-        def f(process):
-            try:
-                log = io.StringIO()
-
-                with contextlib.redirect_stdout(log):
-                    try:
-                        cls.call_function(process.id)
-                    except Exception:
-                        print(traceback.format_exc())
-
-                cls.log(log.getvalue())
-            finally:
-                db.session.commit()
-                db.session.close()
-
-        thr = threading.Thread(target=f, args=[process])
+class LocalAsyncProcess(AsyncProcess):
+    def start(self):
+        thr = threading.Thread(target=self.thread_function)
         thr.start()
+
+    def thread_function(self):
+        try:
+            log = io.StringIO()
+
+            with contextlib.redirect_stdout(log):
+                try:
+                    self.call_function(self.id)
+                except BaseException:  # noqa
+                    print(traceback.format_exc())
+
+            self.log(log.getvalue())
+        finally:
+            db.session.commit()
+            db.session.close()
 
     @classmethod
     def log(cls, msg):
@@ -276,13 +245,50 @@ class LocalProcessDispatcher(Dispatcher):
             func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
         )
 
-
-class DistributedProcessDispatcher(Dispatcher):
-    @classmethod
-    def dispatch(cls, process):
-        cls.redis_queue.enqueue_call(
-            func=cls.call_function,
-            args=(),
-            kwargs=dict(process_id=process.id),
-            timeout=process.timeout,
+    def cancel(self):
+        raise RuntimeError(
+            "It is currently not possible to cancel a LocalAsyncProcess."
         )
+
+
+class WorkerAsyncProcess(AsyncProcess):
+    redis_job_id = Column(String)
+    time_out = Column(Float)  # note -- currently only applies to non-local proceses
+    time_out_when = Column(DateTime)
+
+    def __init__(
+        self,
+        timeout,
+    ):
+        self.timeout = timeout
+        if timeout:
+            self.timeout_when = datetime.datetime.now() + datetime.timedelta(
+                seconds=timeout
+            )
+        del timeout
+
+        super().__init__(**locals())
+
+    def start(self):
+        self.redis_job_id = self.redis_queue.enqueue_call(
+            func=self.call_function,
+            args=(),
+            kwargs=dict(process_id=self.id),
+            timeout=self.timeout,
+        )
+        db.session.commit()
+
+    @classmethod
+    def check_timeouts(cls):
+        processes = (
+            cls.query.filter(
+                ~cls.failed,
+                ~cls.timeout == None,  # noqa -- this is special SQLAlchemy syntax
+                cls.timeout_when < datetime.now(),
+            )
+            .filter()
+            .all()
+        )
+        for p in processes:
+            p.fail("Asynchronous process timed out")
+            db.session.commit()

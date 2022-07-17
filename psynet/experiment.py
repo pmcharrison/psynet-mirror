@@ -34,7 +34,7 @@ from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
-from .process import AsyncProcess
+from .process import WorkerAsyncProcess
 from .recruiters import (  # noqa: F401
     CapRecruiter,
     DevCapRecruiter,
@@ -1159,7 +1159,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         network = TrialNetwork.query.filter_by(id=network_id).one()
         trial_maker = get_trial_maker(network.trial_maker_id)
 
-        AsyncProcess(
+        WorkerAsyncProcess(
             "post_grow_network",
             network.async_post_grow_network,
             arguments=dict(network=network),

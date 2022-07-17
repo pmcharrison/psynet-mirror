@@ -24,7 +24,7 @@ from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
-from .process import AsyncProcess
+from .process import LocalAsyncProcess
 from .timeline import NullElt
 from .utils import (
     cached_class_property,
@@ -935,7 +935,7 @@ class AssetStorage:
     def _async__call_receive_deposit(
         self, asset: Asset, host_path: str, delete_input: bool
     ):
-        AsyncProcess(
+        LocalAsyncProcess(
             self._call_receive_deposit,
             dict(
                 asset=asset,

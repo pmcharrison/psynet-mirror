@@ -28,7 +28,7 @@ from ..field import (
 )
 from ..page import InfoPage, UnsuccessfulEndPage, wait_while
 from ..participant import Participant
-from ..process import AsyncProcess
+from ..process import WorkerAsyncProcess
 from ..timeline import (
     CodeBlock,
     DatabaseCheck,
@@ -1004,7 +1004,7 @@ class TrialMaker(Module):
     def check_timeout(self):
         # pylint: disable=no-member
         self.check_old_trials()
-        AsyncProcess.check_timeouts()
+        WorkerAsyncProcess.check_timeouts()
         db.session.commit()
 
     def selected_recruit_criterion(self, experiment):
@@ -1892,7 +1892,7 @@ class NetworkTrialMaker(TrialMaker):
         super().finalize_trial(answer, trial, experiment, participant)
         db.session.commit()
         if trial.run_async_post_trial:
-            AsyncProcess(
+            WorkerAsyncProcess(
                 "post_trial",
                 trial.call_async_post_trial,
                 arguments=dict(trial=trial),
@@ -1906,7 +1906,7 @@ class NetworkTrialMaker(TrialMaker):
         grown = self.grow_network(network, participant, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
-            AsyncProcess(
+            WorkerAsyncProcess(
                 "post_grow_network",
                 network.async_post_grow_network,
                 arguments=dict(network=network),

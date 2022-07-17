@@ -5,7 +5,7 @@ import pytest
 from dallinger import db
 
 import psynet.experiment  # noqa -- to ensure that all SQLAlchemy classes are registered
-from psynet.process import AsyncProcess
+from psynet.process import LocalAsyncProcess
 
 
 @pytest.mark.usefixtures("demo_mcmcp")
@@ -14,7 +14,7 @@ def test_invalid_function():
         pass
 
     with pytest.raises(ValueError) as e:
-        AsyncProcess(
+        LocalAsyncProcess(
             local_function,
             arguments={},
         )
@@ -34,14 +34,13 @@ def test_local_process():
     message = "Hello!"
 
     with tempfile.NamedTemporaryFile(delete=False) as file:
-        process = AsyncProcess(
+        process = LocalAsyncProcess(
             sleep_then_write_to_file,
             dict(
                 duration=0.125,
                 file=file.name,
                 message=message,
             ),
-            local=True,
         )
 
         with open(file.name, "r") as file_reader:
