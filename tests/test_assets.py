@@ -1,7 +1,7 @@
 import pytest
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
-from psynet.assets import CachedFunctionAsset
+from psynet.asset import CachedFunctionAsset
 
 
 def test_lambda_function():

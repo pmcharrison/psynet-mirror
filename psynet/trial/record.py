@@ -4,7 +4,7 @@ import tempfile
 import dominate.tags as tags
 from dallinger import db
 
-from ..assets import ExperimentAsset
+from ..asset import ExperimentAsset
 from ..field import claim_var, extra_var
 from ..utils import get_logger
 from .imitation_chain import (
@@ -220,7 +220,7 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
             )
         else:
             with tempfile.NamedTemporaryFile() as temp_file:
-                from ..assets import ExperimentAsset
+                from ..asset import ExperimentAsset
 
                 node.synthesize_target(temp_file.name)
                 asset = ExperimentAsset(

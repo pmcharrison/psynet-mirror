@@ -15,7 +15,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.assets import ExperimentAsset
+from psynet.asset import ExperimentAsset
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback

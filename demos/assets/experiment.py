@@ -5,7 +5,7 @@ import time
 from flask import Markup
 
 import psynet.experiment
-from psynet.assets import (
+from psynet.asset import (
     CachedAsset,
     CachedFunctionAsset,
     ExperimentAsset,

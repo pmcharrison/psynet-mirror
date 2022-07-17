@@ -15,7 +15,7 @@ from dallinger.models import Vector
 from sqlalchemy import Column, Integer, String, func
 from sqlalchemy.orm import relationship
 
-from ..assets import CachedAsset
+from ..asset import CachedAsset
 from ..timeline import NullElt, join
 from ..utils import deep_copy, get_logger
 from .main import (

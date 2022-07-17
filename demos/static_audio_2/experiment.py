@@ -1,7 +1,7 @@
 import random
 
 import psynet.experiment
-from psynet.assets import FastFunctionAsset, LocalStorage, S3Storage  # noqa
+from psynet.asset import FastFunctionAsset, LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,

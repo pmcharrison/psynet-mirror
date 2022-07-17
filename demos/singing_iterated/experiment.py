@@ -8,9 +8,9 @@ from melody.resources import GenderSplit, SingingCalibration, ToneJSVolumeTest
 
 import psynet.experiment
 import psynet.media
-from psynet.assets import LocalStorage
+from psynet.asset import LocalStorage
 
-# from psynet.assets import S3Storage
+# from psynet.asset import S3Storage
 from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import JSSynth, Note
 from psynet.modular_page import AudioRecordControl, ModularPage

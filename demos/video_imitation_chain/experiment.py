@@ -5,7 +5,7 @@ import random
 import shutil
 
 import psynet.experiment
-from psynet.assets import S3Storage
+from psynet.asset import S3Storage
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
