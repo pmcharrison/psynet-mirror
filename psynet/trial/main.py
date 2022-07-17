@@ -294,6 +294,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         .where(AsyncProcess.trial_id == Info.id, AsyncProcess.pending)
         .exists()
     )
+    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     # It is compulsory to override this time_estimate parameter for the specific experiment implementation.
     time_estimate = None
@@ -2174,6 +2175,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         )
         .exists()
     )
+    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     ####
 
@@ -2278,6 +2280,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         .where(AsyncProcess.node_id == dallinger.models.Node.id, AsyncProcess.pending)
         .exists()
     )
+    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     def __init__(self, network, participant=None):
         super().__init__(network=network, participant=participant)

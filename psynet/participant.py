@@ -13,7 +13,7 @@ from sqlalchemy.orm import column_property, relationship
 
 from . import field
 from .data import SQLMixinDallinger
-from .field import claim_var, extra_var
+from .field import claim_var, extra_var, register_extra_var
 from .process import AsyncProcess
 from .utils import get_logger, serialise_datetime, unserialise_datetime
 
@@ -189,6 +189,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         )
         .exists()
     )
+    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)

@@ -22,7 +22,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
-from .field import PythonDict, PythonObject
+from .field import PythonDict, PythonObject, register_extra_var
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
 from .process import AsyncProcess, LocalAsyncProcess
 from .timeline import NullElt
@@ -117,6 +117,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
     __tablename__ = "asset"
+    __extra_vars__ = {}
 
     # Remove default SQL columns
     id = None
@@ -168,6 +169,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         .where(AsyncProcess.asset_key == key, AsyncProcess.pending)
         .exists()
     )
+    register_extra_var(__extra_vars__, "awaiting_async_process")
 
     foreign_keyed_columns = ["participant_id", "network_id", "node_id", "trial_id"]
 
