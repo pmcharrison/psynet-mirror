@@ -98,7 +98,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         db.session.add(self)
         db.session.commit()
 
-        self.start()
+        self.launch()
 
         db.session.commit()
 
@@ -150,7 +150,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         candidates = [self.trial, self.node]
         return [[obj] for obj in candidates if obj is not None]
 
-    def start(self):
+    def launch(self):
         raise NotImplementedError
 
     def cancel(self):
@@ -211,7 +211,7 @@ class AsyncProcess(SQLBase, SQLMixin):
 
 
 class LocalAsyncProcess(AsyncProcess):
-    def start(self):
+    def launch(self):
         thr = threading.Thread(target=self.thread_function)
         thr.start()
 
@@ -269,7 +269,7 @@ class WorkerAsyncProcess(AsyncProcess):
 
         super().__init__(**locals())
 
-    def start(self):
+    def launch(self):
         self.redis_job_id = self.redis_queue.enqueue_call(
             func=self.call_function,
             args=(),
