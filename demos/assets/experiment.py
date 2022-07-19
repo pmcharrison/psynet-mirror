@@ -77,10 +77,7 @@ Exp.assets.stage(
         type_="file",
         key="bier.wav",
     ),
-    InheritedAssets("inherited_assets.csv", key="previous_experiment")
-    # TODO - tests
-    # TODO - apply this to static experiments
-    # TODO - apply this to audio recording etc
+    InheritedAssets("inherited_assets.csv", key="previous_experiment"),
 )
 
 
