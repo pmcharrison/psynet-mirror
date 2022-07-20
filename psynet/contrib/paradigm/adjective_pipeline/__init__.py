@@ -1068,7 +1068,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
                 tags = [old_tag for old_tag in tags if tag != old_tag]
 
         if (
-            trial.degree >= trial_maker.min_iterations  # minimal depth of iterations
+            trial.degree > trial_maker.min_iterations  # minimal depth of iterations
             and not trial.failed  # only count trials that are not failed
             and not trial.is_repeat_trial  # don't count repeat trials
             and trial.answer is not None  # don't include if the answer is empty
