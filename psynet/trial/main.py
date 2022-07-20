@@ -1,7 +1,9 @@
 # pylint: disable=unused-argument
 
 import datetime
+import json
 import random
+from html import escape
 from math import isnan
 from typing import Optional, Union
 from uuid import uuid4
@@ -412,6 +414,7 @@ class Trial(SQLMixinDallinger, Info, AsyncProcessOwner, HasDefinition):
     repeat_trial_index = claim_field("repeat_trial_index", __extra_vars__, int)
     num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
     time_taken = claim_field("time_taken", __extra_vars__, float)
+    response_metadata = claim_field("response_metadata", __extra_vars__, str)
 
     time_credit_before_trial = claim_field(
         "time_credit_before_trial", __extra_vars__, float
@@ -1323,6 +1326,7 @@ class TrialMaker(Module):
         trial.complete = True
         trial.response_id = participant.last_response_id
         trial.time_taken = trial.response.metadata["time_taken"]
+        trial.response_metadata = escape(json.dumps(trial.response.metadata))
         self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
@@ -2256,6 +2260,7 @@ class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
     def __init__(self, trial_maker_id: str, phase: str, experiment):
         # pylint: disable=unused-argument
         AsyncProcessOwner.__init__(self)
+        self.experiment = experiment
         self.trial_maker_id = trial_maker_id
         self.awaiting_async_process = False
         self.phase = phase

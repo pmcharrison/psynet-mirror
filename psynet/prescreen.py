@@ -978,7 +978,7 @@ class LexTaleTest(Module):
             Markup(
                 f"""
                 <h3>Lexical decision task</h3>
-                <p>In each trial, you will be presented with either an exisitng word in English or a fake word that does not exist.</p>
+                <p>In each trial, you will be presented with either an existing word in English or a fake word that does not exist.</p>
                 <p>
                     <b>Your task is to decide whether the word exists not.</b>
                     <br><br>Each word will disappear in {hide_after} seconds and you will see a total of {num_trials} words.

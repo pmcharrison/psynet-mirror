@@ -1,0 +1,84 @@
+{% extends "base/dashboard.html" %}
+{% block stylesheets %}
+    <style>
+        {{ css|safe}}
+    </style>
+
+{% endblock %}
+{% block body %}
+    <h1>{{ title }}</h1>
+
+    {% for summary in summaries %}
+        {% if summary['networks']|length > 0 %}
+            {% for network_id, html in summary['networks'].items() %}
+                <!-- Modal -->
+                <div class="modal fade" id="modalNetwork{{ network_id }}" tabindex="-1"
+                     aria-labelledby="modalNetworkLabel{{ network_id }}" aria-hidden="true">
+                    <div class="modal-dialog" style="max-width: 90vw;">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalNetworkLabel{{ network_id }}">
+                                    Network {{ network_id }}</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                {{ html|safe }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            {% endfor %}
+        {% endif %}
+    {% endfor %}
+
+    <h3>Summary</h3>
+    <div class="card-columns">
+        {% for summary in summaries %}
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Pipeline {{ loop.index }}</h5>
+
+                    <h6 class="card-subtitle mb-2 text-muted">{{ summary['n_complete'] }}/{{ summary['n_total'] }}
+                        complete</h6>
+                    <h6>Iteration breakdown</h6>
+                    <ul class="list-group list-group-flush">
+                        {% for line in summary['breakdown'] %}
+                            <li class="list-group-item">{{ line }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% if summary['networks']|length > 0 %}
+                        <h6>View individual networks</h6>
+
+                        <select id="select_{{ summary['module_id'] }}" class="custom-select">
+                            <option></option>
+                            {% for network_id, html in summary['networks'].items() %}
+                                <option data-toggle="modal" data-target="#modalNetwork{{ network_id }}"
+                                        value="{{ network_id }}">Network {{ network_id }}</option>
+                            {% endfor %}
+                        </select>
+                    {% endif %}
+                    <script>
+                        window.addEventListener('load', function () {
+                            var elem = $("#select_{{ summary['module_id'] }}");
+                            elem.change(function (x) {
+                                $('#modalNetwork' + elem.val()).modal('show');
+                            });
+                        });
+                    </script>
+
+                    <p class="card-text"><small class="text-muted">ID: <code>{{ summary['module_id'] }}</code></small>
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+
+
+{% endblock %}
+{% block libs %}
+    {{ super() }}
+{% endblock %}
