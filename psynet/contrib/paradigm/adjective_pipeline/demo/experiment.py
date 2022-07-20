@@ -3,7 +3,7 @@ from flask import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.contrib.adjective.pipeline import AdjectivePipeline
+from psynet.contrib.paradigm.adjective_pipeline import AdjectivePipeline
 from psynet.modular_page import ModularPage, Prompt, PushButtonControl
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, switch
@@ -36,7 +36,9 @@ class Exp(psynet.experiment.Experiment):
     @dashboard_tab("Adjective pipeline", after_route="monitoring")
     @classmethod
     def dashboard_tab(cls):
-        return psynet.contrib.adjective.pipeline.render_adjective_pipelines_summary(cls)
+        return psynet.contrib.paradigm.adjective_pipeline.render_adjective_pipelines_summary(
+            cls
+        )
 
     timeline = Timeline(
         NoConsent(),

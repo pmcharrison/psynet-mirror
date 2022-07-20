@@ -2,7 +2,7 @@ import shutil
 
 import pandas as pd
 
-from psynet.contrib.adjective.pipeline import AdjectiveExporter
+from psynet.contrib.adjective_pipeline.pipeline import AdjectiveExporter
 
 
 def prepare():
