@@ -491,6 +491,14 @@ class ManagedAsset(Asset):
         return get_extension(self.input_path)
 
     def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete_input: bool):
+        if isinstance(asset_storage, NoStorage):
+            raise RuntimeError(
+                "Cannot perform this deposit without an asset storage backend. "
+                "Please add one to your experiment class, for example by writing "
+                "asset_storage = S3Storage('your-s3-bucket', 'your-subdirectory') "
+                "in your experiment class."
+            )
+
         self.host_path = self.generate_host_path(self.deployment_id)
         self.url = self.get_url()
         self.asset_storage.update_asset_metadata(self)
@@ -560,6 +568,10 @@ class ManagedAsset(Asset):
 class ExperimentAsset(ManagedAsset):
     def _deposit_(self, asset_storage, host_path, async_, delete_input):
         asset_storage.receive_deposit(self, host_path, async_, delete_input)
+
+    def after_deposit(self):
+        # TODO - call this function once the asset has finished depositing
+        raise NotImplementedError
 
     def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
@@ -1049,11 +1061,7 @@ class LocalStorage(AssetStorage):
         file_system_path = self.get_file_system_path(host_path)
         asset.var.file_system_path = file_system_path
 
-    def receive_deposit(
-        self, asset: Asset, host_path: str, async_: bool, delete_input: bool
-    ):
-        super().receive_deposit(asset, host_path, async_, delete_input)
-
+    def _receive_deposit(self, asset: Asset, host_path: str):
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 

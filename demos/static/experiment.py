@@ -5,6 +5,7 @@
 ##########################################################################################
 
 import logging
+import random
 
 from flask import Markup
 
@@ -13,13 +14,7 @@ from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.static import (
-    StaticTrial,
-    StaticTrialMaker,
-    StimulusSet,
-    StimulusSpec,
-    StimulusVersionSpec,
-)
+from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -29,26 +24,22 @@ logger = logging.getLogger()
 # Stimuli
 ##########################################################################################
 
-stimulus_set = StimulusSet(
-    "animals",
-    [
-        StimulusSpec(
-            definition={"animal": animal},
-            versions=[
-                StimulusVersionSpec(definition={"text_color": text_color})
-                for text_color in ["red", "green", "blue"]
-            ],
-            phase="experiment",
-            block=block,
-        )
-        for animal in ["cats", "dogs", "fish", "ponies"]
-        for block in ["A", "B", "C"]
-    ],
-)
+stimuli = [
+    Stimulus(
+        definition={"animal": animal},
+        block=block,
+    )
+    for animal in ["cats", "dogs", "fish", "ponies"]
+    for block in ["A", "B", "C"]
+]
 
 
 class AnimalTrial(StaticTrial):
     time_estimate = 3
+
+    def finalize_definition(self, definition, experiment, participant):
+        definition["text_color"] = random.choice(["red", "green", "blue"])
+        return definition
 
     def show_trial(self, experiment, participant):
         text_color = self.definition["text_color"]
@@ -137,7 +128,7 @@ trial_maker = AnimalTrialMaker(
     id_="animals",
     trial_class=AnimalTrial,
     phase="experiment",
-    stimulus_set=stimulus_set,
+    stimuli=stimuli,
     max_trials_per_block=2,
     allow_repeated_stimuli=True,
     max_unique_stimuli_per_block=None,
@@ -160,6 +151,8 @@ trial_maker = AnimalTrialMaker(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Static experiment demo"
+
     timeline = Timeline(
         NoConsent(),
         ModularPage(
