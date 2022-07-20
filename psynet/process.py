@@ -1,9 +1,10 @@
 import contextlib
+import datetime
+import inspect
 import io
 import threading
 import time
 import traceback
-from datetime import datetime
 
 import dallinger.db
 import jsonpickle
@@ -70,6 +71,12 @@ class AsyncProcess(SQLBase, SQLMixin):
         if not arguments:
             arguments = {}
 
+        if inspect.ismethod(function):
+            method_name = function.__name__
+            method_caller = function.__self__
+            function = getattr(method_caller.__class__, method_name)
+            arguments["self"] = method_caller
+
         self.check_function(function)
 
         self.label = label
@@ -108,18 +115,24 @@ class AsyncProcess(SQLBase, SQLMixin):
         db.session.commit()
 
     def check_function(self, function):
+        assert callable(function)
         if jsonpickle.decode(jsonpickle.encode(function)) is None:
             raise ValueError(
                 "The provided function could not be serialized. Make sure that the function is defined at the module "
                 "or class level, rather than being a lambda function or a temporary function defined within "
                 "another function."
             )
+        if inspect.ismethod(function):
+            raise ValueError(
+                "You cannot pass an instance method to an AsyncProcess. ",
+                "Try writing a class method or a static method instead.",
+            )
 
     def log_time_started(self):
-        self.time_started = datetime.now()
+        self.time_started = datetime.datetime.now()
 
     def log_time_finished(self):
-        self.time_finished = datetime.now()
+        self.time_finished = datetime.datetime.now()
 
     def infer_missing_parents(self):
         if self.asset is not None:
@@ -184,12 +197,12 @@ class AsyncProcess(SQLBase, SQLMixin):
         arguments = cls.preprocess_args(process.arguments)
 
         timer = time.monotonic()
-        process.time_started = datetime.now()
+        process.time_started = datetime.datetime.now()
         db.session.commit()
 
         try:
             function(**arguments)
-            process.time_finished = datetime.now()
+            process.time_finished = datetime.datetime.now()
             process.time_taken = time.monotonic() - timer
             process.finished = True
         except BaseException as err:
@@ -260,13 +273,13 @@ class LocalAsyncProcess(AsyncProcess):
 
 class WorkerAsyncProcess(AsyncProcess):
     redis_job_id = Column(String)
-    time_out = Column(Float)  # note -- currently only applies to non-local proceses
-    time_out_when = Column(DateTime)
+    timeout = Column(Float)  # note -- currently only applies to non-local proceses
+    timeout_when = Column(DateTime)
 
     def __init__(
         self,
         function,
-        arguments,
+        arguments=None,
         trial=None,
         participant=None,
         node=None,
@@ -280,9 +293,17 @@ class WorkerAsyncProcess(AsyncProcess):
             self.timeout_when = datetime.datetime.now() + datetime.timedelta(
                 seconds=timeout
             )
-        del timeout
 
-        super().__init__(**locals())
+        super().__init__(
+            function,
+            arguments,
+            trial=trial,
+            participant=participant,
+            node=node,
+            network=network,
+            asset=asset,
+            label=label,
+        )
 
     def launch(self):
         self.redis_job_id = self.redis_queue.enqueue_call(
@@ -290,7 +311,7 @@ class WorkerAsyncProcess(AsyncProcess):
             args=(),
             kwargs=dict(process_id=self.id),
             timeout=self.timeout,
-        )
+        ).id
         db.session.commit()
 
     @classmethod
@@ -299,7 +320,7 @@ class WorkerAsyncProcess(AsyncProcess):
             cls.query.filter(
                 ~cls.failed,
                 ~cls.timeout == None,  # noqa -- this is special SQLAlchemy syntax
-                cls.timeout_when < datetime.now(),
+                cls.timeout_when < datetime.datetime.now(),
             )
             .filter()
             .all()

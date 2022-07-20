@@ -1,7 +1,15 @@
+import jsonpickle
 import pandas as pd
 import pandas.testing as pdt
+import pytest
 
+import psynet.data  # noqa - for the jsonpickle registration
 from psynet.utils import json_to_data_frame
+
+
+@pytest.mark.usefixtures("demo_static")
+def test_jsonpickle(trial):
+    assert jsonpickle.encode(trial) == dict(cls="Trial", keys=dict(id=1))
 
 
 def test_json_to_data_frame():

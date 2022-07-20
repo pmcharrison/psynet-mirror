@@ -861,14 +861,6 @@ class StaticTrialMaker(NetworkTrialMaker):
     def on_complete(self, experiment, participant):
         pass
 
-    def experiment_setup_routine(self, experiment):
-        """
-        All networks for the static experiment are set up at the beginning of
-        data collection.
-        """
-        if self.num_networks == 0:
-            self.create_networks(experiment)
-
     def choose_block_order(self, experiment, participant):
         # pylint: disable=unused-argument
         """

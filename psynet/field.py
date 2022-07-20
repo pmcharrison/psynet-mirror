@@ -8,6 +8,7 @@ from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
 
+from .data import SQLBase
 from .utils import get_logger
 
 logger = get_logger()
@@ -77,6 +78,23 @@ class NoJSONHandler(jsonpickle.handlers.BaseHandler):
 
 for cls in no_json_classes:
     jsonpickle.register(cls, NoJSONHandler)
+
+
+class SQLHandler(jsonpickle.handlers.BaseHandler):
+    def flatten(self, obj, state):
+        primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
+        primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
+        state["cls"]: obj.__class__
+        state["keys"] = primary_keys
+        return state
+
+    def restore(self, state):
+        return cls.query.filter_by(**state["keys"])
+
+
+# primary_keys = [c.name for c in cls.__table__.primary_key.columns]
+
+jsonpickle.register(SQLBase, SQLHandler)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):

@@ -985,7 +985,7 @@ class TrialMaker(Module):
             corresponding to the current experiment.
 
         """
-        raise NotImplementedError
+        pass
 
     check_timeout_interval_sec = 30
     response_timeout_sec = 60 * 5
@@ -1900,9 +1900,7 @@ class NetworkTrialMaker(TrialMaker):
         db.session.commit()
         if trial.run_async_post_trial:
             WorkerAsyncProcess(
-                "post_trial",
                 trial.call_async_post_trial,
-                arguments=dict(trial=trial),
                 timeout=self.async_timeout_sec,
             )
             db.session.commit()
@@ -1914,9 +1912,7 @@ class NetworkTrialMaker(TrialMaker):
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
             WorkerAsyncProcess(
-                "post_grow_network",
                 network.async_post_grow_network,
-                arguments=dict(network=network),
                 timeout=self.async_timeout_sec,
             )
             db.session.commit()

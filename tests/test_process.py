@@ -55,6 +55,23 @@ def test_invalid_function():
         )
         assert "The provided function could not be serialized" in str(e.value)
 
+    class A:
+        def instance_method(self):
+            pass
+
+        @classmethod
+        def class_method(cls):
+            pass
+
+    a = A()
+
+    with pytest.raises(ValueError) as e:
+        LocalAsyncProcess(
+            a.instance_method,
+            arguments={},
+        )
+        assert "You cannot pass an instance method to an AsyncProcess." in str(e.value)
+
 
 def sleep_then_write_to_file(duration, file, message):
     time.sleep(duration)

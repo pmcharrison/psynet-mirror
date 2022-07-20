@@ -213,7 +213,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     # http://sealiesoftware.com/blog/archive/2017/6/5/Objective-C_and_fork_in_macOS_1013.html
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
-    name = None
+    label = None
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -1160,9 +1160,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         trial_maker = get_trial_maker(network.trial_maker_id)
 
         WorkerAsyncProcess(
-            "post_grow_network",
             network.async_post_grow_network,
-            arguments=dict(network=network),
             timeout=trial_maker.async_timeout_sec,
         )
         db.session.commit()

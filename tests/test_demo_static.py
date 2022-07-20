@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
 from psynet.test import assert_text, bot_class, next_page
-from psynet.trial.static import StaticNetwork, StaticTrial, Stimulus, StimulusVersion
+from psynet.trial.static import StaticNetwork, StaticTrial, Stimulus
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
