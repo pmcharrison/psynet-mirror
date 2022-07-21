@@ -35,6 +35,10 @@ from .utils import (
 logger = get_logger()
 
 
+class NoArgumentProvided:
+    pass
+
+
 class Event(dict):
     """
     Defines an event that occurs on the front-end for a given page.
@@ -627,6 +631,11 @@ class Page(Elt):
         trialPrepare event to be triggered (e.g. by clicking a 'Play' button,
         or by calling `psynet.trial.registerEvent("trialPrepare")` in JS).
 
+    bot_function
+        Optional function to call when this page is consumed by a bot.
+        This will override any ``bot_function`` specified in the class's
+        ``bot_function`` method.
+
     Attributes
     ----------
 
@@ -662,6 +671,7 @@ class Page(Elt):
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
+        bot_response=NoArgumentProvided,
     ):
         if template_arg is None:
             template_arg = {}
@@ -713,6 +723,56 @@ class Page(Elt):
         if progress_display is None:
             progress_display = ProgressDisplay(stages=[], show_bar=False)
         self.progress_display = progress_display
+
+        self.bot_response = bot_response
+
+
+    def call__present_to_bot(self):
+        if self.bot_response == NoArgumentProvided:
+            # Calls the default method
+            res = self.present_to_bot(experiment, bot)
+        elif callable(self.bot_response):
+            # Uses the function provided in the instance constructor
+            res = call_function(self.bot_response, args={
+                "page": self,
+                "experiment": experiment,
+                "bot": bot,
+            })
+        else:
+            # Uses the object provided in the instance constructor
+            res = self.bot_response
+
+        if not isinstance(res, dict):
+            # If the user just provides a single value, we assume that they're
+            # talking about the page's answer.
+            res = {
+                "answer": res,
+            }
+        return res
+
+
+    def present_to_bot(self, experiment, bot):
+        """
+        Here the bot simulates a participant responding to a given page.
+        The function should return a dictionary optionally containing one or more of the following fields:
+
+        raw_answer :
+            The raw_answer returned from the page.
+
+        formatted_answer :
+            The formatted answer, as would ordinarily be computed by ``format_answer``.
+
+        metadata :
+            A dictionary of metadata.
+
+        blobs :
+            A dictionary of blobs returned from the front-end.
+
+        client_ip_address :
+            The client's IP address.
+        """
+        return {}
+
 
     def prepare_default_events(self):
         return {
@@ -776,15 +836,25 @@ class Page(Elt):
         participant.page_uuid = experiment.make_uuid()
 
     def process_response(
-        self, raw_answer, blobs, metadata, experiment, participant, client_ip_address
+        self, raw_answer, blobs, metadata, experiment, participant, client_ip_address, formatted_answer=NoArgumentProvided,
     ):
-        answer = self.format_answer(
-            raw_answer,
-            blobs=blobs,
-            metadata=metadata,
-            experiment=experiment,
-            participant=participant,
-        )
+        if raw_answer == NoArgumentProvided and formatted_answer == NoArgumentProvided:
+            raise ValueError("At least one of raw_answer and formatted_answer must be provided.")
+        if blobs is None:
+            blobs = {}
+        if metadata is None:
+            metadata = {}
+
+        if formatted_answer == NoArgumentProvided:
+            answer = self.format_answer(
+                raw_answer,
+                blobs=blobs,
+                metadata=metadata,
+                experiment=experiment,
+                participant=participant,
+            )
+        else:
+            answer = formatted_answer
         extra_metadata = self.metadata(
             metadata=metadata,
             raw_answer=raw_answer,
@@ -1170,6 +1240,9 @@ class EndPage(Page):
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
         self.finalize_participant(experiment, participant)
+
+    def bot_function(self, experiment, bot):
+        bot.status = "approved"
 
     def finalize_participant(self, experiment, participant):
         """

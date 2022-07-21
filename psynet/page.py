@@ -69,6 +69,9 @@ class InfoPage(Page):
     def metadata(self, **kwargs):
         return {"content": self.content}
 
+    def bot_function(self, experiment, bot):
+        pass
+
 
 class UnityPage(Page):
     """

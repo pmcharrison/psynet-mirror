@@ -586,6 +586,13 @@ class Control:
     def update_events(self, events):
         pass
 
+    def bot_function(self, page, prompt, experiment, bot):
+        """
+        Defines the bot's response to the current modular page.
+        The
+        """
+        raise NotImplementedError
+
 
 class NullControl(Control):
     """
@@ -594,6 +601,9 @@ class NullControl(Control):
 
     macro = "null"
     metadata = {}
+
+    def bot_function(self, experiment, bot):
+        pass
 
 
 class OptionControl(Control):
@@ -629,6 +639,9 @@ class OptionControl(Control):
             "labels": self.labels,
             "force_selection": self.force_selection,
         }
+
+    def bot_function(self, experiment, bot):
+
 
 
 class CheckboxControl(OptionControl):
@@ -1346,6 +1359,11 @@ class ModularPage(Page):
         """
         self.prompt.pre_render()
         self.control.pre_render()
+
+    def bot_function(self, experiment, bot):
+        return self.control.bot_function(
+            page=self, prompt=self.prompt, experiment=experiment, bot=bot
+        )
 
 
 class AudioMeterControl(Control):
