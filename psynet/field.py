@@ -411,6 +411,9 @@ def json_clean(x, details=False, contents=False):
     if contents:
         del x["contents"]
 
+    if "metadata_" in x and "metadata" in x:
+        del x["metadata_"]
+
 
 def json_add_extra_vars(x, obj):
     def valid_key(key):
