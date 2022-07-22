@@ -1,6 +1,7 @@
 import itertools
 import json
 import os
+import random
 from typing import Dict, List, Optional, Union
 from urllib.parse import urlparse
 
@@ -8,9 +9,17 @@ from dominate import tags
 from dominate.util import raw
 from flask import Markup
 
+from .bot import BotResponse
 from .media import generate_presigned_url
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
-from .utils import get_logger, is_valid_html5_id, linspace, strip_url_parameters
+from .utils import (
+    NoArgumentProvided,
+    call_function,
+    get_logger,
+    is_valid_html5_id,
+    linspace,
+    strip_url_parameters,
+)
 
 logger = get_logger()
 
@@ -465,6 +474,30 @@ class Control:
     in ``templates/macros.html``. In the future, we will update the API
     to allow macros to be defined in external files.
 
+    Parameters
+    ----------
+
+    bot_response :
+        Defines how bots respond to this page.
+        Can be a single value
+
+        The function should return a dictionary optionally containing one or more of the following fields:
+
+        raw_answer :
+            The raw_answer returned from the page.
+
+        answer :
+            The (formatted) answer, as would ordinarily be computed by ``format_answer``.
+
+        metadata :
+            A dictionary of metadata.
+
+        blobs :
+            A dictionary of blobs returned from the front-end.
+
+        client_ip_address :
+            The client's IP address.
+
     Attributes
     ----------
 
@@ -488,8 +521,8 @@ class Control:
 
     external_template = None
 
-    def __init__(self):
-        pass
+    def __init__(self, bot_response=NoArgumentProvided):
+        self._bot_response = bot_response
 
     @property
     def macro(self):
@@ -586,12 +619,40 @@ class Control:
     def update_events(self, events):
         pass
 
-    def bot_function(self, page, prompt, experiment, bot):
+    def call__get_bot_response(self, experiment, bot, page, prompt):
+        if self._bot_response == NoArgumentProvided:
+            res = self.get_bot_response(experiment, bot, page, prompt)
+        elif callable(self._bot_response):
+            res = call_function(
+                self._bot_response,
+                args={
+                    "experiment": experiment,
+                    "bot": bot,
+                    "page": page,
+                    "prompt": prompt,
+                },
+            )
+        else:
+            res = self._bot_response
+
+        if not isinstance(res, BotResponse):
+            res = BotResponse(answer=res)
+
+        return res
+
+    def get_bot_response(self, experiment, bot, page, prompt):
         """
-        Defines the bot's response to the current modular page.
-        The
+        This function is used when a bot simulates a participant responding to a given page.
+        In the simplest form, the function just returns the value of the
+        answer that the bot returns.
+        For more sophisticated treatment, the function can return a
+        ``BotResponse`` object which contains other parameters
+        such as ``blobs`` and ``metadata``.
         """
-        raise NotImplementedError
+        raise NotImplementedError(
+            f"The get_bot_response method for class {self.__class__.__name__} has yet to be implemented."
+            "You will want to implement it yourself, or otherwise pass a bot_response argument to your page's constructor."
+        )
 
 
 class NullControl(Control):
@@ -602,8 +663,8 @@ class NullControl(Control):
     macro = "null"
     metadata = {}
 
-    def bot_function(self, experiment, bot):
-        pass
+    def get_bot_response(self, experiment, bot):
+        return None
 
 
 class OptionControl(Control):
@@ -617,7 +678,9 @@ class OptionControl(Control):
         choices: List[str],
         labels: Optional[List[str]] = None,
         style: str = "",
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
         self.choices = choices
         self.labels = choices if labels is None else labels
         self.style = style
@@ -640,8 +703,11 @@ class OptionControl(Control):
             "force_selection": self.force_selection,
         }
 
-    def bot_function(self, experiment, bot):
-
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return BotResponse(
+            answer=random.choice(self.choices),
+            metadata=self.metadata,
+        )
 
 
 class CheckboxControl(OptionControl):
@@ -1076,8 +1142,12 @@ class NumberControl(Control):
     """
 
     def __init__(
-        self, width: Optional[str] = "120px", text_align: Optional[str] = "right"
+        self,
+        width: Optional[str] = "120px",
+        text_align: Optional[str] = "right",
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
         self.width = width
         self.text_align = text_align
 
@@ -1125,7 +1195,9 @@ class TextControl(Control):
         height: Optional[str] = None,
         text_align: str = "left",
         block_copy_paste: bool = False,
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
         if one_line and height is not None:
             raise ValueError("If <one_line> is True, then <height> must be None.")
 
@@ -1360,18 +1432,23 @@ class ModularPage(Page):
         self.prompt.pre_render()
         self.control.pre_render()
 
-    def bot_function(self, experiment, bot):
-        return self.control.bot_function(
-            page=self, prompt=self.prompt, experiment=experiment, bot=bot
-        )
+    def get_bot_response(self, experiment, bot):
+        page = self
+        prompt = self.prompt
+        return self.control.call__get_bot_response(experiment, bot, page, prompt)
 
 
 class AudioMeterControl(Control):
     macro = "audio_meter"
 
     def __init__(
-        self, calibrate: bool = False, submit_button: bool = True, min_time: float = 0.0
+        self,
+        calibrate: bool = False,
+        submit_button: bool = True,
+        min_time: float = 0.0,
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
         self.calibrate = calibrate
         self.submit_button = submit_button
         self.min_time = min_time
@@ -1590,7 +1667,10 @@ class SliderControl(Control):
         continuous_updates: Optional[bool] = False,
         template_filename: Optional[str] = None,
         template_args: Optional[Dict] = None,
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
+
         if snap_values is not None and input_type == "circular_slider":
             raise ValueError(
                 "Snapping values is currently not supported for circular sliders, set snap_values=None"
@@ -1903,7 +1983,9 @@ class MultiSliderControl(Control):
         self,
         sliders,
         next_button=True,
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
         assert is_list_of(sliders, Slider)
         self.sliders = sliders
         self.next_button = next_button
@@ -1954,7 +2036,9 @@ class RecordControl(Control):
         public_read: bool = False,
         auto_advance: bool = False,
         show_meter: bool = False,
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
         self.duration = duration
         self.s3_bucket = s3_bucket
         self.public_read = public_read
@@ -2185,7 +2269,10 @@ class VideoSliderControl(Control):
         reverse_scale: bool = False,
         directional: bool = True,
         hide_slider: bool = False,
+        bot_response=NoArgumentProvided,
     ):
+        super().__init__(bot_response)
+
         assert 0 <= starting_value <= 1
 
         self.url = url

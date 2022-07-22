@@ -48,6 +48,7 @@ from .timeline import (
 )
 from .trial.main import Trial
 from .utils import (
+    NoArgumentProvided,
     call_function,
     get_arg_from_dict,
     get_logger,
@@ -663,6 +664,7 @@ class Experiment(dallinger.experiment.Experiment):
         metadata,
         page_uuid,
         client_ip_address,
+        answer=NoArgumentProvided,
     ):
         logger.info(
             f"Received a response from participant {participant_id} on page {page_uuid}."
@@ -677,6 +679,7 @@ class Experiment(dallinger.experiment.Experiment):
                 experiment=self,
                 participant=participant,
                 client_ip_address=client_ip_address,
+                answer=answer,
             )
             validation = event.validate(
                 response, experiment=self, participant=participant

@@ -106,6 +106,13 @@ def demo_gmsi_two_modules_with_subscales(root):
 
 
 @pytest.fixture(scope="class")
+def demo_bot(root):
+    demo_setup("bot")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_mcmcp(root):
     demo_setup("mcmcp")
     yield

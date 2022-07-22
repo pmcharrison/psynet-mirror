@@ -24,6 +24,16 @@ def get_logger():
 logger = get_logger()
 
 
+class NoArgumentProvided:
+    """ "
+    We use this class as a replacement for ``None`` as a default argument,
+    to distinguish cases where the user doesn't provide an argument
+    from cases where they intentionally provide ``None`` as an argument.
+    """
+
+    pass
+
+
 def get_arg_from_dict(x, desired: str, use_default=False, default=None):
     if desired not in x:
         if use_default:

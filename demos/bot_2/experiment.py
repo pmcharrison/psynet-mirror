@@ -9,7 +9,9 @@ import re
 from statistics import mean
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
+from psynet.experiment import scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
@@ -25,6 +27,14 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+##########################################################################################
+# Stimuli
+##########################################################################################
+
+# This is a clone of the imitation_chain demo,
+# but with automatic bots that contribute data to the experiment.
+
+
 class FixedDigitInputPage(ModularPage):
     def __init__(self, label: str, prompt: str, time_estimate: float):
         self.num_digits = 7
@@ -34,6 +44,7 @@ class FixedDigitInputPage(ModularPage):
             Prompt(prompt),
             control=TextControl(
                 block_copy_paste=True,
+                bot_response=lambda: random.randint(0, 9999999),
             ),
             time_estimate=time_estimate,
         )
@@ -122,3 +133,10 @@ class Exp(psynet.experiment.Experiment):
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1
+
+    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
+    @staticmethod
+    def run_bot_participant():
+        # Every 7 seconds, runs a bot participant.
+        bot = Bot()
+        bot.take_experiment()
