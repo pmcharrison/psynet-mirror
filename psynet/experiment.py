@@ -52,12 +52,20 @@ from .utils import (
     call_function,
     get_arg_from_dict,
     get_logger,
+    import_local_experiment,
     pretty_log_dict,
     serialise,
     serialise_datetime,
 )
 
 logger = get_logger()
+
+
+def get_experiment():
+    """
+    Returns an initialized instance of the experiment class.
+    """
+    return import_local_experiment()["class"](db.session)
 
 
 def json_serial(obj):
@@ -218,9 +226,22 @@ class Experiment(dallinger.experiment.Experiment):
     def on_launch(self):
         if not self.setup_complete:
             self.setup()
+        self.var.launched = True
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
+
+    def initialize_bot(self, bot):
+        """
+        This function is called when a bot is created.
+        It can be used to set stochastic random parameters corresponding
+        to participant latent traits, for example.
+
+        e.g.
+
+        ```bot.var.musician = True``
+        """
+        pass
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
@@ -316,6 +337,7 @@ class Experiment(dallinger.experiment.Experiment):
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
+            "launched": False,
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,

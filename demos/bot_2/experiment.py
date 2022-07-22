@@ -11,7 +11,7 @@ from statistics import mean
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
-from psynet.experiment import scheduled_task
+from psynet.experiment import get_experiment, scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
@@ -36,7 +36,9 @@ logger = get_logger()
 
 
 class FixedDigitInputPage(ModularPage):
-    def __init__(self, label: str, prompt: str, time_estimate: float):
+    def __init__(
+        self, label: str, prompt: str, time_estimate: float, correct_answer: int
+    ):
         self.num_digits = 7
 
         super().__init__(
@@ -44,7 +46,9 @@ class FixedDigitInputPage(ModularPage):
             Prompt(prompt),
             control=TextControl(
                 block_copy_paste=True,
-                bot_response=lambda: random.randint(0, 9999999),
+                bot_response=lambda bot: correct_answer
+                if bot.var.is_good_participant
+                else random.randint(0, 9999999),
             ),
             time_estimate=time_estimate,
         )
@@ -72,7 +76,12 @@ class CustomTrial(ImitationChainTrial):
             f"Try to remember this 7-digit number: {self.definition:07d}",
             time_estimate=2,
         )
-        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
+        page_2 = FixedDigitInputPage(
+            "number",
+            "What was the number?",
+            time_estimate=3,
+            correct_answer=self.definition,
+        )
 
         return [page_1, page_2]
 
@@ -134,9 +143,14 @@ class Exp(psynet.experiment.Experiment):
         super().__init__(session)
         self.initial_recruitment_size = 1
 
-    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
     @staticmethod
+    @scheduled_task("interval", minutes=5 / 60, max_instances=1)
     def run_bot_participant():
         # Every 7 seconds, runs a bot participant.
-        bot = Bot()
-        bot.take_experiment()
+        experiment = get_experiment()
+        if experiment.var.launched:
+            bot = Bot()
+            bot.take_experiment()
+
+    def initialize_bot(self, bot):
+        bot.var.is_good_participant = random.sample([True, False], 1)[0]

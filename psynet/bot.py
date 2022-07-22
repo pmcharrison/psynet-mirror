@@ -40,6 +40,9 @@ class Bot(Participant):
             mode=mode,
         )
 
+        self.experiment.initialize_bot(bot=self)
+        db.session.commit()
+
     @cached_property
     def experiment(self):
         return import_local_experiment()["class"](db.session)
