@@ -19,7 +19,7 @@
                 }
 
                 {% if experiment.with_lucid_recruitment() %}
-                $("#termination-counter-seconds").text(prettyFormatSeconds({{ experiment.recruiter.termination_time_in_s }}))
+                $("#termination-timer-seconds").text(prettyFormatSeconds({{ experiment.recruiter.termination_time_in_s }}))
                 setInterval(check_participant_termination, 1000);
 
                 function check_participant_termination() {
@@ -28,8 +28,8 @@
                     postData["participant_id"] = parseInt("{{ participant.id }}");
                     $.post("/check_participant_termination", postData, function(seconds) {
                         if (parseInt(seconds) >= 0) {
-                            $("#termination-counter-text").show();
-                            $("#termination-counter-seconds").text(prettyFormatSeconds(seconds));
+                            $("#termination-timer-text").show();
+                            $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
                             if (parseInt(seconds) == 0) {
                                 $("#consent-rejected").click();
                             }

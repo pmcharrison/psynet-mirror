@@ -980,8 +980,15 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
+            "is_consent_page": self.is_consent_page,
         }
         return flask.render_template_string(self.template_str, **all_template_arg)
+
+    @property
+    def is_consent_page(self):
+        from .consent import Consent
+
+        return all([isinstance(self, _type) for _type in [Consent, Page]])
 
     @property
     def define_media_requests(self):

@@ -12,7 +12,7 @@
             If your browser is not compatible we have to reject the survey.
         </p>
         <p style="text-align: left;">
-            <span id="termination-counter" style="visibility: hidden;">You will also see one or more consent pages<br> and have <span id="termination-counter-seconds" style="font-weight: bold;"></span> left to read and accept/reject them.</span>
+            <span id="termination-timer" style="visibility: hidden;">You will also see one or more consent pages<br> and have <span id="termination-timer-seconds" style="font-weight: bold;"></span> left to read and accept/reject them.</span>
         </p>
         {% endif %}
         <p style="clear: both;">
@@ -108,8 +108,8 @@
             postData["rid"] = rid;
             $.post("/check_participant_termination", postData, function(seconds) {
                 if (parseInt(seconds) >= 0) {
-                    $("#termination-counter-seconds").text(prettyFormatSeconds(seconds));
-                    $("#termination-counter").css("visibility", "visible");
+                    $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
+                    $("#termination-timer").css("visibility", "visible");
                     if (parseInt(seconds) == 0) {
                       $(".consent").hide();
                       $("#close-button").show();
