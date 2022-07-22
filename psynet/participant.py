@@ -140,7 +140,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     # We set the polymorphic_identity manually to differentiate the class
     # from the Dallinger Participant class.
-    __mapper_args__ = {"polymorphic_identity": "PsyNetParticipant"}
+    polymorphic_identity = "PsyNetParticipant"
     __extra_vars__ = {}
 
     elt_id = field.claim_field("elt_id", __extra_vars__, list)

@@ -259,6 +259,9 @@ class SQLMixinDallinger(SharedMixin):
     ```
     """
 
+    polymorphic_identity = (
+        None  # set this to a string if you want to customize your polymorphic identity
+    )
     __extra_vars__ = {}
 
     @property
@@ -293,6 +296,16 @@ class SQLMixinDallinger(SharedMixin):
                 return True
         return False
 
+    @classmethod
+    def ancestor_has_same_polymorphic_identity(cls, polymorphic_identity):
+        for ancestor_cls in cls.__mro__[1:]:
+            if (
+                hasattr(ancestor_cls, "polymorphic_identity")
+                and ancestor_cls.polymorphic_identity == polymorphic_identity
+            ):
+                return True
+        return False
+
     @declared_attr
     def __mapper_args__(cls):
         """
@@ -301,7 +314,21 @@ class SQLMixinDallinger(SharedMixin):
         to these SQLAlchemy constructs. Instead the polymorphic mappers are
         constructed automatically based on class names.
         """
-        x = {"polymorphic_identity": cls.__name__}
+        # If the class has a distinct polymorphic_identity attribute, use that
+        if cls.polymorphic_identity and not cls.ancestor_has_same_polymorphic_identity(
+            cls.polymorphic_identity
+        ):
+            polymorphic_identity = cls.polymorphic_identity
+        else:
+            # Otherwise, take the polymorphic_identity from the class name
+            if cls.ancestor_has_same_polymorphic_identity(cls.__name__):
+                raise RuntimeError(
+                    f"Two distinct ORM-mapped classes share the same class name: {cls.__name__}. "
+                    "You should either give them different class names or different polymorphic_identity values."
+                )
+            polymorphic_identity = cls.__name__
+
+        x = {"polymorphic_identity": polymorphic_identity}
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.type
         return x
