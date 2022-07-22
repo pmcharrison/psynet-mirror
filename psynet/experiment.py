@@ -68,7 +68,7 @@ from .utils import (
 
 logger = get_logger()
 
-database_template_path = "database_template.zip"
+database_template_path = "database_template.zip"  # todo - make this a temporary file
 
 
 def json_serial(obj):

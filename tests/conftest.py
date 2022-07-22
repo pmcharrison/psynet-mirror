@@ -9,7 +9,6 @@ import sqlalchemy.exc
 from dallinger import db
 from dallinger.db import Base, engine
 from dallinger.models import Network, Node
-from dallinger.nodes import Source
 from dallinger.pytest_dallinger import flush_output
 
 import psynet.utils
@@ -20,6 +19,7 @@ from psynet.command_line import (
 )
 from psynet.data import init_db
 from psynet.participant import Participant
+from psynet.trial.main import TrialSource
 
 ACTIVE_EXPERIMENT = None
 
@@ -172,6 +172,17 @@ def experiment_object(experiment_class, db_session):
 
 
 @pytest.fixture
+def prepopulated_database():
+    from psynet.command_line import run_prepare_in_subprocess
+    from psynet.experiment import ExperimentConfig
+
+    database_is_populated = ExperimentConfig.query.count() > 0
+    if not database_is_populated:
+        db.session.commit()
+        run_prepare_in_subprocess()
+
+
+@pytest.fixture
 def participant(db_session, experiment_object):
     from dallinger.config import get_config
 
@@ -192,26 +203,18 @@ def participant(db_session, experiment_object):
 
 
 @pytest.fixture
-def node(db_session, network):
-    # if ACTIVE_EXPERIMENT == "singing_iterated":
-    #     nodes = Node.query.all()
-    #     return [
-    #         n for n in nodes if not isinstance(n, Source) and n.definition is not None
-    #     ][0]
-    if ACTIVE_EXPERIMENT == "mcmcp":
-        nodes = Node.query.all()
-        return [
-            n for n in nodes if not isinstance(n, Source) and n.definition is not None
-        ][0]
-    else:
-        raise RuntimeError("Unrecognized ACTIVE_EXPERIMENT: " + ACTIVE_EXPERIMENT)
+def node(db_session, network, prepopulated_database):
+    nodes = Node.query.all()
+    return [
+        n for n in nodes if not isinstance(n, TrialSource) and n.definition is not None
+    ][0]
 
 
 @pytest.fixture
-def network(db_session, experiment_module):
+def network(db_session, experiment_module, prepopulated_database):
     import time
 
-    time.sleep(0.5)  # wait for networks to be created
+    time.sleep(0.1)  # wait for networks to be created
     return Network.query.all()[0]
 
 
@@ -234,7 +237,9 @@ def trial_maker(experiment_module):
 
 
 @pytest.fixture
-def trial(trial_class, db_session, experiment_object, node, participant):
+def trial(
+    trial_class, db_session, experiment_object, node, participant, prepopulated_database
+):
     t = trial_class(
         experiment=experiment_object,
         node=node,

@@ -80,24 +80,26 @@ class NoJSONHandler(jsonpickle.handlers.BaseHandler):
 
 
 for cls in no_json_classes:
-    jsonpickle.register(cls, NoJSONHandler)
+    jsonpickle.register(cls, NoJSONHandler, base=True)
 
 
 class SQLHandler(jsonpickle.handlers.BaseHandler):
     def flatten(self, obj, state):
         primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
         primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
-        state["cls"]: obj.__class__
-        state["keys"] = primary_keys
+
+        state["class"] = self.context.flatten(obj.__class__, reset=False)
+        state["identifiers"] = primary_keys
+
         return state
 
     def restore(self, state):
-        return cls.query.filter_by(**state["keys"])
+        cls = self.context.restore(state["class"])
+        keys = state["identifiers"]
+        return cls.query.filter_by(**keys).one()
 
 
-# primary_keys = [c.name for c in cls.__table__.primary_key.columns]
-
-jsonpickle.register(SQLBase, SQLHandler)
+jsonpickle.register(SQLBase, SQLHandler, base=True)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):

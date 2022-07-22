@@ -1,13 +1,15 @@
-# import jsonpickle
+import jsonpickle
 import pytest
+
+import psynet.field  # noqa
+from psynet.trial.static import StaticTrial, Stimulus
 
 
 @pytest.mark.usefixtures("demo_static")
 def test_jsonpickle_sql(trial, node, network, participant):
-    pass
-    # trial_pickled = jsonpickle.encode(trial)
-    # import pydevd_pycharm
-    #
-    # pydevd_pycharm.settrace(
-    #     "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-    # )
+    trial_pickled = jsonpickle.encode(trial)
+    trial_unpickled = jsonpickle.decode(trial_pickled)
+
+    assert isinstance(trial_unpickled, StaticTrial)
+    assert trial.id == 1
+    assert isinstance(trial.origin, Stimulus)
