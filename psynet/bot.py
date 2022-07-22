@@ -6,12 +6,7 @@ from dallinger import db
 
 from .participant import Participant
 from .timeline import EndPage, Page
-from .utils import (
-    NoArgumentProvided,
-    get_logger,
-    import_local_experiment,
-    log_time_taken,
-)
+from .utils import NoArgumentProvided, get_experiment, get_logger, log_time_taken
 
 logger = get_logger()
 
@@ -45,7 +40,7 @@ class Bot(Participant):
 
     @cached_property
     def experiment(self):
-        return import_local_experiment()["class"](db.session)
+        return get_experiment
 
     @cached_property
     def timeline(self):
