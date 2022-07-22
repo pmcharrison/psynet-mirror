@@ -51,21 +51,14 @@ from .utils import (
     NoArgumentProvided,
     call_function,
     get_arg_from_dict,
+    get_experiment,
     get_logger,
-    import_local_experiment,
     pretty_log_dict,
     serialise,
     serialise_datetime,
 )
 
 logger = get_logger()
-
-
-def get_experiment():
-    """
-    Returns an initialized instance of the experiment class.
-    """
-    return import_local_experiment()["class"](db.session)
 
 
 def json_serial(obj):
@@ -246,15 +239,14 @@ class Experiment(dallinger.experiment.Experiment):
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def check_database():
-        exp_class = dallinger.experiment.load()
-        exp = exp_class.new(db.session)
+        exp = get_experiment()
         for c in exp.database_checks:
             c.run()
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
     def run_recruiter_checks():
-        exp = dallinger.experiment.load().new(db.session)
+        exp = get_experiment()
         recruiter = exp.recruiter
         if hasattr(recruiter, "run_checks"):
             recruiter.run_checks()
@@ -825,7 +817,7 @@ class Experiment(dallinger.experiment.Experiment):
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
     def dashboard_timeline(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         panes = exp.monitoring_panels()
 
         return render_template(
@@ -962,21 +954,21 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/module", methods=["POST"])
     @classmethod
     def get_module_details_as_rendered_html(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
         return trial_maker.visualize()
 
     @experiment_route("/module/tooltip", methods=["POST"])
     @classmethod
     def get_module_tooltip_as_rendered_html(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         trial_maker = exp.timeline.get_trial_maker(request.values["moduleId"])
         return trial_maker.visualize_tooltip()
 
     @experiment_route("/module/progress_info", methods=["GET"])
     @classmethod
     def get_progress_info(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         progress_info = {
             "spending": {
                 "amount_spent": exp.amount_spent(),
@@ -996,7 +988,7 @@ class Experiment(dallinger.experiment.Experiment):
     def update_spending_limits(cls):
         hard_max_experiment_payment = request.values["hard_max_experiment_payment"]
         soft_max_experiment_payment = request.values["soft_max_experiment_payment"]
-        exp = cls.new(db.session)
+        exp = get_experiment()
         exp.var.set("hard_max_experiment_payment", float(hard_max_experiment_payment))
         exp.var.set("soft_max_experiment_payment", float(soft_max_experiment_payment))
         logger.info(
@@ -1016,7 +1008,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/debugger/<password>", methods=["GET"])
     @classmethod
     def route_debugger(cls, password):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         if password == "my-secure-password-195762":
             exp.new(db.session)
             rpdb.set_trace()
@@ -1046,7 +1038,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/network/<int:network_id>/grow", methods=["GET", "POST"])
     @classmethod
     def grow_network(cls, network_id):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         from .trial.main import TrialNetwork
 
         network = TrialNetwork.query.filter_by(id=network_id).one()
@@ -1138,7 +1130,7 @@ class Experiment(dallinger.experiment.Experiment):
 
         from psynet.utils import error_page
 
-        exp = cls.new(db.session)
+        exp = get_experiment()
         mode = request.args.get("mode")
         participant = get_participant(participant_id)
 
@@ -1202,7 +1194,7 @@ class Experiment(dallinger.experiment.Experiment):
     @experiment_route("/response", methods=["POST"])
     @classmethod
     def route_response(cls):
-        exp = cls.new(db.session)
+        exp = get_experiment()
         json_data = json.loads(request.values["json"])
         blobs = request.files.to_dict()
 

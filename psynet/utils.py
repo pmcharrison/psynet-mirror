@@ -13,6 +13,7 @@ from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
 import pexpect
+from dallinger import db
 from dallinger.config import config, get_config
 
 
@@ -47,6 +48,13 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
+
+
+def get_experiment():
+    """
+    Returns an initialized instance of the experiment class.
+    """
+    return import_local_experiment()["class"](db.session)
 
 
 def import_local_experiment():

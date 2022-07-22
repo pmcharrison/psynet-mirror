@@ -11,7 +11,7 @@ from statistics import mean
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
-from psynet.experiment import get_experiment, scheduled_task
+from psynet.experiment import scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
@@ -22,7 +22,7 @@ from psynet.trial.imitation_chain import (
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
-from psynet.utils import get_logger
+from psynet.utils import get_experiment, get_logger
 
 logger = get_logger()
 
