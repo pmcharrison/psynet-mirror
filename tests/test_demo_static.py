@@ -23,16 +23,12 @@ class TestExp:
 
             networks = StaticNetwork.query.all()
             stimuli = Stimulus.query.all()
-            stimulus_versions = StimulusVersion.query.all()
 
             assert networks[0].type == "StaticNetwork"
             assert stimuli[0].type == "Stimulus"
 
             assert len(networks) == 3
             assert len(stimuli) == len(networks) * 4
-            assert len(stimulus_versions) == len(stimuli) * 3
-
-            assert stimulus_versions[0].__json__()["media_url"] is None
 
             assert sorted([n.block for n in networks]) == ["A", "B", "C"]
 
@@ -145,23 +141,6 @@ class TestExp:
 
             num_remaining_trials = 4
             num_repeat_trials = 3
-
-            # This part tests that the custom_stimulus_version_filter works appropriately -
-            # the fact that we've now had more than three trials means that the text color
-            # will be red.
-            next_page(driver, "Very much")
-            num_remaining_trials -= 1
-            assert (
-                driver.find_element(By.ID, "question").value_of_css_property("color")
-                == "rgba(255, 0, 0, 1)"
-            )
-
-            next_page(driver, "Very much")
-            num_remaining_trials -= 1
-            assert (
-                driver.find_element(By.ID, "question").value_of_css_property("color")
-                == "rgba(255, 0, 0, 1)"
-            )
 
             for _ in range(num_remaining_trials + num_repeat_trials):
                 next_page(driver, "Very much")

@@ -41,7 +41,6 @@ from sqlalchemy.schema import (
 from tqdm import tqdm
 
 from . import field
-from .field import VarStore
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -276,6 +275,8 @@ class SQLMixinDallinger(SharedMixin):
 
     @property
     def var(self):
+        from .field import VarStore
+
         return VarStore(self)
 
     def __json__(self):

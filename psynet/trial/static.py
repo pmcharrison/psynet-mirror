@@ -235,12 +235,7 @@ class StimulusSet(NullElt):
     """
     Defines a stimulus set for a static experiment.
     This stimulus set is defined as a collection of
-    :class:`~psynet.trial.static.Stimulus`
-    and :class:`~psynet.trial.static.StimulusVersionSpec`
-    objects, which are translated to database-backed
-    :class:`~psynet.trial.static.Stimulus`
-    and :class:`~psynet.trial.static.StimulusVersion`
-    objects respectively.
+    :class:`~psynet.trial.static.Stimulus` objects.
 
     Parameters
     ----------
@@ -422,17 +417,8 @@ class StaticTrial(Trial):
         Time at which the earliest pending async process was called.
 
     definition
-        A dictionary of parameters defining the trial.
-        This dictionary combines the dictionaries of the
-        respective
-        :class:`~psynet.trial.static.Stimulus`
-        and
-        :class:`~psynet.trial.static.StimulusVersionSpec`
-        objects.
-
-    stimulus_version
-        The corresponding :class:`~psynet.trial.static.StimulusVersion`
-        object.
+        A dictionary of parameters defining the trial,
+        inherited from the respective :class:`~psynet.trial.static.Stimulus` object.
 
     stimulus
         The corresponding :class:`~psynet.trial.static.Stimulus`
@@ -503,12 +489,8 @@ class StaticTrialMaker(NetworkTrialMaker):
 
     * :class:`~psynet.trial.static.Stimulus`;
 
-    * :class:`~psynet.trial.static.StimulusVersionSpec`;
-
     In particular, a :class:`~psynet.trial.static.StimulusSet`
-    contains a list of :class:`~psynet.trial.static.Stimulus` objects,
-    which in turn contains a list of
-    :class:`~psynet.trial.static.StimulusVersionSpec` objects.
+    contains a list of :class:`~psynet.trial.static.Stimulus` objects.
 
     The user may also override the following methods, if desired:
 

@@ -65,10 +65,10 @@ class AsyncProcess(SQLBase, SQLMixin):
         asset=None,
         label=None,
     ):
-        if not label:
+        if label is None:
             label = function.__name__
 
-        if not arguments:
+        if arguments is None:
             arguments = {}
 
         if inspect.ismethod(function):

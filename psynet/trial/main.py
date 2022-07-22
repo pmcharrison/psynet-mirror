@@ -1902,6 +1902,7 @@ class NetworkTrialMaker(TrialMaker):
             WorkerAsyncProcess(
                 trial.call_async_post_trial,
                 timeout=self.async_timeout_sec,
+                trial=trial,
             )
             db.session.commit()
         self._grow_network(trial.network, participant, experiment)
@@ -1914,6 +1915,7 @@ class NetworkTrialMaker(TrialMaker):
             WorkerAsyncProcess(
                 network.async_post_grow_network,
                 timeout=self.async_timeout_sec,
+                network=network,
             )
             db.session.commit()
 

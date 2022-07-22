@@ -43,7 +43,10 @@ class PythonObject(TypeDecorator):
     def process_result_value(self, value, dialect):
         if value is None:
             return None
-        return jsonpickle.decode(value)
+        try:
+            return jsonpickle.decode(value)
+        except Exception:
+            pass
 
 
 class _PythonDict(PythonObject):

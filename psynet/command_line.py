@@ -146,14 +146,14 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive):
     """
     log(header)
 
-    from .experiment import database_template_zip_path
+    from .experiment import database_template_path
 
     drop_all_db_tables()
 
     if archive is None:
         run_prepare_in_subprocess()
         _cleanup_before_debug()
-        archive = database_template_zip_path
+        archive = database_template_path
 
     try:
         if legacy:
@@ -201,23 +201,12 @@ def run_pre_auto_reload_checks():
             )
 
 
-def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
-    from dallinger.command_line import DebugDeployment as dallinger_debug_deployment
+def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwargs):
     from dallinger.command_line import debug as dallinger_debug
 
     exp_config = {"threads": str(threads)}
 
     try:
-        # Ordinarily ``dallinger debug`` initializes the database itself to an empty state.
-        # In PsyNet, we instead prepare a database snapshot located at ``database_template_zip_path``
-        # which is used to prepopulate the database. Ideally we'd pass this as the ``--archive``
-        # parameter for the Dallinger subcommands. Unfortunately, legacy ``dallinger_debug``
-        # doesn't accept an ``--archive`` parameter. Our workaround is instead to disable
-        # Dallinger's database initialization process, and just let it use the current local
-        # state of the database, which is equivalent to the snapshot we've been talking about.
-        original_do_init_db = dallinger_debug_deployment.DO_INIT_DB
-        dallinger_debug_deployment.DO_INIT_DB = False
-
         ctx.invoke(
             dallinger_debug,
             verbose=verbose,
@@ -225,9 +214,9 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, **kwargs):
             proxy=proxy,
             no_browsers=no_browsers,
             exp_config=exp_config,
+            archive=archive,
         )
     finally:
-        dallinger_debug_deployment.DO_INIT_DB = original_do_init_db
         reset_console()
 
 
@@ -403,14 +392,14 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
-    from .experiment import database_template_zip_path
+    from .experiment import database_template_path
 
     run_pre_checks("deploy")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
-        archive = database_template_zip_path
+        archive = database_template_path
 
     from dallinger.command_line import deploy as dallinger_deploy
 
@@ -509,14 +498,14 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
-    from .experiment import database_template_zip_path
+    from .experiment import database_template_path
 
     run_pre_checks("sandbox")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
-        archive = database_template_zip_path
+        archive = database_template_path
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 

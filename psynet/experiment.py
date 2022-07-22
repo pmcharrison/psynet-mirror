@@ -30,7 +30,7 @@ from psynet import __version__
 
 from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .command_line import log
-from .data import SQLBase, SQLMixin, ingest_zip, register_table
+from .data import SQLBase, SQLMixin, register_table
 from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
@@ -68,11 +68,7 @@ from .utils import (
 
 logger = get_logger()
 
-database_template_path = ".database_template"
-database_template_app_name = "template"
-database_template_zip_path = os.path.join(
-    database_template_path, "data", f"{database_template_app_name}-data.zip"
-)
+database_template_path = "database_template.zip"
 
 
 def json_serial(obj):
@@ -485,26 +481,30 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def create_database_snapshot(cls):
-        shutil.rmtree(database_template_path, ignore_errors=True)
-        os.mkdir(database_template_path)
-
         logger.info("Creating a database snapshot...")
-        with working_directory(database_template_path):
-            dallinger.data.export(
-                database_template_app_name, local=True, scrub_pii=False
+        try:
+            os.remove(database_template_path)
+        except FileNotFoundError:
+            pass
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with working_directory(temp_dir):
+                dallinger.data.export("app", local=True, scrub_pii=False)
+            shutil.copyfile(
+                os.path.join(temp_dir, "data", "app-data.zip"),
+                database_template_path,
             )
 
-    @classmethod
-    def load_database_template(cls):
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
-
-        archive_path = "?"  # Todo -- fill this out
-
-        ingest_zip(archive_path, engine=db.engine)
+    # @classmethod
+    # def load_database_template(cls):
+    #     import pydevd_pycharm
+    #
+    #     pydevd_pycharm.settrace(
+    #         "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+    #     )
+    #
+    #     archive_path = "?"  # Todo -- fill this out
+    #
+    #     ingest_zip(archive_path, engine=db.engine)
 
     @classmethod
     def check_config(cls):
