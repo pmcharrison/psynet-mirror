@@ -30,7 +30,7 @@
 </p>
 {% if experiment.with_lucid_recruitment() %}
 <p style="text-align: left;">
-    <span id="termination-counter" style="visibility: hidden;">You have <span id="termination-counter-seconds" style="font-weight: bold;"></span> left to begin and consent to the experiment.</span>
+    <span id="termination-timer" style="visibility: hidden;">You have <span id="termination-timer-seconds" style="font-weight: bold;"></span> left to begin and consent to the experiment.</span>
 </p>
 {% endif %}
 <div class="alert alert-warning">
@@ -97,8 +97,8 @@ Abort Experiment
         postData["rid"] = rid;
         $.post("/check_participant_termination", postData, function(seconds) {
             if (parseInt(seconds) >= 0) {
-                $("#termination-counter-seconds").text(prettyFormatSeconds(seconds));
-                $("#termination-counter").css("visibility", "visible");
+                $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
+                $("#termination-timer").css("visibility", "visible");
                 if (parseInt(seconds) == 0) {
                     $("#begin-button").hide();
                     $("#close-button").show();
