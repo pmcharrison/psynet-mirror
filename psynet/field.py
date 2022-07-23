@@ -4,6 +4,7 @@ from datetime import datetime
 
 import flask
 import jsonpickle
+from jsonpickle.unpickler import loadclass
 from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
@@ -79,24 +80,21 @@ class NoJSONHandler(jsonpickle.handlers.BaseHandler):
         return pickle.loads(state["bytes"].encode("ascii"))
 
 
-for cls in no_json_classes:
-    jsonpickle.register(cls, NoJSONHandler, base=True)
+for _cls in no_json_classes:
+    jsonpickle.register(_cls, NoJSONHandler, base=True)
 
 
 class SQLHandler(jsonpickle.handlers.BaseHandler):
     def flatten(self, obj, state):
         primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
         primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
-
-        state["class"] = self.context.flatten(obj.__class__, reset=False)
         state["identifiers"] = primary_keys
-
         return state
 
     def restore(self, state):
-        cls = self.context.restore(state["class"])
-        keys = state["identifiers"]
-        return cls.query.filter_by(**keys).one()
+        cls = loadclass(state["py/object"])
+        identifiers = state["identifiers"]
+        return cls.query.filter_by(**identifiers).one()
 
 
 jsonpickle.register(SQLBase, SQLHandler, base=True)
