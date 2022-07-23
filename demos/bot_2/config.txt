@@ -2,7 +2,7 @@
 mode = sandbox
 
 [Payment information]
-title = Imitation chain demo
+title = Bot demo
 base_payment = 0.10
 
 [Recruitment strategy]
@@ -16,7 +16,7 @@ browser_exclude_rule = MSIE, mobile, tablet
 disable_when_duration_exceeded = False
 
 [Ad metadata]
-description = This app demos an imitation chain experiment.
+description = This app demos the bot functionality
 keywords = demo
 contact_email_on_error = computational.audition+online_running@gmail.com
 organization_name = Max Planck Institute for Empirical Aesthetics

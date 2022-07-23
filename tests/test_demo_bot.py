@@ -34,10 +34,7 @@ class TestExp:
             bot_1_answers[2] == "This response came from the CustomTextControl method."
         )
 
-        for participant_id, bot in enumerate(bot_recruits):
-            # Python zero-indexes, SQL one-indexes
-            participant_id += 1
-
+        for participant in bot_recruits:
             driver = bot.driver
             time.sleep(1)
 
