@@ -1,13 +1,16 @@
 import os
+import sys
 import time
 import warnings
 
+import pexpect
 import pytest
 import sqlalchemy.exc
 from dallinger import db
 from dallinger.db import Base, engine
 from dallinger.models import Network, Node
 from dallinger.nodes import Source
+from dallinger.pytest_dallinger import flush_output
 
 import psynet.utils
 from psynet.command_line import (
@@ -247,3 +250,38 @@ def trial(trial_class, db_session, experiment_object, node, participant):
     db_session.add(t)
     db_session.commit()
     return t
+
+
+@pytest.fixture
+def debug_experiment(request, env, clear_workers):
+    timeout = request.config.getvalue("recruiter_timeout", 120)
+
+    # Make sure debug server runs to completion with bots
+    p = pexpect.spawn(
+        "psynet",
+        ["debug", "--no-browsers", "--verbose", "--legacy"],
+        env=env,
+        encoding="utf-8",
+    )
+    p.logfile = sys.stdout
+
+    try:
+        p.expect_exact("Server is running", timeout=timeout)
+        yield p
+        # The Dallinger version of this fixture requires the experiment to run to completion,
+        # i.e. for recruitment to stop. We relax this constraint as it is often
+        # a bit hard to stick to.
+        #
+        # if request.node.rep_setup.passed and request.node.rep_call.passed:
+        #     p.expect_exact("Experiment completed", timeout=timeout)
+        #     p.expect_exact("Local Heroku process terminated", timeout=timeout)
+    finally:
+        try:
+            flush_output(p, timeout=0.1)
+            p.sendcontrol("c")
+            flush_output(p, timeout=3)
+            # Why do we need to call flush_output twice? Good question.
+            # Something about calling p.sendcontrol("c") seems to disrupt the log.
+            # Better to call it both before and after.
+        except IOError:
+            pass
