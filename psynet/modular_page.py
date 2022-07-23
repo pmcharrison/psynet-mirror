@@ -470,18 +470,14 @@ class Control:
     The ``Control`` class provides some kind of controls for the participant,
     with which they will provide their response.
 
-    Currently the prompt must be written as a Jinja2 macro
-    in ``templates/macros.html``. In the future, we will update the API
-    to allow macros to be defined in external files.
-
     Parameters
     ----------
 
     bot_response :
         Defines how bots respond to this page.
-        Can be a single value
-
-        The function should return a dictionary optionally containing one or more of the following fields:
+        Can be a single value, in which case this is interpreted as the participant's (formatted) answer.
+        Alternatively, it can be an instance of class ``BotResponse``, which can accept more detailed
+        information, for example:
 
         raw_answer :
             The raw_answer returned from the page.
