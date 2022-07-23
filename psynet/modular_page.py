@@ -1630,7 +1630,7 @@ class SliderControl(Control):
 
     random_wrap:
         Defaults to `False`. If `True` then slider is wrapped twice so that there are no boundary jumps, and
-        the phase to initialise the wrapping is randomized each time.
+        the phase to initialize the wrapping is randomized each time.
 
     minimal_interactions:
         Minimal interactions with the slider before the user can go to the next trial. Default: `0`.

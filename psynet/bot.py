@@ -40,7 +40,7 @@ class Bot(Participant):
 
     @cached_property
     def experiment(self):
-        return get_experiment
+        return get_experiment()
 
     @cached_property
     def timeline(self):

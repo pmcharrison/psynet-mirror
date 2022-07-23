@@ -264,7 +264,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.elt_id = [-1]
         self.answer_accumulators = []
         self.complete = False
-        self.time_credit.initialise(experiment)
+        self.time_credit.initialize(experiment)
         self.performance_bonus = 0.0
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
@@ -489,7 +489,7 @@ class TimeCreditStore:
         else:
             self.participant.var.set(self.get_internal_name(name), value)
 
-    def initialise(self, experiment):
+    def initialize(self, experiment):
         self.confirmed_credit = 0.0
         self.is_fixed = False
         self.pending_credit = 0.0
