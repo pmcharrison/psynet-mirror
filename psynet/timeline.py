@@ -732,9 +732,10 @@ class Page(Elt):
             res = call_function(
                 self._bot_response,
                 args={
-                    "page": self,
                     "experiment": experiment,
                     "bot": bot,
+                    "participant": bot,
+                    "page": self,
                 },
             )
         else:

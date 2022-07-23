@@ -628,6 +628,7 @@ class Control:
                 args={
                     "experiment": experiment,
                     "bot": bot,
+                    "participant": bot,
                     "page": page,
                     "prompt": prompt,
                 },
