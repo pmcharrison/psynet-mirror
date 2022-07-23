@@ -34,7 +34,8 @@ class TestExp:
             bot_1_answers[2] == "This response came from the CustomTextControl method."
         )
 
-        for participant in bot_recruits:
+        # These bot_recruits are CI bots that *do* interact directly with the web browser.
+        for bot in bot_recruits:
             driver = bot.driver
             time.sleep(1)
 
