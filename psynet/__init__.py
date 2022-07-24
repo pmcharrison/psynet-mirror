@@ -1,8 +1,8 @@
 import os
 
-from . import (  # noqa # Important so that the jsonpickle handlers are always registered
-    field,
-)
+# Registering SQLAlchemy and jsonpickle handlers
+from . import field, trial  # noqa
+from .trial import main  # noqa
 
 here = os.path.abspath(os.path.dirname(__file__))
 

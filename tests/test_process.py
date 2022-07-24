@@ -22,7 +22,6 @@ def test_awaiting_async_process_participant(participant):
 
 @pytest.mark.usefixtures("demo_static")
 def test_awaiting_async_process_trial(trial, node, network, participant):
-    # TODO - need to fix demo static
     owners = [trial, node, network, participant]
     for o in owners:
         assert not o.awaiting_async_process
@@ -35,12 +34,13 @@ def test_awaiting_async_process_trial(trial, node, network, participant):
 
     time.sleep(1.5)
 
+    db.session.refresh(process)
+
     for o in owners:
         db.session.refresh(o)
-        db.session.refresh(process)
         assert not o.awaiting_async_process
-        assert not o.pending
-        assert o.complete
+
+    assert abs(process.time_taken - 1) < 0.1
 
 
 @pytest.mark.usefixtures("demo_mcmcp")

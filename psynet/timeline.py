@@ -5,7 +5,7 @@ import time
 import warnings
 from collections import Counter
 from datetime import datetime
-from functools import reduce
+from functools import cached_property, reduce
 from statistics import median
 from typing import Callable, Dict, List, Optional, Union
 
@@ -1276,18 +1276,21 @@ class Timeline:
             ]
         }
 
+    @cached_property
+    def trial_makers(self):
+        from .trial.main import TrialMaker
+
+        return {
+            e.module.id: e.module
+            for e in self.elts
+            if isinstance(e, StartModule) and isinstance(e.module, TrialMaker)
+        }
+
     def get_trial_maker(self, trial_maker_id):
-        elts = self.elts
         try:
-            start = [
-                e
-                for e in elts
-                if isinstance(e, StartModule) and e.label == trial_maker_id
-            ][0]
+            return self.trial_makers[trial_maker_id]
         except IndexError:
             raise RuntimeError(f"Couldn't find trial maker with id = {trial_maker_id}.")
-        trial_maker = start.module
-        return trial_maker
 
     def add_elt_ids(self):
         for i, elt in enumerate(self.elts):
@@ -2158,24 +2161,6 @@ class EndAccumulateAnswers(NullElt):
         participant.answer_accumulators = participant.answer_accumulators[:-1]
 
 
-class ExperimentSetupRoutine(NullElt):
-    def __init__(self, function):
-        self.check_function(function)
-        self.function = function
-
-    def check_function(self, function):
-        if not self._is_function(function) and check_function_args(
-            function, ["experiment"]
-        ):
-            raise TypeError(
-                "<function> must be a function or method of the form f(experiment)."
-            )
-
-    @staticmethod
-    def _is_function(x):
-        return callable(x)
-
-
 class DatabaseCheck(NullElt):
     def __init__(self, label, function):
         check_function_args(function, args=[])
@@ -2205,8 +2190,8 @@ class DatabaseCheck(NullElt):
 class PreDeployRoutine(NullElt):
     """
     A timeline component that allows for the definition of tasks to be performed
-    before deployment. :class:`PreDeployRoutine`s are thought to be added to the
-    beginning of a timeline of an experiment.
+    before deployment. It is possible to make database changes as part of these
+    routines and these will be propagated to the deployed experiment.
 
     Parameters
     ----------
@@ -2221,8 +2206,12 @@ class PreDeployRoutine(NullElt):
         The arguments for the function to be executed.
     """
 
-    def __init__(self, label, function, args):
-        check_function_args(function, args=args.keys(), need_all=False)
+    def __init__(self, label, function, args=None):
+        if args is None:
+            args = {}
+        provided_args = list(args.keys())
+        provided_args.append("experiment")
+        check_function_args(function, args=provided_args, need_all=False)
         self.label = label
         self.function = function
         self.args = args

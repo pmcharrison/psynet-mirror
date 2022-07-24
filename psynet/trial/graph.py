@@ -332,13 +332,13 @@ class GraphChainTrialMaker(ChainTrialMaker):
             allow_revisiting_networks_in_across_chains=allow_revisiting_networks_in_across_chains,
         )
 
-    def experiment_setup_routine(self, experiment):
-        if self.num_networks == 0 and self.chain_type == "across":
+    def pre_deploy_routine(self, experiment):
+        if self.chain_type == "across":
             experiment.var.set(
                 with_trial_maker_namespace(self.id, "network_structure"),
                 self.network_structure,
             )
-        super().experiment_setup_routine(experiment)
+        super().pre_deploy_routine(experiment)
 
     def create_networks_across(self, experiment):
         network_structure = self.network_structure
@@ -383,7 +383,6 @@ class GraphChainTrialMaker(ChainTrialMaker):
         )
         db.session.add(network)
         db.session.commit()
-        self._grow_network(network, participant, experiment)
         return network
 
     def get_dependent_vertex_ids(self, target, network_structure):

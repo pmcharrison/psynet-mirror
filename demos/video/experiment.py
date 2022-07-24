@@ -2,7 +2,6 @@ import flask
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import (
     AudioRecordControl,
     ModularPage,
@@ -14,7 +13,6 @@ from psynet.timeline import (
     Event,
     MediaSpec,
     PageMaker,
-    PreDeployRoutine,
     ProgressDisplay,
     ProgressStage,
     Timeline,
@@ -32,12 +30,9 @@ def make_js_fade_string(fade_duration):
     return "{fade_in: %s, fade_out: %s}" % (fade_duration, fade_duration)
 
 
+# Todo -- this probably needs updating?
+
 video_record_page = join(
-    PreDeployRoutine(
-        "prepare_s3_bucket_for_presigned_urls",
-        prepare_s3_bucket_for_presigned_urls,
-        {"bucket_name": bucket_name, "public_read": True, "create_new_bucket": True},
-    ),
     ModularPage(
         "simple_video_prompt",
         VideoPrompt(

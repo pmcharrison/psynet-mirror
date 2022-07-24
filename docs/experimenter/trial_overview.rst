@@ -104,7 +104,7 @@ implementation that comprises the following steps:
    ordered by preference
    (:meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`).
    These may be created on demand, or alternatively pre-created by
-   :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`.
+   :meth:`~psynet.trial.main.NetworkTrialMaker.pre_deploy_routine`.
 2. Give these networks an opportunity to grow (i.e. update their structure
    based on the trials that they've received so far)
    (:meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`).

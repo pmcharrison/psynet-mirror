@@ -38,6 +38,8 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
+# TODO - this needs updating
+
 # Global parameters
 BUCKET_NAME = "iterated-tapping-demo"
 config = ConfigUpdater.create_config(
@@ -206,6 +208,8 @@ class CustomSource(AudioImitationChainSource):
         random_seed = [as_native_type(value) for value in ioi_seed]
         return random_seed
 
+
+# TODO - this needs updating
 
 # Timeline
 class Exp(psynet.experiment.Experiment):

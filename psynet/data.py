@@ -531,7 +531,8 @@ def ingest_to_model(
         postgres_copy.copy_from(
             file, model, engine, columns=columns, format="csv", HEADER=False
         )
-        if "id" in inspector.get_columns(model.__table__):
+        column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
+        if "id" in column_names:
             fix_autoincrement(engine, model.__table__.name)
 
 

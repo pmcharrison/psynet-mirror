@@ -33,10 +33,10 @@ from ..process import AsyncProcess, WorkerAsyncProcess
 from ..timeline import (
     CodeBlock,
     DatabaseCheck,
-    ExperimentSetupRoutine,
     Module,
     PageMaker,
     ParticipantFailRoutine,
+    PreDeployRoutine,
     RecruitmentCriterion,
     Response,
     conditional,
@@ -705,9 +705,9 @@ class TrialMaker(Module):
     * :meth:`~psynet.trial.main.TrialMaker.prepare_trial`,
       which prepares the next trial to administer to the participant.
 
-    * :meth:`~psynet.trial.main.TrialMaker.experiment_setup_routine`
+    * :meth:`~psynet.trial.main.TrialMaker.pre_deploy_routine`
       (optional), which defines a routine that sets up the experiment
-      (for example initialising and seeding networks).
+      in advance of deployment (for example initialising and seeding networks).
 
     * :meth:`~psynet.trial.main.TrialMaker.init_participant`
       (optional), a function that is run when the participant begins
@@ -918,7 +918,7 @@ class TrialMaker(Module):
 
     def compile_elts(self):
         return join(
-            ExperimentSetupRoutine(self.experiment_setup_routine),
+            PreDeployRoutine(self.with_namespace(), self.pre_deploy_routine),
             ParticipantFailRoutine(
                 self.with_namespace(), self.participant_fail_routine
             ),
@@ -972,10 +972,10 @@ class TrialMaker(Module):
         """
         raise NotImplementedError
 
-    def experiment_setup_routine(self, experiment):
+    def pre_deploy_routine(self, experiment):
         """
-        Defines a routine for setting up the experiment.
-        This is called once when the experiment launches.
+        Defines a routine for setting up the experiment prior to deployment.
+        This is a good place to prepare networks etc.
 
         Parameters
         ----------
@@ -1607,7 +1607,7 @@ class NetworkTrialMaker(TrialMaker):
        ordered by preference
        (:meth:`~psynet.trial.main.NetworkTrialMaker.find_networks`).
        These may be created on demand, or alternatively pre-created by
-       :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`.
+       :meth:`~psynet.trial.main.NetworkTrialMaker.pre_deploy_routine`.
     2. Give these networks an opportunity to grow (i.e. update their structure
        based on the trials that they've received so far)
        (:meth:`~psynet.trial.main.NetworkTrialMaker.grow_network`).
@@ -1631,7 +1631,7 @@ class NetworkTrialMaker(TrialMaker):
 
     The user is expected to override the following abstract methods/attributes:
 
-    * :meth:`~psynet.trial.main.NetworkTrialMaker.experiment_setup_routine`,
+    * :meth:`~psynet.trial.main.NetworkTrialMaker.pre_deploy_routine`,
       (optional), which defines a routine that sets up the experiment
       (for example initialising and seeding networks).
 

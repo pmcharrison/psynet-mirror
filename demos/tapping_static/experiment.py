@@ -48,6 +48,8 @@ MIN_RAW_TAPS = 50
 MAX_RAW_TAPS = 200
 
 
+# TODO - update this with new stimulus API
+
 # Stimuli
 def as_native_type(x):
     if type(x).__module__ == np.__name__:

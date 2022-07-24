@@ -5,6 +5,7 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 from shutil import rmtree, which
 
 import click
@@ -17,6 +18,7 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
+from . import deployment_info
 from .data import (
     drop_all_db_tables,
     dump_db_to_disk,
@@ -107,15 +109,18 @@ def prepare():
     Prepares all stimulus sets defined in experiment.py,
     uploading all media files to Amazon S3.
     """
-    from dallinger import db
+    try:
+        from dallinger import db
 
-    db.init_db(drop_all=True)
-    experiment_class = import_local_experiment().get("class")
-    experiment_instance = experiment_class.new(session=None)
-    experiment_instance.pre_deploy()
-    db.session.commit()
-    clean_sys_modules()
-    return experiment_class
+        db.init_db(drop_all=True)
+        experiment_class = import_local_experiment().get("class")
+        experiment_instance = experiment_class.new(session=None)
+        experiment_instance.pre_deploy()
+        db.session.commit()
+        clean_sys_modules()
+        return experiment_class
+    finally:
+        db.session.commit()
 
 
 #########
@@ -146,14 +151,15 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive):
     """
     log(header)
 
-    from .experiment import database_template_path
+    make_deploy_dir()
+    deployment_info.reset()
+    deployment_info.write(redeploying_from_archive=archive is not None)
 
     drop_all_db_tables()
 
     if archive is None:
-        run_prepare_in_subprocess()
+        run_prepare_in_subprocess()  # TODO - think about running prepare even when we deploy from archive
         _cleanup_before_debug()
-        archive = database_template_path
 
     try:
         if legacy:
@@ -206,6 +212,8 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
 
     exp_config = {"threads": str(threads)}
 
+    db.session.commit()
+
     try:
         ctx.invoke(
             dallinger_debug,
@@ -217,6 +225,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
             archive=archive,
         )
     finally:
+        db.session.commit()
         reset_console()
 
 
@@ -241,6 +250,7 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, **kwargs):
     try:
         ctx.invoke(dallinger_debug)
     finally:
+        db.session.commit()
         reset_console()
 
 
@@ -392,14 +402,15 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
-    from .experiment import database_template_path
+    make_deploy_dir()
+    deployment_info.reset()
+    deployment_info.write(redeploying_from_archive=archive is not None)
 
     run_pre_checks("deploy")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
-        archive = database_template_path
 
     from dallinger.command_line import deploy as dallinger_deploy
 
@@ -498,14 +509,15 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
-    from .experiment import database_template_path
+    make_deploy_dir()
+    deployment_info.reset()
+    deployment_info.write(redeploying_from_archive=archive is not None)
 
     run_pre_checks("sandbox")
     log(header)
 
     if not archive:
         ctx.invoke(prepare, force=force_prepare)
-        archive = database_template_path
 
     from dallinger.command_line import sandbox as dallinger_sandbox
 
@@ -863,3 +875,8 @@ def load(path):
     "Populates the local database with a provided zip file."
     import_local_experiment()
     populate_db_from_zip_file(path)
+
+
+def make_deploy_dir():
+    path = "deploy"
+    Path(path).mkdir(parents=True, exist_ok=True)

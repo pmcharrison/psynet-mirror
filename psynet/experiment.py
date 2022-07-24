@@ -6,6 +6,7 @@ import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
+from functools import cached_property
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 
@@ -28,9 +29,10 @@ from pkg_resources import resource_filename
 
 from psynet import __version__
 
+from . import deployment_info
 from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
 from .command_line import log
-from .data import SQLBase, SQLMixin, register_table
+from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
@@ -44,7 +46,6 @@ from .recruiters import (  # noqa: F401
 )
 from .timeline import (
     DatabaseCheck,
-    ExperimentSetupRoutine,
     FailedValidation,
     ParticipantFailRoutine,
     PreDeployRoutine,
@@ -68,7 +69,7 @@ from .utils import (
 
 logger = get_logger()
 
-database_template_path = "database_template.zip"  # todo - make this a temporary file
+database_template_path = "deploy/database_template.zip"
 
 
 def json_serial(obj):
@@ -231,23 +232,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "in your Experiment class. For example, you might write: label = 'GSP experiment with faces'"
             )
 
-        self.deployment_id = self.read_deployment_id()
-
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
         self.static_stimuli = StaticStimulusRegistry(self)
 
         if session:
-            if request and request.path == "/launch":
-                self.on_launch()
+            if request and request.path == "/launch" and not self.var.launch_complete:
+                self._on_launch()
+
         self.load()
         self.register_pre_deployment_routines()
 
-    def on_launch(self):
-        if not self.setup_complete:
-            # In theory the launch route should only be called once, so the setup_complete check isn't really important
-            self.setup()  # Maybe rename this as something more informative?
+    def _on_launch(self):
+        if not deployment_info.read("redeploying_from_archive"):
+            self.on_first_launch()
+        self.on_every_launch()
+        self.var.launch_complete = True
+        db.session.commit()
+
+    def on_first_launch(self):
+        ingest_zip(database_template_path, db.engine)
+        db.session.commit()
+
+    def on_every_launch(self):
+        self.grow_all_networks()
 
     def participant_constructor(self, *args, **kwargs):
         return Participant(experiment=self, *args, **kwargs)
@@ -321,10 +330,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls.timeline.estimated_completion_time(wage_per_hour)
 
     @property
-    def setup_complete(self):
-        return self.experiment_config_exists
-
-    @property
     def experiment_config_exists(self):
         return ExperimentConfig.query.count() > 0
 
@@ -335,23 +340,13 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             db.session.add(network)
             db.session.commit()
 
-    def setup(self):
-        self.setup_experiment_config()
-        self.setup_experiment_variables()
-        self.check_deployment_id()
-
-        for elt in self.timeline.elts:
-            if isinstance(elt, ExperimentSetupRoutine):
-                elt.function(experiment=self)
-
-        db.session.commit()
-
     @property
     def _default_variables(self):
         return {
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
+            "launch_complete": False,
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -440,44 +435,38 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def pre_deploy(self):
         self.check_config()
         self.update_deployment_id()
+        self.setup_experiment_config()
+        self.setup_experiment_variables()
         self.static_stimuli.prepare_for_deployment()
         self.assets.prepare_for_deployment()
         for routine in self.pre_deploy_routines:
-            logger.info(f"Pre-deploying '{routine.label}'...")
-            call_function(routine.function, routine.args)
+            logger.info(f"Running pre-deployment routine '{routine.label}'...")
+            call_function(routine.function, {"experiment": self, **routine.args})
         self.create_database_snapshot()
 
     @classmethod
     def update_deployment_id(cls):
-        cls.deployment_id = cls.generate_deployment_id()
-        with open("DEPLOYMENT_ID", "w") as file:
-            file.write(cls.deployment_id)
+        deployment_id = cls.generate_deployment_id()
+        deployment_info.write(deployment_id=deployment_id)
 
     @classmethod
     def generate_deployment_id(cls):
         return cls.label + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-    @classmethod
-    def read_deployment_id(cls):
-        try:
-            with open("DEPLOYMENT_ID", "r") as file:
-                return file.read()
-        except FileNotFoundError:
-            return None
+    @cached_property
+    def deployment_id(cls):
+        return deployment_info.read("deployment_id")
 
-    def check_deployment_id(self):
-        if not self.deployment_id:
-            raise self.MissingDeploymentIdError()
+    def grow_all_networks(self):
+        from .trial.main import TrialNetwork
 
-    class MissingDeploymentIdError(RuntimeError):
-        msg = (
-            "Experiment deployment ID not found. This could be because 'DEPLOYMENT_ID' was missing "
-            "from your experiment directory. This file should be created automatically when running "
-            "psynet debug/sandbox/deploy. Did you accidentally add it to .gitignore?"
-        )
-
-        def __init__(self, msg=msg):
-            super().__init__(msg)
+        networks = TrialNetwork.query.all()
+        if len(networks) > 0:
+            logger.info("Growing networks...")
+            for n in networks:
+                trial_maker = self.timeline.trial_makers[n.trial_maker_id]
+                trial_maker._grow_network(n, participant=None, experiment=self)
+            db.session.commit()
 
     @classmethod
     def create_database_snapshot(cls):
@@ -884,11 +873,14 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 ),
                 "prepare_docker_image.sh",
             ),
+            (
+                "deploy",
+                "deploy",
+            ),
         ]
 
     @classmethod
     def extra_parameters(cls):
-        # We can put extra config variables here if we like, e.g.
         config = get_config()
         config.register("cap_recruiter_auth_token", unicode)
         config.register("lucid_api_key", unicode)

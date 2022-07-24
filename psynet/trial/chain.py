@@ -174,7 +174,7 @@ class ChainNetwork(TrialNetwork):
 
         self.validate()
 
-        experiment.save()
+        db.session.commit()
 
     def get_participant_group(self):
         if isinstance(self.definition, dict):
@@ -1315,8 +1315,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         networks.append(network_id)
         participant.var.set(self.with_namespace("participated_networks"), networks)
 
-    def experiment_setup_routine(self, experiment):
-        if self.num_networks == 0 and self.chain_type == "across":
+    def pre_deploy_routine(self, experiment):
+        if self.chain_type == "across":
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant):
@@ -1341,7 +1341,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         db.session.commit()
-        self._grow_network(network, participant, experiment)
         return network
 
     def find_networks(self, participant, experiment, ignore_async_processes=False):
