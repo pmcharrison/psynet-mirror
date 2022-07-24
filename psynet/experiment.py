@@ -241,8 +241,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             if request and request.path == "/launch" and not self.var.launch_complete:
                 self._on_launch()
 
-        self.load()
-        self.register_pre_deployment_routines()
+        self.process_timeline()
 
     def _on_launch(self):
         if not deployment_info.read("redeploying_from_archive"):
@@ -301,11 +300,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def register_database_check(self, task):
         self.database_checks.append(task)
-
-    def register_pre_deployment_routines(self):
-        for elt in self.timeline.elts:
-            if isinstance(elt, PreDeployRoutine):
-                self.pre_deploy_routines.append(elt)
 
     @classmethod
     def new(cls, session):
@@ -421,7 +415,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
-    def load(self):
+    def process_timeline(self):
         for elt in self.timeline.elts:
             if isinstance(elt, DatabaseCheck):
                 self.register_database_check(elt)
@@ -431,6 +425,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 self.register_recruitment_criterion(elt)
             if isinstance(elt, Asset):
                 self.assets.stage(elt)
+            if isinstance(elt, PreDeployRoutine):
+                self.pre_deploy_routines.append(elt)
 
     def pre_deploy(self):
         self.check_config()
