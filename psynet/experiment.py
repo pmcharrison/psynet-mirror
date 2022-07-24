@@ -483,18 +483,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 database_template_path,
             )
 
-    # @classmethod
-    # def load_database_template(cls):
-    #     import pydevd_pycharm
-    #
-    #     pydevd_pycharm.settrace(
-    #         "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-    #     )
-    #
-    #     archive_path = "?"  # Todo -- fill this out
-    #
-    #     ingest_zip(archive_path, engine=db.engine)
-
     @classmethod
     def check_config(cls):
         config = get_config()
