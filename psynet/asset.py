@@ -20,7 +20,6 @@ from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import backref, column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from . import __version__ as psynet_version
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
 from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
@@ -187,6 +186,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         variables: Optional[dict] = None,
     ):
         super().__init__(key, label)
+
+        from . import __version__ as psynet_version
 
         self.psynet_version = psynet_version
         self.replace_existing = replace_existing
@@ -908,15 +909,18 @@ class ExternalS3Asset(ExternalAsset):
 
 
 class AssetStorage:
-    @cached_property
+    def __init__(self):
+        self._deployment_id = None
+
+    @property
     def deployment_id(self):
-        from .experiment import Experiment
+        if not self._deployment_id:
+            from .experiment import (  # Todo - replace with get_experiment once bot branch is merged
+                Experiment,
+            )
 
-        x = Experiment.read_deployment_id()
-        if x is None:
-            raise Experiment.MissingDeploymentIdError
-
-        return x
+            self._deployment_id = Experiment.deployment_id
+        return self._deployment_id
 
     def update_asset_metadata(self, asset: Asset):
         pass

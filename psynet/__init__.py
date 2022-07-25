@@ -1,7 +1,7 @@
 import os
 
 # Registering SQLAlchemy and jsonpickle handlers
-from . import field, trial  # noqa
+from . import asset, field, trial  # noqa
 from .trial import main  # noqa
 
 here = os.path.abspath(os.path.dirname(__file__))
