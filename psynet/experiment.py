@@ -1138,7 +1138,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         WorkerAsyncProcess(
             network.async_post_grow_network,
+            label="post_grow_network",
             timeout=trial_maker.async_timeout_sec,
+            network=network,
         )
         db.session.commit()
         return success_response()

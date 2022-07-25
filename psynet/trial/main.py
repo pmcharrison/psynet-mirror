@@ -44,7 +44,14 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import call_function, corr, deep_copy, get_logger, wait_until
+from ..utils import (
+    call_function,
+    corr,
+    deep_copy,
+    get_logger,
+    get_trial_maker,
+    wait_until,
+)
 
 logger = get_logger()
 
@@ -266,6 +273,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
     # Properties ###
     participant_id = claim_field("participant_id", __extra_vars__, int)
+    trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     complete = claim_field("complete", __extra_vars__, bool)
     finalized = claim_field("finalized", __extra_vars__, bool)
     is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
@@ -397,11 +405,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         db.session.refresh(self)
         return any([not a.deposited for a in self.assets.values()])
 
-    @property
-    @extra_var(__extra_vars__)
-    def trial_maker_id(self):
-        return self.network.trial_maker_id
-
     #################
 
     def __init__(
@@ -427,6 +430,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         self.score = None
         self.response_id = None
         self.time_taken = None
+        self.trial_maker_id = node.network.trial_maker_id
 
         if is_repeat_trial:
             self.definition = parent_trial.definition
@@ -444,6 +448,10 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             db.session.commit()
 
             self._finalize_assets()
+
+    @property
+    def trial_maker(self):
+        return get_trial_maker(self.trial_maker_id)
 
     def mark_as_finalized(self):
         """
@@ -1901,6 +1909,7 @@ class NetworkTrialMaker(TrialMaker):
         if trial.run_async_post_trial:
             WorkerAsyncProcess(
                 trial.call_async_post_trial,
+                label="post_trial",
                 timeout=self.async_timeout_sec,
                 trial=trial,
             )
@@ -1914,6 +1923,7 @@ class NetworkTrialMaker(TrialMaker):
         if grown and network.run_async_post_grow_network:
             WorkerAsyncProcess(
                 network.async_post_grow_network,
+                label="post_grow_network",
                 timeout=self.async_timeout_sec,
                 network=network,
             )
@@ -2136,6 +2146,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
 
+    @property
+    def trial_maker(self):
+        return get_trial_maker(self.trial_maker_id)
+
     def calculate_full(self):
         "A more efficient version of Dallinger's built-in calculate_full method."
         n_nodes = Node.query.filter_by(network_id=self.id, failed=False).count()
@@ -2273,6 +2287,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
 
+    trial_maker_id = Column(String)
+
     awaiting_async_process = column_property(
         select(AsyncProcess)
         .where(AsyncProcess.node_id == dallinger.models.Node.id, AsyncProcess.pending)
@@ -2282,6 +2298,10 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     def __init__(self, network, participant=None):
         super().__init__(network=network, participant=participant)
+
+    @property
+    def trial_maker(self):
+        return get_trial_maker(self.trial_maker_id)
 
 
 class TrialSource(TrialNode):

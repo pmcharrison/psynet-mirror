@@ -156,6 +156,8 @@ class AsyncProcess(SQLBase, SQLMixin):
             self.node_id = self.node.id
         if self.network:
             self.network_id = self.network.id
+        if self.network:
+            self.trial_maker_id = self.network.trial_maker_id
 
     @property
     def failure_cascade(self):

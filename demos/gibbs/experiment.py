@@ -171,6 +171,9 @@ class CustomTrialMaker(GibbsTrialMaker):
     give_end_feedback_passed = True
     performance_threshold = -1.0
 
+    # If we set this to True, then the performance check will wait until all async_post_trial processes have finished
+    end_performance_check_waits = False
+
     def get_end_feedback_passed_page(self, score):
         score_to_display = "NA" if score is None else f"{(100 * score):.0f}"
 

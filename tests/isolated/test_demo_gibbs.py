@@ -84,9 +84,26 @@ class TestExp:
             )
 
             async_processes = AsyncProcess.query.all()
-            assert len(async_processes > 0)
+            assert len(async_processes) > 0
 
-            # TODO - write more tests here
+            for p in async_processes:
+                assert p.finished
+
+            post_trial_processes = [
+                p for p in async_processes if p.label == "post_trial"
+            ]
+            for p in post_trial_processes:
+                assert p.trial is not None
+                assert p.network is not None
+                assert p.trial_maker_id == "gibbs_demo"
+
+            post_grow_network_processes = [
+                p for p in async_processes if p.label == "post_grow_network"
+            ]
+            for p in post_grow_network_processes:
+                assert p.trial is None
+                assert p.network is not None
+                assert p.trial_maker_id == "gibbs_demo"
 
             # This variable is set in a code block within the trial
             assert pt.var.test_variable == 123
@@ -224,31 +241,33 @@ class TestExp:
 
         test_asset_exports()
 
-    def test_populate_db_from_zip_file(self, data_zip_file, coin_class):
-        """
-        Here we test the process of loading the objects described in an exported zip file
-        into the local database. This is an important part of the current implementation
-        of data export, which works by first creating the zip file via Dallinger's export function,
-        then loads it into the local database, and serializes it locally using PsyNet's
-        export functions. The function relies on the zip file created in ``test_exp``;
-        it would make sense to state this explicitly as a fixture, but it's proved
-        to difficult to make that work in practice because of the way in which Dallinger's
-        own pytest scopes have been defined.
-        """
-        populate_db_from_zip_file(data_zip_file)
+        def test_populate_db_from_zip_file(self, data_zip_file, coin_class):
+            """
+            Here we test the process of loading the objects described in an exported zip file
+            into the local database. This is an important part of the current implementation
+            of data export, which works by first creating the zip file via Dallinger's export function,
+            then loads it into the local database, and serializes it locally using PsyNet's
+            export functions. The function relies on the zip file created in ``test_exp``;
+            it would make sense to state this explicitly as a fixture, but it's proved
+            to difficult to make that work in practice because of the way in which Dallinger's
+            own pytest scopes have been defined.
+            """
+            populate_db_from_zip_file(data_zip_file)
 
-        trials = Trial.query.all()
-        assert len(trials) > 15
-        assert all(t.participant_id in [1, 2, 3, 4] for t in trials)
+            trials = Trial.query.all()
+            assert len(trials) > 15
+            assert all(t.participant_id in [1, 2, 3, 4] for t in trials)
 
-        participants = Participant.query.all()
-        assert len(participants) == 4
-        assert sorted([p.id for p in participants]) == [1, 2, 3, 4]
+            participants = Participant.query.all()
+            assert len(participants) == 4
+            assert sorted([p.id for p in participants]) == [1, 2, 3, 4]
 
-        responses = Response.query.all()
-        assert len(responses) > 15
-        assert all(r.participant_id in [1, 2, 3, 4] for r in responses)
+            responses = Response.query.all()
+            assert len(responses) > 15
+            assert all(r.participant_id in [1, 2, 3, 4] for r in responses)
 
-        coins = coin_class.query.all()
-        assert len(coins) == 4
-        assert all(c.participant_id in [1, 2, 3, 4] for c in coins)
+            coins = coin_class.query.all()
+            assert len(coins) == 4
+            assert all(c.participant_id in [1, 2, 3, 4] for c in coins)
+
+        test_populate_db_from_zip_file()

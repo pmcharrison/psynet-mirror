@@ -19,6 +19,7 @@ from urllib.parse import ParseResult, urlparse
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
+from dallinger import db
 from dallinger.config import config, get_config
 
 
@@ -53,6 +54,20 @@ def sql_sample_one(x):
     return x.order_by(func.random()).first()
 
 
+@cache
+def get_experiment():
+    """
+    Returns an initialized instance of the experiment class.
+    """
+    return import_local_experiment()["class"](db.session)
+
+
+@cache
+def get_trial_maker(trial_maker_id):
+    exp = get_experiment()
+    return exp.timeline.get_trial_maker(trial_maker_id)
+
+
 def import_local_experiment():
     # Imports experiment.py and returns a dict consisting of
     # 'package' which corresponds to the experiment *package*,
@@ -83,31 +98,6 @@ def import_local_experiment():
         "module": module,
         "class": dallinger.experiment.load(),
     }
-
-
-# def import_local_experiment():
-#     sys.path.append(os.getcwd())
-#     import experiment
-
-# def get_json_arg_from_request(request, desired: str, use_default = False, default = None):
-#     arguments = request.json
-#     if arguments is None:
-#         if use_default:
-#             return default
-#         else:
-#             raise APIMissingJSON
-#     elif desired not in arguments:
-#         if use_default:
-#             return default
-#         else:
-#             raise APIArgumentError
-#     return arguments[desired]
-
-# class APIArgumentError(ValueError):
-#     pass
-
-# class APIMissingJSON(ValueError):
-#     pass
 
 
 def dict_to_js_vars(x):

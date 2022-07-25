@@ -30,6 +30,7 @@ from .utils import (
     get_extension,
     get_function_args,
     get_logger,
+    get_trial_maker,
     import_local_experiment,
     md5_directory,
     md5_file,
@@ -224,6 +225,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             except AttributeError:
                 pass
 
+    @property
+    def trial_maker(self):
+        return get_trial_maker(self.trial_maker_id)
+
     def set_variables(self, variables):
         if variables:
             for key, value in variables.items():
@@ -239,6 +244,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         if self.network is None and self.node is not None:
             self.network = self.node.network
             self.network_id = self.network.id
+        if self.network is not None:
+            self.trial_maker_id = self.network.trial_maker_id
 
     data_types = dict(
         file=File,
