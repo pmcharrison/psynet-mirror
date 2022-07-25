@@ -6,7 +6,6 @@ import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from functools import cached_property
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 
@@ -59,6 +58,7 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
 )
 from .trial.static import StaticStimulusRegistry
 from .utils import (
+    cached_class_property,
     call_function,
     get_arg_from_dict,
     get_logger,
@@ -450,7 +450,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def generate_deployment_id(cls):
         return cls.label + " -- " + datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
 
-    @cached_property
+    @cached_class_property
     def deployment_id(cls):
         return deployment_info.read("deployment_id")
 

@@ -909,18 +909,13 @@ class ExternalS3Asset(ExternalAsset):
 
 
 class AssetStorage:
-    def __init__(self):
-        self._deployment_id = None
-
     @property
     def deployment_id(self):
-        if not self._deployment_id:
-            from .experiment import (  # Todo - replace with get_experiment once bot branch is merged
-                Experiment,
-            )
+        from .experiment import (  # Todo - replace with get_experiment once bot branch is merged
+            Experiment,
+        )
 
-            self._deployment_id = Experiment.deployment_id
-        return self._deployment_id
+        return Experiment.deployment_id
 
     def update_asset_metadata(self, asset: Asset):
         pass

@@ -11,6 +11,7 @@ import jsonpickle
 from dallinger import db
 from dallinger.db import redis_conn
 from rq import Queue
+from rq.job import Job
 from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
@@ -30,7 +31,6 @@ class AsyncProcess(SQLBase, SQLMixin):
     arguments = Column(PythonDict)
     pending = Column(Boolean)
     finished = Column(Boolean, default=False)
-    cancelled = Column(Boolean, default=False)
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
     time_taken = Column(Float)
@@ -171,12 +171,6 @@ class AsyncProcess(SQLBase, SQLMixin):
     def launch(self):
         raise NotImplementedError
 
-    def cancel(self):
-        self.cancelled = True
-        self.pending = False
-        self.fail("Cancelled asynchronous process")
-        db.session.commit()
-
     @classproperty
     def redis_queue(cls):
         return Queue("default", connection=redis_conn)
@@ -189,9 +183,6 @@ class AsyncProcess(SQLBase, SQLMixin):
         import_local_experiment()
 
         process = AsyncProcess.query.filter_by(id=process_id).one()
-
-        if process.cancelled:
-            raise RuntimeError("Skipping execution as process has been cancelled.")
 
         function = process.function
         arguments = cls.preprocess_args(process.arguments)
@@ -265,16 +256,12 @@ class LocalAsyncProcess(AsyncProcess):
             func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
         )
 
-    def cancel(self):
-        raise RuntimeError(
-            "It is currently not possible to cancel a LocalAsyncProcess."
-        )
-
 
 class WorkerAsyncProcess(AsyncProcess):
     redis_job_id = Column(String)
     timeout = Column(Float)  # note -- currently only applies to non-local proceses
     timeout_when = Column(DateTime)
+    cancelled = Column(Boolean, default=False)
 
     def __init__(
         self,
@@ -328,3 +315,14 @@ class WorkerAsyncProcess(AsyncProcess):
         for p in processes:
             p.fail("Asynchronous process timed out")
             db.session.commit()
+
+    @property
+    def redis_job(self):
+        return Job.fetch(self.redis_job_id, connection=redis_conn)
+
+    def cancel(self):
+        self.cancelled = True
+        self.pending = False
+        self.fail("Cancelled asynchronous process")
+        self.job.cancel()
+        db.session.commit()
