@@ -287,8 +287,8 @@ class SQLMixinDallinger(SharedMixin):
         x = {c: getattr(self, c) for c in self.sql_columns}
 
         x["class"] = self.__class__.__name__
-        field.json_clean(x, details=True)
         field.json_add_extra_vars(x, self)
+        field.json_clean(x, details=True)
         field.json_format_vars(x)
 
         return x
@@ -472,17 +472,23 @@ def register_table(cls):
 
 def update_dashboard_models():
     "Determines the list of objects in the dashboard database browser."
-    dashboard.BROWSEABLE_MODELS = [
-        "Participant",
-        "Network",
-        "Node",
-        "Trial",
-        "Response",
-        "Transformation",
-        "Transmission",
-        "Notification",
-        "Recruitment",
-    ] + [tablename.capitalize() for tablename in _sql_psynet_base_classes.keys()]
+    dashboard.BROWSEABLE_MODELS = sorted(
+        list(
+            {
+                "Participant",
+                "Network",
+                "Node",
+                "Trial",
+                "Response",
+                "Transformation",
+                "Transmission",
+                "Notification",
+                "Recruitment",
+            }
+            .union({cls.__name__ for cls in _sql_psynet_base_classes.values()})
+            .difference({"_Response"})
+        )
+    )
 
 
 def ingest_to_model(

@@ -50,6 +50,7 @@ from .timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
+    Response,
     Timeline,
 )
 from .trial.main import Trial
@@ -1384,9 +1385,9 @@ def _patch_dallinger_models():
     # There are some Dallinger functions that rely on the ability to look up
     # models by name in dallinger.models. One example is the code for
     # generating dashboard tabs for SQL object types. We therefore need
-    # to patch in certain PsyNet classes so that Dallinger can access them
-    # (in particular the Trial class).
+    # to patch in certain PsyNet classes so that Dallinger can access them.
     dallinger.models.Trial = Trial
+    dallinger.models.Response = Response
 
 
 _patch_dallinger_models()
