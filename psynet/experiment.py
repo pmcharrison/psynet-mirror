@@ -924,8 +924,8 @@ class Experiment(dallinger.experiment.Experiment):
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
-    @staticmethod
-    def render_error():
+    @classmethod
+    def render_error(cls):
         from psynet.utils import error_page
 
         request_data = request.form.get("request_data")
@@ -933,7 +933,11 @@ class Experiment(dallinger.experiment.Experiment):
         participant = None
         if participant_id:
             participant = participant = Participant.query.first()
-        return error_page(participant=participant, request_data=request_data)
+        return error_page(
+            participant=participant,
+            recruiter=cls.new(db.session).recruiter.nickname,
+            request_data=request_data,
+        )
 
     @experiment_route("/module", methods=["POST"])
     @classmethod
@@ -1127,7 +1131,11 @@ class Experiment(dallinger.experiment.Experiment):
                     + "did you switch browsers? Unfortunately this is not currently "
                     + "supported by our system."
                 )
-                return error_page(participant=participant, error_text=msg)
+                return error_page(
+                    participant=participant,
+                    error_text=msg,
+                    recruiter=exp.recruiter.nickname,
+                )
 
         participant.client_ip_address = cls.get_client_ip_address()
 
