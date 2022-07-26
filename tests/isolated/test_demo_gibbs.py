@@ -77,12 +77,6 @@ class TestExp:
             pt = Participant.query.filter_by(id=participant + 1).one()
             time.sleep(1)
 
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-            )
-
             async_processes = AsyncProcess.query.all()
             assert len(async_processes) > 0
 
