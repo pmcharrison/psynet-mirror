@@ -1448,6 +1448,7 @@ class Timeline:
                 continue
 
             new_elt.consume(experiment, participant)
+            db.session.commit()
 
             if isinstance(new_elt, Page):
                 finished = True

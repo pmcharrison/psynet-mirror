@@ -7,10 +7,12 @@ from psynet.redis import RedisVarStore
 class TestExp:
     def test_redis(self, active_config, debug_experiment):
         store = RedisVarStore()
-        store.x = [1, 2, 3]
+        store.set("x", [1, 2, 3])
 
         store = RedisVarStore()
-        assert store.x == [1, 2, 3]
+        assert store.get("x") == [1, 2, 3]
 
         with pytest.raises(KeyError):
-            store.y
+            store.get("y")
+
+        assert store.get("y", default=[1, 2, 3]) == [1, 2, 3]

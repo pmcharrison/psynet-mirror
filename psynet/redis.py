@@ -1,13 +1,25 @@
 import jsonpickle
 from dallinger.db import redis_conn
 
+from .utils import NoArgumentProvided
+
 
 class RedisVarStore:
-    def __getattr__(self, name):
+    def get(self, name, default=NoArgumentProvided):
         raw = redis_conn.get(name)
         if raw is None:
-            raise KeyError
+            if default == NoArgumentProvided:
+                raise KeyError
+            else:
+                return default
         return jsonpickle.decode(raw.decode("utf-8"))
 
-    def __setattr__(self, name, value):
+    def set(self, name, value):
         redis_conn.set(name, jsonpickle.encode(value))
+
+    def clear(self):
+        for key in redis_conn.keys():
+            redis_conn.delete(key)
+
+
+redis_vars = RedisVarStore()
