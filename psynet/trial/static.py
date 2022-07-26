@@ -737,7 +737,7 @@ class StaticTrialMaker(NetworkTrialMaker):
 
     def init_participant(self, experiment, participant):
         """
-        Initialises the participant at the beginning of the sequence of trials.
+        Initializes the participant at the beginning of the sequence of trials.
         This includes choosing the block order, choosing the participant group
         (if relevant), and initialising a record of the participant's completed
         stimuli.

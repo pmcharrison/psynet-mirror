@@ -111,6 +111,13 @@ def demo_gmsi_two_modules_with_subscales(root):
 
 
 @pytest.fixture(scope="class")
+def demo_bot(root):
+    demo_setup("bot")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_mcmcp(root):
     demo_setup("mcmcp")
     yield
@@ -272,9 +279,13 @@ def debug_experiment(request, env, clear_workers):
     try:
         p.expect_exact("Server is running", timeout=timeout)
         yield p
-        if request.node.rep_setup.passed and request.node.rep_call.passed:
-            p.expect_exact("Experiment completed", timeout=timeout)
-            p.expect_exact("Local Heroku process terminated", timeout=timeout)
+        # The Dallinger version of this fixture requires the experiment to run to completion,
+        # i.e. for recruitment to stop. We relax this constraint as it is often
+        # a bit hard to stick to.
+        #
+        # if request.node.rep_setup.passed and request.node.rep_call.passed:
+        #     p.expect_exact("Experiment completed", timeout=timeout)
+        #     p.expect_exact("Local Heroku process terminated", timeout=timeout)
     finally:
         try:
             flush_output(p, timeout=0.1)

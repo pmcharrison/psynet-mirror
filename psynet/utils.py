@@ -31,6 +31,16 @@ def get_logger():
 logger = get_logger()
 
 
+class NoArgumentProvided:
+    """ "
+    We use this class as a replacement for ``None`` as a default argument,
+    to distinguish cases where the user doesn't provide an argument
+    from cases where they intentionally provide ``None`` as an argument.
+    """
+
+    pass
+
+
 def deep_copy(x):
     try:
         return jsonpickle.decode(jsonpickle.encode(x))

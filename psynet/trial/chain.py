@@ -395,7 +395,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
     ----------
 
     seed
-        The seed which is used to initialise the node, potentially stochastically.
+        The seed which is used to initialize the node, potentially stochastically.
         This seed typically comes from either a :class:`~psynet.trial.chain.ChainSource`
         or from another :class:`~psynet.trial.chain.ChainNode`
         via the :meth:`~psynet.trial.chain.ChainNode.create_seed` method.
@@ -1002,7 +1002,7 @@ class ChainTrialMaker(NetworkTrialMaker):
       a special type of :class:`~dallinger.nodes.Source`, corresponding
       to the initial state of the network.
 
-    A chain is initialised with a :class:`~psynet.trial.chain.ChainSource` object.
+    A chain is initialized with a :class:`~psynet.trial.chain.ChainSource` object.
     This :class:`~psynet.trial.chain.ChainSource` object provides
     the initial seed to the chain.
     The :class:`~psynet.trial.chain.ChainSource` object is followed

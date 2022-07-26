@@ -142,7 +142,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     # We set the polymorphic_identity manually to differentiate the class
     # from the Dallinger Participant class.
-    __mapper_args__ = {"polymorphic_identity": "PsyNetParticipant"}
+    polymorphic_identity = "PsyNetParticipant"
     __extra_vars__ = {}
 
     elt_id = field.claim_field("elt_id", __extra_vars__, list)
@@ -281,7 +281,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         self.elt_id = [-1]
         self.answer_accumulators = []
         self.complete = False
-        self.time_credit.initialise(experiment)
+        self.time_credit.initialize(experiment)
         self.performance_bonus = 0.0
         self.unpaid_bonus = 0.0
         self.base_payment = experiment.base_payment
@@ -506,7 +506,7 @@ class TimeCreditStore:
         else:
             self.participant.var.set(self.get_internal_name(name), value)
 
-    def initialise(self, experiment):
+    def initialize(self, experiment):
         self.confirmed_credit = 0.0
         self.is_fixed = False
         self.pending_credit = 0.0
