@@ -149,3 +149,4 @@ demos/**/data
 demos/**/snapshots
 tmp/*
 typescript
+deployment-info_*
