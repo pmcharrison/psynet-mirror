@@ -14,6 +14,9 @@ def serialize(x):
 
 
 def unserialize(x):
+    # If we don't provide the custom classes directly, jsonpickle tries to find them itself,
+    # and ends up messing up the SQLAlchemy mapper registration system,
+    # producing duplicate mappers for each custom class.
     custom_classes = list(get_custom_sql_classes().values())
     return jsonpickle.decode(x, classes=custom_classes)
 
