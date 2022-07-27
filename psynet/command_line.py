@@ -1,10 +1,10 @@
-import errno
 import os
 import pathlib
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from shutil import rmtree, which
 
@@ -19,19 +19,15 @@ from psynet import __path__ as psynet_path
 from psynet import __version__
 
 from . import deployment_info
-from .data import (
-    drop_all_db_tables,
-    dump_db_to_disk,
-    export_assets,
-    ingest_zip,
-    init_db,
-)
+from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .redis import redis_vars
 from .utils import (
     get_experiment,
     import_local_experiment,
+    make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
+    working_directory,
 )
 
 
@@ -756,17 +752,17 @@ def verify_experiment_id(ctx, param, app):
 @click.option(
     "--app",
     default=None,
-    required=True,
-    callback=verify_experiment_id,
-    help="Experiment id",
+    required=False,
+    help="App id",
 )
 @click.option("--local", is_flag=True, help="Export local data")
+@click.option("--path", default=None, help="Path to export directory")
 @click.option("--assets", default="experiment", help="none; experiment; all")
 @click.option("--anon", default="both", help="yes; no; both")
 @click.option(
     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
 )
-def export(app, local, assets, scrub, n_parallel):
+def export(app, local, path, assets, anon, n_parallel):
     """
     Export data from an experiment.
 
@@ -786,17 +782,89 @@ def export(app, local, assets, scrub, n_parallel):
     json:
         Contains the experiment data in JSON format.
     """
-    export_(app, local, include_assets=assets, n_parallel=n_parallel)
+    export_(app, local, path, assets, anon, n_parallel)
 
 
-def export_(app, local, include_assets, n_parallel):
+def export_(
+    app=None,
+    local=False,
+    export_path=None,
+    assets="experiment",
+    anon="both",
+    n_parallel=None,
+):
     log(header)
     import_local_experiment()
 
-    data_dir_path = os.path.join("data", f"data-{app}")
-    create_export_dirs(data_dir_path)
+    config = get_config()
+    if not config.ready:
+        config.load()
 
-    log("Creating database snapshot.")
+    if export_path is None:
+        try:
+            export_root = config.get("export_root")
+        except KeyError:
+            raise ValueError(
+                "No value for export_path was provided and no value for export_root was found in "
+                ".dallingerconfig or config.txt. Please provide either one of these and try again."
+            )
+
+        deployment_id = deployment_info.read("deployment_id")
+        assert len(deployment_id) > 0
+        export_path = os.path.join(export_root, deployment_id)
+
+    export_path = os.path.expanduser(export_path)
+
+    if app is None and not local:
+        raise ValueError(
+            "Either the flag --local must be present or an app name must be provided via --app."
+        )
+
+    if app is not None and local:
+        raise ValueError("You cannot provide both --local and --app arguments.")
+
+    if assets not in ["none", "experiment", "all"]:
+        raise ValueError("--assets must be either none, experiment, or all.")
+
+    if anon not in ["yes", "no", "both"]:
+        raise ValueError("--anon must be either yes, no, or both.")
+
+    if anon in ["yes", "no"]:
+        anon_modes = [anon]
+    else:
+        anon_modes = ["yes", "no"]
+
+    for anon_mode in anon_modes:
+        _anon = anon_mode == "yes"
+        _export_(app, local, export_path, assets, _anon, n_parallel)
+
+
+def _export_(app, local, export_path, assets, anon: bool, n_parallel):
+    """
+    An internal version of the export version where argument preprocessing has been done already.
+    """
+    database_zip_path = export_database(app, local, export_path, anon)
+
+    # We originally thought code should be exported here. However it makes better sense to
+    # export instead as part of psynet sandbox/deploy. We'll implement this soon.
+    # export_code(export_path, anon)
+
+    export_data(local, anon, database_zip_path, export_path)
+    export_assets(export_path, anon, n_parallel)
+
+    log("Asset export completed.")
+
+
+def export_database(app, local, export_path, anon):
+    if local:
+        app = "local"
+
+    subdir = "anonymous" if anon else "regular"
+
+    database_zip_path = os.path.join(export_path, subdir, "database.zip")
+
+    log(f"Exporting raw database content to {database_zip_path}...")
+
     from dallinger import data as dallinger_data
     from dallinger import db as dallinger_db
 
@@ -804,26 +872,54 @@ def export_(app, local, include_assets, n_parallel):
     # if we add custom tables, so we have to patch it.
     dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
-    dallinger_data.export(app, local=local)
-    move_snapshot_file(data_dir_path, app)
+    with tempfile.TemporaryDirectory() as tempdir:
+        with working_directory(tempdir):
+            dallinger_data.export(app, local=local, scrub_pii=anon)
+
+            shutil.move(
+                os.path.join(tempdir, "data", f"{app}-data.zip"),
+                make_parents(database_zip_path),
+            )
+
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
 
-    dallinger_zip_path = os.path.join(data_dir_path, "db-snapshot", f"{app}-data.zip")
+    return database_zip_path
+
+
+# def export_code(export_path, anon):
+#     subdir = "anonymous" if anon else "regular"
+#
+#     code_zip_path = os.path.join(export_path, subdir, "code.zip")
+#
+#     log(f"Exporting code to {code_zip_path}.")
+#
+#     with tempfile.TemporaryDirectory() as tempdir:
+#         temp_exp_dir = make_parents(os.path.join(tempdir, "experiment"))
+#         shutil.copytree(os.path.join(os.getcwd()), os.path.join(temp_exp_dir), dirs_exist_ok=True, ignore_dangling_symlinks=True, ignore=lambda src, names: names if src == "develop" else [])
+#         shutil.rmtree(os.path.join(temp_exp_dir, ".git"), ignore_errors=True)
+#         shutil.make_archive(
+#             code_zip_path,
+#             "zip",
+#             temp_exp_dir,
+#         )
+#
+#     with yaspin(text="Completed.", color="green") as spinner:
+#         spinner.ok("✔")
+
+
+def export_data(local, anon, database_zip_path, export_path):
+    subdir = "anonymous" if anon else "regular"
+    data_path = os.path.join(export_path, subdir, "data")
 
     if not local:
         log("Populating the local database with the downloaded data.")
-        populate_db_from_zip_file(dallinger_zip_path)
+        populate_db_from_zip_file(database_zip_path)
 
-    log("Exporting final 'csv' files.")
+    dump_db_to_disk(data_path, scrub_pii=anon)
 
-    dump_db_to_disk(os.path.join(data_dir_path, "csv"))
-
-    if include_assets:
-        log("Exporting assets...")
-        export_assets(os.path.join(data_dir_path, "assets"), n_parallel)
-
-    log("Export completed.")
+    with yaspin(text="Completed.", color="green") as spinner:
+        spinner.ok("✔")
 
 
 def populate_db_from_zip_file(zip_path):
@@ -834,22 +930,16 @@ def populate_db_from_zip_file(zip_path):
     dallinger_data.ingest_zip(zip_path)
 
 
-def create_export_dirs(data_dir_path):
-    for file_format in ["csv", "db-snapshot"]:
-        export_path = os.path.join(data_dir_path, file_format)
-        try:
-            os.makedirs(export_path)
-        except OSError as e:
-            if e.errno != errno.EEXIST or not os.path.isdir(export_path):
-                raise
+def export_assets(export_path, anon, n_parallel):
+    from .data import export_assets as _export_assets
 
+    log(f"Exporting assets to {export_path}...")
 
-def move_snapshot_file(data_dir_path, app):
-    db_snapshot_path = os.path.join(data_dir_path, "db-snapshot")
-    filename = f"{app}-data.zip"
-    shutil.move(
-        os.path.join("data", filename), os.path.join(db_snapshot_path, filename)
-    )
+    include_private = not anon
+    subdir = "anonymous" if anon else "regular"
+    asset_path = os.path.join(export_path, subdir, "assets")
+
+    _export_assets(asset_path, include_private, n_parallel)
 
 
 @psynet.command()

@@ -2103,6 +2103,10 @@ class AudioRecordControl(RecordControl):
     num_channels
         The number of channels used to record the audio. Default is mono (`num_channels=1`).
 
+    personal
+        Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
+        Default: `True`.
+
     **kwargs
         Further arguments passed to :class:`~psynet.modular_page.RecordControl`
     """
@@ -2117,6 +2121,7 @@ class AudioRecordControl(RecordControl):
         controls: bool = False,
         loop_playback: bool = False,
         num_channels: int = 1,
+        personal=True,
         **kwargs,
     ):
         super().__init__(label=label, **kwargs)
@@ -2124,6 +2129,7 @@ class AudioRecordControl(RecordControl):
         self.controls = controls
         self.loop_playback = loop_playback
         self.num_channels = num_channels
+        self.personal = personal
 
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
@@ -2142,6 +2148,7 @@ class AudioRecordControl(RecordControl):
                 extension=self.file_extension,
                 trial=trial,
                 variables=dict(),
+                personal=self.personal,
             )
             asset.deposit(async_=True, delete_input=True)
 
@@ -2206,6 +2213,10 @@ class VideoRecordControl(RecordControl):
 
     mirrored
         Whether the preview of the video is displayed as if looking into a mirror. Default: `True`.
+
+    personal
+        Whether the recording should be marked as 'personal' and hence excluded from 'scrubbed' data exports.
+        Default: `True`.
     """
 
     macro = "video_record"
@@ -2223,6 +2234,7 @@ class VideoRecordControl(RecordControl):
         controls: bool = False,
         loop_playback: bool = False,
         mirrored: bool = True,
+        personal: bool = True,
         **kwargs,
     ):
         super().__init__(label=label, **kwargs)
@@ -2235,6 +2247,7 @@ class VideoRecordControl(RecordControl):
         self.controls = controls
         self.loop_playback = loop_playback
         self.mirrored = mirrored
+        self.personal = personal
 
         if self.record_audio is False:
             self.audio_num_channels = 0
@@ -2273,6 +2286,7 @@ class VideoRecordControl(RecordControl):
                     extension=self.file_extension,
                     trial=trial,
                     variables=dict(),
+                    personal=self.personal,
                 )
                 asset.deposit(async_=True, delete_input=True)
 

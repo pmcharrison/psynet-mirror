@@ -155,7 +155,7 @@ def _get_preferred_superclass_version(cls):
     return cls
 
 
-def _db_class_instances_to_json(cls):
+def _db_class_instances_to_json(cls, scrub_pii: bool):
     """
     Given a class, retrieves all instances of that class from the database,
     encodes them as JSON-style dictionaries, and returns the resulting list.
@@ -163,7 +163,10 @@ def _db_class_instances_to_json(cls):
     Parameters
     ----------
     cls
-        Class to retrieve
+        Class to retrieve.
+
+    scrub_pii
+        Whether to remove personally identifying information.
 
     Returns
     -------
@@ -178,19 +181,23 @@ def _db_class_instances_to_json(cls):
         return []
     else:
         obj_json = [
-            _db_instance_to_json(obj) for obj in tqdm(obj_sql, desc=cls.__name__)
+            _db_instance_to_json(obj, scrub_pii)
+            for obj in tqdm(obj_sql, desc=cls.__name__)
         ]
         return obj_json
 
 
-def _db_instance_to_json(obj):
+def _db_instance_to_json(obj, scrub_pii: bool):
     """
     Converts an ORM-mapped instance to a JSON-style representation.
 
     Parameters
     ----------
     obj
-        Object to convert
+        Object to convert.
+
+    scrub_pii
+        Whether to remove personally identifying information.
 
     Returns
     -------
@@ -201,12 +208,20 @@ def _db_instance_to_json(obj):
     json = obj.__json__()
     if "class" not in json:
         json["class"] = obj.__class__.__name__  # for the Dallinger classes
+    if scrub_pii and hasattr(obj, "scrub_pii"):
+        json = obj.scrub_pii(json)
     return json
 
 
-def _prepare_db_export():
+def _prepare_db_export(scrub_pii):
     """
     Encodes the database to a JSON-style representation suitable for export.
+
+    Parameters
+    ----------
+
+    scrub_pii
+        Whether to remove personally identifying information.
 
     Returns
     -------
@@ -220,7 +235,7 @@ def _prepare_db_export():
     superclasses.sort(key=lambda cls: cls.__name__)
     res = []
     for superclass in superclasses:
-        res.extend(_db_class_instances_to_json(superclass))
+        res.extend(_db_class_instances_to_json(superclass, scrub_pii))
     res = organize_by_key(res, key=lambda x: x["class"])
     return res
 
@@ -234,7 +249,7 @@ def copy_db_table_to_csv(tablename, path):
         shutil.copyfile(os.path.join(tempdir, temp_filename), path)
 
 
-def dump_db_to_disk(dir):
+def dump_db_to_disk(dir, scrub_pii: bool):
     """
     Exports all database objects to JSON-style dictionaries
     and writes them to CSV files, one for each class type.
@@ -244,13 +259,18 @@ def dump_db_to_disk(dir):
 
     dir
         Directory to which the CSV files should be exported.
+
+    scrub_pii
+        Whether to remove personally identifying information.
     """
-    objects_by_class = _prepare_db_export()
+    from .utils import make_parents
+
+    objects_by_class = _prepare_db_export(scrub_pii)
 
     for cls, objects in objects_by_class.items():
         filename = cls + ".csv"
         filepath = os.path.join(dir, filename)
-        with open(filepath, "w") as file:
+        with open(make_parents(filepath), "w") as file:
             json_to_data_frame(objects).to_csv(file, index=False)
 
 
@@ -347,6 +367,18 @@ class SQLMixinDallinger(SharedMixin):
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.type
         return x
+
+    def scrub_pii(self, json):
+        """
+        Removes personally identifying information from the object's JSON representation.
+        This is a destructive operation (it changes the input object).
+        """
+        try:
+            del json["worker_id"]
+        except KeyError:
+            pass
+
+        return json
 
 
 class SQLMixin(SQLMixinDallinger):
@@ -654,7 +686,7 @@ dallinger.data.ingest_zip = ingest_zip
 dallinger.data.ingest_to_model = ingest_to_model
 
 
-def export_assets(path, n_parallel=None):
+def export_assets(path, include_private: bool, n_parallel=None):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
     if n_parallel:
@@ -664,18 +696,27 @@ def export_assets(path, n_parallel=None):
 
     from .asset import Asset
 
-    asset_keys = [a.key for a in db.session.query(Asset.key)]
+    asset_query = db.session.query(Asset.key, Asset.personal)
+    if not include_private:
+        asset_query = asset_query.filter_by(personal=False)
 
-    Parallel(n_jobs=n_jobs, verbose=10)(
+    asset_keys = [a.key for a in asset_query]
+
+    Parallel(
+        n_jobs=n_jobs,
+        verbose=10,
+        backend="multiprocessing",  # safer for avoiding database leaks etc.
+    )(
         delayed(lambda key: export_asset(key, path=os.path.join(path, key)))(key)
         for key in asset_keys
     )
 
 
 def export_asset(key, path):
-    from .assets import Asset
-    from .utils import import_local_experiment
+    from .asset import Asset
+    from .utils import import_local_experiment, make_parents
 
     import_local_experiment()
     a = Asset.query.filter_by(key=key).one()
+    make_parents(path)
     a.export(path)

@@ -132,6 +132,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
     label = Column(String)
+    personal = Column(Boolean)
     content_id = Column(String)
     host_path = Column(String)
     url = Column(String)
@@ -185,6 +186,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         network=None,
         replace_existing=False,
         variables: Optional[dict] = None,
+        personal=False,
     ):
         super().__init__(key, label)
 
@@ -216,6 +218,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self.infer_missing_parents()
 
         self.set_variables(variables)
+        self.personal = personal
 
     def set_trial_maker_id(self):
         for obj in [self.trial, self.node, self.network]:
@@ -464,6 +467,7 @@ class ManagedAsset(Asset):
         network=None,
         key=None,
         variables: Optional[dict] = None,
+        personal=False,
         replace_existing=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
@@ -482,6 +486,7 @@ class ManagedAsset(Asset):
             network=network,
             replace_existing=replace_existing,
             variables=variables,
+            personal=personal,
         )
 
     def get_content_id(self):
@@ -687,6 +692,7 @@ class FunctionAssetMixin:
         network=None,
         variables: Optional[dict] = None,
         replace_existing=False,
+        personal=False,
         obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
     ):
         assert callable(function)
@@ -713,6 +719,7 @@ class FunctionAssetMixin:
             key=key,
             variables=variables,
             replace_existing=replace_existing,
+            personal=personal,
             obfuscate=obfuscate,
         )
 
@@ -820,6 +827,7 @@ class ExternalAsset(Asset):
         node=None,
         trial=None,
         variables: Optional[dict] = None,
+        personal=False,
     ):
         self.host_path = url
         self.url = url
@@ -835,6 +843,7 @@ class ExternalAsset(Asset):
             network=network,
             replace_existing=replace_existing,
             variables=variables,
+            personal=personal,
         )
 
     def get_extension(self):
@@ -878,6 +887,7 @@ class ExternalS3Asset(ExternalAsset):
         node=None,
         trial=None,
         variables: Optional[dict] = None,
+        personal=False,
     ):
         self.s3_bucket = s3_bucket
         self.s3_key = s3_key
@@ -894,6 +904,7 @@ class ExternalS3Asset(ExternalAsset):
             node=node,
             trial=trial,
             variables=variables,
+            personal=personal,
         )
 
     def generate_url(self):
@@ -1386,7 +1397,11 @@ class AssetRegistry:
             n_jobs = psutil.cpu_count()
 
         logger.info("Preparing assets for deployment...")
-        Parallel(n_jobs=n_jobs, verbose=10)(
+        Parallel(
+            n_jobs=n_jobs,
+            verbose=10,
+            backend="multiprocessing",  # safer for avoiding database leaks etc.
+        )(
             delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
             for a in self._staged_asset_specifications
         )

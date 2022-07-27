@@ -599,11 +599,18 @@ def run_subprocess_with_live_output(command, timeout=None):
 
 
 def get_extension(path):
-    if path:
-        _, extension = os.path.splitext(path)
-        return extension
-    else:
-        return None
+    try:
+        if path:
+            _, extension = os.path.splitext(path)
+            return extension
+        else:
+            return None
+    except Exception:
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
 
 
 def cached_class_property(f):
@@ -672,6 +679,19 @@ def get_custom_sql_classes():
     except KeyError:
         import_local_experiment()
         return f()
+
+
+def make_parents(path):
+    """
+    Creates the parent directories for a specified file if they don't exist already.
+
+    Returns
+    -------
+
+    The original path.
+    """
+    Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
+    return path
 
 
 # def run_async_command_locally(fun, *args, **kwargs):

@@ -308,7 +308,7 @@ class WorkerAsyncProcess(AsyncProcess):
         processes = (
             cls.query.filter(
                 ~cls.failed,
-                ~cls.timeout == None,  # noqa -- this is special SQLAlchemy syntax
+                cls.timeout != None,  # noqa -- this is special SQLAlchemy syntax
                 cls.timeout_when < datetime.datetime.now(),
             )
             .filter()
