@@ -1385,14 +1385,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         ):
             networks = self.exclude_participated(networks, participant)
 
-        try:
-            networks = networks.all()
-        except Exception:
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-            )
+        networks = networks.all()
 
         participant_group = participant.get_participant_group(self.id)
         networks = [n for n in networks if n.participant_group == participant_group]
