@@ -15,6 +15,5 @@ def test_custom_sql_classes():
         "CustomTrial",
     ]
 
-    for _actual, _desired in zip(classes.items(), desired):
-        assert _actual[0] == _desired
-        assert _actual[1].__name__ == _desired
+    assert desired == list(classes.keys())
+    assert desired == list([c.__name__ for c in classes.values()])

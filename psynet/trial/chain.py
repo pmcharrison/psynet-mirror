@@ -1344,6 +1344,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         return network
 
     def find_networks(self, participant, experiment, ignore_async_processes=False):
+        logger.info(
+            "Looking for networks for participant %i, ignore_async_processes = %s",
+            participant.id,
+            ignore_async_processes,
+        )
         n_completed_trials_in_phase = self.get_num_completed_trials_in_phase(
             participant
         )

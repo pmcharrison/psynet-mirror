@@ -656,13 +656,22 @@ def get_custom_sql_classes():
     A dictionary of all custom SQLAlchemy classes defined in the local experiment
     (excluding any which are defined within packages).
     """
-    from dallinger.db import Base
 
-    return {
-        cls.__name__: cls
-        for cls in Base.__subclasses__()
-        if cls.__module__.startswith("dallinger_experiment")
-    }
+    def f():
+        return {
+            cls.__name__: cls
+            for _, module in inspect.getmembers(sys.modules["dallinger_experiment"])
+            for _, cls in inspect.getmembers(module)
+            if inspect.isclass(cls)
+            and cls.__module__.startswith("dallinger_experiment")
+            and hasattr(cls, "_sa_registry")
+        }
+
+    try:
+        return f()
+    except KeyError:
+        import_local_experiment()
+        return f()
 
 
 # def run_async_command_locally(fun, *args, **kwargs):
