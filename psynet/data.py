@@ -138,6 +138,7 @@ def _get_preferred_superclass_version(cls):
 
     preferred_superclasses = {
         dallinger.models.Info: psynet.trial.main.Trial,
+        psynet.bot.Bot: psynet.participant.Participant,
         psynet.timeline._Response: psynet.timeline.Response,
     }
 
@@ -661,7 +662,7 @@ def export_assets(path, n_parallel=None):
     else:
         n_jobs = psutil.cpu_count()
 
-    from .assets import Asset
+    from .asset import Asset
 
     asset_keys = [a.key for a in db.session.query(Asset.key)]
 

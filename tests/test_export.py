@@ -46,11 +46,18 @@ def coin_class(experiment_module):
 
 @pytest.mark.usefixtures("demo_gibbs")
 class TestExp:
-    def test_exp(self, active_config, debug_experiment):
+    def test_exp(
+        self,
+        active_config,
+        debug_experiment,
+        data_root_dir,
+        data_csv_dir,
+        data_zip_file,
+    ):
         import time
 
         time.sleep(1)
-        for _ in range(5):
+        for _ in range(4):
             bot = Bot()
             bot.take_experiment()
 
@@ -60,7 +67,7 @@ class TestExp:
         export_(app, local=True, include_assets=True, n_parallel=None)
 
         def test_participants_file(data_csv_dir):
-            participants_file = os.path.join(data_csv_dir, "Participant.csv")
+            participants_file = os.path.join(data_csv_dir, "Bot.csv")
             participants = pandas.read_csv(participants_file)
             nrow = participants.shape[0]
             assert nrow == 4
@@ -80,31 +87,31 @@ class TestExp:
         def test_prepare_db_export():
             json = _prepare_db_export()
             assert sorted(list(json)) == [
+                "Bot",
                 "Coin",
                 "CustomNetwork",
                 "CustomNode",
                 "CustomSource",
                 "CustomTrial",
                 "ExperimentConfig",
-                "Notification",
-                "Participant",
                 "Response",
                 "Vector",
             ]
-            assert len(json["Participant"]) == 4  # Number of participants
+            # No Notification table here as bots don't produce Notifications currently
+            assert len(json["Bot"]) == 4  # Number of participants
 
         test_prepare_db_export()
 
         def test_psynet_exports(data_csv_dir):
             assert sorted(os.listdir(data_csv_dir)) == [
+                "Bot.csv",
                 "Coin.csv",
                 "CustomNetwork.csv",
                 "CustomNode.csv",
                 "CustomSource.csv",
                 "CustomTrial.csv",
                 "ExperimentConfig.csv",
-                "Notification.csv",
-                "Participant.csv",
+                # "Notification.csv",  # Bots don't produce notifications
                 "Response.csv",
                 "Vector.csv",
             ]
@@ -117,12 +124,14 @@ class TestExp:
             df_ = df.query("question == 'liked_experiment'")
             assert df_.shape[0] == 4
             assert list(df_.participant_id) == [1, 2, 3, 4]
-            assert list(df_.answer) == ["Yes, I loved it!"] * 4
+            assert (
+                list(df_.answer) == ["I'm a bot so I don't really have feelings..."] * 4
+            )
 
             df_ = df.query("question == 'find_experiment_difficult'")
             assert df_.shape[0] == 4
             assert list(df_.participant_id) == [1, 2, 3, 4]
-            assert list(df_.answer) == ["No, I found it easy."] * 4
+            assert list(df_.answer) == ["I'm a bot so I found it pretty easy..."] * 4
 
             df_ = df.query("question == 'encountered_technical_problems'")
             assert df_.shape[0] == 4
@@ -152,7 +161,7 @@ class TestExp:
                 "localhost", port=12345, stdoutToServer=True, stderrToServer=True
             )
 
-        test_asset_exports()
+        test_asset_exports(data_root_dir)
 
         def test_populate_db_from_zip_file(self, data_zip_file, coin_class):
             """

@@ -590,7 +590,7 @@ class EncounteredTechnicalProblems(ModularPage):
             self.prompt,
             control=TextControl(),
             time_estimate=self.time_estimate,
-            bot_response=lambda: "",
+            bot_response=lambda: "No technical problems.",
         )
 
 
