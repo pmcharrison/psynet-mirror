@@ -335,12 +335,10 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         self.store.set(self.survey_number_storage_key, survey_number)
 
     def check_participant_termination(self, rid):
-        return LucidService(
-            api_key=self.config.get("lucid_api_key"),
-            sha1_hashing_key=self.config.get("lucid_sha1_hashing_key"),
-            sandbox=self.config.get("mode") != "live",
-            recruitment_config=json.loads(self.config.get("lucid_recruitment_config")),
-        ).check_respondent_termination(rid)
+        return self.lucidservice.check_respondent_termination(rid)
+
+    def terminate_participant(self, rid):
+        return self.lucidservice.terminate_respondent(rid)
 
     @property
     def termination_time_in_min(self):
