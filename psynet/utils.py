@@ -658,11 +658,10 @@ def get_custom_sql_classes():
     """
     from dallinger.db import Base
 
-    mappers = Base.registry.mappers
     return {
-        mapper.class_.__name__: mapper.class_
-        for mapper in sorted(mappers, key=lambda cls: cls.class_.__name__)
-        if mapper.class_.__module__.startswith("dallinger_experiment")
+        cls.__name__: cls
+        for cls in Base.__subclasses__()
+        if cls.__module__.startswith("dallinger_experiment")
     }
 
 

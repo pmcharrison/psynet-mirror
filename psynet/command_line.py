@@ -815,6 +815,7 @@ def export_(app, local, include_assets, n_parallel):
         populate_db_from_zip_file(dallinger_zip_path)
 
     log("Exporting final 'csv' files.")
+
     dump_db_to_disk(os.path.join(data_dir_path, "csv"))
 
     if include_assets:
