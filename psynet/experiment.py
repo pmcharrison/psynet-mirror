@@ -1037,7 +1037,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     @experiment_route("/check_participant_termination", methods=["POST"])
     @classmethod
-    def terminate_participant(cls):
+    def check_participant_termination(cls):
         # auth_token = request.values["auth_token"]
         # Experiment.validate_auth_token(participant, auth_token)
 
@@ -1135,6 +1135,11 @@ class Experiment(dallinger.experiment.Experiment):
             participant.auth_token = str(uuid.uuid4())
         else:
             if not cls.validate_auth_token(participant, auth_token):
+                if exp.with_lucid_recruitment:
+                    exp.recruiter.terminate_participant(
+                        participant.entry_information["RID"]
+                    )
+
                 msg = (
                     "There was a problem authenticating your session, "
                     + "did you switch browsers? Unfortunately this is not currently "

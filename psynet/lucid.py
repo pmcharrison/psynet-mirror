@@ -215,47 +215,11 @@ class LucidService(object):
 
         return False
 
-    def check_respondent_termination(self, rid):
-        from psynet.recruiters import LucidRID
-
-        try:
-            rid = LucidRID.query.filter_by(rid=rid).one()
-        except (NoResultFound):
-            raise NoResultFound(
-                f"No LucidRID for Lucid RID '{rid}' found. This should never happen."
-            )
-        except (MultipleResultsFound):
-            raise MultipleResultsFound(
-                f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
-            )
+    def check_respondent_termination(self, _rid):
+        rid = getRID(_rid)
 
         if self.can_be_terminated(rid):
-            redirect_url = (
-                f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
-            )
-            redirect_url += f"hash={self.sha1_hash(redirect_url)}"
-            self.log(
-                f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
-            )
-
-            try:
-                response = requests.get(redirect_url)
-                if response.status_code == 200:
-                    if rid.terminated_at is None:
-                        rid.terminated_at = datetime.now()
-                        session.commit()
-                    self.log(
-                        f"Respondent terminated using redirect URL '{redirect_url}'."
-                    )
-                else:
-                    self.log(
-                        f"Error terminating respondent using redirect URL '{redirect_url}'."
-                    )
-                return 0
-            except Exception as e:
-                self.log(
-                    f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
-                )
+            self.terminate_respondent(_rid)
         else:
             time_until_termination_in_s = (
                 self.recruitment_config["termination_time_in_s"]
@@ -265,6 +229,34 @@ class LucidService(object):
                 f"Seconds until termination of RID '{rid.rid}': {time_until_termination_in_s}"
             )
             return time_until_termination_in_s
+
+    def terminate_respondent(self, rid):
+        rid = getRID(rid)
+
+        redirect_url = (
+            f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
+        )
+        redirect_url += f"hash={self.sha1_hash(redirect_url)}"
+        self.log(
+            f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
+        )
+
+        try:
+            response = requests.get(redirect_url)
+            if response.status_code == 200:
+                if rid.terminated_at is None:
+                    rid.terminated_at = datetime.now()
+                    session.commit()
+                self.log(f"Respondent terminated using redirect URL '{redirect_url}'.")
+            else:
+                self.log(
+                    f"Error terminating respondent using redirect URL '{redirect_url}'."
+                )
+            return 0
+        except Exception as e:
+            self.log(
+                f"Error terminating respondent using redirect URL '{redirect_url}':\n{e}"
+            )
 
     def sha1_hash(self, url):
         """
@@ -289,3 +281,20 @@ class LucidService(object):
             .replace("/", "_")
             .replace("=", "")
         )
+
+
+def getRID(rid):
+    from psynet.recruiters import LucidRID
+
+    try:
+        rid = LucidRID.query.filter_by(rid=rid).one()
+    except (NoResultFound):
+        raise NoResultFound(
+            f"No LucidRID for Lucid RID '{rid}' found. This should never happen."
+        )
+    except (MultipleResultsFound):
+        raise MultipleResultsFound(
+            f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
+        )
+
+    return rid
