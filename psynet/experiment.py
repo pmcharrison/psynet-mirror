@@ -43,6 +43,7 @@ from .recruiters import (  # noqa: F401
     LucidRecruiter,
     StagingCapRecruiter,
 )
+from .redis import redis_vars
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
@@ -240,20 +241,35 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.recruitment_criteria = []
         self.static_stimuli = StaticStimulusRegistry(self)
 
-        if session:
-            if request and request.path == "/launch" and not self.var.launch_complete:
-                self._on_launch()
+        # if session:
+        self.log("Checking whether to run _on_launch...")
+        if request:
+            self.log(f"request.path = {request.path}")
+        logger.info(
+            f"launch_started = {redis_vars.get('launch_started', default=False)}"
+        )
+        if (
+            request
+            and request.path == "/launch"
+            and not redis_vars.get("launch_started", default=False)
+        ):
+            redis_vars.set("launch_started", True)
+            self._on_launch()
+            redis_vars.set("launch_finished", True)
 
         self.process_timeline()
 
     def _on_launch(self):
+        self.log("Starting on_launch...")
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
-        self.var.launch_complete = True
+        self.log("Experiment launch complete!")
         db.session.commit()
 
     def on_first_launch(self):
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         ingest_zip(database_template_path, db.engine)
         db.session.commit()
 

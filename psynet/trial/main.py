@@ -2056,12 +2056,22 @@ class NetworkTrialMaker(TrialMaker):
 
     def _wait_for_trial(self, experiment, participant):
         if not self.wait_for_networks:
+            logger.info(
+                "wait_for_networks == False so will proceed with trial construction."
+            )
             return False
         else:
+            logger.info(
+                "Investigating whether we need to wait for any networks before beginning the next trial."
+            )
             num_networks_available_now = len(
                 self.find_networks(participant, experiment)
             )
             if num_networks_available_now > 0:
+                logger.info(
+                    "There are %i networks available now, will assign the trial to one of these.",
+                    num_networks_available_now,
+                )
                 return False
             else:
                 num_networks_available_in_future = len(
@@ -2070,8 +2080,15 @@ class NetworkTrialMaker(TrialMaker):
                     )
                 )
                 if num_networks_available_in_future > 0:
+                    logger.info(
+                        "There are no networks available now but there should be %i available in the future, will wait.",
+                        num_networks_available_in_future,
+                    )
                     return True
                 else:
+                    logger.info(
+                        "It doesn't look like there will be any networks available in the future, so we won't wait."
+                    )
                     return False
 
 

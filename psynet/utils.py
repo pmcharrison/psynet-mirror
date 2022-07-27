@@ -647,6 +647,25 @@ def working_directory(path):
         os.chdir(start_dir)
 
 
+def get_custom_sql_classes():
+    """
+
+    Returns
+    -------
+
+    A dictionary of all custom SQLAlchemy classes defined in the local experiment
+    (excluding any which are defined within packages).
+    """
+    from dallinger.db import Base
+
+    mappers = Base.registry.mappers
+    return {
+        mapper.class_.__name__: mapper.class_
+        for mapper in sorted(mappers, key=lambda cls: cls.class_.__name__)
+        if mapper.class_.__module__.startswith("dallinger_experiment")
+    }
+
+
 # def run_async_command_locally(fun, *args, **kwargs):
 #     """
 #     This is for when want to run a command asynchronously (so that it doesn't block current execution)

@@ -1,15 +1,11 @@
-import pickle
 import re
 from datetime import datetime
 
-import flask
-import jsonpickle
-from jsonpickle.unpickler import loadclass
 from sqlalchemy import Boolean, Column, Float, Integer, String, types
 from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.types import TypeDecorator
 
-from .data import SQLBase
+from .serialize import serialize, unserialize
 from .utils import get_logger
 
 logger = get_logger()
@@ -31,7 +27,7 @@ class PythonObject(TypeDecorator):
             return value
         sanitized = self.sanitize(value)
         try:
-            return jsonpickle.encode(sanitized)
+            return serialize(sanitized)
         except Exception:
             logger.error(
                 f"An error occurred when trying to serialize the following Python object to the database: {sanitized}"
@@ -45,7 +41,7 @@ class PythonObject(TypeDecorator):
         if value is None:
             return None
         try:
-            return jsonpickle.decode(value)
+            return unserialize(value)
         except Exception:
             pass
 
@@ -64,40 +60,6 @@ class _PythonList(PythonObject):
 
 
 PythonList = MutableList.as_mutable(_PythonList)
-
-
-# These classes cannot be reliably pickled by the `jsonpickle` library.
-# Instead we fall back to Python's built-in pickle library.
-no_json_classes = [flask.Markup]
-
-
-class NoJSONHandler(jsonpickle.handlers.BaseHandler):
-    def flatten(self, obj, state):
-        state["bytes"] = pickle.dumps(obj, 0).decode("ascii")
-        return state
-
-    def restore(self, state):
-        return pickle.loads(state["bytes"].encode("ascii"))
-
-
-for _cls in no_json_classes:
-    jsonpickle.register(_cls, NoJSONHandler, base=True)
-
-
-class SQLHandler(jsonpickle.handlers.BaseHandler):
-    def flatten(self, obj, state):
-        primary_key_cols = [c.name for c in obj.__class__.__table__.primary_key.columns]
-        primary_keys = {key: getattr(obj, key) for key in primary_key_cols}
-        state["identifiers"] = primary_keys
-        return state
-
-    def restore(self, state):
-        cls = loadclass(state["py/object"])
-        identifiers = state["identifiers"]
-        return cls.query.filter_by(**identifiers).one()
-
-
-jsonpickle.register(SQLBase, SQLHandler, base=True)
 
 
 def register_extra_var(extra_vars, name, overwrite=False, **kwargs):
@@ -392,10 +354,10 @@ class VarStore(BaseVarStore):
             return self.get_var(name)
 
     def encode_to_string(self, obj):
-        return jsonpickle.encode(obj)
+        return serialize(obj)
 
     def decode_string(self, string):
-        return jsonpickle.decode(string)
+        return unserialize(string)
 
     def get_var(self, name):
         vars_ = self.get_vars()
@@ -483,6 +445,6 @@ def json_format_vars(x):
             value = dict(value)
 
         if not is_basic_type(value):
-            value = jsonpickle.encode(value)
+            value = serialize(value)
 
         x[key] = value

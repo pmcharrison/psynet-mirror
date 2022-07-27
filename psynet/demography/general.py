@@ -551,7 +551,9 @@ class LikedExperiment(ModularPage):
         super().__init__(
             self.label,
             self.prompt,
-            control=TextControl(),
+            control=TextControl(
+                bot_response=lambda: "I'm a bot so I don't really have feelings..."
+            ),
             time_estimate=self.time_estimate,
         )
 
@@ -570,6 +572,7 @@ class FoundExperimentDifficult(ModularPage):
             self.prompt,
             control=TextControl(),
             time_estimate=self.time_estimate,
+            bot_response=lambda: "I'm a bot so I found it pretty easy...",
         )
 
 
@@ -587,6 +590,7 @@ class EncounteredTechnicalProblems(ModularPage):
             self.prompt,
             control=TextControl(),
             time_estimate=self.time_estimate,
+            bot_response=lambda: "",
         )
 
 

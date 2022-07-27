@@ -153,6 +153,13 @@ def demo_timeline_with_error(root):
 
 
 @pytest.fixture(scope="class")
+def demo_wait(root):
+    demo_setup("wait")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_unity_autoplay(root):
     demo_setup("unity_autoplay")
     yield
@@ -191,6 +198,9 @@ def prepopulated_database():
 
 @pytest.fixture
 def participant(db_session, experiment_object):
+    # import pydevd_pycharm
+    # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+
     from dallinger.config import get_config
 
     config = get_config()

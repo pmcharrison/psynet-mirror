@@ -1344,18 +1344,33 @@ class ChainTrialMaker(NetworkTrialMaker):
         return network
 
     def find_networks(self, participant, experiment, ignore_async_processes=False):
-        if (
-            self.get_num_completed_trials_in_phase(participant)
-            >= self.num_trials_per_participant
-        ):
+        n_completed_trials_in_phase = self.get_num_completed_trials_in_phase(
+            participant
+        )
+        if n_completed_trials_in_phase >= self.num_trials_per_participant:
+            logger.info(
+                "N completed trials in phase (%i) >= N trials per participant (%i), skipping forward",
+                n_completed_trials_in_phase,
+                self.num_trials_per_participant,
+            )
             return []
 
         networks = self.network_class.query.filter_by(
             trial_maker_id=self.id, phase=self.phase, full=False
         )
+        logger.info(
+            "There are %i non-full networks for trialmaker %s and phase %s.",
+            networks.count(),
+            self.id,
+            self.phase,
+        )
 
         if not ignore_async_processes:
             networks = networks.filter_by(awaiting_async_process=False)
+            logger.info(
+                "%i of these are available once you exclude those awaiting asynchronous processes.",
+                networks.count(),
+            )
 
         if self.chain_type == "within":
             networks = self.filter_by_participant_id(networks, participant)
@@ -1365,14 +1380,30 @@ class ChainTrialMaker(NetworkTrialMaker):
         ):
             networks = self.exclude_participated(networks, participant)
 
-        networks = networks.all()
+        try:
+            networks = networks.all()
+        except Exception:
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
 
         participant_group = participant.get_participant_group(self.id)
         networks = [n for n in networks if n.participant_group == participant_group]
 
+        logger.info(
+            "%i of these networks match the current participant group (%s).",
+            len(networks),
+            participant_group,
+        )
+
         networks = self.custom_network_filter(
             candidates=networks, participant=participant
         )
+
+        logger.info("%i remain after applying custom network filters.", len(networks))
+
         if not isinstance(networks, list):
             return TypeError("custom_network_filter must return a list of networks")
 
@@ -1405,12 +1436,23 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     @staticmethod
     def filter_by_participant_id(networks, participant):
-        return networks.filter_by(participant_id=participant.id)
+        query = networks.filter_by(participant_id=participant.id)
+        logger.info(
+            "%i of these belong to participant %i.",
+            query.count(),
+            participant.id,
+        )
+        return query
 
     def exclude_participated(self, networks, participant):
-        return networks.filter(
+        query = networks.filter(
             not_(self.network_class.id.in_(self.get_participated_networks(participant)))
         )
+        logger.info(
+            "%i of these are available once you exclude already-visited networks.",
+            query.count(),
+        )
+        return query
 
     def grow_network(self, network, participant, experiment):
         # We set participant = None because of Dallinger's constraint of not allowing participants

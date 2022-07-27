@@ -79,6 +79,7 @@ class ColorSliderPage(ModularPage):
                     "hidden_inputs": hidden_inputs,
                 },
                 continuous_updates=False,
+                bot_response=lambda: random.randint(0, 255),
             ),
             time_estimate=time_estimate,
         )
@@ -193,8 +194,7 @@ class CustomTrialMaker(GibbsTrialMaker):
     def custom_network_filter(self, candidates, participant):
         # As an example, let's make the participant join networks
         # in order of increasing network ID.
-        candidates.sort(key=lambda x: x.id)
-        return [candidates[0]]
+        return sorted(candidates, key=lambda x: x.id)
 
 
 trial_maker = CustomTrialMaker(
@@ -217,6 +217,7 @@ trial_maker = CustomTrialMaker(
     recruit_mode="num_trials",
     target_num_participants=None,
     num_repeat_trials=3,
+    wait_for_networks=True,  # wait for asynchronous processes to complete before continuing to the next trial
 )
 
 ###################
@@ -268,11 +269,14 @@ class Exp(psynet.experiment.Experiment):
             control=PushButtonControl(["A", "B"], arrange_vertically=False),
             time_estimate=5,
         ),
+        # CodeBlock(lambda participant: pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)),
         CodeBlock(
             lambda participant: participant.set_participant_group(
                 "gibbs_demo", participant.answer
             )
         ),
+        # CodeBlock(lambda participant: pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True,
+        #                                                       stderrToServer=True)),
         trial_maker,
         collect_coin(),
         ExperimentFeedback(),

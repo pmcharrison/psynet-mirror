@@ -7,7 +7,6 @@ import time
 import traceback
 
 import dallinger.db
-import jsonpickle
 from dallinger import db
 from dallinger.db import redis_conn
 from rq import Queue
@@ -17,6 +16,7 @@ from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonDict, PythonObject
+from .serialize import serialize, unserialize
 from .utils import classproperty, get_logger, import_local_experiment
 
 logger = get_logger()
@@ -116,7 +116,7 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     def check_function(self, function):
         assert callable(function)
-        if jsonpickle.decode(jsonpickle.encode(function)) is None:
+        if unserialize(serialize(function)) is None:
             raise ValueError(
                 "The provided function could not be serialized. Make sure that the function is defined at the module "
                 "or class level, rather than being a lambda function or a temporary function defined within "

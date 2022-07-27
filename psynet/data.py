@@ -370,13 +370,28 @@ class SQLMixin(SQLMixinDallinger):
         return Column(String(50))
 
 
+old_init_db = dallinger.db.init_db
+
+
 def init_db(drop_all=False, bind=db.engine):
     # Without these preliminary steps, the process can freeze --
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
     db.session.commit()
     close_all_sessions()
 
-    dallinger.db.init_db(drop_all, bind)
+    # import pydevd_pycharm
+    # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+
+    old_init_db(drop_all, bind)
+
+    import time
+
+    time.sleep(1)
+
+    return db.session
+
+
+dallinger.db.init_db = init_db
 
 
 def drop_all_db_tables(bind=db.engine):

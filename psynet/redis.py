@@ -1,6 +1,6 @@
-import jsonpickle
 from dallinger.db import redis_conn
 
+from .serialize import serialize, unserialize
 from .utils import NoArgumentProvided
 
 
@@ -12,10 +12,10 @@ class RedisVarStore:
                 raise KeyError
             else:
                 return default
-        return jsonpickle.decode(raw.decode("utf-8"))
+        return unserialize(raw.decode("utf-8"))
 
     def set(self, name, value):
-        redis_conn.set(name, jsonpickle.encode(value))
+        redis_conn.set(name, serialize(value))
 
     def clear(self):
         for key in redis_conn.keys():

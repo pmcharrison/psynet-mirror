@@ -26,6 +26,7 @@ from .data import (
     ingest_zip,
     init_db,
 )
+from .redis import redis_vars
 from .utils import (
     get_experiment,
     import_local_experiment,
@@ -113,6 +114,7 @@ def prepare():
     try:
         from dallinger import db
 
+        redis_vars.clear()
         db.init_db(drop_all=True)
         experiment_class = import_local_experiment().get("class")
         experiment_instance = experiment_class.new(session=None)

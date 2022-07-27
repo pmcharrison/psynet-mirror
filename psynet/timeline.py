@@ -1450,6 +1450,11 @@ class Timeline:
             new_elt.consume(experiment, participant)
             db.session.commit()
 
+            # from dallinger.db import Base
+            # if len([x for x in list(Base.registry.mappers) if x.class_.__name__.endswith("CustomNetwork")]) > 1:
+            #     import pydevd_pycharm
+            #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+
             if isinstance(new_elt, Page):
                 finished = True
 

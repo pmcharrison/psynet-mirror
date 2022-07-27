@@ -5,8 +5,15 @@ from cached_property import cached_property
 from dallinger import db
 
 from .participant import Participant
+from .redis import redis_vars
 from .timeline import EndPage, Page
-from .utils import NoArgumentProvided, get_experiment, get_logger, log_time_taken
+from .utils import (
+    NoArgumentProvided,
+    get_experiment,
+    get_logger,
+    log_time_taken,
+    wait_until,
+)
 
 logger = get_logger()
 
@@ -20,11 +27,15 @@ class Bot(Participant):
         hit_id="",
         mode="debug",
     ):
+        self.wait_until_experiment_launch_is_complete()
+
         if worker_id is None:
             worker_id = str(uuid.uuid4())
 
         if assignment_id is None:
             assignment_id = str(uuid.uuid4())
+
+        logger.info("Initialising bot with worker ID %s.", worker_id)
 
         super().__init__(
             self.experiment,
@@ -37,6 +48,15 @@ class Bot(Participant):
 
         self.experiment.initialize_bot(bot=self)
         db.session.commit()
+
+    def wait_until_experiment_launch_is_complete(self):
+        def f():
+            print("Waiting for experiment launch to complete....")
+            return redis_vars.get("launch_finished", default=False)
+
+        wait_until(
+            f, max_wait=60, error_message="Experiment launch didn't finish in time"
+        )
 
     @cached_property
     def experiment(self):
@@ -66,13 +86,19 @@ class Bot(Participant):
                 break
 
     def take_page(self, time_factor):
+        from .page import WaitPage
+
         bot = self
         experiment = self.experiment
         page = experiment.timeline.get_current_elt(experiment, bot)
         assert isinstance(page, Page)
 
         time_taken = page.time_estimate * time_factor
-        if time_factor > 0:
+
+        if time_taken == 0 and isinstance(page, WaitPage):
+            time_taken = 0.5
+
+        if time_taken > 0:
             time.sleep(time_taken)
 
         response = page.call__bot_response(experiment, bot)
