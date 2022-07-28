@@ -20,7 +20,7 @@
 
                 {% if experiment.with_lucid_recruitment() %}
                 $("#termination-timer-seconds").text(prettyFormatSeconds({{ experiment.recruiter.termination_time_in_s }}))
-                setInterval(check_participant_termination, 1000);
+                var setIntervalHandle = setInterval(check_participant_termination, 1000);
 
                 function check_participant_termination() {
                     postData = {};
@@ -30,9 +30,9 @@
                         if (parseInt(seconds) >= 0) {
                             $("#termination-timer-text").show();
                             $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
-                            if (parseInt(seconds) == 0) {
-                                $("#consent-rejected").click();
-                            }
+                        } else {
+                            clearInterval(setIntervalHandle)
+                            $("#consent-rejected").click();
                         }
                     });
                 }
