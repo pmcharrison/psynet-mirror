@@ -97,7 +97,8 @@
         });
 
         {% if experiment.with_lucid_recruitment() %}
-        setInterval(check_participant_termination, 1000);
+        $(".consent").prop("disabled", true)
+        var setIntervalHandle = setInterval(check_participant_termination, 1000);
 
         function check_participant_termination() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -110,10 +111,11 @@
                 if (parseInt(seconds) >= 0) {
                     $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
                     $("#termination-timer").css("visibility", "visible");
-                    if (parseInt(seconds) == 0) {
-                      $(".consent").hide();
-                      $("#close-button").show();
-                    }
+                    $(".consent").prop("disabled", false)
+                } else {
+                    clearInterval(setIntervalHandle)
+                    $(".consent").hide();
+                    $("#close-button").show();
                 }
             });
         }

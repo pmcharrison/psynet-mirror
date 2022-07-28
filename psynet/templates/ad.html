@@ -32,10 +32,11 @@
 <p style="text-align: left;">
     <span id="termination-timer" style="visibility: hidden;">You have <span id="termination-timer-seconds" style="font-weight: bold;"></span> left to begin and consent to the experiment.</span>
 </p>
-{% endif %}
+{% else %}
 <div class="alert alert-warning">
     <span style="font-weight: bold;">Warning</span>: Please disable pop-up blockers before continuing.
 </div>
+{% endif %}
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
 Begin Experiment
 </button>
@@ -86,7 +87,8 @@ Abort Experiment
     document.getElementById("begin-button").onclick = proceedToConsentPage;
 
     {% if experiment.with_lucid_recruitment() %}
-    setInterval(check_participant_termination, 1000);
+    $("#begin-button").prop("disabled", true)
+    var setIntervalHandle = setInterval(check_participant_termination, 1000);
 
     function check_participant_termination() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -99,10 +101,11 @@ Abort Experiment
             if (parseInt(seconds) >= 0) {
                 $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
                 $("#termination-timer").css("visibility", "visible");
-                if (parseInt(seconds) == 0) {
-                    $("#begin-button").hide();
-                    $("#close-button").show();
-                }
+                $("#begin-button").prop("disabled", false)
+            } else {
+                clearInterval(setIntervalHandle)
+                $("#begin-button").hide();
+                $("#close-button").show();
             }
         });
     }
