@@ -12,6 +12,7 @@ from typing import Optional
 
 import boto3
 import psutil
+import requests
 import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
@@ -124,6 +125,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     failed = None
     failed_reason = None
     time_of_death = None
+
+    needs_storage_backend = True
 
     psynet_version = Column(String)
     deployment_id = Column(String)
@@ -504,7 +507,7 @@ class ManagedAsset(Asset):
         return get_extension(self.input_path)
 
     def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete_input: bool):
-        if isinstance(asset_storage, NoStorage):
+        if self.needs_storage_backend and isinstance(asset_storage, NoStorage):
             raise RuntimeError(
                 "Cannot perform this deposit without an asset storage backend. "
                 "Please add one to your experiment class, for example by writing "
@@ -777,8 +780,39 @@ class FunctionAsset(FunctionAssetMixin, ExperimentAsset):
 class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     secret = Column(String)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    needs_storage_backend = False
+
+    def __init__(
+        self,
+        function,
+        key: Optional[str] = None,
+        arguments: Optional[dict] = None,
+        data_type="file",
+        extension=None,
+        trial=None,
+        participant=None,
+        node=None,
+        network=None,
+        variables: Optional[dict] = None,
+        replace_existing=False,
+        personal=False,
+        obfuscate=1,  # 0: no obfuscation; 1: can't guess URL; 2: can't guess content
+    ):
+        super().__init__(
+            function=function,
+            key=key,
+            arguments=arguments,
+            data_type=data_type,
+            extension=extension,
+            trial=trial,
+            participant=participant,
+            node=node,
+            network=network,
+            variables=variables,
+            replace_existing=replace_existing,
+            personal=personal,
+            obfuscate=obfuscate,
+        )
         self.secret = uuid.uuid4()  # Used to protect unauthorized access
 
     @cached_class_property
@@ -939,10 +973,7 @@ class AssetStorage:
         pass
 
     def receive_deposit(self, asset, host_path: str, async_: bool, delete_input: bool):
-        print(f"async = {async_}")
         if async_:
-            # import pydevd_pycharm
-            # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
             db.session.add(asset)
             db.session.commit()
             f = self._async__call_receive_deposit
@@ -1026,7 +1057,15 @@ class WebStorage(AssetStorage):
             )
 
     def export_file(self, asset, path):
-        urllib.request.urlretrieve(asset.url, path)
+        try:
+            r = requests.get(asset.url)
+            with open(path, "wb") as file:
+                file.write(r.content)
+        except Exception:
+            print(
+                f"An error occurred when trying to download asset {asset.key} from the following URL: {asset.url}"
+            )
+            raise
 
 
 class NoStorage(AssetStorage):
@@ -1254,8 +1293,6 @@ class S3Storage(AssetStorage):
         # to talk to S3 separately for each one. This wouldn't catch situations where
         # the cache has been added during the preparation phase itself, but this shouldn't happen very often,
         # so doesn't need to be optimized for just yet.
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         return s3_key in list_files_in_s3_bucket__cached(
             self.s3_bucket, prefix=self.root + "/"
         )

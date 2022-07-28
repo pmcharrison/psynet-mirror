@@ -86,6 +86,8 @@ def import_local_experiment():
     # It also adds the experiment directory to sys.path, meaning that any other
     # modules defined there can be imported using ``import``.
     # import pdb; pdb.set_trace()
+    #
+    # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
     get_config()
 
     import dallinger.experiment

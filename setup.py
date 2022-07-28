@@ -32,6 +32,7 @@ setuptools.setup(
         "pandas",
         "rpdb",
         "progress",
+        "requests",
         "scipy",
         "numpy",
         "statsmodels",

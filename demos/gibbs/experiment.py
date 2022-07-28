@@ -269,14 +269,11 @@ class Exp(psynet.experiment.Experiment):
             control=PushButtonControl(["A", "B"], arrange_vertically=False),
             time_estimate=5,
         ),
-        # CodeBlock(lambda participant: pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)),
         CodeBlock(
             lambda participant: participant.set_participant_group(
                 "gibbs_demo", participant.answer
             )
         ),
-        # CodeBlock(lambda participant: pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True,
-        #                                                       stderrToServer=True)),
         trial_maker,
         collect_coin(),
         ExperimentFeedback(),

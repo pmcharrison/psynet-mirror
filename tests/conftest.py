@@ -7,7 +7,6 @@ import pexpect
 import pytest
 import sqlalchemy.exc
 from dallinger import db
-from dallinger.db import Base, engine
 from dallinger.models import Network, Node
 from dallinger.pytest_dallinger import flush_output
 
@@ -43,6 +42,15 @@ def demo_setup(demo):
     time.sleep(2.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
+
+    # Seems to be important to load config before initializing the experiment,
+    # something to do with duplicated SQLAlchemy imports
+    from dallinger.config import get_config
+
+    config = get_config()
+    if not config.ready:
+        config.load()
+
     psynet.utils.import_local_experiment()
     init_db(drop_all=True)
     run_prepare_in_subprocess()
@@ -52,13 +60,14 @@ def demo_teardown(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = None
     os.chdir(root)
+
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
 
-    print("Resetting database...")
-    db.session.commit()  # This seems to be important to avoid the process getting stuck
-    Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
-    print("...complete.")
+    # print("Resetting database...")
+    # db.session.commit()  # This seems to be important to avoid the process getting stuck
+    # Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
+    # print("...complete.")
 
 
 @pytest.fixture(scope="class")
@@ -198,8 +207,6 @@ def prepopulated_database():
 
 @pytest.fixture
 def participant(db_session, experiment_object):
-    # import pydevd_pycharm
-    # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
 
     from dallinger.config import get_config
 

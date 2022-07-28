@@ -760,12 +760,20 @@ def verify_experiment_id(ctx, param, app):
 )
 @click.option("--local", is_flag=True, help="Export local data")
 @click.option("--path", default=None, help="Path to export directory")
-@click.option("--assets", default="experiment", help="none; experiment; all")
-@click.option("--anon", default="both", help="yes; no; both")
+@click.option(
+    "--assets",
+    default="experiment",
+    help="Which assets to export; valid values are none, experiment, and all",
+)
+@click.option(
+    "--anonymize",
+    default="both",
+    help="Whether to anonymize the data; valid values are yes, no, or both (the latter exports both ways)",
+)
 @click.option(
     "--n_parallel", default=None, help="Number of parallel jobs for exporting assets"
 )
-def export(app, local, path, assets, anon, n_parallel):
+def export(app, local, path, assets, anonymize, n_parallel):
     """
     Export data from an experiment.
 
@@ -785,7 +793,7 @@ def export(app, local, path, assets, anon, n_parallel):
     json:
         Contains the experiment data in JSON format.
     """
-    export_(app, local, path, assets, anon, n_parallel)
+    export_(app, local, path, assets, anonymize, n_parallel)
 
 
 def export_(
@@ -793,15 +801,23 @@ def export_(
     local=False,
     export_path=None,
     assets="experiment",
-    anon="both",
+    anonymize="both",
     n_parallel=None,
 ):
     log(header)
     import_local_experiment()
 
     config = get_config()
+
     if not config.ready:
-        config.load()
+        try:
+            config.load()
+        except Exception:
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
 
     if export_path is None:
         try:
@@ -829,40 +845,57 @@ def export_(
     if assets not in ["none", "experiment", "all"]:
         raise ValueError("--assets must be either none, experiment, or all.")
 
-    if anon not in ["yes", "no", "both"]:
-        raise ValueError("--anon must be either yes, no, or both.")
+    if anonymize not in ["yes", "no", "both"]:
+        raise ValueError("--anonymize must be either yes, no, or both.")
 
-    if anon in ["yes", "no"]:
-        anon_modes = [anon]
+    if anonymize in ["yes", "no"]:
+        anonymize_modes = [anonymize]
     else:
-        anon_modes = ["yes", "no"]
+        anonymize_modes = ["yes", "no"]
 
-    for anon_mode in anon_modes:
-        _anon = anon_mode == "yes"
-        _export_(app, local, export_path, assets, _anon, n_parallel)
+    for anonymize_mode in anonymize_modes:
+        _anonymize = anonymize_mode == "yes"
+        _export_(app, local, export_path, assets, _anonymize, n_parallel)
 
 
-def _export_(app, local, export_path, assets, anon: bool, n_parallel):
+def _export_(
+    app,
+    local,
+    export_path,
+    assets,
+    anonymize: bool,
+    n_parallel=None,
+):
     """
     An internal version of the export version where argument preprocessing has been done already.
     """
-    database_zip_path = export_database(app, local, export_path, anon)
+    database_zip_path = export_database(app, local, export_path, anonymize)
 
     # We originally thought code should be exported here. However it makes better sense to
     # export instead as part of psynet sandbox/deploy. We'll implement this soon.
-    # export_code(export_path, anon)
+    # export_code(export_path, anonymize)
 
-    export_data(local, anon, database_zip_path, export_path)
-    export_assets(export_path, anon, n_parallel)
+    export_data(local, anonymize, database_zip_path, export_path)
+
+    if assets != "none":
+        experiment_assets_only = assets == "experiment"
+        include_fast_function_assets = assets == "all"
+        export_assets(
+            export_path,
+            anonymize,
+            experiment_assets_only,
+            include_fast_function_assets,
+            n_parallel,
+        )
 
     log("Asset export completed.")
 
 
-def export_database(app, local, export_path, anon):
+def export_database(app, local, export_path, anonymize):
     if local:
         app = "local"
 
-    subdir = "anonymous" if anon else "regular"
+    subdir = "anonymous" if anonymize else "regular"
 
     database_zip_path = os.path.join(export_path, subdir, "database.zip")
 
@@ -877,7 +910,7 @@ def export_database(app, local, export_path, anon):
 
     with tempfile.TemporaryDirectory() as tempdir:
         with working_directory(tempdir):
-            dallinger_data.export(app, local=local, scrub_pii=anon)
+            dallinger_data.export(app, local=local, scrub_pii=anonymize)
 
             shutil.move(
                 os.path.join(tempdir, "data", f"{app}-data.zip"),
@@ -890,8 +923,8 @@ def export_database(app, local, export_path, anon):
     return database_zip_path
 
 
-# def export_code(export_path, anon):
-#     subdir = "anonymous" if anon else "regular"
+# def export_code(export_path, anonymize):
+#     subdir = "anonymous" if anonymize else "regular"
 #
 #     code_zip_path = os.path.join(export_path, subdir, "code.zip")
 #
@@ -911,15 +944,15 @@ def export_database(app, local, export_path, anon):
 #         spinner.ok("✔")
 
 
-def export_data(local, anon, database_zip_path, export_path):
-    subdir = "anonymous" if anon else "regular"
+def export_data(local, anonymize, database_zip_path, export_path):
+    subdir = "anonymous" if anonymize else "regular"
     data_path = os.path.join(export_path, subdir, "data")
 
     if not local:
         log("Populating the local database with the downloaded data.")
         populate_db_from_zip_file(database_zip_path)
 
-    dump_db_to_disk(data_path, scrub_pii=anon)
+    dump_db_to_disk(data_path, scrub_pii=anonymize)
 
     with yaspin(text="Completed.", color="green") as spinner:
         spinner.ok("✔")
@@ -933,16 +966,28 @@ def populate_db_from_zip_file(zip_path):
     dallinger_data.ingest_zip(zip_path)
 
 
-def export_assets(export_path, anon, n_parallel):
+def export_assets(
+    export_path,
+    anonymize,
+    experiment_assets_only,
+    include_fast_function_assets,
+    n_parallel,
+):
     from .data import export_assets as _export_assets
 
     log(f"Exporting assets to {export_path}...")
 
-    include_private = not anon
-    subdir = "anonymous" if anon else "regular"
+    include_private = not anonymize
+    subdir = "anonymous" if anonymize else "regular"
     asset_path = os.path.join(export_path, subdir, "assets")
 
-    _export_assets(asset_path, include_private, n_parallel)
+    _export_assets(
+        asset_path,
+        include_private,
+        experiment_assets_only,
+        include_fast_function_assets,
+        n_parallel,
+    )
 
 
 @psynet.command()

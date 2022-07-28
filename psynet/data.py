@@ -186,15 +186,7 @@ def _db_class_instances_to_json(cls, scrub_pii: bool):
     List of dictionaries corresponding to JSON-encoded objects.
 
     """
-    try:
-        # primary_keys = [c.name for c in cls.__table__.primary_key.columns]
-        primary_keys = [c.name for c in cls.__table__.primary_key.columns]
-    except AttributeError:
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
+    primary_keys = [c.name for c in cls.__table__.primary_key.columns]
     obj_sql = cls.query.order_by(*primary_keys).all()
     if len(obj_sql) == 0:
         print(f"{cls.__name__}: skipped (nothing to export)")
@@ -431,9 +423,6 @@ def init_db(drop_all=False, bind=db.engine):
     # https://stackoverflow.com/questions/24289808/drop-all-freezes-in-flask-with-sqlalchemy
     db.session.commit()
     close_all_sessions()
-
-    # import pydevd_pycharm
-    # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
 
     old_init_db(drop_all, bind)
 
@@ -706,7 +695,13 @@ dallinger.data.ingest_zip = ingest_zip
 dallinger.data.ingest_to_model = ingest_to_model
 
 
-def export_assets(path, include_private: bool, n_parallel=None):
+def export_assets(
+    path,
+    include_private: bool,
+    experiment_assets_only: bool,
+    include_fast_function_assets: bool,
+    n_parallel=None,
+):
     # Assumes we already have loaded the experiment into the local database,
     # as would be the case if the function is called from psynet export.
     if n_parallel:
@@ -714,9 +709,12 @@ def export_assets(path, include_private: bool, n_parallel=None):
     else:
         n_jobs = psutil.cpu_count()
 
-    from .asset import Asset
+    if experiment_assets_only:
+        from .asset import ExperimentAsset as base_class
+    else:
+        from .asset import Asset as base_class
 
-    asset_query = db.session.query(Asset.key, Asset.personal)
+    asset_query = db.session.query(base_class.key, base_class.personal)
     if not include_private:
         asset_query = asset_query.filter_by(personal=False)
 
@@ -728,18 +726,32 @@ def export_assets(path, include_private: bool, n_parallel=None):
         verbose=10,
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
-    )(delayed(export_asset)(key, os.path.join(path, key)) for key in asset_keys)
+    )(
+        delayed(export_asset)(
+            key, os.path.join(path, key), include_fast_function_assets
+        )
+        for key in asset_keys
+    )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
 
 
 # def close_parallel_db_sessions():
 
 
-def export_asset(key, path):
-    from .asset import Asset
+def export_asset(key, path, include_fast_function_assets):
+    from .asset import Asset, FastFunctionAsset
     from .utils import import_local_experiment, make_parents
 
     import_local_experiment()
     a = Asset.query.filter_by(key=key).one()
+
+    if not include_fast_function_assets and isinstance(a, FastFunctionAsset):
+        return
+
     make_parents(path)
-    a.export(path)
+
+    try:
+        a.export(path)
+    except Exception:
+        print(f"An error occurred when trying to export the asset with key: {key}")
+        raise

@@ -187,13 +187,6 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         function = process.function
 
-        if function is None:
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-            )
-
         arguments = cls.preprocess_args(process.arguments)
 
         timer = time.monotonic()

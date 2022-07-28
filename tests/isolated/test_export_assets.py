@@ -7,7 +7,7 @@ import zipfile
 import pytest
 from dallinger import db
 
-from psynet.asset import Asset, ExperimentAsset
+from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
 from psynet.bot import Bot
 from psynet.test import bot_class
 
@@ -40,11 +40,15 @@ def coin_class(experiment_module):
     return experiment_module.Coin
 
 
+def generate_text_file(path):
+    with open(path, "w") as file:
+        file.write("Lorem ipsum")
+
+
 @pytest.mark.usefixtures("demo_gibbs", "db_session")
 class TestAssetExport:
     def test_exp(
         self,
-        active_config,
         debug_experiment,
         data_root_dir,
         data_csv_dir,
@@ -65,9 +69,23 @@ class TestAssetExport:
             )
             asset_2.deposit()
 
+            asset_3 = ExternalAsset(
+                key="test_external_asset",
+                url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
+            )
+            asset_3.deposit()
+
+            asset_4 = FastFunctionAsset(
+                function=generate_text_file,
+                key="test_fast_function_asset",
+            )
+            asset_4.deposit()
+
         db.session.commit()
 
-        assert Asset.query.count() == 2
+        assert Asset.query.count() == 4
+
+        self._test_asset_export_modes()
 
         bot = Bot()
         bot.take_experiment()
@@ -79,6 +97,10 @@ class TestAssetExport:
         assert "worker_id" not in json_anon
 
         from psynet.command_line import export_
+
+        # Calling export_ multiple times in the same process causes SQLAlchemy errors due to repeated imports...
+        # Temporary fix for now is to call in subprocess
+        # from psynet.utils import run_subprocess_with_live_output
 
         with tempfile.TemporaryDirectory() as tempdir:
             with pytest.raises(ValueError) as e:
@@ -99,13 +121,13 @@ class TestAssetExport:
             assert str(e.value) == "--assets must be either none, experiment, or all."
 
             with pytest.raises(ValueError) as e:
-                export_(local=True, export_path=tempdir, anon="asdasdoj")
-            assert str(e.value) == "--anon must be either yes, no, or both."
+                export_(local=True, export_path=tempdir, anonymize="asdasdoj")
+            assert str(e.value) == "--anonymize must be either yes, no, or both."
 
             export_(
                 local=True,
                 assets="all",
-                anon="both",
+                anonymize="both",
                 export_path=tempdir,
             )
 
@@ -123,10 +145,50 @@ class TestAssetExport:
             self.assert_regular_data(os.path.join(tempdir, "regular", "data"))
             self.assert_anonymous_data(os.path.join(tempdir, "anonymous", "data"))
 
-    # def assert_valid_code_zip(self, path):
-    #         archive = zipfile.ZipFile(path, "r")
-    #         import pydevd_pycharm
-    #         pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+    def _test_asset_export_modes(self):
+        from psynet.command_line import export_
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            export_(local=True, export_path=tempdir, assets="none")
+
+            path_1 = os.path.join(tempdir, "regular", "data")
+            assert os.path.exists(path_1) and os.path.isdir(path_1)
+
+            #  assets="none" so no assets should be exported
+            path_1 = os.path.join(tempdir, "regular", "assets")
+            assert not os.path.exists(path_1)
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            export_(local=True, export_path=tempdir, assets="experiment")
+
+            path = os.path.join(tempdir, "regular", "assets")
+            assert os.path.exists(path) and os.path.isdir(path)
+
+            assert os.path.exists(
+                os.path.join(tempdir, "regular", "assets", "test_personal_asset")
+            )
+            assert not os.path.exists(
+                os.path.join(tempdir, "anonymous", "assets", "test_personal_asset")
+            )
+            assert not os.path.exists(
+                os.path.join(tempdir, "regular", "assets", "test_external_asset")
+            )
+            assert not os.path.exists(
+                os.path.join(tempdir, "regular", "assets", "test_fast_function_asset")
+            )
+
+        with tempfile.TemporaryDirectory() as tempdir:
+            export_(local=True, export_path=tempdir, assets="all")
+
+            assert os.path.exists(
+                os.path.join(tempdir, "regular", "assets", "test_personal_asset")
+            )
+            assert os.path.exists(
+                os.path.join(tempdir, "regular", "assets", "test_external_asset")
+            )  # now we have this
+            assert os.path.exists(
+                os.path.join(tempdir, "regular", "assets", "test_fast_function_asset")
+            )  # and this
 
     def assert_regular_database_zip(self, path):
         import pandas as pd

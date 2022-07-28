@@ -137,12 +137,6 @@ class Test:
 
         self.check_mappers()
 
-    # def test_serialize_method(self, trial):
-    #     method_serialized = serialize(trial.show_trial)
-    #
-    #     import pydevd_pycharm
-    #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-
     def check_mappers(self):
         # If we don't manage the imports correctly, we can end up with a nasty bug where
         # SQLAlchemy Base.registry.mappers stops working, and instead throws an error
