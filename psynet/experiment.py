@@ -241,13 +241,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.recruitment_criteria = []
         self.static_stimuli = StaticStimulusRegistry(self)
 
-        # if session:
-        self.log("Checking whether to run _on_launch...")
-        if request:
-            self.log(f"request.path = {request.path}")
-        logger.info(
-            f"launch_started = {redis_vars.get('launch_started', default=False)}"
-        )
         if (
             request
             and request.path == "/launch"
@@ -260,20 +253,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.process_timeline()
 
     def _on_launch(self):
-        self.log("Starting on_launch...")
+        logger.info("Calling Exp.on_launch()...")
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
-        self.log("Experiment launch complete!")
+        logger.info("Experiment launch complete!")
         db.session.commit()
 
     def on_first_launch(self):
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        logger.info("Calling Exp.on_first_launch()...")
         ingest_zip(database_template_path, db.engine)
         db.session.commit()
 
     def on_every_launch(self):
+        logger.info("Calling Exp.on_every_launch()...")
         self.grow_all_networks()
 
     def participant_constructor(self, *args, **kwargs):

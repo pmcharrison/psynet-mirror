@@ -9,6 +9,7 @@ from pathlib import Path
 from shutil import rmtree, which
 
 import click
+import dallinger.command_line.utils
 import psutil
 from dallinger import db
 from dallinger.config import get_config
@@ -29,6 +30,8 @@ from .utils import (
     run_subprocess_with_live_output,
     working_directory,
 )
+
+dallinger.command_line.utils.header = ""
 
 
 def log(msg, chevrons=True, verbose=True, **kw):
