@@ -56,6 +56,8 @@ tests_isolated:
   stage: test
   script:
   - pytest --chrome tests/isolated/test_demo_gibbs.py
+  - pytest --chrome tests/isolated/test_export.py
+  - pytest --chrome tests/isolated/test_export_assets.py
 
 pages:
   stage: deploy

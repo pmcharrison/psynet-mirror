@@ -64,8 +64,20 @@ def _get_superclasses_by_table():
     A dictionary where the keys enumerate the different tables in the database
     and the values correspond to the superclasses for each of those tables.
     """
+    # try:
+    #     mappers = list(db.Base.registry.mappers)
+    # except Exception:
+    #     import pydevd_pycharm
+    #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+    # mapped_classes = [m.class_ for m in mappers]
+
     mappers = list(db.Base.registry.mappers)
     mapped_classes = [m.class_ for m in mappers]
+
+    # candidate_classes = {x.class_ for x in list(dict(db.Base.registry._managers))}
+    # candidate_classes = organize_by_key(candidate_classes, lambda x: x.__name__)
+    # mapped_classes = [classes[0] for classes in candidate_classes.values()]
+
     mapped_classes_by_table = organize_by_key(mapped_classes, lambda x: x.__tablename__)
     superclasses_by_table = {
         cls: _get_superclass(class_list)
@@ -174,7 +186,15 @@ def _db_class_instances_to_json(cls, scrub_pii: bool):
     List of dictionaries corresponding to JSON-encoded objects.
 
     """
-    primary_keys = [c.name for c in cls.__table__.primary_key.columns]
+    try:
+        # primary_keys = [c.name for c in cls.__table__.primary_key.columns]
+        primary_keys = [c.name for c in cls.__table__.primary_key.columns]
+    except AttributeError:
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
     obj_sql = cls.query.order_by(*primary_keys).all()
     if len(obj_sql) == 0:
         print(f"{cls.__name__}: skipped (nothing to export)")
@@ -702,14 +722,17 @@ def export_assets(path, include_private: bool, n_parallel=None):
 
     asset_keys = [a.key for a in asset_query]
 
+    n_jobs = 1  # todo -fix
     Parallel(
         n_jobs=n_jobs,
         verbose=10,
-        backend="multiprocessing",  # safer for avoiding database leaks etc.
-    )(
-        delayed(lambda key: export_asset(key, path=os.path.join(path, key)))(key)
-        for key in asset_keys
-    )
+        backend="threading",
+        # backend="multiprocessing",  # safer for avoiding database leaks etc.
+    )(delayed(export_asset)(key, os.path.join(path, key)) for key in asset_keys)
+    # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
+
+
+# def close_parallel_db_sessions():
 
 
 def export_asset(key, path):

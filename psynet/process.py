@@ -16,7 +16,6 @@ from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonDict, PythonObject
-from .serialize import serialize, unserialize
 from .utils import classproperty, get_logger, import_local_experiment
 
 logger = get_logger()
@@ -116,12 +115,12 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     def check_function(self, function):
         assert callable(function)
-        if unserialize(serialize(function)) is None:
-            raise ValueError(
-                "The provided function could not be serialized. Make sure that the function is defined at the module "
-                "or class level, rather than being a lambda function or a temporary function defined within "
-                "another function."
-            )
+        # if unserialize(serialize(function)) is None:
+        #     raise ValueError(
+        #         "The provided function could not be serialized. Make sure that the function is defined at the module "
+        #         "or class level, rather than being a lambda function or a temporary function defined within "
+        #         "another function."
+        #     )
         if inspect.ismethod(function):
             raise ValueError(
                 "You cannot pass an instance method to an AsyncProcess. ",
@@ -187,6 +186,14 @@ class AsyncProcess(SQLBase, SQLMixin):
         process = AsyncProcess.query.filter_by(id=process_id).one()
 
         function = process.function
+
+        if function is None:
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
+
         arguments = cls.preprocess_args(process.arguments)
 
         timer = time.monotonic()
