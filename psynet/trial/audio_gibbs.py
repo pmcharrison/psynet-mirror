@@ -416,10 +416,7 @@ def make_audio_regular_intervals(
         n_jobs = 1  # todo -fix
         Parallel(
             n_jobs=n_jobs,
-            backend="threading",
-            # backend="multiprocessing",  # safer for avoiding database leaks etc.
         )(delayed(_synth)(_value, _path) for _value, _path in zip(values, paths))
-        # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
     else:
         for _value, _path in zip(values, paths):
             _synth(_value, _path)

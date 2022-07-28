@@ -722,12 +722,12 @@ def export_assets(path, include_private: bool, n_parallel=None):
 
     asset_keys = [a.key for a in asset_query]
 
-    n_jobs = 1  # todo -fix
+    # n_jobs = 1  # todo -fix
     Parallel(
         n_jobs=n_jobs,
         verbose=10,
         backend="threading",
-        # backend="multiprocessing",  # safer for avoiding database leaks etc.
+        # backend="multiprocessing", # Slow compared to threading
     )(delayed(export_asset)(key, os.path.join(path, key)) for key in asset_keys)
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
 

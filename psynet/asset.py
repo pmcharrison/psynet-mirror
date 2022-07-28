@@ -1397,12 +1397,12 @@ class AssetRegistry:
             n_jobs = psutil.cpu_count()
 
         logger.info("Preparing assets for deployment...")
-        n_jobs = 1  # todo -fix
+        # n_jobs = 1  # todo -fix
         Parallel(
             n_jobs=n_jobs,
             verbose=10,
             backend="threading",
-            # backend="multiprocessing",  # safer for avoiding database leaks etc.
+            # backend="multiprocessing",  # Slow compared to threading
         )(
             delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
             for a in self._staged_asset_specifications
