@@ -42,7 +42,7 @@ def read_lines(path):
 
 def test_csv_from_archive():
     ratings = prepare()
-    _ = AdjectiveExporter.parse_html(ratings, "tests_files/test-app-data/test.html")
+    _ = AdjectiveExporter.generate_html(ratings, "tests_files/test-app-data/test.html")
     assert read_lines("tests_files/test-app-data/test.html") == read_lines(
         "tests_files/test-app_website.html"
     )

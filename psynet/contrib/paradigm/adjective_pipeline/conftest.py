@@ -24,7 +24,9 @@ warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
+    os.chdir(
+        os.path.join(os.path.dirname(__file__), "..", f"demos/demo_pipeline/{demo}")
+    )
     # Originally we used to aggressively reinitialize the database as part of
     # these regression tests. However, it seems this was at the route of
     # errors of the following form:
@@ -55,7 +57,7 @@ def demo_teardown(root):
 def demo_adjective_pipeline(root):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = "adjective_pipeline"
-    os.chdir(os.path.join(os.path.dirname(__file__), "demo"))
+    os.chdir(os.path.join(os.path.dirname(__file__), "demos/demo_pipeline"))
     init_db(drop_all=True)
     time.sleep(2.5)
     kill_psynet_chrome_processes()
