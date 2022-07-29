@@ -11,5 +11,5 @@
         "UniqueIPAddress": true,
         "UniquePID": true
     },
-    "termination_time_in_s": 300
+    "termination_time_in_s": 120
 }
