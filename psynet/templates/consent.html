@@ -19,6 +19,19 @@
           <h3 class="consent" style="text-align: right;">
             To proceed, click the button below.
           </h3>
+          {% if experiment.with_lucid_recruitment() %}
+          <button
+            type="button"
+            class="btn btn-danger btn-lg"
+            id="terminate"
+            style="float: left;"
+            onClick="terminate();">
+            I don’t want to participate
+          </button>
+          <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: right; display: none;" onclick="window.close();">
+            Close window
+          </button>
+          {% endif %}
           <button
             type="button"
             class="btn btn-primary btn-lg consent"
@@ -27,11 +40,6 @@
             onClick="start();">
             Next
           </button>
-          {% if experiment.with_lucid_recruitment() %}
-          <button type="button" id="close-button" class="btn btn-primary btn-lg" style="float: right; display: none;" onclick="window.close();">
-            Close window
-          </button>
-          {% endif %}
         </p>
       </div>
     </div>
@@ -45,6 +53,25 @@
 {% block scripts %}
     {{ super() }}
     <script>
+        {% if experiment.with_lucid_recruitment %}
+        terminate = function() {
+            $("#terminate").prop('disabled', true);
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const rid = urlParams.get('RID')
+
+            postData = {};
+            postData["auth_token"] = "{{ auth_token }}";
+            postData["rid"] = rid;
+
+            $.post("/terminate_participant", postData, function(response) {
+                $("#consent").prop("disabled", true);
+                window.close();
+            });
+
+        }
+        {% endif %}
+
         start = function() {
             {% if experiment.var.show_abort_button %}
             if (window.opener !== null) {

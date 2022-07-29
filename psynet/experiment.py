@@ -1035,6 +1035,22 @@ class Experiment(dallinger.experiment.Experiment):
         db.session.commit()
         return success_response()
 
+    @experiment_route("/terminate_participant", methods=["POST"])
+    @classmethod
+    def terminate_participant(cls):
+        rid = request.values.get("rid")
+        exp = cls.new(db.session)
+
+        try:
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+            if hasattr(recruiter, "terminate_participant"):
+                recruiter.terminate_participant(rid)
+        except Exception as e:
+            logger.error(f"Error terminating respondent with RID '{rid}': {e}")
+
+        return success_response()
+
     @experiment_route("/check_participant_termination", methods=["POST"])
     @classmethod
     def check_participant_termination(cls):
