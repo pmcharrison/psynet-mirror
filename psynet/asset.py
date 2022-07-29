@@ -1091,9 +1091,15 @@ class LocalStorage(AssetStorage):
         """
         super().__init__()
         self.root = os.path.expanduser(root)
+        self.create_root()
         self.label = label
         self.public_path = self.create_public_path()
         self.create_symlink()
+
+    def create_root(self):
+        from pathlib import Path
+
+        Path(self.root).mkdir(parents=True, exist_ok=True)
 
     def create_public_path(self):
         """
