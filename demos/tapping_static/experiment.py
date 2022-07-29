@@ -335,6 +335,8 @@ music_tapping = join(
 
 # Experiment
 class Exp(psynet.experiment.Experiment):
+    label = "Tapping (static) demo"
+
     timeline = Timeline(
         NoConsent(),
         PreDeployRoutine(

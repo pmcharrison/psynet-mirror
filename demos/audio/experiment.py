@@ -391,6 +391,8 @@ example_record_audio_video = join(
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Audio demo"
+
     variables = {
         "wage_per_hour": 12.0,
     }

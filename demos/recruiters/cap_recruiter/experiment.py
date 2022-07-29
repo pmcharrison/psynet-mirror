@@ -22,6 +22,7 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "CAP recruiter demo"
 
     timeline = Timeline(
         MainConsent(),

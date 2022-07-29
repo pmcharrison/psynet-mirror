@@ -16,6 +16,8 @@ from psynet.timeline import Timeline
 
 
 class Exp(psynet.experiment.Experiment):
+    label = "Language tests demo"
+
     timeline = Timeline(
         NoConsent(),
         LexTaleTest(  # Prescreen1: Lextale test for English proficiency

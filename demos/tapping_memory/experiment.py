@@ -208,6 +208,8 @@ class CustomSource(AudioImitationChainSource):
 
 # Timeline
 class Exp(psynet.experiment.Experiment):
+    label = "Tapping (memory) demo"
+
     timeline = Timeline(
         NoConsent(),
         REPPTappingCalibration(),  # calibrate tapping

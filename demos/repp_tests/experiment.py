@@ -18,6 +18,8 @@ from psynet.timeline import PreDeployRoutine, Timeline
 
 # Experiment
 class Exp(psynet.experiment.Experiment):
+    label = "REPP tests demo"
+
     timeline = Timeline(
         NoConsent(),
         PreDeployRoutine(

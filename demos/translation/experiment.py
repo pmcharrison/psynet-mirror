@@ -35,6 +35,8 @@ lang.install()  # install _() function
 
 
 class Exp(psynet.experiment.Experiment):
+    label = "Translation demo"
+
     timeline = Timeline(
         NoConsent(),
         InfoPage(_("Welcome to the translation demo!"), time_estimate=2),

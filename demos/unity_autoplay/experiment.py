@@ -135,6 +135,8 @@ trial_maker = GameTrialMaker(
 
 # Experiment
 class Exp(psynet.experiment.Experiment):
+    label = "Unity autoplay demo"
+
     timeline = Timeline(
         MainConsent(),
         trial_maker,  # The Unity game

@@ -37,6 +37,8 @@ from psynet.timeline import MediaSpec, Timeline
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Graphics demo"
+
     timeline = Timeline(
         NoConsent(),
         InfoPage(

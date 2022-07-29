@@ -59,6 +59,8 @@ def check_continue():
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Custom table (simple) demo"
+
     timeline = Timeline(
         NoConsent(),
         CodeBlock(lambda participant: participant.var.set("collecting_coins", "Yes")),

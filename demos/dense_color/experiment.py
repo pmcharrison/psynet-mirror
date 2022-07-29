@@ -72,6 +72,8 @@ class CustomTrial(SingleStimulusTrial):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Dense color demo"
+
     def __init__(self, session=None):
         super().__init__(session)
         self.initial_recruitment_size = 1

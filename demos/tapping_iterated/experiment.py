@@ -213,6 +213,8 @@ class CustomSource(AudioImitationChainSource):
 
 # Timeline
 class Exp(psynet.experiment.Experiment):
+    label = "Iterated tapping demo"
+
     timeline = Timeline(
         NoConsent(),
         PreDeployRoutine(

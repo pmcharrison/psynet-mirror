@@ -61,6 +61,8 @@ class CustomTrial(StaticTrial):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Audio stimulus set from directory demo"
+
     timeline = Timeline(
         NoConsent(),
         InfoPage("We begin with the practice trials.", time_estimate=5),
