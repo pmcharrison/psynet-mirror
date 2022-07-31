@@ -32,7 +32,7 @@ from .timeline import (
     join,
 )
 from .trial.audio import AudioRecordTrial
-from .trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
+from .trial.static import StaticTrial, StaticTrialMaker, Stimulus
 
 
 class VolumeTestControlMusic(AudioMeterControl):
@@ -279,9 +279,8 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 ),
             ),
             AudioRecordControl(
+                label="free_tapping_record",
                 duration=self.definition["duration_rec_sec"],
-                s3_bucket="markers-check-recordings",
-                public_read=True,
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
@@ -438,7 +437,6 @@ class FreeTappingRecordTest(Module):
                 ),
                 AudioRecordControl(
                     duration=7.0,
-                    s3_bucket="markers-check-recordings",
                     show_meter=True,
                     public_read=True,
                     controls=False,
@@ -503,7 +501,7 @@ class FreeTappingRecordTest(Module):
             id_="free_tapping_record_trialmaker",
             trial_class=self.trial_class,
             phase="screening",
-            stimulus_set=self.get_stimulus_set(duration_rec_sec, min_num_detected_taps),
+            stimuli=self.get_stimulus_set(duration_rec_sec, min_num_detected_taps),
             num_repeat_trials=num_repeat_trials,
             fail_trials_on_premature_exit=False,
             fail_trials_on_participant_performance_check=False,
@@ -513,19 +511,15 @@ class FreeTappingRecordTest(Module):
     trial_class = FreeTappingRecordTrial
 
     def get_stimulus_set(self, duration_rec_sec: float, min_num_detected_taps: int):
-        return StimulusSet(
-            "silence_wav",
-            [
-                StimulusSpec(
-                    definition={
-                        "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
-                        "duration_rec_sec": duration_rec_sec,
-                        "min_num_detected_taps": min_num_detected_taps,
-                    },
-                    phase="screening",
-                )
-            ],
-        )
+        return [
+            Stimulus(
+                definition={
+                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                    "duration_rec_sec": duration_rec_sec,
+                    "min_num_detected_taps": min_num_detected_taps,
+                },
+            )
+        ]
 
 
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
@@ -545,9 +539,8 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 ),
             ),
             AudioRecordControl(
+                label="markers_test_trial",
                 duration=self.definition["duration_sec"],
-                s3_bucket="markers-check-recordings",
-                public_read=True,
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
@@ -711,38 +704,34 @@ class REPPMarkersTest(Module):
             id_="markers_test",
             trial_class=self.trial_class,
             phase="screening",
-            stimulus_set=self.get_stimulus_set(media_url, audio_filenames),
+            stimuli=self.get_stimulus_set(media_url, audio_filenames),
             check_performance_at_end=True,
         )
 
     trial_class = RecordMarkersTrial
 
     def get_stimulus_set(self, media_url: str, audio_filenames: list):
-        return StimulusSet(
-            "markers_test",
-            [
-                StimulusSpec(
-                    definition={
-                        "stim_name": name,
-                        "markers_onsets": [
-                            2000.0,
-                            2280.0,
-                            2510.0,
-                            8550.022675736962,
-                            8830.022675736962,
-                            9060.022675736962,
-                        ],
-                        "stim_shifted_onsets": [4500.0, 5000.0, 5500.0],
-                        "onset_is_played": [True, True, True],
-                        "duration_sec": 12,
-                        "url_audio": f"{media_url}/{name}",
-                        "correct_answer": 6,
-                    },
-                    phase="screening",
-                )
-                for name in audio_filenames
-            ],
-        )
+        return [
+            Stimulus(
+                definition={
+                    "stim_name": name,
+                    "markers_onsets": [
+                        2000.0,
+                        2280.0,
+                        2510.0,
+                        8550.022675736962,
+                        8830.022675736962,
+                        9060.022675736962,
+                    ],
+                    "stim_shifted_onsets": [4500.0, 5000.0, 5500.0],
+                    "onset_is_played": [True, True, True],
+                    "duration_sec": 12,
+                    "url_audio": f"{media_url}/{name}",
+                    "correct_answer": 6,
+                },
+            )
+            for name in audio_filenames
+        ]
 
 
 class LanguageVocabularyTest(Module):
@@ -852,7 +841,7 @@ class LanguageVocabularyTest(Module):
             id_="language_vocabulary",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(media_url, language_code, words),
+            stimuli=self.get_stimulus_set(media_url, language_code, words),
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -904,21 +893,17 @@ class LanguageVocabularyTest(Module):
         return LanguageVocabularyTrial
 
     def get_stimulus_set(self, media_url: str, language_code: str, words: list):
-        return StimulusSet(
-            "language_vocabulary",
-            [
-                StimulusSpec(
-                    definition={
-                        "name": name,
-                        "url_audio": f"{media_url}/recordings/{language_code}/{name}.wav",
-                        "url_image_folder": f"{media_url}/images/{name}",
-                        "media_url": f"{media_url}",
-                    },
-                    phase="screening",
-                )
-                for name in words
-            ],
-        )
+        return [
+            Stimulus(
+                definition={
+                    "name": name,
+                    "url_audio": f"{media_url}/recordings/{language_code}/{name}.wav",
+                    "url_image_folder": f"{media_url}/images/{name}",
+                    "media_url": f"{media_url}",
+                },
+            )
+            for name in words
+        ]
 
 
 class LexTaleTest(Module):
@@ -1011,7 +996,7 @@ class LexTaleTest(Module):
             id_="lextale",
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(media_url),
+            stimuli=self.get_stimulus_set(media_url),
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -1044,33 +1029,29 @@ class LexTaleTest(Module):
         return LextaleTrial
 
     def get_stimulus_set(self, media_url: str):
-        return StimulusSet(
-            "lextale",
-            [
-                StimulusSpec(
-                    definition={
-                        "label": label,
-                        "correct_answer": correct_answer,
-                        "url": f"{media_url}/lextale-{label}.png",
-                    },
-                    phase="screening",
-                )
-                for label, correct_answer in [
-                    ("1", "yes"),
-                    ("2", "yes"),
-                    ("3", "yes"),
-                    ("4", "yes"),
-                    ("5", "yes"),
-                    ("6", "yes"),
-                    ("7", "yes"),
-                    ("8", "no"),
-                    ("9", "no"),
-                    ("10", "no"),
-                    ("11", "no"),
-                    ("12", "no"),
-                ]
-            ],
-        )
+        return [
+            Stimulus(
+                definition={
+                    "label": label,
+                    "correct_answer": correct_answer,
+                    "url": f"{media_url}/lextale-{label}.png",
+                },
+            )
+            for label, correct_answer in [
+                ("1", "yes"),
+                ("2", "yes"),
+                ("3", "yes"),
+                ("4", "yes"),
+                ("5", "yes"),
+                ("6", "yes"),
+                ("7", "yes"),
+                ("8", "no"),
+                ("9", "no"),
+                ("10", "no"),
+                ("11", "no"),
+                ("12", "no"),
+            ]
+        ]
 
 
 class AttentionTest(Module):
@@ -1295,7 +1276,7 @@ class ColorBlindnessTest(Module):
             id_="color_blindness",
             trial_class=self.trial(time_estimate_per_trial, hide_after),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(media_url),
+            stimuli=self.get_stimulus_set(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1323,27 +1304,23 @@ class ColorBlindnessTest(Module):
         return ColorBlindnessTrial
 
     def get_stimulus_set(self, media_url: str):
-        return StimulusSet(
-            "color_blindness",
-            [
-                StimulusSpec(
-                    definition={
-                        "label": label,
-                        "correct_answer": answer,
-                        "url": f"{media_url}/ishihara-{label}.jpg",
-                    },
-                    phase="screening",
-                )
-                for label, answer in [
-                    ("1", "12"),
-                    ("2", "8"),
-                    ("3", "29"),
-                    ("4", "5"),
-                    ("5", "3"),
-                    ("6", "15"),
-                ]
-            ],
-        )
+        return [
+            Stimulus(
+                definition={
+                    "label": label,
+                    "correct_answer": answer,
+                    "url": f"{media_url}/ishihara-{label}.jpg",
+                },
+            )
+            for label, answer in [
+                ("1", "12"),
+                ("2", "8"),
+                ("3", "29"),
+                ("4", "5"),
+                ("5", "3"),
+                ("6", "15"),
+            ]
+        ]
 
 
 class ColorVocabularyTest(Module):
@@ -1429,7 +1406,7 @@ class ColorVocabularyTest(Module):
             id_="color_vocabulary",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(colors),
+            stimuli=self.get_stimulus_set(colors),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1467,8 +1444,8 @@ class ColorVocabularyTest(Module):
                 "choices": choices,
                 "correct_answer": correct_answer,
             }
-            stimuli.append(StimulusSpec(definition=definition, phase="screening"))
-        return StimulusSet("color_vocabulary", stimuli)
+            stimuli.append(Stimulus(definition=definition))
+        return stimuli
 
 
 class HeadphoneTest(Module):
@@ -1541,7 +1518,7 @@ class HeadphoneTest(Module):
             id_="headphone_test_trials",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(media_url),
+            stimuli=self.get_stimulus_set(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1568,27 +1545,23 @@ class HeadphoneTest(Module):
         return HeadphoneTrial
 
     def get_stimulus_set(self, media_url: str):
-        return StimulusSet(
-            "headphone_test",
-            [
-                StimulusSpec(
-                    definition={
-                        "label": label,
-                        "correct_answer": answer,
-                        "url": f"{media_url}/antiphase_HC_{label}.wav",
-                    },
-                    phase="screening",
-                )
-                for label, answer in [
-                    ("ISO", "2"),
-                    ("IOS", "3"),
-                    ("SOI", "1"),
-                    ("SIO", "1"),
-                    ("OSI", "2"),
-                    ("OIS", "3"),
-                ]
-            ],
-        )
+        return [
+            Stimulus(
+                definition={
+                    "label": label,
+                    "correct_answer": answer,
+                    "url": f"{media_url}/antiphase_HC_{label}.wav",
+                },
+            )
+            for label, answer in [
+                ("ISO", "2"),
+                ("IOS", "3"),
+                ("SOI", "1"),
+                ("SIO", "1"),
+                ("OSI", "2"),
+                ("OIS", "3"),
+            ]
+        ]
 
 
 class AudioForcedChoiceTest(Module):
@@ -1736,7 +1709,7 @@ class AudioForcedChoiceTest(Module):
             id_=self.label + "_trials",
             trial_class=self.trial(time_estimate_per_trial),
             phase="screening",
-            stimulus_set=self.get_stimulus_set(),
+            stimuli=self.get_stimulus_set(),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1766,13 +1739,9 @@ class AudioForcedChoiceTest(Module):
         elif self.specific_stimuli is not None:
             self.stimuli = [self.stimuli[i] for i in self.specific_stimuli]
 
-        return StimulusSet(
-            "audio_forced_choice_test",
-            [
-                StimulusSpec(
-                    definition=stimulus,
-                    phase="screening",
-                )
-                for stimulus in self.stimuli
-            ],
-        )
+        return [
+            Stimulus(
+                definition=stimulus,
+            )
+            for stimulus in self.stimuli
+        ]

@@ -313,3 +313,14 @@ def debug_experiment(request, env, clear_workers):
             # Better to call it both before and after.
         except IOError:
             pass
+
+
+@pytest.fixture
+def deployment_id():
+    from psynet.experiment import Experiment
+
+    id_ = "Test deployment"
+    old_id = Experiment.deployment_id
+    Experiment.deployment_id = id_
+    yield id_
+    Experiment.deployment_id = old_id

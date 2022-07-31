@@ -906,7 +906,10 @@ class StaticTrialMaker(NetworkTrialMaker):
         networks = StaticNetwork.query.filter_by(
             trial_maker_id=self.id,
             participant_group=participant.get_participant_group(self.id),
-            phase=self.phase,
+            # We used to filter by phase but now we are deprecating phase,
+            # as all necessary information is provided by the trialmaker.
+            #
+            # phase=self.phase,
         ).filter(StaticNetwork.block.in_(block_order))
         if not ignore_async_processes:
             networks = networks.filter_by(awaiting_async_process=False)

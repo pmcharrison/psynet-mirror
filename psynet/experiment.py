@@ -86,7 +86,7 @@ def json_serial(obj):
 
 class ExperimentMeta(type):
     def __init__(cls, name, bases, dct):
-        cls.assets = AssetRegistry(asset_storage=cls.asset_storage)
+        cls.assets = AssetRegistry(storage=cls.asset_storage)
 
 
 class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):

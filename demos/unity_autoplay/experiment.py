@@ -6,7 +6,7 @@ from psynet.consent import MainConsent
 from psynet.page import InfoPage, SuccessfulEndPage, UnityPage
 from psynet.participant import Participant
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
+from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus, StimulusSet
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -23,7 +23,7 @@ SAME_SESSION_ID = "0"
 stimulus_set = StimulusSet(
     "game",
     [
-        StimulusSpec(
+        Stimulus(
             definition={"mGame": 1, "rule": mType},
             phase="experiment",
             participant_group=mType,

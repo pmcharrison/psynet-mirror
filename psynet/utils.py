@@ -606,7 +606,7 @@ def get_extension(path):
             _, extension = os.path.splitext(path)
             return extension
         else:
-            return None
+            return ""
     except Exception:
         import pydevd_pycharm
 
@@ -694,6 +694,27 @@ def make_parents(path):
     """
     Path(os.path.dirname(path)).mkdir(parents=True, exist_ok=True)
     return path
+
+
+def bytes_to_megabytes(bytes):
+    return bytes / (1024 * 1024)
+
+
+def get_file_size_mb(path):
+    try:
+        bytes = os.path.getsize(path)
+    except Exception:
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
+    return bytes_to_megabytes(bytes)
+
+
+def get_folder_size_mb(path):
+    bytes = sum(entry.stat().st_size for entry in os.scandir(path))
+    return bytes_to_megabytes(bytes)
 
 
 # def run_async_command_locally(fun, *args, **kwargs):

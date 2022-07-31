@@ -1,4 +1,5 @@
 import pytest
+from dallinger import db
 
 import psynet.field  # noqa
 from psynet.serialize import serialize, unserialize
@@ -18,6 +19,21 @@ class Test:
             == '{"py/function": "psynet.trial.main.Trial.call_async_post_trial"}'
         )
         assert unserialize(f_serialized) == f
+
+    def test_psynet_method_2(self):
+        from dallinger.models import Network
+
+        network = Network()
+        db.session.add(network)
+        db.session.commit()
+
+        net_serialized = serialize(network)
+        assert (
+            net_serialized
+            == '{"py/object": "dallinger.models.Network", "identifiers": {"id": 4}}'
+        )
+        network_2 = unserialize(net_serialized)
+        assert network_2.id == network.id
 
     # def test_custom_sql_classes(self, trial, node, network, participant):
     #     unserialize('{"py/function": "dallinger_experiment.test.my_add"}')

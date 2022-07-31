@@ -2136,6 +2136,8 @@ class AudioRecordControl(RecordControl):
         audio = blobs["audioRecording"]
         trial = kwargs["trial"]
 
+        # Need to leave file deletion to the depositing process
+        # if we're going to run it asynchronously
         with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
             audio.save(tmp_file.name)
 
@@ -2144,7 +2146,6 @@ class AudioRecordControl(RecordControl):
             asset = Recording(
                 label=self.label,
                 input_path=tmp_file.name,
-                data_type="file",
                 extension=self.file_extension,
                 trial=trial,
                 variables=dict(),
@@ -2282,7 +2283,6 @@ class VideoRecordControl(RecordControl):
                 asset = Recording(
                     label=label,
                     input_path=tmp_file.name,
-                    data_type="file",
                     extension=self.file_extension,
                     trial=trial,
                     variables=dict(),

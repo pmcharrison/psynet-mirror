@@ -8,7 +8,6 @@ import urllib
 import urllib.request
 import uuid
 from functools import cache, cached_property
-from pathlib import Path
 from typing import Optional
 
 import boto3
@@ -30,6 +29,8 @@ from .timeline import NullElt
 from .utils import (
     cached_class_property,
     get_extension,
+    get_file_size_mb,
+    get_folder_size_mb,
     get_function_args,
     get_logger,
     get_trial_maker,
@@ -40,32 +41,6 @@ from .utils import (
 )
 
 logger = get_logger()
-
-
-class DataType:
-    @classmethod
-    def get_file_size_mb(cls, path):
-        return cls.get_file_size_bytes(path) / (1024 * 1024)
-
-    @classmethod
-    def get_file_size_bytes(cls, path):
-        raise NotImplementedError
-
-
-class File(DataType):
-    @classmethod
-    def get_file_size_bytes(cls, path):
-        return os.path.getsize(path)
-
-
-class Folder(DataType):
-    @classmethod
-    def get_file_size_bytes(cls, path):
-        return sum(entry.stat().st_size for entry in os.scandir(path))
-
-
-class Audio(File):
-    pass
 
 
 class AssetSpecification:
@@ -140,6 +115,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     content_id = Column(String)
     host_path = Column(String)
     url = Column(String)
+    is_folder = Column(Boolean)
     data_type = Column(String)
     extension = Column(String)
     storage = Column(PythonObject)
@@ -182,7 +158,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self,
         key=None,
         label=None,
-        data_type="file",
+        is_folder=False,
+        data_type=None,
         extension=None,
         trial=None,
         participant=None,
@@ -198,9 +175,14 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
         self.psynet_version = psynet_version
         self.replace_existing = replace_existing
-        self.data_type = data_type
-        self._data_type = self.data_types[data_type]
+        self.is_folder = is_folder
+
         self.extension = extension if extension else self.get_extension()
+
+        if data_type is None:
+            data_type = self.infer_data_type()
+
+        self.data_type = data_type
 
         self.participant = participant
         if participant:
@@ -223,6 +205,14 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
         self.set_variables(variables)
         self.personal = personal
+
+    def infer_data_type(self):
+        if self.extension in ["wav", "mp3"]:
+            return "audio"
+        elif self.extension in ["mp4", "avi"]:
+            return "video"
+        else:
+            return None
 
     def set_trial_maker_id(self):
         for obj in [self.trial, self.node, self.network]:
@@ -254,16 +244,11 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         if self.network is not None:
             self.trial_maker_id = self.network.trial_maker_id
 
-    data_types = dict(
-        file=File,
-        folder=Folder,
-        audio=Audio,
-    )
-
     @property
     def identifiers(self):
         attr = [
             "key",
+            "is_folder",
             "data_type",
             "extension",
             "participant_id",
@@ -434,10 +419,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             log(f"Failed to export the asset {self.key} to path {path}.")
             raise
 
-    def export_subfile(self, path, subfile: str = ""):
-        assert self.data_type == "folder"
+    def export_subfile(self, subfile, path):
+        assert self.is_folder
         try:
-            self.storage.export(self, path, subfile)
+            self.storage.export_subfile(self, subfile, path)
         except Exception:
             from .command_line import log
 
@@ -446,9 +431,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             )
             raise
 
-    def export_subfolder(self, path, subfolder: str = ""):
+    def export_subfolder(self, subfolder, path):
         try:
-            self.storage.export(self, path, subfolder)
+            self.storage.export_subfolder(self, subfolder, path)
         except Exception:
             from .command_line import log
 
@@ -482,7 +467,8 @@ class ManagedAsset(Asset):
         self,
         label,
         input_path,
-        data_type="file",
+        is_folder=None,
+        data_type=None,
         extension=None,
         trial=None,
         participant=None,
@@ -497,10 +483,15 @@ class ManagedAsset(Asset):
         self.deposited = False
         self.input_path = input_path
         self.obfuscate = obfuscate
+
+        if is_folder is None:
+            is_folder = os.path.isdir(input_path)
         # self.autogenerate_key = key is None
+
         super().__init__(
             key=key,
             label=label,
+            is_folder=is_folder,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -516,11 +507,11 @@ class ManagedAsset(Asset):
         return self.get_md5_contents()
 
     def get_md5_contents(self):
-        self._get_md5_contents(self.input_path, self.data_type)
+        self._get_md5_contents(self.input_path, self.is_folder)
 
     @cache
-    def _get_md5_contents(self, path, data_type):
-        f = md5_directory if data_type == "folder" else md5_file
+    def _get_md5_contents(self, path, is_folder):
+        f = md5_directory if is_folder else md5_file
         return f(path)
 
     def get_extension(self):
@@ -539,27 +530,43 @@ class ManagedAsset(Asset):
         self.url = self.get_url(storage)
         self.storage.update_asset_metadata(self)
 
-        time_start = time.perf_counter()
-        self._deposit_(storage, self.host_path, async_, delete_input)
-        time_end = time.perf_counter()
+        if self._needs_depositing():
+            time_start = time.perf_counter()
 
-        self.size_mb = self.get_size_mb()
-        self.md5_contents = self.get_md5_contents()
-        self.deposit_time_sec = (
-            time_end - time_start
-        )  # Todo - update this - won't be correct for async deposits
+            self.prepare_input()
+
+            self.size_mb = self.get_size_mb()
+            self.md5_contents = self.get_md5_contents()
+
+            storage.receive_deposit(self, self.host_path, async_, delete_input)
+
+            time_end = time.perf_counter()
+
+            self.deposit_time_sec = time_end - time_start
+
+    def prepare_input(self):
+        pass
+
+    def _needs_depositing(self):
+        return True
+
+    def after_deposit(self):
+        pass
 
     def get_url(self, storage: "AssetStorage"):
         return storage.get_url(self.host_path)
 
     def delete_input(self):
-        if self.data_type == "folder":
+        if self.is_folder:
             shutil.rmtree(self.input_path)
         else:
             os.remove(self.input_path)
 
     def get_size_mb(self):
-        return self._data_type.get_file_size_mb(self.input_path)
+        if self.is_folder:
+            return get_folder_size_mb(self.input_path)
+        else:
+            return get_file_size_mb(self.input_path)
 
     def generate_key(self):
         dir_ = self.generate_dir()
@@ -602,13 +609,6 @@ class ManagedAsset(Asset):
 
 
 class ExperimentAsset(ManagedAsset):
-    def _deposit_(self, storage, host_path, async_, delete_input):
-        storage.receive_deposit(self, host_path, async_, delete_input)
-
-    def after_deposit(self):
-        # TODO - call this function once the asset has finished depositing
-        raise NotImplementedError
-
     def generate_host_path(self, deployment_id: str):
         obfuscated = self.obfuscate_key(self.key)
         return os.path.join("experiments", deployment_id, obfuscated)
@@ -616,7 +616,7 @@ class ExperimentAsset(ManagedAsset):
     def obfuscate_key(self, key):
         random = self.generate_uuid()
 
-        if self.data_type == "folder":
+        if self.is_folder:
             base = key
             extension = None
         else:
@@ -634,7 +634,7 @@ class ExperimentAsset(ManagedAsset):
         else:
             raise ValueError(f"Invalid value of obfuscate: {self.obfuscate}")
 
-        if self.data_type == "folder":
+        if self.is_folder:
             return base
         else:
             return base + extension
@@ -668,15 +668,12 @@ class CachedAsset(ManagedAsset):
             self.compute_hash(),
         )
 
-    def _deposit_(self, storage, host_path, async_, delete_input):
-        if storage.check_cache(host_path, data_type=self.type):
-            self.used_cache = True
-        else:
-            self.used_cache = False
-            self._deposit__(storage, host_path, async_, delete_input)
-
-    def _deposit__(self, storage, host_path, async_, delete_input):
-        storage.receive_deposit(self, host_path, async_, delete_input)
+    def _needs_depositing(self):
+        exists_in_cache = self.storage.check_cache(
+            self.host_path, is_folder=self.is_folder
+        )
+        self.used_cache = exists_in_cache
+        return not exists_in_cache
 
     def retrieve_contents(self):
         pass
@@ -707,7 +704,8 @@ class FunctionAssetMixin:
         function,
         key: Optional[str] = None,
         arguments: Optional[dict] = None,
-        data_type="file",
+        is_folder=False,
+        data_type=None,
         extension=None,
         trial=None,
         participant=None,
@@ -727,12 +725,13 @@ class FunctionAssetMixin:
         self.function = function
         self.arguments = arguments if arguments else {}
         self.temp_dir = None
-        input_path = None
+        self.input_path = None
         label = key
 
         super().__init__(
             label=label,
-            input_path=input_path,
+            input_path=self.input_path,
+            is_folder=is_folder,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -749,6 +748,24 @@ class FunctionAssetMixin:
     def __del__(self):
         if hasattr(self, "temp_dir") and self.temp_dir:
             self.temp_dir.cleanup()
+
+    def deposit(
+        self,
+        storage=None,
+        replace=None,
+        async_: bool = False,
+    ):
+        if self.is_folder:
+            self.input_path = tempfile.mkdtemp()
+        else:
+            self.input_path = tempfile.NamedTemporaryFile(delete=False).name
+
+        super().deposit(
+            storage,
+            replace,
+            async_,
+            delete_input=True,
+        )
 
     @property
     def instructions(self):
@@ -769,23 +786,13 @@ class FunctionAssetMixin:
         else:
             return super().get_size_mb()
 
-    def _deposit__(self, storage, host_path, async_, delete_input):
-        self.temp_dir = tempfile.TemporaryDirectory()
-        print(self.extension)
-        self.input_path = os.path.join(
-            self.temp_dir.name, "function-output" + self.extension
-        )
-
-        if self.data_type == "folder":
-            Path(self.input_path).mkdir(parents=True, exist_ok=True)
-
+    def prepare_input(self):
         time_start = time.perf_counter()
-        self.function(path=self.input_path, **self.arguments)
-        time_end = time.perf_counter()
 
-        self.md5_contents = self.get_md5_contents()
+        self.function(path=self.input_path, **self.arguments)
+
+        time_end = time.perf_counter()
         self.computation_time_sec = time_end - time_start
-        storage.receive_deposit(self, host_path, async_, delete_input)
 
     def receive_stimulus_definition(self, definition):
         super().receive_stimulus_definition(definition)
@@ -811,7 +818,8 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         function,
         key: Optional[str] = None,
         arguments: Optional[dict] = None,
-        data_type="file",
+        is_folder: bool = False,
+        data_type=None,
         extension=None,
         trial=None,
         participant=None,
@@ -826,6 +834,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             function=function,
             key=key,
             arguments=arguments,
+            is_folder=is_folder,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -843,27 +852,23 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     def default_storage(cls):  # noqa
         return NoStorage()
 
-    def _deposit_(self, storage, host_path, async_, delete_input):
-        pass
-
-    def _deposit__(self, storage, host_path, async_, delete_input):
-        # Don't create any files on depositing; files will be created on demand instead
-        pass
+    def _needs_depositing(self):
+        return False
 
     def export(self, path):
         self.function(path=path, **self.arguments)
 
-    def export_subfile(self, path, subfile: str = ""):
-        assert self.data_type == "folder"
+    def export_subfile(self, subfile, path):
+        assert self.is_folder
         with tempfile.TemporaryDirectory() as tempdir:
             self.export(tempdir)
             shutil.copyfile(tempdir + "/" + subfile, path)
 
-    def export_subfolder(self, path, subfile: str = ""):
-        assert self.data_type == "folder"
+    def export_subfolder(self, subfolder, path):
+        assert self.is_folder
         with tempfile.TemporaryDirectory() as tempdir:
             self.export(tempdir)
-            shutil.copytree(tempdir + "/" + subfile, path)
+            shutil.copytree(tempdir + "/" + subfolder, path)
 
     def get_url(self, storage: "AssetStorage"):
         key_encoded = urllib.parse.quote(self.key)
@@ -888,7 +893,8 @@ class ExternalAsset(Asset):
         self,
         key,
         url,
-        data_type="file",
+        is_folder=False,
+        data_type=None,
         extension=None,
         replace_existing=False,
         label=None,
@@ -905,6 +911,7 @@ class ExternalAsset(Asset):
         super().__init__(
             key=key,
             label=label,
+            is_folder=is_folder,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -949,7 +956,8 @@ class ExternalS3Asset(ExternalAsset):
         key,
         s3_bucket: str,
         s3_key: str,
-        data_type="file",
+        is_folder=False,
+        data_type=None,
         replace_existing=False,
         label=None,
         participant=None,
@@ -966,6 +974,7 @@ class ExternalS3Asset(ExternalAsset):
         super().__init__(
             key=key,
             url=url,
+            is_folder=is_folder,
             data_type=data_type,
             replace_existing=replace_existing,
             label=label,
@@ -1010,8 +1019,6 @@ class AssetStorage:
 
     def receive_deposit(self, asset, host_path: str, async_: bool, delete_input: bool):
         if async_:
-            db.session.add(asset)
-            db.session.commit()
             f = self._async__call_receive_deposit
         else:
             f = self._call_receive_deposit
@@ -1030,7 +1037,9 @@ class AssetStorage:
         asset = db.session.merge(asset)
 
         self._receive_deposit(asset, host_path)
+        asset.after_deposit()
         asset.deposited = True
+
         if db_commit:
             db.session.commit()
         if delete_input:
@@ -1041,12 +1050,13 @@ class AssetStorage:
     ):
         LocalAsyncProcess(
             self._call_receive_deposit,
-            dict(
+            arguments=dict(
                 asset=asset,
                 host_path=host_path,
                 delete_input=delete_input,
                 db_commit=True,
             ),
+            asset=asset,
         )
 
     def export(self, asset, path):
@@ -1058,7 +1068,7 @@ class AssetStorage:
     def get_url(self, host_path: str):
         raise NotImplementedError
 
-    def check_cache(self, host_path: str, data_type: str):
+    def check_cache(self, host_path: str, is_folder: bool):
         """
         Checks whether the registry can find an asset cached at ``host_path``.
         The implementation is permitted to make optimizations for speed
@@ -1077,16 +1087,16 @@ class AssetStorage:
 
 class WebStorage(AssetStorage):
     def export(self, asset, path):
-        if asset.data_type == "folder":
+        if asset.is_folder:
             self._folder_exporter(asset, path)
         else:
             self._file_exporter(asset, path)
 
-    def export_subfile(self, asset, path, subfile: str = ""):
+    def export_subfile(self, asset, subfile, path):
         url = asset.url + "/" + subfile
         self._download_file(url, path)
 
-    def export_subfolder(self, asset, path, subfolder: str = ""):
+    def export_subfolder(self, asset, subfolder, path):
         raise RuntimeError(
             "export_subfolder is not supported for ExternalAssets."
             "This is because the internet provides "
@@ -1181,7 +1191,11 @@ class LocalStorage(AssetStorage):
         file_system_path = self.get_file_system_path(host_path)
         os.makedirs(os.path.dirname(file_system_path), exist_ok=True)
 
-        self.copy_asset(asset, asset.input_path, file_system_path)
+        if asset.is_folder:
+            shutil.copytree(asset.input_path, file_system_path, dirs_exist_ok=True)
+        else:
+            shutil.copyfile(asset.input_path, file_system_path)
+
         asset.deposited = True
 
         # return dict(
@@ -1191,18 +1205,18 @@ class LocalStorage(AssetStorage):
     def export(self, asset, path):
         from_ = self.get_file_system_path(asset.host_path)
         to_ = path
-        if asset.data_type == "folder":
+        if asset.is_folder:
             shutil.copytree(from_, to_, dirs_exist_ok=True)
         else:
             shutil.copyfile(from_, to_)
 
-    def export_subfile(self, asset, path, subfile):
+    def export_subfile(self, asset, subfile, path):
         from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
         to_ = path
         shutil.copyfile(from_, to_)
 
-    def export_subdir(self, asset, path, subdir):
-        from_ = self.get_file_system_path(asset.host_path) + "/" + subdir
+    def export_subfolder(self, asset, subfolder, path):
+        from_ = self.get_file_system_path(asset.host_path) + "/" + subfolder
         to_ = path
         shutil.copytree(from_, to_, dirs_exist_ok=True)
 
@@ -1215,11 +1229,11 @@ class LocalStorage(AssetStorage):
     def get_url(self, host_path):
         return os.path.join(self.public_path, host_path)
 
-    def check_cache(self, host_path: str, data_type: str):
+    def check_cache(self, host_path: str, is_folder: bool):
         file_system_path = self.get_file_system_path(host_path)
         return os.path.exists(file_system_path) and (
-            (data_type == "folder" and os.path.isdir(file_system_path))
-            or (data_type != "folder" and os.path.isfile(file_system_path))
+            (is_folder and os.path.isdir(file_system_path))
+            or (not is_folder and os.path.isfile(file_system_path))
         )
 
 
@@ -1312,7 +1326,7 @@ class S3Storage(AssetStorage):
 
     def _receive_deposit(self, asset, host_path):
         target_path = os.path.join(self.root, host_path)
-        recursive = asset.data_type == "folder"
+        recursive = asset.is_folder
         self.upload(asset.input_path, target_path, recursive)
 
         # return dict(
@@ -1333,9 +1347,9 @@ class S3Storage(AssetStorage):
         return urllib.parse.quote_plus(s3_key, safe="/~()*!.'")
 
     # @create_bucket_if_necessary
-    def check_cache(self, host_path: str, data_type: str):
+    def check_cache(self, host_path: str, is_folder: bool):
         s3_key = os.path.join(self.root, host_path)
-        if data_type == "folder":
+        if is_folder:
             return self.check_cache_folder(s3_key)
         else:
             return self.check_cache_file(s3_key)
@@ -1392,17 +1406,17 @@ class S3Storage(AssetStorage):
 
     def export(self, asset, path):
         s3_key = self.get_s3_key(asset.host_path)
-        recursive = asset.data_type == "folder"
+        recursive = asset.is_folder
         self.download(s3_key, path, recursive=recursive)
 
-    def export_subfile(self, asset, path, subfile):
-        assert asset.data_type == "folder"
+    def export_subfile(self, asset, subfile, path):
+        assert asset.is_folder
         s3_key = self.get_s3_key(asset.host_path) + "/" + subfile
         self.download(s3_key, path, recursive=False)
 
-    def export_subdir(self, asset, path, subdir):
-        assert asset.data_type == "folder"
-        s3_key = self.get_s3_key(asset.host_path) + "/" + subdir
+    def export_subfolder(self, asset, subfolder, path):
+        assert asset.is_folder
+        s3_key = self.get_s3_key(asset.host_path) + "/" + subfolder
         self.download(s3_key, path, recursive=True)
 
     def download(self, s3_key, target_path, recursive):

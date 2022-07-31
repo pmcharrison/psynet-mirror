@@ -44,3 +44,7 @@ def read_all():
 def read(key):
     content = read_all()
     return content[key]
+
+
+def delete():
+    os.remove(path)

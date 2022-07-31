@@ -55,13 +55,17 @@ class PsyNetUnpickler(Unpickler):
     #     return super()._restore(obj)
 
     def _restore_object(self, obj):
-        if obj["py/object"].startswith("dallinger_experiment"):
-            cls = self.get_experiment_object(obj["py/object"])
-            if hasattr(cls, "_sa_registry"):
-                return self.load_sql_object(cls, obj)
-            else:
-                self.register_classes(cls)
-        return super()._restore_object(obj)
+        cls_id = obj["py/object"]
+        if cls_id.startswith("dallinger_experiment"):
+            cls = self.get_experiment_object(cls_id)
+        else:
+            cls = loadclass(cls_id)
+        is_sql_object = hasattr(cls, "_sa_registry")
+        if is_sql_object:
+            return self.load_sql_object(cls, obj)
+        else:
+            self.register_classes(cls)
+            return super()._restore_object(obj)
 
     def _restore_function(self, obj):
         if isinstance(obj, dict) and "py/function" in obj:
