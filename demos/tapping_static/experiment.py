@@ -180,7 +180,7 @@ class TapTrial(TapTrialAnalysis):
         return ModularPage(
             "trial_main_page",
             AudioPrompt(
-                self.stimulus.assets["stimulus"] + "/audio.wav",
+                self.stimulus.assets["stimulus"].url + "/audio.wav",
                 Markup(
                     f"""
                     <br><h3>Tap in time with the metronome.</h3>
@@ -302,8 +302,8 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        # REPPVolumeCalibrationMusic(),  # calibrate volume with music
-        # REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
+        REPPVolumeCalibrationMusic(),  # calibrate volume with music
+        REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(),  # calibrate tapping
         ISO_tapping,
         music_tapping,

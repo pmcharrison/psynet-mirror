@@ -516,7 +516,6 @@ class Control:
 
     def __init__(self, bot_response=NoArgumentProvided):
         self.page = None
-        self.label = None
         self._bot_response = bot_response
 
     @property
@@ -1310,9 +1309,6 @@ class ModularPage(Page):
             )
         self.control.page = self
 
-        if not self.control.label:
-            self.control.label = label
-
         template_str = f"""
         {{% extends "timeline-page.html" %}}
 
@@ -2025,9 +2021,6 @@ class RecordControl(Control):
     See :class:`~psynet.modular_page.AudioRecordControl`
     and :class:`~psynet.modular_page.VideoRecordControl`.
 
-    label
-        Label used to tag the uploaded recording.
-
     duration
         Duration of the desired recording, in seconds.
         Note: the output recording may not be exactly this length, owing to inaccuracies
@@ -2054,14 +2047,12 @@ class RecordControl(Control):
 
     def __init__(
         self,
-        label: str,
         duration: float,
         auto_advance: bool = False,
         show_meter: bool = False,
         bot_response=NoArgumentProvided,
     ):
         super().__init__(bot_response)
-        self.label = label
         self.duration = duration
         self.auto_advance = auto_advance
 
@@ -2090,9 +2081,6 @@ class AudioRecordControl(RecordControl):
     Parameters
     ----------
 
-    label
-        Label used to tag the uploaded recording.
-
     controls
         Whether to give the user controls for the recorder (default = ``False``).
 
@@ -2116,7 +2104,6 @@ class AudioRecordControl(RecordControl):
 
     def __init__(
         self,
-        label: str,
         *,
         controls: bool = False,
         loop_playback: bool = False,
@@ -2124,7 +2111,7 @@ class AudioRecordControl(RecordControl):
         personal=True,
         **kwargs,
     ):
-        super().__init__(label=label, **kwargs)
+        super().__init__(**kwargs)
 
         self.controls = controls
         self.loop_playback = loop_playback
@@ -2144,7 +2131,7 @@ class AudioRecordControl(RecordControl):
             from .trial.record import Recording
 
             asset = Recording(
-                label=self.label,
+                label=self.page.label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 trial=trial,
@@ -2184,9 +2171,6 @@ class VideoRecordControl(RecordControl):
     Parameters
     ----------
 
-    label
-        Label used to tag the uploaded recording.
-
     recording_source
         Specifies whether to record by using the camera and/or by capturing from the screen.
         Possible values are 'camera', 'screen' and 'both'.
@@ -2225,7 +2209,6 @@ class VideoRecordControl(RecordControl):
 
     def __init__(
         self,
-        label: str,
         *,
         recording_source: str = "camera",
         record_audio: bool = True,
@@ -2238,7 +2221,7 @@ class VideoRecordControl(RecordControl):
         personal: bool = True,
         **kwargs,
     ):
-        super().__init__(label=label, **kwargs)
+        super().__init__(**kwargs)
 
         self.recording_source = recording_source
         self.record_audio = record_audio
@@ -2276,7 +2259,7 @@ class VideoRecordControl(RecordControl):
 
                 from .trial.record import Recording
 
-                label = self.label
+                label = self.page.label
                 if len(self.recording_sources) > 1:
                     label += "_" + source
 
