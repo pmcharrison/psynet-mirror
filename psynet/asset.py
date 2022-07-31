@@ -8,6 +8,7 @@ import urllib
 import urllib.request
 import uuid
 from functools import cache, cached_property
+from pathlib import Path
 from typing import Optional
 
 import boto3
@@ -60,7 +61,7 @@ class File(DataType):
 class Folder(DataType):
     @classmethod
     def get_file_size_bytes(cls, path):
-        sum(entry.stat().st_size for entry in os.scandir(path))
+        return sum(entry.stat().st_size for entry in os.scandir(path))
 
 
 class Audio(File):
@@ -76,7 +77,7 @@ class AssetSpecification:
         self.key = key
         self.label = label
 
-    def prepare_for_deployment(self, asset_registry):
+    def prepare_for_deployment(self, registry):
         raise NotImplementedError
 
     null_key_pattern = re.compile("^pending--.*")
@@ -96,7 +97,7 @@ class InheritedAssets(AssetCollection):
 
         self.path = path
 
-    def prepare_for_deployment(self, asset_registry):
+    def prepare_for_deployment(self, registry):
         self.ingest_specification_to_db()
 
     def ingest_specification_to_db(self):
@@ -141,7 +142,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     url = Column(String)
     data_type = Column(String)
     extension = Column(String)
-    asset_storage = Column(PythonObject)
+    storage = Column(PythonObject)
     replace_existing = Column(Boolean)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
@@ -276,14 +277,14 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     def get_extension(self):
         raise NotImplementedError
 
-    def prepare_for_deployment(self, asset_registry):
+    def prepare_for_deployment(self, registry):
         """Runs in advance of the experiment being deployed to the remote server."""
-        self.deposit(self.default_asset_storage)
+        self.deposit(self.default_storage)
         db.session.commit()
 
     def deposit(
         self,
-        asset_storage=None,
+        storage=None,
         replace=None,
         async_: bool = False,
         delete_input: bool = False,
@@ -292,7 +293,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
         Parameters
         ----------
-        asset_storage
+        storage
         replace
         async_
 
@@ -307,11 +308,11 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
             if replace is None:
                 replace = self.replace_existing
 
-            if asset_storage is None:
-                asset_storage = self.default_asset_storage
-            self.asset_storage = asset_storage
+            if storage is None:
+                storage = self.default_storage
+            self.storage = storage
 
-            self.deployment_id = self.asset_registry.deployment_id
+            self.deployment_id = self.registry.deployment_id
             self.content_id = self.get_content_id()
 
             if not self.has_key:
@@ -335,7 +336,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
                 db.session.add(self)
                 db.session.commit()
 
-                self._deposit(self.asset_storage, async_, delete_input)
+                self._deposit(self.storage, async_, delete_input)
                 # if deposit_complete:
                 #     self.deposited = True
 
@@ -344,7 +345,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         finally:
             db.session.commit()
 
-    def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete_input: bool):
+    def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         """
         Performs the actual deposit, confident that no duplicates exist.
 
@@ -417,24 +418,43 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         return import_local_experiment()["class"]
 
     @cached_class_property
-    def asset_registry(cls):  # noqa
+    def registry(cls):  # noqa
         return cls.experiment_class.assets
 
     @cached_class_property
-    def default_asset_storage(cls):  # noqa
-        return cls.asset_registry.asset_storage
+    def default_storage(cls):  # noqa
+        return cls.registry.storage
 
     def export(self, path):
-        # db.session.merge(self)
-        # import psynet.experiment
-        # import_local_experiment()
-        # from psynet.trial.main import Trial
         try:
-            self.asset_storage.export(self, path)
+            self.storage.export(self, path)
         except Exception:
             from .command_line import log
 
             log(f"Failed to export the asset {self.key} to path {path}.")
+            raise
+
+    def export_subfile(self, path, subfile: str = ""):
+        assert self.data_type == "folder"
+        try:
+            self.storage.export(self, path, subfile)
+        except Exception:
+            from .command_line import log
+
+            log(
+                f"Failed to export the subfile {subfile} from asset {self.key} to path {path}."
+            )
+            raise
+
+    def export_subfolder(self, path, subfolder: str = ""):
+        try:
+            self.storage.export(self, path, subfolder)
+        except Exception:
+            from .command_line import log
+
+            log(
+                f"Failed to export the subfolder {subfolder} from asset {self.key} to path {path}."
+            )
             raise
 
     def receive_stimulus_definition(self, definition):
@@ -496,7 +516,7 @@ class ManagedAsset(Asset):
         return self.get_md5_contents()
 
     def get_md5_contents(self):
-        self._get_md5_contents(self.input_path, self.type)
+        self._get_md5_contents(self.input_path, self.data_type)
 
     @cache
     def _get_md5_contents(self, path, data_type):
@@ -506,8 +526,8 @@ class ManagedAsset(Asset):
     def get_extension(self):
         return get_extension(self.input_path)
 
-    def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete_input: bool):
-        if self.needs_storage_backend and isinstance(asset_storage, NoStorage):
+    def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
+        if self.needs_storage_backend and isinstance(storage, NoStorage):
             raise RuntimeError(
                 "Cannot perform this deposit without an asset storage backend. "
                 "Please add one to your experiment class, for example by writing "
@@ -516,11 +536,11 @@ class ManagedAsset(Asset):
             )
 
         self.host_path = self.generate_host_path(self.deployment_id)
-        self.url = self.get_url()
-        self.asset_storage.update_asset_metadata(self)
+        self.url = self.get_url(storage)
+        self.storage.update_asset_metadata(self)
 
         time_start = time.perf_counter()
-        self._deposit_(asset_storage, self.host_path, async_, delete_input)
+        self._deposit_(storage, self.host_path, async_, delete_input)
         time_end = time.perf_counter()
 
         self.size_mb = self.get_size_mb()
@@ -529,8 +549,8 @@ class ManagedAsset(Asset):
             time_end - time_start
         )  # Todo - update this - won't be correct for async deposits
 
-    def get_url(self):
-        return self.asset_registry.asset_storage.get_url(self.host_path)
+    def get_url(self, storage: "AssetStorage"):
+        return storage.get_url(self.host_path)
 
     def delete_input(self):
         if self.data_type == "folder":
@@ -582,8 +602,8 @@ class ManagedAsset(Asset):
 
 
 class ExperimentAsset(ManagedAsset):
-    def _deposit_(self, asset_storage, host_path, async_, delete_input):
-        asset_storage.receive_deposit(self, host_path, async_, delete_input)
+    def _deposit_(self, storage, host_path, async_, delete_input):
+        storage.receive_deposit(self, host_path, async_, delete_input)
 
     def after_deposit(self):
         # TODO - call this function once the asset has finished depositing
@@ -596,7 +616,7 @@ class ExperimentAsset(ManagedAsset):
     def obfuscate_key(self, key):
         random = self.generate_uuid()
 
-        if self.type == "folder":
+        if self.data_type == "folder":
             base = key
             extension = None
         else:
@@ -614,7 +634,7 @@ class ExperimentAsset(ManagedAsset):
         else:
             raise ValueError(f"Invalid value of obfuscate: {self.obfuscate}")
 
-        if self.type == "folder":
+        if self.data_type == "folder":
             return base
         else:
             return base + extension
@@ -648,15 +668,15 @@ class CachedAsset(ManagedAsset):
             self.compute_hash(),
         )
 
-    def _deposit_(self, asset_storage, host_path, async_, delete_input):
-        if asset_storage.check_cache(host_path, data_type=self.type):
+    def _deposit_(self, storage, host_path, async_, delete_input):
+        if storage.check_cache(host_path, data_type=self.type):
             self.used_cache = True
         else:
             self.used_cache = False
-            self._deposit__(asset_storage, host_path, async_, delete_input)
+            self._deposit__(storage, host_path, async_, delete_input)
 
-    def _deposit__(self, asset_storage, host_path, async_, delete_input):
-        asset_storage.receive_deposit(self, host_path, async_, delete_input)
+    def _deposit__(self, storage, host_path, async_, delete_input):
+        storage.receive_deposit(self, host_path, async_, delete_input)
 
     def retrieve_contents(self):
         pass
@@ -749,11 +769,15 @@ class FunctionAssetMixin:
         else:
             return super().get_size_mb()
 
-    def _deposit__(self, asset_storage, host_path, async_, delete_input):
+    def _deposit__(self, storage, host_path, async_, delete_input):
         self.temp_dir = tempfile.TemporaryDirectory()
+        print(self.extension)
         self.input_path = os.path.join(
             self.temp_dir.name, "function-output" + self.extension
         )
+
+        if self.data_type == "folder":
+            Path(self.input_path).mkdir(parents=True, exist_ok=True)
 
         time_start = time.perf_counter()
         self.function(path=self.input_path, **self.arguments)
@@ -761,7 +785,7 @@ class FunctionAssetMixin:
 
         self.md5_contents = self.get_md5_contents()
         self.computation_time_sec = time_end - time_start
-        asset_storage.receive_deposit(self, host_path, async_, delete_input)
+        storage.receive_deposit(self, host_path, async_, delete_input)
 
     def receive_stimulus_definition(self, definition):
         super().receive_stimulus_definition(definition)
@@ -816,20 +840,32 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         self.secret = uuid.uuid4()  # Used to protect unauthorized access
 
     @cached_class_property
-    def default_asset_storage(cls):  # noqa
+    def default_storage(cls):  # noqa
         return NoStorage()
 
-    def _deposit_(self, asset_storage, host_path, async_, delete_input):
+    def _deposit_(self, storage, host_path, async_, delete_input):
         pass
 
-    def _deposit__(self, asset_storage, host_path, async_, delete_input):
+    def _deposit__(self, storage, host_path, async_, delete_input):
         # Don't create any files on depositing; files will be created on demand instead
         pass
 
     def export(self, path):
         self.function(path=path, **self.arguments)
 
-    def get_url(self):
+    def export_subfile(self, path, subfile: str = ""):
+        assert self.data_type == "folder"
+        with tempfile.TemporaryDirectory() as tempdir:
+            self.export(tempdir)
+            shutil.copyfile(tempdir + "/" + subfile, path)
+
+    def export_subfolder(self, path, subfile: str = ""):
+        assert self.data_type == "folder"
+        with tempfile.TemporaryDirectory() as tempdir:
+            self.export(tempdir)
+            shutil.copytree(tempdir + "/" + subfile, path)
+
+    def get_url(self, storage: "AssetStorage"):
         key_encoded = urllib.parse.quote(self.key)
         secret = self.secret
         return f"/fast-function-asset?key={key_encoded}&secret={secret}"
@@ -883,7 +919,7 @@ class ExternalAsset(Asset):
     def get_extension(self):
         return get_extension(self.url)
 
-    def _deposit(self, asset_storage: "AssetStorage", async_: bool, delete_input: bool):
+    def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         pass
 
     @property
@@ -897,7 +933,7 @@ class ExternalAsset(Asset):
         return self.url
 
     @cached_class_property
-    def default_asset_storage(cls):  # noqa
+    def default_storage(cls):  # noqa
         return WebStorage()
 
     def delete_input(self):
@@ -953,7 +989,7 @@ class ExternalS3Asset(ExternalAsset):
         }
 
     @cached_property
-    def default_asset_storage(self):  # noqa
+    def default_storage(self):  # noqa
         return S3Storage(self.s3_bucket, root="")
 
     def delete_input(self):
@@ -1041,12 +1077,25 @@ class AssetStorage:
 
 class WebStorage(AssetStorage):
     def export(self, asset, path):
-        if asset.type == "folder":
-            self.export_folder(asset, path)
+        if asset.data_type == "folder":
+            self._folder_exporter(asset, path)
         else:
-            self.export_file(asset, path)
+            self._file_exporter(asset, path)
 
-    def export_folder(self, asset, path):
+    def export_subfile(self, asset, path, subfile: str = ""):
+        url = asset.url + "/" + subfile
+        self._download_file(url, path)
+
+    def export_subfolder(self, asset, path, subfolder: str = ""):
+        raise RuntimeError(
+            "export_subfolder is not supported for ExternalAssets."
+            "This is because the internet provides "
+            "no standard way to list the contents of a folder hosted "
+            "on an arbitrary web server. You can avoid this issue in future"
+            "by listing each asset as a separate file."
+        )
+
+    def _folder_exporter(self, asset, path):
         with open(path, "w") as f:
             f.write(
                 "It is not possible to automatically export ExternalAssets "
@@ -1056,7 +1105,7 @@ class WebStorage(AssetStorage):
                 "future by listing each asset as a separate file."
             )
 
-    def export_file(self, asset, path):
+    def _file_exporter(self, asset, path):
         try:
             r = requests.get(asset.url)
             with open(path, "wb") as file:
@@ -1139,16 +1188,23 @@ class LocalStorage(AssetStorage):
         #     url=os.path.abspath(file_system_path),
         # )
 
-    def copy_asset(self, asset, from_, to_):
-        if asset.type == "folder":
+    def export(self, asset, path):
+        from_ = self.get_file_system_path(asset.host_path)
+        to_ = path
+        if asset.data_type == "folder":
             shutil.copytree(from_, to_, dirs_exist_ok=True)
         else:
             shutil.copyfile(from_, to_)
 
-    def export(self, asset, path):
-        from_ = self.get_file_system_path(asset.host_path)
+    def export_subfile(self, asset, path, subfile):
+        from_ = self.get_file_system_path(asset.host_path) + "/" + subfile
         to_ = path
-        self.copy_asset(asset, from_, to_)
+        shutil.copyfile(from_, to_)
+
+    def export_subdir(self, asset, path, subdir):
+        from_ = self.get_file_system_path(asset.host_path) + "/" + subdir
+        to_ = path
+        shutil.copytree(from_, to_, dirs_exist_ok=True)
 
     def get_file_system_path(self, host_path):
         if host_path:
@@ -1256,7 +1312,7 @@ class S3Storage(AssetStorage):
 
     def _receive_deposit(self, asset, host_path):
         target_path = os.path.join(self.root, host_path)
-        recursive = asset.type == "folder"
+        recursive = asset.data_type == "folder"
         self.upload(asset.input_path, target_path, recursive)
 
         # return dict(
@@ -1336,8 +1392,18 @@ class S3Storage(AssetStorage):
 
     def export(self, asset, path):
         s3_key = self.get_s3_key(asset.host_path)
-        recursive = asset.type == "folder"
+        recursive = asset.data_type == "folder"
         self.download(s3_key, path, recursive=recursive)
+
+    def export_subfile(self, asset, path, subfile):
+        assert asset.data_type == "folder"
+        s3_key = self.get_s3_key(asset.host_path) + "/" + subfile
+        self.download(s3_key, path, recursive=False)
+
+    def export_subdir(self, asset, path, subdir):
+        assert asset.data_type == "folder"
+        s3_key = self.get_s3_key(asset.host_path) + "/" + subdir
+        self.download(s3_key, path, recursive=True)
 
     def download(self, s3_key, target_path, recursive):
         """
@@ -1380,8 +1446,8 @@ class S3Storage(AssetStorage):
 class AssetRegistry:
     initial_asset_manifesto_path = "pre_deployed_assets.csv"
 
-    def __init__(self, asset_storage: AssetStorage, n_parallel=None):
-        self.asset_storage = asset_storage
+    def __init__(self, storage: AssetStorage, n_parallel=None):
+        self.storage = storage
         self.n_parallel = n_parallel
         self._staged_asset_specifications = []
         self._staged_asset_lookup_table = {}
@@ -1392,7 +1458,7 @@ class AssetRegistry:
 
     @property
     def deployment_id(self):
-        return self.asset_storage.deployment_id
+        return self.storage.deployment_id
 
     def stage(self, *args):
         for asset in [*args]:
@@ -1406,9 +1472,7 @@ class AssetRegistry:
     def receive_deposit(
         self, asset: Asset, host_path: str, async_: bool, delete_input: bool
     ):
-        return self.asset_storage.receive_deposit(
-            asset, host_path, async_, delete_input
-        )
+        return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
     def get(self, key):
         # When the experiment is running then we can get the assets from the database.
@@ -1429,7 +1493,7 @@ class AssetRegistry:
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()
-        self.asset_storage.prepare_for_deployment()
+        self.storage.prepare_for_deployment()
 
     def prepare_assets_for_deployment(self):
         if self.n_parallel:
@@ -1447,7 +1511,7 @@ class AssetRegistry:
             backend="threading",
             # backend="multiprocessing",  # Slow compared to threading
         )(
-            delayed(lambda a: a.prepare_for_deployment(asset_registry=self))(a)
+            delayed(lambda a: a.prepare_for_deployment(registry=self))(a)
             for a in self._staged_asset_specifications
         )
         # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
