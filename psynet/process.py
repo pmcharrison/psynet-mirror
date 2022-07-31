@@ -167,7 +167,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         """
         db.session.refresh(self)
         candidates = [self.trial, self.node]
-        return [[obj] for obj in candidates if obj is not None]
+        return [[lambda: obj] for obj in candidates if obj is not None]
 
     def launch(self):
         raise NotImplementedError

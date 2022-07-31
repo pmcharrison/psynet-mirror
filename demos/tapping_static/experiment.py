@@ -1,6 +1,7 @@
 # non_adapting tapping demo with isochronus tapping and beat synchronization to music
 import json
 import os
+import tempfile
 
 import numpy as np
 from flask import Markup
@@ -146,11 +147,11 @@ stimulus_music_set = StimulusSet("music_tapping", stimulus_music)
 # Experiment parts
 class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
     def get_info(self):
-        import requests
-
-        return json.loads(
-            requests.get(self.stimulus.assets["stimulus"].url + "/info.json").json()
-        )
+        with tempfile.NamedTemporaryFile("r") as f:
+            self.stimulus.assets["stimulus"].export_subfile("info.json", f.name)
+            return json.loads(
+                json.load(f)
+            )  # For some reason REPP double-JSON-encodes its output
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         info = self.get_info()
@@ -179,7 +180,7 @@ class TapTrial(TapTrialAnalysis):
         return ModularPage(
             "trial_main_page",
             AudioPrompt(
-                self.media_url + "/audio.wav",
+                self.stimulus.assets["stimulus"] + "/audio.wav",
                 Markup(
                     f"""
                     <br><h3>Tap in time with the metronome.</h3>
@@ -301,8 +302,8 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        REPPVolumeCalibrationMusic(),  # calibrate volume with music
-        REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
+        # REPPVolumeCalibrationMusic(),  # calibrate volume with music
+        # REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)
         REPPTappingCalibration(),  # calibrate tapping
         ISO_tapping,
         music_tapping,
