@@ -6,6 +6,7 @@ from typing import List, Optional, Union
 
 from flask import Markup, escape
 
+from .bot import BotResponse
 from .modular_page import (
     AudioPrompt,
     AudioSliderControl,
@@ -68,6 +69,12 @@ class InfoPage(Page):
 
     def metadata(self, **kwargs):
         return {"content": self.content}
+
+    def get_bot_response(self, experiment, bot):
+        return BotResponse(
+            answer=None,
+            metadata=self.metadata(),
+        )
 
 
 class UnityPage(Page):
@@ -285,7 +292,7 @@ class SuccessfulEndPage(EndPage):
     """
 
     def __init__(self, show_bonus: bool = True):
-        super().__init__("final-page-successful.html")
+        super().__init__("final-page-successful.html", label="SuccessfulEndPage")
         self.show_bonus = show_bonus
 
     def finalize_participant(self, experiment, participant):
@@ -303,7 +310,7 @@ class UnsuccessfulEndPage(EndPage):
         failure_tags: Optional[List] = None,
         template_filename: str = "final-page-unsuccessful.html",
     ):
-        super().__init__(template_filename)
+        super().__init__(template_filename, label="UnsuccessfulEndPage")
         self.failure_tags = failure_tags
         self.show_bonus = show_bonus
 
