@@ -21,6 +21,7 @@ from psynet.modular_page import (
 )
 from psynet.page import DebugResponsePage, SuccessfulEndPage
 from psynet.timeline import Timeline
+from psynet.utils import NoArgumentProvided
 
 ##########################################################################################
 # Experiment
@@ -45,8 +46,8 @@ class ColorText(Control):
     macro = "color_text_area"
     external_template = "custom-controls.html"
 
-    def __init__(self, color):
-        super().__init__()
+    def __init__(self, color, bot_response=NoArgumentProvided):
+        super().__init__(bot_response=bot_response)
         self.color = color
 
     @property
