@@ -34,16 +34,6 @@ def local_storage():
 
 
 @pytest.fixture
-def deployment_info():
-    from psynet import deployment_info
-
-    deployment_info.reset()
-    deployment_info.write(deployment_id="Test deployment")
-    yield
-    deployment_info.delete()
-
-
-@pytest.fixture
 def folder_asset():
     with tempfile.TemporaryDirectory() as tempdir:
         path_1 = os.path.join(tempdir, "file_1.txt")

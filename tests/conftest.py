@@ -19,10 +19,45 @@ from psynet.command_line import (
 from psynet.data import init_db
 from psynet.participant import Participant
 from psynet.trial.main import TrialSource
+from psynet.utils import disable_logger
 
 ACTIVE_EXPERIMENT = None
 
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
+
+
+@pytest.fixture()
+def config():
+    from dallinger.config import get_config
+
+    from psynet.experiment import Experiment
+
+    try:
+        Experiment.extra_parameters()
+    except KeyError as err:
+        if "is already registered" in str(err):
+            pass
+        else:
+            raise
+
+    c = get_config()
+    with disable_logger():
+        # We disable the logger because Dallinger prints an error message to the log
+        # when importing the config file outside a real experiment
+        if not c.ready:
+            c.load()
+
+    return c
+
+
+@pytest.fixture
+def deployment_info():
+    from psynet import deployment_info
+
+    deployment_info.reset()
+    deployment_info.write(deployment_id="Test deployment")
+    yield
+    deployment_info.delete()
 
 
 def demo_setup(demo):
@@ -39,7 +74,7 @@ def demo_setup(demo):
     # will terminate in the meantime...
     #
     init_db(drop_all=True)
-    time.sleep(2.5)
+    time.sleep(0.5)
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
 

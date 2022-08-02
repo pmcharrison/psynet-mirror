@@ -747,3 +747,10 @@ def get_folder_size_mb(path):
 #     q.enqueue_call(
 #         func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
 #     )
+
+
+@contextlib.contextmanager
+def disable_logger():
+    logging.disable(sys.maxsize)
+    yield
+    logging.disable(logging.NOTSET)

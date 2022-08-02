@@ -1314,6 +1314,10 @@ def list_files_in_s3_bucket__cached(*args, **kwargs):
     return list_files_in_s3_bucket(*args, **kwargs)
 
 
+class AwsCliError(RuntimeError):
+    pass
+
+
 class S3Storage(AssetStorage):
     def __init__(self, s3_bucket, root):
         super().__init__()
@@ -1327,9 +1331,11 @@ class S3Storage(AssetStorage):
         make_bucket_public(self.s3_bucket)
 
     def _receive_deposit(self, asset, host_path):
-        target_path = os.path.join(self.root, host_path)
-        recursive = asset.is_folder
-        self.upload(asset.input_path, target_path, recursive)
+        s3_key = self.get_s3_key(host_path)
+        if asset.is_folder:
+            self.upload_folder(asset.input_path, s3_key)
+        else:
+            self.upload_file(asset.input_path, s3_key)
 
     def get_url(self, host_path: str):
         s3_key = self.get_s3_key(host_path)
@@ -1344,13 +1350,16 @@ class S3Storage(AssetStorage):
         # This might need revisiting as and when we find special characters that aren't quoted correctly
         return urllib.parse.quote_plus(s3_key, safe="/~()*!.'")
 
-    def check_cache(self, host_path: str, is_folder: bool):
+    def check_cache(self, host_path: str, is_folder: bool, use_cache=None):
         """
         Checks whether a file or folder is present in the remote bucket.
-        Uses caching for efficiency.
+        Uses caching where appropriate for efficiency.
         """
         s3_key = os.path.join(self.root, host_path)
-        use_cache = not self.experiment.var.launch_complete
+
+        if use_cache is None:
+            use_cache = not self.experiment.var.launch_complete
+
         if is_folder:
             return self.check_cache_for_folder(s3_key, use_cache)
         else:
@@ -1365,21 +1374,21 @@ class S3Storage(AssetStorage):
         return s3_key in files
 
     def list_files_with_prefix(self, prefix, use_cache):
-        if use_cache:
-            # If we are in the 'preparation' phase of deployment, then we rely on a cached listing
-            # of the files in the S3 bucket. This is necessary because the preparation phase
-            # may involve checking caches for thousands of files at a time, and it would be slow
-            # to talk to S3 separately for each one. This wouldn't catch situations where
-            # the cache has been added during the preparation phase itself, but this shouldn't happen very often,
-            # so doesn't need to be optimized for just yet.
-            return list_files_in_s3_bucket__cached(self.s3_bucket, prefix)
-        else:
-            return [
-                x.key
-                for x in get_boto3_s3_bucket(self.s3_bucket).objects.filter(
-                    Prefix=prefix
-                )
-            ]
+        try:
+            if use_cache:
+                # If we are in the 'preparation' phase of deployment, then we rely on a cached listing
+                # of the files in the S3 bucket. This is necessary because the preparation phase
+                # may involve checking caches for thousands of files at a time, and it would be slow
+                # to talk to S3 separately for each one. This wouldn't catch situations where
+                # the cache has been added during the preparation phase itself, but this shouldn't happen very often,
+                # so doesn't need to be optimized for just yet.
+                return list_files_in_s3_bucket__cached(self.s3_bucket, prefix)
+            else:
+                return list_files_in_s3_bucket(self.s3_bucket, prefix)
+        except Exception as err:
+            if "NoSuchBucket" in str(err):
+                return []
+            raise
 
     # @create_bucket_if_necessary
     # def folder_exists__slow(self, s3_key):
@@ -1423,8 +1432,8 @@ class S3Storage(AssetStorage):
         try:
             subprocess.run(cmd, check=True, capture_output=True)
         except subprocess.CalledProcessError as err:
-            logger.error(f"{err} {err.stderr.decode('utf8')}")
-            raise
+            message = err.stderr.decode("utf8")
+            raise AwsCliError(message)
 
     def download_file(self, s3_key, target_path):
         return self._download(s3_key, target_path, recursive=False)
@@ -1445,25 +1454,38 @@ class S3Storage(AssetStorage):
         logger.info(f"Downloading from AWS with command: {cmd}")
         self.run_aws_command(cmd)
 
-    def upload_file(self, s3_key, target_path):
-        return self._upload(s3_key, target_path, recursive=False)
+    def upload_file(self, path, s3_key):
+        return self._upload(path, s3_key, recursive=False)
 
-    def upload_folder(self, s3_key, target_path):
-        return self._upload(s3_key, target_path, recursive=True)
+    def upload_folder(self, path, s3_key):
+        return self._upload(path, s3_key, recursive=True)
 
-    def _upload(self, input_path, s3_key, recursive):
+    def _upload(self, path, s3_key, recursive):
         """
         This function relies on the AWS CLI. You can install it with pip install awscli.
         """
         url = f"s3://{self.s3_bucket}/{s3_key}"
-        cmd = ["aws", "s3", "cp", input_path, url]
+        cmd = ["aws", "s3", "cp", path, url]
 
         if recursive:
             cmd.append("--recursive")
 
         logger.info(f"Uploading to AWS with command: {cmd}")
 
-        self.run_aws_command(cmd)
+        try:
+            self.run_aws_command(cmd)
+        except AwsCliError as err:
+            if "NoSuchBucket" in str(err):
+                self.create_bucket()
+                self.run_aws_command(cmd)
+            else:
+                raise
+
+    def create_bucket(self, s3_bucket=None):
+        if s3_bucket is None:
+            s3_bucket = self.s3_bucket
+        client = get_boto3_s3_client()
+        client.create_bucket(Bucket=s3_bucket)
 
     def delete_file(self, s3_key):
         url = f"s3://{self.s3_bucket}/{s3_key}"
@@ -1476,6 +1498,9 @@ class S3Storage(AssetStorage):
 
         cmd = ["aws", "s3", "rm", url, "--recursive"]
         self.run_aws_command(cmd)
+
+    def delete_all(self):
+        self.delete_folder(self.root)
 
 
 class AssetRegistry:
