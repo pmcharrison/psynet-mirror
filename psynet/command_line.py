@@ -808,16 +808,8 @@ def export_(
     import_local_experiment()
 
     config = get_config()
-
     if not config.ready:
-        try:
-            config.load()
-        except Exception:
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-            )
+        config.load()
 
     if export_path is None:
         try:
@@ -828,6 +820,8 @@ def export_(
                 ".dallingerconfig or config.txt. Please provide either one of these and try again."
             )
 
+        # TODO - this should actually be retrieved from the remote server, the local deployment ID could be incorrect
+        assert False
         deployment_id = deployment_info.read("deployment_id")
         assert len(deployment_id) > 0
         export_path = os.path.join(export_root, deployment_id)
