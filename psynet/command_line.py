@@ -804,6 +804,8 @@ def export_(
     anonymize="both",
     n_parallel=None,
 ):
+    import requests
+
     log(header)
     import_local_experiment()
 
@@ -820,9 +822,7 @@ def export_(
                 ".dallingerconfig or config.txt. Please provide either one of these and try again."
             )
 
-        # TODO - this should actually be retrieved from the remote server, the local deployment ID could be incorrect
-        assert False
-        deployment_id = deployment_info.read("deployment_id")
+        deployment_id = requests.get("http://localhost:5000/app_deployment_id").text
         assert len(deployment_id) > 0
         export_path = os.path.join(export_root, deployment_id)
 

@@ -1005,6 +1005,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
+    @experiment_route("/app_deployment_id", methods=["GET"])
+    @staticmethod
+    def app_deployment_id():
+        exp = get_experiment()
+        return exp.deployment_id
+
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
     def get_participant_info_for_debug_mode():
