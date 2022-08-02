@@ -81,18 +81,6 @@ def generate_basic_stimulus(path, stim_name, list_iois):
     save_json_to_file(info, path + "/info.json")
 
 
-# class StimulusVersionSpecISO(StimulusVersionSpec):
-#     @classmethod
-#     def generate_media(cls, definition, output_path):
-#         if not (os.path.exists(output_path) and os.path.isdir(output_path)):
-#             os.mkdir(output_path)
-#         stim_prepared, info = create_iso_stim(
-#             definition["stim_name"], definition["list_iois"]
-#         )
-#         save_samples_to_file(stim_prepared, output_path + "/audio.wav", sms_tapping.FS)
-#         save_json_to_file(info, output_path + "/info.json")
-
-
 stimulus_iso = [
     Stimulus(
         definition={
