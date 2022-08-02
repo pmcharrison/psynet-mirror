@@ -140,17 +140,20 @@ class RecordTrial:
     def async_post_trial(self):
         logger.info("Analyzing recording for trial %i...", self.id)
         with tempfile.NamedTemporaryFile() as temp_recording:
-            with tempfile.NamedTemporaryFile() as temp_plot:
+            with tempfile.NamedTemporaryFile(delete=False) as temp_plot:
                 self.recording.export(temp_recording.name)
                 self.sanitize_recording(temp_recording.name)
                 self.analysis = self.analyze_recording(
                     temp_recording.name, temp_plot.name
                 )
+                db.session.commit()
                 if not (
                     "no_plot_generated" in self.analysis
                     and self.analysis["no_plot_generated"]
                 ):
-                    self.upload_plot(temp_plot.name)
+                    self.upload_plot(temp_plot.name, async_=True)
+                else:
+                    os.path.remove(temp_plot.name)
                 try:
                     if self.analysis["failed"]:
                         self.fail(reason="analysis")
@@ -161,14 +164,14 @@ class RecordTrial:
                 finally:
                     db.session.commit()
 
-    def upload_plot(self, local_path):
+    def upload_plot(self, local_path, async_):
         asset = RecordingAnalysisPlot(
             label="recording_analysis_plot",
             input_path=local_path,
             extension=".png",
             trial=self.recording.trial,
         )
-        asset.deposit()
+        asset.deposit(async_=async_, delete_input=True)
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         """

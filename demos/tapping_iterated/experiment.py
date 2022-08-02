@@ -159,11 +159,6 @@ class CustomTrial(CustomTrialAnalysis):
                         3.5,
                         "Stop tapping and wait in silence...",
                         "red",
-                    ),
-                    ProgressStage(
-                        0.5,
-                        "Uploading, please wait...",
-                        "orange",
                         persistent=True,
                     ),
                 ],

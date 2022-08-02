@@ -147,11 +147,12 @@ stimulus_music_set = StimulusSet("music_tapping", stimulus_music)
 # Experiment parts
 class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
     def get_info(self):
-        with tempfile.NamedTemporaryFile("r") as f:
+        with tempfile.NamedTemporaryFile() as f:
             self.stimulus.assets["stimulus"].export_subfile("info.json", f.name)
-            return json.loads(
-                json.load(f)
-            )  # For some reason REPP double-JSON-encodes its output
+            with open(f.name, "r") as reader:
+                return json.loads(
+                    json.load(reader)
+                )  # For some reason REPP double-JSON-encodes its output
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         info = self.get_info()
@@ -212,11 +213,6 @@ class TapTrial(TapTrialAnalysis):
                         3.5,
                         "Stop tapping and wait in silence...",
                         "red",
-                    ),
-                    ProgressStage(
-                        0.5,
-                        "Uploading, please wait...",
-                        "orange",
                         persistent=True,
                     ),
                 ],

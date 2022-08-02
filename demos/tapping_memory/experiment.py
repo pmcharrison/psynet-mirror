@@ -161,11 +161,6 @@ class CustomTrial(CustomTrialAnalysis):
                         1,
                         "Finished recording.",
                         "green",
-                    ),
-                    ProgressStage(
-                        0.5,
-                        "Uploading, please wait...",
-                        "orange",
                         persistent=True,
                     ),
                 ],

@@ -73,7 +73,7 @@ example_js_synth_3 = ModularPage(
         default_duration=0.5,
         default_silence=0.25,
     ),
-    SliderControl(label="slider", start_value=63, min_value=57, max_value=70),
+    SliderControl(start_value=63, min_value=57, max_value=70),
     time_estimate=5,
     events={
         "playMelody": Event(

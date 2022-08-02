@@ -167,7 +167,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         """
         db.session.refresh(self)
         candidates = [self.trial, self.node]
-        return [[lambda: obj] for obj in candidates if obj is not None]
+        return [lambda: [obj] for obj in candidates if obj is not None]
 
     def launch(self):
         raise NotImplementedError
@@ -305,17 +305,15 @@ class WorkerAsyncProcess(AsyncProcess):
 
     @classmethod
     def check_timeouts(cls):
-        processes = (
-            cls.query.filter(
-                ~cls.failed,
-                cls.timeout != None,  # noqa -- this is special SQLAlchemy syntax
-                cls.timeout_when < datetime.datetime.now(),
-            )
-            .filter()
-            .all()
-        )
+        processes = cls.query.filter(
+            ~cls.failed,
+            cls.timeout != None,  # noqa -- this is special SQLAlchemy syntax
+            cls.timeout_when < datetime.datetime.now(),
+        ).all()
         for p in processes:
-            p.fail("Asynchronous process timed out")
+            p.fail(
+                "Asynchronous process timed out",
+            )
             db.session.commit()
 
     @property

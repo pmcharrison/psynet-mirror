@@ -1382,7 +1382,13 @@ class S3Storage(AssetStorage):
                 # to talk to S3 separately for each one. This wouldn't catch situations where
                 # the cache has been added during the preparation phase itself, but this shouldn't happen very often,
                 # so doesn't need to be optimized for just yet.
-                return list_files_in_s3_bucket__cached(self.s3_bucket, prefix)
+                return [
+                    x
+                    for x in list_files_in_s3_bucket__cached(
+                        self.s3_bucket, prefix=self.root
+                    )
+                    if x.startswith(prefix)
+                ]
             else:
                 return list_files_in_s3_bucket(self.s3_bucket, prefix)
         except Exception as err:

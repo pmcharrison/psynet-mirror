@@ -70,7 +70,6 @@ class ColorSliderPage(ModularPage):
             label=label,
             prompt=Prompt(prompt),
             control=SliderControl(
-                label=label,
                 start_value=starting_values[selected_idx],
                 min_value=0,
                 max_value=255,

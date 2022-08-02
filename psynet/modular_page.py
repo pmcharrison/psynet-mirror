@@ -1783,9 +1783,6 @@ class AudioSliderControl(SliderControl):
     Parameters
     ----------
 
-    label:
-        Internal label for the page (used to store results).
-
     start_value:
         Initial position of slider.
 
@@ -1874,7 +1871,6 @@ class AudioSliderControl(SliderControl):
 
     def __init__(
         self,
-        label,
         start_value: float,
         min_value: float,
         max_value: float,
@@ -1925,7 +1921,6 @@ class AudioSliderControl(SliderControl):
             )
 
         super().__init__(
-            label=label,
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,
@@ -1965,7 +1960,6 @@ class AudioSliderControl(SliderControl):
 class ColorSliderControl(SliderControl):
     def __init__(
         self,
-        label,
         start_value: float,
         min_value: float,
         max_value: float,
@@ -1973,7 +1967,6 @@ class ColorSliderControl(SliderControl):
         hidden_inputs: Optional[dict] = {},
     ):
         super().__init__(
-            label=label,
             start_value=start_value,
             min_value=min_value,
             max_value=max_value,

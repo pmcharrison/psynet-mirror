@@ -36,7 +36,7 @@ def make_example(args):
         ModularPage(
             "slider_page",
             prompt,
-            control=SliderControl("slider_control", **args),
+            control=SliderControl(**args),
             time_estimate=5,
         ),
         DebugResponsePage(),

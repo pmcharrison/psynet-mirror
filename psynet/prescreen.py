@@ -279,7 +279,6 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 ),
             ),
             AudioRecordControl(
-                label="free_tapping_record",
                 duration=self.definition["duration_rec_sec"],
                 show_meter=False,
                 controls=False,
@@ -539,7 +538,6 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 ),
             ),
             AudioRecordControl(
-                label="markers_test_trial",
                 duration=self.definition["duration_sec"],
                 show_meter=False,
                 controls=False,
@@ -552,7 +550,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                     ProgressStage(11.5, "Recording...", "red"),
                     ProgressStage(
                         0.5,
-                        "Uploading, please wait...",
+                        "Click next when you are ready to continue...",
                         "orange",
                         persistent=True,
                     ),
@@ -1165,7 +1163,6 @@ class AttentionTest(Module):
                 "attention_test_2",
                 lambda experiment, participant: self.pages == 2,
                 ModularPage(
-                    label="attention_test_2",
                     prompt=self.prompt_2,
                     control=TextControl(width="300px"),
                     time_estimate=time_estimate_per_trial,
