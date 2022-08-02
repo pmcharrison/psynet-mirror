@@ -104,12 +104,20 @@ def prepare(force):
     """
     from dallinger import db
 
+    from .trial.static import (  # TODO - remove once storage branch is merged
+        STIMULUS_SETS,
+    )
+
     FLAGS.add("prepare")
     if force:
         FLAGS.add("force")
     log(f"Preparing stimulus sets{' (forced mode)' if force else ''}...")
     experiment_class = import_local_experiment().get("class")
     experiment_instance = experiment_class.new(session=None)
+
+    for s in STIMULUS_SETS:
+        s.prepare_media(force=force)  # TODO - remove once storage branch is merged
+
     experiment_instance.pre_deploy()
     db.session.commit()
     clean_sys_modules()
