@@ -148,7 +148,7 @@ class Exp(psynet.experiment.Experiment):
     def run_bot_participant():
         # Every 7 seconds, runs a bot participant.
         experiment = get_experiment()
-        if experiment.var.launched:
+        if experiment.var.launch_complete:
             bot = Bot()
             bot.take_experiment()
 

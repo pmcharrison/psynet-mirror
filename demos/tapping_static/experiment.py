@@ -13,7 +13,7 @@ from repp.stimulus import REPPStimulus
 from repp.utils import save_json_to_file, save_samples_to_file
 
 import psynet.experiment
-from psynet.asset import CachedFunctionAsset, LocalStorage
+from psynet.asset import CachedFunctionAsset, LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -298,7 +298,8 @@ music_tapping = join(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     label = "Tapping (static) demo"
-    asset_storage = LocalStorage("~/Downloads/psynet_storage")
+    # asset_storage = LocalStorage("~/Downloads/psynet_storage")
+    asset_storage = S3Storage("psynet", "demos/tapping-static")
 
     timeline = Timeline(
         NoConsent(),

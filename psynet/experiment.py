@@ -257,6 +257,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
+        self.var.launch_complete = True
         logger.info("Experiment launch complete!")
         db.session.commit()
 
