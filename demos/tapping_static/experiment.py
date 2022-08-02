@@ -3,7 +3,6 @@ import json
 import os
 import tempfile
 
-import numpy as np
 from flask import Markup
 from repp.analysis import REPPAnalysis
 
@@ -18,7 +17,7 @@ from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
-    JSONSerializer,
+    NumpySerializer,
     REPPMarkersTest,
     REPPTappingCalibration,
     REPPVolumeCalibrationMusic,
@@ -36,18 +35,11 @@ MIN_RAW_TAPS = 50
 MAX_RAW_TAPS = 200
 
 
-# Stimuli
-def as_native_type(x):
-    if type(x).__module__ == np.__name__:
-        return x.item()
-    return x
-
-
 def create_iso_stim(stim_name, stim_ioi):
     stimulus = REPPStimulus(stim_name, config=sms_tapping)
     stim_onsets = stimulus.make_onsets_from_ioi(stim_ioi)
     stim_prepared, stim_info, _ = stimulus.prepare_stim_from_onsets(stim_onsets)
-    info = json.dumps(stim_info, cls=JSONSerializer)
+    info = json.dumps(stim_info, cls=NumpySerializer)
     return stim_prepared, info
 
 
@@ -59,17 +51,15 @@ def create_music_stim(stim_name, fs, audio_filename, onsets_filename):
     stim_prepared, stim_info = stimulus.filter_and_add_markers(
         stim, stim_onsets, onset_is_played
     )
-    info = json.dumps(stim_info, cls=JSONSerializer)
+    info = json.dumps(stim_info, cls=NumpySerializer)
     return stim_prepared, info
 
 
 # Isochronus stimuli
 # ISO 800ms
-tempo_800_ms = np.repeat(800, 15)
-tempo_800_ms = [as_native_type(value) for value in tempo_800_ms]
+tempo_800_ms = [800] * 15
 # ISO 600ms
-tempo_600_ms = np.repeat(600, 12)
-tempo_600_ms = [as_native_type(value) for value in tempo_600_ms]
+tempo_600_ms = [600] * 12
 # stimuli lists
 iso_stimulus_onsets = [tempo_800_ms, tempo_600_ms]
 iso_stimulus_names = ["iso_800ms", "iso_600ms"]
@@ -150,8 +140,8 @@ class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
         output, analysis, is_failed = analysis.do_analysis(
             info, audio_file, title_in_graph, output_plot
         )
-        output = json.dumps(output, cls=JSONSerializer)
-        analysis = json.dumps(analysis, cls=JSONSerializer)
+        output = json.dumps(output, cls=NumpySerializer)
+        analysis = json.dumps(analysis, cls=NumpySerializer)
         return {
             "failed": is_failed["failed"],
             "reason": is_failed["reason"],
@@ -201,6 +191,12 @@ class TapTrial(TapTrialAnalysis):
                         3.5,
                         "Stop tapping and wait in silence...",
                         "red",
+                        persistent=False,
+                    ),
+                    ProgressStage(
+                        0.5,
+                        "Press Next when you are ready to continue...",
+                        "orange",
                         persistent=True,
                     ),
                 ],

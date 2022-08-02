@@ -17,7 +17,7 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.prescreen import JSONSerializer, REPPTappingCalibration
+from psynet.prescreen import NumpySerializer, REPPTappingCalibration
 from psynet.timeline import Event, ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
     AudioImitationChainNetwork,
@@ -96,8 +96,8 @@ class CustomTrialAnalysis(AudioImitationChainTrial):
         failed = output_iteration["seed_needs_change"]
         reason = output_iteration["seed_needs_change_reason"]
         ratios_reps = output_iteration["resp_onsets_complete"]
-        ratios_reps = json.dumps(ratios_reps, cls=JSONSerializer)
-        output_iteration = json.dumps(output_iteration, cls=JSONSerializer)
+        ratios_reps = json.dumps(ratios_reps, cls=NumpySerializer)
+        output_iteration = json.dumps(output_iteration, cls=NumpySerializer)
         ioi_new_seed = [as_native_type(value) for value in new_seed]
         ioi_old_seed = [as_native_type(value) for value in old_seed]
         return {

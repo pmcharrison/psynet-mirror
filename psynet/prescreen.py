@@ -250,7 +250,7 @@ class REPPTappingCalibration(Module):
         super().__init__(self.label, self.elts)
 
 
-class JSONSerializer(json.JSONEncoder):
+class NumpySerializer(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, np.integer):
             return int(obj)
@@ -259,9 +259,9 @@ class JSONSerializer(json.JSONEncoder):
         elif isinstance(obj, np.ndarray):
             return obj.tolist()
         elif isinstance(obj, np.bool_):
-            return super(JSONSerializer, self).encode(bool(obj))
+            return super().encode(bool(obj))
         else:
-            return super(JSONSerializer, self).default(obj)
+            return super().default(obj)
 
 
 class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
@@ -313,7 +313,7 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
         )
         median_ok = stats["median_ioi"] != 9999
         failed = not (min_responses_ok and median_ok)
-        stats = json.dumps(stats, cls=JSONSerializer)
+        stats = json.dumps(stats, cls=NumpySerializer)
         return {
             "failed": failed,
             "stats": stats,
@@ -608,8 +608,8 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         num_markers_detected = int(analysis["num_markers_detected"])
         correct_answer = self.definition["correct_answer"]
 
-        output = json.dumps(output, cls=JSONSerializer)
-        analysis = json.dumps(analysis, cls=JSONSerializer)
+        output = json.dumps(output, cls=NumpySerializer)
+        analysis = json.dumps(analysis, cls=NumpySerializer)
         return {
             "failed": correct_answer != num_markers_detected,
             "num_detected_markers": num_markers_detected,
