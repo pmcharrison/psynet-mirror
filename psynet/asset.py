@@ -1435,6 +1435,7 @@ class S3Storage(AssetStorage):
         self.download_folder(s3_key, path)
 
     def run_aws_command(self, cmd):
+        logger.info(f"Running AWS CLI command: {cmd}")
         try:
             subprocess.run(cmd, check=True, capture_output=True)
         except subprocess.CalledProcessError as err:
@@ -1476,8 +1477,6 @@ class S3Storage(AssetStorage):
         if recursive:
             cmd.append("--recursive")
 
-        logger.info(f"Uploading to AWS with command: {cmd}")
-
         try:
             self.run_aws_command(cmd)
         except AwsCliError as err:
@@ -1501,6 +1500,8 @@ class S3Storage(AssetStorage):
 
     def delete_folder(self, s3_key):
         url = f"s3://{self.s3_bucket}/{s3_key}/"
+
+        logger.info("Deleting the following folder from S3: {url}")
 
         cmd = ["aws", "s3", "rm", url, "--recursive"]
         self.run_aws_command(cmd)

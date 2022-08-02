@@ -183,6 +183,13 @@ def demo_pickle_page(root):
 
 
 @pytest.fixture(scope="class")
+def demo_static_audio(root):
+    demo_setup("static_audio")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_timeline(root):
     demo_setup("timeline")
     yield
