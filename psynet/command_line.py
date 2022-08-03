@@ -983,6 +983,8 @@ def export_assets(
     include_fast_function_assets,
     n_parallel,
 ):
+    # Assumes we already have loaded the experiment into the local database,
+    # as would be the case if the function is called from psynet export.
     from .data import export_assets as _export_assets
 
     log(f"Exporting assets to {export_path}...")
