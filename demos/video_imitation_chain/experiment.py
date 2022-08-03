@@ -52,20 +52,19 @@ class CustomVideoRecordControl(VideoRecordControl):
         )
 
 
-class CustomProgressDisplay(ProgressDisplay):
-    def __init__(self):
-        super().__init__(
-            stages=[
-                ProgressStage([0.0, 1.5], "Get ready...", color="grey"),
-                ProgressStage([1.5, 1.5 + 5.0], "Make your gesture!", color="red"),
-                ProgressStage(
-                    [1.5 + 5.0, 1.5 + 5.0],
-                    "Click 'upload' if you're happy with your recording.",
-                    color="green",
-                    persistent=True,
-                ),
-            ],
-        )
+def custom_progress_display():
+    return ProgressDisplay(
+        [
+            ProgressStage([0.0, 1.5], "Get ready...", color="grey"),
+            ProgressStage([1.5, 1.5 + 5.0], "Make your gesture!", color="red"),
+            ProgressStage(
+                [1.5 + 5.0, 1.5 + 5.0],
+                "Click 'upload' if you're happy with your recording.",
+                color="green",
+                persistent=True,
+            ),
+        ]
+    )
 
 
 class CustomTrial(CameraImitationChainTrial):
@@ -80,7 +79,7 @@ class CustomTrial(CameraImitationChainTrial):
                 Prompt(text=instruction, text_align="center"),
                 CustomVideoRecordControl(),
                 time_estimate=5,
-                progress_display=CustomProgressDisplay(),
+                progress_display=custom_progress_display(),
                 events={"recordStart": Event(is_triggered_by="trialStart", delay=1.5)},
             )
         else:
@@ -101,7 +100,7 @@ class CustomTrial(CameraImitationChainTrial):
                         prompt="",
                         control=CustomVideoRecordControl(),
                         time_estimate=5,
-                        progress_display=CustomProgressDisplay(),
+                        progress_display=custom_progress_display(),
                     ),
                 ]
             )
