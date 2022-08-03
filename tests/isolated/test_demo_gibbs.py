@@ -26,8 +26,9 @@ app = "demo-app"
 
 @pytest.fixture(scope="session")
 def data_root_dir():
-    yield os.path.join("data", f"data-{app}")
-    shutil.rmtree(data_root_dir, ignore_errors=True)
+    path = os.path.join("data", f"data-{app}")
+    yield path
+    shutil.rmtree(path, ignore_errors=True)
 
 
 @pytest.fixture

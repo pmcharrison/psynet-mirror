@@ -18,6 +18,7 @@ from psynet import __version__
 
 from .data import drop_all_db_tables, dump_db_to_disk, init_db
 from .utils import (
+    get_experiment,
     import_local_experiment,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -406,7 +407,6 @@ def docs(force_rebuild):
 
 
 def run_pre_checks(mode):
-    from dallinger import db
     from dallinger.recruiters import MTurkRecruiter
 
     init_db(drop_all=True)
@@ -415,8 +415,7 @@ def run_pre_checks(mode):
     if not config.ready:
         config.load()
 
-    exp_class = import_local_experiment()["class"]
-    exp = exp_class.new(db.session)
+    exp = get_experiment()
 
     recruiter = exp.recruiter
     is_mturk = isinstance(recruiter, MTurkRecruiter)

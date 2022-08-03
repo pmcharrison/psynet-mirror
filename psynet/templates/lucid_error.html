@@ -4,23 +4,24 @@
     <div class="main_div">
         <div>
             <div class="col-xs-2">
-              <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
+                <img id="adlogo" src="/static/images/logo.png" alt="PsyNet logo" style="width: 150px; float: left;">
             </div>
             <h1 id="header" style="clear: both;">Error!</h1>
             <hr>
             <div>
                 <p id="error-text"><em>{{ error_text }}</em></p>
                 <p id="error-text-main">
-                    Please contact the researcher at
-                    <a href="mailto:{{contact_address}}">{{contact_address}}</a>
-                    and describe what led to this error.
-                    Please also quote the following information:
-                </p>
-                <p>
-                    Error type: {{ error_type }}<br>
-                    RID: {{ hit_id }}<br>
+                    Redirecting...
                 </p>
             </div>
         </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    setTimeout(() => {
+      window.location = "{{ external_submit_url|safe }}";
+    }, "2000")
+</script>
 {% endblock %}
