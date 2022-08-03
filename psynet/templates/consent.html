@@ -10,7 +10,7 @@
             We are now going to test your browser for compatibility.<br>
             If your browser is not compatible we have to reject the survey.
         </p>
-        {% if not experiment.with_lucid_recruitment %}
+        {% if not experiment.with_lucid_recruitment() %}
         <p style="clear: both;">
           <h3 class="consent" style="text-align: right;">
             To proceed, click the button below.
