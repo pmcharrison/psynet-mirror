@@ -8,6 +8,7 @@ from dominate import tags
 from dominate.util import raw
 from flask import Markup
 
+from .asset import Asset
 from .bot import BotResponse
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
@@ -104,6 +105,7 @@ class AudioPrompt(Prompt):
 
     url
         URL of the audio file to play.
+        Can alternatively be an ``Asset`` object.
 
     text
         Text to display to the participant. This can either be a string
@@ -140,7 +142,7 @@ class AudioPrompt(Prompt):
 
     def __init__(
         self,
-        url: str,
+        url: Union[str, Asset],
         text: Union[str, Markup],
         loop: bool = False,
         text_align="left",
@@ -156,6 +158,9 @@ class AudioPrompt(Prompt):
 
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
+
+        if isinstance(url, Asset):
+            url = url.url
 
         super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url
@@ -218,6 +223,7 @@ class VideoPrompt(Prompt):
 
     url
         URL of the video file to play.
+        Can alternatively be an ``Asset`` object.
 
     text
         Text to display to the participant. This can either be a string
@@ -256,7 +262,7 @@ class VideoPrompt(Prompt):
 
     def __init__(
         self,
-        url: str,
+        url: Union[str, Asset],
         text: Union[str, Markup],
         text_align="left",
         width: str = "560px",
@@ -272,6 +278,9 @@ class VideoPrompt(Prompt):
         assert len(play_window) == 2
         assert play_window[0] is not None
         assert play_window[0] >= 0.0
+
+        if isinstance(url, Asset):
+            url = url.url
 
         super().__init__(text=text, text_align=text_align, **kwargs)
         self.url = url

@@ -67,10 +67,17 @@ class REPPVolumeCalibrationMusic(Module):
         label="repp_volume_calibration_music",
         time_estimate_per_trial: float = 10.0,
         min_time_before_submitting: float = 5.0,
-        media_url: str = "https://s3.amazonaws.com/repp-materials",
+        materials_url: str = "https://s3.amazonaws.com/repp-materials",
         filename_audio: str = "calibrate.prepared.wav",
         filename_image: str = "REPP-image_rules.png",
     ):
+        asset_audio = ExternalAsset(
+            "repp_volume_calibration_audio", materials_url + "/calibrate.prepared.wav"
+        )
+        asset_image = ExternalAsset(
+            "repp_image_rules", materials_url + materials_url + "/REPP-image_rules.png"
+        )
+
         self.label = label
         self.elts = join(
             InfoPage(
@@ -82,7 +89,7 @@ class REPPVolumeCalibrationMusic(Module):
             <br><br>
             <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
             <hr>
-            <img style="width:70%" src="{media_url}/{filename_image}"  alt="image_rules">
+            <img style="width:70%" src="{asset_image.url}"  alt="image_rules">
             """
                 ),
                 time_estimate=5,
@@ -90,7 +97,7 @@ class REPPVolumeCalibrationMusic(Module):
             ModularPage(
                 "volume_test_music",
                 AudioPrompt(
-                    f"{media_url}/{filename_audio}",
+                    asset_audio.url,
                     Markup(
                         """
                 <h3>Volume test</h3>
@@ -147,12 +154,21 @@ class REPPVolumeCalibrationMarkers(Module):
         label="repp_volume_calibration_markers",
         time_estimate_per_trial: float = 10.0,
         min_time_before_submitting: float = 5.0,
-        media_url: str = "https://s3.amazonaws.com/repp-materials",
-        filename_audio: str = "only_markers.wav",
-        filename_image: str = "REPP-image_rules.png",
+        audio_url: str = "https://s3.amazonaws.com/repp-materials/only_markers.wav",
+        image_url: str = "https://s3.amazonaws.com/repp-materials/REPP-image_rules.png",
     ):
+        audio_asset = ExternalAsset(
+            key="repp_volume_calibration_markers",
+            url=audio_url,
+        )
+        image_asset = ExternalAsset(
+            key="repp_rules_image",
+            url=image_url,
+        )
         self.label = label
         self.elts = join(
+            audio_asset,
+            image_asset,
             InfoPage(
                 Markup(
                     f"""
@@ -162,7 +178,7 @@ class REPPVolumeCalibrationMarkers(Module):
             <br><br>
             <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
             <hr>
-            <img style="width:70%" src="{media_url}/{filename_image}"  alt="image_rules">
+            <img style="width:70%" src="{image_asset.url}"  alt="image_rules">
             """
                 ),
                 time_estimate=5,
@@ -170,7 +186,7 @@ class REPPVolumeCalibrationMarkers(Module):
             ModularPage(
                 "volume_test",
                 AudioPrompt(
-                    f"{media_url}/{filename_audio}",
+                    audio_asset,
                     Markup(
                         """
                 <h3>Volume test</h3>
@@ -227,25 +243,34 @@ class REPPTappingCalibration(Module):
         label="repp_tapping_calibration",
         time_estimate_per_trial: float = 10.0,
         min_time_before_submitting: float = 5.0,
-        media_url: str = "https://s3.amazonaws.com/repp-materials",
-        filename_image: str = "tapping_instructions.jpg",
+        tapping_instructions_url: str = "https://s3.amazonaws.com/repp-materials/tapping_instructions.jpg",
     ):
+        instructions_asset = ExternalAsset(
+            key="repp_tapping_instructions",
+            url=tapping_instructions_url,
+        )
+
         self.label = label
-        self.elts = ModularPage(
-            self.label,
-            Markup(
-                f"""
-            <h3>You will now practice how to tap on your laptop</h3>
-            <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
-            <ul><li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
-                <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
-                <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
-            </ul>
-            <img style="width:70%" src="{media_url}/{filename_image}"  alt="image_rules">
-            """
+        self.elts = join(
+            instructions_asset,
+            ModularPage(
+                self.label,
+                Markup(
+                    f"""
+                <h3>You will now practice how to tap on your laptop</h3>
+                <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
+                <ul><li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
+                    <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
+                    <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
+                </ul>
+                <img style="width:70%" src="{instructions_asset.url}"  alt="image_rules">
+                """
+                ),
+                TappingTestAudioMeter(
+                    min_time=min_time_before_submitting, calibrate=False
+                ),
+                time_estimate=time_estimate_per_trial,
             ),
-            TappingTestAudioMeter(min_time=min_time_before_submitting, calibrate=False),
-            time_estimate=time_estimate_per_trial,
         )
         super().__init__(self.label, self.elts)
 
@@ -437,7 +462,6 @@ class FreeTappingRecordTest(Module):
                 AudioRecordControl(
                     duration=7.0,
                     show_meter=True,
-                    public_read=True,
                     controls=False,
                     auto_advance=False,
                 ),
@@ -513,9 +537,15 @@ class FreeTappingRecordTest(Module):
         return [
             Stimulus(
                 definition={
-                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
+                    "url_audio": "https://s3.amazonaws.com/repp-materials/silence_1s.wav",  # Redundant but keeping for back-compatibility
+                },
+                assets={
+                    "stimulus": ExternalAsset(
+                        "repp_silence_1s",
+                        "https://s3.amazonaws.com/repp-materials/silence_1s.wav",
+                    ),
                 },
             )
         ]
@@ -528,7 +558,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         return ModularPage(
             "markers_test_trial",
             AudioPrompt(
-                self.definition["url_audio"],
+                self.assets["stimulus"].url,
                 Markup(
                     """
                     <h3>Recording test</h3>
@@ -650,25 +680,36 @@ class REPPMarkersTest(Module):
         self,
         label="repp_markers_test",
         performance_threshold: int = 0.6,
-        media_url: str = "https://s3.amazonaws.com/repp-materials",
-        filename_image: str = "REPP-image_rules.png",
+        materials_url: str = "https://s3.amazonaws.com/repp-materials",
         num_trials: int = 3,
     ):
+        audio_assets = [
+            ExternalAsset(
+                key=f"repp_markers_test_audio_{i + 1}",
+                url=f"{materials_url}/audio{i + 1}.wav",
+                label=f"audio{i + 1}.wav",
+            )
+            for i in range(3)
+        ]
+        image_asset = ExternalAsset(
+            key="repp_rules_image.png",
+            url=f"{materials_url}/REPP-image_rules.png",
+        )
+
         self.label = label
         self.elts = join(
-            self.instruction_page(num_trials, media_url, filename_image),
+            audio_assets,
+            image_asset,
+            self.instruction_page(num_trials, image_asset),
             self.trial_maker(
-                media_url,
+                audio_assets,
                 performance_threshold,
                 num_trials,
-                self.audio_filenames,
             ),
         )
         super().__init__(self.label, self.elts)
 
-    audio_filenames = ["audio1.wav", "audio2.wav", "audio3.wav"]
-
-    def instruction_page(self, num_trials, media_url, filename_image):
+    def instruction_page(self, num_trials, image_asset):
         return InfoPage(
             Markup(
                 f"""
@@ -677,7 +718,7 @@ class REPPMarkersTest(Module):
             Now we will test the recording quality of your laptop. In {num_trials} trials, you will be
             asked to remain silent while we play and record a sound.
             <br><br>
-            <img style="width:50%" src="{media_url}/{filename_image}"  alt="image_rules">
+            <img style="width:50%" src="{image_asset.url}"  alt="image_rules">
             <br><br>
             When ready, click <b>next</b> for the recording test and please wait in silence.
             <hr>
@@ -688,10 +729,9 @@ class REPPMarkersTest(Module):
 
     def trial_maker(
         self,
-        media_url: str,
+        audio_assets,
         performance_threshold: int,
         num_trials: float,
-        audio_filenames: list,
     ):
         class MarkersTrialMaker(StaticTrialMaker):
             give_end_feedback_passed = False
@@ -702,17 +742,17 @@ class REPPMarkersTest(Module):
             id_="markers_test",
             trial_class=self.trial_class,
             phase="screening",
-            stimuli=self.get_stimulus_set(media_url, audio_filenames),
+            stimuli=self.get_stimulus_set(audio_assets),
             check_performance_at_end=True,
         )
 
     trial_class = RecordMarkersTrial
 
-    def get_stimulus_set(self, media_url: str, audio_filenames: list):
+    def get_stimulus_set(self, audio_assets):
         return [
             Stimulus(
                 definition={
-                    "stim_name": name,
+                    "stim_name": asset.label,
                     "markers_onsets": [
                         2000.0,
                         2280.0,
@@ -724,11 +764,14 @@ class REPPMarkersTest(Module):
                     "stim_shifted_onsets": [4500.0, 5000.0, 5500.0],
                     "onset_is_played": [True, True, True],
                     "duration_sec": 12,
-                    "url_audio": f"{media_url}/{name}",
+                    "url_audio": asset.url,  # redundant but keeping for back-compatibility
                     "correct_answer": 6,
                 },
+                assets={
+                    "stimulus": asset,
+                },
             )
-            for name in audio_filenames
+            for asset in audio_assets
         ]
 
 
@@ -772,6 +815,11 @@ class LanguageVocabularyTest(Module):
     ):
         self.label = label
         self.elts = join(
+            ExternalAsset(
+                "language_test_materials",
+                media_url,
+                is_folder=True,
+            ),
             self.instruction_page(),
             self.trial_maker(
                 media_url,
@@ -1007,7 +1055,7 @@ class LexTaleTest(Module):
                 return ModularPage(
                     "lextale_trial",
                     ImagePrompt(
-                        self.definition["url"],
+                        self.assets["word"].url,
                         "Does this word exist?",
                         width="100px",
                         height="100px",
@@ -1022,6 +1070,7 @@ class LexTaleTest(Module):
                         style="min-width: 150px; margin: 10px",
                     ),
                     time_estimate=self.time_estimate,
+                    bot_response=lambda: self.definition["correct_answer"],
                 )
 
         return LextaleTrial
@@ -1032,7 +1081,13 @@ class LexTaleTest(Module):
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
-                    "url": f"{media_url}/lextale-{label}.png",
+                    "url": f"{media_url}/lextale-{label}.png",  # Redundant but kept for back-compatibility
+                },
+                assets={
+                    "word": ExternalAsset(
+                        f"lextale_{label}_image",
+                        url=f"{media_url}/lextale-{label}.png",
+                    )
                 },
             )
             for label, correct_answer in [
@@ -1286,7 +1341,7 @@ class ColorBlindnessTest(Module):
                 return ModularPage(
                     "color_blindness_trial",
                     ImagePrompt(
-                        self.definition["url"],
+                        self.assets["image"].url,
                         "Write down the number in the image.",
                         width="350px",
                         height="344px",
@@ -1296,6 +1351,7 @@ class ColorBlindnessTest(Module):
                     ),
                     TextControl(width="100px"),
                     time_estimate=self.time_estimate,
+                    bot_response=lambda: self.definition["correct_answer"],
                 )
 
         return ColorBlindnessTrial
@@ -1306,7 +1362,13 @@ class ColorBlindnessTest(Module):
                 definition={
                     "label": label,
                     "correct_answer": answer,
-                    "url": f"{media_url}/ishihara-{label}.jpg",
+                    "url": f"{media_url}/ishihara-{label}.jpg",  # Redundant but kept for back-compatibility
+                },
+                assets={
+                    "image": ExternalAsset(
+                        f"ishihara-{label}",
+                        url=f"{media_url}/ishihara-{label}.jpg",
+                    )
                 },
             )
             for label, answer in [
@@ -1426,6 +1488,7 @@ class ColorVocabularyTest(Module):
                         style="min-width: 150px; margin: 10px",
                     ),
                     time_estimate=self.time_estimate,
+                    bot_response=lambda: self.definition["correct_answer"],
                 )
 
         return ColorVocabularyTrial
@@ -1477,7 +1540,6 @@ class HeadphoneTest(Module):
     ):
         self.label = label
         self.elts = join(
-            ExternalAsset(media_url, key="headphone_check_stimuli", type_="folder"),
             self.instruction_page(),
             self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
         )
@@ -1528,7 +1590,7 @@ class HeadphoneTest(Module):
                 return ModularPage(
                     "headphone_trial",
                     AudioPrompt(
-                        self.definition["url"],
+                        self.stimulus.assets["stimulus"],
                         "Which sound was softest (quietest) -- 1, 2, or 3?",
                     ),
                     PushButtonControl(["1", "2", "3"]),
@@ -1537,6 +1599,7 @@ class HeadphoneTest(Module):
                         "submitEnable": Event(is_triggered_by="promptEnd"),
                     },
                     time_estimate=self.time_estimate,
+                    bot_response=lambda: self.definition["correct_answer"],
                 )
 
         return HeadphoneTrial
@@ -1547,7 +1610,13 @@ class HeadphoneTest(Module):
                 definition={
                     "label": label,
                     "correct_answer": answer,
-                    "url": f"{media_url}/antiphase_HC_{label}.wav",
+                    "url": f"{media_url}/antiphase_HC_{label}.wav",  # Redundant but kept for back-compatibility
+                },
+                assets={
+                    "stimulus": ExternalAsset(
+                        f"headphone_test_{label}",
+                        url=f"{media_url}/antiphase_HC_{label}.wav",
+                    )
                 },
             )
             for label, answer in [
@@ -1719,11 +1788,12 @@ class AudioForcedChoiceTest(Module):
                 return ModularPage(
                     "audio_forced_choice_trial",
                     AudioPrompt(
-                        self.definition["url"],
+                        self.stimulus.assets["stimulus"],
                         self.definition["question"],
                     ),
                     PushButtonControl(self.definition["answer_options"]),
                     time_estimate=self.time_estimate,
+                    bot_response=lambda: self.definition["answer"],
                 )
 
         return AudioForcedChoiceTrial
@@ -1739,6 +1809,12 @@ class AudioForcedChoiceTest(Module):
         return [
             Stimulus(
                 definition=stimulus,
+                assets={
+                    "stimulus": ExternalAsset(
+                        f"{self.label}_{i}",
+                        stimulus["url"],
+                    )
+                },
             )
-            for stimulus in self.stimuli
+            for i, stimulus in enumerate(self.stimuli)
         ]

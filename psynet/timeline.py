@@ -1136,6 +1136,7 @@ class PageMaker(Elt):
         res = join(res)
         self.impute_time_estimates(res)
         self.check_time_estimates(res)
+        self.check_for_assets(res)
         res = join(
             StartAccumulateAnswers() if self.accumulate_answers else None,
             res,
@@ -1171,6 +1172,19 @@ class PageMaker(Elt):
     def multiply_expected_repetitions(self, factor: float):
         self.expected_repetitions = self.expected_repetitions * factor
         return self
+
+    def check_for_assets(self, elts):
+        from .asset import Asset
+
+        for elt in elts:
+            if isinstance(elt, Asset):
+                raise ValueError(
+                    "You cannot include assets within the output from a PageMaker. "
+                    "If you want to declare static assets in advance of the experiment launching, "
+                    "you should place your assets in the top level of the experiment timeline. "
+                    "If you want to declare assets dynamically during the experiment, "
+                    "you should declare them within a CodeBlock or other function (e.g. Trial.format_answer)."
+                )
 
 
 def multi_page_maker(
