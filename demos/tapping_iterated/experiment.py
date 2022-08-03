@@ -156,6 +156,12 @@ class CustomTrial(CustomTrialAnalysis):
                         "red",
                         persistent=True,
                     ),
+                    ProgressStage(
+                        0.5,
+                        "Press Next when you are ready to continue...",
+                        "orange",
+                        persistent=True,
+                    ),
                 ],
             ),
         )
@@ -252,6 +258,7 @@ class Exp(psynet.experiment.Experiment):
             propagate_failure=False,
             recruit_mode="num_participants",
             target_num_participants=TOTAL_NUM_PARTICIPANTS,
+            wait_for_networks=True,
         ),
         SuccessfulEndPage(),
     )
