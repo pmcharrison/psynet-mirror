@@ -1764,8 +1764,8 @@ class NetworkTrialMaker(TrialMaker):
     def __init__(
         self,
         id_,
-        trial_class,
-        network_class,
+        trial_class: type[Trial],
+        network_class: type[Network],
         phase,
         expected_num_trials,
         check_performance_at_end,
