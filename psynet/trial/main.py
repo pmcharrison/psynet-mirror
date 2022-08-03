@@ -388,7 +388,8 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             return False
         if self.wait_for_feedback:
             if self.awaiting_async_process or self.awaiting_asset_deposit:
-                print("not ready for feedback")
+                print(f"self.awaiting_async_process = {self.awaiting_async_process}")
+                print(f"self.awaiting_asset_deposit = {self.awaiting_asset_deposit}")
                 return False
         return True
 
@@ -489,6 +490,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         assert self.id is not None
 
+        if label in self.assets:
+            raise ValueError(f"This trial already has an asset with the label {label}.")
+
         asset.trial = self
         asset.trial_id = self.id
 
@@ -505,6 +509,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         asset.receive_stimulus_definition(self.definition)
 
         db.session.add(asset)
+        self.assets[label] = asset
         db.session.commit()
 
     def generate_asset_key(self, asset):

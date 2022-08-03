@@ -549,6 +549,10 @@ class ManagedAsset(Asset):
             time_end = time.perf_counter()
 
             self.deposit_time_sec = time_end - time_start
+        else:
+            self.deposited = True
+
+        db.session.commit()
 
     def prepare_input(self):
         pass
@@ -1332,9 +1336,11 @@ class S3Storage(AssetStorage):
         self.root = root
 
     def prepare_for_deployment(self):
+        from .media import make_bucket_public
+
         if not self.bucket_exists(self.s3_bucket):
             self.create_bucket(self.s3_bucket)
-        self.make_bucket_public(self.s3_bucket)
+        make_bucket_public(self.s3_bucket)
 
     def _receive_deposit(self, asset, host_path):
         s3_key = self.get_s3_key(host_path)

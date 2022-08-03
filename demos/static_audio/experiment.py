@@ -75,8 +75,8 @@ class CustomTrial(StaticTrial):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Static audio demo"
-    # asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
-    asset_storage = S3Storage("psynet-demos", "static-audio")
+    asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
+    # asset_storage = S3Storage("psynet-demos", "static-audio")
 
     timeline = Timeline(
         NoConsent(),
