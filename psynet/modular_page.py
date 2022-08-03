@@ -2044,7 +2044,18 @@ class RecordControl(Control):
         auto_advance: bool = False,
         show_meter: bool = False,
         bot_response=NoArgumentProvided,
+        **kwargs,
     ):
+        if "s3_bucket" in kwargs or "public_read" in kwargs:
+            raise ValueError(
+                "s3_bucket and public_read arguments have been removed from RecordControl classes, ",
+                "please delete them from your implementation. Your S3 bucket is now determined by your "
+                "S3Storage object, for example when you set asset_storage = S3Storage('my-bucket', 'my-root') "
+                "within your Experiment class.",
+            )
+        for arg in kwargs:
+            raise ValueError(f"Unexpected argument: {arg}")
+
         super().__init__(bot_response)
         self.duration = duration
         self.auto_advance = auto_advance
