@@ -456,6 +456,7 @@ def error_page(
     participant=None,
     error_text=None,
     recruiter=None,
+    external_submit_url=None,
     compensate=True,
     error_type="default",
     request_data="",
@@ -497,6 +498,7 @@ def error_page(
             worker_id=worker_id,
             request_data=request_data,
             participant_id=participant_id,
+            external_submit_url=external_submit_url,
         ),
         500,
     )

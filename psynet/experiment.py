@@ -933,10 +933,17 @@ class Experiment(dallinger.experiment.Experiment):
         participant = None
         if participant_id:
             participant = participant = Participant.query.first()
+
+        exp = cls.new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = None
+        if hasattr(recruiter, "external_submit_url"):
+            external_submit_url = recruiter.external_submit_url(participant)
         return error_page(
             participant=participant,
             recruiter=cls.new(db.session).recruiter.nickname,
             request_data=request_data,
+            external_submit_url=external_submit_url,
         )
 
     @experiment_route("/module", methods=["POST"])
@@ -1131,10 +1138,15 @@ class Experiment(dallinger.experiment.Experiment):
                     + "did you switch browsers? Unfortunately this is not currently "
                     + "supported by our system."
                 )
+                recruiter = exp.recruiter
+                external_submit_url = None
+                if hasattr(recruiter, "external_submit_url"):
+                    external_submit_url = recruiter.external_submit_url(participant)
                 return error_page(
                     participant=participant,
                     error_text=msg,
-                    recruiter=exp.recruiter.nickname,
+                    recruiter=recruiter.nickname,
+                    external_submit_url=external_submit_url,
                 )
 
         participant.client_ip_address = cls.get_client_ip_address()
