@@ -60,11 +60,9 @@ Abort Experiment
 {% else %}
 Loading application...
 {% endif %}
-
 {% endblock live %}
 
 {% block scripts %}
-
 <script>
     function proceedToConsentPage(event) {
       let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";

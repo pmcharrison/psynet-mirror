@@ -37,8 +37,15 @@
       <div class="well">
         <h1>Lucid Survey Submission</h1>
         <hr>
-        <p>To complete your Lucid Survey, click the button below.</p>
-        <a href="{{ external_submit_url }}" class="btn btn-success btn-large" style="width: auto;">Complete Survey</a>
+        <p>Completing survey...</p>
       </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    setTimeout(() => {
+      window.location = "{{ external_submit_url|safe }}";
+    }, "2000")
+</script>
 {% endblock %}
