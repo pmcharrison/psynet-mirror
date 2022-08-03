@@ -14,7 +14,7 @@ from reppextension.iterated_tapping import (
 from scipy.io import wavfile
 
 import psynet.experiment
-from psynet.asset import LocalStorage, S3Storage  # noqa
+from psynet.asset import DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -210,7 +210,7 @@ class CustomSource(AudioImitationChainSource):
 class Exp(psynet.experiment.Experiment):
     label = "Tapping (memory) demo"
 
-    asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
     # asset_storage = S3Storage("psynet-demos", "iterated-tapping")
 
     timeline = Timeline(

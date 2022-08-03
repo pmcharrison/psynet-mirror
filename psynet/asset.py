@@ -1139,7 +1139,7 @@ class NoStorage(AssetStorage):
         pass
 
 
-class LocalStorage(AssetStorage):
+class DebugStorage(AssetStorage):
     def __init__(self, root, label: str = "local_storage"):
         """
 

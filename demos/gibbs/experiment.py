@@ -15,7 +15,7 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 import psynet.experiment
-from psynet.asset import ExperimentAsset, LocalStorage
+from psynet.asset import DebugStorage, ExperimentAsset
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback
@@ -258,7 +258,7 @@ def _collect_coin(participant):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
 
     timeline = Timeline(
         NoConsent(),

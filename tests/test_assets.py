@@ -4,7 +4,7 @@ import tempfile
 import pytest
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
-from psynet.asset import CachedFunctionAsset, ExperimentAsset, LocalStorage
+from psynet.asset import CachedFunctionAsset, DebugStorage, ExperimentAsset
 
 
 def test_lambda_function():
@@ -30,7 +30,7 @@ def test_key():
 @pytest.fixture
 def local_storage():
     with tempfile.TemporaryDirectory() as tempdir:
-        yield LocalStorage(tempdir)
+        yield DebugStorage(tempdir)
 
 
 @pytest.fixture

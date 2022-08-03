@@ -8,11 +8,11 @@ import psynet.experiment
 from psynet.asset import (
     CachedAsset,
     CachedFunctionAsset,
+    DebugStorage,
     ExperimentAsset,
     ExternalAsset,
     ExternalS3Asset,
     InheritedAssets,
-    LocalStorage,
 )
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, TextControl
@@ -31,7 +31,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Assets demo"
 
 
-Exp.assets.asset_storage = LocalStorage(root="/Users/peter/psynet-storage")
+Exp.assets.asset_storage = DebugStorage(root="/Users/peter/psynet-storage")
 
 
 Exp.assets.stage(

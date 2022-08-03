@@ -8,7 +8,7 @@ from melody.resources import GenderSplit, SingingCalibration, ToneJSVolumeTest
 
 import psynet.experiment
 import psynet.media
-from psynet.asset import LocalStorage
+from psynet.asset import DebugStorage
 
 # from psynet.asset import S3Storage
 from psynet.consent import AudiovisualConsent, MainConsent
@@ -404,7 +404,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Iterated singing demo"
 
     # assets = AssetRegistry(asset_storage=S3Storage())
-    asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
 
     # TODO - create S3 bucket if it doesn't exist
 
