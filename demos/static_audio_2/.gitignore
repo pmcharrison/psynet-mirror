@@ -1,3 +1,4 @@
-cache/*
-develop
-static
+env  # standard place to put a virtual environment
+deploy  # automatically generated deployment resources, e.g. database templates
+develop  # used by hot-refresh debugger
+static/local_storage  # used when debugging experiments with local storage
