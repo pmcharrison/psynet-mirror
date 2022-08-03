@@ -150,3 +150,4 @@ demos/**/develop
 demos/**/snapshots
 tmp/*
 typescript
+deployment-info_*

@@ -473,6 +473,8 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
 def error_page(
     participant=None,
     error_text=None,
+    recruiter=None,
+    external_submit_url=None,
     compensate=True,
     error_type="default",
     request_data="",
@@ -504,7 +506,7 @@ def error_page(
 
     return make_response(
         render_template(
-            "mturk_error.html",
+            f"{recruiter_shortname(recruiter)}_error.html",
             error_text=error_text,
             compensate=compensate,
             contact_address=config.get("contact_email_on_error"),
@@ -514,9 +516,17 @@ def error_page(
             worker_id=worker_id,
             request_data=request_data,
             participant_id=participant_id,
+            external_submit_url=external_submit_url,
         ),
         500,
     )
+
+
+def recruiter_shortname(nickname):
+    if "lucid" in nickname:
+        return "lucid"
+    else:
+        return "mturk"
 
 
 class ClassPropertyDescriptor(object):

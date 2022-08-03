@@ -219,6 +219,7 @@ class Experiment(dallinger.experiment.Experiment):
     def on_launch(self):
         if not self.setup_complete:
             self.setup()
+            self.timeline.verify_consents(self)
         self.var.launched = True
 
     def participant_constructor(self, *args, **kwargs):
@@ -940,8 +941,8 @@ class Experiment(dallinger.experiment.Experiment):
         return json.dumps(json_data, default=serialise)
 
     @experiment_route("/error-page", methods=["POST", "GET"])
-    @staticmethod
-    def render_error():
+    @classmethod
+    def render_error(cls):
         from psynet.utils import error_page
 
         request_data = request.form.get("request_data")
@@ -949,7 +950,18 @@ class Experiment(dallinger.experiment.Experiment):
         participant = None
         if participant_id:
             participant = participant = Participant.query.first()
-        return error_page(participant=participant, request_data=request_data)
+
+        exp = cls.new(db.session)
+        recruiter = exp.recruiter
+        external_submit_url = None
+        if hasattr(recruiter, "external_submit_url"):
+            external_submit_url = recruiter.external_submit_url(participant)
+        return error_page(
+            participant=participant,
+            recruiter=cls.new(db.session).recruiter.nickname,
+            request_data=request_data,
+            external_submit_url=external_submit_url,
+        )
 
     @experiment_route("/module", methods=["POST"])
     @classmethod
@@ -1181,7 +1193,16 @@ class Experiment(dallinger.experiment.Experiment):
                     + "did you switch browsers? Unfortunately this is not currently "
                     + "supported by our system."
                 )
-                return error_page(participant=participant, error_text=msg)
+                recruiter = exp.recruiter
+                external_submit_url = None
+                if hasattr(recruiter, "external_submit_url"):
+                    external_submit_url = recruiter.external_submit_url(participant)
+                return error_page(
+                    participant=participant,
+                    error_text=msg,
+                    recruiter=recruiter.nickname,
+                    external_submit_url=external_submit_url,
+                )
 
         participant.client_ip_address = cls.get_client_ip_address()
 
