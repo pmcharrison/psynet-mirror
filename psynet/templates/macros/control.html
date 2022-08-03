@@ -1,11 +1,15 @@
 {% macro null(config) %}
     <script>
         onNextButton = function() {
-            $(this).prop('disabled', true);
+            let width = $("#next-button").width()
+            $("#next-button").attr("disabled", true)
+            $("#next-button-spinner").show()
+            $("#next-button-text").hide();
+            $("#next-button").width(width);
             if (typeof retrieveResponse == "undefined") {
                 psynet.nextPage();
             } else {
-                response = retrieveResponse();
+                let response = retrieveResponse();
                 psynet.nextPage(
                     response.rawAnswer,
                     response.metadata,
@@ -16,7 +20,8 @@
     </script>
 
     <button type="button" id="next-button" class="btn btn-primary btn-lg submit" onclick="onNextButton();">
-        Next
+        <span id="next-button-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
+        <span id="next-button-text">Next</span>
     </button>
 {% endmacro %}
 
