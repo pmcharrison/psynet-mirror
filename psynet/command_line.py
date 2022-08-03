@@ -464,6 +464,7 @@ def docs(force_rebuild):
 def run_pre_checks(mode):
     from dallinger.recruiters import MTurkRecruiter
 
+    from .asset import LocalStorage
     from .experiment import get_experiment
 
     init_db(drop_all=True)
@@ -476,6 +477,15 @@ def run_pre_checks(mode):
 
     recruiter = exp.recruiter
     is_mturk = isinstance(recruiter, MTurkRecruiter)
+
+    if mode in ["sandbox", "deploy"]:
+        if isinstance(exp.asset_storage, LocalStorage):
+            raise AttributeError(
+                "You can't deploy an experiment to a remote server with Experiment.asset_storage = LocalStorage(). "
+                "If you don't need assets in your experiment, you can probably remove the line altogether, "
+                "or replace LocalStorage with NoStorage. If you do need assets, you should replace LocalStorage "
+                "with a proper storage backend, for example S3Storage('your-bucket', 'your-root')."
+            )
 
     if mode == "sandbox":
         run_pre_checks_sandbox(exp, config, is_mturk)
