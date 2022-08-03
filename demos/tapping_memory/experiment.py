@@ -14,6 +14,7 @@ from reppextension.iterated_tapping import (
 from scipy.io import wavfile
 
 import psynet.experiment
+from psynet.asset import LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -133,8 +134,6 @@ class CustomTrial(CustomTrialAnalysis):
             ),
             AudioRecordControl(
                 duration=duration_rec_sec + 5,
-                s3_bucket=BUCKET_NAME,
-                public_read=True,
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
@@ -161,6 +160,12 @@ class CustomTrial(CustomTrialAnalysis):
                         1,
                         "Finished recording.",
                         "green",
+                        persistent=False,
+                    ),
+                    ProgressStage(
+                        0.5,
+                        "Press Next when you are ready to continue...",
+                        "orange",
                         persistent=True,
                     ),
                 ],
@@ -169,7 +174,7 @@ class CustomTrial(CustomTrialAnalysis):
 
 
 class CustomNetwork(AudioImitationChainNetwork):
-    s3_bucket = BUCKET_NAME
+    pass
 
 
 class CustomNode(AudioImitationChainNode):
@@ -204,6 +209,9 @@ class CustomSource(AudioImitationChainSource):
 # Timeline
 class Exp(psynet.experiment.Experiment):
     label = "Tapping (memory) demo"
+
+    asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    # asset_storage = S3Storage("psynet-demos", "iterated-tapping")
 
     timeline = Timeline(
         NoConsent(),
