@@ -16,6 +16,7 @@ from sqlalchemy import Column, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from ..asset import CachedAsset
+from ..field import PythonDict
 from ..timeline import NullElt, join
 from ..utils import deep_copy, get_logger
 from .main import (
@@ -154,6 +155,7 @@ class Stimulus(TrialNode, HasDefinition):
     participant_group = Column(String)
     phase = Column(String)
     block = Column(String)
+    assets = Column(PythonDict)
 
     def __init__(
         self,
@@ -183,9 +185,11 @@ class Stimulus(TrialNode, HasDefinition):
         stimulus_id = self.id
         assert isinstance(stimulus_id, int)
 
-        for key, asset in self._staged_assets.items():
+        for label, asset in self._staged_assets.items():
+            if asset.label is None:
+                asset.label = label
+
             if not asset.has_key:
-                asset.label = key
                 asset.key = f"{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
 
             asset.node = self
@@ -199,6 +203,8 @@ class Stimulus(TrialNode, HasDefinition):
             experiment.assets.stage(asset)
             db.session.add(asset)
 
+        db.session.commit()
+        self.assets = self._staged_assets
         db.session.commit()
 
     def add_to_network(self, network, source, target_num_trials, stimulus_set):

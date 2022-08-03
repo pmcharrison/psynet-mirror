@@ -156,6 +156,34 @@ def demo_gmsi_two_modules_with_subscales(root):
 
 
 @pytest.fixture(scope="class")
+def demo_color_blindness(root):
+    demo_setup("color_blindness")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_color_vocabulary(root):
+    demo_setup("color_vocabulary")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_headphone_test(root):
+    demo_setup("headphone_test")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
+def demo_language_tests(root):
+    demo_setup("language_tests")
+    yield
+    demo_teardown(root)
+
+
+@pytest.fixture(scope="class")
 def demo_bot(root):
     demo_setup("bot")
     yield

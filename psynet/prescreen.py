@@ -558,7 +558,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         return ModularPage(
             "markers_test_trial",
             AudioPrompt(
-                self.assets["stimulus"].url,
+                self.stimulus.assets["stimulus"].url,
                 Markup(
                     """
                     <h3>Recording test</h3>
@@ -1055,7 +1055,7 @@ class LexTaleTest(Module):
                 return ModularPage(
                     "lextale_trial",
                     ImagePrompt(
-                        self.assets["word"].url,
+                        self.stimulus.assets["word"].url,
                         "Does this word exist?",
                         width="100px",
                         height="100px",
@@ -1341,7 +1341,7 @@ class ColorBlindnessTest(Module):
                 return ModularPage(
                     "color_blindness_trial",
                     ImagePrompt(
-                        self.assets["image"].url,
+                        self.stimulus.assets["image"].url,
                         "Write down the number in the image.",
                         width="350px",
                         height="344px",

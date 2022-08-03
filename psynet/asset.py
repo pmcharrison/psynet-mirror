@@ -23,7 +23,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
-from .media import bucket_exists, create_bucket, get_aws_credentials, make_bucket_public
+from .media import get_aws_credentials
 from .process import AsyncProcess, LocalAsyncProcess
 from .timeline import NullElt
 from .utils import (
@@ -45,8 +45,6 @@ class AssetSpecification:
     def __init__(self, key, label):
         if key is None:
             key = f"pending--{uuid.uuid4()}"
-        if label is None:
-            label = key
         self.key = key
         self.label = label
 
@@ -128,20 +126,26 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     network = relationship("Network", backref="assets")
 
     node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship(
-        "Node",
-        backref=backref(
-            "assets", collection_class=attribute_mapped_collection("label")
-        ),
-    )
+    node = relationship("Node")
+    # "Node",
+    # backref=backref(
+    #     "assets", collection_class=attribute_mapped_collection("label_or_key")
+    # ),
+    # )
 
     trial_id = Column(Integer, ForeignKey("info.id"))
     trial = relationship(
         "Trial",
         backref=backref(
-            "assets", collection_class=attribute_mapped_collection("label")
+            "assets", collection_class=attribute_mapped_collection("label_or_key")
         ),
     )
+
+    @property
+    def label_or_key(self):
+        if self.label is not None:
+            return self.label
+        return self.key
 
     awaiting_async_process = column_property(
         select(AsyncProcess)
@@ -1328,9 +1332,9 @@ class S3Storage(AssetStorage):
         self.root = root
 
     def prepare_for_deployment(self):
-        if not bucket_exists(self.s3_bucket):
-            create_bucket(self.s3_bucket)
-        make_bucket_public(self.s3_bucket)
+        if not self.bucket_exists(self.s3_bucket):
+            self.create_bucket(self.s3_bucket)
+        self.make_bucket_public(self.s3_bucket)
 
     def _receive_deposit(self, asset, host_path):
         s3_key = self.get_s3_key(host_path)
@@ -1344,6 +1348,19 @@ class S3Storage(AssetStorage):
         return os.path.join(
             "https://s3.amazonaws.com", self.s3_bucket, self.escape_s3_key(s3_key)
         )
+
+    @staticmethod
+    def bucket_exists(bucket_name):
+        import botocore
+
+        resource = get_boto3_s3_resource()
+        try:
+            resource.meta.client.head_bucket(Bucket=bucket_name)
+        except botocore.exceptions.ClientError as e:
+            error_code = int(e.response["Error"]["Code"])
+            if error_code == 404:
+                return False
+        return True
 
     def get_s3_key(self, host_path: str):
         return os.path.join(self.root, host_path)
@@ -1483,14 +1500,13 @@ class S3Storage(AssetStorage):
             self.run_aws_command(cmd)
         except AwsCliError as err:
             if "NoSuchBucket" in str(err):
-                self.create_bucket()
+                self.create_bucket(self.s3_bucket)
                 self.run_aws_command(cmd)
             else:
                 raise
 
-    def create_bucket(self, s3_bucket=None):
-        if s3_bucket is None:
-            s3_bucket = self.s3_bucket
+    @staticmethod
+    def create_bucket(s3_bucket):
         client = get_boto3_s3_client()
         client.create_bucket(Bucket=s3_bucket)
 
