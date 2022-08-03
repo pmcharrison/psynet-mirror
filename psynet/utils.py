@@ -19,7 +19,6 @@ from urllib.parse import ParseResult, urlparse
 import jsonpickle
 import pexpect
 from _hashlib import HASH as Hash
-from dallinger import db
 from dallinger.config import config, get_config
 
 
@@ -62,54 +61,6 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
-
-
-@cache
-def get_experiment():
-    """
-    Returns an initialized instance of the experiment class.
-    """
-    return import_local_experiment()["class"](db.session)
-
-
-@cache
-def get_trial_maker(trial_maker_id):
-    exp = get_experiment()
-    return exp.timeline.get_trial_maker(trial_maker_id)
-
-
-def import_local_experiment():
-    # Imports experiment.py and returns a dict consisting of
-    # 'package' which corresponds to the experiment *package*,
-    # 'module' which corresponds to the experiment *module*, and
-    # 'class' which corresponds to the experiment *class*.
-    # It also adds the experiment directory to sys.path, meaning that any other
-    # modules defined there can be imported using ``import``.
-    # import pdb; pdb.set_trace()
-    #
-    # TODO - Is it a problem if we try to import_local_experiment before config.load() has been called?
-    get_config()
-
-    import dallinger.experiment
-
-    dallinger.experiment.load()
-
-    dallinger_experiment = sys.modules.get("dallinger_experiment")
-    sys.path.append(os.getcwd())
-
-    try:
-        module = dallinger_experiment.experiment
-    except AttributeError as e:
-        raise Exception(
-            f"Possible ModuleNotFoundError in your experiment's experiment.py file. "
-            f'Please check your imports!\nOriginal error was "AttributeError: {e}"'
-        )
-
-    return {
-        "package": dallinger_experiment,
-        "module": module,
-        "class": dallinger.experiment.load(),
-    }
 
 
 def dict_to_js_vars(x):
@@ -754,3 +705,15 @@ def disable_logger():
     logging.disable(sys.maxsize)
     yield
     logging.disable(logging.NOTSET)
+
+
+def import_local_experiment():
+    raise ImportError(
+        "import_local_experiment has moved from psynet.utils to psynet.experiment, please update your import statements."
+    )
+
+
+def get_experiment():
+    raise ImportError(
+        "get_experiment has moved from psynet.utils to psynet.experiment, please update your import statements."
+    )

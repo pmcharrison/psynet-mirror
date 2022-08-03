@@ -2,9 +2,9 @@ import pytest
 from dallinger import db
 
 import psynet.field  # noqa
+from psynet.experiment import import_local_experiment
 from psynet.serialize import serialize, unserialize
 from psynet.trial.static import StaticTrial, Stimulus
-from psynet.utils import import_local_experiment
 
 
 @pytest.mark.usefixtures("demo_static")
@@ -67,7 +67,6 @@ class Test:
         self.check_mappers()
 
     def test_serialize_sql(self, trial, node, network, participant):
-        # from psynet.utils import
 
         trial_serialized = serialize(trial)
         assert (

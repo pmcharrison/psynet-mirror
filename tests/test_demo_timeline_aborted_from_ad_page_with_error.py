@@ -15,7 +15,7 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("demo_timeline_with_error")
 class TestExp:
     def test_variables(self, db_session):
-        from psynet.utils import get_experiment
+        from psynet.experiment import get_experiment
 
         exp = get_experiment()
         assert exp.var.min_accumulated_bonus_for_abort == 0.10

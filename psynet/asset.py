@@ -33,8 +33,6 @@ from .utils import (
     get_folder_size_mb,
     get_function_args,
     get_logger,
-    get_trial_maker,
-    import_local_experiment,
     md5_directory,
     md5_file,
     md5_object,
@@ -224,6 +222,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
     @property
     def trial_maker(self):
+        from psynet.experiment import get_trial_maker
+
         return get_trial_maker(self.trial_maker_id)
 
     def set_variables(self, variables):
@@ -400,6 +400,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 
     @cached_class_property
     def experiment_class(cls):  # noqa
+        from .experiment import import_local_experiment
+
         return import_local_experiment()["class"]
 
     @cached_class_property
@@ -1008,7 +1010,7 @@ class ExternalS3Asset(ExternalAsset):
 class AssetStorage:
     @property
     def experiment(self):
-        from .utils import get_experiment
+        from .experiment import get_experiment
 
         return get_experiment()
 

@@ -15,8 +15,8 @@ from reppextension.iterated_tapping import (
 from scipy.io import wavfile
 
 import psynet.experiment
+from psynet.asset import LocalStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
-from psynet.media import prepare_s3_bucket_for_presigned_urls
 from psynet.modular_page import AudioPrompt, AudioRecordControl, ModularPage
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
@@ -25,7 +25,7 @@ from psynet.prescreen import (
     REPPTappingCalibration,
     REPPVolumeCalibrationMarkers,
 )
-from psynet.timeline import PreDeployRoutine, ProgressDisplay, ProgressStage, Timeline
+from psynet.timeline import ProgressDisplay, ProgressStage, Timeline
 from psynet.trial.audio import (
     AudioImitationChainNetwork,
     AudioImitationChainNode,
@@ -38,10 +38,7 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-# TODO - this needs updating
-
 # Global parameters
-BUCKET_NAME = "iterated-tapping-demo"
 config = ConfigUpdater.create_config(
     sms_tapping,
     {
@@ -135,8 +132,6 @@ class CustomTrial(CustomTrialAnalysis):
             ),
             AudioRecordControl(
                 duration=duration_rec_sec,
-                s3_bucket=BUCKET_NAME,
-                public_read=True,
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
@@ -167,7 +162,7 @@ class CustomTrial(CustomTrialAnalysis):
 
 
 class CustomNetwork(AudioImitationChainNetwork):
-    s3_bucket = BUCKET_NAME
+    pass
 
 
 class CustomNode(AudioImitationChainNode):
@@ -204,23 +199,14 @@ class CustomSource(AudioImitationChainSource):
         return random_seed
 
 
-# TODO - this needs updating
-
 # Timeline
 class Exp(psynet.experiment.Experiment):
     label = "Iterated tapping demo"
+    # asset_storage = LocalStorage("~/Downloads/psynet_local_storage")
+    asset_storage = S3Storage("psynet-demos", "iterated-tapping")
 
     timeline = Timeline(
         NoConsent(),
-        PreDeployRoutine(
-            "prepare_s3_bucket_for_presigned_urls",
-            prepare_s3_bucket_for_presigned_urls,
-            {
-                "bucket_name": "markers-check-recordings",
-                "public_read": True,
-                "create_new_bucket": True,
-            },  # s3 bucket to store markers check recordings
-        ),
         REPPVolumeCalibrationMarkers(),  # calibrate volume for markers
         REPPTappingCalibration(),  # calibrate tapping
         REPPMarkersTest(),  # pre-screening filtering participants based on recording test (markers)

@@ -16,7 +16,7 @@ from sqlalchemy.orm import relationship
 
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonDict, PythonObject
-from .utils import classproperty, get_logger, import_local_experiment
+from .utils import classproperty, get_logger
 
 logger = get_logger()
 
@@ -181,6 +181,8 @@ class AsyncProcess(SQLBase, SQLMixin):
         """
         Calls the defining function of a given process.
         """
+        from .experiment import import_local_experiment
+
         import_local_experiment()
 
         process = AsyncProcess.query.filter_by(id=process_id).one()

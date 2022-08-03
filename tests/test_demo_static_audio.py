@@ -5,7 +5,7 @@ import pytest
 
 from psynet.asset import Asset
 from psynet.command_line import run_prepare_in_subprocess
-from psynet.utils import get_experiment
+from psynet.experiment import get_experiment
 
 
 @pytest.mark.usefixtures("demo_static_audio")

@@ -1,7 +1,7 @@
 import pytest
 import requests
 
-from psynet.utils import get_experiment
+from psynet.experiment import get_experiment
 
 
 @pytest.mark.usefixtures("demo_mcmcp")

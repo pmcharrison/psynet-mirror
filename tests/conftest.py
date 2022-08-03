@@ -10,6 +10,7 @@ from dallinger import db
 from dallinger.models import Network, Node
 from dallinger.pytest_dallinger import flush_output
 
+import psynet.experiment
 import psynet.utils
 from psynet.command_line import (
     kill_chromedriver_processes,
@@ -86,7 +87,7 @@ def demo_setup(demo):
     if not config.ready:
         config.load()
 
-    psynet.utils.import_local_experiment()
+    psynet.experiment.import_local_experiment()
     init_db(drop_all=True)
     run_prepare_in_subprocess()
 
@@ -219,9 +220,7 @@ def demo_unity_autoplay(root):
 
 @pytest.fixture
 def experiment_module(db_session):
-    import psynet.utils
-
-    return psynet.utils.import_local_experiment().get("module")
+    return psynet.experiment.import_local_experiment().get("module")
 
 
 @pytest.fixture

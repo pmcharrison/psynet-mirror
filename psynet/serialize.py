@@ -7,7 +7,6 @@ import jsonpickle
 from jsonpickle.unpickler import Unpickler, loadclass
 
 from .data import SQLBase
-from .utils import import_local_experiment
 
 # old_loadclass = jsonpickle.unpickler.loadclass
 #
@@ -92,6 +91,8 @@ class PsyNetUnpickler(Unpickler):
 
     @cached_property
     def experiment(self):
+        from .experiment import import_local_experiment
+
         return import_local_experiment()
 
 
@@ -137,6 +138,8 @@ class SQLHandler(jsonpickle.handlers.BaseHandler):
         return state
 
     def restore(self, state):
+        from .experiment import import_local_experiment
+
         raise RuntimeError("This should not be called directly")
 
         cls_definition = state["py/object"]

@@ -740,7 +740,8 @@ def export_assets(
 
 def export_asset(key, path, include_fast_function_assets):
     from .asset import Asset, FastFunctionAsset
-    from .utils import import_local_experiment, make_parents
+    from .experiment import import_local_experiment
+    from .utils import make_parents
 
     import_local_experiment()
     a = Asset.query.filter_by(key=key).one()

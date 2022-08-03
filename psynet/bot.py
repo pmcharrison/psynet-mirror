@@ -7,13 +7,7 @@ from dallinger import db
 from .participant import Participant
 from .redis import redis_vars
 from .timeline import EndPage, Page
-from .utils import (
-    NoArgumentProvided,
-    get_experiment,
-    get_logger,
-    log_time_taken,
-    wait_until,
-)
+from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
 logger = get_logger()
 
@@ -60,6 +54,8 @@ class Bot(Participant):
 
     @cached_property
     def experiment(self):
+        from .experiment import get_experiment
+
         return get_experiment()
 
     @cached_property

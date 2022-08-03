@@ -44,14 +44,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import (
-    call_function,
-    corr,
-    deep_copy,
-    get_logger,
-    get_trial_maker,
-    wait_until,
-)
+from ..utils import call_function, corr, deep_copy, get_logger, wait_until
 
 logger = get_logger()
 
@@ -451,6 +444,8 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
     @property
     def trial_maker(self):
+        from ..experiment import get_trial_maker
+
         return get_trial_maker(self.trial_maker_id)
 
     def mark_as_finalized(self):
@@ -2165,6 +2160,8 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     @property
     def trial_maker(self):
+        from ..experiment import get_trial_maker
+
         return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
@@ -2318,6 +2315,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     @property
     def trial_maker(self):
+        from ..experiment import get_trial_maker
+
         return get_trial_maker(self.trial_maker_id)
 
 

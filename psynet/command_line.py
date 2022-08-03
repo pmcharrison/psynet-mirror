@@ -23,8 +23,6 @@ from . import deployment_info
 from .data import drop_all_db_tables, dump_db_to_disk, ingest_zip, init_db
 from .redis import redis_vars
 from .utils import (
-    get_experiment,
-    import_local_experiment,
     make_parents,
     pretty_format_seconds,
     run_subprocess_with_live_output,
@@ -112,6 +110,8 @@ def prepare():
     """
     try:
         from dallinger import db
+
+        from .experiment import import_local_experiment
 
         redis_vars.clear()
         db.init_db(drop_all=True)
@@ -464,6 +464,8 @@ def docs(force_rebuild):
 def run_pre_checks(mode):
     from dallinger.recruiters import MTurkRecruiter
 
+    from .experiment import get_experiment
+
     init_db(drop_all=True)
 
     config = get_config()
@@ -719,6 +721,8 @@ def estimate(mode):
     """
     Estimate the maximum bonus for a participant and the time for the experiment to complete, respectively.
     """
+    from .experiment import import_local_experiment
+
     log(header)
     experiment_class = import_local_experiment()["class"]
     experiment = setup_experiment_variables(experiment_class)
@@ -805,6 +809,8 @@ def export_(
     n_parallel=None,
 ):
     import requests
+
+    from .experiment import import_local_experiment
 
     log(header)
     import_local_experiment()
@@ -1008,6 +1014,8 @@ def rpdb(ip, port):
 @click.argument("path")
 def load(path):
     "Populates the local database with a provided zip file."
+    from .experiment import import_local_experiment
+
     import_local_experiment()
     populate_db_from_zip_file(path)
 

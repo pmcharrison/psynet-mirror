@@ -42,7 +42,7 @@ class TestExp:
             next_page(driver, "next-button", finished=True)
 
     def test_default_variables(self, db_session):
-        from psynet.utils import get_experiment
+        from psynet.experiment import get_experiment
 
         exp = get_experiment()
 

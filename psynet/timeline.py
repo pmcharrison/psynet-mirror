@@ -2303,3 +2303,9 @@ class RecruitmentCriterion(NullElt):
         check_function_args(function, args=["experiment"], need_all=False)
         self.label = label
         self.function = function
+
+
+def get_trial_maker(trial_maker_id):
+    raise ImportError(
+        "get_trial_maker has moved from psynet.timeline to psynet.experiment, please update your import statements."
+    )
