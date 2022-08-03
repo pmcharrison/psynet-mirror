@@ -13,6 +13,7 @@ from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
 import pexpect
+from dallinger import db
 from dallinger.config import config, get_config
 
 
@@ -22,6 +23,16 @@ def get_logger():
 
 
 logger = get_logger()
+
+
+class NoArgumentProvided:
+    """ "
+    We use this class as a replacement for ``None`` as a default argument,
+    to distinguish cases where the user doesn't provide an argument
+    from cases where they intentionally provide ``None`` as an argument.
+    """
+
+    pass
 
 
 def get_arg_from_dict(x, desired: str, use_default=False, default=None):
@@ -37,6 +48,13 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
+
+
+def get_experiment():
+    """
+    Returns an initialized instance of the experiment class.
+    """
+    return import_local_experiment()["class"](db.session)
 
 
 def import_local_experiment():
