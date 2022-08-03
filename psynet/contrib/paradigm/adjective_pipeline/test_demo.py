@@ -87,7 +87,7 @@ class TestExp(object):
                 self.submit_new_tag(driver, chr(99 + i))
                 self.click_next(driver, _id="next_button")
                 self.click_next(driver)
-                if i == 3:
+                if i == 4:
                     # TEST3: Check early convergence
                     assert (
                         self.get_exp(db_session)

@@ -14,6 +14,7 @@ import pandas as pd
 from dallinger import db
 from dallinger.models import Notification, Participant
 from flask import Markup, render_template_string
+from pkg_resources import resource_filename
 
 from psynet.modular_page import (
     AudioPrompt,
@@ -23,6 +24,7 @@ from psynet.modular_page import (
     VideoPrompt,
 )
 from psynet.page import InfoPage
+from psynet.timeline import ExtraResource, join
 from psynet.trial.imitation_chain import (
     ImitationChainNetwork,
     ImitationChainNode,
@@ -35,15 +37,24 @@ from psynet.utils import get_logger
 logger = get_logger()
 
 
-# TODO The practice trials are currently problematic. It biases people as they only view a limited number of initial
+# The practice trials are currently problematic. It biases people as they only view a limited number of initial
 #  starting stimuli with their tags. Also, since we are using across chains it might be that people occupy all the spots
 #  in the training phase meaning that not all participants do the same number of practice trials
 #  Alternatives are to take within chains for practice, but this would require prepopulated chains and this also biases
 #  the participant…
 
 
+class AdjectiveTarget:
+    def __init__(self, url, initial_tags=[]):
+        self.url = url
+        self.initial_tags = initial_tags
+
+
 class AdjectiveControl(Control):
     macro = "adjective_input"
+
+    external_template = "adjective_input.html"
+    # return os.path.join(os.path.dirname(__file__), "templates", "adjective_input.html")
 
     def __init__(self, template_args=None):
         super().__init__()
@@ -59,11 +70,11 @@ class AdjectiveControl(Control):
 
 
 class AdjectiveTrial(ImitationChainTrial):
-    __mapper_args__ = {"polymorphic_identity": "adjective_trial"}
     wait_for_feedback = True
 
+    # TODO refactor custom table
     @staticmethod
-    def user_creation_query(participant_id):
+    def get_user_creations__query(participant_id):
         """
         Query all the adjectives created by a participant.
         """
@@ -77,7 +88,7 @@ class AdjectiveTrial(ImitationChainTrial):
         """
         return [
             (adj.property1, adj.property2)
-            for adj in self.user_creation_query(participant_id).all()
+            for adj in self.get_user_creations__query(participant_id).all()
         ]
 
     @staticmethod
@@ -121,7 +132,7 @@ class AdjectiveTrial(ImitationChainTrial):
         """
 
         # We can only give feedback if the participant did at least 1 trial
-        if self.user_creation_query(participant.id).count() > 0:
+        if self.get_user_creations__query(participant.id).count() > 0:
             # We want to find out which adjectives were used in the experiment so far and how often they were used
             adjective_count = Counter(
                 [
@@ -131,19 +142,19 @@ class AdjectiveTrial(ImitationChainTrial):
             )
 
             # Avoid to give the same bonus for an unique word over and over again
-            if not participant.var.has("bonussed_unique_words"):
+            if not participant.var.has("bonused_unique_words"):
                 participant.var.set(
-                    "bonussed_unique_words", feedback_dictionary["new_word"]["history"]
+                    "bonused_unique_words", feedback_dictionary["new_word"]["history"]
                 )
             else:
                 feedback_dictionary["new_word"]["history"] = participant.var.get(
-                    "bonussed_unique_words"
+                    "bonused_unique_words"
                 )
 
             # Now we grab the adjectives that are created by the user and occur only once in all adjectives
             unique_user_adjectives_with_url = [
                 [adj.property1, adj.property2]
-                for adj in self.user_creation_query(participant.id).all()
+                for adj in self.get_user_creations__query(participant.id).all()
                 if adj.property2 not in feedback_dictionary["new_word"]["history"]
                 and adjective_count[adj.property2] == 1
             ]
@@ -185,14 +196,11 @@ class AdjectiveTrial(ImitationChainTrial):
         """
         Returns the type of media from a url.
         """
-        if url.lower().endswith(tuple(file_extensions["audio"])):
-            return "audio"
-        elif url.lower().endswith(tuple(file_extensions["video"])):
-            return "video"
-        elif url.lower().endswith(tuple(file_extensions["image"])):
-            return "image"
-        else:
-            raise NotImplementedError("Unsupported media type!")
+        for file_type in file_extensions.keys():
+            if url.lower().endswith(tuple(file_extensions[file_type])):
+                return file_type
+
+        raise NotImplementedError("Unsupported media type!")
 
     def get_feedback_flagged(self, flagged_adjectives, trial_maker):
         """
@@ -230,7 +238,7 @@ class AdjectiveTrial(ImitationChainTrial):
         """
 
         # We can only give feedback if the participant did at least 1 trial
-        if self.user_creation_query(participant.id).count() > 0:
+        if self.get_user_creations__query(participant.id).count() > 0:
             # Let's check if the participant got flagged before
             if not participant.var.has("flagged_creations"):
                 participant.var.set(
@@ -287,7 +295,7 @@ class AdjectiveTrial(ImitationChainTrial):
         """
 
         # We can only give feedback if the participant did at least 1 trial
-        if self.user_creation_query(participant.id).count() > 0:
+        if self.get_user_creations__query(participant.id).count() > 0:
             if not participant.var.has("upvoted_creations"):
                 participant.var.set(
                     "upvoted_creations", feedback_dictionary["upvoted"]["history"]
@@ -412,7 +420,7 @@ class AdjectiveTrial(ImitationChainTrial):
                     participant.inc_performance_bonus(trial_maker.upvote_bonus)
                 elif key == "new_word":
                     participant.var.set(
-                        "bonussed_unique_words", available_feedback[key]["history"]
+                        "bonused_unique_words", available_feedback[key]["history"]
                     )
                     participant.inc_performance_bonus(trial_maker.new_word_bonus)
 
@@ -433,6 +441,7 @@ class AdjectiveTrial(ImitationChainTrial):
         """
         Makes sure all expected template arguments (`template_args`) are present
         """
+
         if "stimulus_type_singular" in template_args.keys():
             stimulus_type = template_args["stimulus_type_singular"]
 
@@ -610,6 +619,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 hide_when_finished=False,
             )
         elif url.lower().endswith(tuple(trial_maker.file_extensions["image"])):
+            # TODO refactor this
             height = get_if_exists(template_args, "height", 400)
             prompt = ImagePrompt(
                 url,
@@ -658,14 +668,13 @@ class AdjectiveNetwork(ImitationChainNetwork):
     Defines each adjective network
     """
 
-    __mapper_args__ = {"polymorphic_identity": "adjective_network"}
-
     def make_definition(self):
         trial_maker = self.experiment.timeline.get_trial_maker(self.trial_maker_id)
-        urls = trial_maker.media_urls
-        idx = self.id % len(urls)
-        url = urls[idx]
-        initial_tags = trial_maker.prepopulate_networks[idx]
+        targets = trial_maker.targets
+        idx = self.id % len(targets)
+        target = targets[idx]
+        initial_tags = target.initial_tags
+        url = target.url
         if initial_tags != []:
             logger.info(f"Prepopulate network {self.id} with: {initial_tags}")
             for tag in initial_tags:
@@ -686,8 +695,6 @@ class AdjectiveSource(ImitationChainSource):
     Defines the initial state of each adjective chain
     """
 
-    __mapper_args__ = {"polymorphic_identity": "adjective_source"}
-
     def generate_seed(self, network, experiment, participant):
         return {
             "url": network.definition["url"],
@@ -695,9 +702,78 @@ class AdjectiveSource(ImitationChainSource):
         }
 
 
+class AdjectiveNode(ImitationChainNode):
+    __mapper_args__ = {"polymorphic_identity": "adjective_node"}
+
+    def summarize_trials(self, trials: list, experiment, participant):
+        trial = trials[len(trials) - 1]
+        trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
+        return trial_maker._summarize_trial(trial, False, trial_maker)
+
+
 class AdjectivePipeline(ImitationChainTrialMaker):
     """
     High level abstraction of the adjective pipeline (Work In Progress!)
+
+    Parameters
+    ----------
+
+    targets
+        A list of urls or of instances of the AdjectiveTarget class.
+
+    num_trials_per_participant
+        Maximum number of trials that each participant may complete;
+        once this number is reached, the participant will move on
+        to the next stage in the timeline.
+
+    base_time_estimate
+        Time estimate in seconds just to watch a single stimulus
+
+    tag_rating_time_estimate
+        Time estimate in seconds to rate a tag, default 1 second.
+
+    new_tag_time_estimate
+        Time estimate in seconds to create a new tag, default 4 seconds.
+
+    max_new_tags
+        Maximal number of new tags a participant get's paid out per trial (i.e. max max_new_tags *
+        new_tag_time_estimate), default 10. This avoids that a fraudulent participants just keeps adding irrelevant
+        tags to get a high performance bonus.
+
+    max_rating
+        Maximal number of ratings we pay out per trial (i.e. max max_rating *
+        new_tag_time_estimate), default 10. This avoids that a fraudulent participants just keeps adding irrelevant
+        tags to get a high performance bonus.
+
+    phase
+        Label for this phase of the experiment, either "practice" or "experiment".
+
+    min_iterations
+        Mininmal number of iterations per chain, default 10 iterations.
+
+    max_iterations
+        Maximal number of iterations per chain, default 10 iterations.
+
+    stop_early_if
+        Condition to end a chain early if iteration > min_iterations. Default: {"mean_rating": 3, "num_adjectives": 2,
+        "min_upvotes": 3}. This means to end a chain early, there must be at least 2 adjectives, that received at least
+         3 upvotes per tag and with a mean rating of 3. You can overwrite these settings.
+
+    TODO fill in the remaining parameters
+        upvote_icon: str = "star",
+        upvote_n_buttons=None,
+        flagging_threshold: int = 2,
+        prune_flags: bool = False,
+        network_class=AdjectiveNetwork,
+        source_class=AdjectiveSource,
+        trial_class=AdjectiveTrial,
+        new_word_bonus: Optional[float] = None,
+        upvote_bonus: Optional[float] = None,
+        show_positive_feedback_every: int = 0,
+        practice_threshold: int = 0,
+        template_args=None,
+        prepopulate_networks=False,
+        allow_revisiting: bool = False,
     """
 
     file_extensions = {
@@ -712,7 +788,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         self,
         *,
         id_,
-        media_urls: list,
+        targets: list,
         num_trials_per_participant: int,
         base_time_estimate: int,
         tag_rating_time_estimate: int = 1,
@@ -735,7 +811,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         show_positive_feedback_every: int = 0,
         practice_threshold: int = 0,
         template_args=None,
-        prepopulate_networks=False,
         allow_revisiting: bool = False,
     ):
         # Avoid default arguments to be mutable
@@ -749,18 +824,35 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             "experiment",
             "practice",
         ], "Only experiment and practice phase are supported!"
-        assert len(media_urls) > 0, "You need to specify at least one url"
+        assert (
+            len(targets) > 0
+        ), "You need to specify at least one url or AdjectiveTarget"
+
+        type_tuple = (
+            sum([isinstance(target, str) for target in targets]),
+            sum([isinstance(target, AdjectiveTarget) for target in targets]),
+        )
+
+        n = len(targets)
+
+        # Either you only specify Targets or just urls
+        assert (0, n) in [(0, n), (n, 0)]
+
+        if type_tuple == (n, 0):
+            # Internally convert urls to Targets
+            targets = [AdjectiveTarget(url) for url in targets]
 
         flat_extensions = tuple(
             [item for ext in self.file_extensions.values() for item in ext]
         )
+
         assert all(
-            [url.lower().endswith(flat_extensions) for url in media_urls]
+            [target.url.lower().endswith(flat_extensions) for target in targets]
         ), "Some urls have a non-supported file extension!"
 
         assert num_trials_per_participant > 0
         if phase == "practice":
-            assert num_trials_per_participant == len(media_urls)
+            assert num_trials_per_participant == len(targets)
         assert base_time_estimate > 0
         assert tag_rating_time_estimate > 0
         assert min_iterations > 0
@@ -776,7 +868,6 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         )
         self.stop_early_if = stop_early_if
 
-        # TODO add support for 'dot' and 'plus'
         assert upvote_icon in ["star"], "Currently only star icons are supported"
         self.upvote_icon = upvote_icon
         if upvote_n_buttons is not None:
@@ -812,35 +903,18 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             and practice_n_repeat_trials == 0
         ) or (phase == "practice" and practice_threshold <= practice_n_repeat_trials)
 
-        if not prepopulate_networks:
-            prepopulate_networks = [[] for _ in range(len(media_urls))]
-        else:
-            assert (
-                type(prepopulate_networks) == list
-            ), "If you specify existing for a warm start, you must use a list"
-            assert all(
-                [type(chain) == list for chain in prepopulate_networks]
-            ), "The tags for each chain must consist of lists of strings"
-            assert all(
-                [type(tag) == str for chain in prepopulate_networks for tag in chain]
-            ), "All tags must be strings!"
-
-        self.prepopulate_networks = prepopulate_networks
+        assert all(
+            [type(target.initial_tags) == list for target in targets]
+        ), "The tags for each chain must consist of lists of strings"
+        assert all(
+            [type(tag) == str for target in targets for tag in target.initial_tags]
+        ), "All tags must be strings!"
 
         # Ad hoc classes
         trial_class.time_estimate = base_time_estimate
-        pipeline_obj = self
 
-        class AdjectiveNode(ImitationChainNode):
-            __mapper_args__ = {"polymorphic_identity": "adjective_node"}
-
-            def summarize_trials(self, trials: list, experiment, participant):
-                trial = trials[len(trials) - 1]
-                trial_maker = experiment.timeline.get_trial_maker(trial.trial_maker_id)
-                return pipeline_obj._summarize_trial(trial, False, trial_maker)
-
-        self.media_urls = media_urls
-        num_chains_per_experiment = len(media_urls)
+        self.targets = targets
+        num_chains_per_experiment = len(targets)
         self.base_time_estimate = base_time_estimate
         self.network_class = network_class
         self.source_class = source_class
@@ -890,9 +964,47 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             target_num_participants=None,
             allow_revisiting_networks_in_across_chains=allow_revisiting,
         )
+        self.elts = join(
+            self.elts,
+            ExtraResource(
+                resource_filename(
+                    "psynet",
+                    "contrib/paradigm/adjective_pipeline/resources/libraries/bootstrap-tagsinput/bootstrap-tagsinput-0.8.0.js",
+                ),
+                "/static/scripts/bootstrap-tagsinput-0.8.0.js",
+            ),
+            ExtraResource(
+                resource_filename(
+                    "psynet",
+                    "contrib/paradigm/adjective_pipeline/resources/libraries/typeahead/typeahead-0.11.1.js",
+                ),
+                "/static/scripts/typeahead-0.11.1.js",
+            ),
+            ExtraResource(
+                resource_filename(
+                    "psynet",
+                    "contrib/paradigm/adjective_pipeline/resources/images/icons/flag-fill.svg",
+                ),
+                "/static/images/icons/flag-fill.svg",
+            ),
+            ExtraResource(
+                resource_filename(
+                    "psynet",
+                    "contrib/paradigm/adjective_pipeline/resources/images/icons/star.svg",
+                ),
+                "/static/images/icons/star.svg",
+            ),
+            ExtraResource(
+                resource_filename(
+                    "psynet",
+                    "contrib/paradigm/adjective_pipeline/templates/adjective_input.html",
+                ),
+                "/templates/adjective_input.html",
+            ),
+        )
 
     # def experiment_setup_routine(self, experiment):
-    #     n_stimuli = len(self.media_urls)
+    #     n_stimuli = len(self.targets)
     #     # For each stimuli we only do the minimum number of iterations
     #     # and pay participants for watching the stimulus + giving one rating or new tag
     #
@@ -1002,7 +1114,8 @@ class AdjectivePipeline(ImitationChainTrialMaker):
     def seconds_to_dollars(self, seconds, wage_per_hour):
         return wage_per_hour * (seconds / 60**2)
 
-    def _summarize_trial(self, trial, is_main_experiment, trial_maker):
+    @staticmethod
+    def _summarize_trial(trial, is_main_experiment, trial_maker):
         url = trial.definition["url"]
         tags = []
         logger.info(f"Answer: {trial.answer}")
@@ -1057,11 +1170,11 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         #  The removed tags can re-emerge
         for tag, total_n_flags in flagged_adj_dict.items():
             total_n_creations = created_adj_dict[tag]
-            relative_n_flags = total_n_flags - self.flagging_threshold * (
+            relative_n_flags = total_n_flags - trial_maker.flagging_threshold * (
                 total_n_creations - 1
             )
             # logger.info(f'Relative number of flags for tag "{tag}": {relative_n_flags}')
-            if relative_n_flags == self.flagging_threshold:
+            if relative_n_flags == trial_maker.flagging_threshold:
                 logger.warning(
                     f'Removing tag "{tag}" from {tags}. The tag "{tag}" can be added again in later iterations.'
                 )
@@ -1229,7 +1342,7 @@ class AdjectiveExporter:
             pd.read_csv(data_dir + "data/info.csv")
             .sort_values("id")
             .query(
-                "type == 'adjective_trial' and failed == 'f' and is_repeat_trial == 'f' and not answer.isnull()"
+                "type == 'AdjectiveTrial' and failed == 'f' and is_repeat_trial == 'f' and not answer.isnull()"
             )
             .query("network_id.isin(@network_ids)")
         )
@@ -1309,7 +1422,7 @@ class AdjectiveExporter:
         return True
 
     @staticmethod
-    def parse_html(
+    def generate_html(
         ratings,
         html_out_path=None,
         upvote_n_buttons=AdjectivePipeline.upvote_n_buttons,
@@ -1413,7 +1526,7 @@ class AdjectiveExporter:
         ratings = AdjectiveExporter.export_pipelines_from_archive(
             data_dir, csv_out_path, export_only
         )
-        AdjectiveExporter.parse_html(ratings, html_out_path)
+        AdjectiveExporter.generate_html(ratings, html_out_path)
 
 
 def read_template_string(filename, flatten=False):
@@ -1440,7 +1553,7 @@ def render_adjective_pipelines_summary(cls):
             network_htmls = {}
             if ratings.shape[0] > 0:
                 for network_id in set(ratings.network_id):
-                    network_htmls[network_id] = AdjectiveExporter.parse_html(
+                    network_htmls[network_id] = AdjectiveExporter.generate_html(
                         ratings.query(f"network_id=={network_id}")
                     )
             iteration_dict = dict(Counter([n.degree - 1 for n in module.networks]))

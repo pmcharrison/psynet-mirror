@@ -3,7 +3,10 @@ from flask import Markup
 
 import psynet.experiment
 from psynet.consent import NoConsent
-from psynet.contrib.paradigm.adjective_pipeline import AdjectivePipeline
+from psynet.contrib.paradigm.adjective_pipeline import (
+    AdjectivePipeline,
+    AdjectiveTarget,
+)
 from psynet.modular_page import ModularPage, Prompt, PushButtonControl
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Module, Timeline, switch
@@ -11,17 +14,13 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-video_url = [
-    "https://mini-kinetics-psy.s3.amazonaws.com/mini-kinetics-validation/cut_videos/[zumba]_dLE5YOEqBGs.mp4"
-]
+video_url = "https://mini-kinetics-psy.s3.amazonaws.com/mini-kinetics-validation/cut_videos/[zumba]_dLE5YOEqBGs.mp4"
 
-audio_url = [
-    "https://mini-kinetics-psy.s3.amazonaws.com/emotional_prosody/03-01-08-02-02-02-24.wav"
-]
+audio_url = "https://mini-kinetics-psy.s3.amazonaws.com/emotional_prosody/03-01-08-02-02-02-24.wav"
 
-image_url = [
+image_url = (
     "https://s3.amazonaws.com/generalization-datasets/vegetables/images/amaranth1.jpg"
-]
+)
 
 image_urls = [
     "https://s3.amazonaws.com/generalization-datasets/vegetables/images/thaieggplant3.jpg",
@@ -59,7 +58,7 @@ class Exp(psynet.experiment.Experiment):
                 branches={
                     "Single video": AdjectivePipeline(
                         id_="single_video_trial",
-                        media_urls=video_url,
+                        targets=[video_url],
                         num_trials_per_participant=1,
                         base_time_estimate=5,
                         min_iterations=4,
@@ -76,7 +75,16 @@ class Exp(psynet.experiment.Experiment):
                     ),
                     "Mixed media practice": AdjectivePipeline(
                         id_="mixed_media_practice_trial",
-                        media_urls=image_url + video_url + audio_url,
+                        targets=[
+                            AdjectiveTarget(
+                                image_url,
+                                ["leaf", "green", "red", "yellow", "brown", "orange"],
+                            ),
+                            AdjectiveTarget(video_url, ["dance", "females"]),
+                            AdjectiveTarget(
+                                audio_url, ["female", "speech", "emotional"]
+                            ),
+                        ],
                         num_trials_per_participant=3,
                         base_time_estimate=4,
                         phase="practice",
@@ -100,18 +108,13 @@ class Exp(psynet.experiment.Experiment):
                             """
                             ),
                         },
-                        prepopulate_networks=[
-                            ["leaf", "green", "red", "yellow", "brown", "orange"],
-                            ["dance", "females"],
-                            ["female", "speech", "emotional"],
-                        ],
                     ),
                     # Check:
                     # - Does pruning work?
                     # - Are people kicked out of the experiment if they don't prune?
                     "Multiple images": AdjectivePipeline(
                         id_="experiment_images",
-                        media_urls=image_urls,
+                        targets=image_urls,
                         num_trials_per_participant=4,
                         base_time_estimate=4,
                         phase="experiment",

@@ -39,6 +39,7 @@ from .recruiters import (  # noqa: F401
 from .timeline import (
     DatabaseCheck,
     ExperimentSetupRoutine,
+    ExtraResource,
     FailedValidation,
     ParticipantFailRoutine,
     PreDeployRoutine,
@@ -417,6 +418,12 @@ class Experiment(dallinger.experiment.Experiment):
                 self.register_recruitment_criterion(elt)
 
     @classmethod
+    def register_extra_resources(cls):
+        for elt in cls.timeline.elts:
+            if isinstance(elt, ExtraResource):
+                cls.register_extra_resource(elt)
+
+    @classmethod
     def pre_deploy(cls):
         cls.check_config()
         for routine in cls.pre_deploy_routines:
@@ -724,7 +731,7 @@ class Experiment(dallinger.experiment.Experiment):
 
     @classmethod
     def extra_files(cls):
-        return [
+        extra_resources = [
             (
                 resource_filename("psynet", "templates"),
                 "/templates",
@@ -740,14 +747,6 @@ class Experiment(dallinger.experiment.Experiment):
             (
                 resource_filename("psynet", "resources/logo.svg"),
                 "/static/images/logo.svg",
-            ),
-            (
-                resource_filename("psynet", "resources/images/icons/flag-fill.svg"),
-                "/static/images/icons/flag-fill.svg",
-            ),
-            (
-                resource_filename("psynet", "resources/images/icons/star.svg"),
-                "/static/images/icons/star.svg",
             ),
             (
                 resource_filename("psynet", "resources/images/princeton-consent.png"),
@@ -802,19 +801,6 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/Tonejs",
             ),
             (
-                resource_filename(
-                    "psynet",
-                    "resources/libraries/bootstrap-tagsinput/bootstrap-tagsinput-0.8.0.js",
-                ),
-                "/static/scripts/bootstrap-tagsinput-0.8.0.js",
-            ),
-            (
-                resource_filename(
-                    "psynet", "resources/libraries/typeahead/typeahead-0.11.1.js"
-                ),
-                "/static/scripts/typeahead-0.11.1.js",
-            ),
-            (
                 resource_filename("psynet", "templates/mturk_error.html"),
                 "templates/mturk_error.html",
             ),
@@ -825,6 +811,10 @@ class Experiment(dallinger.experiment.Experiment):
                 "prepare_docker_image.sh",
             ),
         ]
+        for elt in cls.timeline.elts:
+            if isinstance(elt, ExtraResource):
+                extra_resources.append((elt.input_path, elt.output_path))
+        return extra_resources
 
     @classmethod
     def extra_parameters(cls):
