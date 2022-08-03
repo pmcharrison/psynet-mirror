@@ -1,5 +1,4 @@
 import errno
-import json
 import os
 import pathlib
 import re
@@ -17,14 +16,12 @@ from yaspin import yaspin
 from psynet import __path__ as psynet_path
 from psynet import __version__
 
-from .data import db_models, drop_all_db_tables, init_db
+from .data import drop_all_db_tables, dump_db_to_disk, init_db
 from .utils import (
+    get_experiment,
     import_local_experiment,
-    json_to_data_frame,
-    model_name_to_snake_case,
     pretty_format_seconds,
     run_subprocess_with_live_output,
-    serialise,
 )
 
 FLAGS = set()
@@ -410,7 +407,6 @@ def docs(force_rebuild):
 
 
 def run_pre_checks(mode):
-    from dallinger import db
     from dallinger.recruiters import MTurkRecruiter
 
     init_db(drop_all=True)
@@ -419,8 +415,7 @@ def run_pre_checks(mode):
     if not config.ready:
         config.load()
 
-    exp_class = import_local_experiment()["class"]
-    exp = exp_class.new(db.session)
+    exp = get_experiment()
 
     recruiter = exp.recruiter
     is_mturk = isinstance(recruiter, MTurkRecruiter)
@@ -736,6 +731,11 @@ def export_(app, local):
 
     log("Creating database snapshot.")
     from dallinger import data as dallinger_data
+    from dallinger import db as dallinger_db
+
+    # Dallinger hard-codes the list of table names, but this list becomes out of date
+    # if we add custom tables, so we have to patch it.
+    dallinger_data.table_names = sorted(dallinger_db.Base.metadata.tables.keys())
 
     dallinger_data.export(app, local=local)
     move_snapshot_file(data_dir_path, app)
@@ -748,17 +748,8 @@ def export_(app, local):
         log("Populating the local database with the downloaded data.")
         populate_db_from_zip_file(dallinger_zip_path)
 
-    log("Exporting 'json' and 'csv' files.")
-
-    for class_name in db_models():
-        from psynet.data import export
-
-        class_data = export(class_name)
-
-        for model_name, model_data in class_data.items():
-            base_filename = model_name_to_snake_case(model_name)
-            print(f"Exporting {base_filename} data...")
-            export_data(base_filename, data_dir_path, model_data)
+    log("Exporting final 'csv' files.")
+    dump_db_to_disk(os.path.join(data_dir_path, "csv"))
 
     log("Export completed.")
 
@@ -770,23 +761,8 @@ def populate_db_from_zip_file(zip_path):
     dallinger_data.ingest_zip(zip_path)
 
 
-def export_data(base_filename, data_dir_path, json_data):
-    for file_format in ["json", "csv"]:
-        with yaspin(text=f"Exporting '{file_format}'...", color="green") as spinner:
-            base_filepath = os.path.join(data_dir_path, file_format, base_filename)
-            with open(f"{base_filepath}.{file_format}", "w") as outfile:
-                if file_format == "json":
-                    json.dump(
-                        json_data, outfile, indent=2, sort_keys=False, default=serialise
-                    )
-                elif file_format == "csv":
-                    data_frame = json_to_data_frame(json_data)
-                    data_frame.to_csv(outfile, index=False)
-            spinner.ok("✔")
-
-
 def create_export_dirs(data_dir_path):
-    for file_format in ["csv", "db-snapshot", "json"]:
+    for file_format in ["csv", "db-snapshot"]:
         export_path = os.path.join(data_dir_path, file_format)
         try:
             os.makedirs(export_path)

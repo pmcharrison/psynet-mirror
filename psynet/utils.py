@@ -13,6 +13,7 @@ from functools import reduce, wraps
 from urllib.parse import ParseResult, urlparse
 
 import pexpect
+from dallinger import db
 from dallinger.config import config, get_config
 
 
@@ -22,6 +23,16 @@ def get_logger():
 
 
 logger = get_logger()
+
+
+class NoArgumentProvided:
+    """ "
+    We use this class as a replacement for ``None`` as a default argument,
+    to distinguish cases where the user doesn't provide an argument
+    from cases where they intentionally provide ``None`` as an argument.
+    """
+
+    pass
 
 
 def get_arg_from_dict(x, desired: str, use_default=False, default=None):
@@ -37,6 +48,13 @@ def sql_sample_one(x):
     from sqlalchemy.sql import func
 
     return x.order_by(func.random()).first()
+
+
+def get_experiment():
+    """
+    Returns an initialized instance of the experiment class.
+    """
+    return import_local_experiment()["class"](db.session)
 
 
 def import_local_experiment():
@@ -455,6 +473,8 @@ def sample_from_surface_of_unit_sphere(n_dimensions):
 def error_page(
     participant=None,
     error_text=None,
+    recruiter=None,
+    external_submit_url=None,
     compensate=True,
     error_type="default",
     request_data="",
@@ -486,7 +506,7 @@ def error_page(
 
     return make_response(
         render_template(
-            "mturk_error.html",
+            f"{recruiter_shortname(recruiter)}_error.html",
             error_text=error_text,
             compensate=compensate,
             contact_address=config.get("contact_email_on_error"),
@@ -496,9 +516,17 @@ def error_page(
             worker_id=worker_id,
             request_data=request_data,
             participant_id=participant_id,
+            external_submit_url=external_submit_url,
         ),
         500,
     )
+
+
+def recruiter_shortname(nickname):
+    if "lucid" in nickname:
+        return "lucid"
+    else:
+        return "mturk"
 
 
 class ClassPropertyDescriptor(object):
@@ -543,3 +571,30 @@ def run_subprocess_with_live_output(command):
     p.close()
     if p.exitstatus > 0:
         sys.exit(p.exitstatus)
+
+
+def organize_by_key(lst, key):
+    """
+    Sorts a list of items into groups.
+
+    Parameters
+    ----------
+    lst :
+        List to sort.
+
+    key :
+        Function applied to elements of ``lst`` which defines the grouping key.
+
+    Returns
+    -------
+
+    A dictionary keyed by the outputs of ``key``.
+
+    """
+    out = {}
+    for obj in lst:
+        _key = key(obj)
+        if _key not in out:
+            out[_key] = []
+        out[_key].append(obj)
+    return out

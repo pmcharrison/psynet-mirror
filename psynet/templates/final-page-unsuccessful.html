@@ -2,17 +2,32 @@
 
 {% block main_body %}
     Unfortunately the experiment must end early.
-    {% if experiment.var.show_bonus %}
+    {% if experiment.var.show_bonus and not experiment.with_lucid_recruitment() %}
         However, you will still be paid for the time you spent already.
         {% include "final-page-bonuses.html" %}
     {% endif %}
     Thank you for taking part.
-
+    {% if not experiment.with_lucid_recruitment() %}
     <p class="vspace"></p>
     <p>
         Please click "Finish" to complete the HIT.
     </p>
     <p class="vspace"></p>
+    <button type="button" id="next-button" class="btn btn-primary btn-lg">Finish</button>
+    {% endif %}
+{% endblock %}
 
-    <button type="button" id="next-button" class="btn btn-primary btn-lg" onClick="dallinger.submitAssignment();">Finish</button>
+{% block scripts %}
+<script>
+    function finish() {
+      dallinger.submitAssignment();
+    }
+    {% if experiment.with_lucid_recruitment() %}
+    setTimeout(() => {
+      finish();
+    }, "2000")
+    {% else %}
+    document.getElementById("next-button").onclick = finish;
+    {% endif %}
+</script>
 {% endblock %}

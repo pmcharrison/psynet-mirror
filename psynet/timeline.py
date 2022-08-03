@@ -18,10 +18,11 @@ from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
 
 from . import templates
-from .data import SQLBase, SQLMixin
+from .data import SQLBase, SQLMixin, register_table
 from .field import claim_field
 from .participant import Participant
 from .utils import (
+    NoArgumentProvided,
     call_function,
     check_function_args,
     dict_to_js_vars,
@@ -633,6 +634,11 @@ class Page(Elt):
         trialPrepare event to be triggered (e.g. by clicking a 'Play' button,
         or by calling `psynet.trial.registerEvent("trialPrepare")` in JS).
 
+    bot_response
+        Optional function to call when this page is consumed by a bot.
+        This will override any ``bot_response`` function specified in the class's
+        ``bot_response`` method.
+
     Attributes
     ----------
 
@@ -668,6 +674,7 @@ class Page(Elt):
         events: Optional[Dict] = None,
         progress_display: Optional[ProgressDisplay] = None,
         start_trial_automatically: bool = True,
+        bot_response=NoArgumentProvided,
     ):
         if template_arg is None:
             template_arg = {}
@@ -719,6 +726,42 @@ class Page(Elt):
         if progress_display is None:
             progress_display = ProgressDisplay(stages=[], show_bar=False)
         self.progress_display = progress_display
+
+        self._bot_response = bot_response
+
+    def call__bot_response(self, experiment, bot):
+        from .bot import BotResponse
+
+        if self._bot_response == NoArgumentProvided:
+            res = self.get_bot_response(experiment, bot)
+        elif callable(self._bot_response):
+            res = call_function(
+                self._bot_response,
+                args={
+                    "experiment": experiment,
+                    "bot": bot,
+                    "participant": bot,
+                    "page": self,
+                },
+            )
+        else:
+            res = self._bot_response
+
+        if not isinstance(res, BotResponse):
+            res = BotResponse(answer=res)
+
+        return res
+
+    def get_bot_response(self, experiment, bot):
+        """
+        This function is used when a bot simulates a participant responding to a given page.
+        In the simplest form, the function just returns the value of the
+        answer that the bot returns.
+        For more sophisticated treatment, the function can return a
+        ``BotResponse`` object which contains other parameters
+        such as ``blobs`` and ``metadata``.
+        """
+        return None
 
     def prepare_default_events(self):
         return {
@@ -782,15 +825,31 @@ class Page(Elt):
         participant.page_uuid = experiment.make_uuid()
 
     def process_response(
-        self, raw_answer, blobs, metadata, experiment, participant, client_ip_address
+        self,
+        raw_answer,
+        blobs,
+        metadata,
+        experiment,
+        participant,
+        client_ip_address,
+        answer=NoArgumentProvided,
     ):
-        answer = self.format_answer(
-            raw_answer,
-            blobs=blobs,
-            metadata=metadata,
-            experiment=experiment,
-            participant=participant,
-        )
+        if raw_answer == NoArgumentProvided and answer == NoArgumentProvided:
+            raise ValueError("At least one of raw_answer and answer must be provided.")
+        if blobs is None:
+            blobs = {}
+        if metadata is None:
+            metadata = {}
+
+        if answer == NoArgumentProvided:
+            answer = self.format_answer(
+                raw_answer,
+                blobs=blobs,
+                metadata=metadata,
+                experiment=experiment,
+                participant=participant,
+            )
+
         extra_metadata = self.metadata(
             metadata=metadata,
             raw_answer=raw_answer,
@@ -798,7 +857,9 @@ class Page(Elt):
             experiment=experiment,
             participant=participant,
         )
+
         combined_metadata = {**metadata, **extra_metadata}
+
         resp = Response(
             participant=participant,
             label=self.label,
@@ -986,6 +1047,7 @@ class Page(Elt):
             "trial_progress_display_config": self.progress_display,
             "attributes": self.attributes,
             "contents": self.contents,
+            "is_consent_page": self.is_consent_page,
         }
         try:
             return flask.render_template_string(self.template_str, **all_template_arg)
@@ -995,6 +1057,12 @@ class Page(Elt):
             pydevd_pycharm.settrace(
                 "localhost", port=2343, stdoutToServer=True, stderrToServer=True
             )
+
+    @property
+    def is_consent_page(self):
+        from .consent import Consent
+
+        return all([isinstance(self, _type) for _type in [Consent, Page]])
 
     @property
     def define_media_requests(self):
@@ -1174,15 +1242,20 @@ class PageMakerFinishedError(Exception):
 
 
 class EndPage(Page):
-    def __init__(self, template_filename):
+    def __init__(self, template_filename, label="EndPage"):
         super().__init__(
             time_estimate=0,
             template_str=get_template(template_filename),
+            label=label,
         )
 
     def consume(self, experiment, participant):
         super().consume(experiment, participant)
         self.finalize_participant(experiment, participant)
+
+    def get_bot_response(self, experiment, bot):
+        bot.status = "approved"
+        return None
 
     def finalize_participant(self, experiment, participant):
         """
@@ -1275,6 +1348,17 @@ class Timeline:
             return
         if all([not isinstance(elt, Consent) for elt in self.elts]):
             raise ValueError("At least one element in the timeline must be a consent.")
+
+    @property
+    def consents(self):
+        from .consent import Consent
+
+        return [elt for elt in self.elts if isinstance(elt, Consent)]
+
+    def verify_consents(self, experiment):
+        recruiter = experiment.recruiter
+        if hasattr(recruiter, "verify_consents"):
+            recruiter.verify_consents(self.consents)
 
     def modules(self):
         return {
@@ -1469,6 +1553,7 @@ class FailedValidation:
         self.message = message
 
 
+@register_table
 class _Response(SQLBase, SQLMixin):
     """
     This virtual class is not to be used directly.

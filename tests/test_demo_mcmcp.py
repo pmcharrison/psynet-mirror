@@ -42,10 +42,10 @@ class TestExp:
             next_page(driver, "next-button", finished=True)
 
     def test_default_variables(self, db_session):
-        from psynet.utils import import_local_experiment
+        from psynet.utils import get_experiment
 
-        exp_class = import_local_experiment()["class"]
-        exp = exp_class.new(db_session)
+        exp = get_experiment()
+
         assert exp.var.min_browser_version == "80.0"
         assert exp.var.max_participant_payment == 25.0
         assert exp.var.hard_max_experiment_payment == 1100.0

@@ -4,7 +4,7 @@ import pytest
 from mock import patch
 
 from psynet.timeline import Module
-from psynet.utils import DuplicateKeyError, corr, linspace, merge_dicts
+from psynet.utils import DuplicateKeyError, corr, linspace, merge_dicts, organize_by_key
 
 
 def test_linspace():
@@ -88,3 +88,13 @@ def test_median_finish_time_in_min_incomplete_empty(mock_started_and_finished_ti
         Module.median_finish_time_in_min("started_and_finished_times", "module_id")
         is None
     )
+
+
+def test_organize_by_key():
+    assert organize_by_key(
+        [["a", 3], ["b", 7], ["a", 1], ["b", 9]],
+        key=lambda x: x[0],
+    ) == {
+        "a": [["a", 3], ["a", 1]],
+        "b": [["b", 7], ["b", 9]],
+    }

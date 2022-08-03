@@ -24,13 +24,16 @@
 
 {% block live %}
 <h1>Thanks for accepting this HIT.</h1>
+{% if not experiment.with_lucid_recruitment() %}
 <p>
     By clicking the following URL link, you will be taken to the experiment,
     including complete instructions and an informed consent agreement.
 </p>
+
 <div class="alert alert-warning">
     <span style="font-weight: bold;">Warning</span>: Please disable pop-up blockers before continuing.
 </div>
+
 <button type="button" id="begin-button" class="btn btn-primary btn-lg">
 Begin Experiment
 </button>
@@ -54,10 +57,12 @@ Abort Experiment
     document.getElementById("abort-button").onclick = abortExperiment;
 </script>
 {% endif %}
+{% else %}
+Loading application...
+{% endif %}
 {% endblock live %}
 
 {% block scripts %}
-
 <script>
     function proceedToConsentPage(event) {
       let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
@@ -70,9 +75,17 @@ Abort Experiment
         "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no"
         + ",width={{experiment.var.window_width}}"
         + ",height={{experiment.var.window_height}}");
-        event.target.setAttribute("disabled", "");
+        if (event) {
+            event.target.setAttribute("disabled", "");
+        }
       }
     }
+    {% if experiment.with_lucid_recruitment() %}
+    setTimeout(() => {
+      proceedToConsentPage(null);
+    }, "2000")
+    {% else %}
     document.getElementById("begin-button").onclick = proceedToConsentPage;
+    {% endif %}
 </script>
 {% endblock %}
