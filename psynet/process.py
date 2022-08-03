@@ -264,7 +264,7 @@ class LocalAsyncProcess(AsyncProcess):
 class WorkerAsyncProcess(AsyncProcess):
     redis_job_id = Column(String)
     timeout = Column(Float)  # note -- currently only applies to non-local proceses
-    timeout_when = Column(DateTime)
+    timeout_scheduled_for = Column(DateTime)
     cancelled = Column(Boolean, default=False)
 
     def __init__(
@@ -281,7 +281,7 @@ class WorkerAsyncProcess(AsyncProcess):
     ):
         self.timeout = timeout
         if timeout:
-            self.timeout_when = datetime.datetime.now() + datetime.timedelta(
+            self.timeout_scheduled_for = datetime.datetime.now() + datetime.timedelta(
                 seconds=timeout
             )
 
@@ -310,7 +310,7 @@ class WorkerAsyncProcess(AsyncProcess):
         processes = cls.query.filter(
             ~cls.failed,
             cls.timeout != None,  # noqa -- this is special SQLAlchemy syntax
-            cls.timeout_when < datetime.datetime.now(),
+            cls.timeout_scheduled_for < datetime.datetime.now(),
         ).all()
         for p in processes:
             p.fail(
