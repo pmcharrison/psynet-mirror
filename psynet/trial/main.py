@@ -748,7 +748,7 @@ class TrialMaker(Module):
 
     * :meth:`~psynet.trial.main.TrialMaker.init_participant`
       (optional), a function that is run when the participant begins
-      this sequence of trials, intended to initialise the participant's state.
+      this sequence of trials, intended to initialize the participant's state.
       Make sure you call ``super().init_participant`` when overriding this.
 
     * :meth:`~psynet.trial.main.TrialMaker.finalize_trial`
@@ -1009,7 +1009,7 @@ class TrialMaker(Module):
         """
         Defines a routine for setting up the experiment.
         Note that this routine is (currently) called every time the Experiment
-        class is initialised, so it should be idempotent (calling it
+        class is initialized, so it should be idempotent (calling it
         multiple times should have no effect) and be efficient
         (so that it doesn't incur a repeated costly overhead).
 
@@ -1223,7 +1223,7 @@ class TrialMaker(Module):
     def init_participant(self, experiment, participant):
         # pylint: disable=unused-argument
         """
-        Initialises the participant at the beginning of the sequence of trials.
+        Initializes the participant at the beginning of the sequence of trials.
         If you override this, make sure you call ``super().init_particiant(...)``
         somewhere in your new method.
 

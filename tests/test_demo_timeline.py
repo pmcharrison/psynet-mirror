@@ -16,10 +16,9 @@ EXPERIMENT = None
 @pytest.mark.usefixtures("demo_timeline")
 class TestExp(object):
     def test_variables(self, db_session):
-        from psynet.utils import import_local_experiment
+        from psynet.utils import get_experiment
 
-        exp_class = import_local_experiment()["class"]
-        exp = exp_class.new(db_session)
+        exp = get_experiment()
         assert exp.var.wage_per_hour == 12.0
         assert exp.var.new_variable == "some-value"
         assert exp.var.min_accumulated_bonus_for_abort == 0.15
