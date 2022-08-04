@@ -41,12 +41,42 @@ from .utils import (
 logger = get_logger()
 
 
-class AssetSpecification:
-    def __init__(self, key, label):
+def _get_experiment_if_available():
+    from .utils import disable_logger
+    try:
+        with disable_logger():
+            # This is to suppress Dallinger's 'Error retrieving experiment class' messages
+            from .experiment import get_experiment
+            return get_experiment()
+    except ImportError:
+        return None
+
+
+def get_asset(key):
+    from .redis import redis_vars
+
+    launch_finished = redis_vars.get("launch_finished", default=False)
+
+    # exp = _get_experiment_if_available()
+    import pydevd_pycharm
+    pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+    # if exp and exp.var.launch_finished:
+    if launch_finished:
+        return Asset.query.filter_by(key=key).one()
+    else:
+        return MockAsset()
+
+    # inspector = sqlalchemy.inspect(db.engine)
+    # if inspector.has_table("asset") and Asset.query.count() > 0:
+    # return self._staged_asset_lookup_table[key]
+
+class AssetSpecification(NullElt):
+    def __init__(self, key, label, description):
         if key is None:
             key = f"pending--{uuid.uuid4()}"
         self.key = key
         self.label = label
+        self.description = description
 
     def prepare_for_deployment(self, registry):
         raise NotImplementedError
@@ -64,7 +94,7 @@ class AssetCollection(AssetSpecification):
 
 class InheritedAssets(AssetCollection):
     def __init__(self, path, key: str):
-        super().__init__(key)
+        super().__init__(key, label=None, description=None)
 
         self.path = path
 
@@ -85,7 +115,7 @@ class InheritedAssets(AssetCollection):
 
 
 @register_table
-class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
+class Asset(AssetSpecification, SQLBase, SQLMixin):
     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
@@ -107,6 +137,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
     label = Column(String)
+    description = Column(String)
     personal = Column(Boolean)
     content_id = Column(String)
     host_path = Column(String)
@@ -160,6 +191,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         self,
         key=None,
         label=None,
+        description=None,
         is_folder=False,
         data_type=None,
         extension=None,
@@ -171,7 +203,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
         variables: Optional[dict] = None,
         personal=False,
     ):
-        super().__init__(key, label)
+        super().__init__(key, label, description)
 
         from . import __version__ as psynet_version
 
@@ -455,7 +487,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin, NullElt):
 class MockAsset(Asset):
     @property
     def url(self):
-        return "The asset database has not yet loaded, so here's a placeholder URL."
+        return "The asset database has not yet loaded, so here is a placeholder URL."
 
     def get_extension(self):
         return ""
@@ -474,6 +506,7 @@ class ManagedAsset(Asset):
         label,
         input_path,
         is_folder=None,
+        description=None,
         data_type=None,
         extension=None,
         trial=None,
@@ -498,6 +531,7 @@ class ManagedAsset(Asset):
             key=key,
             label=label,
             is_folder=is_folder,
+            description=description,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -513,7 +547,7 @@ class ManagedAsset(Asset):
         return self.get_md5_contents()
 
     def get_md5_contents(self):
-        self._get_md5_contents(self.input_path, self.is_folder)
+        return self._get_md5_contents(self.input_path, self.is_folder)
 
     @cache
     def _get_md5_contents(self, path, is_folder):
@@ -672,11 +706,11 @@ class CachedAsset(ManagedAsset):
 
         return host_path
 
-    def generate_dir(self, obfuscate, participant_id, trial_maker_id):
-        return os.path.join(
-            super().generate_dir(obfuscate, participant_id, trial_maker_id),
-            self.compute_hash(),
-        )
+    # def generate_dir(self):
+    #     return os.path.join(
+    #         super().generate_dir(),
+    #         self.compute_hash(),
+    #     )
 
     def _needs_depositing(self):
         exists_in_cache = self.storage.check_cache(
@@ -715,6 +749,7 @@ class FunctionAssetMixin:
         key: Optional[str] = None,
         arguments: Optional[dict] = None,
         is_folder=False,
+        description=None,
         data_type=None,
         extension=None,
         trial=None,
@@ -742,6 +777,7 @@ class FunctionAssetMixin:
             label=label,
             input_path=self.input_path,
             is_folder=is_folder,
+            description=description,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -829,6 +865,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         key: Optional[str] = None,
         arguments: Optional[dict] = None,
         is_folder: bool = False,
+        description=None,
         data_type=None,
         extension=None,
         trial=None,
@@ -845,6 +882,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             key=key,
             arguments=arguments,
             is_folder=is_folder,
+            description=description,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -904,6 +942,7 @@ class ExternalAsset(Asset):
         key,
         url,
         is_folder=False,
+        description=None,
         data_type=None,
         extension=None,
         replace_existing=False,
@@ -922,6 +961,7 @@ class ExternalAsset(Asset):
             key=key,
             label=label,
             is_folder=is_folder,
+            description=description,
             data_type=data_type,
             extension=extension,
             trial=trial,
@@ -967,6 +1007,7 @@ class ExternalS3Asset(ExternalAsset):
         s3_bucket: str,
         s3_key: str,
         is_folder=False,
+        description=None,
         data_type=None,
         replace_existing=False,
         label=None,
@@ -985,6 +1026,7 @@ class ExternalS3Asset(ExternalAsset):
             key=key,
             url=url,
             is_folder=is_folder,
+            description=description,
             data_type=data_type,
             replace_existing=replace_existing,
             label=label,
@@ -1148,7 +1190,7 @@ class NoStorage(AssetStorage):
 
 
 class DebugStorage(AssetStorage):
-    def __init__(self, root, label: str = "local_storage"):
+    def __init__(self, root=None):
         """
 
         Parameters
@@ -1156,30 +1198,56 @@ class DebugStorage(AssetStorage):
         root :
             Path to the directory to be used for storage.
             Tilde expansion (e.g. '~/psynet') is performed automatically.
+            If none is provided, then defaults to the config value of
+            ``debug_storage_root``, which can be set in ``config.txt``
+            or ``.dallingerconfig``.
 
         label :
             Label for the storage object.
         """
         super().__init__()
-        self.root = os.path.expanduser(root)
-        self.create_root()
-        self.label = label
-        self.public_path = self.create_public_path()
-        self.create_symlink()
 
-    def create_root(self):
+        self._root = root
+        self.label = "debug_storage"
+        self.public_path = self._create_public_path()
+
+    @cached_property
+    def root(self):
+        """
+        We defer the registration of the root until as late as possible
+        to avoid circular imports when loading the experiment.
+        """
+        if self._root is None:
+            try:
+                from .utils import get_from_config
+                root = os.path.expanduser(get_from_config("debug_storage_root"))
+            except KeyError:
+                raise KeyError(
+                    "No root location was provided to DebugStorage and no value for debug_storage_root "
+                    "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
+                    "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
+                )
+        else:
+            root = self._root
+        root = os.path.expanduser(root)
+        self._ensure_root_dir_exists(root)
+        self._create_symlink(root)
+        return root
+
+    @staticmethod
+    def _ensure_root_dir_exists(root):
         from pathlib import Path
 
-        Path(self.root).mkdir(parents=True, exist_ok=True)
+        Path(root).mkdir(parents=True, exist_ok=True)
 
-    def create_public_path(self):
+    def _create_public_path(self):
         """
         This is the publicly exposed path by which the web browser can access the storage registry.
         This corresponds to a (symlinked) directory inside the experiment directory.
         """
         return os.path.join("static", self.label)
 
-    def create_symlink(self):
+    def _create_symlink(self, root):
         try:
             os.unlink(self.public_path)
         except FileNotFoundError:
@@ -1190,7 +1258,7 @@ class DebugStorage(AssetStorage):
         os.makedirs("static", exist_ok=True)
 
         try:
-            os.symlink(self.root, self.public_path)
+            os.symlink(root, self.public_path)
         except FileExistsError:
             pass
 
@@ -1239,6 +1307,7 @@ class DebugStorage(AssetStorage):
             return None
 
     def get_url(self, host_path):
+        assert self.root  # Makes sure that the root storage location has been instantiated
         return os.path.join(self.public_path, host_path)
 
     def check_cache(self, host_path: str, is_folder: bool):
@@ -1383,7 +1452,7 @@ class S3Storage(AssetStorage):
         s3_key = os.path.join(self.root, host_path)
 
         if use_cache is None:
-            use_cache = not self.experiment.var.launch_complete
+            use_cache = not self.experiment.var.launch_finished
 
         if is_folder:
             return self.check_cache_for_folder(s3_key, use_cache)
@@ -1551,11 +1620,17 @@ class AssetRegistry:
     def deployment_id(self):
         return self.storage.deployment_id
 
+    @property
+    def experiment(self):
+        from .experiment import get_experiment
+
+        return get_experiment()
+
     def stage(self, *args):
         for asset in [*args]:
             assert isinstance(asset, AssetSpecification)
             self._staged_asset_specifications.append(asset)
-            self._staged_asset_lookup_table[asset.key] = asset
+            # self._staged_asset_lookup_table[asset.key] = asset
 
     def update_asset_metadata(self, asset: Asset):
         pass
@@ -1565,22 +1640,9 @@ class AssetRegistry:
     ):
         return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
+
     def get(self, key):
-        # When the experiment is running then we can get the assets from the database.
-        # However, if we want them before the experiment has been launched,
-        # we have to get them from their staging location.
-        inspector = sqlalchemy.inspect(db.engine)
-        if inspector.has_table("asset") and Asset.query.count() > 0:
-            asset = Asset.query.filter_by(key=key).one()
-            return asset
-        else:
-            try:
-                return self._staged_asset_lookup_table[key]
-            except KeyError:
-                # Sometimes an asset won't be available during staging (e.g. if the experimenter
-                # is using the InheritedAssets functionality. To prevent the experiment
-                # from failing to compile, we therefore return a mock asset.
-                return MockAsset()
+        return get_asset(key)
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()

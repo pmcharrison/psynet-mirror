@@ -1636,13 +1636,17 @@ def is_list_of(x: list, what):
 
 
 def join(*args):
+    from .asset import AssetSpecification
+
+    valid_classes = (AssetSpecification, Elt, Module)
+
     for i, arg in enumerate(args):
         if not (
             (arg is None)
-            or (isinstance(arg, (Elt, Module)) or is_list_of(arg, (Elt, Module)))
+            or (isinstance(arg, valid_classes) or is_list_of(arg, valid_classes))
         ):
             raise TypeError(
-                f"Element {i + 1} of the input to join() was neither an Elt nor a list of Elts nor a Module ({arg})."
+                f"Element {i + 1} of the input to join() was neither an Asset/Elt/Module nor a list of such objects: ({arg})."
             )
 
     args = [a for a in args if a is not None]

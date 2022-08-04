@@ -40,7 +40,7 @@ for dir in find_demo_dirs():
             "# Automatically generated server log file",
             "server.log",
             "",
-            "# Automatically generated resources for debugging experiments with local storage",
-            "static/local_storage",
+            "# Automatically generated resources for debugging experiments with debug storage",
+            "static/debug_storage",
         ]
         f.write("\n".join(lines))

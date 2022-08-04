@@ -78,6 +78,8 @@ class REPPVolumeCalibrationMusic(Module):
             "repp_image_rules", materials_url + materials_url + "/REPP-image_rules.png"
         )
 
+        assert False, "Should we be telling people to use get_asset instead?"
+
         self.label = label
         self.elts = join(
             InfoPage(

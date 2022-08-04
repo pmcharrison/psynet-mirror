@@ -404,7 +404,7 @@ class Exp(psynet.experiment.Experiment):
     label = "Iterated singing demo"
 
     # assets = AssetRegistry(asset_storage=S3Storage())
-    asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
+    asset_storage = DebugStorage()
 
     # TODO - create S3 bucket if it doesn't exist
 

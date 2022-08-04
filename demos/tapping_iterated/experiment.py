@@ -202,7 +202,7 @@ class CustomSource(AudioImitationChainSource):
 # Timeline
 class Exp(psynet.experiment.Experiment):
     label = "Iterated tapping demo"
-    # asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
+    # asset_storage = DebugStorage()
     asset_storage = S3Storage("psynet-demos", "iterated-tapping")
 
     timeline = Timeline(

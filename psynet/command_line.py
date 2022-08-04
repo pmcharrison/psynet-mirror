@@ -154,8 +154,7 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive):
     log(header)
 
     make_deploy_dir()
-    deployment_info.reset()
-    deployment_info.write(redeploying_from_archive=archive is not None)
+    deployment_info.init(redeploying_from_archive=archive is not None)
 
     drop_all_db_tables()
 
@@ -405,8 +404,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     Deploy app using Heroku to MTurk.
     """
     make_deploy_dir()
-    deployment_info.reset()
-    deployment_info.write(redeploying_from_archive=archive is not None)
+    deployment_info.init(redeploying_from_archive=archive is not None)
 
     run_pre_checks("deploy")
     log(header)
@@ -522,8 +520,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     Deploy app using Heroku to the MTurk Sandbox.
     """
     make_deploy_dir()
-    deployment_info.reset()
-    deployment_info.write(redeploying_from_archive=archive is not None)
+    deployment_info.init(redeploying_from_archive=archive is not None)
 
     run_pre_checks("sandbox")
     log(header)

@@ -258,7 +258,7 @@ def _collect_coin(participant):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
-    asset_storage = DebugStorage("~/Downloads/psynet_local_storage")
+    asset_storage = DebugStorage()
 
     timeline = Timeline(
         NoConsent(),

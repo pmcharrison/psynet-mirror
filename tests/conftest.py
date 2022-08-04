@@ -64,7 +64,8 @@ def deployment_info():
 def demo_setup(demo):
     global ACTIVE_EXPERIMENT
     ACTIVE_EXPERIMENT = demo
-    os.chdir(os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}"))
+    path = os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}")
+    os.chdir(path)
     # Originally we used to aggressively reinitialize the database as part of
     # these regression tests. However, it seems this was at the route of
     # errors of the following form:
@@ -104,6 +105,27 @@ def demo_teardown(root):
     # db.session.commit()  # This seems to be important to avoid the process getting stuck
     # Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
     # print("...complete.")
+
+
+@pytest.fixture(scope="class")
+def demo_name(request):
+    return request.param
+
+
+@pytest.fixture(scope="class")
+def demo_exp(demo_name):
+    """
+    Use like this:
+
+    ::
+        @pytest.mark.parametrize("demo_name", ["mcmcp", "gibbs"], indirect=True)
+        def test_exp(demo_name):
+            bot = Bot()
+            bot.take_experiment()
+    """
+    demo_setup(demo_name)
+    yield
+    demo_teardown(demo_name)
 
 
 @pytest.fixture(scope="class")

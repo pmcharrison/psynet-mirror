@@ -28,7 +28,7 @@ def test_key():
 
 
 @pytest.fixture
-def local_storage():
+def debug_storage():
     with tempfile.TemporaryDirectory() as tempdir:
         yield DebugStorage(tempdir)
 
@@ -111,8 +111,8 @@ def test_infer_file():
             assert isinstance(asset_2.is_folder, bool) and asset_2.is_folder
 
 
-def test_export_subfile(folder_asset, local_storage, deployment_info, db_session):
-    folder_asset.deposit(storage=local_storage)
+def test_export_subfile(folder_asset, debug_storage, deployment_info, db_session):
+    folder_asset.deposit(storage=debug_storage)
 
     # Exporting the whole folder at once
     with tempfile.TemporaryDirectory() as tempdir:
@@ -151,7 +151,7 @@ class MultiplyAsset(ExperimentAsset):
 
 
 @pytest.mark.parametrize("async_", [True, False])
-def test_after_deposit(async_, db_session, local_storage, deployment_info):
+def test_after_deposit(async_, db_session, debug_storage, deployment_info):
     from dallinger import db
 
     from psynet.utils import wait_until
@@ -166,7 +166,7 @@ def test_after_deposit(async_, db_session, local_storage, deployment_info):
             file.name,
         )
 
-        asset.deposit(local_storage, async_=async_)
+        asset.deposit(debug_storage, async_=async_)
 
         def deposit_complete():
             db.session.refresh(asset)

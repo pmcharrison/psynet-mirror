@@ -278,7 +278,7 @@ music_tapping = join(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     label = "Tapping (static) demo"
-    asset_storage = DebugStorage("~/Downloads/psynet_storage")
+    asset_storage = DebugStorage()
     # asset_storage = S3Storage("psynet-demos", "tapping-static")
 
     timeline = Timeline(

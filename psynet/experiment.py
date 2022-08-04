@@ -55,7 +55,7 @@ from .timeline import (
     Response,
     Timeline,
 )
-from .trial.main import Trial
+from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -258,7 +258,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if not deployment_info.read("redeploying_from_archive"):
             self.on_first_launch()
         self.on_every_launch()
-        self.var.launch_complete = True
+        self.var.launch_finished = True
         logger.info("Experiment launch complete!")
         db.session.commit()
 
@@ -365,7 +365,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             "psynet_version": __version__,
             "dallinger_version": dallinger_version,
             "python_version": python_version(),
-            "launch_complete": False,
+            "launch_finished": False,
             "min_browser_version": "80.0",
             "max_participant_payment": 25.0,
             "hard_max_experiment_payment": 1100.0,
@@ -888,6 +888,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "deploy",
                 "deploy",
             ),
+            (
+                "static/debug_storage",
+                "static/debug_storage",
+            ),
         ]
 
     @classmethod
@@ -897,6 +901,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         config.register("lucid_api_key", unicode)
         config.register("lucid_sha1_hashing_key", unicode)
         config.register("lucid_recruitment_config", unicode)
+        config.register("debug_storage_root", unicode)
         config.register("export_root", unicode)
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
 
@@ -1462,7 +1467,7 @@ def import_local_experiment():
 
 
 @cache
-def get_experiment():
+def get_experiment() -> Experiment:
     """
     Returns an initialized instance of the experiment class.
     """
@@ -1470,6 +1475,6 @@ def get_experiment():
 
 
 @cache
-def get_trial_maker(trial_maker_id):
+def get_trial_maker(trial_maker_id) -> TrialMaker:
     exp = get_experiment()
     return exp.timeline.get_trial_maker(trial_maker_id)

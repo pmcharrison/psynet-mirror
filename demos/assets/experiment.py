@@ -12,6 +12,7 @@ from psynet.asset import (
     ExperimentAsset,
     ExternalAsset,
     ExternalS3Asset,
+    get_asset,
     InheritedAssets,
 )
 from psynet.consent import NoConsent
@@ -27,14 +28,28 @@ def slow_computation(path, n, k):
         f.write(str(x))
 
 
-class Exp(psynet.experiment.Experiment):
-    label = "Assets demo"
+headphone_assets = [
+    ExternalS3Asset(
+        key="headphone_check/stimulus-1.wav",
+        s3_bucket="headphone-check",
+        s3_key="antiphase_HC_ISO.wav",
+        description="A stimulus for the headphone check",
+    ),
+    ExternalS3Asset(
+        key="headphone_check/stimulus-2.wav",
+        s3_bucket="headphone-check",
+        s3_key="antiphase_HC_IOS.wav",
+        description="A stimulus for the headphone check",
+    ),
+    ExternalS3Asset(
+        key="headphone_check/stimulus-3.wav",
+        s3_bucket="headphone-check",
+        s3_key="antiphase_HC_SOI.wav",
+        description="A stimulus for the headphone check",
+    ),
+]
 
-
-Exp.assets.asset_storage = DebugStorage(root="/Users/peter/psynet-storage")
-
-
-Exp.assets.stage(
+misc_assets = [
     CachedFunctionAsset(
         key="slow_computation.txt",
         function=slow_computation,
@@ -44,41 +59,29 @@ Exp.assets.stage(
     ExternalAsset(
         key="psynet-logo.svg",
         url="https://gitlab.com/computational-audition-lab/psynet/-/raw/master/psynet/resources/logo.svg",
-        description="The PsyNet logo",
+        description="The PsyNet Logo",
         variables=dict(dimensions="150x150"),  # broken for some reason
     ),
-    ExternalS3Asset(
-        key="headphone_check/stimulus-1.wav",
-        s3_bucket="headphone-check",
-        s3_key="antiphase_HC_ISO.wav",
-    ),
-    ExternalS3Asset(
-        key="headphone_check/stimulus-2.wav",
-        s3_bucket="headphone-check",
-        s3_key="antiphase_HC_IOS.wav",
-    ),
-    ExternalS3Asset(
-        key="headphone_check/stimulus-3.wav",
-        s3_bucket="headphone-check",
-        s3_key="antiphase_HC_SOI.wav",
-    ),
+
     ExternalS3Asset(
         key="headphone_check_folder",
         s3_bucket="headphone-check",
         s3_key="",
+        description="A folder of stimuli for the headphone check",
     ),
     ExperimentAsset(
-        "config.txt",
-        type_="file",
+        label="config",
+        input_path="config.txt",
         key="config_variables.txt",
+        description="A file containing configuration variables",
     ),
     CachedAsset(
-        "bier.wav",
-        type_="file",
-        key="bier.wav",
+        label="bier",
+        input_path="bier.wav",
+        description="A recording of someone saying 'bier'",
     ),
     InheritedAssets("inherited_assets.csv", key="previous_experiment"),
-)
+]
 
 
 def get_config_variables(experiment):
@@ -86,17 +89,17 @@ def get_config_variables(experiment):
         return f.read()
 
 
-def save_text(experiment: Exp, participant):
+def save_text(participant):
     text = participant.answer
     with tempfile.NamedTemporaryFile("w") as file:
         file.write(text)
         file.flush()
         asset = ExperimentAsset(
-            file.name,
-            type_="file",
+            label="text_input",
+            input_path=file.name,
             extension=".txt",
-            description="text_box",
-            participant_id=participant.id,
+            description="Some text that the participant filled out",
+            participant=participant,
             variables=dict(
                 num_characters=len(participant.answer),
                 writing_time=participant.last_response.metadata["time_taken"],
@@ -105,36 +108,44 @@ def save_text(experiment: Exp, participant):
         asset.deposit()
 
 
-Exp.timeline = Timeline(
-    NoConsent(),
-    PageMaker(
-        lambda experiment: InfoPage(
-            Markup(
-                (
-                    "<strong>The following information is pulled from config.txt:</strong>\n\n"
-                    + get_config_variables(experiment)
-                ).replace("\n", "<br>")
-            )
-        ),
-        time_estimate=5,
-    ),
-    ModularPage(
-        "text_input",
-        "Please enter some text. It will be saved to a text file and stored as an experiment asset.",
-        TextControl(),
-        time_estimate=5,
-    ),
-    CodeBlock(save_text),
-    [
-        ModularPage(
-            f"headphone_check_{i}",
-            AudioPrompt(
-                Exp.assets.get(f"headphone_check/stimulus-{i}.wav").url,
-                text=f"This is headphone check stimulus number {i}.",
+class Exp(psynet.experiment.Experiment):
+    label = "Assets demo"
+    asset_storage = DebugStorage()
+
+    timeline = Timeline(
+        headphone_assets,
+        misc_assets,
+        NoConsent(),
+        PageMaker(
+            lambda experiment: InfoPage(
+                Markup(
+                    (
+                            "<strong>The following information is pulled from config.txt:</strong>\n\n"
+                            + get_config_variables(experiment)
+                    ).replace("\n", "<br>")
+                )
             ),
             time_estimate=5,
-        )
-        for i in [1, 2, 3]
-    ],
-    SuccessfulEndPage(),
-)
+        ),
+        ModularPage(
+            "text_input",
+            "Please enter some text. It will be saved to a text file and stored as an experiment asset.",
+            TextControl(),
+            time_estimate=5,
+        ),
+        CodeBlock(save_text),
+        [
+            ModularPage(
+                f"headphone_check_{i + 1}",
+                AudioPrompt(
+                    asset,
+                    # get_asset(f"headphone_check/stimulus-{i + 1}.wav").url,
+                    # Exp.assets.get(f"headphone_check/stimulus-{i + 1}.wav").url,
+                    text=f"This is headphone check stimulus number {i + 1}.",
+                ),
+                time_estimate=5,
+            )
+            for i, asset in enumerate(headphone_assets)
+        ],
+        SuccessfulEndPage(),
+    )
