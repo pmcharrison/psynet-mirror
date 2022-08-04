@@ -545,7 +545,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 routine.label,
             )
             call_function(
-                routine.function, {"participant": participant, "experiment": self}
+                routine.function,
+                {"participant": participant, "experiment": self, "assets": self.assets},
             )
 
     @property

@@ -13,7 +13,6 @@ from typing import Optional
 import boto3
 import psutil
 import requests
-import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
@@ -43,32 +42,16 @@ logger = get_logger()
 
 def _get_experiment_if_available():
     from .utils import disable_logger
+
     try:
         with disable_logger():
             # This is to suppress Dallinger's 'Error retrieving experiment class' messages
             from .experiment import get_experiment
+
             return get_experiment()
     except ImportError:
         return None
 
-
-def get_asset(key):
-    from .redis import redis_vars
-
-    launch_finished = redis_vars.get("launch_finished", default=False)
-
-    # exp = _get_experiment_if_available()
-    import pydevd_pycharm
-    pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-    # if exp and exp.var.launch_finished:
-    if launch_finished:
-        return Asset.query.filter_by(key=key).one()
-    else:
-        return MockAsset()
-
-    # inspector = sqlalchemy.inspect(db.engine)
-    # if inspector.has_table("asset") and Asset.query.count() > 0:
-    # return self._staged_asset_lookup_table[key]
 
 class AssetSpecification(NullElt):
     def __init__(self, key, label, description):
@@ -482,6 +465,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     def receive_stimulus_definition(self, definition):
         self.var.stimulus_definition = definition
+
+    def read_text(self):
+        assert not self.is_folder
+        with tempfile.NamedTemporaryFile() as f:
+            self.export(f.name)
+            with open(f.name, "r") as reader:
+                return reader.read()
 
 
 class MockAsset(Asset):
@@ -1220,6 +1210,7 @@ class DebugStorage(AssetStorage):
         if self._root is None:
             try:
                 from .utils import get_from_config
+
                 root = os.path.expanduser(get_from_config("debug_storage_root"))
             except KeyError:
                 raise KeyError(
@@ -1307,7 +1298,9 @@ class DebugStorage(AssetStorage):
             return None
 
     def get_url(self, host_path):
-        assert self.root  # Makes sure that the root storage location has been instantiated
+        assert (
+            self.root
+        )  # Makes sure that the root storage location has been instantiated
         return os.path.join(self.public_path, host_path)
 
     def check_cache(self, host_path: str, is_folder: bool):
@@ -1640,9 +1633,8 @@ class AssetRegistry:
     ):
         return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
-
     def get(self, key):
-        return get_asset(key)
+        return Asset.query.filter_by(key=key).one()
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()

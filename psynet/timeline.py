@@ -199,7 +199,12 @@ class CodeBlock(Elt):
     def consume(self, experiment, participant):
         call_function(
             self.function,
-            {"self": self, "experiment": experiment, "participant": participant},
+            {
+                "self": self,
+                "experiment": experiment,
+                "participant": participant,
+                "assets": experiment.assets,
+            },
         )
 
 
@@ -739,6 +744,7 @@ class Page(Elt):
                     "bot": bot,
                     "participant": bot,
                     "page": self,
+                    "assets": experiment.assets,
                 },
             )
         else:
@@ -1131,7 +1137,12 @@ class PageMaker(Elt):
         """
         res = call_function(
             self.function,
-            {"self": self, "experiment": experiment, "participant": participant},
+            {
+                "self": self,
+                "experiment": experiment,
+                "participant": participant,
+                "assets": experiment.assets,
+            },
         )
         res = join(res)
         self.impute_time_estimates(res)
@@ -1800,7 +1811,11 @@ def while_loop(
             "max_loop_time_condition",
             lambda participant, experiment: call_function(
                 max_loop_time_condition,
-                {"participant": participant, "experiment": experiment},
+                {
+                    "participant": participant,
+                    "experiment": experiment,
+                    "assets": experiment.assets,
+                },
             ),
             after_timeout_logic,
             fix_time_credit=False,
@@ -1925,7 +1940,11 @@ class StartSwitch(ReactiveGoTo):
             def function_2(experiment, participant):
                 val = call_function(
                     function,
-                    {"experiment": experiment, "participant": participant},
+                    {
+                        "experiment": experiment,
+                        "participant": participant,
+                        "assets": experiment.assets,
+                    },
                 )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)

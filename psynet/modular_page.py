@@ -639,6 +639,7 @@ class Control:
                     "participant": bot,
                     "page": page,
                     "prompt": prompt,
+                    "assets": experiment.assets,
                 },
             )
         else:

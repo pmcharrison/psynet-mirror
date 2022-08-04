@@ -12,7 +12,6 @@ from psynet.asset import (
     ExperimentAsset,
     ExternalAsset,
     ExternalS3Asset,
-    get_asset,
     InheritedAssets,
 )
 from psynet.consent import NoConsent
@@ -62,7 +61,6 @@ misc_assets = [
         description="The PsyNet Logo",
         variables=dict(dimensions="150x150"),  # broken for some reason
     ),
-
     ExternalS3Asset(
         key="headphone_check_folder",
         s3_bucket="headphone-check",
@@ -113,15 +111,15 @@ class Exp(psynet.experiment.Experiment):
     asset_storage = DebugStorage()
 
     timeline = Timeline(
+        NoConsent(),
         headphone_assets,
         misc_assets,
-        NoConsent(),
         PageMaker(
-            lambda experiment: InfoPage(
+            lambda assets: InfoPage(
                 Markup(
                     (
-                            "<strong>The following information is pulled from config.txt:</strong>\n\n"
-                            + get_config_variables(experiment)
+                        "<strong>The following information is pulled from config.txt:</strong>\n\n"
+                        + assets.get("config_variables.txt").read_text()
                     ).replace("\n", "<br>")
                 )
             ),
@@ -135,17 +133,17 @@ class Exp(psynet.experiment.Experiment):
         ),
         CodeBlock(save_text),
         [
-            ModularPage(
-                f"headphone_check_{i + 1}",
-                AudioPrompt(
-                    asset,
-                    # get_asset(f"headphone_check/stimulus-{i + 1}.wav").url,
-                    # Exp.assets.get(f"headphone_check/stimulus-{i + 1}.wav").url,
-                    text=f"This is headphone check stimulus number {i + 1}.",
+            PageMaker(
+                lambda assets, i=i: ModularPage(
+                    f"headphone_check_{i}",
+                    AudioPrompt(
+                        assets.get(f"headphone_check/stimulus-{i}.wav").url,
+                        text=f"This is headphone check stimulus number {i}.",
+                    ),
                 ),
                 time_estimate=5,
             )
-            for i, asset in enumerate(headphone_assets)
+            for i in range(1, 4)
         ],
         SuccessfulEndPage(),
     )

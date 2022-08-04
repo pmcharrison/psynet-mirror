@@ -1,18 +1,18 @@
-import jsonpickle
 import os
 import uuid
-
 from pathlib import Path
 
-
+import jsonpickle
 
 path = "deploy/deployment_info.json"
 
 
 def init(redeploying_from_archive: bool):
     write_all(
-        redeploying_from_archive=redeploying_from_archive,
-        secret=uuid.uuid4(),
+        {
+            "redeploying_from_archive": redeploying_from_archive,
+            "secret": uuid.uuid4(),
+        }
     )
 
 

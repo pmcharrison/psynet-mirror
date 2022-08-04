@@ -70,7 +70,7 @@ def dict_to_js_vars(x):
 
 def call_function(function, args: dict):
     requested_args = get_function_args(function)
-    arg_values = [args[requested] for requested in requested_args]
+    arg_values = [args[requested] for requested in requested_args if requested in args]
     return function(*arg_values)
 
 
