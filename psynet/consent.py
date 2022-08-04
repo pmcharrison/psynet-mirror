@@ -407,6 +407,9 @@ class MainConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"main_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"main_consent": True}
+
 
 ############
 # Database #
@@ -466,6 +469,9 @@ class DatabaseConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"database_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"database_consent": True}
 
 
 ###############
@@ -527,6 +533,9 @@ class AudiovisualConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"audiovisual_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"audiovisual_consent": True}
+
 
 ################
 # Open science #
@@ -586,6 +595,9 @@ class OpenScienceConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"open_science_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"open_science_consent": True}
 
 
 ################################################
@@ -651,3 +663,6 @@ class VoluntaryWithNoCompensationConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"voluntary_with_no_compensation_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"voluntary_with_no_compensation_consent": True}

@@ -30,9 +30,9 @@ def find_demo_dirs():
 demos = find_demo_dirs()
 
 demos = [
-    "/Users/peter.harrison/git/psynet-package/demos/assets",
-    "/Users/peter.harrison/git/psynet-package/demos/async_pruning",
-    "/Users/peter.harrison/git/psynet-package/demos/attention_test",
+    # "/Users/peter.harrison/git/psynet-package/demos/assets",
+    # "/Users/peter.harrison/git/psynet-package/demos/async_pruning",
+    # "/Users/peter.harrison/git/psynet-package/demos/attention_test",
     "/Users/peter.harrison/git/psynet-package/demos/audio",
     "/Users/peter.harrison/git/psynet-package/demos/audio_forced_choice_test",
     "/Users/peter.harrison/git/psynet-package/demos/audio_gibbs",

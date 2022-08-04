@@ -895,7 +895,7 @@ def _export_(
             n_parallel,
         )
 
-    log("Asset export completed.")
+    log(f"Export complete. You can find your results at: {export_path}")
 
 
 def export_database(app, local, export_path, anonymize):

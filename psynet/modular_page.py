@@ -1174,6 +1174,9 @@ class NumberControl(Control):
             return FailedValidation("You need to provide a number!")
         return None
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return random.randint(20, 100)
+
 
 class TextControl(Control):
     """
@@ -1589,6 +1592,9 @@ class AudioMeterControl(Control):
         )
         events["submitEnable"].add_trigger("audioMeterMinimalTime")
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return None
+
 
 class TappingAudioMeterControl(AudioMeterControl):
     decay = {"display": 0.01, "high": 0, "low": 0.01}
@@ -1678,7 +1684,6 @@ class SliderControl(Control):
 
     def __init__(
         self,
-        label: str,
         start_value: float,
         min_value: float,
         max_value: float,
@@ -1707,7 +1712,6 @@ class SliderControl(Control):
                 "Reverse scale is currently not supported for circular sliders, set reverse_scale=False"
             )
 
-        self.label = label
         self.start_value = start_value
         self.min_value = min_value
         self.max_value = max_value
@@ -1763,7 +1767,6 @@ class SliderControl(Control):
     @property
     def metadata(self):
         return {
-            "label": self.label,
             "start_value": self.start_value,
             "min_value": self.min_value,
             "max_value": self.max_value,
@@ -1786,6 +1789,22 @@ class SliderControl(Control):
         events["submitEnable"].add_triggers(
             "sliderMinimalInteractions", "sliderMinimalTime"
         )
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        import numpy as np
+
+        equidistant = not isinstance(self.snap_values, list)
+        if equidistant:
+            if self.snap_values:
+                n_candidates = self.snap_values
+            else:
+                n_candidates = self.num_steps
+            candidates = list(
+                np.linspace(self.min_value, self.max_value, num=n_candidates)
+            )
+        else:
+            candidates = self.snap_values
+        return random.sample(candidates, 1)[0]
 
 
 class AudioSliderControl(SliderControl):
@@ -2126,6 +2145,7 @@ class AudioRecordControl(RecordControl):
         loop_playback: bool = False,
         num_channels: int = 1,
         personal=True,
+        bot_response_audio: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2134,11 +2154,14 @@ class AudioRecordControl(RecordControl):
         self.loop_playback = loop_playback
         self.num_channels = num_channels
         self.personal = personal
+        self.bot_response_audio = bot_response_audio
 
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
         audio = blobs["audioRecording"]
+        participant = kwargs["participant"]
         trial = kwargs["trial"]
+        response = kwargs["response"]
 
         # Need to leave file deletion to the depositing process
         # if we're going to run it asynchronously
@@ -2152,6 +2175,8 @@ class AudioRecordControl(RecordControl):
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 trial=trial,
+                participant=participant,
+                response=response,
                 variables=dict(),
                 personal=self.personal,
             )
@@ -2178,6 +2203,23 @@ class AudioRecordControl(RecordControl):
     def update_events(self, events):
         super().update_events(events)
         events["trialFinish"].add_trigger("recordEnd")
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        from werkzeug.datastructures import FileStorage
+
+        from .bot import BotResponse
+
+        if self.bot_response_audio is not None:
+            return BotResponse(
+                raw_answer=None,
+                blobs={
+                    "audioRecording": FileStorage(
+                        filename=self.bot_response_audio, content_type="audio/wav"
+                    )
+                },
+            )
+        else:
+            raise NotImplementedError
 
 
 class VideoRecordControl(RecordControl):
@@ -2236,6 +2278,7 @@ class VideoRecordControl(RecordControl):
         loop_playback: bool = False,
         mirrored: bool = True,
         personal: bool = True,
+        bot_response_video: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2249,6 +2292,7 @@ class VideoRecordControl(RecordControl):
         self.loop_playback = loop_playback
         self.mirrored = mirrored
         self.personal = personal
+        self.bot_response_video = bot_response_video
 
         if self.record_audio is False:
             self.audio_num_channels = 0
@@ -2263,7 +2307,9 @@ class VideoRecordControl(RecordControl):
 
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
+        participant = kwargs["participant"]
         trial = kwargs["trial"]
+        response = kwargs["response"]
 
         summary = {}
 
@@ -2285,6 +2331,8 @@ class VideoRecordControl(RecordControl):
                     input_path=tmp_file.name,
                     extension=self.file_extension,
                     trial=trial,
+                    participant=participant,
+                    response=response,
                     variables=dict(),
                     personal=self.personal,
                 )
@@ -2332,6 +2380,33 @@ class VideoRecordControl(RecordControl):
     def update_events(self, events):
         super().update_events(events)
         events["trialFinish"].add_trigger("recordEnd")
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        from werkzeug.datastructures import FileStorage
+
+        from .bot import BotResponse
+
+        if isinstance(self.bot_response_video, str):
+            assert len(self.recording_sources) == 1
+            self.bot_response_video = {}
+            self.bot_response_video[self.recording_sources[0]] = self.bot_response_video
+        else:
+            assert isinstance(self.bot_response_video, dict)
+            assert len(self.bot_response_video) == len(self.recording_sources)
+            assert sorted(list(self.bot_response_video)) == ["camera", "screen"]
+
+        if self.bot_response_video is not None:
+            return BotResponse(
+                raw_answer=None,
+                blobs={
+                    f"{key}Recording": FileStorage(
+                        filename=self.bot_response_video[key]
+                    )
+                    for key in self.recording_sources
+                },
+            )
+        else:
+            raise NotImplementedError
 
 
 class VideoSliderControl(Control):

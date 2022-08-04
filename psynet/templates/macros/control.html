@@ -898,10 +898,10 @@
             <button id="btn-record-stop" type="button" class="btn record-button auto-reset record-control btn-secondary btn-sm">
                 Stop
             </button>
-            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>
-                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>
-                <span>Upload</span>
-            </button>
+{#            <button id="btn-record-upload" type="button" class="btn record-button record-control btn-success btn-sm" disabled>#}
+{#                <span id="btn-record-upload-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none"></span>#}
+{#                <span>Upload</span>#}
+{#            </button>#}
             <div id="record-loop">
                 <label style="cursor: pointer;">
                     <input id="record-loop-input" class="record-control" type="checkbox" value="" {% if config.loop_playback %} checked {% endif %}>
@@ -949,22 +949,22 @@
                 loopRecorder = event.target.checked;
             });
 
-            $("#btn-record-upload").on("click", function() {
-                let button = $(this);
-                let spinner = $("#btn-record-upload-spinner");
-
-                let disableResponse = function() {
-                    button.prop("disabled", true);
-                    spinner.show();
-                }
-                let enableResponse = function() {
-                    button.prop("disabled", false);
-                    spinner.hide();
-                }
-                disableResponse();
-                psynet.trial.onEvent("submitFail", enableResponse);
-                $("#next-button").click();
-            });
+            {#$("#btn-record-upload").on("click", function() {#}
+            {#    let button = $(this);#}
+            {#    let spinner = $("#btn-record-upload-spinner");#}
+            {##}
+            {#    let disableResponse = function() {#}
+            {#        button.prop("disabled", true);#}
+            {#        spinner.show();#}
+            {#    }#}
+            {#    let enableResponse = function() {#}
+            {#        button.prop("disabled", false);#}
+            {#        spinner.hide();#}
+            {#    }#}
+            {#    disableResponse();#}
+            {#    psynet.trial.onEvent("submitFail", enableResponse);#}
+            {#    $("#next-button").click();#}
+            {#});#}
         });
 
         let recorderControls = {{ config.controls | lower }};
@@ -977,7 +977,7 @@
             }
             $("#btn-record-play-recording").attr("disabled", false);
             $("#btn-record-play-all").attr("disabled", false);
-            $("#btn-record-upload").prop("disabled", false);
+            {#$("#btn-record-upload").prop("disabled", false);#}
 
             psynet.response.staged.blobs["cameraRecording"] = psynet.media.data["videoBlob"];
             psynet.response.staged.blobs["screenRecording"] = psynet.media.data["screenBlob"];

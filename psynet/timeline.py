@@ -764,7 +764,7 @@ class Page(Elt):
         ``BotResponse`` object which contains other parameters
         such as ``blobs`` and ``metadata``.
         """
-        return None
+        raise NotImplementedError
 
     def prepare_default_events(self):
         return {
@@ -844,6 +844,15 @@ class Page(Elt):
         if metadata is None:
             metadata = {}
 
+        resp = Response(
+            participant=participant,
+            label=self.label,
+            page_type=type(self).__name__,
+            client_ip_address=client_ip_address,
+        )
+        db.session.add(resp)
+        db.session.commit()
+
         if answer == NoArgumentProvided:
             answer = self.format_answer(
                 raw_answer,
@@ -852,6 +861,7 @@ class Page(Elt):
                 experiment=experiment,
                 participant=participant,
                 trial=participant.current_trial,
+                response=resp,
             )
 
         extra_metadata = self.metadata(
@@ -864,16 +874,9 @@ class Page(Elt):
 
         combined_metadata = {**metadata, **extra_metadata}
 
-        resp = Response(
-            participant=participant,
-            label=self.label,
-            answer=answer,
-            page_type=type(self).__name__,
-            metadata=combined_metadata,
-            client_ip_address=client_ip_address,
-        )
+        resp.answer = answer
+        resp.metadata = combined_metadata
 
-        db.session.add(resp)
         db.session.commit()
 
         if self.save_answer:
@@ -1428,6 +1431,13 @@ class Timeline:
             # then:
             # depth: 0, 1, 2
             # index: 10, 3, 2
+            try:
+                # index_max tells us the maximum allowed elt_id at this level of the hierarchy.
+                # The top level is the number of Elts in the timeline, minus one;
+                # the next level is the number of Elts in the trialmaker minus one, and so on.
+                index_max = participant.elt_id_max[depth]
+            except IndexError:
+                index_max = None
             if depth == 0:
                 # We start just by going to the ith element in the timeline.
                 selected_elt = self[index]
@@ -1439,10 +1449,13 @@ class Timeline:
                     # depth: 2
                     # index: 2
                     # position: ``[10, 3]``
+                    if index_max is not None and index > index_max:
+                        raise IndexError
                     position = participant.elt_id[0:depth]
-                    selected_elt = selected_elt.resolve(
-                        experiment, participant, position
-                    )[index]
+                    resolved = selected_elt.resolve(experiment, participant, position)
+                    if index_max is None:
+                        participant.elt_id_max.append(len(resolved) - 1)
+                    selected_elt = resolved[index]
                 except IndexError:
                     # This occurs if the requested index goes past the number of
                     # elements produced by the current page maker.
@@ -1628,15 +1641,21 @@ class Response(_Response):
         self.metadata_ = metadata
 
     def __init__(
-        self, participant, label, answer, page_type, metadata, client_ip_address
+        self,
+        participant,
+        label,
+        page_type,
+        client_ip_address,
+        answer=None,
+        metadata=None,
     ):
         self.participant_id = participant.id
         self.question = label
-        self.answer = answer
-        self.metadata = metadata
         self.page_type = page_type
         self.metadata = metadata
         self.client_ip_address = client_ip_address
+        self.answer = answer
+        self.metadata = metadata
 
 
 def is_list_of(x: list, what):

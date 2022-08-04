@@ -155,6 +155,14 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         ),
     )
 
+    response_id = Column(Integer, ForeignKey("response.id"))
+    response = relationship(
+        "psynet.timeline.Response",
+        backref=backref(
+            "assets", collection_class=attribute_mapped_collection("label_or_key")
+        ),
+    )
+
     @property
     def label_or_key(self):
         if self.label is not None:
@@ -168,7 +176,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
-    foreign_keyed_columns = ["participant_id", "network_id", "node_id", "trial_id"]
+    foreign_keyed_columns = [
+        "participant_id",
+        "network_id",
+        "node_id",
+        "trial_id",
+        "response_id",
+    ]
 
     def __init__(
         self,
@@ -179,6 +193,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         data_type=None,
         extension=None,
         trial=None,
+        response=None,
         participant=None,
         node=None,
         network=None,
@@ -217,6 +232,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if trial:
             self.trial_id = trial.id
 
+        self.response = response
+        if response:
+            self.response_id = response.id
+
         self.set_trial_maker_id()
         self.infer_missing_parents()
 
@@ -251,6 +270,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.var.set(key, value)
 
     def infer_missing_parents(self):
+        if self.participant is None and self.response is not None:
+            self.participant = self.response.participant
+            self.participant_id = self.participant.id
         if self.participant is None and self.trial is not None:
             self.participant = self.trial.participant
             self.participant_id = self.participant.id
@@ -500,6 +522,7 @@ class ManagedAsset(Asset):
         data_type=None,
         extension=None,
         trial=None,
+        response=None,
         participant=None,
         node=None,
         network=None,
@@ -525,6 +548,7 @@ class ManagedAsset(Asset):
             data_type=data_type,
             extension=extension,
             trial=trial,
+            response=response,
             participant=participant,
             node=node,
             network=network,
@@ -621,6 +645,8 @@ class ManagedAsset(Asset):
     def generate_filename(self):
         filename = ""
         identifiers = []
+        if self.response_id:
+            identifiers.append(f"response_{self.response_id}")
         if self.trial_id:
             identifiers.append(f"trial_{self.trial_id}")
         if self.node_id:
@@ -743,6 +769,7 @@ class FunctionAssetMixin:
         data_type=None,
         extension=None,
         trial=None,
+        response=None,
         participant=None,
         node=None,
         network=None,
@@ -771,6 +798,7 @@ class FunctionAssetMixin:
             data_type=data_type,
             extension=extension,
             trial=trial,
+            response=response,
             participant=participant,
             node=node,
             network=network,
@@ -859,6 +887,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         data_type=None,
         extension=None,
         trial=None,
+        response=None,
         participant=None,
         node=None,
         network=None,
@@ -876,6 +905,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             data_type=data_type,
             extension=extension,
             trial=trial,
+            response=response,
             participant=participant,
             node=node,
             network=network,
@@ -941,6 +971,7 @@ class ExternalAsset(Asset):
         network=None,
         node=None,
         trial=None,
+        response=None,
         variables: Optional[dict] = None,
         personal=False,
     ):
@@ -955,6 +986,7 @@ class ExternalAsset(Asset):
             data_type=data_type,
             extension=extension,
             trial=trial,
+            response=response,
             participant=participant,
             node=node,
             network=network,
@@ -1005,6 +1037,7 @@ class ExternalS3Asset(ExternalAsset):
         network=None,
         node=None,
         trial=None,
+        response=None,
         variables: Optional[dict] = None,
         personal=False,
     ):
@@ -1024,6 +1057,7 @@ class ExternalS3Asset(ExternalAsset):
             network=network,
             node=node,
             trial=trial,
+            response=response,
             variables=variables,
             personal=personal,
         )

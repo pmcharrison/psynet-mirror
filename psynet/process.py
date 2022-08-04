@@ -50,6 +50,9 @@ class AsyncProcess(SQLBase, SQLMixin):
     trial_id = Column(Integer, ForeignKey("info.id"))
     trial = relationship("Trial", backref="async_processes")
 
+    response_id = Column(Integer, ForeignKey("response.id"))
+    response = relationship("psynet.timeline.Response", backref="async_processes")
+
     asset_key = Column(String, ForeignKey("asset.key"))
     asset = relationship("Asset", backref="async_processes")
 
@@ -58,6 +61,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         function,
         arguments=None,
         trial=None,
+        response=None,
         participant=None,
         node=None,
         network=None,
@@ -103,6 +107,10 @@ class AsyncProcess(SQLBase, SQLMixin):
         if trial:
             self.trial_id = trial.id
 
+        self.response = response
+        if response:
+            self.response_id = response.id
+
         self.infer_missing_parents()
         self.pending = True
 
@@ -141,7 +149,11 @@ class AsyncProcess(SQLBase, SQLMixin):
                 self.node = self.asset.node
             if not self.network:
                 self.network = self.asset.network
+            if not self.response:
+                self.response = self.asset.response
 
+        if self.participant is None and self.response is not None:
+            self.participant = self.response.participant
         if self.participant is None and self.trial is not None:
             self.participant = self.trial.participant
         if self.node is None and self.trial is not None:

@@ -65,6 +65,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         go to element 3 within that page maker, which must also be a page maker;
         go to element 2 within that page maker.
 
+    elt_bounds : list
+        Represents the number of elements at each level of the current
+        ``elt_id`` hierarchy; used to work out when to leave a page maker
+        and go up to the next level.
+        Should not be modified directly.
+
     page_uuid : str
         A long unique string that is randomly generated when the participant advances
         to a new page, used as a passphrase to guarantee the security of
@@ -146,6 +152,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     __extra_vars__ = {}
 
     elt_id = field.claim_field("elt_id", __extra_vars__, list)
+    elt_id_max = field.claim_field("elt_id_max", __extra_vars__, list)
     page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
     aborted = claim_var(
         "aborted", __extra_vars__, use_default=True, default=lambda: False
@@ -279,6 +286,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.elt_id = [-1]
+        self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []
         self.complete = False
         self.time_credit.initialize(experiment)

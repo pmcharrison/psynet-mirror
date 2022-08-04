@@ -1341,8 +1341,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         )
         db.session.add(network)
         db.session.commit()
-        self._grow_network(network, participant, experiment)
-        db.session.commit()
         return network
 
     def find_networks(self, participant, experiment, ignore_async_processes=False):

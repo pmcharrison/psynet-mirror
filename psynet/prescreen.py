@@ -1220,6 +1220,7 @@ class AttentionTest(Module):
                 "attention_test_2",
                 lambda experiment, participant: self.pages == 2,
                 ModularPage(
+                    label="attention_test_2",
                     prompt=self.prompt_2,
                     control=TextControl(width="300px"),
                     time_estimate=time_estimate_per_trial,

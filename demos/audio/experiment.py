@@ -1,6 +1,7 @@
 import flask
 
 import psynet.experiment
+from psynet.asset import DebugStorage
 from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
@@ -266,14 +267,13 @@ example_audio_page_3 = ModularPage(
 example_record_page = join(
     ModularPage(
         "record_page",
-        "This page lets you record audio. Note that, in this version, you must click 'Upload' when finished.",
+        "This page lets you record audio.",
         AudioRecordControl(
             duration=3.0,
-            s3_bucket="audio-record-demo",
             show_meter=True,
-            public_read=True,
             controls=True,
-            auto_advance=True,
+            auto_advance=False,
+            bot_response_audio="example_recordings/response_2__record_page.wav",
         ),
         time_estimate=5,
         progress_display=ProgressDisplay(
@@ -283,15 +283,28 @@ example_record_page = join(
         ),
     ),
     PageMaker(
-        lambda participant: ModularPage(
+        lambda participant: debug(participant),
+        # lambda participant: ModularPage(
+        #     "playback",
+        #     AudioPrompt(
+        #         participant.answer["url"], "Here's the recording you just made."
+        #     ),
+        # ),
+        time_estimate=5,
+    ),
+)
+
+
+def debug(participant):
+    return (
+        ModularPage(
             "playback",
             AudioPrompt(
                 participant.answer["url"], "Here's the recording you just made."
             ),
         ),
-        time_estimate=5,
-    ),
-)
+    )
+
 
 example_listen_then_record_page = join(
     ModularPage(
@@ -305,11 +318,10 @@ example_listen_then_record_page = join(
         ),
         AudioRecordControl(
             duration=1.0,
-            s3_bucket="audio-record-demo",
             show_meter=True,
-            public_read=True,
             controls=True,
-            auto_advance=True,
+            auto_advance=False,
+            bot_response_audio="example_recordings/response_4__record_page.wav",
         ),
         time_estimate=5,
         events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
@@ -347,14 +359,13 @@ example_record_audio_video = join(
         ),
         VideoRecordControl(
             duration=2.0,
-            s3_bucket="audio-record-demo",
             recording_source="camera",
             show_preview=True,
             show_meter=False,
-            public_read=True,
             controls=True,
             loop_playback=False,
             auto_advance=True,
+            bot_response_video="example_recordings/response_5__record_page.wav",
         ),
         progress_display=ProgressDisplay(
             stages=[
@@ -392,6 +403,7 @@ example_record_audio_video = join(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Audio demo"
+    asset_storage = DebugStorage()
 
     variables = {
         "wage_per_hour": 12.0,

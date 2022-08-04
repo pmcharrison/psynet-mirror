@@ -158,9 +158,8 @@ class Age(ModularPage):
     @staticmethod
     def validate(response, **kwargs):
         if not (
-            response.answer.isdigit()
-            and int(response.answer) > 0
-            and int(response.answer) < 120
+            0 < response.answer < 120
+            and round(response.answer) == float(response.answer)
         ):
             return FailedValidation(
                 "You need to provide your age as an integer between 0 and 120!"
