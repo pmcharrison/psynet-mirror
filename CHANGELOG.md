@@ -1,5 +1,10 @@
 # CHANGELOG
 
+# [9.1.1] Released on 2022-08-03
+
+## Fixed
+- Fixed a bug that introduced import errors for experiments containing stimulus sets (author: Peter Harrison, reviewer: Frank Höger).
+
 # [9.1.0] Released on 2022-07-11
 
 #### Added

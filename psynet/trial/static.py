@@ -37,6 +37,8 @@ from .main import (
 
 logger = get_logger()
 
+STIMULUS_SETS = set()  # TODO - remove once storage branch is merged
+
 
 def filter_for_completed_trials(x):
     return x.filter_by(failed=False, complete=True, is_repeat_trial=False)
@@ -428,9 +430,7 @@ class StimulusSet:
         self.blocks = sorted(list(blocks))
         self.participant_groups = sorted(list(participant_groups))
 
-        if "prepare" in command_line.FLAGS:
-            force = "force" in command_line.FLAGS
-            self.prepare_media(force=force)
+        STIMULUS_SETS.add(self)
 
     @property
     def hash(self):
