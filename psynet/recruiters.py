@@ -325,8 +325,8 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def external_submit_url(self, participant):
-        if participant.failed:
+    def external_submit_url(self, participant, should_terminate=False):
+        if participant.failed or should_terminate:
             redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
         else:
             redirect_url = (

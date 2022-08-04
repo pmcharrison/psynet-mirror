@@ -1207,7 +1207,9 @@ class Experiment(dallinger.experiment.Experiment):
                 recruiter = exp.recruiter
                 external_submit_url = None
                 if hasattr(recruiter, "external_submit_url"):
-                    external_submit_url = recruiter.external_submit_url(participant)
+                    external_submit_url = recruiter.external_submit_url(
+                        participant, should_terminate=True
+                    )
                 return error_page(
                     participant=participant,
                     error_text=msg,
