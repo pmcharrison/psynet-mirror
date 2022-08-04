@@ -18,16 +18,17 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-    function finish() {
-      dallinger.submitAssignment();
-    }
-    {% if experiment.with_lucid_recruitment() %}
-    setTimeout(() => {
-      finish();
-    }, "2000")
-    {% else %}
-    document.getElementById("next-button").onclick = finish;
-    {% endif %}
+    {{ super() }}
+    <script>
+        function finish() {
+          dallinger.submitAssignment();
+        }
+        {% if experiment.with_lucid_recruitment() %}
+        setTimeout(() => {
+          finish();
+        }, "2000")
+        {% else %}
+        document.getElementById("next-button").onclick = finish;
+        {% endif %}
 </script>
 {% endblock %}
