@@ -75,11 +75,16 @@ class Bot(Participant):
             This
         """
         logger.info(f"Bot {self.id} is starting the experiment.")
+        counter = 0
         while True:
             self.take_page(time_factor)
+            counter += 1
             db.session.refresh(self)
             if not self.status == "working":
                 break
+        logger.info(
+            f"Bot {self.id} has finished the experiment (took {counter} page(s))."
+        )
 
     def take_page(self, time_factor):
         from .page import WaitPage

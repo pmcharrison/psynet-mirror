@@ -7,6 +7,7 @@ import pexpect
 import pytest
 import sqlalchemy.exc
 from dallinger import db
+from dallinger.config import get_config
 from dallinger.models import Network, Node
 from dallinger.pytest_dallinger import flush_output
 
@@ -16,23 +17,19 @@ from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     run_prepare_in_subprocess,
+    working_directory,
 )
 from psynet.data import init_db
+from psynet.experiment import Experiment
 from psynet.participant import Participant
 from psynet.trial.main import TrialSource
 from psynet.utils import disable_logger
-
-ACTIVE_EXPERIMENT = None
 
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 
 @pytest.fixture()
 def config():
-    from dallinger.config import get_config
-
-    from psynet.experiment import Experiment
-
     try:
         Experiment.extra_parameters()
     except KeyError as err:
@@ -61,71 +58,58 @@ def deployment_info():
     deployment_info.delete()
 
 
-def demo_setup(demo):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = demo
-    path = os.path.join(os.path.dirname(__file__), "..", f"demos/{demo}")
-    os.chdir(path)
-    # Originally we used to aggressively reinitialize the database as part of
-    # these regression tests. However, it seems this was at the route of
-    # errors of the following form:
-    # "duplicate key value violates unique constraint".
-    # It seems that these errors would occur when trying to create database tables
-    # before the process deleting those tables had fully completed.
-    # Instead we now just have a little 'sleep', hoping that SQL processes
-    # will terminate in the meantime...
-    #
-    init_db(drop_all=True)
-    time.sleep(0.5)
-    kill_psynet_chrome_processes()
-    kill_chromedriver_processes()
-
-    # Seems to be important to load config before initializing the experiment,
-    # something to do with duplicated SQLAlchemy imports
-    from dallinger.config import get_config
-
-    config = get_config()
-    if not config.ready:
-        config.load()
-
-    psynet.experiment.import_local_experiment()
-    init_db(drop_all=True)
-    run_prepare_in_subprocess()
-
-
-def demo_teardown(root):
-    global ACTIVE_EXPERIMENT
-    ACTIVE_EXPERIMENT = None
-    os.chdir(root)
-
-    kill_psynet_chrome_processes()
-    kill_chromedriver_processes()
-
-    # print("Resetting database...")
-    # db.session.commit()  # This seems to be important to avoid the process getting stuck
-    # Base.metadata.drop_all(bind=engine)  # drops all the tables in the database
-    # print("...complete.")
-
-
-@pytest.fixture(scope="class")
-def demo_name(request):
+@pytest.fixture()
+def experiment_directory(request):
     return request.param
 
 
-@pytest.fixture(scope="class")
-def demo_exp(demo_name):
+@pytest.fixture
+def launched_experiment(request, env, clear_workers, experiment_directory):
     """
-    Use like this:
+    This overrides the debug_experiment fixture in Dallinger to
+    use PsyNet debug instead. Note that we use legacy mode for now.
+    """
+    print(f"Launching experiment in directory {experiment_directory}...")
+    with working_directory(experiment_directory):
+        init_db(drop_all=True)
+        time.sleep(0.5)
+        kill_psynet_chrome_processes()
+        kill_chromedriver_processes()
 
-    ::
-        @pytest.mark.parametrize("demo_name", ["mcmcp", "gibbs"], indirect=True)
-        def test_exp(demo_name):
-            bot = Bot()
-            bot.take_experiment()
-    """
-    demo_setup(demo_name)
-    yield
-    demo_teardown(demo_name)
+        timeout = request.config.getvalue("recruiter_timeout", 120)
+
+        # Seems to be important to load config before initializing the experiment,
+        # something to do with duplicated SQLAlchemy imports
+        config = get_config()
+        if not config.ready:
+            config.load()
+
+        psynet.experiment.import_local_experiment()
+
+        # Make sure debug server runs to completion with bots
+        p = pexpect.spawn(
+            "psynet",
+            ["debug", "--no-browsers", "--verbose", "--legacy"],
+            env=env,
+            encoding="utf-8",
+        )
+        p.logfile = sys.stdout
+
+        try:
+            p.expect_exact("Server is running", timeout=timeout)
+            yield p
+        finally:
+            try:
+                flush_output(p, timeout=0.1)
+                p.sendcontrol("c")
+                flush_output(p, timeout=3)
+                # Why do we need to call flush_output twice? Good question.
+                # Something about calling p.sendcontrol("c") seems to disrupt the log.
+                # Better to call it both before and after.
+                kill_psynet_chrome_processes()
+                kill_chromedriver_processes()
+            except IOError:
+                pass
 
 
 @pytest.fixture(scope="class")
@@ -335,20 +319,12 @@ def network(db_session, experiment_module, prepopulated_database):
 
 @pytest.fixture
 def trial_class(experiment_module):
-    if ACTIVE_EXPERIMENT == "static":
-        return experiment_module.AnimalTrial
-    else:
-        raise NotImplementedError
-    # elif ACTIVE_EXPERIMENT == "singing_iterated":
-    #     return experiment_module.CustomTrial
+    return experiment_module.AnimalTrial
 
 
 @pytest.fixture
 def trial_maker(experiment_module):
-    if ACTIVE_EXPERIMENT == "static":
-        return experiment_module.trial_maker
-    else:
-        raise NotImplementedError
+    return experiment_module.trial_maker
 
 
 @pytest.fixture
@@ -365,45 +341,6 @@ def trial(
     db_session.add(t)
     db_session.commit()
     return t
-
-
-@pytest.fixture
-def debug_experiment(request, env, clear_workers):
-    """
-    This overrides the debug_experiment fixture in Dallinger to
-    use PsyNet debug instead. Note that we use legacy mode for now.
-    """
-    timeout = request.config.getvalue("recruiter_timeout", 120)
-
-    # Make sure debug server runs to completion with bots
-    p = pexpect.spawn(
-        "psynet",
-        ["debug", "--no-browsers", "--verbose", "--legacy"],
-        env=env,
-        encoding="utf-8",
-    )
-    p.logfile = sys.stdout
-
-    try:
-        p.expect_exact("Server is running", timeout=timeout)
-        yield p
-        # The Dallinger version of this fixture requires the experiment to run to completion,
-        # i.e. for recruitment to stop. We relax this constraint as it is often
-        # a bit hard to stick to.
-        #
-        # if request.node.rep_setup.passed and request.node.rep_call.passed:
-        #     p.expect_exact("Experiment completed", timeout=timeout)
-        #     p.expect_exact("Local Heroku process terminated", timeout=timeout)
-    finally:
-        try:
-            flush_output(p, timeout=0.1)
-            p.sendcontrol("c")
-            flush_output(p, timeout=3)
-            # Why do we need to call flush_output twice? Good question.
-            # Something about calling p.sendcontrol("c") seems to disrupt the log.
-            # Better to call it both before and after.
-        except IOError:
-            pass
 
 
 @pytest.fixture

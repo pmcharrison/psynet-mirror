@@ -31,7 +31,7 @@ from pkg_resources import resource_filename
 from psynet import __version__
 
 from . import deployment_info
-from .asset import Asset, AssetRegistry, FastFunctionAsset, NoStorage
+from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
 from .command_line import log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
@@ -806,7 +806,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def extra_files(cls):
-        return [
+        files = [
             (
                 resource_filename("psynet", "templates"),
                 "/templates",
@@ -889,11 +889,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "deploy",
                 "deploy",
             ),
-            (
-                "static/debug_storage",
-                "static/debug_storage",
-            ),
         ]
+        if isinstance(cls.assets, DebugStorage):
+            files.append(
+                (
+                    "static/debug_storage",
+                    "static/debug_storage",
+                )
+            )
+        return files
 
     @classmethod
     def extra_parameters(cls):

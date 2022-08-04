@@ -673,7 +673,7 @@ class NullControl(Control):
     macro = "null"
     metadata = {}
 
-    def get_bot_response(self, experiment, bot):
+    def get_bot_response(self, experiment, bot, page, prompt):
         return None
 
 
@@ -1228,6 +1228,9 @@ class TextControl(Control):
             "text_align": self.text_align,
             "block_copy_paste": self.block_copy_paste,
         }
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return "Hello, I am a bot!"
 
 
 class ModularPage(Page):
