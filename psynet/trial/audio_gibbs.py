@@ -9,7 +9,7 @@ from uuid import uuid4
 from flask import Markup, escape
 
 from ..field import claim_var
-from ..media import make_batch_file, upload_to_s3
+from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
 from ..timeline import MediaSpec
 from ..utils import get_logger, get_object_from_module, linspace

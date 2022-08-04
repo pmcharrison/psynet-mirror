@@ -9,9 +9,8 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.prescreen import AudioForcedChoiceTest
+from psynet.prescreen import AudioForcedChoiceTest, AudioForcedChoiceTrial
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial
 
 QUESTION = "The user should read the sentence: '%s'. Please select the error category."
 
@@ -25,7 +24,6 @@ class ReadAudioTest(AudioForcedChoiceTest):
         performance_threshold: int,
         question="",
         label="read_audio_test",
-        time_estimate_per_trial: int = 8,
         n_stimuli_to_use: int = None,
         specific_indexes: list = None,
     ):
@@ -36,9 +34,9 @@ class ReadAudioTest(AudioForcedChoiceTest):
             question=question,
             performance_threshold=performance_threshold,
             label=label,
-            time_estimate_per_trial=time_estimate_per_trial,
             n_stimuli_to_use=n_stimuli_to_use,
             specific_stimuli=specific_indexes,
+            trial_class=ReadAudioForcedChoiceTrial,
         )
 
         # Each stimulus must have the field 'text'
@@ -46,22 +44,18 @@ class ReadAudioTest(AudioForcedChoiceTest):
             self.stimuli
         )
 
-    def trial(self, time_estimate_: float):
-        class AudioForcedChoiceTrial(StaticTrial):
-            time_estimate = time_estimate_
 
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "read_audio_test_trial",
-                    AudioPrompt(
-                        self.definition["url"],
-                        QUESTION % self.definition["text"],
-                    ),
-                    PushButtonControl(self.definition["answer_options"]),
-                    time_estimate=self.time_estimate,
-                )
-
-        return AudioForcedChoiceTrial
+class ReadAudioForcedChoiceTrial(AudioForcedChoiceTrial):
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "read_audio_test_trial",
+            AudioPrompt(
+                self.definition["url"],
+                QUESTION % self.definition["text"],
+            ),
+            PushButtonControl(self.definition["answer_options"]),
+            time_estimate=self.time_estimate,
+        )
 
 
 ##########################################################################################

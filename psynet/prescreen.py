@@ -1633,6 +1633,21 @@ class HeadphoneTest(Module):
         ]
 
 
+class AudioForcedChoiceTrial(StaticTrial):
+    time_estimate = 8
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "audio_forced_choice_trial",
+            AudioPrompt(
+                self.stimulus.assets["stimulus"],
+                self.definition["question"],
+            ),
+            PushButtonControl(self.definition["answer_options"]),
+            bot_response=lambda: self.definition["answer"],
+        )
+
+
 class AudioForcedChoiceTest(Module):
     """
     The audio forced choice test makes sure that the participant can correctly classify a sound.
@@ -1690,9 +1705,9 @@ class AudioForcedChoiceTest(Module):
         question: str,
         performance_threshold: int,
         label="audio_forced_choice_test",
-        time_estimate_per_trial: int = 8,
         n_stimuli_to_use: Optional[int] = None,
         specific_stimuli: Optional[List] = None,
+        trial_class=AudioForcedChoiceTrial,
     ):
         # `n_stimuli_to_use` and `specific_stimuli` can both be None or either of them, but it is not allowed that they
         # are both not None, as they can contain conflicting information.
@@ -1711,12 +1726,13 @@ class AudioForcedChoiceTest(Module):
         self.check_stimuli()
 
         self.label = label
+        self.trial_class = trial_class
 
         super().__init__(
             label,
             join(
                 self.instruction_page(),
-                self.trial_maker(time_estimate_per_trial, performance_threshold),
+                self.trial_maker(performance_threshold, trial_class),
             ),
         )
 
@@ -1763,7 +1779,7 @@ class AudioForcedChoiceTest(Module):
             time_estimate=10,
         )
 
-    def trial_maker(self, time_estimate_per_trial: float, performance_threshold: int):
+    def trial_maker(self, performance_threshold: int, trial_class):
         class AudioForcedChoiceTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
                 """Should return a dict: {"score": float, "passed": bool}"""
@@ -1776,30 +1792,12 @@ class AudioForcedChoiceTest(Module):
 
         return AudioForcedChoiceTrialMaker(
             id_=self.label + "_trials",
-            trial_class=self.trial(time_estimate_per_trial),
+            trial_class=trial_class,
             phase="screening",
             stimuli=self.get_stimulus_set(),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
-
-    def trial(self, time_estimate_: float):
-        class AudioForcedChoiceTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "audio_forced_choice_trial",
-                    AudioPrompt(
-                        self.stimulus.assets["stimulus"],
-                        self.definition["question"],
-                    ),
-                    PushButtonControl(self.definition["answer_options"]),
-                    time_estimate=self.time_estimate,
-                    bot_response=lambda: self.definition["answer"],
-                )
-
-        return AudioForcedChoiceTrial
 
     def get_stimulus_set(self):
         if self.n_stimuli_to_use is not None:

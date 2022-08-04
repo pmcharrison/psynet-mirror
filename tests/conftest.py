@@ -1,4 +1,3 @@
-import os
 import sys
 import time
 import warnings
@@ -16,14 +15,13 @@ import psynet.utils
 from psynet.command_line import (
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
-    run_prepare_in_subprocess,
     working_directory,
 )
 from psynet.data import init_db
 from psynet.experiment import Experiment
 from psynet.participant import Participant
 from psynet.trial.main import TrialSource
-from psynet.utils import disable_logger
+from psynet.utils import clear_all_caches, disable_logger
 
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
@@ -108,6 +106,7 @@ def launched_experiment(request, env, clear_workers, experiment_directory):
                 # Better to call it both before and after.
                 kill_psynet_chrome_processes()
                 kill_chromedriver_processes()
+                clear_all_caches()
             except IOError:
                 pass
 

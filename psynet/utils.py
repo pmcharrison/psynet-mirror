@@ -717,3 +717,15 @@ def get_experiment():
     raise ImportError(
         "get_experiment has moved from psynet.utils to psynet.experiment, please update your import statements."
     )
+
+
+def clear_all_caches():
+    import functools
+    import gc
+
+    cached_functions = [
+        i for i in gc.get_objects() if isinstance(i, functools._lru_cache_wrapper)
+    ]
+
+    for func in cached_functions:
+        func.cache_clear()

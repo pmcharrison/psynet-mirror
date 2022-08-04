@@ -2393,7 +2393,14 @@ class VideoRecordControl(RecordControl):
         else:
             assert isinstance(self.bot_response_video, dict)
             assert len(self.bot_response_video) == len(self.recording_sources)
-            assert sorted(list(self.bot_response_video)) == ["camera", "screen"]
+            try:
+                assert sorted(list(self.bot_response_video)) == ["camera", "screen"]
+            except Exception:
+                import pydevd_pycharm
+
+                pydevd_pycharm.settrace(
+                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+                )
 
         if self.bot_response_video is not None:
             return BotResponse(
