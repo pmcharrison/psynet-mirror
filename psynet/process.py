@@ -158,6 +158,13 @@ class AsyncProcess(SQLBase, SQLMixin):
             self.participant = self.trial.participant
         if self.node is None and self.trial is not None:
             self.node = self.trial.origin
+        if (
+            self.participant is None
+            and self.node is not None
+            and self.node.participant is not None
+        ):
+            self.participant = self.node.participant
+            self.participant_id = self.participant.id
         if self.network is None and self.node is not None:
             self.network = self.node.network
 

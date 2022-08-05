@@ -10,6 +10,7 @@ from flask import Markup
 
 import psynet.experiment
 import psynet.media
+from psynet.asset import DebugStorage
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -127,6 +128,7 @@ trial_maker = CustomTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Audio Gibbs sampling demo"
+    asset_storage = DebugStorage()
 
     timeline = Timeline(
         CAPRecruiterStandardConsent(),

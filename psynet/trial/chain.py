@@ -1321,7 +1321,10 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def create_networks_within(self, experiment, participant):
         for i in range(self.num_chains_per_participant):
-            self.create_network(experiment, participant, id_within_participant=i)
+            network = self.create_network(
+                experiment, participant, id_within_participant=i
+            )
+            self._grow_network(network, participant, experiment)
 
     def create_networks_across(self, experiment):
         for _ in range(self.num_chains_per_experiment):

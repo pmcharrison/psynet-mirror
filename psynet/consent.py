@@ -89,6 +89,11 @@ class CAPRecruiterStandardConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"cap-recruiter_standard_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {
+                "cap-recruiter_standard_consent": True,
+            }
+
 
 class CAPRecruiterAudiovisualConsent(Module):
     """
@@ -160,6 +165,12 @@ class CAPRecruiterAudiovisualConsent(Module):
                 ],
             }
 
+        def get_bot_response(self, experiment, bot):
+            return {
+                "cap-recruiter_audiovisual_consent": True,
+                "demonstration_purposes_consent": True,
+            }
+
 
 #########
 # MTurk #
@@ -225,6 +236,9 @@ class MTurkStandardConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"mturk_standard_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"mturk_standard_consent": True}
+
 
 class MTurkAudiovisualConsent(Module):
     """
@@ -287,6 +301,9 @@ class MTurkAudiovisualConsent(Module):
         def format_answer(self, raw_answer, **kwargs):
             return {"audiovisual_consent": raw_answer}
 
+        def get_bot_response(self, experiment, bot):
+            return {"audiovisual_consent": True}
+
 
 #############
 # Princeton #
@@ -346,6 +363,9 @@ class PrincetonConsent(Module):
 
         def format_answer(self, raw_answer, **kwargs):
             return {"princeton_consent": raw_answer}
+
+        def get_bot_response(self, experiment, bot):
+            return {"princeton_consent": True}
 
 
 ########

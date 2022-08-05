@@ -1468,6 +1468,7 @@ class TrialMaker(Module):
         )
         if not trial.awaiting_async_process:
             trial.mark_as_finalized()
+        self._grow_network(trial.network, participant, experiment)
 
     def _construct_feedback_logic(self):
         return conditional(

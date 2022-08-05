@@ -8,6 +8,7 @@ from uuid import uuid4
 
 from flask import Markup, escape
 
+from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
@@ -183,11 +184,14 @@ class AudioGibbsNetwork(GibbsNetwork):
                     )
 
                 make_audio_batch_file(stimuli, batch_path)
-                batch_url = upload_to_s3(
-                    batch_path, self.s3_bucket, key=batch_file, public_read=True
-                )["url"]
+                asset = ExperimentAsset(
+                    label="slider_stimulus",
+                    input_path=batch_path,
+                    node=node,
+                )
+                asset.deposit()
 
-                node.slider_stimuli = {"url": batch_url, "all": stimuli}
+                node.slider_stimuli = {"url": asset.url, "all": stimuli}
 
 
 class AudioGibbsTrial(GibbsTrial):
@@ -268,7 +272,6 @@ class AudioGibbsTrial(GibbsTrial):
             "gibbs_audio_trial",
             self._get_prompt(experiment, participant),
             control=AudioSliderControl(
-                "slider_control",
                 audio=self.media.audio,
                 sound_locations=self.sound_locations,
                 start_value=start_value,

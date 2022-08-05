@@ -207,6 +207,9 @@ class WaitPage(Page):
     def metadata(self, **kwargs):
         return {"content": self.content, "wait_time": self.wait_time}
 
+    def get_bot_response(self, experiment, bot):
+        return None
+
 
 def wait_while(
     condition,
