@@ -116,10 +116,17 @@ class AdjectiveTrial(ImitationChainTrial):
         Prints the feedback if the participant discovered a completely new word. This method can easily be overwritten.
         """
         html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
+        # return f"""
+        #     You just unlocked an entirely new word: "{tag}" for {html_emb}<br><br>
+        #     We award you with a bonus of {trial_maker.new_word_bonus}$!
+        #     <br><br>
+        #     <div class="alert alert-warning" role="alert">
+        #     <strong>Note:</strong> Please keep in mind that if your tags are later flagged as irrelevant,
+        #     your experiment will terminate early.
+        #     </div>
+        #     """
         return f"""
-            You just unlocked an entirely new word: "{tag}" for {html_emb}<br><br>
-            We award you with a bonus of {trial_maker.new_word_bonus}$!
-            <br><br>
+            Congrats, you just unlocked an entirely new word: "{tag}" for {html_emb}!<br><br> 
             <div class="alert alert-warning" role="alert">
             <strong>Note:</strong> Please keep in mind that if your tags are later flagged as irrelevant,
             your experiment will terminate early.
@@ -284,9 +291,13 @@ class AdjectiveTrial(ImitationChainTrial):
         users = ", ".join(self.get_usernames(worker_ids))
         stimulus_type = self.get_stimulus_type(url, trial_maker.file_extensions)
         html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
+        # return f"""
+        #     {users} upvoted your label "{tag}" for {stimulus_type} {html_emb}<br><br>
+        #     <b>You will receive a bonus of {bonus} $</b>
+        #     """
         return f"""
             {users} upvoted your label "{tag}" for {stimulus_type} {html_emb}<br><br>
-            <b>You will receive a bonus of {bonus} $</b>
+            Congrats and keep up the good work!
             """
 
     def check_upvoted(self, participant, trial_maker, feedback_dictionary):
