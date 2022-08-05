@@ -2,6 +2,7 @@ import os
 import tempfile
 
 import pytest
+from dallinger import db
 
 import psynet.experiment  # noqa -- Need to import this for SQLAlchemy registrations to work properly
 from psynet.asset import CachedFunctionAsset, DebugStorage, ExperimentAsset
@@ -179,3 +180,58 @@ def test_after_deposit(async_, db_session, debug_storage, deployment_info):
 
     finally:
         os.remove(file.name)
+
+
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+def test_access_assets(
+    node,
+    trial_class,
+    debug_storage,
+    experiment_object,
+    participant,
+    launched_experiment,
+):
+    trials = [
+        trial_class(
+            experiment=experiment_object,
+            node=node,
+            participant=participant,
+            propagate_failure=False,
+            is_repeat_trial=False,
+        )
+        for _ in range(2)
+    ]
+    for t in trials:
+        db.session.add(t)
+    db.session.commit()
+
+    with tempfile.NamedTemporaryFile("w") as f:
+        f.write("Hello!")
+        f.flush()
+
+        node_asset = ExperimentAsset(
+            label="node_asset",
+            input_path=f.name,
+            node=node,
+            trial=None,
+        )
+        node_asset.deposit(debug_storage)
+
+        for t in trials:
+            trial_asset = ExperimentAsset(
+                label="trial_asset",
+                input_path=f.name,
+                trial=t,
+            )
+            trial_asset.deposit(debug_storage)
+
+    db.session.commit()
+
+    assert isinstance(node.assets, dict)
+    assert len(node.assets) == 1
+    assert isinstance(node.assets["node_asset"], ExperimentAsset)
+
+    for t in trials:
+        assert isinstance(t.assets, dict)
+        assert len(t.assets) == 1
+        assert isinstance(t.assets["trial_asset"], ExperimentAsset)

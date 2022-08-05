@@ -6,11 +6,14 @@
 # Imports
 ##########################################################################################
 
+from typing import List
+
 from flask import Markup
 
 import psynet.experiment
 import psynet.media
 from psynet.asset import DebugStorage
+from psynet.bot import Bot
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -129,6 +132,7 @@ trial_maker = CustomTrialMaker(
 class Exp(psynet.experiment.Experiment):
     label = "Audio Gibbs sampling demo"
     asset_storage = DebugStorage()
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
@@ -137,8 +141,10 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
+    test_num_bots = 2
 
-        # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
+    def test_bots_ran_successfully(self, bots: List[Bot], **kwargs):
+        super().test_bots_ran_successfully(bots, **kwargs)
+
+        for b in bots:
+            assert len(b.trials()) == NUM_TRIALS_PER_PARTICIPANT

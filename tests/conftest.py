@@ -13,6 +13,7 @@ from dallinger.pytest_dallinger import flush_output
 import psynet.experiment
 import psynet.utils
 from psynet.command_line import (
+    clean_sys_modules,
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     working_directory,
@@ -61,54 +62,64 @@ def experiment_directory(request):
     return request.param
 
 
+@pytest.fixture()
+def in_experiment_directory(experiment_directory):
+    with working_directory(experiment_directory):
+        yield experiment_directory
+    clean_sys_modules()
+    clear_all_caches()
+
+
 @pytest.fixture
-def launched_experiment(request, env, clear_workers, experiment_directory):
+def launched_experiment(request, env, clear_workers, in_experiment_directory):
     """
     This overrides the debug_experiment fixture in Dallinger to
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
-    print(f"Launching experiment in directory {experiment_directory}...")
-    with working_directory(experiment_directory):
-        init_db(drop_all=True)
-        time.sleep(0.5)
+    print(f"Launching experiment in directory {in_experiment_directory}...")
+    init_db(drop_all=True)
+    time.sleep(0.5)
+    kill_psynet_chrome_processes()
+    kill_chromedriver_processes()
+
+    timeout = request.config.getvalue("recruiter_timeout", 120)
+
+    # Seems to be important to load config before initializing the experiment,
+    # something to do with duplicated SQLAlchemy imports
+    config = get_config()
+    if not config.ready:
+        config.load()
+
+    exp = psynet.experiment.get_experiment()
+
+    # Make sure debug server runs to completion with bots
+    p = pexpect.spawn(
+        "psynet",
+        ["debug", "--no-browsers", "--verbose", "--legacy"],
+        env=env,
+        encoding="utf-8",
+    )
+    p.logfile = sys.stdout
+
+    try:
+        from psynet.trial.main import TrialNode
+
+        p.expect_exact("Experiment launch complete!", timeout=timeout)
+
+        yield exp
+    finally:
+        try:
+            flush_output(p, timeout=0.1)
+            p.sendcontrol("c")
+            flush_output(p, timeout=3)
+            # Why do we need to call flush_output twice? Good question.
+            # Something about calling p.sendcontrol("c") seems to disrupt the log.
+            # Better to call it both before and after.
+        except (IOError, pexpect.exceptions.EOF):
+            pass
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
-
-        timeout = request.config.getvalue("recruiter_timeout", 120)
-
-        # Seems to be important to load config before initializing the experiment,
-        # something to do with duplicated SQLAlchemy imports
-        config = get_config()
-        if not config.ready:
-            config.load()
-
-        psynet.experiment.import_local_experiment()
-
-        # Make sure debug server runs to completion with bots
-        p = pexpect.spawn(
-            "psynet",
-            ["debug", "--no-browsers", "--verbose", "--legacy"],
-            env=env,
-            encoding="utf-8",
-        )
-        p.logfile = sys.stdout
-
-        try:
-            p.expect_exact("Server is running", timeout=timeout)
-            yield p
-        finally:
-            try:
-                flush_output(p, timeout=0.1)
-                p.sendcontrol("c")
-                flush_output(p, timeout=3)
-                # Why do we need to call flush_output twice? Good question.
-                # Something about calling p.sendcontrol("c") seems to disrupt the log.
-                # Better to call it both before and after.
-                kill_psynet_chrome_processes()
-                kill_chromedriver_processes()
-                clear_all_caches()
-            except IOError:
-                pass
+        clear_all_caches()
 
 
 @pytest.fixture(scope="class")
@@ -252,56 +263,58 @@ def demo_unity_autoplay(root):
 
 
 @pytest.fixture
-def experiment_module(db_session):
-    return psynet.experiment.import_local_experiment().get("module")
+def db_session(in_experiment_directory):
+    import dallinger.db
+
+    # The drop_all call can hang without this; see:
+    # https://stackoverflow.com/questions/13882407/sqlalchemy-blocked-on-dropping-tables
+    dallinger.db.session.close()
+    session = dallinger.db.init_db(drop_all=True)
+    yield session
+    session.rollback()
+    session.close()
 
 
 @pytest.fixture
-def experiment_class(experiment_module):
-    import dallinger.experiment
-
-    return dallinger.experiment.load()
+def imported_experiment(launched_experiment):
+    return psynet.experiment.import_local_experiment()
 
 
 @pytest.fixture
-def experiment_object(experiment_class, db_session):
-    return experiment_class(session=db_session)
+def experiment_module(imported_experiment):
+    return imported_experiment["module"]
 
 
 @pytest.fixture
-def prepopulated_database():
-    from psynet.command_line import run_prepare_in_subprocess
-    from psynet.experiment import ExperimentConfig
-
-    database_is_populated = ExperimentConfig.query.count() > 0
-    if not database_is_populated:
-        db.session.commit()
-        run_prepare_in_subprocess()
+def experiment_class(imported_experiment):
+    return imported_experiment["class"]
 
 
 @pytest.fixture
-def participant(db_session, experiment_object):
+def experiment_object(experiment_class):
+    return experiment_class()
 
-    from dallinger.config import get_config
 
-    config = get_config()
-    if not config.ready:
-        config.load()
-    p = Participant(
-        experiment=experiment_object,
-        recruiter_id="x",
-        worker_id="x",
-        assignment_id="x",
-        hit_id="x",
-        mode="debug",
-    )
-    db_session.add(p)
-    db_session.commit()
-    return p
+# @pytest.fixture
+# def prepopulated_database(in_experiment_directory):
+#     from psynet.command_line import run_prepare_in_subprocess
+#     from psynet.experiment import ExperimentConfig
+#
+#     database_is_populated = ExperimentConfig.query.count() > 0
+#     if not database_is_populated:
+#         db.session.commit()
+#         run_prepare_in_subprocess()
 
 
 @pytest.fixture
-def node(db_session, network, prepopulated_database):
+def participant(launched_experiment):
+    from psynet.bot import Bot
+
+    return Bot()
+
+
+@pytest.fixture
+def node(launched_experiment):
     nodes = Node.query.all()
     return [
         n for n in nodes if not isinstance(n, TrialSource) and n.definition is not None
@@ -309,10 +322,7 @@ def node(db_session, network, prepopulated_database):
 
 
 @pytest.fixture
-def network(db_session, experiment_module, prepopulated_database):
-    import time
-
-    time.sleep(0.1)  # wait for networks to be created
+def network(launched_experiment):
     return Network.query.all()[0]
 
 
@@ -327,11 +337,9 @@ def trial_maker(experiment_module):
 
 
 @pytest.fixture
-def trial(
-    trial_class, db_session, experiment_object, node, participant, prepopulated_database
-):
+def trial(launched_experiment, trial_class, node, participant):
     t = trial_class(
-        experiment=experiment_object,
+        experiment=launched_experiment,
         node=node,
         participant=participant,
         propagate_failure=False,

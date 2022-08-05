@@ -16,10 +16,11 @@ from dallinger.config import get_config
 from dominate import tags
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import claim_field
+from .field import PythonDict, claim_field
 from .participant import Participant
 from .utils import (
     NoArgumentProvided,
@@ -1628,6 +1629,8 @@ class Response(_Response):
     # and the functional setter/getter.
     metadata_ = claim_field("metadata", __extra_vars__)
 
+    assets = Column(PythonDict)
+
     @property
     def metadata(self):
         """
@@ -1639,6 +1642,11 @@ class Response(_Response):
     @metadata.setter
     def metadata(self, metadata):
         self.metadata_ = metadata
+
+    async_processes = relationship("AsyncProcess")
+    assets = relationship(
+        "Asset", collection_class=attribute_mapped_collection("label_or_key")
+    )
 
     def __init__(
         self,

@@ -42,19 +42,21 @@ class AsyncProcess(SQLBase, SQLMixin):
     trial_maker_id = Column(String)
 
     network_id = Column(Integer, ForeignKey("network.id"))
-    network = relationship("Network", backref="async_processes")
+    network = relationship("TrialNetwork", back_populates="async_processes")
 
     node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship("Node", backref="async_processes")
+    node = relationship("TrialNode", back_populates="async_processes")
 
     trial_id = Column(Integer, ForeignKey("info.id"))
-    trial = relationship("Trial", backref="async_processes")
+    trial = relationship("Trial", back_populates="async_processes")
 
     response_id = Column(Integer, ForeignKey("response.id"))
-    response = relationship("psynet.timeline.Response", backref="async_processes")
+    response = relationship(
+        "psynet.timeline.Response", back_populates="async_processes"
+    )
 
     asset_key = Column(String, ForeignKey("asset.key"))
-    asset = relationship("Asset", backref="async_processes")
+    asset = relationship("Asset", back_populates="async_processes")
 
     def __init__(
         self,

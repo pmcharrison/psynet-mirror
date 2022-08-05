@@ -16,11 +16,14 @@ from sqlalchemy import Column, String, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import column_property
+from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import cast
 
+from ..asset import Asset
 from ..data import SQLMixinDallinger
 from ..field import (
+    PythonDict,
     UndefinedVariableError,
     VarStore,
     claim_field,
@@ -44,7 +47,14 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import call_function, corr, deep_copy, get_logger, wait_until
+from ..utils import (
+    call_function,
+    corr,
+    deep_copy,
+    get_logger,
+    organize_by_key,
+    wait_until,
+)
 
 logger = get_logger()
 
@@ -279,6 +289,18 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     repeat_trial_index = claim_field("repeat_trial_index", __extra_vars__, int)
     num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
     time_taken = claim_field("time_taken", __extra_vars__, float)
+    assets = Column(PythonDict)
+    _initial_assets = Column(PythonDict)
+
+    @property
+    @extra_var(__extra_vars__)
+    def node_id(self):
+        return self.origin_id
+
+    @property
+    @extra_var(__extra_vars__)
+    def node(self):
+        return self.origin
 
     time_credit_before_trial = claim_field(
         "time_credit_before_trial", __extra_vars__, float
@@ -290,12 +312,34 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         "time_credit_from_trial", __extra_vars__, float
     )
 
+    async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
         select(AsyncProcess)
         .where(AsyncProcess.trial_id == Info.id, AsyncProcess.pending)
         .exists()
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
+
+    # assets = relationship("Asset", collection_class=attribute_mapped_collection("label_or_key"))
+
+    # @property
+    # def assets(self):
+    #     network_assets = Asset.query.filter(
+    #         Asset.network_id == self.network_id,
+    #         Asset.node_id == None,
+    #         Asset.trial_id == None
+    #     ).all()
+    #     node_assets = Asset.query.filter(
+    #         Asset.node_id == self.node_id,
+    #         Asset.trial_id == None
+    #     ).all()
+    #     trial_assets = Asset.query.filter_by(trial_id=self.id).all()
+    #
+    #     assets = {}
+    #     for asset in network_assets + node_assets + trial_assets:
+    #         assets[asset.label_or_key] = asset
+    #
+    #     return assets
 
     # It is compulsory to override this time_estimate parameter for the specific experiment implementation.
     time_estimate = None
@@ -428,6 +472,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         if is_repeat_trial:
             self.definition = parent_trial.definition
+            self.assets = parent_trial._initial_assets
         else:
             # We use deep copies to protect users from unexpected side-effects of in-place modifications
             self.definition = deep_copy(self.make_definition(experiment, participant))
@@ -437,6 +482,8 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 self.finalize_definition(self.definition, experiment, participant)
             )
             assert self.definition is not None
+
+            self.assets = {**node.assets}
 
             db.session.add(self)
             db.session.commit()
@@ -610,10 +657,10 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     def _finalize_assets(self):
         db.session.refresh(self)
         assert self.id is not None
-        for a in self.assets.values():
-            a.receive_stimulus_definition(self.definition)
-            if not a.deposited:
-                a.deposit()
+        for _, asset in self.assets.items():
+            asset.receive_stimulus_definition(self.definition)
+            if not asset.deposited:
+                asset.deposit()
         db.session.commit()
 
     def show_trial(self, experiment, participant):
@@ -1893,6 +1940,7 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
+        trial._initial_assets = trial.assets
         db.session.add(trial)
         db.session.commit()
         return trial
@@ -2158,6 +2206,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
 
+    async_processes = relationship("AsyncProcess")
+    assets = Column(PythonDict)
+
+    # assets = relationship("Asset")
+
     @property
     def trial_maker(self):
         from ..experiment import get_trial_maker
@@ -2209,6 +2262,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         # pylint: disable=unused-argument
         self.trial_maker_id = trial_maker_id
         self.phase = phase
+        self.assets = {}
 
     @property
     def source(self):
@@ -2303,6 +2357,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     trial_maker_id = Column(String)
 
+    async_processes = relationship("AsyncProcess")
+
     awaiting_async_process = column_property(
         select(AsyncProcess)
         .where(AsyncProcess.node_id == dallinger.models.Node.id, AsyncProcess.pending)
@@ -2310,8 +2366,34 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
-    def __init__(self, network, participant=None):
-        super().__init__(network=network, participant=participant)
+    assets = Column(PythonDict)
+
+    # @property
+    # def assets(self):
+    #     assets_from_trials = Asset.query.filter(Asset.node_id == self.id, Asset.trial_id != None).all()
+    #     assets_not_from_trials = Asset.query.filter(Asset.node_id == self.id, Asset.trial_id == None).all()
+    #
+    #     assets = {}
+    #     for asset in assets_not_from_trials:
+    #         assets[asset.label_or_key] = asset
+    #
+    #     return {
+    #         organize_by_key(assets_from_trials, lambda asset: asset.label_or_key)
+    #         **assets,
+    #     }
+
+    def __init__(self, network=None, participant=None):
+        # Note: We purposefully do not call super().__init__(), because this parent constructor
+        # requires the prior existence of the node's parent network, which is impractical for us.
+        if network is not None:
+            self.network = network
+            self.network_id = network.id
+            self.assets = {**network.assets}
+            network.calculate_full()
+
+        if participant is not None:
+            self.participant = participant
+            self.participant_id = participant.id
 
     @property
     def trial_maker(self):

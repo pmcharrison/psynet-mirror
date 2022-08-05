@@ -44,9 +44,11 @@ class Bot(Participant):
         db.session.commit()
 
     def wait_until_experiment_launch_is_complete(self):
+        from .experiment import is_experiment_launched
+
         def f():
             print("Waiting for experiment launch to complete....")
-            return redis_vars.get("launch_finished", default=False)
+            return is_experiment_launched()
 
         wait_until(
             f, max_wait=60, error_message="Experiment launch didn't finish in time"

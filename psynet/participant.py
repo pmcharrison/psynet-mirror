@@ -198,6 +198,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
+    assets = relationship("Asset")
+
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
         del x["modules"]

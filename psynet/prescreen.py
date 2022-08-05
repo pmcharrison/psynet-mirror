@@ -1202,6 +1202,7 @@ class AttentionTest(Module):
                     show_reset_button="on_selection",
                 ),
                 time_estimate=time_estimate_per_trial,
+                bot_response=lambda: None,
             ),
             conditional(
                 "exclude_check_1",
@@ -1224,6 +1225,7 @@ class AttentionTest(Module):
                     prompt=self.prompt_2,
                     control=TextControl(width="300px"),
                     time_estimate=time_estimate_per_trial,
+                    bot_response=lambda: self.attention_test_2_word,
                 ),
             ),
             conditional(

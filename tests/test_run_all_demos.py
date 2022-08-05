@@ -35,7 +35,7 @@ demos = [
     # "/Users/peter.harrison/git/psynet-package/demos/attention_test",
     # "/Users/peter.harrison/git/psynet-package/demos/audio",
     # "/Users/peter.harrison/git/psynet-package/demos/audio_forced_choice_test",
-    "/Users/peter.harrison/git/psynet-package/demos/audio_gibbs",
+    # "/Users/peter.harrison/git/psynet-package/demos/audio_gibbs",
     "/Users/peter.harrison/git/psynet-package/demos/audio_stimulus_set_from_dir",
     "/Users/peter.harrison/git/psynet-package/demos/bot",
     "/Users/peter.harrison/git/psynet-package/demos/bot_2",
@@ -91,23 +91,18 @@ demos = [
 
 @pytest.mark.parametrize("experiment_directory", demos, indirect=True)
 def test_run_demo(launched_experiment):
-    bot = Bot()
-    bot.take_experiment()
-    assert True
+    bots = [Bot() for _ in range(launched_experiment.test_num_bots)]
+    for bot in bots:
+        bot.take_experiment()
+    assert launched_experiment.test_ran_successfully(bots=bots)
 
 
 # Example of how to test a single demo at a time
-#
+
 # demo_to_test = "assets"
 # @pytest.mark.parametrize("experiment_directory", [os.path.join(demo_root, demo_to_test)], indirect=True)
 # def test_run_demo(launched_experiment):
-#     bot = Bot()
-#     bot.take_experiment()
-#     assert True
-
-# @pytest.mark.usefixtures("demo_setup")
-# class TestDemos:
-#     def test_run_demo(self, debug_experiment):
-#         bot = Bot()
+#     bots = [Bot() for _ in range(launched_experiment.test_num_bots)]
+#     for bot in bots:
 #         bot.take_experiment()
-#         assert True
+#     assert launched_experiment.test_ran_successfully(bots=bots)

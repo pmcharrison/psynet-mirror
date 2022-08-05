@@ -17,7 +17,7 @@ from dallinger import db
 from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.orm import backref, column_property, relationship
+from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
@@ -132,15 +132,19 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     replace_existing = Column(Boolean)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
-    participant = relationship("psynet.participant.Participant", backref="assets")
+    participant = relationship(
+        "psynet.participant.Participant", back_populates="assets"
+    )
 
     trial_maker_id = Column(String)
 
     network_id = Column(Integer, ForeignKey("network.id"))
-    network = relationship("Network", backref="assets")
+    network = relationship("TrialNetwork")
 
     node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship("Node")
+    node = relationship(
+        "TrialNode"
+    )  # We don't use automatic back_populates functionality, but write our own
     # "Node",
     # backref=backref(
     #     "assets", collection_class=attribute_mapped_collection("label_or_key")
@@ -149,19 +153,11 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     trial_id = Column(Integer, ForeignKey("info.id"))
     trial = relationship(
-        "Trial",
-        backref=backref(
-            "assets", collection_class=attribute_mapped_collection("label_or_key")
-        ),
-    )
+        "Trial"
+    )  # We don't use automatic back_populates functionality, but write our own
 
     response_id = Column(Integer, ForeignKey("response.id"))
-    response = relationship(
-        "psynet.timeline.Response",
-        backref=backref(
-            "assets", collection_class=attribute_mapped_collection("label_or_key")
-        ),
-    )
+    response = relationship("psynet.timeline.Response", back_populates="assets")
 
     @property
     def label_or_key(self):
@@ -169,6 +165,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             return self.label
         return self.key
 
+    async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
         select(AsyncProcess)
         .where(AsyncProcess.asset_key == key, AsyncProcess.pending)
@@ -242,6 +239,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         self.set_variables(variables)
         self.personal = personal
 
+        if not self.has_key:
+            self.generate_key()
+
     def infer_data_type(self):
         if self.extension in ["wav", "mp3"]:
             return "audio"
@@ -270,15 +270,16 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self.var.set(key, value)
 
     def infer_missing_parents(self):
+        # TODO - refactor?
         if self.participant is None and self.response is not None:
             self.participant = self.response.participant
             self.participant_id = self.participant.id
         if self.participant is None and self.trial is not None:
             self.participant = self.trial.participant
             self.participant_id = self.participant.id
-        if self.node is None and self.trial is not None:
-            self.node = self.trial.origin
-            self.node_id = self.node.id
+        # if self.node is None and self.trial is not None:
+        #     self.node = self.trial.origin
+        #     self.node_id = self.node.id
         if (
             self.participant is None
             and self.node is not None
@@ -286,9 +287,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         ):
             self.participant = self.node.participant
             self.participant_id = self.participant.id
-        if self.network is None and self.node is not None:
-            self.network = self.node.network
-            self.network_id = self.network.id
+        # if self.network is None and self.node is not None:
+        #     self.network = self.node.network
+        #     self.network_id = self.network.id
         if self.network is not None:
             self.trial_maker_id = self.network.trial_maker_id
 
@@ -338,6 +339,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         """
         try:
+            if self.label is None:
+                raise AttributeError(
+                    "Assets cannot be deposited without setting a label first. For example, you might write "
+                    "ExperimentAsset(label='prompt', ...)"
+                )
+
             if replace is None:
                 replace = self.replace_existing
 
@@ -372,6 +379,20 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self._deposit(self.storage, async_, delete_input)
                 # if deposit_complete:
                 #     self.deposited = True
+
+            assert self.label is not None
+
+            if self.network:
+                self.network.assets[self.label] = self
+
+            if self.node:
+                self.node.assets[self.label] = self
+
+            if self.trial:
+                self.trial.assets[self.label] = self
+
+            if self.response:
+                self.response.assets[self.label] = self
 
             return asset_to_use
 
@@ -522,8 +543,8 @@ class ManagedAsset(Asset):
 
     def __init__(
         self,
-        label,
         input_path,
+        label=None,
         is_folder=None,
         description=None,
         data_type=None,
@@ -649,17 +670,41 @@ class ManagedAsset(Asset):
             dir_.append(f"participant_{self.participant.id}")
         return "/".join(dir_)
 
+    def get_parents(self):
+        parents = {
+            "network": self.network_id,
+            "node": self.node_id,
+            "trial": self.trial_id,
+            "response": self.response_id,
+            "participant": self.participant_id,
+        }
+
+        if not parents["network"]:
+            for obj in [self.trial, self.node]:
+                if obj:
+                    parents["network"] = obj.network_id
+                    break
+        if not parents["node"]:
+            if self.trial:
+                parents["network"] = self.trial_id
+        if not parents["response"]:
+            if self.trial:
+                parents["response"] = self.trial.response_id
+
+        return parents
+
     def generate_filename(self):
         filename = ""
         identifiers = []
-        if self.response_id:
-            identifiers.append(f"response_{self.response_id}")
-        if self.trial_id:
-            identifiers.append(f"trial_{self.trial_id}")
-        if self.node_id:
-            identifiers.append(f"node_{self.node_id}")
-        if self.network_id:
-            identifiers.append(f"network_{self.network_id}")
+        parents = self.get_parents()
+        if parents["response"] is not None:
+            identifiers.append(f"response_{parents['response']}")
+        if parents["trial"] is not None:
+            identifiers.append(f"trial_{parents['trial']}")
+        if parents["node"] is not None:
+            identifiers.append(f"node_{parents['node']}")
+        if parents["network"] is not None:
+            identifiers.append(f"network_{parents['network']}")
         if self.label:
             identifiers.append(f"{self.label}")
 

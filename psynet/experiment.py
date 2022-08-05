@@ -77,6 +77,10 @@ logger = get_logger()
 database_template_path = "deploy/database_template.zip"
 
 
+def is_experiment_launched():
+    return redis_vars.get("launch_finished", default=False)
+
+
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
     if isinstance(obj, datetime):
@@ -216,6 +220,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     label = None
+    test_num_bots = 1
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -285,6 +290,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         ```bot.var.musician = True``
         """
         pass
+
+    def test_ran_successfully(self, bots, **kwargs):
+        for b in bots:
+            assert not b.failed
+        return True
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod

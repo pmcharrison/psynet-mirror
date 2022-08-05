@@ -114,6 +114,8 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
+    label = "Bot demo (2)"
+
     timeline = Timeline(
         NoConsent(),
         CustomTrialMaker(
@@ -147,8 +149,9 @@ class Exp(psynet.experiment.Experiment):
     @scheduled_task("interval", minutes=5 / 60, max_instances=1)
     def run_bot_participant():
         # Every 7 seconds, runs a bot participant.
-        experiment = get_experiment()
-        if experiment.var.launch_complete:
+        from psynet.experiment import is_experiment_launched
+
+        if is_experiment_launched():
             bot = Bot()
             bot.take_experiment()
 

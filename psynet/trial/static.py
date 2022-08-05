@@ -155,7 +155,6 @@ class Stimulus(TrialNode, HasDefinition):
     participant_group = Column(String)
     phase = Column(String)
     block = Column(String)
-    assets = Column(PythonDict)
 
     def __init__(
         self,
@@ -164,6 +163,8 @@ class Stimulus(TrialNode, HasDefinition):
         block="default",
         assets=None,
     ):
+        # Note: We purposefully do not call super().__init__(), because this parent constructor
+        # requires the prior existence of the node's parent network, which is impractical for us.
         assert isinstance(definition, dict)
 
         if assets is None:
@@ -178,12 +179,11 @@ class Stimulus(TrialNode, HasDefinition):
         self.block = block
         self._staged_assets = assets
 
-        # Note: We purposefully do not call super().__init__(), because this parent constructor
-        # requires the prior existence of the node's parent network, which is impractical for us.
-
     def stage_assets(self, experiment):
         stimulus_id = self.id
         assert isinstance(stimulus_id, int)
+
+        self.assets = {**self.network.assets}
 
         for label, asset in self._staged_assets.items():
             if asset.label is None:
@@ -202,6 +202,8 @@ class Stimulus(TrialNode, HasDefinition):
 
             experiment.assets.stage(asset)
             db.session.add(asset)
+
+            self.assets[label] = asset
 
         db.session.commit()
         self.assets = self._staged_assets
@@ -670,7 +672,13 @@ class StaticTrialMaker(NetworkTrialMaker):
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
         num_repeat_trials: int = 0,
+        stimulus_set=None,
     ):
+        if stimulus_set is not None:
+            raise ValueError(
+                "The StaticTrialMaker 'stimulus_set' argument has been renamed to 'stimuli'."
+            )
+
         if recruit_mode == "num_participants" and target_num_participants is None:
             raise ValueError(
                 "<target_num_participants> cannot be None if recruit_mode == 'num_participants'."
@@ -1178,49 +1186,36 @@ class StaticNetwork(TrialNetwork):
         return self.stimulus_query.count()
 
 
-def stimulus_set_from_dir(
-    id_: str, input_dir: str, media_ext: str, phase: str, version: str, s3_bucket: str
-):
-    # example media_ext: .wav
-
-    def construct():
-        return compile_stimulus_set_from_dir(
-            id_, input_dir, media_ext, phase, version, s3_bucket
-        )
-
-    return VirtualStimulusSet(id_, version, construct)
-
-
-def compile_stimulus_set_from_dir(
-    id_: str,
-    input_dir: str,
-    media_ext: str,
-):
-    # example media_ext: .wav
-    stimuli = []
-    participant_groups = [(f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()]
-    for participant_group, group_path in participant_groups:
-        blocks = [(f.name, f.path) for f in os.scandir(group_path) if f.is_dir()]
-        for block, block_path in blocks:
-            media_files = [
-                (f.name, f.path)
-                for f in os.scandir(block_path)
-                if f.is_file() and f.path.endswith(media_ext)
-            ]
-            for media_name, media_path in media_files:
-                stimuli.append(
-                    Stimulus(
-                        definition={
-                            "name": media_name,
-                        },
-                        assets={
-                            "stimulus": CachedAsset(
-                                input_path=media_path,
-                                extension=media_ext,
-                            )
-                        },
-                        participant_group=participant_group,
-                        block=block,
+class StimulusSetFromDir(StimulusSet):
+    def __init__(
+        self, id_: str, input_dir: str, media_ext: str, asset_label: str = "prompt"
+    ):
+        stimuli = []
+        participant_groups = [
+            (f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()
+        ]
+        for participant_group, group_path in participant_groups:
+            blocks = [(f.name, f.path) for f in os.scandir(group_path) if f.is_dir()]
+            for block, block_path in blocks:
+                media_files = [
+                    (f.name, f.path)
+                    for f in os.scandir(block_path)
+                    if f.is_file() and f.path.endswith(media_ext)
+                ]
+                for media_name, media_path in media_files:
+                    stimuli.append(
+                        Stimulus(
+                            definition={
+                                "name": media_name,
+                            },
+                            assets={
+                                asset_label: CachedAsset(
+                                    input_path=media_path,
+                                    extension=media_ext,
+                                )
+                            },
+                            participant_group=participant_group,
+                            block=block,
+                        )
                     )
-                )
-    return StimulusSet(id_, stimuli)
+        return super().__init__(id_, stimuli)
