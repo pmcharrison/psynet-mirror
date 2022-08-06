@@ -1130,9 +1130,9 @@ class AttentionTest(Module):
         pages: int = 2,
         fail_on: str = "attention_test_1",
         prompt_1_explanation: str = """
-        Research on personality has identified characteristic sets of behaviours and cognitive patterns that
-        evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
-        please ignore the question below and select the 'Next' button instead.""",
+            Research on personality has identified characteristic sets of behaviours and cognitive patterns that
+            evolve from biological and enviromental factors. To show that you are paying attention to the experiment,
+            please ignore the question below and select the 'Next' button instead.""",
         prompt_1_main: str = "As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient.",
         prompt_2="What is your favourite color?",
         attention_test_2_word="attention",
@@ -1377,6 +1377,7 @@ class ColorVocabularyTest(StaticTrialMaker):
     def __init__(
         self,
         label="color_vocabulary_test",
+        time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 4,
         colors: list = None,
     ):
@@ -1384,12 +1385,13 @@ class ColorVocabularyTest(StaticTrialMaker):
             self.colors = colors
         self.introduction = self.instruction_page()
         self.performance_threshold = performance_threshold
+        self.time_estimate_per_trial = time_estimate_per_trial
 
         super().__init__(
             id_=label,
             trial_class=self.trial_class,
             phase="screening",
-            stimuli=self.get_stimulus_set(colors),
+            stimuli=self.get_stimulus_set(self.colors),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )

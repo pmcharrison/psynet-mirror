@@ -746,6 +746,7 @@ class StaticTrialMaker(NetworkTrialMaker):
 
     @property
     def stimuli(self):
+        return [stimulus for network in self.networks for stimulus in network.stimuli]
         return reduce(operator.add, [n.stimuli for n in self.networks])
 
     def init_participant(self, experiment, participant):

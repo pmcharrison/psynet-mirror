@@ -9,7 +9,7 @@ import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
-from psynet.prescreen import AudioForcedChoiceTest, AudioForcedChoiceTrial
+from psynet.prescreen import AudioForcedChoiceTest
 from psynet.timeline import Timeline
 
 QUESTION = "The user should read the sentence: '%s'. Please select the error category."
@@ -36,35 +36,31 @@ class ReadAudioTest(AudioForcedChoiceTest):
             label=label,
             n_stimuli_to_use=n_stimuli_to_use,
             specific_stimuli=specific_indexes,
-            trial_class=ReadAudioForcedChoiceTrial,
         )
 
-        # Each stimulus must have the field 'text'
-        assert sum([1 for stimulus in self.stimuli if "text" in stimulus]) == len(
-            self.stimuli
-        )
+    def check_stimuli(self, stimuli, specific_stimuli):
+        super().check_stimuli(stimuli, specific_stimuli)
+        assert all(["text" in stimulus for stimulus in stimuli])
 
+    class ReadAudioForcedChoiceTrial(AudioForcedChoiceTest.AudioForcedChoiceTrial):
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "read_audio_test_trial",
+                AudioPrompt(
+                    self.definition["url"],
+                    QUESTION % self.definition["text"],
+                ),
+                PushButtonControl(self.definition["answer_options"]),
+            )
 
-class ReadAudioForcedChoiceTrial(AudioForcedChoiceTrial):
-    def show_trial(self, experiment, participant):
-        return ModularPage(
-            "read_audio_test_trial",
-            AudioPrompt(
-                self.definition["url"],
-                QUESTION % self.definition["text"],
-            ),
-            PushButtonControl(self.definition["answer_options"]),
-            time_estimate=self.time_estimate,
-        )
+    trial_class = ReadAudioForcedChoiceTrial
 
 
 ##########################################################################################
 # Experiment
 ##########################################################################################
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
+
 class Exp(psynet.experiment.Experiment):
     label = "Audio forced choice demo"
 

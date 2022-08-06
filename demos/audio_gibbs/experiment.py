@@ -141,7 +141,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    test_num_bots = 2
+    num_test_bots = 2
 
     def test_bots_ran_successfully(self, bots: List[Bot], **kwargs):
         super().test_bots_ran_successfully(bots, **kwargs)

@@ -7,11 +7,14 @@
 ##########################################################################################
 
 import random
+from typing import List
 
 from flask import Markup
 
 import psynet.experiment
 import psynet.media
+from psynet.asset import DebugStorage
+from psynet.bot import Bot
 from psynet.consent import CAPRecruiterAudiovisualConsent, CAPRecruiterStandardConsent
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline
@@ -68,7 +71,6 @@ GRANULARITY = 25
 SNAP_SLIDER = False
 AUTOPLAY = True
 DEBUG = False
-psynet.media.LOCAL_S3 = True  # set this to False if you deploy online, so that the stimuli will be stored in S3
 
 NUM_ITERATIONS_PER_CHAIN = DIMENSIONS * 2  # every dimension is visited twice
 NUM_CHAINS_PER_EXPERIMENT = (
@@ -164,6 +166,8 @@ trial_maker = CustomTrialMaker(
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Complex audio Gibbs sampling demo"
+    asset_storage = DebugStorage()
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         CAPRecruiterStandardConsent(),
@@ -172,8 +176,9 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
+    num_test_bots = 2
 
-        # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
+    def test_check_bots(self, bots: List[Bot], **kwargs):
+        for bot in bots:
+            assert not bot.failed
+            assert len(bot.trials()) == NUM_TRIALS_PER_PARTICIPANT

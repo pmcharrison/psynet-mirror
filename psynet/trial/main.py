@@ -929,7 +929,7 @@ class TrialMaker(Module):
         if trial_class.time_estimate is None and self.time_estimate_per_trial is None:
             raise AttributeError(
                 f"You need to provide either time_estimate as a class attribute of {trial_class.__name__} "
-                f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
+                f"or time_estimate_per_trial as an instance or class attribute of trial maker {id_}."
             )
 
         self.trial_class = trial_class

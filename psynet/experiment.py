@@ -10,6 +10,7 @@ from datetime import datetime
 from functools import cache
 from platform import python_version
 from smtplib import SMTPAuthenticationError
+from typing import List
 
 import dallinger.experiment
 import dallinger.models
@@ -32,6 +33,7 @@ from psynet import __version__
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
+from .bot import Bot
 from .command_line import log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
 from .field import ImmutableVarStore
@@ -220,7 +222,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     label = None
-    test_num_bots = 1
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -291,10 +292,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         """
         pass
 
-    def test_ran_successfully(self, bots, **kwargs):
+    num_test_bots = 1
+
+    def test_experiment(self):
+        self.test_run_bots()
+        self.test_check_bots()
+
+    def test_run_bots(self):
+        bots = [Bot() for _ in range(self.num_test_bots)]
+        for bot in bots:
+            bot.take_experiment()
+
+    def test_check_bots(self, bots: List[Bot], **kwargs):
         for b in bots:
             assert not b.failed
-        return True
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod

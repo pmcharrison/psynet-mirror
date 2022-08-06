@@ -3,8 +3,6 @@ import pathlib
 
 import pytest
 
-from psynet.bot import Bot
-
 psynet_root = pathlib.Path(__file__).parent.parent.resolve()
 demo_root = os.path.join(psynet_root, "demos")
 
@@ -39,12 +37,12 @@ demos = [
     # "/Users/peter/git/psynet-package/demos/audio_stimulus_set_from_dir",
     # "/Users/peter/git/psynet-package/demos/bot",
     # "/Users/peter/git/psynet-package/demos/bot_2",
-    "/Users/peter/git/psynet-package/demos/color_blindness",
-    "/Users/peter/git/psynet-package/demos/color_vocabulary",
-    "/Users/peter/git/psynet-package/demos/complex_audio_gibbs",
-    "/Users/peter/git/psynet-package/demos/consents",
-    "/Users/peter/git/psynet-package/demos/custom_table_complex",
-    "/Users/peter/git/psynet-package/demos/custom_table_simple",
+    # "/Users/peter/git/psynet-package/demos/color_blindness",
+    # "/Users/peter/git/psynet-package/demos/color_vocabulary",
+    # "/Users/peter/git/psynet-package/demos/complex_audio_gibbs",
+    # "/Users/peter/git/psynet-package/demos/consents",
+    # "/Users/peter/git/psynet-package/demos/custom_table_complex",
+    # "/Users/peter/git/psynet-package/demos/custom_table_simple",
     "/Users/peter/git/psynet-package/demos/demography/complete",
     "/Users/peter/git/psynet-package/demos/demography/general",
     "/Users/peter/git/psynet-package/demos/demography/gmsi",
@@ -91,10 +89,7 @@ demos = [
 
 @pytest.mark.parametrize("experiment_directory", demos, indirect=True)
 def test_run_demo(launched_experiment):
-    bots = [Bot() for _ in range(launched_experiment.test_num_bots)]
-    for bot in bots:
-        bot.take_experiment()
-    assert launched_experiment.test_ran_successfully(bots=bots)
+    launched_experiment.test_experiment()
 
 
 # Example of how to test a single demo at a time
@@ -102,7 +97,7 @@ def test_run_demo(launched_experiment):
 # demo_to_test = "assets"
 # @pytest.mark.parametrize("experiment_directory", [os.path.join(demo_root, demo_to_test)], indirect=True)
 # def test_run_demo(launched_experiment):
-#     bots = [Bot() for _ in range(launched_experiment.test_num_bots)]
+#     bots = [Bot() for _ in range(launched_experiment.num_test_bots)]
 #     for bot in bots:
 #         bot.take_experiment()
-#     assert launched_experiment.test_ran_successfully(bots=bots)
+#     assert launched_experiment.test_check_bots(bots=bots)
