@@ -35,15 +35,100 @@ from .trial.audio import AudioRecordTrial
 from .trial.static import StaticTrial, StaticTrialMaker, Stimulus
 
 
-class VolumeTestControlMusic(AudioMeterControl):
-    decay = {"display": 0.1, "high": 0.1, "low": 0.1}
-    threshold = {"high": -12, "low": -22}
-    grace = {"high": 0.0, "low": 1.5}
-    warn_on_clip = True
-    msg_duration = {"high": 0.25, "low": 0.25}
+class REPPVolumeCalibration(Module):
+    def __init__(
+        self,
+        label,
+        materials_url: str = "https://s3.amazonaws.com/repp-materials",
+        min_time_on_calibration_page: float = 5.0,
+        time_estimate_for_calibration_page: float = 10.0,
+    ):
+        super().__init__(
+            label,
+            join(
+                self.asset_calibration_audio(materials_url),
+                self.asset_rules(materials_url),
+                self.introduction(),
+                self.volume_calibration(
+                    min_time_on_calibration_page,
+                    time_estimate_for_calibration_page,
+                ),
+            ),
+        )
+
+    asset_calibration_audio_id = "repp_volume_calibration_audio"
+
+    def asset_calibration_audio(self, materials_url):
+        raise NotImplementedError
+
+    asset_rules_id = "repp_image_rules"
+
+    def asset_rules(self, materials_url):
+        return ExternalAsset(
+            self.asset_rules_id, materials_url + materials_url + "/REPP-image_rules.png"
+        )
+
+    def introduction(self):
+        return PageMaker(
+            lambda assets: InfoPage(
+                Markup(
+                    f"""
+                      <h3>Attention</h3>
+                      <hr>
+                      <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment.
+                      <br><br>
+                      <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
+                      <hr>
+                      <img style="width:70%" src="{assets.get('repp_image_rules').url}"  alt="image_rules">
+                      """
+                ),
+                time_estimate=5,
+            )
+        )
+
+    def volume_calibration(
+        self,
+        min_time_on_calibration_page,
+        time_estimate_for_calibration_page,
+    ):
+        return PageMaker(
+            lambda assets: ModularPage(
+                "volume_test",
+                AudioPrompt(
+                    assets.get(self.asset_calibration_audio_id),
+                    self.calibration_instructions(),
+                    loop=True,
+                ),
+                self.AudioMeter(min_time=min_time_on_calibration_page, calibrate=False),
+                time_estimate=time_estimate_for_calibration_page,
+            )
+        )
+
+    class AudioMeter(AudioMeterControl):
+        pass
+
+    def calibration_instructions(self):
+        return Markup(
+            f"""
+            <h3>Volume test</h3>
+            <hr>
+            <h4>We will begin by calibrating your audio volume:</h4>
+            <ol>
+                <li>{self.what_are_we_playing()}</li>
+                <li>Set the volume in your laptop to approximately 90% of the maximum.</li>
+                <li><b>The sound meter</b> below indicates whether the audio volume is at the right level.</li>
+                <li>If necessary, turn up the volume on your laptop until the sound meter consistently indicates that
+                the volume is <b style="color:green;">"just right"</b>.
+            </ol>
+            <hr>
+            """
+        )
+
+    def what_are_we_playing(self):
+        return "A sound is playing to help you find the right volume in your laptop speakers."
 
 
-class REPPVolumeCalibrationMusic(Module):
+class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
     """
     This is a volume calibration test to be used when implementing SMS experiments with music stimuli and REPP. It contains
     a page with general technical requirements of REPP and a volume calibration test with a visual sound meter
@@ -54,86 +139,50 @@ class REPPVolumeCalibrationMusic(Module):
     label : string, optional
         The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_music".
 
-    time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 10.0.
+    materials_url: string
+        The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
 
-    min_time_before_submitting : float, optional
-        Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 5.0.
+    time_estimate_for_calibration_page : float, optional
+        The time estimate for the calibration page, default: 10.0.
+
+    min_time_on_calibration_page : float, optional
+        Minimum time (in seconds) that the participant must spend on the calibration page, default: 5.0.
 
     """
 
     def __init__(
         self,
         label="repp_volume_calibration_music",
-        time_estimate_per_trial: float = 10.0,
-        min_time_before_submitting: float = 5.0,
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
-        filename_audio: str = "calibrate.prepared.wav",
-        filename_image: str = "REPP-image_rules.png",
+        min_time_on_calibration_page: float = 5.0,
+        time_estimate_for_calibration_page: float = 10.0,
     ):
-        asset_audio = ExternalAsset(
-            "repp_volume_calibration_audio", materials_url + "/calibrate.prepared.wav"
+        super().__init__(
+            label,
+            materials_url,
+            min_time_on_calibration_page,
+            time_estimate_for_calibration_page,
         )
-        asset_image = ExternalAsset(
-            "repp_image_rules", materials_url + materials_url + "/REPP-image_rules.png"
+
+    asset_calibration_audio_id = "repp_volume_calibration_music_audio"
+
+    def asset_calibration(self, materials_url):
+        return ExternalAsset(
+            self.asset_calibration_audio_id, materials_url + "/calibrate.prepared.wav"
         )
 
-        assert False, "Should we be telling people to use get_asset instead?"
+    class AudioMeter(AudioMeterControl):
+        decay = {"display": 0.1, "high": 0.1, "low": 0.1}
+        threshold = {"high": -12, "low": -22}
+        grace = {"high": 0.0, "low": 1.5}
+        warn_on_clip = True
+        msg_duration = {"high": 0.25, "low": 0.25}
 
-        self.label = label
-        self.elts = join(
-            InfoPage(
-                Markup(
-                    f"""
-            <h3>Attention</h3>
-            <hr>
-            <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment.
-            <br><br>
-            <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
-            <hr>
-            <img style="width:70%" src="{asset_image.url}"  alt="image_rules">
-            """
-                ),
-                time_estimate=5,
-            ),
-            ModularPage(
-                "volume_test_music",
-                AudioPrompt(
-                    asset_audio.url,
-                    Markup(
-                        """
-                <h3>Volume test</h3>
-                <hr>
-                <h4>We will begin by calibrating your audio volume:</h4>
-                <ol><li>Set the volume in your laptop to approximately 90% of the maximum.</li>
-                    <li>A music clip is playing to help you find the right volume in your laptop speakers.</li>
-                    <li><b>The sound meter</b> below indicates whether the audio volume is at the right level.</li>
-                    <li>If necessairy, turn up the volume on your laptop until the sound meter consistently indicates that
-                    the volume is <b style="color:green;">"just right"</b>.
-                </ol>
-                <hr>
-                """
-                    ),
-                    loop=True,
-                ),
-                VolumeTestControlMusic(
-                    min_time=min_time_before_submitting, calibrate=False
-                ),
-                time_estimate=time_estimate_per_trial,
-            ),
-        )
-        super().__init__(self.label, self.elts)
+    def what_are_we_playing(self):
+        return "A music clip is playing to help you find the right volume in your laptop speakers."
 
 
-class VolumeTestControlMarkers(AudioMeterControl):
-    decay = {"display": 0.1, "high": 0.1, "low": 0}
-    threshold = {"high": -5, "low": -10}
-    grace = {"high": 0.2, "low": 1.5}
-    warn_on_clip = False
-    msg_duration = {"high": 0.25, "low": 0.25}
-
-
-class REPPVolumeCalibrationMarkers(Module):
+class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
     """
     This is a volume calibration test to be used when implementing SMS experiments with metronome sounds and REPP. It contains
     a page with general technical requirements of REPP and it then plays a metronome sound to help participants find the right volume to use REPP.
@@ -141,86 +190,49 @@ class REPPVolumeCalibrationMarkers(Module):
     Parameters
     ----------
     label : string, optional
-        The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_markers".
+        The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_music".
 
-    time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 10.0.
+    materials_url: string
+        The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
 
-    min_time_before_submitting : float, optional
-        Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 10.0.
+    time_estimate_for_calibration_page : float, optional
+        The time estimate for the calibration page, default: 10.0.
+
+    min_time_on_calibration_page : float, optional
+        Minimum time (in seconds) that the participant must spend on the calibration page, default: 5.0.
 
     """
 
     def __init__(
         self,
-        label="repp_volume_calibration_markers",
-        time_estimate_per_trial: float = 10.0,
-        min_time_before_submitting: float = 5.0,
-        audio_url: str = "https://s3.amazonaws.com/repp-materials/only_markers.wav",
-        image_url: str = "https://s3.amazonaws.com/repp-materials/REPP-image_rules.png",
+        label="repp_volume_calibration_music",
+        materials_url: str = "https://s3.amazonaws.com/repp-materials",
+        min_time_on_calibration_page: float = 5.0,
+        time_estimate_for_calibration_page: float = 10.0,
     ):
-        audio_asset = ExternalAsset(
-            key="repp_volume_calibration_markers",
-            url=audio_url,
+        super().__init__(
+            label,
+            materials_url,
+            min_time_on_calibration_page,
+            time_estimate_for_calibration_page,
         )
-        image_asset = ExternalAsset(
-            key="repp_rules_image",
-            url=image_url,
-        )
-        self.label = label
-        self.elts = join(
-            audio_asset,
-            image_asset,
-            InfoPage(
-                Markup(
-                    f"""
-            <h3>Attention</h3>
-            <hr>
-            <b>Throughout the experiment, it is very important to <b>ONLY</b> use the laptop speakers and be in a silent environment.
-            <br><br>
-            <i>Please do not use headphones, earphones, external speakers, or wireless devices (unplug or deactivate them now)</i>
-            <hr>
-            <img style="width:70%" src="{image_asset.url}"  alt="image_rules">
-            """
-                ),
-                time_estimate=5,
-            ),
-            ModularPage(
-                "volume_test",
-                AudioPrompt(
-                    audio_asset,
-                    Markup(
-                        """
-                <h3>Volume test</h3>
-                <hr>
-                <h4>We will begin by calibrating your audio volume:</h4>
-                <ol><li>We are playing a sound similar to the ones you will hear during the experiment.</li>
-                    <li>Set the volume in your laptop to approximately 90% of the maximum.</li>
-                    <li><strong>The sound meter</strong> below indicates whether the audio volume is at the right level.</li>
-                    <li>If necessary, turn up the volume on your laptop until the sound meter consistently indicates that
-                    the volume is <strong style="color:green;">"just right"</strong>.</li>
-                </ol>
-                <b><b>If the sound cannot be properly detected by the sound meter, you will not be able to complete this experiment.</b></b>
-                <hr>
-                """
-                    ),
-                    loop=True,
-                ),
-                VolumeTestControlMarkers(
-                    min_time=min_time_before_submitting, calibrate=False
-                ),
-                time_estimate=time_estimate_per_trial,
-            ),
-        )
-        super().__init__(self.label, self.elts)
 
+    asset_calibration_audio_id = "repp_volume_calibration_tapping_audio"
 
-class TappingTestAudioMeter(AudioMeterControl):
-    decay = {"display": 0.1, "high": 0.1, "low": 0}
-    threshold = {"high": -12, "low": -20}
-    grace = {"high": 0.2, "low": 1.5}
-    warn_on_clip = False
-    msg_duration = {"high": 0.25, "low": 0.25}
+    def asset_calibration(self, materials_url):
+        return ExternalAsset(
+            self.asset_calibration_audio_id, materials_url + "/only_markers.wav"
+        )
+
+    class AudioMeter(AudioMeterControl):
+        decay = {"display": 0.1, "high": 0.1, "low": 0}
+        threshold = {"high": -5, "low": -10}
+        grace = {"high": 0.2, "low": 1.5}
+        warn_on_clip = False
+        msg_duration = {"high": 0.25, "low": 0.25}
+
+    def what_are_we_playing(self):
+        return "We are playing a sound similar to the ones you will hear during the experiment."
 
 
 class REPPTappingCalibration(Module):
@@ -238,6 +250,9 @@ class REPPTappingCalibration(Module):
 
     min_time_before_submitting : float, optional
         Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 5.0.
+
+    materials_url: string
+        The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
     """
 
     def __init__(
@@ -245,36 +260,51 @@ class REPPTappingCalibration(Module):
         label="repp_tapping_calibration",
         time_estimate_per_trial: float = 10.0,
         min_time_before_submitting: float = 5.0,
-        tapping_instructions_url: str = "https://s3.amazonaws.com/repp-materials/tapping_instructions.jpg",
+        materials_url: str = "https://s3.amazonaws.com/repp-materials",
     ):
-        instructions_asset = ExternalAsset(
-            key="repp_tapping_instructions",
-            url=tapping_instructions_url,
-        )
-
-        self.label = label
-        self.elts = join(
-            instructions_asset,
-            ModularPage(
-                self.label,
-                Markup(
-                    f"""
-                <h3>You will now practice how to tap on your laptop</h3>
-                <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
-                <ul><li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
-                    <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
-                    <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
-                </ul>
-                <img style="width:70%" src="{instructions_asset.url}"  alt="image_rules">
-                """
+        super().__init__(
+            label,
+            join(
+                self.instructions_asset(materials_url),
+                PageMaker(
+                    lambda assets: ModularPage(
+                        self.label,
+                        self.instructions_text(),
+                        self.AudioMeter(
+                            min_time=min_time_before_submitting, calibrate=False
+                        ),
+                        time_estimate=time_estimate_per_trial,
+                    )
                 ),
-                TappingTestAudioMeter(
-                    min_time=min_time_before_submitting, calibrate=False
-                ),
-                time_estimate=time_estimate_per_trial,
             ),
         )
-        super().__init__(self.label, self.elts)
+
+    def instructions_asset(self, materials_url):
+        return ExternalAsset(
+            key="repp_tapping_instructions",
+            url=materials_url + "/tapping_instructions.jpg",
+        )
+
+    def instructions_text(self, assets):
+        return Markup(
+            f"""
+            <h3>You will now practice how to tap on your laptop</h3>
+            <b>Please always tap on the surface of your laptop using your index finger (see picture)</b>
+            <ul>
+                <li>Practice tapping and check that the level of your tapping is <b style="color:green;">"just right"</b>.</li>
+                <li><i style="color:red;">Do not tap on the keyboard or tracking pad, and do not tap using your nails or any object</i>.</li>
+                <li>If your tapping is <b style="color:red;">"too quiet!"</b>, try tapping louder or on a different location on your laptop.</li>
+            </ul>
+            <img style="width:70%" src="{assets.get('repp_tapping_instructions').url}"  alt="image_rules">
+            """
+        )
+
+    class AudioMeter(AudioMeterControl):
+        decay = {"display": 0.1, "high": 0.1, "low": 0}
+        threshold = {"high": -12, "low": -20}
+        grace = {"high": 0.2, "low": 1.5}
+        warn_on_clip = False
+        msg_duration = {"high": 0.25, "low": 0.25}
 
 
 class NumpySerializer(json.JSONEncoder):
@@ -1387,6 +1417,27 @@ class ColorBlindnessTest(Module):
         ]
 
 
+class ColorVocabularyTrial(StaticTrial):
+    time_estimate = 5
+
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "color_vocabulary_trial",
+            ColorPrompt(
+                self.definition["target_hsl"],
+                "Which color is shown in the box?",
+                text_align="center",
+            ),
+            PushButtonControl(
+                self.definition["choices"],
+                arrange_vertically=False,
+                style="min-width: 150px; margin: 10px",
+            ),
+            time_estimate=self.time_estimate,
+            bot_response=lambda: self.definition["correct_answer"],
+        )
+
+
 class ColorVocabularyTest(Module):
     """
     The color vocabulary test checks the participant's ability to name colors. In each trial, a
@@ -1399,9 +1450,6 @@ class ColorVocabularyTest(Module):
 
     label : string, optional
         The label for the color vocabulary test, default: "color_vocabulary_test".
-
-    time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 5.0.
 
     performance_threshold : int, optional
         The performance threshold, default: 4.
@@ -1416,17 +1464,15 @@ class ColorVocabularyTest(Module):
     def __init__(
         self,
         label="color_vocabulary_test",
-        time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 4,
         colors: list = None,
+        trial_class=ColorVocabularyTrial,
     ):
         self.label = label
         self.colors = self.colors if colors is None else colors
         self.elts = join(
             self.instruction_page(),
-            self.trial_maker(
-                time_estimate_per_trial, performance_threshold, self.colors
-            ),
+            self.trial_maker(performance_threshold, self.colors),
         )
         super().__init__(self.label, self.elts)
 
@@ -1454,7 +1500,7 @@ class ColorVocabularyTest(Module):
         )
 
     def trial_maker(
-        self, time_estimate_per_trial: float, performance_threshold: int, colors: list
+        self, performance_threshold: int, colors: list, trial_class=ColorVocabularyTrial
     ):
         class ColorVocabularyTrialMaker(StaticTrialMaker):
             def performance_check(self, experiment, participant, participant_trials):
@@ -1468,35 +1514,12 @@ class ColorVocabularyTest(Module):
 
         return ColorVocabularyTrialMaker(
             id_="color_vocabulary",
-            trial_class=self.trial(time_estimate_per_trial),
+            trial_class=trial_class,
             phase="screening",
             stimuli=self.get_stimulus_set(colors),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
-
-    def trial(self, time_estimate_: float):
-        class ColorVocabularyTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "color_vocabulary_trial",
-                    ColorPrompt(
-                        self.definition["target_hsl"],
-                        "Which color is shown in the box?",
-                        text_align="center",
-                    ),
-                    PushButtonControl(
-                        self.definition["choices"],
-                        arrange_vertically=False,
-                        style="min-width: 150px; margin: 10px",
-                    ),
-                    time_estimate=self.time_estimate,
-                    bot_response=lambda: self.definition["correct_answer"],
-                )
-
-        return ColorVocabularyTrial
 
     def get_stimulus_set(self, colors: list):
         stimuli = []
