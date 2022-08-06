@@ -17,10 +17,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import cast
 
-from ..asset import Asset
 from ..data import SQLMixinDallinger
 from ..field import (
     PythonDict,
@@ -47,14 +45,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import (
-    call_function,
-    corr,
-    deep_copy,
-    get_logger,
-    organize_by_key,
-    wait_until,
-)
+from ..utils import call_function, corr, deep_copy, get_logger, wait_until
 
 logger = get_logger()
 
@@ -935,14 +926,10 @@ class TrialMaker(Module):
                 "If <recruit_mode> == 'num_trials', then <target_num_participants> must be None."
             )
 
-        if trial_class.time_estimate is None:
-            raise ValueError(
-                f"Trial class '{trial_class}' was missing a `time_estimate`. Please set an appropriate time estimate "
-                + "as a class attribute in the trial class, for example `time_estimate = 5`. "
-                + "(Note: previous versions of PsyNet set this time estimate via the trial maker. "
-                + "If you are running code from a previous version of PsyNet, you can update it "
-                + "by simply cutting and pasting this argument from the trial-maker constructor call "
-                + "to the definition of your trial class.)"
+        if trial_class.time_estimate is None and self.time_estimate_per_trial is None:
+            raise AttributeError(
+                f"You need to provide either time_estimate as a class attribute of {trial_class.__name__} "
+                f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
             )
 
         self.trial_class = trial_class
@@ -968,6 +955,8 @@ class TrialMaker(Module):
     participant_progress_threshold = 0.1
 
     performance_check_threshold = 0.0
+
+    time_estimate_per_trial = None
 
     introduction = None
 
@@ -1497,6 +1486,14 @@ class TrialMaker(Module):
 
     def _show_trial(self, experiment, participant):
         trial = participant.current_trial
+        return call_function(
+            trial.show_trial,
+            {
+                "experiment": experiment,
+                "participant": participant,
+                "trial_maker": self,
+            },
+        )
         return trial.show_trial(experiment=experiment, participant=participant)
 
     def postprocess_answer(self, answer, trial, participant):
@@ -1569,6 +1566,17 @@ class TrialMaker(Module):
     def _wait_for_trial(self, experiment, participant):
         return False
 
+    def _get_trial_time_estimate(self, trial_class):
+        if trial_class.time_estimate is not None:
+            return trial_class.time_estimate
+        elif self.time_estimate_per_trial is not None:
+            return self.time_estimate_per_trial
+        else:
+            raise AttributeError(
+                f"You need to provide either time_estimate as a class attribute of {trial_class.__name__} "
+                f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
+            )
+
     def _trial_loop(self):
         return join(
             wait_while(
@@ -1584,7 +1592,7 @@ class TrialMaker(Module):
                     CodeBlock(self._log_time_credit_before_trial),
                     PageMaker(
                         self._show_trial,
-                        time_estimate=self.trial_class.time_estimate,
+                        time_estimate=self._get_trial_time_estimate(self.trial_class),
                         accumulate_answers=self.trial_class.accumulate_answers,
                     ),
                     CodeBlock(self._postprocess_answer),

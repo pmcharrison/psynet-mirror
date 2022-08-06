@@ -82,8 +82,8 @@ class REPPVolumeCalibration(Module):
                       <img style="width:70%" src="{assets.get('repp_image_rules').url}"  alt="image_rules">
                       """
                 ),
-                time_estimate=5,
-            )
+            ),
+            time_estimate=5,
         )
 
     def volume_calibration(
@@ -100,8 +100,8 @@ class REPPVolumeCalibration(Module):
                     loop=True,
                 ),
                 self.AudioMeter(min_time=min_time_on_calibration_page, calibrate=False),
-                time_estimate=time_estimate_for_calibration_page,
-            )
+            ),
+            time_estimate=time_estimate_for_calibration_page,
         )
 
     class AudioMeter(AudioMeterControl):
@@ -268,13 +268,13 @@ class REPPTappingCalibration(Module):
                 self.instructions_asset(materials_url),
                 PageMaker(
                     lambda assets: ModularPage(
-                        self.label,
-                        self.instructions_text(),
+                        label,
+                        self.instructions_text(assets),
                         self.AudioMeter(
                             min_time=min_time_before_submitting, calibrate=False
                         ),
-                        time_estimate=time_estimate_per_trial,
-                    )
+                    ),
+                    time_estimate=time_estimate_per_trial,
                 ),
             ),
         )
@@ -319,98 +319,6 @@ class NumpySerializer(json.JSONEncoder):
             return super().encode(bool(obj))
         else:
             return super().default(obj)
-
-
-class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
-    time_estimate = 10
-
-    def show_trial(self, experiment, participant):
-        return ModularPage(
-            "free_tapping_record",
-            AudioPrompt(
-                self.definition["url_audio"],
-                Markup(
-                    """
-                    <h4>Tap a steady beat</h4>
-                    """
-                ),
-            ),
-            AudioRecordControl(
-                duration=self.definition["duration_rec_sec"],
-                show_meter=False,
-                controls=False,
-                auto_advance=False,
-            ),
-            time_estimate=self.time_estimate,
-            progress_display=ProgressDisplay(
-                stages=[
-                    ProgressStage(
-                        self.definition["duration_rec_sec"],
-                        "Recording... Start tapping!",
-                        "red",
-                        persistent=True,
-                    ),
-                ],
-            ),
-        )
-
-    def analyze_recording(self, audio_file: str, output_plot: str):
-        from repp.analysis import REPPAnalysis
-        from repp.config import sms_tapping
-
-        plot_title = "Participant {}".format(self.participant_id)
-        repp_analysis = REPPAnalysis(config=sms_tapping)
-        _, _, stats = repp_analysis.do_analysis_tapping_only(
-            audio_file, plot_title, output_plot
-        )
-        # output
-        num_resp_onsets_detected = stats["num_resp_onsets_detected"]
-        min_responses_ok = (
-            num_resp_onsets_detected > self.definition["min_num_detected_taps"]
-        )
-        median_ok = stats["median_ioi"] != 9999
-        failed = not (min_responses_ok and median_ok)
-        stats = json.dumps(stats, cls=NumpySerializer)
-        return {
-            "failed": failed,
-            "stats": stats,
-            "num_resp_onsets_detected": num_resp_onsets_detected,
-        }
-
-    def gives_feedback(self, experiment, participant):
-        return self.position == 0
-
-    def show_feedback(self, experiment, participant):
-        output_analysis = json.loads(self.details["analysis"])
-        num_resp_onsets_detected = output_analysis["num_resp_onsets_detected"]
-
-        if self.failed:
-            return InfoPage(
-                Markup(
-                    f"""
-                    <h4>Your tapping was bad...</h4>
-                    We detected {num_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
-                    Please try to do one or more of the following:
-                    <ol><li>Tap a steady beat, providing at least 5-10 taps.</li>
-                        <li>Make sure your laptop microphone is working and you are not using headphones or earplugs.</li>
-                        <li>Tap on the surface of your laptop using your index finger.</li>
-                        <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
-                    </ol>
-                    <b><b>If we cannot detect your tapping signal in the recording, the experiment will terminate.</b></b>
-                    """
-                ),
-                time_estimate=5,
-            )
-        else:
-            return InfoPage(
-                Markup(
-                    f"""
-                    <h4>Good!</h4>
-                    We could detect {num_resp_onsets_detected} taps in the recording.
-                    """
-                ),
-                time_estimate=5,
-            )
 
 
 class FreeTappingRecordTest(Module):
@@ -563,8 +471,6 @@ class FreeTappingRecordTest(Module):
             check_performance_at_end=True,
         )
 
-    trial_class = FreeTappingRecordTrial
-
     def get_stimulus_set(self, duration_rec_sec: float, min_num_detected_taps: int):
         return [
             Stimulus(
@@ -582,102 +488,98 @@ class FreeTappingRecordTest(Module):
             )
         ]
 
+    class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
+        time_estimate = 10
 
-class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
-    time_estimate = 12
-
-    def show_trial(self, experiment, participant):
-        return ModularPage(
-            "markers_test_trial",
-            AudioPrompt(
-                self.stimulus.assets["stimulus"].url,
-                Markup(
-                    """
-                    <h3>Recording test</h3>
-                    <hr>
-                    <h4>Please remain silent while we play a sound and record it</h4>
-                    """
-                ),
-            ),
-            AudioRecordControl(
-                duration=self.definition["duration_sec"],
-                show_meter=False,
-                controls=False,
-                auto_advance=False,
-            ),
-            time_estimate=self.time_estimate,
-            progress_display=ProgressDisplay(
-                # show_bar=False,
-                stages=[
-                    ProgressStage(11.5, "Recording...", "red"),
-                    ProgressStage(
-                        0.5,
-                        "Click next when you are ready to continue...",
-                        "orange",
-                        persistent=True,
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "free_tapping_record",
+                AudioPrompt(
+                    self.definition["url_audio"],
+                    Markup(
+                        """
+                        <h4>Tap a steady beat</h4>
+                        """
                     ),
-                ],
-            ),
-        )
-
-    def show_feedback(self, experiment, participant):
-        if self.failed:
-            return InfoPage(
-                Markup(
-                    """
-                    <h4>The recording quality of your laptop is not good</h4>
-                    This may have many reasons. Please try to do one or more of the following:
-                    <ol><li>Increase the volumne of your laptop.</li>
-                        <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
-                        <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
-                        <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
-                    </ol>
-                    We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
-                    """
                 ),
-                time_estimate=5,
-            )
-        else:
-            return InfoPage(
-                Markup(
-                    """
-                    <h4>The recording quality of your laptop is good</h4>
-                    We will try some more trials.
-                    To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
-                    """
+                AudioRecordControl(
+                    duration=self.definition["duration_rec_sec"],
+                    show_meter=False,
+                    controls=False,
+                    auto_advance=False,
                 ),
-                time_estimate=5,
+                time_estimate=self.time_estimate,
+                progress_display=ProgressDisplay(
+                    stages=[
+                        ProgressStage(
+                            self.definition["duration_rec_sec"],
+                            "Recording... Start tapping!",
+                            "red",
+                            persistent=True,
+                        ),
+                    ],
+                ),
             )
 
-    def gives_feedback(self, experiment, participant):
-        return self.position == 0
+        def analyze_recording(self, audio_file: str, output_plot: str):
+            from repp.analysis import REPPAnalysis
+            from repp.config import sms_tapping
 
-    def analyze_recording(self, audio_file: str, output_plot: str):
-        from repp.analysis import REPPAnalysis
-        from repp.config import sms_tapping
+            plot_title = "Participant {}".format(self.participant_id)
+            repp_analysis = REPPAnalysis(config=sms_tapping)
+            _, _, stats = repp_analysis.do_analysis_tapping_only(
+                audio_file, plot_title, output_plot
+            )
+            # output
+            num_resp_onsets_detected = stats["num_resp_onsets_detected"]
+            min_responses_ok = (
+                num_resp_onsets_detected > self.definition["min_num_detected_taps"]
+            )
+            median_ok = stats["median_ioi"] != 9999
+            failed = not (min_responses_ok and median_ok)
+            stats = json.dumps(stats, cls=NumpySerializer)
+            return {
+                "failed": failed,
+                "stats": stats,
+                "num_resp_onsets_detected": num_resp_onsets_detected,
+            }
 
-        info = {
-            "markers_onsets": self.definition["markers_onsets"],
-            "stim_shifted_onsets": self.definition["stim_shifted_onsets"],
-            "onset_is_played": self.definition["onset_is_played"],
-        }
+        def gives_feedback(self, experiment, participant):
+            return self.position == 0
 
-        title_in_graph = "Participant {}".format(self.participant_id)
-        analysis = REPPAnalysis(config=sms_tapping)
-        output, analysis, is_failed = analysis.do_analysis(
-            info, audio_file, title_in_graph, output_plot
-        )
-        num_markers_detected = int(analysis["num_markers_detected"])
-        correct_answer = self.definition["correct_answer"]
+        def show_feedback(self, experiment, participant):
+            output_analysis = json.loads(self.details["analysis"])
+            num_resp_onsets_detected = output_analysis["num_resp_onsets_detected"]
 
-        output = json.dumps(output, cls=NumpySerializer)
-        analysis = json.dumps(analysis, cls=NumpySerializer)
-        return {
-            "failed": correct_answer != num_markers_detected,
-            "num_detected_markers": num_markers_detected,
-            "output": output,
-            "analysis": analysis,
-        }
+            if self.failed:
+                return InfoPage(
+                    Markup(
+                        f"""
+                        <h4>Your tapping was bad...</h4>
+                        We detected {num_resp_onsets_detected} taps in the recording. This is not sufficient for this task.
+                        Please try to do one or more of the following:
+                        <ol><li>Tap a steady beat, providing at least 5-10 taps.</li>
+                            <li>Make sure your laptop microphone is working and you are not using headphones or earplugs.</li>
+                            <li>Tap on the surface of your laptop using your index finger.</li>
+                            <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                        </ol>
+                        <b><b>If we cannot detect your tapping signal in the recording, the experiment will terminate.</b></b>
+                        """
+                    ),
+                    time_estimate=5,
+                )
+            else:
+                return InfoPage(
+                    Markup(
+                        f"""
+                        <h4>Good!</h4>
+                        We could detect {num_resp_onsets_detected} taps in the recording.
+                        """
+                    ),
+                    time_estimate=5,
+                )
+
+    trial_class = FreeTappingRecordTrial
 
 
 class REPPMarkersTest(Module):
@@ -778,8 +680,6 @@ class REPPMarkersTest(Module):
             check_performance_at_end=True,
         )
 
-    trial_class = RecordMarkersTrial
-
     def get_stimulus_set(self, audio_assets):
         return [
             Stimulus(
@@ -806,8 +706,106 @@ class REPPMarkersTest(Module):
             for asset in audio_assets
         ]
 
+    class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
+        time_estimate = 12
 
-class LanguageVocabularyTest(Module):
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "markers_test_trial",
+                AudioPrompt(
+                    self.stimulus.assets["stimulus"].url,
+                    Markup(
+                        """
+                        <h3>Recording test</h3>
+                        <hr>
+                        <h4>Please remain silent while we play a sound and record it</h4>
+                        """
+                    ),
+                ),
+                AudioRecordControl(
+                    duration=self.definition["duration_sec"],
+                    show_meter=False,
+                    controls=False,
+                    auto_advance=False,
+                ),
+                time_estimate=self.time_estimate,
+                progress_display=ProgressDisplay(
+                    # show_bar=False,
+                    stages=[
+                        ProgressStage(11.5, "Recording...", "red"),
+                        ProgressStage(
+                            0.5,
+                            "Click next when you are ready to continue...",
+                            "orange",
+                            persistent=True,
+                        ),
+                    ],
+                ),
+            )
+
+        def show_feedback(self, experiment, participant):
+            if self.failed:
+                return InfoPage(
+                    Markup(
+                        """
+                        <h4>The recording quality of your laptop is not good</h4>
+                        This may have many reasons. Please try to do one or more of the following:
+                        <ol><li>Increase the volumne of your laptop.</li>
+                            <li>Make sure your laptop does not use strong noise cancellation or supression technologies (deactivate them now).</li>
+                            <li>Make sure you are in a quiet environment (the experiment will not work with noisy recordings).</li>
+                            <li>Do not use headphones, earplugs or wireless devices (unplug them now and use only the laptop speakers).</b></li>
+                        </ol>
+                        We will try more trials, but <b><b>if the recording quality is not sufficiently good, the experiment will terminate.</b></b>
+                        """
+                    ),
+                    time_estimate=5,
+                )
+            else:
+                return InfoPage(
+                    Markup(
+                        """
+                        <h4>The recording quality of your laptop is good</h4>
+                        We will try some more trials.
+                        To complete the experiment and get the full bonus, you will need to have a good recording quality in all trials.
+                        """
+                    ),
+                    time_estimate=5,
+                )
+
+        def gives_feedback(self, experiment, participant):
+            return self.position == 0
+
+        def analyze_recording(self, audio_file: str, output_plot: str):
+            from repp.analysis import REPPAnalysis
+            from repp.config import sms_tapping
+
+            info = {
+                "markers_onsets": self.definition["markers_onsets"],
+                "stim_shifted_onsets": self.definition["stim_shifted_onsets"],
+                "onset_is_played": self.definition["onset_is_played"],
+            }
+
+            title_in_graph = "Participant {}".format(self.participant_id)
+            analysis = REPPAnalysis(config=sms_tapping)
+            output, analysis, is_failed = analysis.do_analysis(
+                info, audio_file, title_in_graph, output_plot
+            )
+            num_markers_detected = int(analysis["num_markers_detected"])
+            correct_answer = self.definition["correct_answer"]
+
+            output = json.dumps(output, cls=NumpySerializer)
+            analysis = json.dumps(analysis, cls=NumpySerializer)
+            return {
+                "failed": correct_answer != num_markers_detected,
+                "num_detected_markers": num_markers_detected,
+                "output": output,
+                "analysis": analysis,
+            }
+
+    trial_class = RecordMarkersTrial
+
+
+class LanguageVocabularyTest(StaticTrialMaker):
     """
     This is a basic language vocabulary test supported in five languages (determined by ``language_code``): American English (en-US), German (de-DE), Hindi (hi-IN),
     Brazilian Portuguese (pt-BR), and Spanish (es-ES). In each trial, a spoken word is played in the target
@@ -832,8 +830,6 @@ class LanguageVocabularyTest(Module):
 
     num_trials : float, optional
         The total number of trials to display, default: 7.
-
-
     """
 
     def __init__(
@@ -845,24 +841,25 @@ class LanguageVocabularyTest(Module):
         performance_threshold: int = 6,
         num_trials: int = 7,
     ):
-        self.label = label
-        self.elts = join(
+        self.introduction = join(
             ExternalAsset(
                 "language_test_materials",
                 media_url,
                 is_folder=True,
             ),
             self.instruction_page(),
-            self.trial_maker(
-                media_url,
-                language_code,
-                time_estimate_per_trial,
-                performance_threshold,
-                num_trials,
-                self.words,
-            ),
         )
-        super().__init__(self.label, self.elts)
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.performance_threshold = performance_threshold
+
+        super().__init__(
+            id_=label,
+            trial_class=self.trial_class,
+            phase="screening",
+            stimuli=self.get_stimulus_set(media_url, language_code, self.words),
+            max_trials_per_block=num_trials,
+            check_performance_at_end=True,
+        )
 
     words = [
         "bell",
@@ -896,79 +893,14 @@ class LanguageVocabularyTest(Module):
             time_estimate=5,
         )
 
-    def trial_maker(
-        self,
-        media_url: str,
-        language_code: str,
-        time_estimate_per_trial: float,
-        performance_threshold: int,
-        num_trials: int,
-        words: list,
-    ):
-        class LanguageVocabularyTrialMaker(StaticTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a dict: {"score": float, "passed": bool}"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == "correct":
-                        score += 1
-                passed = score > performance_threshold
-                return {"score": score, "passed": passed}
-
-        return LanguageVocabularyTrialMaker(
-            id_="language_vocabulary",
-            trial_class=self.trial(time_estimate_per_trial),
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url, language_code, words),
-            max_trials_per_block=num_trials,
-            check_performance_at_end=True,
-        )
-
-    def trial(self, time_estimate_: float):
-        class LanguageVocabularyTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                path_correct = self.definition["url_image_folder"] + "/correct"
-                path_wrong1 = self.definition["url_image_folder"] + "/wrong1"
-                path_wrong2 = self.definition["url_image_folder"] + "/wrong2"
-                path_wrong3 = self.definition["url_image_folder"] + "/wrong3"
-                order_list = [0, 1, 2, 3]
-                rand_order_list = random.sample(order_list, len(order_list))
-                list_path_to_rand = [
-                    path_correct,
-                    path_wrong1,
-                    path_wrong2,
-                    path_wrong3,
-                ]
-                list_choices_to_rand = ["correct", "wrong1", "wrong2", "wrong3"]
-
-                return ModularPage(
-                    "language_vocabulary_trial",
-                    AudioPrompt(
-                        self.definition["url_audio"],
-                        "Select the picture that matches the word that you heard.",
-                    ),
-                    PushButtonControl(
-                        [
-                            list_choices_to_rand[rand_order_list[0]],
-                            list_choices_to_rand[rand_order_list[1]],
-                            list_choices_to_rand[rand_order_list[2]],
-                            list_choices_to_rand[rand_order_list[3]],
-                        ],
-                        labels=[
-                            f'<img src="{list_path_to_rand[rand_order_list[0]]}.png" alt="notworking" height="65px" width="65px"/>',
-                            f'<img src="{list_path_to_rand[rand_order_list[1]]}.png" alt="notworking" height="65px" width="65px"/>',
-                            f'<img src="{list_path_to_rand[rand_order_list[2]]}.png" alt="notworking" height="65px" width="65px"/>',
-                            f'<img src="{list_path_to_rand[rand_order_list[3]]}.png" alt="notworking" height="65px" width="65px"/>',
-                        ],
-                        style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
-                        arrange_vertically=False,
-                    ),
-                    time_estimate=self.time_estimate,
-                )
-
-        return LanguageVocabularyTrial
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a dict: {"score": float, "passed": bool}"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == "correct":
+                score += 1
+        passed = score > self.performance_threshold
+        return {"score": score, "passed": passed}
 
     def get_stimulus_set(self, media_url: str, language_code: str, words: list):
         return [
@@ -983,8 +915,48 @@ class LanguageVocabularyTest(Module):
             for name in words
         ]
 
+    class LanguageVocabularyTrial(StaticTrial):
+        time_estimate = None
 
-class LexTaleTest(Module):
+        def show_trial(self, experiment, participant):
+            path_correct = self.definition["url_image_folder"] + "/correct"
+            path_wrong1 = self.definition["url_image_folder"] + "/wrong1"
+            path_wrong2 = self.definition["url_image_folder"] + "/wrong2"
+            path_wrong3 = self.definition["url_image_folder"] + "/wrong3"
+            order_list = [0, 1, 2, 3]
+
+            # Todo - update this. It is not good practice to call random functions
+            # within show_trial, as they will produce different values on page refresh.
+            rand_order_list = random.sample(order_list, len(order_list))
+            list_path_to_rand = [
+                path_correct,
+                path_wrong1,
+                path_wrong2,
+                path_wrong3,
+            ]
+            list_choices_to_rand = ["correct", "wrong1", "wrong2", "wrong3"]
+
+            return ModularPage(
+                "language_vocabulary_trial",
+                AudioPrompt(
+                    self.definition["url_audio"],
+                    "Select the picture that matches the word that you heard.",
+                ),
+                PushButtonControl(
+                    choices=[list_choices_to_rand[x] for x in rand_order_list],
+                    labels=[
+                        f'<img src="{list_path_to_rand[x]}.png" alt="notworking" height="65px" width="65px"/>'
+                        for x in rand_order_list
+                    ],
+                    style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
+                    arrange_vertically=False,
+                ),
+            )
+
+    trial_class = LanguageVocabularyTrial
+
+
+class LexTaleTest(StaticTrialMaker):
     """
     This is an adapted version (shorter) of the  original LexTale test, which checks participants' English proficiency
     in a lexical decision task: "Lemhöfer, K., & Broersma, M. (2012). Introducing LexTALE: A quick and valid lexical test
@@ -1008,11 +980,8 @@ class LexTaleTest(Module):
     hide_after : float, optional
         The time in seconds after the word disappears, default: 1.0.
 
-
     num_trials : float, optional
         The total number of trials to display, default: 12.
-
-
     """
 
     def __init__(
@@ -1024,18 +993,19 @@ class LexTaleTest(Module):
         hide_after: float = 1,
         num_trials: int = 12,
     ):
-        self.label = label
-        self.elts = join(
-            self.instruction_page(hide_after, num_trials),
-            self.trial_maker(
-                media_url,
-                time_estimate_per_trial,
-                performance_threshold,
-                hide_after,
-                num_trials,
-            ),
+        self.hide_after = hide_after
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.performance_threshold = performance_threshold
+        self.introduction = (self.instruction_page(hide_after, num_trials),)
+
+        super().__init__(
+            id_=label,
+            trial_class=self.trial_class,
+            phase="screening",
+            stimuli=self.get_stimulus_set(media_url),
+            max_trials_per_block=num_trials,
+            check_performance_at_end=True,
         )
-        super().__init__(self.label, self.elts)
 
     def instruction_page(self, hide_after, num_trials):
         return InfoPage(
@@ -1052,60 +1022,14 @@ class LexTaleTest(Module):
             time_estimate=5,
         )
 
-    def trial_maker(
-        self,
-        media_url: str,
-        time_estimate_per_trial: float,
-        performance_threshold: int,
-        hide_after: float,
-        num_trials: int,
-    ):
-        class LextaleTrialMaker(StaticTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a dict: {"score": float, "passed": bool}"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == trial.definition["correct_answer"]:
-                        score += 1
-                passed = score >= performance_threshold
-                return {"score": score, "passed": passed}
-
-        return LextaleTrialMaker(
-            id_="lextale",
-            trial_class=self.trial(time_estimate_per_trial, hide_after),
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url),
-            max_trials_per_block=num_trials,
-            check_performance_at_end=True,
-        )
-
-    def trial(self, time_estimate_: float, hide_after: float):
-        class LextaleTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "lextale_trial",
-                    ImagePrompt(
-                        self.stimulus.assets["word"].url,
-                        "Does this word exist?",
-                        width="100px",
-                        height="100px",
-                        hide_after=hide_after,
-                        margin_bottom="15px",
-                        text_align="center",
-                    ),
-                    PushButtonControl(
-                        ["yes", "no"],
-                        ["yes", "no"],
-                        arrange_vertically=False,
-                        style="min-width: 150px; margin: 10px",
-                    ),
-                    time_estimate=self.time_estimate,
-                    bot_response=lambda: self.definition["correct_answer"],
-                )
-
-        return LextaleTrial
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a dict: {"score": float, "passed": bool}"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == trial.definition["correct_answer"]:
+                score += 1
+        passed = score >= self.performance_threshold
+        return {"score": score, "passed": passed}
 
     def get_stimulus_set(self, media_url: str):
         return [
@@ -1137,6 +1061,33 @@ class LexTaleTest(Module):
                 ("12", "no"),
             ]
         ]
+
+    class LextaleTrial(StaticTrial):
+        time_estimate = 2.0
+        hide_after = 1.0
+
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "lextale_trial",
+                ImagePrompt(
+                    self.stimulus.assets["word"].url,
+                    "Does this word exist?",
+                    width="100px",
+                    height="100px",
+                    hide_after=self.hide_after,
+                    margin_bottom="15px",
+                    text_align="center",
+                ),
+                PushButtonControl(
+                    ["yes", "no"],
+                    ["yes", "no"],
+                    arrange_vertically=False,
+                    style="min-width: 150px; margin: 10px",
+                ),
+                bot_response=lambda: self.definition["correct_answer"],
+            )
+
+    trial_class = LextaleTrial
 
 
 class AttentionTest(Module):
@@ -1275,7 +1226,7 @@ class AttentionTest(Module):
         super().__init__(self.label, self.elts)
 
 
-class ColorBlindnessTest(Module):
+class ColorBlindnessTest(StaticTrialMaker):
     """
     The color blindness test checks the participant's ability to perceive
     colors. In each trial an image is presented which contains a number and the
@@ -1293,15 +1244,11 @@ class ColorBlindnessTest(Module):
         The url under which the images to be displayed can be referenced, default:
         "https://s3.amazonaws.com/ishihara-eye-test/jpg"
 
-    time_estimate_per_trial : float, optional
-        The time estimate in seconds per trial, default: 5.0.
-
     performance_threshold : int, optional
         The performance threshold, default: 4.
 
     hide_after : float, optional
         The time in seconds after which the image disappears, default: 3.0.
-
     """
 
     def __init__(
@@ -1312,14 +1259,20 @@ class ColorBlindnessTest(Module):
         performance_threshold: int = 4,
         hide_after: float = 3.0,
     ):
-        self.label = label
-        self.elts = join(
-            self.instruction_page(hide_after),
-            self.trial_maker(
-                media_url, time_estimate_per_trial, performance_threshold, hide_after
-            ),
+        self.hide_after = hide_after
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.performance_threshold = performance_threshold
+
+        self.introduction = self.instruction_page(self.hide_after)
+
+        super().__init__(
+            id_=label,
+            trial_class=self.trial_class,
+            phase="screening",
+            stimuli=self.get_stimulus_set(media_url),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
         )
-        super().__init__(self.label, self.elts)
 
     def instruction_page(self, hide_after):
         if hide_after is None:
@@ -1341,55 +1294,6 @@ class ColorBlindnessTest(Module):
             ),
             time_estimate=10,
         )
-
-    def trial_maker(
-        self,
-        media_url: str,
-        time_estimate_per_trial: float,
-        performance_threshold: int,
-        hide_after: float,
-    ):
-        class ColorBlindnessTrialMaker(StaticTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a dict: {"score": float, "passed": bool}"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == trial.definition["correct_answer"]:
-                        score += 1
-                passed = score >= performance_threshold
-                return {"score": score, "passed": passed}
-
-        return ColorBlindnessTrialMaker(
-            id_="color_blindness",
-            trial_class=self.trial(time_estimate_per_trial, hide_after),
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url),
-            check_performance_at_end=True,
-            fail_trials_on_premature_exit=False,
-        )
-
-    def trial(self, time_estimate_: float, hide_after: float):
-        class ColorBlindnessTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "color_blindness_trial",
-                    ImagePrompt(
-                        self.stimulus.assets["image"].url,
-                        "Write down the number in the image.",
-                        width="350px",
-                        height="344px",
-                        hide_after=hide_after,
-                        margin_bottom="15px",
-                        text_align="center",
-                    ),
-                    TextControl(width="100px"),
-                    time_estimate=self.time_estimate,
-                    bot_response=lambda: self.definition["correct_answer"],
-                )
-
-        return ColorBlindnessTrial
 
     def get_stimulus_set(self, media_url: str):
         return [
@@ -1416,29 +1320,38 @@ class ColorBlindnessTest(Module):
             ]
         ]
 
+    class ColorBlindnessTrial(StaticTrial):
+        time_estimate = 5.0
 
-class ColorVocabularyTrial(StaticTrial):
-    time_estimate = 5
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "color_blindness_trial",
+                ImagePrompt(
+                    self.stimulus.assets["image"].url,
+                    "Write down the number in the image.",
+                    width="350px",
+                    height="344px",
+                    hide_after=self.trial_maker.hide_after,
+                    margin_bottom="15px",
+                    text_align="center",
+                ),
+                TextControl(width="100px"),
+                bot_response=lambda: self.definition["correct_answer"],
+            )
 
-    def show_trial(self, experiment, participant):
-        return ModularPage(
-            "color_vocabulary_trial",
-            ColorPrompt(
-                self.definition["target_hsl"],
-                "Which color is shown in the box?",
-                text_align="center",
-            ),
-            PushButtonControl(
-                self.definition["choices"],
-                arrange_vertically=False,
-                style="min-width: 150px; margin: 10px",
-            ),
-            time_estimate=self.time_estimate,
-            bot_response=lambda: self.definition["correct_answer"],
-        )
+    trial_class = ColorBlindnessTrial
+
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a dict: {"score": float, "passed": bool}"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == trial.definition["correct_answer"]:
+                score += 1
+        passed = score >= self.performance_threshold
+        return {"score": score, "passed": passed}
 
 
-class ColorVocabularyTest(Module):
+class ColorVocabularyTest(StaticTrialMaker):
     """
     The color vocabulary test checks the participant's ability to name colors. In each trial, a
     colored box is presented and the participant must choose from a set of colors which color is
@@ -1466,15 +1379,20 @@ class ColorVocabularyTest(Module):
         label="color_vocabulary_test",
         performance_threshold: int = 4,
         colors: list = None,
-        trial_class=ColorVocabularyTrial,
     ):
-        self.label = label
-        self.colors = self.colors if colors is None else colors
-        self.elts = join(
-            self.instruction_page(),
-            self.trial_maker(performance_threshold, self.colors),
+        if colors:
+            self.colors = colors
+        self.introduction = self.instruction_page()
+        self.performance_threshold = performance_threshold
+
+        super().__init__(
+            id_=label,
+            trial_class=self.trial_class,
+            phase="screening",
+            stimuli=self.get_stimulus_set(colors),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
         )
-        super().__init__(self.label, self.elts)
 
     colors = [
         ("turquoise", [174, 72, 56]),
@@ -1499,33 +1417,22 @@ class ColorVocabularyTest(Module):
             time_estimate=10,
         )
 
-    def trial_maker(
-        self, performance_threshold: int, colors: list, trial_class=ColorVocabularyTrial
-    ):
-        class ColorVocabularyTrialMaker(StaticTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a dict: {"score": float, "passed": bool}"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == trial.definition["correct_answer"]:
-                        score += 1
-                passed = score >= performance_threshold
-                return {"score": score, "passed": passed}
-
-        return ColorVocabularyTrialMaker(
-            id_="color_vocabulary",
-            trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(colors),
-            check_performance_at_end=True,
-            fail_trials_on_premature_exit=False,
-        )
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a dict: {"score": float, "passed": bool}"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == trial.definition["correct_answer"]:
+                score += 1
+        passed = score >= self.performance_threshold
+        return {"score": score, "passed": passed}
 
     def get_stimulus_set(self, colors: list):
         stimuli = []
         words = [x[0] for x in colors]
         for (correct_answer, hsl) in colors:
             choices = words.copy()
+            # Todo - think carefully about whether it's a good idea to have random
+            # functions inside get_stimulus_set
             random.shuffle(choices)
             definition = {
                 "target_hsl": hsl,
@@ -1535,8 +1442,27 @@ class ColorVocabularyTest(Module):
             stimuli.append(Stimulus(definition=definition))
         return stimuli
 
+    class ColorVocabularyTrial(StaticTrial):
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "color_vocabulary_trial",
+                ColorPrompt(
+                    self.definition["target_hsl"],
+                    "Which color is shown in the box?",
+                    text_align="center",
+                ),
+                PushButtonControl(
+                    self.definition["choices"],
+                    arrange_vertically=False,
+                    style="min-width: 150px; margin: 10px",
+                ),
+                bot_response=lambda: self.definition["correct_answer"],
+            )
 
-class HeadphoneTest(Module):
+    trial_class = ColorVocabularyTrial
+
+
+class HeadphoneTest(StaticTrialMaker):
     """
     The headphone test makes sure that the participant is wearing headphones. In each trial,
     three sounds separated by silences are played and the participent's must judge which sound
@@ -1566,12 +1492,18 @@ class HeadphoneTest(Module):
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
     ):
-        self.label = label
-        self.elts = join(
-            self.instruction_page(),
-            self.trial_maker(media_url, time_estimate_per_trial, performance_threshold),
+        self.introduction = self.instruction_page()
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.performance_threshold = performance_threshold
+
+        super().__init__(
+            id_=label,
+            trial_class=self.trial_class,
+            phase="screening",
+            stimuli=self.get_stimulus_set(media_url),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
         )
-        super().__init__(self.label, self.elts)
 
     def instruction_page(self):
         return InfoPage(
@@ -1588,49 +1520,32 @@ class HeadphoneTest(Module):
             time_estimate=10,
         )
 
-    def trial_maker(
-        self, media_url: str, time_estimate_per_trial: float, performance_threshold: int
-    ):
-        class HeadphoneTrialMaker(StaticTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a dict: {"score": float, "passed": bool}"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == trial.definition["correct_answer"]:
-                        score += 1
-                passed = score >= performance_threshold
-                return {"score": score, "passed": passed}
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a dict: {"score": float, "passed": bool}"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == trial.definition["correct_answer"]:
+                score += 1
+        passed = score >= self.performance_threshold
+        return {"score": score, "passed": passed}
 
-        return HeadphoneTrialMaker(
-            id_="headphone_test_trials",
-            trial_class=self.trial(time_estimate_per_trial),
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url),
-            check_performance_at_end=True,
-            fail_trials_on_premature_exit=False,
-        )
+    class HeadphoneTrial(StaticTrial):
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "headphone_trial",
+                AudioPrompt(
+                    self.assets["stimulus"],
+                    "Which sound was softest (quietest) -- 1, 2, or 3?",
+                ),
+                PushButtonControl(["1", "2", "3"]),
+                events={
+                    "responseEnable": Event(is_triggered_by="promptEnd"),
+                    "submitEnable": Event(is_triggered_by="promptEnd"),
+                },
+                bot_response=lambda: self.definition["correct_answer"],
+            )
 
-    def trial(self, time_estimate_: float):
-        class HeadphoneTrial(StaticTrial):
-            time_estimate = time_estimate_
-
-            def show_trial(self, experiment, participant):
-                return ModularPage(
-                    "headphone_trial",
-                    AudioPrompt(
-                        self.stimulus.assets["stimulus"],
-                        "Which sound was softest (quietest) -- 1, 2, or 3?",
-                    ),
-                    PushButtonControl(["1", "2", "3"]),
-                    events={
-                        "responseEnable": Event(is_triggered_by="promptEnd"),
-                        "submitEnable": Event(is_triggered_by="promptEnd"),
-                    },
-                    time_estimate=self.time_estimate,
-                    bot_response=lambda: self.definition["correct_answer"],
-                )
-
-        return HeadphoneTrial
+    trial_class = HeadphoneTrial
 
     def get_stimulus_set(self, media_url: str):
         return [
@@ -1658,22 +1573,7 @@ class HeadphoneTest(Module):
         ]
 
 
-class AudioForcedChoiceTrial(StaticTrial):
-    time_estimate = 8
-
-    def show_trial(self, experiment, participant):
-        return ModularPage(
-            "audio_forced_choice_trial",
-            AudioPrompt(
-                self.stimulus.assets["stimulus"],
-                self.definition["question"],
-            ),
-            PushButtonControl(self.definition["answer_options"]),
-            bot_response=lambda: self.definition["answer"],
-        )
-
-
-class AudioForcedChoiceTest(Module):
+class AudioForcedChoiceTest(StaticTrialMaker):
     """
     The audio forced choice test makes sure that the participant can correctly classify a sound.
     In each trial, the participant hears one sound and has to pick one answer from a list.
@@ -1730,45 +1630,42 @@ class AudioForcedChoiceTest(Module):
         question: str,
         performance_threshold: int,
         label="audio_forced_choice_test",
+        time_estimate_per_trial: float = 8.0,
         n_stimuli_to_use: Optional[int] = None,
         specific_stimuli: Optional[List] = None,
-        trial_class=AudioForcedChoiceTrial,
     ):
-        # `n_stimuli_to_use` and `specific_stimuli` can both be None or either of them, but it is not allowed that they
-        # are both not None, as they can contain conflicting information.
-        assert (
-            sum([1 for i in [specific_stimuli, n_stimuli_to_use] if i is not None]) < 2
-        )
+        assert not (specific_stimuli is not None and n_stimuli_to_use is not None)
 
-        # Load stimulus
         self.answer_options = answer_options
-        self.load_stimuli(csv_path, question)
+        stimuli = self.load_stimuli(csv_path, question)
 
         self.instructions = instructions
 
         self.n_stimuli_to_use = n_stimuli_to_use
-        self.specific_stimuli = specific_stimuli
-        self.check_stimuli()
 
-        self.label = label
-        self.trial_class = trial_class
+        self.check_stimuli(stimuli, specific_stimuli)
+
+        self.time_estimate_per_trial = time_estimate_per_trial
+        self.introduction = self.instruction_page()
+        self.performance_threshold = performance_threshold
 
         super().__init__(
-            label,
-            join(
-                self.instruction_page(),
-                self.trial_maker(performance_threshold, trial_class),
-            ),
+            id_=label,
+            trial_class=self.trial_class,
+            phase="screening",
+            stimuli=self.get_stimulus_set(label, stimuli, specific_stimuli),
+            check_performance_at_end=True,
+            fail_trials_on_premature_exit=False,
         )
 
     def load_stimuli(self, csv_path, question):
-        # Make sure the csv_exists
         assert file_exists(csv_path)
 
         df = pd.read_csv(csv_path)
         columns = list(df.columns)
-        # the column `url` and `answer` must be present
-        assert all(col in columns for col in ["url", "answer"])
+
+        assert "url" in columns
+        assert "answer" in columns
 
         stimuli = []
         for index, row in df.iterrows():
@@ -1778,23 +1675,23 @@ class AudioForcedChoiceTest(Module):
             if "question" not in columns:
                 stimulus["question"] = question
             stimuli.append(stimulus)
-        self.stimuli = stimuli
+        return stimuli
 
-    def check_stimuli(self):
-        used_answer_options = list(set([s["answer"] for s in self.stimuli]))
+    def check_stimuli(self, stimuli, specific_stimuli):
+        used_answer_options = list(set([s["answer"] for s in stimuli]))
 
         # Make sure that all answer options in the file are also selectable during the experiment
         assert all([answer in self.answer_options for answer in used_answer_options])
 
-        if self.specific_stimuli is not None:
+        if specific_stimuli is not None:
             # Make sure all indexes are valid (i.e., are integers, go from 0 to max id)
-            assert all([isinstance(i, int) for i in self.specific_stimuli])
-            assert min(self.specific_stimuli) >= 0
-            assert max(self.specific_stimuli) < len(self.stimuli)
+            assert all([isinstance(i, int) for i in specific_stimuli])
+            assert min(specific_stimuli) >= 0
+            assert max(specific_stimuli) < len(stimuli)
 
         if self.n_stimuli_to_use is not None:
             assert self.n_stimuli_to_use <= len(
-                self.stimuli
+                stimuli
             )  # Cannot select more stimuli than which are available
             assert self.n_stimuli_to_use > 0  # Must be an integer larger than 0
 
@@ -1804,43 +1701,46 @@ class AudioForcedChoiceTest(Module):
             time_estimate=10,
         )
 
-    def trial_maker(self, performance_threshold: int, trial_class):
-        class AudioForcedChoiceTrialMaker(StaticTrialMaker):
-            def performance_check(self, experiment, participant, participant_trials):
-                """Should return a dict: {"score": float, "passed": bool}"""
-                score = 0
-                for trial in participant_trials:
-                    if trial.answer == trial.definition["answer"]:
-                        score += 1
-                passed = score >= performance_threshold
-                return {"score": score, "passed": passed}
+    class AudioForcedChoiceTrial(StaticTrial):
+        def show_trial(self, experiment, participant):
+            return ModularPage(
+                "audio_forced_choice_trial",
+                AudioPrompt(
+                    self.stimulus.assets["stimulus"],
+                    self.definition["question"],
+                ),
+                PushButtonControl(self.definition["answer_options"]),
+                bot_response=lambda: self.definition["answer"],
+            )
 
-        return AudioForcedChoiceTrialMaker(
-            id_=self.label + "_trials",
-            trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(),
-            check_performance_at_end=True,
-            fail_trials_on_premature_exit=False,
-        )
+    trial_class = AudioForcedChoiceTrial
 
-    def get_stimulus_set(self):
+    def performance_check(self, experiment, participant, participant_trials):
+        """Should return a dict: {"score": float, "passed": bool}"""
+        score = 0
+        for trial in participant_trials:
+            if trial.answer == trial.definition["answer"]:
+                score += 1
+        passed = score >= self.performance_threshold
+        return {"score": score, "passed": passed}
+
+    def get_stimulus_set(self, label, stimuli, specific_stimuli):
         if self.n_stimuli_to_use is not None:
-            shuffle(self.stimuli)
-            self.stimuli = self.stimuli[: self.n_stimuli_to_use]
+            shuffle(stimuli)
+            stimuli = stimuli[: self.n_stimuli_to_use]
 
-        elif self.specific_stimuli is not None:
-            self.stimuli = [self.stimuli[i] for i in self.specific_stimuli]
+        elif specific_stimuli is not None:
+            stimuli = [stimuli[i] for i in specific_stimuli]
 
         return [
             Stimulus(
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(
-                        f"{self.label}_{i}",
+                        f"{label}_{i}",
                         stimulus["url"],
                     )
                 },
             )
-            for i, stimulus in enumerate(self.stimuli)
+            for i, stimulus in enumerate(stimuli)
         ]

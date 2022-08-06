@@ -7,7 +7,7 @@ from collections import Counter
 from functools import reduce
 from pathlib import Path
 from statistics import mean
-from typing import Optional
+from typing import List, Optional, Union
 
 import dallinger.models
 from dallinger import db
@@ -16,7 +16,6 @@ from sqlalchemy import Column, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from ..asset import CachedAsset
-from ..field import PythonDict
 from ..timeline import NullElt, join
 from ..utils import deep_copy, get_logger
 from .main import (
@@ -658,7 +657,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         id_: str,
         trial_class,
         phase: str,
-        stimuli: StimulusSet,
+        stimuli: Union[List[Stimulus], StimulusSet],
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_stimulus: Optional[int] = None,
