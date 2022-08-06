@@ -6,6 +6,7 @@
 
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
 from psynet.prescreen import HeadphoneTest
@@ -31,3 +32,6 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert len(bot.trials()) == 6

@@ -9,6 +9,7 @@ import re
 from statistics import mean
 
 import psynet.experiment
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
@@ -113,6 +114,7 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Imitation chain (accumulated) demo"
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         NoConsent(),
@@ -147,6 +149,5 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert len(bot.trials()) == 5

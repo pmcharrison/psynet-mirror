@@ -7,7 +7,6 @@
 ##########################################################################################
 
 import random
-from typing import List
 
 from flask import Markup
 
@@ -178,7 +177,6 @@ class Exp(psynet.experiment.Experiment):
 
     num_test_bots = 2
 
-    def test_check_bots(self, bots: List[Bot], **kwargs):
-        for bot in bots:
-            assert not bot.failed
-            assert len(bot.trials()) == NUM_TRIALS_PER_PARTICIPANT
+    def test_check_bot(self, bot: Bot):
+        assert not bot.failed
+        assert len(bot.trials()) == NUM_TRIALS_PER_PARTICIPANT

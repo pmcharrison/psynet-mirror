@@ -6,7 +6,7 @@ import random
 from typing import List, Optional
 
 from ..utils import sample_from_surface_of_unit_sphere
-from .static import StaticTrial, StaticTrialMaker, StimulusSet, StimulusSpec
+from .static import StaticTrial, StaticTrialMaker, Stimulus
 
 
 class DenseTrialMaker(StaticTrialMaker):
@@ -196,7 +196,7 @@ class DenseTrialMaker(StaticTrialMaker):
         *,
         id_: str,
         trial_class,
-        conditions: ConditionList,
+        conditions: "List[Condition]",
         phase: str = "default",
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
@@ -215,7 +215,7 @@ class DenseTrialMaker(StaticTrialMaker):
             id_=id_,
             trial_class=trial_class,
             phase=phase,
-            stimulus_set=conditions,
+            stimuli=conditions,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
             target_num_trials_per_stimulus=target_num_trials_per_condition,
@@ -232,29 +232,7 @@ class DenseTrialMaker(StaticTrialMaker):
         )
 
 
-class ConditionList(StimulusSet):
-    """
-    Defines a collection of conditions to be administered to the participants.
-
-    id_
-        A unique ID.
-
-    conditions
-        A list of :class:`~psynet.trial.dense.Condition` objects.
-    """
-
-    def __init__(
-        self,
-        id_: str,
-        conditions: List[Condition],
-    ):
-        super().__init__(
-            id_=id_,
-            stimulus_specs=conditions,
-        )
-
-
-class Condition(StimulusSpec):
+class Condition(Stimulus):
     """
     Defines a Condition within the dense experiment paradigm.
 
@@ -287,15 +265,12 @@ class Condition(StimulusSpec):
     def __init__(
         self,
         definition: dict,
-        phase: str = "default",
         participant_group="default",
         block="default",
     ):
         assert "dimensions" in definition
         super().__init__(
             definition=definition,
-            phase=phase,
-            versions=None,
             participant_group=participant_group,
             block=block,
         )
@@ -414,8 +389,7 @@ class SingleStimulusTrial(DenseTrial):
         A list of numbers defining the stimulus's position within the stimulus space.
     """
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
+    def finalize_definition(self, definition, experiment, participant):
         dimensions = self.get_from_definition(definition, "dimensions")
         location = self.sample_location(dimensions, definition)
         self.save_in_definition(definition, "location", location)
@@ -469,9 +443,7 @@ class SliderCopyTrial(SingleStimulusTrial):
     and can be used for performance bonuses.
     """
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
-
+    def finalize_definition(self, definition, experiment, participant):
         dimensions = self.get_from_definition(definition, "dimensions")
         location = self.get_from_definition(definition, "location")
         slider_width = self.get_from_definition(definition, "slider_width")
@@ -571,8 +543,7 @@ class PairedStimulusTrial(DenseTrial):
     of the Dimension objects.
     """
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
+    def finalize_definition(self, definition, experiment, participant):
         dimensions = self.get_from_definition(definition, "dimensions")
         delta = self.get_from_definition(definition, "delta")
         locations = self.sample_location_pair(dimensions, delta, definition)
@@ -650,9 +621,7 @@ class SameDifferentTrial(PairedStimulusTrial):
 
     valid_answers = ["same", "different"]
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
-
+    def finalize_definition(self, definition, experiment, participant):
         correct_answer = random.choice(["same", "different"])
 
         if correct_answer == "same":
@@ -714,9 +683,7 @@ class AXBTrial(PairedStimulusTrial):
 
     valid_answers = ["AAB", "ABB"]
 
-    def make_definition(self, experiment, participant):
-        definition = super().make_definition(experiment, participant)
-
+    def finalize_definition(self, definition, experiment, participant):
         correct_answer = random.choice(["AAB", "ABB"])
         a, b = random.sample(["original", "altered"], k=2)
 

@@ -45,7 +45,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import call_function, corr, deep_copy, get_logger, wait_until
+from ..utils import call_function, corr, get_logger, wait_until
 
 logger = get_logger()
 
@@ -465,12 +465,11 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             self.definition = parent_trial.definition
             self.assets = parent_trial._initial_assets
         else:
-            # We use deep copies to protect users from unexpected side-effects of in-place modifications
-            self.definition = deep_copy(self.make_definition(experiment, participant))
+            self.definition = self.make_definition(experiment, participant)
             assert self.definition is not None
 
-            self.definition = deep_copy(
-                self.finalize_definition(self.definition, experiment, participant)
+            self.definition = self.finalize_definition(
+                self.definition, experiment, participant
             )
             assert self.definition is not None
 

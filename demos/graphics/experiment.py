@@ -6,6 +6,7 @@
 
 
 import psynet.experiment
+from psynet.asset import DebugStorage, S3Storage  # noqa
 from psynet.consent import NoConsent
 from psynet.graphics import (
     Animation,
@@ -33,11 +34,11 @@ from psynet.timeline import MediaSpec, Timeline
 ##########################################################################################
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Graphics demo"
+
+    # asset_storage = S3Storage("psynet-demos", "graphics")
+    asset_storage = DebugStorage()
 
     timeline = Timeline(
         NoConsent(),
@@ -300,7 +301,10 @@ class Exp(psynet.experiment.Experiment):
                 ],
                 prevent_control_response=True,
             ),
-            control=AudioRecordControl(duration=2, s3_bucket="audio-record-demo"),
+            control=AudioRecordControl(
+                duration=2,
+                bot_response_media="example_recordings/example_recording.wav",
+            ),
             time_estimate=6,
         ),
         SuccessfulEndPage(),

@@ -273,7 +273,7 @@ example_record_page = join(
             show_meter=True,
             controls=True,
             auto_advance=False,
-            bot_response_audio="example_recordings/response_2__record_page.wav",
+            bot_response_media="example_recordings/response_2__record_page.wav",
         ),
         time_estimate=5,
         progress_display=ProgressDisplay(
@@ -321,7 +321,7 @@ example_listen_then_record_page = join(
             show_meter=True,
             controls=True,
             auto_advance=False,
-            bot_response_audio="example_recordings/response_4__record_page.wav",
+            bot_response_media="example_recordings/response_4__record_page.wav",
         ),
         time_estimate=5,
         events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
@@ -365,7 +365,7 @@ example_record_audio_video = join(
             controls=True,
             loop_playback=False,
             auto_advance=True,
-            bot_response_video="example_recordings/response_5__record_page.wav",
+            bot_response_media="example_recordings/response_5__record_page.wav",
         ),
         progress_display=ProgressDisplay(
             stages=[

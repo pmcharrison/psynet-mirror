@@ -30,7 +30,6 @@ class GraphChainNetwork(ChainNetwork):
 
     """
 
-    __mapper_args__ = {"polymorphic_identity": "graph_chain_network"}
     __extra_vars__ = ChainNetwork.__extra_vars__.copy()
 
     vertex_id = claim_field("vertex_id", __extra_vars__, int)
@@ -75,8 +74,6 @@ class GraphChainTrial(ChainTrial):
     A Trial class for graph chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "graph_chain_trial"}
-
     def make_definition(self, experiment, participant):
         """
         (Built-in)
@@ -116,7 +113,6 @@ class GraphChainNode(ChainNode):
         A list of the vertex ids on which the current node depends (incoming edges).
     """
 
-    __mapper_args__ = {"polymorphic_identity": "graph_chain_node"}
     __extra_vars__ = ChainNode.__extra_vars__.copy()
 
     def __init__(
@@ -245,7 +241,6 @@ class GraphChainSource(ChainSource):
     A Source class for graph chains.
     """
 
-    __mapper_args__ = {"polymorphic_identity": "graph_chain_source"}
     __extra_vars__ = ChainSource.__extra_vars__.copy()
 
     def generate_seed(self, network, experiment, participant):

@@ -2051,14 +2051,6 @@ class RecordControl(Control):
         Note: the output recording may not be exactly this length, owing to inaccuracies
         in the Javascript recording process.
 
-    s3_bucket
-        Name of the S3 bucket to which the recording should be uploaded.
-
-
-    public_read
-        Whether the audio recording should be uploaded to the S3 bucket
-        with public read permissions.
-
     auto_advance
         Whether the page should automatically advance to the next page
         once the audio recording has been uploaded.
@@ -2109,6 +2101,25 @@ class RecordControl(Control):
             events["autoSubmit"] = Event(is_triggered_by="submitEnable")
         # events["uploadEnd"] = Event(is_triggered_by=[])
 
+    def get_bot_response_files(self, experiment, bot, page, prompt):
+        if self.bot_response_media is None:
+            self.raise_bot_response_not_provided_error()
+        elif callable(self.bot_response_media):
+            return call_function(
+                self.bot_response_media,
+                {
+                    "bot": bot,
+                    "experiment": experiment,
+                    "page": page,
+                    "prompt": prompt,
+                },
+            )
+        else:
+            return self.bot_response_media
+
+    def raise_bot_response_not_provided_error(self):
+        raise NotImplementedError
+
 
 class AudioRecordControl(RecordControl):
     """
@@ -2145,7 +2156,7 @@ class AudioRecordControl(RecordControl):
         loop_playback: bool = False,
         num_channels: int = 1,
         personal=True,
-        bot_response_audio: Optional[str] = None,
+        bot_response_media: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2154,7 +2165,7 @@ class AudioRecordControl(RecordControl):
         self.loop_playback = loop_playback
         self.num_channels = num_channels
         self.personal = personal
-        self.bot_response_audio = bot_response_audio
+        self.bot_response_media = bot_response_media
 
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
@@ -2209,17 +2220,22 @@ class AudioRecordControl(RecordControl):
 
         from .bot import BotResponse
 
-        if self.bot_response_audio is not None:
-            return BotResponse(
-                raw_answer=None,
-                blobs={
-                    "audioRecording": FileStorage(
-                        filename=self.bot_response_audio, content_type="audio/wav"
-                    )
-                },
-            )
-        else:
-            raise NotImplementedError
+        file = self.get_bot_response_files(experiment, bot, page, prompt)
+
+        return BotResponse(
+            raw_answer=None,
+            blobs={
+                "audioRecording": FileStorage(filename=file, content_type="audio/wav")
+            },
+        )
+
+    def raise_bot_response_not_provided_error(self):
+        raise NotImplementedError(
+            "To use an AudioRecordControl with bots, you should set the bot_response_media argument "
+            "to provide a path to an audio file that the bot should 'return'. "
+            "This can be provided as a string, or alternatively as a function that returns a string, "
+            "taking (optionally) any of the following arguments: bot, experiment, page, prompt."
+        )
 
 
 class VideoRecordControl(RecordControl):
@@ -2278,7 +2294,7 @@ class VideoRecordControl(RecordControl):
         loop_playback: bool = False,
         mirrored: bool = True,
         personal: bool = True,
-        bot_response_video: Optional[str] = None,
+        bot_response_media: Optional[str] = None,
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -2292,7 +2308,7 @@ class VideoRecordControl(RecordControl):
         self.loop_playback = loop_playback
         self.mirrored = mirrored
         self.personal = personal
-        self.bot_response_video = bot_response_video
+        self.bot_response_media = bot_response_media
 
         if self.record_audio is False:
             self.audio_num_channels = 0
@@ -2386,34 +2402,37 @@ class VideoRecordControl(RecordControl):
 
         from .bot import BotResponse
 
-        if isinstance(self.bot_response_video, str):
+        files = self.get_bot_response_files(experiment, bot, page, prompt)
+
+        return BotResponse(
+            raw_answer=None,
+            blobs={
+                f"{key}Recording": FileStorage(filename=files[key])
+                for key in self.recording_sources
+            },
+        )
+
+    def get_bot_response_files(self, experiment, bot, page, prompt):
+        files = super().get_bot_response_files(experiment, bot, page, prompt)
+
+        if isinstance(files, str):
             assert len(self.recording_sources) == 1
-            self.bot_response_video = {}
-            self.bot_response_video[self.recording_sources[0]] = self.bot_response_video
+            return {self.recording_source: files}
+        elif isinstance(files, dict):
+            assert set(files) == {"camera", "screen"}
+            return files
         else:
-            assert isinstance(self.bot_response_video, dict)
-            assert len(self.bot_response_video) == len(self.recording_sources)
-            try:
-                assert sorted(list(self.bot_response_video)) == ["camera", "screen"]
-            except Exception:
-                import pydevd_pycharm
+            raise ValueError(f"Invalid files value: {files}")
 
-                pydevd_pycharm.settrace(
-                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-                )
-
-        if self.bot_response_video is not None:
-            return BotResponse(
-                raw_answer=None,
-                blobs={
-                    f"{key}Recording": FileStorage(
-                        filename=self.bot_response_video[key]
-                    )
-                    for key in self.recording_sources
-                },
-            )
-        else:
-            raise NotImplementedError
+    def raise_bot_response_not_provided_error(self):
+        raise NotImplementedError(
+            "To use an VideoRecordControl with bots, you should set the bot_response_media argument "
+            "to provide a path to an audio file that the bot should 'return'. "
+            "This can be provided as a string, or alternatively as a function that returns a string, "
+            "taking (optionally) any of the following arguments: bot, experiment, page, prompt. "
+            "If the VideoRecordControl is meant to provide both a screen recording and a camera recording, "
+            "you should return a dictionary with two file paths, keyed as 'screen' and 'camera'."
+        )
 
 
 class VideoSliderControl(Control):

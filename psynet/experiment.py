@@ -295,17 +295,23 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     num_test_bots = 1
 
     def test_experiment(self):
-        self.test_run_bots()
-        self.test_check_bots()
+        bots = self.test_create_bots()
+        self.test_run_bots(bots)
+        self.test_check_bots(bots)
 
-    def test_run_bots(self):
-        bots = [Bot() for _ in range(self.num_test_bots)]
+    def test_create_bots(self):
+        return [Bot() for _ in range(self.num_test_bots)]
+
+    def test_run_bots(self, bots):
         for bot in bots:
             bot.take_experiment()
 
-    def test_check_bots(self, bots: List[Bot], **kwargs):
+    def test_check_bots(self, bots: List[Bot]):
         for b in bots:
-            assert not b.failed
+            self.test_check_bot(b)
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        assert not bot.failed
 
     @scheduled_task("interval", minutes=1, max_instances=1)
     @staticmethod
