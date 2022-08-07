@@ -1282,31 +1282,53 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant_id = request.args.get("participant_id")
         auth_token = request.args.get("auth_token")
 
-        from psynet.utils import error_page
-
-        exp = get_experiment()
         mode = request.args.get("mode")
         participant = get_participant(participant_id)
+        experiment = get_experiment()
 
+        try:
+            cls.check_auth_token(participant)
+        except cls.AuthTokenError as e:
+            return e.http_error()
+
+        page = cls.get_current_page(experiment, participant, mode, auth_token)
+        participant.client_ip_address = cls.get_client_ip_address()
+        return cls.serialize_page(page, experiment, participant, mode)
+
+    class AuthTokenError(PermissionError):
+        def http_error(self, participant):
+            from psynet.utils import error_page
+
+            msg = (
+                "There was a problem authenticating your session, "
+                + "did you switch browsers? Unfortunately this is not currently "
+                + "supported by our system."
+            )
+            return error_page(participant=participant, error_text=msg)
+
+    @classmethod
+    def get_current_page(cls, experiment, participant, auth_token):
         if participant.auth_token is None:
             participant.auth_token = str(uuid.uuid4())
         else:
             if not cls.validate_auth_token(participant, auth_token):
-                msg = (
-                    "There was a problem authenticating your session, "
-                    + "did you switch browsers? Unfortunately this is not currently "
-                    + "supported by our system."
-                )
-                return error_page(participant=participant, error_text=msg)
+                raise cls.AuthTokenError
 
-        participant.client_ip_address = cls.get_client_ip_address()
+        if participant.elt_id == [-1]:
+            experiment.timeline.advance_page(experiment, participant)
 
-        page = exp.timeline.get_current_elt(exp, participant)
+        page = experiment.timeline.get_current_elt(experiment, participant)
         page.pre_render()
-        exp.save()
+        db.session.commit()
+
+        return page
+
+    @classmethod
+    def serialize_page(cls, page, experiment, participant, mode):
         if mode == "json":
             return jsonify(page.__json__(participant))
-        return page.render(exp, participant)
+        else:
+            return page.render(experiment, participant)
 
     @staticmethod
     def validate_auth_token(participant, auth_token):
