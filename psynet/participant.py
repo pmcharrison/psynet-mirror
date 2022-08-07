@@ -302,7 +302,13 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         db.session.add(self)
         db.session.commit()
 
+        self.initialize()  # Hook for custom subclasses to provide further initialization
+        db.session.commit()
+
         experiment.timeline.advance_page(experiment, participant=self)
+
+    def initialize(self):
+        pass
 
     def calculate_bonus(self):
         """

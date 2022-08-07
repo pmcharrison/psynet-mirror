@@ -27,7 +27,7 @@ logger = get_logger()
 
 
 class FixedDigitInputPage(ModularPage):
-    def __init__(self, label: str, prompt: str, time_estimate: float):
+    def __init__(self, label: str, prompt: str, time_estimate: float, bot_response):
         self.num_digits = 7
 
         super().__init__(
@@ -35,6 +35,7 @@ class FixedDigitInputPage(ModularPage):
             Prompt(prompt),
             control=TextControl(
                 block_copy_paste=True,
+                bot_response=bot_response,
             ),
             time_estimate=time_estimate,
         )
@@ -62,7 +63,12 @@ class CustomTrial(ImitationChainTrial):
             f"Try to remember this 7-digit number: {self.definition:07d}",
             time_estimate=2,
         )
-        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
+        page_2 = FixedDigitInputPage(
+            "number",
+            "What was the number?",
+            time_estimate=3,
+            bot_response=lambda: self.definition,
+        )
 
         return [page_1, page_2]
 
@@ -101,7 +107,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         CustomTrialMaker(
-            id_="imitation_demo",
+            id_="imitation_chain",
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
@@ -124,4 +130,4 @@ class Exp(psynet.experiment.Experiment):
     )
 
     def test_check_bot(self, bot: Bot, **kwargs):
-        assert len(bot.trials()) == 6
+        assert len(bot.trials()) == 5

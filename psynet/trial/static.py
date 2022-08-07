@@ -16,7 +16,7 @@ from sqlalchemy import Column, Integer, String, func
 from sqlalchemy.orm import relationship
 
 from ..asset import CachedAsset
-from ..timeline import NullElt
+from ..timeline import NullElt, join
 from ..utils import deep_copy, get_logger
 from .main import (
     HasDefinition,
@@ -725,6 +725,9 @@ class StaticTrialMaker(NetworkTrialMaker):
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=True,
         )
+
+    def compile_elts(self):
+        return join(self.stimulus_set, super().compile_elts())
 
     @property
     def num_trials_still_required(self):

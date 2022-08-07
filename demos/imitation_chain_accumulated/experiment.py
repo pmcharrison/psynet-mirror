@@ -37,6 +37,7 @@ class FixedDigitInputPage(ModularPage):
         label: str,
         prompt: str,
         time_estimate: float,
+        bot_response,
     ):
         self.num_digits = 7
 
@@ -47,6 +48,7 @@ class FixedDigitInputPage(ModularPage):
                 label,
             ),
             time_estimate=time_estimate,
+            bot_response=bot_response,
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -73,9 +75,17 @@ class CustomTrial(ImitationChainTrial):
             f"Try to remember this 7-digit number: {self.definition:07d}",
             time_estimate=5,
         )
-        page_2 = FixedDigitInputPage("number", "What was the number?", time_estimate=3)
+        page_2 = FixedDigitInputPage(
+            "number",
+            "What was the number?",
+            time_estimate=3,
+            bot_response=lambda: self.definition,
+        )
         page_3 = FixedDigitInputPage(
-            "number", "Type the number one more time.", time_estimate=3
+            "number",
+            "Type the number one more time.",
+            time_estimate=3,
+            bot_response=lambda: self.definition,
         )
 
         return [page_1, page_2, page_3]
@@ -109,9 +119,6 @@ class CustomTrialMaker(ImitationChainTrialMaker):
 ##########################################################################################
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Imitation chain (accumulated) demo"
     initial_recruitment_size = 1

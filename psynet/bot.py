@@ -5,7 +5,6 @@ from cached_property import cached_property
 from dallinger import db
 
 from .participant import Participant
-from .redis import redis_vars
 from .timeline import EndPage, Page
 from .utils import NoArgumentProvided, get_logger, log_time_taken, wait_until
 
@@ -29,7 +28,7 @@ class Bot(Participant):
         if assignment_id is None:
             assignment_id = str(uuid.uuid4())
 
-        logger.info("Initialising bot with worker ID %s.", worker_id)
+        logger.info("Initializing bot with worker ID %s.", worker_id)
 
         super().__init__(
             self.experiment,
@@ -40,8 +39,10 @@ class Bot(Participant):
             mode=mode,
         )
 
-        self.experiment.initialize_bot(bot=self)
         db.session.commit()
+
+    def initialize(self):
+        self.experiment.initialize_bot(bot=self)
 
     def wait_until_experiment_launch_is_complete(self):
         from .experiment import is_experiment_launched
