@@ -41,14 +41,15 @@ class Bot(Participant):
 
         db.session.commit()
 
-    def initialize(self):
+    def initialize(self, experiment):
         self.experiment.initialize_bot(bot=self)
+        super().initialize(experiment)
 
     def wait_until_experiment_launch_is_complete(self):
         from .experiment import is_experiment_launched
 
         def f():
-            print("Waiting for experiment launch to complete....")
+            logger.info("Waiting for experiment launch to complete....")
             return is_experiment_launched()
 
         wait_until(
@@ -78,9 +79,13 @@ class Bot(Participant):
             This
         """
         logger.info(f"Bot {self.id} is starting the experiment.")
-        counter = 0
+        counter = 1  # You start already on a page
+
         while True:
-            self.take_page(time_factor)
+            page = self.experiment.get_current_page(
+                self.experiment, self, self.auth_token
+            )
+            self.take_page(page, time_factor)
             counter += 1
             db.session.refresh(self)
             if not self.status == "working":
@@ -89,12 +94,11 @@ class Bot(Participant):
             f"Bot {self.id} has finished the experiment (took {counter} page(s))."
         )
 
-    def take_page(self, time_factor):
+    def take_page(self, page, time_factor):
         from .page import WaitPage
 
         bot = self
         experiment = self.experiment
-        page = experiment.timeline.get_current_elt(experiment, bot)
         assert isinstance(page, Page)
 
         time_taken = page.time_estimate * time_factor

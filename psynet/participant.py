@@ -183,10 +183,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "browser_platform", __extra_vars__, use_default=True, default=lambda: ""
     )
 
+    all_trials = relationship("psynet.trial.main.Trial")
+
     current_trial_id = Column(
         Integer, ForeignKey("info.id")
     )  # 'info.id' because trials are stored in the info table
-    current_trial = relationship("Trial")
+    current_trial = relationship(
+        "psynet.trial.main.Trial",
+        foreign_keys="[psynet.participant.Participant.current_trial_id]",
+    )
 
     awaiting_async_process = column_property(
         select(AsyncProcess)
@@ -302,12 +307,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         db.session.add(self)
         db.session.commit()
 
-        self.initialize()  # Hook for custom subclasses to provide further initialization
+        self.initialize(
+            experiment
+        )  # Hook for custom subclasses to provide further initialization
         db.session.commit()
 
-        experiment.timeline.advance_page(experiment, participant=self)
-
-    def initialize(self):
+    def initialize(self, experiment):
         pass
 
     def calculate_bonus(self):
