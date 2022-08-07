@@ -1451,7 +1451,7 @@ class TrialMaker(Module):
                 experiment=experiment, participant=participant
             )
         participant.current_trial = trial
-        experiment.save()
+        db.session.commit()
 
     def _prepare_repeat_trial(self, experiment, participant):
         if not participant.var.has(self.with_namespace("trials_to_repeat")):
