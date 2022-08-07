@@ -1489,11 +1489,6 @@ class Timeline:
             new_elt.consume(experiment, participant)
             db.session.commit()
 
-            # from dallinger.db import Base
-            # if len([x for x in list(Base.registry.mappers) if x.class_.__name__.endswith("CustomNetwork")]) > 1:
-            #     import pydevd_pycharm
-            #     pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-
             if isinstance(new_elt, Page):
                 finished = True
 
@@ -1799,6 +1794,13 @@ def while_loop(
     logic = join(logic)
     logic = multiply_expected_repetitions(logic, expected_repetitions)
 
+    def condition_wrapped(participant, experiment):
+        result = call_function(
+            condition, {"participant": participant, "experiment": experiment}
+        )
+        logger.info(f"Evaluating while_loop ({label}) condition: result = {result}")
+        return result
+
     conditional_logic = join(logic, GoTo(start_while))
 
     def with_namespace(x=None):
@@ -1850,7 +1852,7 @@ def while_loop(
         ),
         conditional(
             label,
-            condition,
+            condition_wrapped,
             conditional_logic,
             fix_time_credit=False,
             log_chosen_branch=False,
