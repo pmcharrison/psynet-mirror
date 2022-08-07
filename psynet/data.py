@@ -286,6 +286,13 @@ def dump_db_to_disk(dir, scrub_pii: bool):
             json_to_data_frame(objects).to_csv(file, index=False)
 
 
+class InvalidDefinitionError(ValueError):
+    pass
+
+
+checked_classes = set()
+
+
 class SQLMixinDallinger(SharedMixin):
     """
     We apply this Mixin class when subclassing Dallinger classes,
@@ -308,6 +315,11 @@ class SQLMixinDallinger(SharedMixin):
         None  # set this to a string if you want to customize your polymorphic identity
     )
     __extra_vars__ = {}
+
+    def __new__(cls, *args, **kwargs):
+        self = super().__new__(cls)
+        cls.check_validity()
+        return self
 
     @property
     def var(self):
@@ -362,6 +374,7 @@ class SQLMixinDallinger(SharedMixin):
         constructed automatically based on class names.
         """
         # If the class has a distinct polymorphic_identity attribute, use that
+        cls.check_validity()
         if cls.polymorphic_identity and not cls.ancestor_has_same_polymorphic_identity(
             cls.polymorphic_identity
         ):
@@ -379,6 +392,45 @@ class SQLMixinDallinger(SharedMixin):
         if not cls.inherits_table:
             x["polymorphic_on"] = cls.type
         return x
+
+    __validity_checks_complete__ = False
+
+    @classmethod
+    def check_validity(cls):
+        if cls not in checked_classes:
+            cls._check_validity()
+            checked_classes.add(cls)
+
+    @classmethod
+    def _check_validity(cls):
+        if cls.defined_in_invalid_location():
+            raise InvalidDefinitionError(
+                f"Problem detected with the definition of class {cls.__name__}:"
+                "You are not allowed to define SQLAlchemy classes in unconventional places, "
+                "e.g. as class attributes of other classes, within functions, etc. - "
+                "it can cause some very hard to debug problems downstream, "
+                "for example silently breaking SQLAlchemy relationship updating. "
+                "You should instead define your class at the top level of a Python file."
+            )
+
+    @classmethod
+    def defined_in_invalid_location(cls):
+        from jsonpickle.util import importable_name
+
+        path = importable_name(cls)
+        family = path.split(".")
+        ancestors = family[:-1]
+        parent_path = ".".join(ancestors)
+
+        return parent_path != cls.__module__
+        # if "<locals>" in parent_path:
+        #     return True
+        #
+        # parent = loadclass(parent_path)
+        # if parent is None or isclass(parent):
+        #     return True
+        #
+        # return False
 
     def scrub_pii(self, json):
         """
