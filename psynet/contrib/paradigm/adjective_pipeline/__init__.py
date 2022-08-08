@@ -115,15 +115,9 @@ class AdjectiveTrial(ImitationChainTrial):
         """
         Prints the feedback if the participant discovered a completely new word. This method can easily be overwritten.
         """
-        html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
-        return f"""
-            You just unlocked an entirely new word: "{tag}" for {html_emb}<br><br>
-            We award you with a bonus of {trial_maker.new_word_bonus}$!
-            <br><br>
-            <div class="alert alert-warning" role="alert">
-            <strong>Note:</strong> Please keep in mind that if your tags are later flagged as irrelevant,
-            your experiment will terminate early.
-            </div>
+        return """
+            Bravo! Adding new tags contributes to the quality of this survey.<br>
+            We really appreciate it!
             """
 
     def check_new_word(self, participant, trial_maker, feedback_dictionary):
