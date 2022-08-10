@@ -69,15 +69,15 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         VolumeCalibration(),
-        # AudioForcedChoiceTest(
-        #     csv_path="cats_dogs_birds.csv",
-        #     answer_options=["cat", "dog", "bird"],
-        #     performance_threshold=1,
-        #     instructions="""
-        #             <p>In each trial, you will hear a sound of an animal. Please select the correct animal category.</p>
-        #             """,
-        #     question="Select the category which fits best to the played sound file.",
-        # ),
+        AudioForcedChoiceTest(
+            csv_path="cats_dogs_birds.csv",
+            answer_options=["cat", "dog", "bird"],
+            performance_threshold=1,
+            instructions="""
+                    <p>In each trial, you will hear a sound of an animal. Please select the correct animal category.</p>
+                    """,
+            question="Select the category which fits best to the played sound file.",
+        ),
         ReadAudioTest(
             csv_path="test_set.csv",
             answer_options=[
