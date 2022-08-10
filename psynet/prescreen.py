@@ -168,7 +168,7 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
 
     asset_calibration_audio_id = "repp_volume_calibration_music_audio"
 
-    def asset_calibration(self, materials_url):
+    def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
             self.asset_calibration_audio_id, materials_url + "/calibrate.prepared.wav"
         )
@@ -206,7 +206,7 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
 
     def __init__(
         self,
-        label="repp_volume_calibration_music",
+        label="repp_volume_calibration_markers",
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
         min_time_on_calibration_page: float = 5.0,
         time_estimate_for_calibration_page: float = 10.0,
@@ -218,9 +218,9 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
             time_estimate_for_calibration_page,
         )
 
-    asset_calibration_audio_id = "repp_volume_calibration_tapping_audio"
+    asset_calibration_audio_id = "repp_volume_calibration_markers_audio"
 
-    def asset_calibration(self, materials_url):
+    def asset_calibration_audio(self, materials_url):
         return ExternalAsset(
             self.asset_calibration_audio_id, materials_url + "/only_markers.wav"
         )
