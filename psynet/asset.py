@@ -446,7 +446,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         _old = old.content_id
         _new = new.content_id
 
-        if old != new:
+        if _old != _new:
             raise cls.InconsistentContentError(
                 f"Initiated a new deposit for pre-existing asset ({new.key}), "
                 "but replace=False and the content IDs did not match "
@@ -1727,7 +1727,11 @@ class AssetRegistry:
             n_jobs = psutil.cpu_count()
 
         logger.info("Preparing assets for deployment...")
-        # n_jobs = 1  # todo -fix
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace(
+            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        )
         Parallel(
             n_jobs=n_jobs,
             verbose=10,
