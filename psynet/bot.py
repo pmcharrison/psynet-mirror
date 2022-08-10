@@ -92,9 +92,7 @@ class Bot(Participant):
             app = util.import_app("dallinger.experiment_server.sockets:app")
             with app.app_context(), app.test_request_context():
                 while True:
-                    page = self.experiment.get_current_page(
-                        self.experiment, self, self.auth_token
-                    )
+                    page = self.experiment.get_current_page(self.experiment, self)
                     if render_pages:
                         page.render(self.experiment, self)
                     self.take_page(page, time_factor)

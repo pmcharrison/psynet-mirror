@@ -1287,34 +1287,54 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         participant = get_participant(participant_id)
         experiment = get_experiment()
 
-        try:
-            cls.check_auth_token(participant)
-        except cls.AuthTokenError as e:
-            return e.http_error()
+        if participant.auth_token is None:
+            participant.auth_token = str(uuid.uuid4())
+        else:
+            try:
+                cls.check_auth_token(participant, auth_token)
+            except cls.AuthTokenError as e:
+                return e.http_response()
 
-        page = cls.get_current_page(experiment, participant, mode, auth_token)
+        page = cls.get_current_page(experiment, participant, mode)
         participant.client_ip_address = cls.get_client_ip_address()
         return cls.serialize_page(page, experiment, participant, mode)
 
     class AuthTokenError(PermissionError):
-        def http_error(self, participant):
+        def __init__(self, expected, provided, participant):
+            self.participant = participant
+
+            message = "".join(
+                [
+                    f"Mismatch between expected auth_token ({expected}) "
+                    f"and provided auth_token ({provided}) "
+                    f"for participant {participant.id}."
+                ]
+            )
+            super().__init__(message)
+
+        def http_response(self):
             from psynet.utils import error_page
+
+            last_exception = sys.exc_info()
+            if last_exception[0]:
+                logger.error(
+                    "Failure for request: {!r}".format(dict(request.args)),
+                    exc_info=last_exception,
+                )
 
             msg = (
                 "There was a problem authenticating your session, "
                 + "did you switch browsers? Unfortunately this is not currently "
                 + "supported by our system."
             )
-            return error_page(participant=participant, error_text=msg)
+            return error_page(
+                participant=self.participant,
+                error_text=msg,
+                error_type="authentication",
+            )
 
     @classmethod
-    def get_current_page(cls, experiment, participant, auth_token):
-        if participant.auth_token is None:
-            participant.auth_token = str(uuid.uuid4())
-        else:
-            if not cls.validate_auth_token(participant, auth_token):
-                raise cls.AuthTokenError
-
+    def get_current_page(cls, experiment, participant):
         if participant.elt_id == [-1]:
             experiment.timeline.advance_page(experiment, participant)
 
@@ -1331,16 +1351,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         else:
             return page.render(experiment, participant)
 
-    @staticmethod
-    def validate_auth_token(participant, auth_token):
+    @classmethod
+    def check_auth_token(cls, participant, auth_token):
         valid = participant.auth_token == auth_token
         if not valid:
-            logger.error(
-                f"Mismatch between provided auth_token ({auth_token}) "
-                + f"and actual auth_token {participant.auth_token} "
-                f"for participant {participant.id}."
+            raise cls.AuthTokenError(
+                expected=auth_token,
+                provided=participant.auth_token,
+                participant=participant,
             )
-        return valid
+        else:
+            return True
 
     @experiment_route("/timeline/progress_and_bonus", methods=["GET"])
     @classmethod
@@ -1401,7 +1422,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     @classmethod
     def http_log(cls, level, participant_id, auth_token):
         participant = get_participant(participant_id)
-        cls.validate_auth_token(participant, auth_token)
+        try:
+            cls.check_auth_token(participant, auth_token)
+        except cls.AuthTokenError as e:
+            return e.http_response()
+
         message = request.values["message"]
 
         assert level in ["warning", "info", "error"]
@@ -1436,7 +1461,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def participant_opened_devtools(cls, participant_id, auth_token):
         participant = get_participant(participant_id)
 
-        Experiment.validate_auth_token(participant, auth_token)
+        Experiment.check_auth_token(participant, auth_token)
 
         participant.var.opened_devtools = True
         db.session.commit()
