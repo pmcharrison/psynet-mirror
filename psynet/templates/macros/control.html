@@ -1,11 +1,27 @@
 {% macro null(config) %}
     <script>
-        onNextButton = function() {
-            let width = $("#next-button").width()
+        disableButton = function() {
             $("#next-button").attr("disabled", true)
             $("#next-button-spinner").show()
             $("#next-button-text").hide();
-            $("#next-button").width(width);
+        };
+
+        enableButton = function() {
+            $("#next-button").attr("disabled", false)
+            $("#next-button-spinner").hide()
+            $("#next-button-text").show();
+        }
+
+        onNextButton = function() {
+            let width = $("#next-button").width()
+            $("#next-button").width(width); // Locks the button width to the current width
+
+            disableButton();
+
+            function onRejection() {
+                enableButton();
+            }
+
             if (typeof retrieveResponse == "undefined") {
                 psynet.nextPage();
             } else {
@@ -13,7 +29,8 @@
                 psynet.nextPage(
                     response.rawAnswer,
                     response.metadata,
-                    response.blobs
+                    response.blobs,
+                    onRejection,
                 );
             }
         }

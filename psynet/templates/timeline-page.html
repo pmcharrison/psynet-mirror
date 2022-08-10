@@ -1265,7 +1265,7 @@
                     }
                 };
 
-                psynet.nextPage = function (rawAnswer, metadata, blobs) {
+                psynet.nextPage = function (rawAnswer, metadata, blobs, onRejection) {
                     // Arguments default to psynet.response.staged if they
                     // are not provided explicitly.
                     if (rawAnswer === undefined) {
@@ -1277,10 +1277,10 @@
                     if (blobs === undefined) {
                         blobs = psynet.response.staged.blobs;
                     }
-                    submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse);
+                    submitGenericResponse(rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection);
                 };
 
-                let onSuccessResponse = function (request) {
+                let onSuccessResponse = function (request, onRejection) {
                     let response = JSON.parse(request.response);
                     if (response.submission === "approved") {
                         psynet.log.debug("Response received successfully.");
@@ -1299,6 +1299,9 @@
                         alert(response.message);
                         psynet.response.enable();
                         psynet.submit.enable();
+                        if (onRejection) {
+                            onRejection(response);
+                        }
                     } else {
                         throw Error("Received a malformed response.");
                     }
@@ -1358,7 +1361,7 @@
                     });
                 };
 
-                let submitGenericResponse = function (rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse) {
+                let submitGenericResponse = function (rawAnswer, metadata, blobs, onSuccessResponse, onErrorResponse, onRejection) {
                     // rawAnswer - an arbitrary Javascript object (not necessarily an Object) to be sent to JSON
                     // blobs - optional Object, each attribute should be a blob to upload.
                     //       - Note that 'json' is not a permitted name for an attribute
@@ -1379,7 +1382,7 @@
                         if (request.readyState === 4) {
                             if (request.status === 200) {
                                 psynet.log.debug("Response was successfully received.");
-                                onSuccessResponse(request);
+                                onSuccessResponse(request, onRejection);
                             } else {
                                 psynet.log.debug("Something went wrong.");
                                 onErrorResponse(request);
