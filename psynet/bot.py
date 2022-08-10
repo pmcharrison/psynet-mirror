@@ -78,18 +78,26 @@ class Bot(Participant):
             If 1, the bot spends ``time_estimate`` time on each page.
             This
         """
+        from gunicorn import util
+
+        from .utils import working_directory
+
         logger.info(f"Bot {self.id} is starting the experiment.")
         counter = 1  # You start already on a page
 
-        while True:
-            page = self.experiment.get_current_page(
-                self.experiment, self, self.auth_token
-            )
-            self.take_page(page, time_factor)
-            counter += 1
-            db.session.refresh(self)
-            if not self.status == "working":
-                break
+        with working_directory(self.experiment.var.server_working_directory):
+            app = util.import_app("dallinger.experiment_server.sockets:app")
+            with app.app_context(), app.test_request_context():
+                while True:
+                    page = self.experiment.get_current_page(
+                        self.experiment, self, self.auth_token
+                    )
+                    page.render(self.experiment, self)
+                    self.take_page(page, time_factor)
+                    counter += 1
+                    db.session.refresh(self)
+                    if not self.status == "working":
+                        break
         logger.info(
             f"Bot {self.id} has finished the experiment (took {counter} page(s))."
         )
