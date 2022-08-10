@@ -54,6 +54,9 @@ class ColorText(Control):
     def metadata(self):
         return {"color": self.color}
 
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return "Hello, I am a bot!"
+
 
 # Weird bug: if you instead import Experiment from psynet.experiment,
 # Dallinger won't allow you to override the bonus method
