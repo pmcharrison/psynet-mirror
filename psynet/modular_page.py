@@ -2504,3 +2504,6 @@ class VideoSliderControl(Control):
         events["submitEnable"].add_triggers(
             "sliderMinimalTime",
         )
+
+    def get_bot_response(self, experiment, bot, page, prompt):
+        return random.uniform(0, 1)
