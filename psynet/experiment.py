@@ -275,6 +275,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
+        self.var.server_working_directory = os.getcwd()
         self.grow_all_networks()
 
     def participant_constructor(self, *args, **kwargs):
