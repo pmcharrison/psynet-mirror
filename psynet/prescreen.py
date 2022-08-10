@@ -1600,7 +1600,7 @@ class AudioForcedChoiceTrial(StaticTrial):
                 self.definition["question"],
             ),
             PushButtonControl(self.definition["answer_options"]),
-            bot_response=lambda: self.definition["answer"],
+            bot_response=self.definition["answer"],
         )
 
 
