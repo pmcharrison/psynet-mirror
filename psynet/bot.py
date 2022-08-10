@@ -67,7 +67,7 @@ class Bot(Participant):
         return self.experiment.timeline
 
     @log_time_taken
-    def take_experiment(self, time_factor=0):
+    def take_experiment(self, time_factor=0, render_pages: bool = False):
         """
         Parameters
         ----------
@@ -76,7 +76,10 @@ class Bot(Participant):
             Determines how long the bot spends on each page.
             If 0, the bot spends no time on each page.
             If 1, the bot spends ``time_estimate`` time on each page.
-            This
+
+        render_page :
+            Whether to run page rendering code (default: False).
+            This is generally only useful for testing.
         """
         from gunicorn import util
 
@@ -92,7 +95,8 @@ class Bot(Participant):
                     page = self.experiment.get_current_page(
                         self.experiment, self, self.auth_token
                     )
-                    page.render(self.experiment, self)
+                    if render_pages:
+                        page.render(self.experiment, self)
                     self.take_page(page, time_factor)
                     counter += 1
                     db.session.refresh(self)

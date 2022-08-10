@@ -304,7 +304,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def test_run_bots(self, bots):
         for bot in bots:
-            bot.take_experiment()
+            bot.take_experiment(render_pages=True)
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
