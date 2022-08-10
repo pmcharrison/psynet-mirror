@@ -1553,11 +1553,13 @@ class TrialMaker(Module):
             trial.time_credit_after_trial - trial.time_credit_before_trial
         )
         if trial.check_time_credit_received:
-            if trial.time_credit_from_trial != trial.time_estimate:
+            original_estimate = self._get_trial_time_estimate(trial.__class__)
+            actual = trial.time_credit_from_trial
+            if actual != original_estimate:
                 logger.info(
                     f"Warning: Trial {trial.id} received an unexpected amount of time credit "
-                    f"(expected = {trial.time_estimate} seconds; "
-                    f"actual = {trial.time_credit_from_trial} seconds). "
+                    f"(expected = {original_estimate} seconds; "
+                    f"actual = {actual} seconds). "
                     f"Consider setting the trial's `time_estimate` parameter to {trial.time_credit_from_trial}."
                     "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
                 )
