@@ -1713,7 +1713,9 @@ def join(*args):
             elif isinstance(x, list) and isinstance(y, list):
                 return x + y
             else:
-                return Exception("An unexpected error occurred.")
+                raise ValueError(
+                    f"Don't know how to join the following two timeline components: {x}, {y}."
+                )
 
         return reduce(f, args)
 
