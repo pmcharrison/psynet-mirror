@@ -963,7 +963,7 @@ class LextaleTrial(StaticTrial):
             ImagePrompt(
                 self.stimulus.assets["word"].url,
                 "Does this word exist?",
-                width="100px",
+                width="auto",
                 height="100px",
                 hide_after=self.hide_after,
                 margin_bottom="15px",
@@ -1024,9 +1024,9 @@ class LexTaleTest(StaticTrialMaker):
         trial_class=LextaleTrial,
     ):
         self.hide_after = hide_after
+        self.num_trials = num_trials
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
-        self.introduction = (self.instruction_page(hide_after, num_trials),)
 
         super().__init__(
             id_=label,
@@ -1037,15 +1037,16 @@ class LexTaleTest(StaticTrialMaker):
             check_performance_at_end=True,
         )
 
-    def instruction_page(self, hide_after, num_trials):
+    @property
+    def introduction(self):
         return InfoPage(
             Markup(
                 f"""
                 <h3>Lexical decision task</h3>
-                <p>In each trial, you will be presented with either an exisitng word in English or a fake word that does not exist.</p>
+                <p>In each trial, you will be presented with either an existing word in English or a fake word that does not exist.</p>
                 <p>
                     <b>Your task is to decide whether the word exists not.</b>
-                    <br><br>Each word will disappear in {hide_after} seconds and you will see a total of {num_trials} words.
+                    <br><br>Each word will disappear in {self.hide_after} seconds and you will see a total of {self.num_trials} words.
                 </p>
                 """
             ),
