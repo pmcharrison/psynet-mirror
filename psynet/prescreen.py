@@ -48,7 +48,7 @@ class REPPVolumeCalibration(Module):
             join(
                 self.asset_calibration_audio(materials_url),
                 self.asset_rules(materials_url),
-                self.introduction(),
+                self.introduction,
                 self.volume_calibration(
                     min_time_on_calibration_page,
                     time_estimate_for_calibration_page,
@@ -65,9 +65,10 @@ class REPPVolumeCalibration(Module):
 
     def asset_rules(self, materials_url):
         return ExternalAsset(
-            self.asset_rules_id, materials_url + materials_url + "/REPP-image_rules.png"
+            self.asset_rules_id, materials_url + "/REPP-image_rules.png"
         )
 
+    @property
     def introduction(self):
         return PageMaker(
             lambda assets: InfoPage(
@@ -96,7 +97,7 @@ class REPPVolumeCalibration(Module):
                 "volume_test",
                 AudioPrompt(
                     assets.get(self.asset_calibration_audio_id),
-                    self.calibration_instructions(),
+                    self.calibration_instructions,
                     loop=True,
                 ),
                 self.AudioMeter(min_time=min_time_on_calibration_page, calibrate=False),
@@ -107,6 +108,7 @@ class REPPVolumeCalibration(Module):
     class AudioMeter(AudioMeterControl):
         pass
 
+    @property
     def calibration_instructions(self):
         return Markup(
             f"""
@@ -114,7 +116,7 @@ class REPPVolumeCalibration(Module):
             <hr>
             <h4>We will begin by calibrating your audio volume:</h4>
             <ol>
-                <li>{self.what_are_we_playing()}</li>
+                <li>{self.what_are_we_playing}</li>
                 <li>Set the volume in your laptop to approximately 90% of the maximum.</li>
                 <li><b>The sound meter</b> below indicates whether the audio volume is at the right level.</li>
                 <li>If necessary, turn up the volume on your laptop until the sound meter consistently indicates that
@@ -124,6 +126,7 @@ class REPPVolumeCalibration(Module):
             """
         )
 
+    @property
     def what_are_we_playing(self):
         return "A sound is playing to help you find the right volume in your laptop speakers."
 
@@ -136,18 +139,17 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
 
     Parameters
     ----------
-    label : string, optional
+    label : string
         The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_music".
 
     materials_url: string
         The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
 
-    time_estimate_for_calibration_page : float, optional
-        The time estimate for the calibration page, default: 10.0.
-
-    min_time_on_calibration_page : float, optional
+    min_time_on_calibration_page : float
         Minimum time (in seconds) that the participant must spend on the calibration page, default: 5.0.
 
+    time_estimate_for_calibration_page : float
+        The time estimate for the calibration page, default: 10.0.
     """
 
     def __init__(
@@ -189,18 +191,17 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
 
     Parameters
     ----------
-    label : string, optional
+    label : string
         The label for the REPPVolumeCalibration test, default: "repp_volume_calibration_music".
 
     materials_url: string
         The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
 
-    time_estimate_for_calibration_page : float, optional
-        The time estimate for the calibration page, default: 10.0.
-
-    min_time_on_calibration_page : float, optional
+    min_time_on_calibration_page : float
         Minimum time (in seconds) that the participant must spend on the calibration page, default: 5.0.
 
+    time_estimate_for_calibration_page : float
+        The time estimate for the calibration page, default: 10.0.
     """
 
     def __init__(
@@ -242,13 +243,13 @@ class REPPTappingCalibration(Module):
 
     Parameters
     ----------
-    label : string, optional
+    label : string
         The label for the REPPTappingCalibration test, default: "repp_tapping_calibration".
 
-    time_estimate_per_trial : float, optional
+    time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 10.0.
 
-    min_time_before_submitting : float, optional
+    min_time_before_submitting : float
         Minimum time to wait (in seconds) while the music plays and the participant cannot submit a response, default: 5.0.
 
     materials_url: string
@@ -322,8 +323,6 @@ class NumpySerializer(json.JSONEncoder):
 
 
 class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
-    time_estimate = 10
-
     def show_trial(self, experiment, participant):
         return ModularPage(
             "free_tapping_record",
@@ -431,21 +430,26 @@ class FreeTappingRecordTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the test, default: "free_tapping_record_test".
 
-    performance_threshold : int, optional
+    performance_threshold : int
         The performance threshold, default: 0.6.
 
-    duration_rec_sec : float, optional
+    duration_rec_sec : float
         Length of the recording, default: 8 sec.
 
-    min_num_detected_taps : float, optional
+    min_num_detected_taps : float
         Mininum number of detected taps to pass the test, default: 1.
 
-    num_repeat_trials : float, optional
+    num_repeat_trials : float
         Number of trials to repeat in the trial maker, default: 0.
 
+    time_estimate_per_trial : float
+        The time estimate in seconds per trial, default: 10.0.
+
+    trial_class :
+        Trial class to use.
     """
 
     def __init__(
@@ -455,11 +459,13 @@ class FreeTappingRecordTest(StaticTrialMaker):
         duration_rec_sec: int = 8,
         min_num_detected_taps: int = 3,
         num_repeat_trials: int = 1,
+        time_estimate_per_trial: float = 10.0,
         trial_class=FreeTappingRecordTrial,
     ):
         self.performance_check_type = "performance"
         self.performance_threshold = performance_threshold
         self.give_end_feedback_passed = False
+        self.time_estimate_per_trial = time_estimate_per_trial
 
         super().__init__(
             id_=label,
@@ -564,8 +570,6 @@ class FreeTappingRecordTest(StaticTrialMaker):
 
 
 class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
-    time_estimate = 12
-
     def show_trial(self, experiment, participant):
         return ModularPage(
             "markers_test_trial",
@@ -676,16 +680,23 @@ class REPPMarkersTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the markers check, default: "repp_markers_test".
 
-    performance_threshold : int, optional
+    performance_threshold : int
         The performance threshold, default: 1.
 
-    num_trials : int, optional
+    materials_url: string
+        The location of the REPP materials, default: https://s3.amazonaws.com/repp-materials.
+
+    num_trials : int
         The total number of trials to display, default: 3.
 
+    time_estimate_per_trial : float
+        The time estimate in seconds per trial, default: 12.0.
 
+    trial_class :
+        The trial class to use, default: RecordMarkersTrial
     """
 
     def __init__(
@@ -694,6 +705,7 @@ class REPPMarkersTest(StaticTrialMaker):
         performance_threshold: int = 0.6,
         materials_url: str = "https://s3.amazonaws.com/repp-materials",
         num_trials: int = 3,
+        time_estimate_per_trial: float = 12.0,
         trial_class=RecordMarkersTrial,
     ):
         self.num_trials = num_trials
@@ -702,6 +714,7 @@ class REPPMarkersTest(StaticTrialMaker):
         self.give_end_feedback_passed = False
         self.performance_check_type = "performance"
         self.performance_check_threshold = performance_threshold
+        self.time_estimate_per_trial = time_estimate_per_trial
 
         super().__init__(
             id_=label,
@@ -783,6 +796,45 @@ class REPPMarkersTest(StaticTrialMaker):
         ]
 
 
+class LanguageVocabularyTrial(StaticTrial):
+    time_estimate = None
+
+    def show_trial(self, experiment, participant):
+        path_correct = self.definition["url_image_folder"] + "/correct"
+        path_wrong1 = self.definition["url_image_folder"] + "/wrong1"
+        path_wrong2 = self.definition["url_image_folder"] + "/wrong2"
+        path_wrong3 = self.definition["url_image_folder"] + "/wrong3"
+        order_list = [0, 1, 2, 3]
+
+        # Todo - update this. It is not good practice to call random functions
+        # within show_trial, as they will produce different values on page refresh.
+        rand_order_list = random.sample(order_list, len(order_list))
+        list_path_to_rand = [
+            path_correct,
+            path_wrong1,
+            path_wrong2,
+            path_wrong3,
+        ]
+        list_choices_to_rand = ["correct", "wrong1", "wrong2", "wrong3"]
+
+        return ModularPage(
+            "language_vocabulary_trial",
+            AudioPrompt(
+                self.definition["url_audio"],
+                "Select the picture that matches the word that you heard.",
+            ),
+            PushButtonControl(
+                choices=[list_choices_to_rand[x] for x in rand_order_list],
+                labels=[
+                    f'<img src="{list_path_to_rand[x]}.png" alt="notworking" height="65px" width="65px"/>'
+                    for x in rand_order_list
+                ],
+                style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
+                arrange_vertically=False,
+            ),
+        )
+
+
 class LanguageVocabularyTest(StaticTrialMaker):
     """
     This is a basic language vocabulary test supported in five languages (determined by ``language_code``): American English (en-US), German (de-DE), Hindi (hi-IN),
@@ -794,20 +846,26 @@ class LanguageVocabularyTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the language vocabulary test, default: "language_vocabulary_test".
 
-    language_code : string, optional
+    language_code : string
         The language code of the target language for the test (en-US, de-DE, hi-IN, pt-BR,sp-SP), default: "en-US".
 
-    time_estimate_per_trial : float, optional
+    media_url:
+        Location of the test materials, default: "https://s3.amazonaws.com/langauge-test-materials"
+
+    time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 5.0.
 
-    performance_threshold : int, optional
+    performance_threshold : int
         The performance threshold, default: 6.
 
-    num_trials : float, optional
+    num_trials : float
         The total number of trials to display, default: 7.
+
+    trial_class :
+        Trial class to use, default: LanguageVocabularyTrial
     """
 
     def __init__(
@@ -818,6 +876,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 6,
         num_trials: int = 7,
+        trial_class=LanguageVocabularyTrial,
     ):
         self.introduction = join(
             ExternalAsset(
@@ -832,7 +891,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
 
         super().__init__(
             id_=label,
-            trial_class=self.trial_class,
+            trial_class=trial_class,
             phase="screening",
             stimuli=self.get_stimulus_set(media_url, language_code, self.words),
             max_trials_per_block=num_trials,
@@ -893,45 +952,31 @@ class LanguageVocabularyTest(StaticTrialMaker):
             for name in words
         ]
 
-    class LanguageVocabularyTrial(StaticTrial):
-        time_estimate = None
 
-        def show_trial(self, experiment, participant):
-            path_correct = self.definition["url_image_folder"] + "/correct"
-            path_wrong1 = self.definition["url_image_folder"] + "/wrong1"
-            path_wrong2 = self.definition["url_image_folder"] + "/wrong2"
-            path_wrong3 = self.definition["url_image_folder"] + "/wrong3"
-            order_list = [0, 1, 2, 3]
+class LextaleTrial(StaticTrial):
+    time_estimate = 2.0
+    hide_after = 1.0
 
-            # Todo - update this. It is not good practice to call random functions
-            # within show_trial, as they will produce different values on page refresh.
-            rand_order_list = random.sample(order_list, len(order_list))
-            list_path_to_rand = [
-                path_correct,
-                path_wrong1,
-                path_wrong2,
-                path_wrong3,
-            ]
-            list_choices_to_rand = ["correct", "wrong1", "wrong2", "wrong3"]
-
-            return ModularPage(
-                "language_vocabulary_trial",
-                AudioPrompt(
-                    self.definition["url_audio"],
-                    "Select the picture that matches the word that you heard.",
-                ),
-                PushButtonControl(
-                    choices=[list_choices_to_rand[x] for x in rand_order_list],
-                    labels=[
-                        f'<img src="{list_path_to_rand[x]}.png" alt="notworking" height="65px" width="65px"/>'
-                        for x in rand_order_list
-                    ],
-                    style="min-width: 100px; margin: 10px; background: none; border-color: grey;",
-                    arrange_vertically=False,
-                ),
-            )
-
-    trial_class = LanguageVocabularyTrial
+    def show_trial(self, experiment, participant):
+        return ModularPage(
+            "lextale_trial",
+            ImagePrompt(
+                self.stimulus.assets["word"].url,
+                "Does this word exist?",
+                width="100px",
+                height="100px",
+                hide_after=self.hide_after,
+                margin_bottom="15px",
+                text_align="center",
+            ),
+            PushButtonControl(
+                ["yes", "no"],
+                ["yes", "no"],
+                arrange_vertically=False,
+                style="min-width: 150px; margin: 10px",
+            ),
+            bot_response=lambda: self.definition["correct_answer"],
+        )
 
 
 class LexTaleTest(StaticTrialMaker):
@@ -946,20 +991,26 @@ class LexTaleTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the LexTale test, default: "lextale_test".
 
-    time_estimate_per_trial : float, optional
+    time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 2.0.
 
-    performance_threshold : int, optional
+    performance_threshold : int
         The performance threshold, default: 8.
 
-    hide_after : float, optional
+    media_url: str
+        Location of the media resources, default: "https://s3.amazonaws.com/lextale-test-materials"
+
+    hide_after : float
         The time in seconds after the word disappears, default: 1.0.
 
-    num_trials : float, optional
+    num_trials : float
         The total number of trials to display, default: 12.
+
+    trial_class :
+        Trial class to use, default: LextaleTrial
     """
 
     def __init__(
@@ -970,6 +1021,7 @@ class LexTaleTest(StaticTrialMaker):
         media_url: str = "https://s3.amazonaws.com/lextale-test-materials",
         hide_after: float = 1,
         num_trials: int = 12,
+        trial_class=LextaleTrial,
     ):
         self.hide_after = hide_after
         self.time_estimate_per_trial = time_estimate_per_trial
@@ -978,7 +1030,7 @@ class LexTaleTest(StaticTrialMaker):
 
         super().__init__(
             id_=label,
-            trial_class=self.trial_class,
+            trial_class=trial_class,
             phase="screening",
             stimuli=self.get_stimulus_set(media_url),
             max_trials_per_block=num_trials,
@@ -1040,33 +1092,6 @@ class LexTaleTest(StaticTrialMaker):
             ]
         ]
 
-    class LextaleTrial(StaticTrial):
-        time_estimate = 2.0
-        hide_after = 1.0
-
-        def show_trial(self, experiment, participant):
-            return ModularPage(
-                "lextale_trial",
-                ImagePrompt(
-                    self.stimulus.assets["word"].url,
-                    "Does this word exist?",
-                    width="100px",
-                    height="100px",
-                    hide_after=self.hide_after,
-                    margin_bottom="15px",
-                    text_align="center",
-                ),
-                PushButtonControl(
-                    ["yes", "no"],
-                    ["yes", "no"],
-                    arrange_vertically=False,
-                    style="min-width: 150px; margin: 10px",
-                ),
-                bot_response=lambda: self.definition["correct_answer"],
-            )
-
-    trial_class = LextaleTrial
-
 
 class AttentionTest(Module):
     """
@@ -1076,29 +1101,29 @@ class AttentionTest(Module):
 
     Parameters
     ----------
-    label : string, optional
+    label : string
         The label of the AttentionTest module, default: "attention_test".
 
-    pages : int, optional
+    pages : int
         Whether to display only the first or both pages. Possible values: 1 and 2. Default: 2.
 
-    fail_on: str, optional
+    fail_on: str
         The condition for the AttentionTest check to fail.
         Possible values: "attention_test_1", "attention_test_2", "any", "both", and `None`. Here, "any" means both checks have to be passed by the particpant to continue, "both" means one of two checks can fail and the participant can still continue, and `None` means both checks can fail and the participant can still continue. Default: "attention_test_1".
 
-    prompt_1_explanation: str, optional
+    prompt_1_explanation: str
         The text (including HTML code) to display in the first part of the first paragraph of the first page. Default: "Research on personality has identified characteristic sets of behaviours and cognitive patterns that evolve from biological and enviromental factors. To show that you are paying attention to the experiment, please ignore the question below and select the 'Next' button instead."
 
-    prompt_1_main: str, optional
+    prompt_1_main: str
         The text (including HTML code) to display in the last paragraph of the first page. Default: "As a person, I tend to be competitive, jealous, ambitious, and somewhat impatient."
 
-    prompt_2: str, optional
+    prompt_2: str
         The text to display on the second page. Default: "What is your favourite color?".
 
-    attention_test_2_word: str, optional
+    attention_test_2_word: str
         The word that the user has to enter on the second page. Default: "attention".
 
-    time_estimate_per_trial : float, optional
+    time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 5.0.
     """
 
@@ -1233,18 +1258,24 @@ class ColorBlindnessTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the color blindness test, default: "color_blindness_test".
 
-    media_url : string, optional
+    media_url : string
         The url under which the images to be displayed can be referenced, default:
         "https://s3.amazonaws.com/ishihara-eye-test/jpg"
 
-    performance_threshold : int, optional
+    time_estimate_per_trial : float
+        The time estimate in seconds per trial, default: 5.0.
+
+    performance_threshold : int
         The performance threshold, default: 4.
 
     hide_after : float, optional
         The time in seconds after which the image disappears, default: 3.0.
+
+    trial_class :
+        Trial class to use, default: ColorBlindnessTrial.
     """
 
     def __init__(
@@ -1253,7 +1284,7 @@ class ColorBlindnessTest(StaticTrialMaker):
         media_url: str = "https://s3.amazonaws.com/ishihara-eye-test/jpg",
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 4,
-        hide_after: float = 3.0,
+        hide_after: Optional[float] = 3.0,
         trial_class=ColorBlindnessTrial,
     ):
         self.hide_after = hide_after
@@ -1355,10 +1386,13 @@ class ColorVocabularyTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the color vocabulary test, default: "color_vocabulary_test".
 
-    performance_threshold : int, optional
+    time_estimate_per_trial : float
+        The time estimate in seconds per trial, default: 5.0.
+
+    performance_threshold : int
         The performance threshold, default: 4.
 
     colors : list, optional
@@ -1366,6 +1400,9 @@ class ColorVocabularyTest(StaticTrialMaker):
         the form ("color-name", [H, S, L]) corresponding to hue, saturation, and lightness.
         Hue takes integer values in [0-360]; saturation and lightness take integer values in [0-100].
         Default: the list of the six colors "turquoise", "magenta", "granite", "ivory", "maroon", and "navy".
+
+    trial_class :
+        Trial class to use, default: ColorBlindnessTrial.
     """
 
     def __init__(
@@ -1373,7 +1410,7 @@ class ColorVocabularyTest(StaticTrialMaker):
         label="color_vocabulary_test",
         time_estimate_per_trial: float = 5.0,
         performance_threshold: int = 4,
-        colors: list = None,
+        colors: Optional[list] = None,
         trial_class=ColorVocabularyTrial,
     ):
         if colors:
@@ -1466,18 +1503,21 @@ class HeadphoneTest(StaticTrialMaker):
     Parameters
     ----------
 
-    label : string, optional
+    label : string
         The label for the color headphone check, default: "headphone_test".
 
-    media_url : string, optional
+    media_url : string
         The url under which the images to be displayed can be referenced, default:
         "https://s3.amazonaws.com/headphone-check"
 
-    time_estimate_per_trial : float, optional
+    time_estimate_per_trial : float
         The time estimate in seconds per trial, default: 7.5.
 
-    performance_threshold : int, optional
+    performance_threshold : int
         The performance threshold, default: 4.
+
+    trial_class :
+        Trial class to use, default: HeadphoneTrial.
     """
 
     def __init__(
@@ -1486,6 +1526,7 @@ class HeadphoneTest(StaticTrialMaker):
         media_url: str = "https://s3.amazonaws.com/headphone-check",
         time_estimate_per_trial: float = 7.5,
         performance_threshold: int = 4,
+        trial_class=HeadphoneTrial,
     ):
         self.introduction = self.instruction_page()
         self.time_estimate_per_trial = time_estimate_per_trial
@@ -1493,7 +1534,7 @@ class HeadphoneTest(StaticTrialMaker):
 
         super().__init__(
             id_=label,
-            trial_class=HeadphoneTrial,
+            trial_class=trial_class,
             phase="screening",
             stimuli=self.get_stimulus_set(media_url),
             check_performance_at_end=True,
@@ -1523,8 +1564,6 @@ class HeadphoneTest(StaticTrialMaker):
                 score += 1
         passed = score >= self.performance_threshold
         return {"score": score, "passed": passed}
-
-    # trial_class = HeadphoneTrial
 
     def get_stimulus_set(self, media_url: str):
         return [
@@ -1612,6 +1651,8 @@ class AudioForcedChoiceTest(StaticTrialMaker):
     specific_stimuli :
         If None, all stimuli are used (default). If list of indexes is supplied, only indexes are used.
 
+    trial_class :
+        Trial class to use, default: AudioForcedChoiceTrial.
     """
 
     def __init__(
