@@ -834,6 +834,12 @@ class LanguageVocabularyTrial(StaticTrial):
             ),
         )
 
+    def score_answer(self, answer, definition):
+        if answer == "correct":
+            return 1
+        else:
+            return 0
+
 
 class LanguageVocabularyTest(StaticTrialMaker):
     """
@@ -930,15 +936,6 @@ class LanguageVocabularyTest(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def performance_check(self, experiment, participant, participant_trials):
-        """Should return a dict: {"score": float, "passed": bool}"""
-        score = 0
-        for trial in participant_trials:
-            if trial.answer == "correct":
-                score += 1
-        passed = score > self.performance_threshold
-        return {"score": score, "passed": passed}
-
     def get_stimulus_set(self, media_url: str, language_code: str, words: list):
         return [
             Stimulus(
@@ -977,6 +974,12 @@ class LextaleTrial(StaticTrial):
             ),
             bot_response=lambda: self.definition["correct_answer"],
         )
+
+    def score_answer(self, answer, definition):
+        if answer == definition["correct_answer"]:
+            return 1
+        else:
+            return 0
 
 
 class LexTaleTest(StaticTrialMaker):
@@ -1052,15 +1055,6 @@ class LexTaleTest(StaticTrialMaker):
             ),
             time_estimate=5,
         )
-
-    def performance_check(self, experiment, participant, participant_trials):
-        """Should return a dict: {"score": float, "passed": bool}"""
-        score = 0
-        for trial in participant_trials:
-            if trial.answer == trial.definition["correct_answer"]:
-                score += 1
-        passed = score >= self.performance_threshold
-        return {"score": score, "passed": passed}
 
     def get_stimulus_set(self, media_url: str):
         return [
@@ -1247,6 +1241,12 @@ class ColorBlindnessTrial(StaticTrial):
             bot_response=lambda: self.definition["correct_answer"],
         )
 
+    def score_answer(self, answer, definition):
+        if answer == definition["correct_answer"]:
+            return 1
+        else:
+            return 0
+
 
 class ColorBlindnessTest(StaticTrialMaker):
     """
@@ -1349,15 +1349,6 @@ class ColorBlindnessTest(StaticTrialMaker):
             ]
         ]
 
-    def performance_check(self, experiment, participant, participant_trials):
-        """Should return a dict: {"score": float, "passed": bool}"""
-        score = 0
-        for trial in participant_trials:
-            if trial.answer == trial.definition["correct_answer"]:
-                score += 1
-        passed = score >= self.performance_threshold
-        return {"score": score, "passed": passed}
-
 
 class ColorVocabularyTrial(StaticTrial):
     def show_trial(self, experiment, participant):
@@ -1375,6 +1366,12 @@ class ColorVocabularyTrial(StaticTrial):
             ),
             bot_response=lambda: self.definition["correct_answer"],
         )
+
+    def score_answer(self, answer, definition):
+        if answer == definition["correct_answer"]:
+            return 1
+        else:
+            return 0
 
 
 class ColorVocabularyTest(StaticTrialMaker):
@@ -1452,15 +1449,6 @@ class ColorVocabularyTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def performance_check(self, experiment, participant, participant_trials):
-        """Should return a dict: {"score": float, "passed": bool}"""
-        score = 0
-        for trial in participant_trials:
-            if trial.answer == trial.definition["correct_answer"]:
-                score += 1
-        passed = score >= self.performance_threshold
-        return {"score": score, "passed": passed}
-
     def get_stimulus_set(self, colors: list):
         stimuli = []
         words = [x[0] for x in colors]
@@ -1493,6 +1481,12 @@ class HeadphoneTrial(StaticTrial):
             },
             bot_response=lambda: self.definition["correct_answer"],
         )
+
+    def score_answer(self, answer, definition):
+        if answer == definition["correct_answer"]:
+            return 1
+        else:
+            return 0
 
 
 class HeadphoneTest(StaticTrialMaker):
@@ -1557,15 +1551,6 @@ class HeadphoneTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def performance_check(self, experiment, participant, participant_trials):
-        """Should return a dict: {"score": float, "passed": bool}"""
-        score = 0
-        for trial in participant_trials:
-            if trial.answer == trial.definition["correct_answer"]:
-                score += 1
-        passed = score >= self.performance_threshold
-        return {"score": score, "passed": passed}
-
     def get_stimulus_set(self, media_url: str):
         return [
             Stimulus(
@@ -1603,6 +1588,12 @@ class AudioForcedChoiceTrial(StaticTrial):
             PushButtonControl(self.definition["answer_options"]),
             bot_response=self.definition["answer"],
         )
+
+    def score_answer(self, answer, definition):
+        if answer == definition["answer"]:
+            return 1
+        else:
+            return 0
 
 
 class AudioForcedChoiceTest(StaticTrialMaker):
@@ -1735,15 +1726,6 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             Markup(self.instructions),
             time_estimate=10,
         )
-
-    def performance_check(self, experiment, participant, participant_trials):
-        """Should return a dict: {"score": float, "passed": bool}"""
-        score = 0
-        for trial in participant_trials:
-            if trial.answer == trial.definition["answer"]:
-                score += 1
-        passed = score >= self.performance_threshold
-        return {"score": score, "passed": passed}
 
     def get_stimulus_set(self, label, stimuli, specific_stimuli):
         if self.n_stimuli_to_use is not None:
