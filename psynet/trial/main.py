@@ -1318,7 +1318,9 @@ class TrialMaker(Module):
         # pylint: disable=unused-argument
         """
         Defines an automated check for evaluating the participant's
-        current performance.
+        current performance. The default behaviour is to take the sum of
+        the trial 'scores' (as computed by the Trial.score_answer),
+        but this can be overridden if desired.
 
         Parameters
         ----------
@@ -1345,7 +1347,11 @@ class TrialMaker(Module):
             - ``passed`` (Boolean), identifying whether the participant passed the check.
 
         """
-        raise NotImplementedError
+        score = sum(
+            [trial.score for trial in participant_trials if trial.score is not None]
+        )
+        passed = score > self.performance_threshold
+        return {"score": score, "passed": passed}
 
     def with_namespace(self, x=None):
         return with_trial_maker_namespace(self.id, x=x)
