@@ -18,7 +18,6 @@ from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .data import SQLBase, SQLMixin, ingest_to_model, register_table
 from .field import PythonDict, PythonObject, register_extra_var
@@ -339,11 +338,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         """
         try:
-            if self.label is None:
-                raise AttributeError(
-                    "Assets cannot be deposited without setting a label first. For example, you might write "
-                    "ExperimentAsset(label='prompt', ...)"
-                )
 
             if replace is None:
                 replace = self.replace_existing
@@ -380,19 +374,17 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 # if deposit_complete:
                 #     self.deposited = True
 
-            assert self.label is not None
-
             if self.network:
-                self.network.assets[self.label] = self
+                self.network.assets[self.label_or_key] = self
 
             if self.node:
-                self.node.assets[self.label] = self
+                self.node.assets[self.label_or_key] = self
 
             if self.trial:
-                self.trial.assets[self.label] = self
+                self.trial.assets[self.label_or_key] = self
 
             if self.response:
-                self.response.assets[self.label] = self
+                self.response.assets[self.label_or_key] = self
 
             return asset_to_use
 
