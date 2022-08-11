@@ -151,8 +151,6 @@ class AsyncProcess(SQLBase, SQLMixin):
                 self.node = self.asset.node
             if not self.network:
                 self.network = self.asset.network
-            if not self.response:
-                self.response = self.asset.response
 
         if self.participant is None and self.trial is not None:
             self.participant = self.trial.participant

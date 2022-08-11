@@ -463,7 +463,7 @@ class StaticTrial(Trial):
         raise NotImplementedError
 
     def make_definition(self, experiment, participant):
-        for k, v in self.stimulus.assets:
+        for k, v in self.stimulus.assets.items():
             self.assets[k] = v
         return deep_copy(self.stimulus.definition)
 
