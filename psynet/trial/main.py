@@ -443,7 +443,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     @property
     def awaiting_asset_deposit(self):
         db.session.commit()
-        db.session.refresh(self)
         return any([not a.deposited for a in self.assets.values()])
 
     #################
@@ -658,7 +657,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         return definition
 
     def _finalize_assets(self):
-        db.session.refresh(self)
+        db.session.commit()
         assert self.id is not None
         for _, asset in self.assets.items():
             asset.receive_stimulus_definition(self.definition)
