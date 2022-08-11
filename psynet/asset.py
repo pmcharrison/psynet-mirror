@@ -810,7 +810,8 @@ class ManagedAsset(Asset):
     #         candidates.sort(key=lambda x: x.creation_time)
     #         return candidates[0]
 
-    def get_trial_maker_id(self):
+    @property
+    def trial_maker_id(self):
         from .participant import Participant
 
         if self.parent is None or isinstance(self.parent, Participant):
@@ -818,55 +819,56 @@ class ManagedAsset(Asset):
         else:
             return self.parent.trial_maker_id
 
-    def get_trial_id(self):
+    @property
+    def trial(self):
         from .trial.main import Trial
 
         if isinstance(self.parent, Trial):
-            return self.parent.id
+            return self.parent
 
-    def get_node_id(self):
+    @property
+    def node(self):
         from .trial.main import Trial, TrialNode
 
         if isinstance(self.parent, Trial):
-            return self.parent.node.id
+            return self.parent.node
         elif isinstance(self.parent, TrialNode):
-            return self.parent.id
+            return self.parent
 
-    def get_network_id(self):
+    @property
+    def network(self):
         from .trial.main import Trial, TrialNetwork, TrialNode
 
         if isinstance(self.parent, (Trial, TrialNode)):
-            return self.parent.network_id
+            return self.parent.network
         elif isinstance(self.parent, TrialNetwork):
-            return self.parent.id
+            return self.parent
 
-    def get_participant_id(self):
+    @property
+    def participant(self):
         from .participant import Participant
 
         if self.parent is None:
             return None
         elif isinstance(self.parent, Participant):
-            return self.parent.id
+            return self.parent
         else:
-            return self.parent.participant_id
+            return self.parent.participant
 
     def get_ancestors(self):
         return {
-            "network": self.get_network_id(),
-            "node": self.get_node_id(),
-            "trial": self.get_trial_id(),
-            "participant": self.get_participant_id(),
+            "network": self.network,
+            "node": self.node,
+            "trial": self.trial,
+            "participant": self.participant,
         }
 
     def generate_dir(self):
-        trial_maker_id = self.get_trial_maker_id()
-        participant_id = self.get_participant_id()
-
         dir_ = []
-        if trial_maker_id:
-            dir_.append(f"{trial_maker_id}")
-        if participant_id:
-            dir_.append(f"participant_{participant_id}")
+        if self.trial_maker_id:
+            dir_.append(f"{self.trial_maker_id}")
+        if self.participant_id:
+            dir_.append(f"participant_{self.participant_id}")
         return "/".join(dir_)
 
     def generate_filename(self):
@@ -874,11 +876,11 @@ class ManagedAsset(Asset):
         identifiers = []
         ancestors = self.get_ancestors()
         if ancestors["trial"] is not None:
-            identifiers.append(f"trial_{ancestors['trial']}")
+            identifiers.append(f"trial_{ancestors['trial'].id}")
         if ancestors["node"] is not None:
-            identifiers.append(f"node_{ancestors['node']}")
+            identifiers.append(f"node_{ancestors['node'].id}")
         if ancestors["network"] is not None:
-            identifiers.append(f"network_{ancestors['network']}")
+            identifiers.append(f"network_{ancestors['network'.id]}")
         if self.label:
             identifiers.append(f"{self.label}")
 
