@@ -97,7 +97,7 @@ class Bot(Participant):
                         page.render(self.experiment, self)
                     self.take_page(page, time_factor)
                     counter += 1
-                    db.session.refresh(self)
+                    db.session.commit()
                     if not self.status == "working":
                         break
         logger.info(
