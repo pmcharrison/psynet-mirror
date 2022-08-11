@@ -174,7 +174,6 @@ class AsyncProcess(SQLBase, SQLMixin):
         add more objects to this list, for example participants, assets, and networks,
         but currently we're not confident that PsyNet supports failing those objects in that kind of way.
         """
-        db.session.refresh(self)
         candidates = [self.trial, self.node]
         return [lambda: [obj] for obj in candidates if obj is not None]
 
@@ -196,22 +195,34 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         process = AsyncProcess.query.filter_by(id=process_id).one()
 
-        function = process.function
-
-        arguments = cls.preprocess_args(process.arguments)
-
-        timer = time.monotonic()
-        process.time_started = datetime.datetime.now()
-        db.session.commit()
-
         try:
+            function = process.function
+
+            arguments = cls.preprocess_args(process.arguments)
+
+            timer = time.monotonic()
+            process.time_started = datetime.datetime.now()
+            db.session.commit()
+
             function(**arguments)
             process.time_finished = datetime.datetime.now()
             process.time_taken = time.monotonic() - timer
             process.finished = True
-        except BaseException as err:
-            process.fail(f"Exception in asynchronous process: {repr(err)}")
-            raise
+        except Exception as err:
+            print(f"Exception in asynchronous process {process_id}:")
+            print(traceback.format_exc())
+
+            try:
+                process.fail(f"Exception in asynchronous process: {repr(err)}")
+            except Exception:
+                print(
+                    "Encountered an exception when trying to mark the process as failed:"
+                )
+                print(traceback.format_exc())
+                process.failed = True
+
+            db.session.commit()
+
         finally:
             process.pending = False
             db.session.commit()
@@ -236,20 +247,20 @@ class AsyncProcess(SQLBase, SQLMixin):
 
 class LocalAsyncProcess(AsyncProcess):
     def launch(self):
-        thr = threading.Thread(target=self.thread_function)
+        thr = threading.Thread(
+            target=self.thread_function, kwargs={"process_id": self.id}
+        )
         thr.start()
 
-    def thread_function(self):
+    @classmethod
+    def thread_function(cls, process_id):
         try:
             log = io.StringIO()
 
             with contextlib.redirect_stdout(log):
-                try:
-                    self.call_function(self.id)
-                except BaseException:  # noqa
-                    print(traceback.format_exc())
+                cls.call_function(process_id)
 
-            self.log(log.getvalue())
+            cls.log(log.getvalue())
         finally:
             db.session.commit()
             db.session.close()

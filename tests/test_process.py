@@ -12,9 +12,22 @@ def sleep_for_1s():
     time.sleep(1)
 
 
+def failing_function():
+    assert False, "This is an intentional error thrown for testing purposes."
+
+
 @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses:
+    def test_process_that_fails(self):
+        process = LocalAsyncProcess(failing_function)
+        time.sleep(0.5)
+        db.session.commit()
+
+        assert process.failed
+        assert not process.finished
+        assert not process.pending
+
     def test_awaiting_async_process_participant(self, participant):
         assert not participant.awaiting_async_process
         LocalAsyncProcess(sleep_for_1s, participant=participant)
