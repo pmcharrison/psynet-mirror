@@ -167,6 +167,16 @@ class AsyncProcess(SQLBase, SQLMixin):
         if self.network is None and self.node is not None:
             self.network = self.node.network
 
+        # For safety, to prevent SQLAlchemy bugs...
+        if self.participant:
+            self.participant_id = self.participant.id
+        if self.trial:
+            self.trial_id = self.trial.id
+        if self.node:
+            self.node_id = self.node.id
+        if self.network:
+            self.network_id = self.network.id
+
     @property
     def failure_cascade(self):
         """
