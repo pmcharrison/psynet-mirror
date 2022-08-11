@@ -220,8 +220,8 @@ class AsyncProcess(SQLBase, SQLMixin):
                 )
                 print(traceback.format_exc())
                 process.failed = True
-
             db.session.commit()
+            raise
 
         finally:
             process.pending = False
