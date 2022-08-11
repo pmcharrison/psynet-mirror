@@ -880,7 +880,7 @@ class ManagedAsset(Asset):
         if ancestors["node"] is not None:
             identifiers.append(f"node_{ancestors['node'].id}")
         if ancestors["network"] is not None:
-            identifiers.append(f"network_{ancestors['network'.id]}")
+            identifiers.append(f"network_{ancestors['network'].id}")
         if self.label:
             identifiers.append(f"{self.label}")
 
