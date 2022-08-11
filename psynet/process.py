@@ -154,8 +154,6 @@ class AsyncProcess(SQLBase, SQLMixin):
             if not self.response:
                 self.response = self.asset.response
 
-        if self.participant is None and self.response is not None:
-            self.participant = self.response.participant
         if self.participant is None and self.trial is not None:
             self.participant = self.trial.participant
         if self.node is None and self.trial is not None:
@@ -166,18 +164,8 @@ class AsyncProcess(SQLBase, SQLMixin):
             and self.node.participant is not None
         ):
             self.participant = self.node.participant
-            self.participant_id = self.participant.id
         if self.network is None and self.node is not None:
             self.network = self.node.network
-
-        if self.participant:
-            self.participant_id = self.participant.id
-        if self.node:
-            self.node_id = self.node.id
-        if self.network:
-            self.network_id = self.network.id
-        if self.network:
-            self.trial_maker_id = self.network.trial_maker_id
 
     @property
     def failure_cascade(self):
