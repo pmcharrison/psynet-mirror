@@ -221,41 +221,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         self.data_type = data_type
         self.parent = parent
 
-        # if hasattr(parent, "participant") and parent.participant is not None:
-        #     # The participant might own many assets with the same label,
-        #     # so instead we store it under key, which is guaranteed to be unique.
-        #     parent.participant.assets[key] = self
-
-        # self.participant = participant
-        # if participant:
-        #     self.participant_id = participant.id
-        #
-        # self.network = network
-        # if network:
-        #     self.network_id = network.id
-        #
-        # self.node = node
-        # if node:
-        #     self.node_id = node.id
-        #
-        # self.trial = trial
-        # if trial:
-        #     self.trial_id = trial.id
-        #
-        # self.response = response
-        # if response:
-        #     self.response_id = response.id
-
-        # link_targets = [response, trial, node, network, participant]
-
-        # if any([x is not None for x in link_targets]):
-        #     self.link = AssetLink(self, label, *link_targets)
-        # else:
-        #     self.link = None
-
-        # self.set_trial_maker_id()
-        # self.infer_missing_parents()
-
         self.set_variables(variables)
         self.personal = personal
 
@@ -549,10 +514,6 @@ class AssetParticipant(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="participant_links")
 
-    # def __init__(self, label, asset, participant):
-    #     super().__init__(label, asset)
-    #     self.participant = participant
-
 
 @register_table
 class AssetTrial(AssetLink, SQLBase, SQLMixin):
@@ -577,10 +538,6 @@ class AssetNode(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="node_links")
 
-    # def __init__(self, label, asset, node):
-    #     super().__init__(label, asset)
-    #     self.participant = node
-
 
 @register_table
 class AssetNetwork(AssetLink, SQLBase, SQLMixin):
@@ -590,96 +547,6 @@ class AssetNetwork(AssetLink, SQLBase, SQLMixin):
     network = relationship("TrialNetwork", back_populates="asset_links")
 
     asset = relationship("Asset", back_populates="network_links")
-
-    # def __init__(self, label, asset, network):
-    #     super().__init__(label, asset)
-    #     self.participant = network
-
-
-# @register_table
-# class AssetLink(SQLBase, SQLMixin):
-#     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
-#
-#     __tablename__ = "asset_link"
-#
-#     # Remove default SQL columns
-#     id = None
-#     failed = None
-#     failed_reason = None
-#     time_of_death = None
-#
-#     label = Column(String)
-#
-#     asset_key = Column(String, ForeignKey("asset.key"), primary_key=True)
-#     asset = relationship("Asset")
-#
-#     # response_id = Column(Integer, ForeignKey("response.id"), primary_key=True)
-#     # response = relationship("Response")
-#
-#     trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
-#     trial = relationship("Trial")
-#
-#     node_id = Column(Integer, ForeignKey("node.id"), primary_key=True)
-#     node = relationship("Node")
-#
-#     network_id = Column(Integer, ForeignKey("network.id"), primary_key=True)
-#     network = relationship("Network")
-#
-#     participant_id = Column(Integer, ForeignKey("participant.id"), primary_key=True)
-#     participant = relationship("Participant")
-#
-#     trial_maker_id = Column(String)
-#
-#     def __init__(
-#             self,
-#             asset,
-#             label,
-#             response=None,
-#             trial=None,
-#             node=None,
-#             network=None,
-#             participant=None,
-#     ):
-#         self.asset = asset
-#         self.label = label
-#         self.response = response
-#         self.trial = trial
-#         self.node = node
-#         self.network = network
-#         self.participant = participant
-#
-#         self.set_trial_maker_id()
-#         self.infer_missing_parents()
-#
-#     def set_trial_maker_id(self):
-#         for obj in [self.trial, self.node, self.network]:
-#             try:
-#                 self.trial_maker_id = getattr(obj, "trial_maker_id")
-#                 break
-#             except AttributeError:
-#                 pass
-#
-#     def infer_missing_parents(self):
-#
-#         if self.participant is None and self.response is not None:
-#             self.participant = self.response.participant
-#             self.participant_id = self.participant.id
-#         if self.participant is None and self.trial is not None:
-#             self.participant = self.trial.participant
-#             self.participant_id = self.participant.id
-#         # if self.node is None and self.trial is not None:
-#         #     self.node = self.trial.origin
-#         #     self.node_id = self.node.id
-#         if (
-#                 self.participant is None
-#                 and self.node is not None
-#                 and self.node.participant is not None
-#         ):
-#             self.participant = self.node.participant
-#             self.participant_id = self.participant.id
-#         # if self.network is None and self.node is not None:
-#         #     self.network = self.node.network
-#         #     self.network_id = self.network.id
 
 
 class ManagedAsset(Asset):
