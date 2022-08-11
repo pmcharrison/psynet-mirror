@@ -9,9 +9,12 @@ from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
 from sqlalchemy import Column, ForeignKey, Integer, desc, select
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import field
+from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import claim_var, extra_var, register_extra_var
 from .process import AsyncProcess
@@ -203,7 +206,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
-    assets = relationship("Asset")
+    asset_links = relationship(
+        "AssetParticipant",
+        collection_class=attribute_mapped_collection("label"),
+        cascade="all, delete-orphan",
+    )
+
+    assets = association_proxy(
+        "asset_links", "asset", creator=lambda k, v: AssetParticipant(label=k, asset=v)
+    )
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)

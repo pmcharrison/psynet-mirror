@@ -8,7 +8,6 @@ from dominate import tags
 from dominate.util import raw
 from flask import Markup
 
-from .asset import Asset
 from .bot import BotResponse
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
@@ -142,7 +141,7 @@ class AudioPrompt(Prompt):
 
     def __init__(
         self,
-        url: Union[str, Asset],
+        url,
         text: Union[str, Markup],
         loop: bool = False,
         text_align="left",
@@ -152,6 +151,8 @@ class AudioPrompt(Prompt):
         fade_out: float = 0.0,
         **kwargs,
     ):
+        from .asset import Asset
+
         if play_window is None:
             play_window = [None, None]
         assert len(play_window) == 2
@@ -262,7 +263,7 @@ class VideoPrompt(Prompt):
 
     def __init__(
         self,
-        url: Union[str, Asset],
+        url,
         text: Union[str, Markup],
         text_align="left",
         width: str = "560px",
@@ -273,6 +274,8 @@ class VideoPrompt(Prompt):
         mirrored: bool = True,
         **kwargs,
     ):
+        from .asset import Asset
+
         if play_window is None:
             play_window = [0.0, None]
         assert len(play_window) == 2

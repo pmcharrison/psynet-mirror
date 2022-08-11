@@ -16,6 +16,7 @@ import requests
 from dallinger import db
 from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, relationship
 
@@ -84,11 +85,12 @@ class InheritedAssets(AssetCollection):
         self.ingest_specification_to_db()
 
     def ingest_specification_to_db(self):
+        clear_columns = Asset.foreign_keyed_columns + ["parent"]
         with open(self.path, "r") as file:
             ingest_to_model(
                 file,
                 Asset,
-                clear_columns=Asset.foreign_keyed_columns,
+                clear_columns=clear_columns,
                 replace_columns=dict(
                     inherited=True,
                     inherited_from=self.key,
@@ -119,6 +121,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
     label = Column(String)
+    parent = Column(PythonObject)
     description = Column(String)
     personal = Column(Boolean)
     content_id = Column(String)
@@ -130,39 +133,34 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     storage = Column(PythonObject)
     replace_existing = Column(Boolean)
 
-    participant_id = Column(Integer, ForeignKey("participant.id"))
-    participant = relationship(
-        "psynet.participant.Participant", back_populates="assets"
-    )
-
-    trial_maker_id = Column(String)
-
-    network_id = Column(Integer, ForeignKey("network.id"))
-    network = relationship("TrialNetwork")
-
-    node_id = Column(Integer, ForeignKey("node.id"))
-    node = relationship(
-        "TrialNode"
-    )  # We don't use automatic back_populates functionality, but write our own
-    # "Node",
-    # backref=backref(
-    #     "assets", collection_class=attribute_mapped_collection("label_or_key")
-    # ),
+    # participant_id = Column(Integer, ForeignKey("participant.id"))
+    # participant = relationship(
+    #     "psynet.participant.Participant", back_populates="assets"
     # )
+    #
+    # trial_maker_id = Column(String)
+    #
+    # network_id = Column(Integer, ForeignKey("network.id"))
+    # network = relationship("TrialNetwork")
+    #
+    # node_id = Column(Integer, ForeignKey("node.id"))
+    # node = relationship(
+    #     "TrialNode"
+    # )
+    #
+    # trial_id = Column(Integer, ForeignKey("info.id"))
+    # trial = relationship(
+    #     "Trial"
+    # )  # We don't use automatic back_populates functionality, but write our own
+    #
+    # response_id = Column(Integer, ForeignKey("response.id"))
+    # response = relationship("psynet.timeline.Response", back_populates="assets")
 
-    trial_id = Column(Integer, ForeignKey("info.id"))
-    trial = relationship(
-        "Trial"
-    )  # We don't use automatic back_populates functionality, but write our own
-
-    response_id = Column(Integer, ForeignKey("response.id"))
-    response = relationship("psynet.timeline.Response", back_populates="assets")
-
-    @property
-    def label_or_key(self):
-        if self.label is not None:
-            return self.label
-        return self.key
+    # @property
+    # def label_or_key(self):
+    #     if self.label is not None:
+    #         return self.label
+    #     return self.key
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
@@ -172,13 +170,27 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
-    foreign_keyed_columns = [
-        "participant_id",
-        "network_id",
-        "node_id",
-        "trial_id",
-        "response_id",
-    ]
+    participant_links = relationship(
+        "AssetParticipant", order_by="AssetParticipant.creation_time"
+    )
+    participants = association_proxy("participant_links", "participant")
+
+    trial_links = relationship("AssetTrial", order_by="AssetTrial.creation_time")
+    trials = association_proxy("trial_links", "trial")
+
+    node_links = relationship("AssetNode", order_by="AssetNode.creation_time")
+    nodes = association_proxy("node_links", "node")
+
+    network_links = relationship("AssetNetwork", order_by="AssetNetwork.creation_time")
+    networks = association_proxy("network_links", "network")
+
+    # foreign_keyed_columns = [
+    #     "participant_id",
+    #     "network_id",
+    #     "node_id",
+    #     "trial_id",
+    #     "response_id",
+    # ]
 
     def __init__(
         self,
@@ -188,11 +200,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         is_folder=False,
         data_type=None,
         extension=None,
-        trial=None,
-        response=None,
-        participant=None,
-        node=None,
-        network=None,
+        parent=None,
         replace_existing=False,
         variables: Optional[dict] = None,
         personal=False,
@@ -212,28 +220,44 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.data_type = data_type
 
-        self.participant = participant
-        if participant:
-            self.participant_id = participant.id
+        if parent:
+            _label = label if label else key
+            parent.assets[_label] = self
+            self.parent = parent
+            # if hasattr(parent, "participant") and parent.participant is not None:
+            #     # The participant might own many assets with the same label,
+            #     # so instead we store it under key, which is guaranteed to be unique.
+            #     parent.participant.assets[key] = self
 
-        self.network = network
-        if network:
-            self.network_id = network.id
+        # self.participant = participant
+        # if participant:
+        #     self.participant_id = participant.id
+        #
+        # self.network = network
+        # if network:
+        #     self.network_id = network.id
+        #
+        # self.node = node
+        # if node:
+        #     self.node_id = node.id
+        #
+        # self.trial = trial
+        # if trial:
+        #     self.trial_id = trial.id
+        #
+        # self.response = response
+        # if response:
+        #     self.response_id = response.id
 
-        self.node = node
-        if node:
-            self.node_id = node.id
+        # link_targets = [response, trial, node, network, participant]
 
-        self.trial = trial
-        if trial:
-            self.trial_id = trial.id
+        # if any([x is not None for x in link_targets]):
+        #     self.link = AssetLink(self, label, *link_targets)
+        # else:
+        #     self.link = None
 
-        self.response = response
-        if response:
-            self.response_id = response.id
-
-        self.set_trial_maker_id()
-        self.infer_missing_parents()
+        # self.set_trial_maker_id()
+        # self.infer_missing_parents()
 
         self.set_variables(variables)
         self.personal = personal
@@ -249,14 +273,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         else:
             return None
 
-    def set_trial_maker_id(self):
-        for obj in [self.trial, self.node, self.network]:
-            try:
-                self.trial_maker_id = getattr(obj, "trial_maker_id")
-                break
-            except AttributeError:
-                pass
-
     @property
     def trial_maker(self):
         from psynet.experiment import get_trial_maker
@@ -268,44 +284,20 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             for key, value in variables.items():
                 self.var.set(key, value)
 
-    def infer_missing_parents(self):
-        # TODO - refactor?
-        if self.participant is None and self.response is not None:
-            self.participant = self.response.participant
-            self.participant_id = self.participant.id
-        if self.participant is None and self.trial is not None:
-            self.participant = self.trial.participant
-            self.participant_id = self.participant.id
-        # if self.node is None and self.trial is not None:
-        #     self.node = self.trial.origin
-        #     self.node_id = self.node.id
-        if (
-            self.participant is None
-            and self.node is not None
-            and self.node.participant is not None
-        ):
-            self.participant = self.node.participant
-            self.participant_id = self.participant.id
-        # if self.network is None and self.node is not None:
-        #     self.network = self.node.network
-        #     self.network_id = self.network.id
-        if self.network is not None:
-            self.trial_maker_id = self.network.trial_maker_id
-
-    @property
-    def identifiers(self):
-        attr = [
-            "key",
-            "is_folder",
-            "data_type",
-            "extension",
-            "participant_id",
-            "trial_maker_id",
-            "network_id",
-            "node_id",
-            "trial_id",
-        ]
-        return {a: getattr(self, a) for a in attr}
+    # @property
+    # def identifiers(self):
+    #     attr = [
+    #         "key",
+    #         "is_folder",
+    #         "data_type",
+    #         "extension",
+    #         "participant_id",
+    #         "trial_maker_id",
+    #         "network_id",
+    #         "node_id",
+    #         "trial_id",
+    #     ]
+    #     return {a: getattr(self, a) for a in attr}
 
     def get_extension(self):
         raise NotImplementedError
@@ -374,17 +366,20 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 # if deposit_complete:
                 #     self.deposited = True
 
-            if self.network:
-                self.network.assets[self.label_or_key] = self
+            # if self.link:
+            #     db.session.add(self.link)
 
-            if self.node:
-                self.node.assets[self.label_or_key] = self
-
-            if self.trial:
-                self.trial.assets[self.label_or_key] = self
-
-            if self.response:
-                self.response.assets[self.label_or_key] = self
+            # if self.network:
+            #     self.network.assets[self.label_or_key] = self
+            #
+            # if self.node:
+            #     self.node.assets[self.label_or_key] = self
+            #
+            # if self.trial:
+            #     self.trial.assets[self.label_or_key] = self
+            #
+            # if self.response:
+            #     self.response.assets[self.label_or_key] = self
 
             return asset_to_use
 
@@ -426,20 +421,20 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     @classmethod
     def assert_assets_are_equivalent(cls, old, new):
-        cls.assert_identifiers_are_equivalent(old, new)
+        # cls.assert_identifiers_are_equivalent(old, new)
         cls.assert_content_ids_are_equivalent(old, new)
 
-    @classmethod
-    def assert_identifiers_are_equivalent(cls, old, new):
-        _old = old.identifiers
-        _new = new.identifiers
-        if _old != _new:
-            raise cls.InconsistentIdentifiersError(
-                f"Tried to add duplicate assets with the same key ({old.key}, "
-                "but they had inconsistent identifiers.\n"
-                f"\nOld asset: {old.identifiers}\n"
-                f"\nNew asset: {new.identifiers}"
-            )
+    # @classmethod
+    # def assert_identifiers_are_equivalent(cls, old, new):
+    #     _old = old.identifiers
+    #     _new = new.identifiers
+    #     if _old != _new:
+    #         raise cls.InconsistentIdentifiersError(
+    #             f"Tried to add duplicate assets with the same key ({old.key}, "
+    #             "but they had inconsistent identifiers.\n"
+    #             f"\nOld asset: {old.identifiers}\n"
+    #             f"\nNew asset: {new.identifiers}"
+    #         )
 
     @classmethod
     def assert_content_ids_are_equivalent(cls, old, new):
@@ -525,6 +520,167 @@ class MockAsset(Asset):
         return ""
 
 
+class AssetLink:
+    id = None
+    failed = None
+    failed_reason = None
+    time_of_death = None
+
+    label = Column(String, primary_key=True)
+
+    @declared_attr
+    def asset_key(cls):
+        return Column(String, ForeignKey("asset.key"), primary_key=True)
+
+    def __init__(self, label, asset):
+        self.label = label
+        self.asset = asset
+
+
+@register_table
+class AssetParticipant(AssetLink, SQLBase, SQLMixin):
+    __tablename__ = "asset_participant"
+
+    participant_id = Column(Integer, ForeignKey("participant.id"), primary_key=True)
+    participant = relationship(
+        "psynet.participant.Participant", back_populates="asset_links"
+    )
+
+    asset = relationship("Asset", back_populates="participant_links")
+
+    def __init__(self, label, asset, participant):
+        super().__init__(label, asset)
+        self.participant = participant
+
+
+@register_table
+class AssetTrial(AssetLink, SQLBase, SQLMixin):
+    __tablename__ = "asset_trial"
+
+    trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
+    trial = relationship("Trial", back_populates="asset_links")
+
+    asset = relationship("Asset", back_populates="trial_links")
+
+    def __init__(self, asset, trial):
+        super().__init__(asset)
+        self.trial = trial
+
+
+@register_table
+class AssetNode(AssetLink, SQLBase, SQLMixin):
+    __tablename__ = "asset_node"
+
+    node_id = Column(Integer, ForeignKey("node.id"), primary_key=True)
+    node = relationship("TrialNode", back_populates="asset_links")
+
+    asset = relationship("Asset", back_populates="node_links")
+
+    def __init__(self, asset, node):
+        super().__init__(asset)
+        self.participant = node
+
+
+@register_table
+class AssetNetwork(AssetLink, SQLBase, SQLMixin):
+    __tablename__ = "asset_network"
+
+    network_id = Column(Integer, ForeignKey("network.id"), primary_key=True)
+    network = relationship("TrialNetwork", back_populates="asset_links")
+
+    asset = relationship("Asset", back_populates="network_links")
+
+    def __init__(self, asset, network):
+        super().__init__(asset)
+        self.participant = network
+
+
+# @register_table
+# class AssetLink(SQLBase, SQLMixin):
+#     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
+#
+#     __tablename__ = "asset_link"
+#
+#     # Remove default SQL columns
+#     id = None
+#     failed = None
+#     failed_reason = None
+#     time_of_death = None
+#
+#     label = Column(String)
+#
+#     asset_key = Column(String, ForeignKey("asset.key"), primary_key=True)
+#     asset = relationship("Asset")
+#
+#     # response_id = Column(Integer, ForeignKey("response.id"), primary_key=True)
+#     # response = relationship("Response")
+#
+#     trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
+#     trial = relationship("Trial")
+#
+#     node_id = Column(Integer, ForeignKey("node.id"), primary_key=True)
+#     node = relationship("Node")
+#
+#     network_id = Column(Integer, ForeignKey("network.id"), primary_key=True)
+#     network = relationship("Network")
+#
+#     participant_id = Column(Integer, ForeignKey("participant.id"), primary_key=True)
+#     participant = relationship("Participant")
+#
+#     trial_maker_id = Column(String)
+#
+#     def __init__(
+#             self,
+#             asset,
+#             label,
+#             response=None,
+#             trial=None,
+#             node=None,
+#             network=None,
+#             participant=None,
+#     ):
+#         self.asset = asset
+#         self.label = label
+#         self.response = response
+#         self.trial = trial
+#         self.node = node
+#         self.network = network
+#         self.participant = participant
+#
+#         self.set_trial_maker_id()
+#         self.infer_missing_parents()
+#
+#     def set_trial_maker_id(self):
+#         for obj in [self.trial, self.node, self.network]:
+#             try:
+#                 self.trial_maker_id = getattr(obj, "trial_maker_id")
+#                 break
+#             except AttributeError:
+#                 pass
+#
+#     def infer_missing_parents(self):
+#
+#         if self.participant is None and self.response is not None:
+#             self.participant = self.response.participant
+#             self.participant_id = self.participant.id
+#         if self.participant is None and self.trial is not None:
+#             self.participant = self.trial.participant
+#             self.participant_id = self.participant.id
+#         # if self.node is None and self.trial is not None:
+#         #     self.node = self.trial.origin
+#         #     self.node_id = self.node.id
+#         if (
+#                 self.participant is None
+#                 and self.node is not None
+#                 and self.node.participant is not None
+#         ):
+#             self.participant = self.node.participant
+#             self.participant_id = self.participant.id
+#         # if self.network is None and self.node is not None:
+#         #     self.network = self.node.network
+#         #     self.network_id = self.network.id
+
+
 class ManagedAsset(Asset):
     input_path = Column(String)
     # autogenerate_key = Column(Boolean)
@@ -541,11 +697,7 @@ class ManagedAsset(Asset):
         description=None,
         data_type=None,
         extension=None,
-        trial=None,
-        response=None,
-        participant=None,
-        node=None,
-        network=None,
+        parent=None,
         key=None,
         variables: Optional[dict] = None,
         personal=False,
@@ -567,11 +719,7 @@ class ManagedAsset(Asset):
             description=description,
             data_type=data_type,
             extension=extension,
-            trial=trial,
-            response=response,
-            participant=participant,
-            node=node,
-            network=network,
+            parent=parent,
             replace_existing=replace_existing,
             variables=variables,
             personal=personal,
@@ -651,52 +799,85 @@ class ManagedAsset(Asset):
         filename = self.generate_filename()
         return os.path.join(dir_, filename)
 
-    def generate_dir(self):
-        dir_ = []
-        if self.trial_maker_id:
-            dir_.append(str(self.trial_maker_id))
-        if self.participant:
-            # For some reason, checking for self.participant_id does not always work.
-            # It seems that SQLAlchemy's propagation of `participant` to `participant_id`
-            # is not fully reliable.
-            dir_.append(f"participant_{self.participant.id}")
-        return "/".join(dir_)
+    # def get_original_parent(self):
+    #     candidates = self.trials + self.nodes + self.networks + self.participants
+    #     # if len(candidates) == 0:
+    #     #     candidates = self.participants
+    #     if len(candidates) == 0:
+    #         return None
+    #     else:
+    #         candidates.sort(key=lambda x: x.creation_time)
+    #         return candidates[0]
 
-    def get_parents(self):
-        parents = {
-            "network": self.network_id,
-            "node": self.node_id,
-            "trial": self.trial_id,
-            "response": self.response_id,
-            "participant": self.participant_id,
+    def get_trial_maker_id(self):
+        from .participant import Participant
+
+        if isinstance(self.parent, Participant):
+            return None
+        else:
+            return self.parent.trial_maker_id
+
+    def get_trial_id(self):
+        from .trial.main import Trial
+
+        if isinstance(self.parent, Trial):
+            return self.parent.id
+
+    def get_node_id(self):
+        from .trial.main import Trial, TrialNode
+
+        if isinstance(self.parent, Trial):
+            return self.parent.node.id
+        elif isinstance(self.parent, TrialNode):
+            return self.parent.id
+
+    def get_network_id(self):
+        from .trial.main import Trial, TrialNetwork, TrialNode
+
+        if isinstance(self.parent, (Trial, TrialNode)):
+            return self.parent.network_id
+        elif isinstance(self.parent, TrialNetwork):
+            return self.parent.id
+
+    def get_participant_id(self):
+        from .participant import Participant
+
+        if isinstance(self.parent, Participant):
+            return self.parent.id
+        else:
+            return self.parent.participant_id
+
+    def get_ancestors(self):
+        return {
+            "network": self.get_network_id(),
+            "node": self.get_node_id(),
+            "trial": self.get_trial_id(),
+            "participant": self.get_participant_id(),
         }
 
-        if not parents["network"]:
-            for obj in [self.trial, self.node]:
-                if obj:
-                    parents["network"] = obj.network_id
-                    break
-        if not parents["node"]:
-            if self.trial:
-                parents["network"] = self.trial_id
-        if not parents["response"]:
-            if self.trial:
-                parents["response"] = self.trial.response_id
+    def generate_dir(self):
+        trial_maker_id = self.get_trial_maker_id()
+        participant_id = self.get_participant_id()
 
-        return parents
+        dir_ = []
+        if trial_maker_id:
+            dir_.append(f"{trial_maker_id}")
+        if participant_id:
+            dir_.append(f"participant_{participant_id}")
+        return "/".join(dir_)
 
     def generate_filename(self):
         filename = ""
         identifiers = []
-        parents = self.get_parents()
-        if parents["response"] is not None:
-            identifiers.append(f"response_{parents['response']}")
-        if parents["trial"] is not None:
-            identifiers.append(f"trial_{parents['trial']}")
-        if parents["node"] is not None:
-            identifiers.append(f"node_{parents['node']}")
-        if parents["network"] is not None:
-            identifiers.append(f"network_{parents['network']}")
+        ancestors = self.get_get_ancestors()
+        if ancestors["response"] is not None:
+            identifiers.append(f"response_{ancestors['response']}")
+        if ancestors["trial"] is not None:
+            identifiers.append(f"trial_{ancestors['trial']}")
+        if ancestors["node"] is not None:
+            identifiers.append(f"node_{ancestors['node']}")
+        if ancestors["network"] is not None:
+            identifiers.append(f"network_{ancestors['network']}")
         if self.label:
             identifiers.append(f"{self.label}")
 
@@ -812,11 +993,7 @@ class FunctionAssetMixin:
         description=None,
         data_type=None,
         extension=None,
-        trial=None,
-        response=None,
-        participant=None,
-        node=None,
-        network=None,
+        parent=None,
         variables: Optional[dict] = None,
         replace_existing=False,
         personal=False,
@@ -841,11 +1018,7 @@ class FunctionAssetMixin:
             description=description,
             data_type=data_type,
             extension=extension,
-            trial=trial,
-            response=response,
-            participant=participant,
-            node=node,
-            network=network,
+            parent=parent,
             key=key,
             variables=variables,
             replace_existing=replace_existing,
@@ -930,11 +1103,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
         description=None,
         data_type=None,
         extension=None,
-        trial=None,
-        response=None,
-        participant=None,
-        node=None,
-        network=None,
+        parent=None,
         variables: Optional[dict] = None,
         replace_existing=False,
         personal=False,
@@ -948,11 +1117,7 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
             description=description,
             data_type=data_type,
             extension=extension,
-            trial=trial,
-            response=response,
-            participant=participant,
-            node=node,
-            network=network,
+            parent=parent,
             variables=variables,
             replace_existing=replace_existing,
             personal=personal,
@@ -1011,11 +1176,7 @@ class ExternalAsset(Asset):
         extension=None,
         replace_existing=False,
         label=None,
-        participant=None,
-        network=None,
-        node=None,
-        trial=None,
-        response=None,
+        parent=None,
         variables: Optional[dict] = None,
         personal=False,
     ):
@@ -1029,11 +1190,7 @@ class ExternalAsset(Asset):
             description=description,
             data_type=data_type,
             extension=extension,
-            trial=trial,
-            response=response,
-            participant=participant,
-            node=node,
-            network=network,
+            parent=parent,
             replace_existing=replace_existing,
             variables=variables,
             personal=personal,
@@ -1077,11 +1234,7 @@ class ExternalS3Asset(ExternalAsset):
         data_type=None,
         replace_existing=False,
         label=None,
-        participant=None,
-        network=None,
-        node=None,
-        trial=None,
-        response=None,
+        parent=None,
         variables: Optional[dict] = None,
         personal=False,
     ):
@@ -1097,11 +1250,7 @@ class ExternalS3Asset(ExternalAsset):
             data_type=data_type,
             replace_existing=replace_existing,
             label=label,
-            participant=participant,
-            network=network,
-            node=node,
-            trial=trial,
-            response=response,
+            parent=parent,
             variables=variables,
             personal=personal,
         )

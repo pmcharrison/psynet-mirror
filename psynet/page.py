@@ -6,7 +6,6 @@ from typing import List, Optional, Union
 
 from flask import Markup, escape
 
-from .bot import BotResponse
 from .modular_page import (
     AudioPrompt,
     AudioSliderControl,
@@ -71,6 +70,8 @@ class InfoPage(Page):
         return {"content": self.content}
 
     def get_bot_response(self, experiment, bot):
+        from .bot import BotResponse
+
         return BotResponse(
             answer=None,
             metadata=self.metadata(),

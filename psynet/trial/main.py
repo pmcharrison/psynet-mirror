@@ -14,11 +14,14 @@ from dominate import tags
 from flask import Markup
 from sqlalchemy import Column, String, select
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.sql.expression import cast
 
+from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
 from ..field import (
     PythonDict,
@@ -310,6 +313,16 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         .exists()
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
+
+    asset_links = relationship(
+        "AssetTrial",
+        collection_class=attribute_mapped_collection("label"),
+        cascade="all, delete-orphan",
+    )
+
+    assets = association_proxy(
+        "asset_links", "asset", creator=lambda k, v: AssetTrial(label=k, asset=v)
+    )
 
     # assets = relationship("Asset", collection_class=attribute_mapped_collection("label_or_key"))
 
@@ -2222,9 +2235,16 @@ class TrialNetwork(SQLMixinDallinger, Network):
     target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
 
     async_processes = relationship("AsyncProcess")
-    assets = Column(PythonDict)
 
-    # assets = relationship("Asset")
+    asset_links = relationship(
+        "AssetNetwork",
+        collection_class=attribute_mapped_collection("label"),
+        cascade="all, delete-orphan",
+    )
+
+    assets = association_proxy(
+        "asset_links", "asset", creator=lambda k, v: AssetNetwork(label=k, asset=v)
+    )
 
     @property
     def trial_maker(self):
@@ -2381,7 +2401,17 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     )
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
-    assets = Column(PythonDict)
+    asset_links = relationship(
+        "AssetNode",
+        collection_class=attribute_mapped_collection("label"),
+        cascade="all, delete-orphan",
+    )
+
+    assets = association_proxy(
+        "asset_links", "asset", creator=lambda k, v: AssetNode(label=k, asset=v)
+    )
+
+    # assets = Column(PythonDict)
 
     # @property
     # def assets(self):

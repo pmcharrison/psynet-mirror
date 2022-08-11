@@ -191,18 +191,23 @@ class Stimulus(TrialNode, HasDefinition):
             if not asset.has_key:
                 asset.key = f"{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
 
-            asset.node = self
-            asset.node_id = self.id
+            from ..asset import AssetLink
 
-            asset.network = self.network
-            asset.network_id = self.network_id
+            link = AssetLink(asset, label, node=self)
+            db.session.add(link)
+
+            # asset.node = self
+            # asset.node_id = self.id
+            #
+            # asset.network = self.network
+            # asset.network_id = self.network_id
 
             asset.receive_stimulus_definition(self.definition)
 
             experiment.assets.stage(asset)
             db.session.add(asset)
 
-            self.assets[label] = asset
+            # self.assets[label] = asset
 
         db.session.commit()
         self.assets = self._staged_assets

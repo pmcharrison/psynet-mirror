@@ -16,12 +16,10 @@ from dallinger.config import get_config
 from dominate import tags
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
-from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
 from .field import PythonDict, claim_field
-from .participant import Participant
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -1611,7 +1609,9 @@ class Response(_Response):
 
     __extra_vars__ = {}
 
-    participant = relationship(Participant, backref="all_responses")
+    participant = relationship(
+        "psynet.participant.Participant", backref="all_responses"
+    )
     participant_id = Column(Integer, ForeignKey("participant.id"))
 
     question = claim_field("question", __extra_vars__, str)
@@ -1639,9 +1639,9 @@ class Response(_Response):
         self.metadata_ = metadata
 
     async_processes = relationship("AsyncProcess")
-    assets = relationship(
-        "Asset", collection_class=attribute_mapped_collection("label_or_key")
-    )
+    # assets = relationship(
+    #     "Asset", collection_class=attribute_mapped_collection("label_or_key")
+    # )
 
     def __init__(
         self,
