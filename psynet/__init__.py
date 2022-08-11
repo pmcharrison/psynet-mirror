@@ -1,8 +1,9 @@
 import os
 
-# Registering SQLAlchemy and jsonpickle handlers
+# Registering SQLAlchemy and jsonpickle handlers -
+# not enforcing this can give us some hairy bugs in our regression tests
 from . import asset, data, field, serialize, trial  # noqa
-from .trial import main  # noqa
+from .trial import chain, dense, main  # noqa
 
 here = os.path.abspath(os.path.dirname(__file__))
 
