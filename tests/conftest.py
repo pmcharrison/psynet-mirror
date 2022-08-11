@@ -71,12 +71,14 @@ def in_experiment_directory(experiment_directory):
 
 
 @pytest.fixture
-def launched_experiment(request, env, clear_workers, in_experiment_directory):
+def launched_experiment(
+    request, env, clear_workers, in_experiment_directory, db_session
+):
     """
     This overrides the debug_experiment fixture in Dallinger to
     use PsyNet debug instead. Note that we use legacy mode for now.
     """
-    print(f"Launching experiment in directory {in_experiment_directory}...")
+    print(f"Launching experiment in directory '{in_experiment_directory}'...")
     init_db(drop_all=True)
     time.sleep(0.5)
     kill_psynet_chrome_processes()
@@ -345,8 +347,8 @@ def trial(launched_experiment, trial_class, node, participant):
         propagate_failure=False,
         is_repeat_trial=False,
     )
-    db_session.add(t)
-    db_session.commit()
+    db.session.add(t)
+    db.session.commit()
     return t
 
 
