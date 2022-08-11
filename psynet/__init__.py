@@ -1,9 +1,36 @@
 import os
 
-# Registering SQLAlchemy and jsonpickle handlers -
-# not enforcing this can give us some hairy bugs in our regression tests
-from . import asset, data, field, serialize, trial  # noqa
-from .trial import chain, dense, main  # noqa
+# To make sure the tests run properly (in particular, avoiding errors
+# where one test breaks the test that runs after it),
+# it is essential to always import ALL modules that define SQLAlchemy
+# classes whenever the PsyNet package is imported.
+# Not enforcing this can give us some hairy bugs in our regression tests,
+# things like queries unexpectedly returning no items even though
+# we can see those items in the database.
+from . import (  # noqa
+    asset,
+    bot,
+    data,
+    field,
+    participant,
+    prescreen,
+    process,
+    serialize,
+    trial,
+)
+from .trial import (  # noqa
+    audio,
+    audio_gibbs,
+    chain,
+    dense,
+    graph,
+    imitation_chain,
+    main,
+    mcmcp,
+    record,
+    static,
+    video,
+)
 
 here = os.path.abspath(os.path.dirname(__file__))
 
