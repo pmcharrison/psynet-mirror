@@ -124,13 +124,15 @@ class AsyncProcess(SQLBase, SQLMixin):
         db.session.commit()
 
     def check_function(self, function):
+        from .serialize import serialize, unserialize
+
         assert callable(function)
-        # if unserialize(serialize(function)) is None:
-        #     raise ValueError(
-        #         "The provided function could not be serialized. Make sure that the function is defined at the module "
-        #         "or class level, rather than being a lambda function or a temporary function defined within "
-        #         "another function."
-        #     )
+        if unserialize(serialize(function)) is None:
+            raise ValueError(
+                "The provided function could not be serialized. Make sure that the function is defined at the module "
+                "or class level, rather than being a lambda function or a temporary function defined within "
+                "another function."
+            )
         if inspect.ismethod(function):
             raise ValueError(
                 "You cannot pass an instance method to an AsyncProcess. ",
