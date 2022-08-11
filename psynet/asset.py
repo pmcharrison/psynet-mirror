@@ -868,7 +868,7 @@ class ManagedAsset(Asset):
         if self.trial_maker_id:
             dir_.append(f"{self.trial_maker_id}")
         if self.participant:
-            dir_.append(f"participant_{self.participant_id}")
+            dir_.append(f"participant_{self.participant.id}")
         return "/".join(dir_)
 
     def generate_filename(self):
