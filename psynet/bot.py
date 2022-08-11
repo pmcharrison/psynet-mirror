@@ -1,6 +1,7 @@
 import time
 import uuid
 
+import requests
 from cached_property import cached_property
 from dallinger import db
 
@@ -81,25 +82,31 @@ class Bot(Participant):
             Whether to run page rendering code (default: False).
             This is generally only useful for testing.
         """
-        from gunicorn import util
-
-        from .utils import working_directory
-
         logger.info(f"Bot {self.id} is starting the experiment.")
         counter = 1  # You start already on a page
 
-        with working_directory(self.experiment.var.server_working_directory):
-            app = util.import_app("dallinger.experiment_server.sockets:app")
-            with app.app_context(), app.test_request_context():
-                while True:
-                    page = self.experiment.get_current_page(self.experiment, self)
-                    if render_pages:
-                        page.render(self.experiment, self)
-                    self.take_page(page, time_factor)
-                    counter += 1
-                    db.session.commit()
-                    if not self.status == "working":
-                        break
+        # We tried the following code to simulate the Flask server and thereby
+        # run Page.render() functions directly. However the approach fails
+        # when we try to run multiple tests in succession, because Flask
+        # doesn't let us deregister the old apps.
+        #
+        # from gunicorn import util
+        # from .utils import working_directory
+        # with working_directory(self.experiment.var.server_working_directory):
+        # app = util.import_app("dallinger.experiment_server.sockets:app")
+        # with app.app_context(), app.test_request_context():
+        while True:
+            page = self.experiment.get_current_page(self.experiment, self)
+            if render_pages:
+                req = requests.get(
+                    f"http://localhost:5000/timeline?participant_id={self.id}&auth_token={self.auth_token}"
+                )
+                assert req.status_code == 200
+            self.take_page(page, time_factor)
+            counter += 1
+            db.session.commit()
+            if not self.status == "working":
+                break
         logger.info(
             f"Bot {self.id} has finished the experiment (took {counter} page(s))."
         )
