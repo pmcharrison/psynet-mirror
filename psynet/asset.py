@@ -867,7 +867,7 @@ class ManagedAsset(Asset):
         dir_ = []
         if self.trial_maker_id:
             dir_.append(f"{self.trial_maker_id}")
-        if self.participant_id:
+        if self.participant:
             dir_.append(f"participant_{self.participant_id}")
         return "/".join(dir_)
 
