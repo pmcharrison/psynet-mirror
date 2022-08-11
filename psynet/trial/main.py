@@ -1469,8 +1469,9 @@ class TrialMaker(Module):
                 experiment=experiment, participant=participant
             )
         participant.current_trial = trial
-        if trial:
-            participant.current_trial_id = trial.id  # shouldn't really be necessary...
+        participant.current_trial_id = (
+            trial.id if trial else None
+        )  # shouldn't really be necessary...
         db.session.commit()
 
     def _prepare_repeat_trial(self, experiment, participant):

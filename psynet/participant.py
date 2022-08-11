@@ -191,10 +191,27 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     current_trial_id = Column(
         Integer, ForeignKey("info.id")
     )  # 'info.id' because trials are stored in the info table
-    current_trial = relationship(
-        "psynet.trial.main.Trial",
-        foreign_keys="[psynet.participant.Participant.current_trial_id]",
-    )
+
+    # This should work but it's buggy, don't know why.
+    # current_trial = relationship(
+    #     "psynet.trial.main.Trial",
+    #     foreign_keys="[psynet.participant.Participant.current_trial_id]",
+    # )
+    #
+    # Instead we resort to the below...
+
+    @property
+    def current_trial(self):
+        from .trial.main import Trial
+
+        if self.current_trial_id is None:
+            return None
+        else:
+            return Trial.query.filter_by(id=self.current_trial_id).one()
+
+    @current_trial.setter
+    def current_trial(self, trial):
+        self.current_trial_id = trial.id if trial else None
 
     awaiting_async_process = column_property(
         select(AsyncProcess)
