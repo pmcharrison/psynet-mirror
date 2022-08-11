@@ -1,4 +1,3 @@
-import functools
 import operator
 import os
 import pickle
@@ -191,11 +190,6 @@ class Stimulus(TrialNode, HasDefinition):
             if not asset.has_key:
                 asset.key = f"{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
 
-            from ..asset import AssetLink
-
-            link = AssetLink(asset, label, node=self)
-            db.session.add(link)
-
             # asset.node = self
             # asset.node_id = self.id
             #
@@ -207,7 +201,7 @@ class Stimulus(TrialNode, HasDefinition):
             experiment.assets.stage(asset)
             db.session.add(asset)
 
-            # self.assets[label] = asset
+            self.assets[label] = asset
 
         db.session.commit()
         self.assets = self._staged_assets
@@ -469,6 +463,8 @@ class StaticTrial(Trial):
         raise NotImplementedError
 
     def make_definition(self, experiment, participant):
+        for k, v in self.stimulus.assets:
+            self.assets[k] = v
         return deep_copy(self.stimulus.definition)
 
     def summarize(self):
@@ -482,9 +478,6 @@ class StaticTrial(Trial):
             "stimulus_id": self.stimulus.id,
             "stimulus_version_id": self.stimulus_version.id,
         }
-
-
-functools.partial
 
 
 class StaticTrialMaker(NetworkTrialMaker):

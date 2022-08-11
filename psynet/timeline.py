@@ -19,7 +19,7 @@ from sqlalchemy.orm import relationship
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import PythonDict, claim_field
+from .field import claim_field
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -1623,8 +1623,6 @@ class Response(_Response):
     # metadata is a protected attribute in SQLAlchemy, hence the underscore
     # and the functional setter/getter.
     metadata_ = claim_field("metadata", __extra_vars__)
-
-    assets = Column(PythonDict)
 
     @property
     def metadata(self):

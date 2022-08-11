@@ -187,7 +187,7 @@ class AudioGibbsNetwork(GibbsNetwork):
                 asset = ExperimentAsset(
                     label="slider_stimulus",
                     input_path=batch_path,
-                    node=node,
+                    parent=node,
                 )
                 asset.deposit()
 

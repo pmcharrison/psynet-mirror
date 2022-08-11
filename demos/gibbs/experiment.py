@@ -154,7 +154,7 @@ class CustomTrial(GibbsTrial):
                 label="async_post_trial",
                 input_path=file.name,
                 extension=".txt",
-                trial=self,
+                parent=self,
             )
             asset.deposit()
 

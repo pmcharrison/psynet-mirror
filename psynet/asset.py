@@ -219,15 +219,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             data_type = self.infer_data_type()
 
         self.data_type = data_type
+        self.parent = parent
 
-        if parent:
-            _label = label if label else key
-            parent.assets[_label] = self
-            self.parent = parent
-            # if hasattr(parent, "participant") and parent.participant is not None:
-            #     # The participant might own many assets with the same label,
-            #     # so instead we store it under key, which is guaranteed to be unique.
-            #     parent.participant.assets[key] = self
+        # if hasattr(parent, "participant") and parent.participant is not None:
+        #     # The participant might own many assets with the same label,
+        #     # so instead we store it under key, which is guaranteed to be unique.
+        #     parent.participant.assets[key] = self
 
         # self.participant = participant
         # if participant:
@@ -365,6 +362,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 self._deposit(self.storage, async_, delete_input)
                 # if deposit_complete:
                 #     self.deposited = True
+
+            if self.parent:
+                _label = self.label if self.label else self.key
+                self.parent.assets[_label] = asset_to_use
 
             # if self.link:
             #     db.session.add(self.link)
@@ -548,9 +549,9 @@ class AssetParticipant(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="participant_links")
 
-    def __init__(self, label, asset, participant):
-        super().__init__(label, asset)
-        self.participant = participant
+    # def __init__(self, label, asset, participant):
+    #     super().__init__(label, asset)
+    #     self.participant = participant
 
 
 @register_table
@@ -562,9 +563,9 @@ class AssetTrial(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="trial_links")
 
-    def __init__(self, asset, trial):
-        super().__init__(asset)
-        self.trial = trial
+    # def __init__(self, label, asset, trial):
+    #     super().__init__(label, asset)
+    #     self.trial = trial
 
 
 @register_table
@@ -576,9 +577,9 @@ class AssetNode(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="node_links")
 
-    def __init__(self, asset, node):
-        super().__init__(asset)
-        self.participant = node
+    # def __init__(self, label, asset, node):
+    #     super().__init__(label, asset)
+    #     self.participant = node
 
 
 @register_table
@@ -590,9 +591,9 @@ class AssetNetwork(AssetLink, SQLBase, SQLMixin):
 
     asset = relationship("Asset", back_populates="network_links")
 
-    def __init__(self, asset, network):
-        super().__init__(asset)
-        self.participant = network
+    # def __init__(self, label, asset, network):
+    #     super().__init__(label, asset)
+    #     self.participant = network
 
 
 # @register_table
@@ -812,7 +813,7 @@ class ManagedAsset(Asset):
     def get_trial_maker_id(self):
         from .participant import Participant
 
-        if isinstance(self.parent, Participant):
+        if self.parent is None or isinstance(self.parent, Participant):
             return None
         else:
             return self.parent.trial_maker_id
@@ -842,7 +843,9 @@ class ManagedAsset(Asset):
     def get_participant_id(self):
         from .participant import Participant
 
-        if isinstance(self.parent, Participant):
+        if self.parent is None:
+            return None
+        elif isinstance(self.parent, Participant):
             return self.parent.id
         else:
             return self.parent.participant_id
@@ -869,9 +872,7 @@ class ManagedAsset(Asset):
     def generate_filename(self):
         filename = ""
         identifiers = []
-        ancestors = self.get_get_ancestors()
-        if ancestors["response"] is not None:
-            identifiers.append(f"response_{ancestors['response']}")
+        ancestors = self.get_ancestors()
         if ancestors["trial"] is not None:
             identifiers.append(f"trial_{ancestors['trial']}")
         if ancestors["node"] is not None:
@@ -1876,11 +1877,6 @@ class AssetRegistry:
             n_jobs = psutil.cpu_count()
 
         logger.info("Preparing assets for deployment...")
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
         Parallel(
             n_jobs=n_jobs,
             verbose=10,

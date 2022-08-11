@@ -2173,9 +2173,7 @@ class AudioRecordControl(RecordControl):
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
         audio = blobs["audioRecording"]
-        participant = kwargs["participant"]
         trial = kwargs["trial"]
-        response = kwargs["response"]
 
         # Need to leave file deletion to the depositing process
         # if we're going to run it asynchronously
@@ -2188,9 +2186,7 @@ class AudioRecordControl(RecordControl):
                 label=self.page.label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
-                trial=trial,
-                participant=participant,
-                response=response,
+                parent=trial,
                 variables=dict(),
                 personal=self.personal,
             )
@@ -2326,9 +2322,7 @@ class VideoRecordControl(RecordControl):
 
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
-        participant = kwargs["participant"]
         trial = kwargs["trial"]
-        response = kwargs["response"]
 
         summary = {}
 
@@ -2349,10 +2343,7 @@ class VideoRecordControl(RecordControl):
                     label=label,
                     input_path=tmp_file.name,
                     extension=self.file_extension,
-                    trial=trial,
-                    participant=participant,
-                    response=response,
-                    variables=dict(),
+                    parent=trial,
                     personal=self.personal,
                 )
                 asset.deposit(async_=True, delete_input=True)

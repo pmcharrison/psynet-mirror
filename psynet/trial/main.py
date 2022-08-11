@@ -283,7 +283,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     repeat_trial_index = claim_field("repeat_trial_index", __extra_vars__, int)
     num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
     time_taken = claim_field("time_taken", __extra_vars__, float)
-    assets = Column(PythonDict)
     _initial_assets = Column(PythonDict)
 
     @property
@@ -476,7 +475,8 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         if is_repeat_trial:
             self.definition = parent_trial.definition
-            self.assets = parent_trial._initial_assets
+            for k, v in parent_trial._initial_assets:
+                self.assets[k] = v
         else:
             self.definition = self.make_definition(experiment, participant)
             assert self.definition is not None
@@ -1968,7 +1968,7 @@ class NetworkTrialMaker(TrialMaker):
             propagate_failure=self.propagate_failure,
             is_repeat_trial=False,
         )
-        trial._initial_assets = trial.assets
+        trial._initial_assets = dict(trial.assets)
         db.session.add(trial)
         db.session.commit()
         return trial

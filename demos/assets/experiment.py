@@ -97,7 +97,7 @@ def save_text(participant):
             input_path=file.name,
             extension=".txt",
             description="Some text that the participant filled out",
-            participant=participant,
+            parent=participant,
             variables=dict(
                 num_characters=len(participant.answer),
                 writing_time=participant.last_response.metadata["time_taken"],

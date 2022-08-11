@@ -169,7 +169,7 @@ class RecordTrial:
             label="recording_analysis_plot",
             input_path=local_path,
             extension=".png",
-            trial=self.recording.trial,
+            parent=self.recording.trial,
         )
         asset.deposit(async_=async_, delete_input=True)
 
@@ -230,7 +230,7 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
                     label="stimulus",
                     input_path=temp_file.name,
                     extension=self.media_extension,
-                    node=node,
+                    parent=node,
                 )
                 asset.deposit()
                 node.target_url = asset.url
