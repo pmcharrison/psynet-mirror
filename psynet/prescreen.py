@@ -180,6 +180,7 @@ class REPPVolumeCalibrationMusic(REPPVolumeCalibration):
         warn_on_clip = True
         msg_duration = {"high": 0.25, "low": 0.25}
 
+    @property
     def what_are_we_playing(self):
         return "A music clip is playing to help you find the right volume in your laptop speakers."
 
@@ -232,6 +233,7 @@ class REPPVolumeCalibrationMarkers(REPPVolumeCalibration):
         warn_on_clip = False
         msg_duration = {"high": 0.25, "low": 0.25}
 
+    @property
     def what_are_we_playing(self):
         return "We are playing a sound similar to the ones you will hear during the experiment."
 
