@@ -2,12 +2,13 @@
 
 {% block body %}
     {{super()}}
-
+    {% if not experiment.with_lucid_recruitment() %}
     <div style="margin: 15%">
         <p>
             Starting experiment...
         </p>
     </div>
+    {% endif %}
 {% endblock %}
 
 

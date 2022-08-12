@@ -1,3 +1,4 @@
+{% if not experiment.with_lucid_recruitment() %}
 {% extends "base/ad.html" %}
 
 {% block no_assignment %}
@@ -21,10 +22,11 @@
     above to begin the task.
 </p>
 {% endblock no_assignment %}
+{% endif %}
 
 {% block live %}
-<h1>Thanks for accepting this HIT.</h1>
 {% if not experiment.with_lucid_recruitment() %}
+<h1>Thanks for accepting this HIT.</h1>
 <p>
     By clicking the following URL link, you will be taken to the experiment,
     including complete instructions and an informed consent agreement.
@@ -79,9 +81,7 @@ Abort Experiment
       }
     }
     {% if experiment.with_lucid_recruitment() %}
-    setTimeout(() => {
-      proceedToConsentPage(null);
-    }, "0")
+    proceedToConsentPage(null);
     {% else %}
     document.getElementById("begin-button").onclick = proceedToConsentPage;
     {% endif %}
