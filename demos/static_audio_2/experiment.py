@@ -66,7 +66,7 @@ class CustomTrial(StaticTrial):
                 self.assets["audio"].url,
                 "Please imitate the spoken word as closely as possible.",
             ),
-            AudioRecordControl(duration=3.0),
+            AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav"),
             time_estimate=self._time_trial,
         )
 
