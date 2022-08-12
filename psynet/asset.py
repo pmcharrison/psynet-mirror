@@ -225,8 +225,13 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         self.set_variables(variables)
         self.personal = personal
 
+    def consume(self, experiment, participant):
         if not self.has_key:
-            self.generate_key()
+            self.key = self.generate_key()
+        try:
+            experiment.assets.get(self.key)
+        except KeyError:
+            self.deposit()
 
     def infer_data_type(self):
         if self.extension in ["wav", "mp3"]:
@@ -1746,7 +1751,15 @@ class AssetRegistry:
         return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
     def get(self, key):
-        return Asset.query.filter_by(key=key).one()
+        matches = Asset.query.filter_by(key=key).all()
+        if len(matches) == 0:
+            raise KeyError
+        elif len(matches) == 1:
+            return matches[0]
+        else:
+            raise ValueError(
+                f"Unexpected number of assets found with key = {key} ({len(matches)})"
+            )
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()
