@@ -202,12 +202,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def current_trial(self):
-        from .trial.main import Trial
+        from dallinger.models import Info
+
+        # from .trial.main import Trial
 
         if self.current_trial_id is None:
             return None
         else:
-            return Trial.query.filter_by(id=self.current_trial_id).one()
+            # We should just be able to use Trial for the query, but using Info seems
+            # to avoid an annoying SQLAlchemy bug that comes when we run multiple demos
+            # in one session. When this happens, what we see is that Trial.query.all()
+            # sees all trials appropriately, but Trial.query.filter_by(id=1).all() fails.
+            #
+            # return Trial.query.filter_by(id=self.current_trial_id).one()
+            return Info.query.filter_by(id=self.current_trial_id).one()
 
     @current_trial.setter
     def current_trial(self, trial):
