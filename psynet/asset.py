@@ -1209,7 +1209,7 @@ class AssetStorage:
                 asset=asset,
                 host_path=host_path,
                 delete_input=delete_input,
-                db_commit=True,
+                # db_commit=True,
             ),
             asset=asset,
         )
