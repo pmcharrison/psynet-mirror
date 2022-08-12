@@ -666,16 +666,6 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
                 to_fail.append(lambda: [self.child])
         return to_fail
 
-    def fail(self, reason=None):
-        """
-        Marks the node as failed.
-
-        If a `reason` argument is passed, this will be stored in
-        :attr:`~dallinger.models.SharedMixin.failed_reason`.
-        """
-        if not self.failed:
-            super().fail(reason=reason)
-
 
 class ChainSource(TrialSource, HasSeed):
     """
@@ -757,16 +747,6 @@ class ChainSource(TrialSource, HasSeed):
     @property
     def var(self):  # occupies the <details> attribute
         return VarStore(self)
-
-    def fail(self, reason=None):
-        """
-        Marks the source node as failed.
-
-        If a `reason` argument is passed, this will be stored in
-        :attr:`~dallinger.models.SharedMixin.failed_reason`.
-        """
-        if not self.failed:
-            super().fail(reason=reason)
 
     def create_seed(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -964,21 +944,6 @@ class ChainTrial(Trial):
             if self.child:
                 to_fail.append(lambda: [self.child])
         return to_fail
-
-    def fail(self, reason=None):
-        """
-        Marks a trial as failed. Failing a trial means that it is somehow
-        excluded from certain parts of the experiment logic, for example
-        not counting towards data collection quotas, or not contributing
-        towards latter parts of a transmission chain.
-
-        The original fail function from the
-        :class:`~dallinger.models.Info` class
-        throws an error if the object is already failed,
-        but this behaviour is disabled here.
-        """
-        if not self.failed:
-            super().fail(reason=reason)
 
 
 class ChainTrialMaker(NetworkTrialMaker):
