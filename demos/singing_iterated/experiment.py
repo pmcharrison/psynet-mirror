@@ -1,4 +1,3 @@
-# imports
 from statistics import mean
 
 import singing_extract.singing_extract.singing_extract as sing
@@ -27,12 +26,10 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-# melody
-
+assert False, "This demo needs the melody package to be updated for the latest PsyNet"
 
 # global parameters
 INITIAL_RECRUITMENT_SIZE = 1
-BUCKET_NAME = "iterated-singing-demo"
 TIME_ESTIMATE_TRIAL = params.singing_2intervals["sing_duration"] * 2
 DESIGN_PARAMS = {
     "num_trials_per_participant": 10,
@@ -248,7 +245,6 @@ class CustomTrialPractice(CustomTrial):
 
 class CustomNetwork(AudioImitationChainNetwork):
     run_async_post_grow_network = False
-    s3_bucket = BUCKET_NAME
 
 
 class CustomNode(AudioImitationChainNode):
@@ -402,11 +398,10 @@ SingingMainTask1 = join(
 
 class Exp(psynet.experiment.Experiment):
     label = "Iterated singing demo"
+    initial_recruitment_size = INITIAL_RECRUITMENT_SIZE
 
     # assets = AssetRegistry(asset_storage=S3Storage())
     asset_storage = DebugStorage()
-
-    # TODO - create S3 bucket if it doesn't exist
 
     timeline = Timeline(
         MainConsent(),
@@ -419,7 +414,3 @@ class Exp(psynet.experiment.Experiment):
         SingingMainTask1,
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = INITIAL_RECRUITMENT_SIZE

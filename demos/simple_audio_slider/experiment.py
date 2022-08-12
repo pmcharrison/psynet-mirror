@@ -69,7 +69,7 @@ def new_example(description, **kwargs):
         ModularPage(
             "slider_page",
             prompt,
-            control=AudioSliderControl("slider_control", audio=media.audio, **kwargs),
+            control=AudioSliderControl(audio=media.audio, **kwargs),
             media=media,
             time_estimate=time_estimate,
         ),
@@ -78,6 +78,8 @@ def new_example(description, **kwargs):
 
 
 class CustomExp(psynet.experiment.Experiment):
+    label = "Simple audio slider"
+
     ids = [f"audio_{i}" for i in range(472)]
 
     timeline = Timeline(

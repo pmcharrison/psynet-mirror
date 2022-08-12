@@ -202,6 +202,7 @@ class CustomSource(AudioImitationChainSource):
 # Timeline
 class Exp(psynet.experiment.Experiment):
     label = "Iterated tapping demo"
+    initial_recruitment_size = 1
     # asset_storage = DebugStorage()
     asset_storage = S3Storage("psynet-demos", "iterated-tapping")
 
@@ -256,7 +257,3 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

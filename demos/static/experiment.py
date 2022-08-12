@@ -65,7 +65,10 @@ class AnimalTrial(StaticTrial):
                 <p id='question' style='color: {text_color}'>How much do you like {animal}?</p>
                 """
             ),
-            PushButtonControl(["Not at all", "A little", "Very much"]),
+            PushButtonControl(
+                ["Not at all", "A little", "Very much"],
+                bot_response="Very much",
+            ),
             time_estimate=self.time_estimate,
         )
 
@@ -140,11 +143,9 @@ trial_maker = AnimalTrialMaker(
 ##########################################################################################
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Static experiment demo"
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         NoConsent(),
@@ -162,7 +163,3 @@ class Exp(psynet.experiment.Experiment):
         trial_maker,
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1

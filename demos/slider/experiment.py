@@ -108,6 +108,7 @@ example_6 = {
 
 
 class CustomExp(psynet.experiment.Experiment):
+    label = "Slider demo"
     timeline = Timeline(
         NoConsent(),
         make_example(example_1),

@@ -930,8 +930,9 @@ class PushButtonControl(OptionControl):
         labels: Optional[List[str]] = None,
         style: str = "min-width: 100px; margin: 10px",
         arrange_vertically: bool = True,
+        **kwargs,
     ):
-        super().__init__(choices, labels, style)
+        super().__init__(choices, labels, style, **kwargs)
         self.arrange_vertically = arrange_vertically
 
         self.push_buttons = [
