@@ -513,6 +513,9 @@ class FreeTappingRecordTest(StaticTrialMaker):
                     show_meter=True,
                     controls=False,
                     auto_advance=False,
+                    bot_response_media=resource_filename(
+                        "psynet", "resources/repp/free_tapping_record.wav"
+                    ),
                 ),
                 time_estimate=5,
                 progress_display=ProgressDisplay(
