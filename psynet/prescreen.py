@@ -7,6 +7,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 from flask import Markup
+from pkg_resources import resource_filename
 
 from .asset import ExternalAsset
 from .modular_page import (
@@ -20,7 +21,7 @@ from .modular_page import (
     RadioButtonControl,
     TextControl,
 )
-from .page import InfoPage, UnsuccessfulEndPage
+from .page import InfoPage, UnsuccessfulEndPage, wait_while
 from .timeline import (
     CodeBlock,
     Event,
@@ -341,6 +342,9 @@ class FreeTappingRecordTrial(AudioRecordTrial, StaticTrial):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
+                bot_response_media=resource_filename(
+                    "psynet", "resources/repp/free_tapping_record.wav"
+                ),
             ),
             time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
@@ -517,11 +521,18 @@ class FreeTappingRecordTest(StaticTrialMaker):
                     ],
                 ),
             ),
+            wait_while(
+                lambda participant: not participant.assets[
+                    "free_record_example"
+                ].deposited,
+                expected_wait=5,
+                log_message="Waiting for free_record_example to be deposited",
+            ),
             PageMaker(
                 lambda participant: ModularPage(
                     "playback",
                     AudioPrompt(
-                        participant.answer["url"],
+                        participant.assets["free_record_example"],
                         Markup(
                             """
                         <h3>Can you hear your recording?</h3>
@@ -590,6 +601,9 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
+                bot_response_media=resource_filename(
+                    "psynet", "resources/repp/markers_test_record.wav"
+                ),
             ),
             time_estimate=self.time_estimate,
             progress_display=ProgressDisplay(
