@@ -1,6 +1,7 @@
 {% extends "base/consent.html" %}
 
 {% block body %}
+    {% if not experiment.with_lucid_recruitment() %}
     <div style="margin-top: 130px; text-align: -webkit-center;">
       <div style="max-width: max-content;">
         <div class="col-xs-2">
@@ -10,7 +11,6 @@
             We are now going to test your browser for compatibility.<br>
             If your browser is not compatible we have to reject the survey.
         </p>
-        {% if not experiment.with_lucid_recruitment() %}
         <p style="clear: both;">
           <h3 class="consent" style="text-align: right;">
             To proceed, click the button below.
@@ -23,9 +23,9 @@
             Next
           </button>
         </p>
-        {% endif %}
       </div>
     </div>
+    {% endif %}
 {% endblock %}
 
 {% block libs %}
@@ -89,7 +89,7 @@
         {% if experiment.with_lucid_recruitment() %}
         setTimeout(() => {
           start();
-        }, "3000")
+        }, "0")
         {% else %}
         document.getElementById("consent").onclick = start;
         {% endif %}

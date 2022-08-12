@@ -20,7 +20,6 @@
 
                 {% if experiment.with_lucid_recruitment() %}
                 {% if is_consent_page %}
-                $("#termination-timer-seconds").text(prettyFormatSeconds({{ experiment.recruiter.termination_time_in_s }}))
                 var setIntervalHandle = setInterval(check_participant_termination, 1000);
 
                 function check_participant_termination() {
@@ -28,18 +27,11 @@
                     postData["auth_token"] = "{{ auth_token }}";
                     postData["participant_id"] = parseInt("{{ participant.id }}");
                     $.post("/check_participant_termination", postData, function(seconds) {
-                        if (parseInt(seconds) >= 0) {
-                            $("#termination-timer-text").show();
-                            $("#termination-timer-seconds").text(prettyFormatSeconds(seconds));
-                        } else {
+                        if (parseInt(seconds) < 0) {
                             clearInterval(setIntervalHandle)
                             $("#consent-rejected").click();
                         }
                     });
-                }
-
-                function prettyFormatSeconds(seconds) {
-                    return `${Math.floor(seconds / 60)} min ${seconds % 60} sec`;
                 }
                 {% endif %}
                 {% endif %}
