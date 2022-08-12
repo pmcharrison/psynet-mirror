@@ -1314,9 +1314,35 @@ class DebugStorage(AssetStorage):
         """
         super().__init__()
 
+        self._initialized = False
         self._root = root
         self.label = "debug_storage"
         self.public_path = self._create_public_path()
+
+    def initialize(self):
+        if not self._initialized:
+            self._initialize()
+
+    def _initialize(self):
+        if not self._root:
+            self.initialize_root()
+        self._ensure_root_dir_exists()
+        self._create_symlink()
+        self._initialized = True
+
+    def initialize_root(self):
+        if self._root is None:
+            try:
+                from .utils import get_from_config
+
+                root = os.path.expanduser(get_from_config("debug_storage_root"))
+                self._root = root
+            except KeyError:
+                raise KeyError(
+                    "No root location was provided to DebugStorage and no value for debug_storage_root "
+                    "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
+                    "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
+                )
 
     @cached_property
     def root(self):
@@ -1324,29 +1350,15 @@ class DebugStorage(AssetStorage):
         We defer the registration of the root until as late as possible
         to avoid circular imports when loading the experiment.
         """
-        if self._root is None:
-            try:
-                from .utils import get_from_config
+        if not self._initialized:
+            self.initialize()
 
-                root = os.path.expanduser(get_from_config("debug_storage_root"))
-            except KeyError:
-                raise KeyError(
-                    "No root location was provided to DebugStorage and no value for debug_storage_root "
-                    "was found in config.txt or ~/.dallingerconfig. Consider setting a default value "
-                    "in ~/.dallingerconfig, writing for example: debug_storage_root = ~/psynet-debug-storage"
-                )
-        else:
-            root = self._root
-        root = os.path.expanduser(root)
-        self._ensure_root_dir_exists(root)
-        self._create_symlink(root)
-        return root
+        return self._root
 
-    @staticmethod
-    def _ensure_root_dir_exists(root):
+    def _ensure_root_dir_exists(self):
         from pathlib import Path
 
-        Path(root).mkdir(parents=True, exist_ok=True)
+        Path(self._root).mkdir(parents=True, exist_ok=True)
 
     def _create_public_path(self):
         """
@@ -1355,7 +1367,7 @@ class DebugStorage(AssetStorage):
         """
         return os.path.join("static", self.label)
 
-    def _create_symlink(self, root):
+    def _create_symlink(self):
         try:
             os.unlink(self.public_path)
         except FileNotFoundError:
@@ -1366,7 +1378,7 @@ class DebugStorage(AssetStorage):
         os.makedirs("static", exist_ok=True)
 
         try:
-            os.symlink(root, self.public_path)
+            os.symlink(self._root, self.public_path)
         except FileExistsError:
             pass
 
