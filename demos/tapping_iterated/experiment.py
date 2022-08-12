@@ -135,6 +135,7 @@ class CustomTrial(CustomTrialAnalysis):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
+                bot_response_media="example_trial.wav",
             ),
             time_estimate=duration_rec_sec + 5,
             progress_display=ProgressDisplay(
@@ -152,7 +153,7 @@ class CustomTrial(CustomTrialAnalysis):
                     ),
                     ProgressStage(
                         3.5,
-                        "Stop tapping and wait in silence...",
+                        "Click next when you're ready to continue...",
                         "red",
                         persistent=True,
                     ),
@@ -199,10 +200,10 @@ class CustomSource(AudioImitationChainSource):
         return random_seed
 
 
-# Timeline
 class Exp(psynet.experiment.Experiment):
     label = "Iterated tapping demo"
     initial_recruitment_size = 1
+
     # asset_storage = DebugStorage()
     asset_storage = S3Storage("psynet-demos", "iterated-tapping")
 
