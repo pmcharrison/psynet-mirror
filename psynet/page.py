@@ -949,7 +949,6 @@ class VolumeCalibration(Module):
         super().__init__(
             page_id,
             self.asset(url, audio_id),
-            ExternalAsset(audio_id, url),
             self.page(min_time, time_estimate, page_id, audio_id),
         )
 
