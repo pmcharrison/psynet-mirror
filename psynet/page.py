@@ -5,7 +5,9 @@ from math import ceil
 from typing import List, Optional, Union
 
 from flask import Markup, escape
+from pkg_resources import resource_filename
 
+from .asset import CachedAsset, ExternalAsset
 from .modular_page import (
     AudioPrompt,
     AudioSliderControl,
@@ -20,6 +22,7 @@ from .timeline import (
     CodeBlock,
     EndPage,
     Event,
+    Module,
     Page,
     PageMaker,
     get_template,
@@ -933,26 +936,42 @@ class DebugResponsePage(PageMaker):
         )
 
 
-class VolumeCalibration(ModularPage):
+class VolumeCalibration(Module):
     def __init__(
         self,
-        url="https://headphone-check.s3.amazonaws.com/brown_noise.wav",
+        url=resource_filename("psynet", "resources/audio/brown_noise.wav"),
+        audio_id="volume_calibration_audio",
         min_time=2.5,
         time_estimate=5.0,
+        page_id="volume_calibration",
     ):
-        self._min_time = min_time
-        self._url = url
+
         super().__init__(
-            "volume_calibration",
-            prompt=self._prompt,
-            time_estimate=time_estimate,
-            events={
-                "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
-            },
+            page_id,
+            self.asset(url, audio_id),
+            ExternalAsset(audio_id, url),
+            self.page(min_time, time_estimate, page_id, audio_id),
         )
 
-    @property
-    def _text(self):
+    def asset(self, url, audio_id):
+        if url.startswith("http"):
+            return ExternalAsset(key=audio_id, url=url)
+        else:
+            return CachedAsset(key=audio_id, input_path=url)
+
+    def page(self, min_time, time_estimate, page_id, audio_id):
+        return PageMaker(
+            lambda assets: ModularPage(
+                page_id,
+                AudioPrompt(assets.get(audio_id), self.text(), loop=True),
+                events={
+                    "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
+                },
+            ),
+            time_estimate=time_estimate,
+        )
+
+    def text(self):
         return Markup(
             """
             <p>
@@ -966,7 +985,3 @@ class VolumeCalibration(ModularPage):
             </p>
             """
         )
-
-    @property
-    def _prompt(self):
-        return AudioPrompt(self._url, self._text, loop=True)
