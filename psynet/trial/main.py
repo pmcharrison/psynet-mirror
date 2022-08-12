@@ -48,7 +48,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import call_function, corr, get_logger, wait_until
+from ..utils import call_function, corr, get_logger
 
 logger = get_logger()
 
@@ -417,16 +417,29 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         if not self.complete:
             return False
         if self.wait_for_feedback:
-            if self.awaiting_async_process or self.awaiting_asset_deposit:
-                print(f"self.awaiting_async_process = {self.awaiting_async_process}")
-                print(f"self.awaiting_asset_deposit = {self.awaiting_asset_deposit}")
+            if self.awaiting_async_process:
+                logger.info(
+                    "Waiting for async process to complete for trial %i", self.id
+                )
+                return False
+            if self.awaiting_asset_deposit:
+                logger.info(
+                    "Waiting for asset deposit to complete for trial %i", self.id
+                )
                 return False
         return True
 
     @property
     def awaiting_asset_deposit(self):
         db.session.commit()
-        return any([not a.deposited for a in self.assets.values()])
+        for asset in self.assets.values():
+            if (
+                isinstance(asset.parent, Trial)
+                and asset.parent.id == self.id
+                and not asset.deposited
+            ):
+                return True
+        return False
 
     #################
 
@@ -457,7 +470,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         if is_repeat_trial:
             self.definition = parent_trial.definition
-            for k, v in parent_trial._initial_assets:
+            for k, v in parent_trial._initial_assets.items():
                 self.assets[k] = v
         else:
             self.definition = self.make_definition(experiment, participant)
@@ -702,14 +715,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         raise NotImplementedError
 
     def call_async_post_trial(self):
-        wait_until(
-            # Note: This code could be made more efficient by not blocking the process
-            # while we wait for the asset deposit to complete.
-            lambda: not self.awaiting_asset_deposit,
-            max_wait=120,
-            poll_interval=1.0,
-            error_message="The trial's asset deposit didn't complete in time.",
-        )
         experiment = dallinger.experiment.load()
         trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
         self.async_post_trial()
