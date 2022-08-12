@@ -57,8 +57,6 @@ Abort Experiment
     document.getElementById("abort-button").onclick = abortExperiment;
 </script>
 {% endif %}
-{% else %}
-Loading application...
 {% endif %}
 {% endblock live %}
 
@@ -83,7 +81,7 @@ Loading application...
     {% if experiment.with_lucid_recruitment() %}
     setTimeout(() => {
       proceedToConsentPage(null);
-    }, "2000")
+    }, "0")
     {% else %}
     document.getElementById("begin-button").onclick = proceedToConsentPage;
     {% endif %}
