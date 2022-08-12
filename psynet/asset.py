@@ -1062,6 +1062,7 @@ class ExternalAsset(Asset):
     ):
         self.host_path = url
         self.url = url
+        self.deposited = True
 
         super().__init__(
             key=key,
