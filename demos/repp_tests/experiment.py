@@ -2,6 +2,7 @@
 
 import psynet.experiment
 from psynet.asset import DebugStorage, S3Storage  # noqa
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.prescreen import (
@@ -24,7 +25,7 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         # Volume calibration tests
-        REPPVolumeCalibrationMarkers(),  # Use this for SMS experiemnts with markers
+        REPPVolumeCalibrationMarkers(),  # Use this for SMS experiments with markers
         REPPVolumeCalibrationMusic(),  # Use this for experiments using music
         REPPTappingCalibration(),  # Tapping instructions and calibration
         # Recording tests
@@ -36,3 +37,11 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You passed the recording test! Congratulations.", time_estimate=3),
         SuccessfulEndPage(),
     )
+
+    def test_check_bot(self, bot: Bot, **kwargs):
+        from psynet.process import AsyncProcess
+
+        assert not bot.failed
+        processes = AsyncProcess.query.all()
+        assert all(not p.failed for p in processes)
+        assert all(not p.pending for p in processes)
