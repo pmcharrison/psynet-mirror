@@ -533,20 +533,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         db.session.add(self)
         db.session.commit()
 
-        assert self.id is not None
-
-        if label in self.assets:
-            raise ValueError(f"This trial already has an asset with the label {label}.")
-
-        asset.trial = self
-        asset.trial_id = self.id
-
-        asset.node = self.origin
-        asset.node_id = self.origin_id
-
-        asset.network = self.network
-        asset.network_id = self.network_id
-
         if not asset.has_key:
             asset.label = label
             asset.key = self.generate_asset_key(asset)
