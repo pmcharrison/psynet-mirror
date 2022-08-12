@@ -1,6 +1,7 @@
 import itertools
 import json
 import random
+import shutil
 import tempfile
 from typing import Dict, List, Optional, Union
 
@@ -19,6 +20,19 @@ from .utils import (
 )
 
 logger = get_logger()
+
+
+class Blob:
+    """
+    Imitates the blob objects which are returned from the Flask front-end;
+    used for testing.
+    """
+
+    def __init__(self, file):
+        self.file = file
+
+    def save(self, dest):
+        shutil.copyfile(self.file, dest)
 
 
 class Prompt:
@@ -2221,17 +2235,13 @@ class AudioRecordControl(RecordControl):
         events["trialFinish"].add_trigger("recordEnd")
 
     def get_bot_response(self, experiment, bot, page, prompt):
-        from werkzeug.datastructures import FileStorage
-
         from .bot import BotResponse
 
         file = self.get_bot_response_files(experiment, bot, page, prompt)
 
         return BotResponse(
             raw_answer=None,
-            blobs={
-                "audioRecording": FileStorage(filename=file, content_type="audio/wav")
-            },
+            blobs={"audioRecording": Blob(file)},
         )
 
     def raise_bot_response_not_provided_error(self):
@@ -2398,8 +2408,6 @@ class VideoRecordControl(RecordControl):
         events["trialFinish"].add_trigger("recordEnd")
 
     def get_bot_response(self, experiment, bot, page, prompt):
-        from werkzeug.datastructures import FileStorage
-
         from .bot import BotResponse
 
         files = self.get_bot_response_files(experiment, bot, page, prompt)
@@ -2407,8 +2415,7 @@ class VideoRecordControl(RecordControl):
         return BotResponse(
             raw_answer=None,
             blobs={
-                f"{key}Recording": FileStorage(filename=files[key])
-                for key in self.recording_sources
+                f"{key}Recording": Blob(files[key]) for key in self.recording_sources
             },
         )
 
