@@ -2427,6 +2427,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.network = network
             self.network_id = network.id
             self.assets = {**network.assets}
+            self.trial_maker_id = self.network.trial_maker_id
             network.calculate_full()
 
         if participant is not None:
