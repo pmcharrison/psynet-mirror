@@ -473,6 +473,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             for k, v in parent_trial._initial_assets.items():
                 self.assets[k] = v
         else:
+            self.assets = {**node.assets}
             self.definition = self.make_definition(experiment, participant)
             assert self.definition is not None
 
@@ -480,8 +481,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 self.definition, experiment, participant
             )
             assert self.definition is not None
-
-            self.assets = {**node.assets}
 
             db.session.add(self)
             db.session.commit()
@@ -537,10 +536,15 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             asset.label = label
             asset.key = self.generate_asset_key(asset)
 
+        if not asset.parent:
+            asset.parent = self
+
         asset.receive_stimulus_definition(self.definition)
 
         db.session.add(asset)
+
         self.assets[label] = asset
+
         db.session.commit()
 
     def generate_asset_key(self, asset):
