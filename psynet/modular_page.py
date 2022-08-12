@@ -2174,6 +2174,12 @@ class AudioRecordControl(RecordControl):
         blobs = kwargs["blobs"]
         audio = blobs["audioRecording"]
         trial = kwargs["trial"]
+        participant = kwargs["participant"]
+
+        if trial:
+            parent = trial
+        else:
+            parent = participant
 
         # Need to leave file deletion to the depositing process
         # if we're going to run it asynchronously
@@ -2186,7 +2192,7 @@ class AudioRecordControl(RecordControl):
                 label=self.page.label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
-                parent=trial,
+                parent=parent,
                 variables=dict(),
                 personal=self.personal,
             )
