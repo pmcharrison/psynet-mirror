@@ -60,7 +60,7 @@ class StaticStimulusRegistry:
 
     def prepare_for_deployment(self):
         self.create_networks()
-        self.add_stimuli_to_db()
+        # self.add_stimuli_to_db()
         self.stage_assets()
 
     def create_networks(self):
@@ -68,10 +68,10 @@ class StaticStimulusRegistry:
             s.create_networks(self.experiment)
         db.session.commit()
 
-    def add_stimuli_to_db(self):
-        for stimulus in self.stimuli:
-            db.session.add(stimulus)
-        db.session.commit()
+    # def add_stimuli_to_db(self):
+    #     for stimulus in self.stimuli:
+    #         db.session.add(stimulus)
+    #     db.session.commit()
 
     def stage_assets(self):
         for stimulus in self.stimuli:
@@ -190,6 +190,8 @@ class Stimulus(TrialNode, HasDefinition):
             if not asset.has_key:
                 asset.key = f"{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
 
+            asset.parent = self
+
             # asset.node = self
             # asset.node_id = self.id
             #
@@ -197,9 +199,9 @@ class Stimulus(TrialNode, HasDefinition):
             # asset.network_id = self.network_id
 
             asset.receive_stimulus_definition(self.definition)
-
-            experiment.assets.stage(asset)
-            db.session.add(asset)
+            asset.deposit()
+            # experiment.assets.stage(asset)
+            # db.session.add(asset)
 
             self.assets[label] = asset
 

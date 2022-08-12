@@ -13,6 +13,7 @@ from typing import Optional
 import boto3
 import psutil
 import requests
+import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
@@ -321,9 +322,18 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                         raise
 
             if asset_to_use == self:
-                db.session.add(self)
-                db.session.commit()
+                try:
+                    db.session.add(self)
+                    db.session.commit()
+                except sqlalchemy.exc.IntegrityError as err:
+                    if "duplicate key value" in str(err):
+                        # Another asset beat us to it. They'll take priority.
+                        db.session.rollback()
+                        asset_to_use = Asset.query.filter_by(key=self.key)
+                    else:
+                        raise
 
+            if asset_to_use == self:
                 self._deposit(self.storage, async_, delete_input)
                 # if deposit_complete:
                 #     self.deposited = True
@@ -1170,7 +1180,10 @@ class AssetStorage:
         raise NotImplementedError
 
     def _call_receive_deposit(
-        self, asset: Asset, host_path: str, delete_input: bool, db_commit: bool = False
+        self,
+        asset: Asset,
+        host_path: str,
+        delete_input: bool,  # , db_commit: bool = False
     ):
         # We include this for compatibility with threaded dispatching.
         # Without it, SQLAlchemy complains that the object has become disconnected
@@ -1181,8 +1194,9 @@ class AssetStorage:
         asset.after_deposit()
         asset.deposited = True
 
-        if db_commit:
-            db.session.commit()
+        # if db_commit:
+        db.session.commit()
+
         if delete_input:
             asset.delete_input()
 
