@@ -919,7 +919,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 "deploy",
             ),
         ]
-        if isinstance(cls.assets, DebugStorage):
+        if isinstance(cls.assets.storage, DebugStorage):
             files.append(
                 (
                     "static/debug_storage",
