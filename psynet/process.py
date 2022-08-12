@@ -23,7 +23,7 @@ logger = get_logger()
 
 @register_table
 class AsyncProcess(SQLBase, SQLMixin):
-    __tablename__ = "async"
+    __tablename__ = "process"
 
     label = Column(String)
     function = Column(PythonObject)
@@ -146,36 +146,14 @@ class AsyncProcess(SQLBase, SQLMixin):
         self.time_finished = datetime.datetime.now()
 
     def infer_missing_parents(self):
-        if self.asset is not None:
-            if not self.participant:
-                self.participant = self.asset.participant
-            if not self.node:
-                self.node = self.asset.node
-            if not self.network:
-                self.network = self.asset.network
-
-        if self.participant is None and self.trial is not None:
-            self.participant = self.trial.participant
-        if self.node is None and self.trial is not None:
-            self.node = self.trial.origin
-        if (
-            self.participant is None
-            and self.node is not None
-            and self.node.participant is not None
-        ):
-            self.participant = self.node.participant
-        if self.network is None and self.node is not None:
-            self.network = self.node.network
-
-        # For safety, to prevent SQLAlchemy bugs...
-        if self.participant:
-            self.participant_id = self.participant.id
-        if self.trial:
-            self.trial_id = self.trial.id
-        if self.node:
-            self.node_id = self.node.id
-        if self.network:
-            self.network_id = self.network.id
+        if self.participant is None:
+            for obj in [self.asset, self.trial, self.node, self.network]:
+                if obj and hasattr(obj, "participant") and obj.participant:
+                    self.participant = obj.participant
+                    break
+            # For safety...
+            if self.participant:
+                self.participant_id = self.participant.id
 
     @property
     def failure_cascade(self):
@@ -185,7 +163,7 @@ class AsyncProcess(SQLBase, SQLMixin):
         but currently we're not confident that PsyNet supports failing those objects in that kind of way.
         """
         candidates = [self.trial, self.node]
-        return [lambda: [obj] for obj in candidates if obj is not None]
+        return [lambda obj=obj: [obj] for obj in candidates if obj is not None]
 
     def launch(self):
         raise NotImplementedError
@@ -195,11 +173,18 @@ class AsyncProcess(SQLBase, SQLMixin):
         return Queue("default", connection=redis_conn)
 
     @classmethod
+    def call_function_with_logger(cls, process_id):
+        with cls.log_output():
+            cls.call_function(process_id)
+
+    @classmethod
     def call_function(cls, process_id):
         """
-        Calls the defining function of a given process.
+        Calls the defining function of a given process
         """
         from .experiment import import_local_experiment
+
+        cls.log(f"Calling function for process_id: {process_id}")
 
         import_local_experiment()
 
@@ -254,6 +239,30 @@ class AsyncProcess(SQLBase, SQLMixin):
             db.session.refresh(arg)
         return arg
 
+    @classmethod
+    def log(cls, msg):
+        raise NotImplementedError
+
+    @classmethod
+    def log_to_stdout(cls, msg):
+        print(msg)
+
+    @classmethod
+    def log_to_redis(cls, msg):
+        cls.redis_queue.enqueue_call(
+            func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
+        )
+
+    @classmethod
+    @contextlib.contextmanager
+    def log_output(cls):
+        log = io.StringIO()
+        try:
+            with contextlib.redirect_stdout(log):
+                yield
+        finally:
+            cls.log(log.getvalue())
+
 
 class LocalAsyncProcess(AsyncProcess):
     def launch(self):
@@ -265,30 +274,21 @@ class LocalAsyncProcess(AsyncProcess):
     @classmethod
     def thread_function(cls, process_id):
         try:
-            log = io.StringIO()
+            cls.call_function_with_logger(process_id)
 
-            with contextlib.redirect_stdout(log):
-                cls.call_function(process_id)
-
-            cls.log(log.getvalue())
+            # log = io.StringIO()
+            #
+            # with contextlib.redirect_stdout(log):
+            #     cls.call_function(process_id)
+            #
+            # cls.log(log.getvalue())
         finally:
             db.session.commit()
             db.session.close()
 
     @classmethod
     def log(cls, msg):
-        cls.log_to_stdout(msg)
         cls.log_to_redis(msg)
-
-    @classmethod
-    def log_to_stdout(cls, msg):
-        print(msg)
-
-    @classmethod
-    def log_to_redis(cls, msg):
-        cls.redis_queue.enqueue_call(
-            func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
-        )
 
 
 class WorkerAsyncProcess(AsyncProcess):
@@ -328,7 +328,7 @@ class WorkerAsyncProcess(AsyncProcess):
 
     def launch(self):
         self.redis_job_id = self.redis_queue.enqueue_call(
-            func=self.call_function,
+            func=self.call_function_with_logger,
             args=(),
             kwargs=dict(process_id=self.id),
             timeout=self.timeout,
@@ -358,3 +358,7 @@ class WorkerAsyncProcess(AsyncProcess):
         self.fail("Cancelled asynchronous process")
         self.job.cancel()
         db.session.commit()
+
+    @classmethod
+    def log(cls, msg):
+        cls.log_to_stdout(msg)
