@@ -1,9 +1,10 @@
 import gettext
 import os
 
-from psynet.utils import get_language
+# from psynet.utils import get_language
 
-LANGUAGE = get_language()
+# LANGUAGE = get_language()
+LANGUAGE = "en"
 domain_name = os.path.basename(__file__)[:-3]  # strip .py
 lang = gettext.translation(domain_name, localedir="locale", languages=[LANGUAGE])
 lang.install()

@@ -8,14 +8,18 @@ from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.utils import get_language, get_logger
+from psynet.utils import get_logger
 
 from .parts import textLib
+
+# from psynet.utils import get_language
+
 
 logger = get_logger()
 
 # Load language parameter from config.txt file
-LANGUAGE = get_language()
+# LANGUAGE = get_language()
+LANGUAGE = "en"
 
 # Load translation files
 domain_name = os.path.basename(__file__)[
