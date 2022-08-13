@@ -336,6 +336,8 @@ class MediaSpec:
         image: Optional[dict] = None,
         video: Optional[dict] = None,
     ):
+        from .asset import Asset
+
         if audio is None:
             audio = {}
 
@@ -346,6 +348,11 @@ class MediaSpec:
             video = {}
 
         self.data = {"audio": audio, "image": image, "video": video}
+
+        for modality in self.data.values():
+            for key, value in modality.items():
+                if isinstance(value, Asset):
+                    modality[key] = value.url
 
         assert list(self.data) == self.modalities
 

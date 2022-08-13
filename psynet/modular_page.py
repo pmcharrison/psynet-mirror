@@ -2340,6 +2340,12 @@ class VideoRecordControl(RecordControl):
     def format_answer(self, raw_answer, **kwargs):
         blobs = kwargs["blobs"]
         trial = kwargs["trial"]
+        participant = kwargs["participant"]
+
+        if trial:
+            parent = trial
+        else:
+            parent = participant
 
         summary = {}
 
@@ -2360,7 +2366,7 @@ class VideoRecordControl(RecordControl):
                     label=label,
                     input_path=tmp_file.name,
                     extension=self.file_extension,
-                    parent=trial,
+                    parent=parent,
                     personal=self.personal,
                 )
                 asset.deposit(async_=True, delete_input=True)
