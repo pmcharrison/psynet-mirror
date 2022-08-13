@@ -392,7 +392,7 @@ example_record_audio_video = join(
                 controls=True,
                 loop_playback=False,
                 auto_advance=True,
-                bot_response_media="example_recordings/response_5__record_page.wav",
+                bot_response_media="example_recordings/response_5__record_page.webm",
             ),
             progress_display=ProgressDisplay(
                 stages=[
