@@ -1032,3 +1032,28 @@ def load(path):
 def make_deploy_dir():
     path = "deploy"
     Path(path).mkdir(parents=True, exist_ok=True)
+
+
+# Example usage: psynet generate-config --debug_storage_root ~/debug_storage
+@psynet.command(
+    context_settings={"ignore_unknown_options": True, "allow_extra_args": True},
+)
+@click.pass_context
+def generate_config(ctx):
+    path = os.path.expanduser("~/.dallingerconfig")
+    if os.path.exists(path):
+        if not click.confirm(
+            f"Are you sure you want to overwrite your existing config file at '{path}'?",
+            default=False,
+        ):
+            raise click.Abort
+
+    with open(path, "w") as file:
+        assert len(ctx.args) % 2 == 0
+        while len(ctx.args) > 0:
+            value = ctx.args.pop()
+            key = ctx.args.pop()
+            assert not value.startswith("--")
+            assert key.startswith("--")
+            key = key[2:]
+            file.write(f"{key} = {value}\n")

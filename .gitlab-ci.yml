@@ -45,6 +45,7 @@ before_script:
   - pip install -e /tmp/dallinger[data]
 # Install PsyNet
   - pip install -e .[dev]
+  - psynet generate-config --debug_storage_root "~/psynet-debug-storage" --export_root "~/psynet-exports"
 
 tests:
   parallel: 5
