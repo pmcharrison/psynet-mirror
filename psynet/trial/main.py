@@ -319,6 +319,8 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         "asset_links", "asset", creator=lambda k, v: AssetTrial(label=k, asset=v)
     )
 
+    errors = relationship("ErrorRecord")
+
     # assets = relationship("Asset", collection_class=attribute_mapped_collection("label_or_key"))
 
     # @property
@@ -2232,6 +2234,8 @@ class TrialNetwork(SQLMixinDallinger, Network):
         "asset_links", "asset", creator=lambda k, v: AssetNetwork(label=k, asset=v)
     )
 
+    errors = relationship("ErrorRecord")
+
     @property
     def trial_maker(self):
         from ..experiment import get_trial_maker
@@ -2399,6 +2403,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     assets = association_proxy(
         "asset_links", "asset", creator=lambda k, v: AssetNode(label=k, asset=v)
     )
+
+    errors = relationship("ErrorRecord")
 
     # assets = Column(PythonDict)
 

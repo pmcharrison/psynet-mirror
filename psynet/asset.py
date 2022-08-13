@@ -205,6 +205,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     network_links = relationship("AssetNetwork", order_by="AssetNetwork.creation_time")
     networks = association_proxy("network_links", "network")
 
+    errors = relationship("ErrorRecord")
+
     # foreign_keyed_columns = [
     #     "participant_id",
     #     "network_id",

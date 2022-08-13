@@ -1641,6 +1641,8 @@ class Response(_Response):
     #     "Asset", collection_class=attribute_mapped_collection("label_or_key")
     # )
 
+    errors = relationship("ErrorRecord")
+
     def __init__(
         self,
         participant,

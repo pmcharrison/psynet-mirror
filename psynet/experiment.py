@@ -3,6 +3,7 @@ import os
 import shutil
 import sys
 import tempfile
+import traceback
 import urllib.parse
 import uuid
 from collections import OrderedDict
@@ -36,6 +37,7 @@ from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStor
 from .bot import Bot
 from .command_line import log
 from .data import SQLBase, SQLMixin, ingest_zip, register_table
+from .error import ErrorRecord
 from .field import ImmutableVarStore
 from .page import InfoPage, SuccessfulEndPage
 from .participant import Participant, get_participant
@@ -48,6 +50,7 @@ from .recruiters import (  # noqa: F401
     StagingCapRecruiter,
 )
 from .redis import redis_vars
+from .serialize import serialize
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
@@ -66,6 +69,7 @@ from .utils import (
     NoArgumentProvided,
     cached_class_property,
     call_function,
+    error_page,
     get_arg_from_dict,
     get_logger,
     pretty_log_dict,
@@ -796,7 +800,15 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             f"Received a response from participant {participant_id} on page {page_uuid}."
         )
         participant = get_participant(participant_id)
-        if page_uuid == participant.page_uuid:
+
+        if page_uuid != participant.page_uuid:
+            logger.warn(
+                f"Participant {participant_id} tried to submit data with the wrong page_uuid"
+                + f"(submitted = {page_uuid}, required = {participant.page_uuid})."
+            )
+            return error_response()
+
+        try:
             event = self.timeline.get_current_elt(self, participant)
             response = event.process_response(
                 raw_answer=raw_answer,
@@ -815,12 +827,20 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             participant.time_credit.increment(event.time_estimate)
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
-        else:
-            logger.warn(
-                f"Participant {participant_id} tried to submit data with the wrong page_uuid"
-                + f"(submitted = {page_uuid}, required = {participant.page_uuid})."
-            )
-            return error_response()
+        except Exception as err:
+            if not isinstance(err, self.HandledError):
+                self.handle_error(
+                    err,
+                    participant=participant,
+                    trial=participant.current_trial,
+                    node=participant.current_trial.node
+                    if participant.current_trial
+                    else None,
+                    network=participant.current_trial.network
+                    if participant.current_trial
+                    else None,
+                )
+            return error_response(participant=participant)
 
     def response_approved(self, participant):
         logger.debug("The response was approved.")
@@ -1297,9 +1317,97 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             except cls.AuthTokenError as e:
                 return e.http_response()
 
-        page = cls.get_current_page(experiment, participant)
-        participant.client_ip_address = cls.get_client_ip_address()
-        return cls.serialize_page(page, experiment, participant, mode)
+        return cls._route_timeline(experiment, participant, mode)
+
+    @classmethod
+    def _route_timeline(cls, experiment, participant, mode):
+        try:
+            page = cls.get_current_page(experiment, participant)
+            participant.client_ip_address = cls.get_client_ip_address()
+            return cls.serialize_page(page, experiment, participant, mode)
+        except cls.HandledError as err:
+            return err.error_page()
+        except Exception as err:
+            handled_error = cls.handle_error(
+                err,
+                participant=participant,
+                trial=participant.current_trial,
+                node=participant.current_trial.node
+                if participant.current_trial
+                else None,
+                network=participant.current_trial.network
+                if participant.current_trial
+                else None,
+            )
+            return handled_error.error_page()
+
+    @classmethod
+    def handle_error(cls, error, **kwargs):
+        cls.report_error(error, **kwargs)
+        return cls.HandledError(**kwargs)
+
+    class HandledError(Exception):
+        def __init__(self, participant, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.participant = participant
+
+        def error_page(self):
+            return error_page(self.participant)
+
+    @classmethod
+    def report_error(
+        cls,
+        error,
+        **kwargs,
+    ):
+        cls.log_to_stdout(error, **kwargs)
+        cls.log_to_db(error, **kwargs)
+
+    @classmethod
+    def log_to_stdout(cls, error, **kwargs):
+        _ = error
+        context = cls.serialize_error_context(**kwargs)
+        logger.error(
+            "An error occurred in the following context: %s",
+            context,
+            exc_info=True,
+        )
+
+    @classmethod
+    def log_to_db(cls, error, **kwargs):
+        trace = traceback.format_exc()
+        record = ErrorRecord(error=error, traceback=trace, **kwargs)
+        db.session.add(record)
+        db.session.commit()
+
+    @classmethod
+    def serialize_error_context(
+        cls,
+        participant=None,
+        response=None,
+        trial=None,
+        node=None,
+        network=None,
+        process=None,
+        asset=None,
+    ):
+        context = {}
+        if participant:
+            context["participant_id"] = participant.id
+            context["worker_id"] = participant.worker_id
+        if response:
+            context["response"] = serialize(response)
+        if trial:
+            context["trial"] = serialize(trial)
+        if node:
+            context["node"] = serialize(node)
+        if network:
+            context["network"] = serialize(network)
+        if process:
+            context["process"] = serialize(process)
+        if asset:
+            context["asset"] = serialize(asset)
+        return context
 
     class AuthTokenError(PermissionError):
         def __init__(self, expected, provided, participant):
@@ -1415,7 +1523,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             client_ip_address,
         )
 
-        exp.save()
+        db.session.commit()
         return res
 
     @experiment_route(

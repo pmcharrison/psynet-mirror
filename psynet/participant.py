@@ -241,6 +241,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         "asset_links", "asset", creator=lambda k, v: AssetParticipant(label=k, asset=v)
     )
 
+    errors = relationship("ErrorRecord")
+
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
         del x["modules"]

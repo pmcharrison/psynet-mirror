@@ -4,7 +4,6 @@ import inspect
 import io
 import threading
 import time
-import traceback
 
 import dallinger.db
 import sqlalchemy
@@ -59,6 +58,8 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     asset_key = Column(String, ForeignKey("asset.key"))
     asset = relationship("Asset", back_populates="async_processes")
+
+    errors = relationship("ErrorRecord")
 
     def __init__(
         self,
@@ -216,11 +217,11 @@ class AsyncProcess(SQLBase, SQLMixin):
         """
         Calls the defining function of a given process
         """
-        from .experiment import import_local_experiment
-
         cls.log(f"Calling function for process_id: {process_id}")
 
-        import_local_experiment()
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
 
         process = AsyncProcess.query.filter_by(id=process_id).one()
 
@@ -238,20 +239,14 @@ class AsyncProcess(SQLBase, SQLMixin):
             process.time_taken = time.monotonic() - timer
             process.finished = True
         except Exception as err:
-            print(f"Exception in asynchronous process {process_id}:")
-            print(traceback.format_exc())
-
+            if not isinstance(err, experiment.HandledError):
+                experiment.handle_error(err, process=process)
             try:
                 process.fail(f"Exception in asynchronous process: {repr(err)}")
             except Exception:
-                print(
-                    "Encountered an exception when trying to mark the process as failed:"
-                )
-                print(traceback.format_exc())
+                experiment.handle_error(err, process=process)
                 process.failed = True
             db.session.commit()
-            raise
-
         finally:
             process.pending = False
             db.session.commit()
