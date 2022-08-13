@@ -920,11 +920,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             ),
         ]
         if isinstance(cls.assets.storage, DebugStorage):
-            cls.assets.storage.initialize()
+            _path = f"static/{cls.assets.storage.label}"
             files.append(
                 (
-                    "static/debug_storage",
-                    "static/debug_storage",
+                    _path,
+                    _path,
                 )
             )
         return files

@@ -87,7 +87,7 @@ class CustomTrial(CameraImitationChainTrial):
                     ModularPage(
                         "webcam_prompt",
                         VideoPrompt(
-                            self.origin.target_url,
+                            self.assets["stimulus"],
                             "When you are ready, press next to imitate the figure that you see.",
                             text_align="center",
                             width="360px",

@@ -274,9 +274,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     complete = claim_field("complete", __extra_vars__, bool)
     finalized = claim_field("finalized", __extra_vars__, bool)
-    post_trial_process_started = claim_field(
-        "post_trial_process_started", __extra_vars__, bool
-    )
     is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
     score = claim_field("score", __extra_vars__, float)
     bonus = claim_field("bonus", __extra_vars__, float)
@@ -457,7 +454,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         self.node_id = node.id
         self.complete = False
         self.finalized = False
-        self.post_trial_process_started = False
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
@@ -736,19 +732,16 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             self.on_finalized()
 
     def check_if_can_run_async_post_trial(self):
-        if (
-            self.run_async_post_trial
-            and not self.post_trial_process_started
-            and not self.awaiting_asset_deposit
-        ):
+        db.session.commit()
+        if self.run_async_post_trial and not self.awaiting_asset_deposit:
             WorkerAsyncProcess(
                 self.call_async_post_trial,
                 label="post_trial",
                 timeout=self.trial_maker.async_timeout_sec,
                 trial=self,
+                unique=True,
+                unique_violation_raises_error=False,  # Pass silently if the process has already been started
             )
-            self.post_trial_process_started = True
-            db.session.commit()
 
     def on_finalized(self):
         from psynet.experiment import get_experiment

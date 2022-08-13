@@ -7,6 +7,7 @@ import time
 import traceback
 
 import dallinger.db
+import sqlalchemy
 from dallinger import db
 from dallinger.db import redis_conn
 from rq import Queue
@@ -33,6 +34,7 @@ class AsyncProcess(SQLBase, SQLMixin):
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
     time_taken = Column(Float)
+    _unique_key = Column(PythonDict, unique=True)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
     participant = relationship(
@@ -69,7 +71,11 @@ class AsyncProcess(SQLBase, SQLMixin):
         network=None,
         asset=None,
         label=None,
+        unique=False,
+        unique_violation_raises_error=False,
     ):
+        db.session.commit()
+
         if label is None:
             label = function.__name__
 
@@ -88,7 +94,6 @@ class AsyncProcess(SQLBase, SQLMixin):
         self.function = function
         self.arguments = arguments
 
-        # TODO - Refactor this and analogous sections in the PsyNet codebase to be more concise
         self.asset = asset
         if asset:
             self.asset_key = asset.key
@@ -113,14 +118,37 @@ class AsyncProcess(SQLBase, SQLMixin):
         if response:
             self.response_id = response.id
 
-        self.infer_missing_parents()
+        self.infer_participant()
+        self.infer_trial_maker_id()
         self.pending = True
 
-        db.session.add(self)
-        db.session.commit()
+        if unique:
+            if isinstance(unique, bool):
+                self._unique_key = {
+                    "label": label,
+                    "function": function,
+                    "arguments": arguments,
+                }
+            else:
+                self._unique_key = unique
+
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except sqlalchemy.exc.IntegrityError as err:
+            if "duplicate key value" in str(err):
+                if unique_violation_raises_error:
+                    raise RuntimeError(
+                        "An asynchronous process has already been triggered with the following specification: "
+                        f"{self._unique_key}"
+                    )
+                else:
+                    db.session.rollback()
+                    return
+            else:
+                raise
 
         self.launch()
-
         db.session.commit()
 
     def check_function(self, function):
@@ -145,7 +173,7 @@ class AsyncProcess(SQLBase, SQLMixin):
     def log_time_finished(self):
         self.time_finished = datetime.datetime.now()
 
-    def infer_missing_parents(self):
+    def infer_participant(self):
         if self.participant is None:
             for obj in [self.asset, self.trial, self.node, self.network]:
                 if obj and hasattr(obj, "participant") and obj.participant:
@@ -154,6 +182,12 @@ class AsyncProcess(SQLBase, SQLMixin):
             # For safety...
             if self.participant:
                 self.participant_id = self.participant.id
+
+    def infer_trial_maker_id(self):
+        for obj in [self.trial, self.node, self.network]:
+            if obj and obj.trial_maker_id:
+                self.trial_maker_id = obj.trial_maker_id
+                return
 
     @property
     def failure_cascade(self):
@@ -307,6 +341,8 @@ class WorkerAsyncProcess(AsyncProcess):
         network=None,
         asset=None,
         label=None,
+        unique=False,
+        unique_violation_raises_error=False,
         timeout=None,  # <-- new argument for this class
     ):
         self.timeout = timeout
@@ -324,6 +360,8 @@ class WorkerAsyncProcess(AsyncProcess):
             network=network,
             asset=asset,
             label=label,
+            unique=unique,
+            unique_violation_raises_error=unique_violation_raises_error,
         )
 
     def launch(self):
