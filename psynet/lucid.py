@@ -186,22 +186,23 @@ class LucidService(object):
 
         return response_data
 
-    def can_be_terminated(self, rid):
+    def can_be_terminated(self, lucid_rid):
+        rid = lucid_rid.rid
         participant_rids = [
             participant.entry_information.get("worker_id")
             for participant in Participant.query.all()
         ]
 
-        if (datetime.now() - rid.creation_time).seconds <= self.recruitment_config[
-            "termination_time_in_s"
-        ]:
+        if (
+            datetime.now() - lucid_rid.creation_time
+        ).seconds <= self.recruitment_config["termination_time_in_s"]:
             return False
 
-        if rid.rid not in participant_rids:
+        if rid not in participant_rids:
             return True
 
         try:
-            participant = Participant.query.filter_by(worker_id=rid.rid).one()
+            participant = Participant.query.filter_by(worker_id=rid).one()
         except (NoResultFound):
             raise NoResultFound(
                 f"No participant for Lucid RID '{rid}' found. This should never happen."
@@ -215,30 +216,31 @@ class LucidService(object):
 
         return False
 
-    def check_respondent_termination(self, _rid):
-        rid = getRID(_rid)
+    def check_respondent_termination(self, rid):
+        lucid_rid = getLucidRID(rid)
 
-        if self.can_be_terminated(rid):
-            self.terminate_respondent(_rid)
+        if lucid_rid.terminated_at is not None:
+            return -1
+
+        if self.can_be_terminated(lucid_rid):
+            self.terminate_respondent(rid)
         else:
             time_until_termination_in_s = (
                 self.recruitment_config["termination_time_in_s"]
-                - (datetime.now() - rid.creation_time).seconds
+                - (datetime.now() - lucid_rid.creation_time).seconds
             )
             logger.info(
-                f"Seconds until termination of RID '{rid.rid}': {time_until_termination_in_s}"
+                f"Seconds until termination of RID '{rid}': {time_until_termination_in_s}"
             )
             return time_until_termination_in_s
 
     def terminate_respondent(self, rid):
-        rid = getRID(rid)
+        rid = getLucidRID(rid)
 
-        redirect_url = (
-            f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
-        )
+        redirect_url = f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid}&"
         redirect_url += f"hash={self.sha1_hash(redirect_url)}"
         self.log(
-            f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
+            f"Terminating respondent with RID '{rid}' using redirect URL '{redirect_url}'."
         )
 
         try:
@@ -283,11 +285,11 @@ class LucidService(object):
         )
 
 
-def getRID(rid):
+def getLucidRID(rid):
     from psynet.recruiters import LucidRID
 
     try:
-        rid = LucidRID.query.filter_by(rid=rid).one()
+        lucid_rid = LucidRID.query.filter_by(rid=rid).one()
     except (NoResultFound):
         raise NoResultFound(
             f"No LucidRID for Lucid RID '{rid}' found. This should never happen."
@@ -297,4 +299,4 @@ def getRID(rid):
             f"Multiple rows for Lucid RID '{rid}' found. This should never happen."
         )
 
-    return rid
+    return lucid_rid
