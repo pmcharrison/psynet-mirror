@@ -1436,6 +1436,14 @@ class Timeline:
                     # index: 2
                     # position: ``[10, 3]``
                     if index_max is not None and index > index_max:
+                        import pydevd_pycharm
+
+                        pydevd_pycharm.settrace(
+                            "localhost",
+                            port=12345,
+                            stdoutToServer=True,
+                            stderrToServer=True,
+                        )
                         raise IndexError
                     position = participant.elt_id[0:depth]
                     resolved = selected_elt.resolve(experiment, participant, position)
@@ -1451,10 +1459,11 @@ class Timeline:
                     # to move to the next part of the timeline. In this case we therefore
                     # raise a ``PageMakerFinishedError``.
                     # However, if this happens at a higher level of ``participant.elt_id``,
-                    # something weird has happened, and so we don't catch that error.
-                    if depth + 1 == num_levels:
-                        raise PageMakerFinishedError
-                    raise
+                    # something weird has happened.
+                    assert depth + 1 == num_levels
+
+                    raise PageMakerFinishedError
+
         return selected_elt
 
     def advance_page(self, experiment, participant):
@@ -1465,7 +1474,14 @@ class Timeline:
             try:
                 new_elt = self.get_current_elt(experiment, participant)
             except PageMakerFinishedError:
+                import pydevd_pycharm
+
+                pydevd_pycharm.settrace(
+                    "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+                )
+
                 participant.elt_id = participant.elt_id[:-1]
+                participant.elt_id_max = participant.elt_id_max[:-1]
                 continue
             if isinstance(new_elt, PageMaker):
                 participant.elt_id.append(-1)
