@@ -20,7 +20,6 @@ from psynet.command_line import (
 )
 from psynet.data import init_db
 from psynet.experiment import Experiment
-from psynet.participant import Participant
 from psynet.trial.main import TrialSource
 from psynet.utils import clear_all_caches, disable_logger
 
@@ -84,7 +83,8 @@ def launched_experiment(
     kill_psynet_chrome_processes()
     kill_chromedriver_processes()
 
-    timeout = request.config.getvalue("recruiter_timeout", 120)
+    # timeout = request.config.getvalue("recruiter_timeout", 120)
+    timeout = 45
 
     # Seems to be important to load config before initializing the experiment,
     # something to do with duplicated SQLAlchemy imports
