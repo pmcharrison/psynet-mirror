@@ -22,7 +22,7 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-from .test import CustomCls  # noqa -- this is to test custom class import
+from .test_imports import CustomCls  # noqa -- this is to test custom class import
 
 ##########################################################################################
 # Stimuli

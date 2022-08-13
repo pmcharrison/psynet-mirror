@@ -19,7 +19,7 @@ from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-from . import test  # noqa  (this is for PsyNet's regression tests)
+from . import test_imports  # noqa  (this is for PsyNet's regression tests)
 
 ##########################################################################################
 # Stimuli
