@@ -590,7 +590,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         return ModularPage(
             "markers_test_trial",
             AudioPrompt(
-                self.stimulus.assets["stimulus"].url,
+                self.stimulus.assets["stimulus"],
                 Markup(
                     """
                     <h3>Recording test</h3>

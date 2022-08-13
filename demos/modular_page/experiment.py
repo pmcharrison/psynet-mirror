@@ -79,7 +79,7 @@ class Exp(psynet.experiment.Experiment):
         ModularPage(
             "response",
             prompt=AudioPrompt(
-                url="/static/audio/bier.wav",
+                audio="/static/audio/bier.wav",
                 text="Here is an example of an audio prompt combined with a push button control``.",
             ),
             control=PushButtonControl(["Response A", "Response B"]),
@@ -89,7 +89,7 @@ class Exp(psynet.experiment.Experiment):
         ModularPage(
             "timed_push_button",
             AudioPrompt(
-                url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+                audio="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
                 text="""
             This page illustrates the timed push button control combined with an audio prompt.
             """,

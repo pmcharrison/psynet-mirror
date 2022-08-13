@@ -310,7 +310,7 @@ example_listen_then_record_page = join(
     ModularPage(
         "record_page",
         AudioPrompt(
-            url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+            "https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
             Here we play audio then activate the recorder 3 seconds afterwards.
             """,
@@ -342,8 +342,7 @@ example_record_audio_video = join(
     ModularPage(
         "record_page",
         AudioPrompt(
-            # url="https://s3.amazonaws.com/headphone-check/antiphase_HC_ISO.wav",
-            url="https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+            "https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
             text="""
             This page plays audio and records video after a couple of seconds.
             It'll work best if you wear headphones.

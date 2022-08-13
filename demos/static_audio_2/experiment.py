@@ -63,7 +63,7 @@ class CustomTrial(StaticTrial):
         return ModularPage(
             "imitation",
             AudioPrompt(
-                self.assets["audio"].url,
+                self.assets["audio"],
                 "Please imitate the spoken word as closely as possible.",
             ),
             AudioRecordControl(duration=3.0, bot_response_media="example-bier.wav"),

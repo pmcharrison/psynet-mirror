@@ -137,7 +137,7 @@ class Exp(psynet.experiment.Experiment):
                 lambda assets, i=i: ModularPage(
                     f"headphone_check_{i}",
                     AudioPrompt(
-                        assets.get(f"headphone_check/stimulus-{i}.wav").url,
+                        assets.get(f"headphone_check/stimulus-{i}.wav"),
                         text=f"This is headphone check stimulus number {i}.",
                     ),
                 ),

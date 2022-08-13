@@ -116,9 +116,9 @@ class AudioPrompt(Prompt):
     Parameters
     ----------
 
-    url
-        URL of the audio file to play.
-        Can alternatively be an ``Asset`` object.
+    audio
+        Audio file to play.
+        Can be an ``Asset`` object, or alternatively a URL written as a string.
 
     text
         Text to display to the participant. This can either be a string
@@ -155,7 +155,7 @@ class AudioPrompt(Prompt):
 
     def __init__(
         self,
-        url,
+        audio,
         text: Union[str, Markup],
         loop: bool = False,
         text_align="left",
@@ -174,10 +174,15 @@ class AudioPrompt(Prompt):
         if play_window[0] is not None and play_window[0] < 0:
             raise ValueError("play_window[0] may not be less than 0")
 
-        if isinstance(url, Asset):
-            url = url.url
+        if isinstance(audio, Asset):
+            url = audio.url
+        elif isinstance(audio, str):
+            url = audio
+        else:
+            raise TypeError(f"Invalid type for audio argument: {type(audio)}")
 
         super().__init__(text=text, text_align=text_align, **kwargs)
+
         self.url = url
         self.loop = loop
         self.play_window = play_window
@@ -236,9 +241,9 @@ class VideoPrompt(Prompt):
     Parameters
     ----------
 
-    url
-        URL of the video file to play.
-        Can alternatively be an ``Asset`` object.
+    video
+        Video file to play.
+        Can be an ``Asset`` object, or alternatively a URL written as a string.
 
     text
         Text to display to the participant. This can either be a string
@@ -277,7 +282,7 @@ class VideoPrompt(Prompt):
 
     def __init__(
         self,
-        url,
+        video,
         text: Union[str, Markup],
         text_align="left",
         width: str = "560px",
@@ -296,10 +301,15 @@ class VideoPrompt(Prompt):
         assert play_window[0] is not None
         assert play_window[0] >= 0.0
 
-        if isinstance(url, Asset):
-            url = url.url
+        if isinstance(video, Asset):
+            url = video.url
+        elif isinstance(video, str):
+            url = video
+        else:
+            raise TypeError(f"Invalid type for video argument: {type(video)}")
 
         super().__init__(text=text, text_align=text_align, **kwargs)
+
         self.url = url
         self.width = width
         self.play_window = play_window
