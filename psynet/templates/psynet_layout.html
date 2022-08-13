@@ -28,7 +28,7 @@
                     postData["participant_id"] = parseInt("{{ participant.id }}");
                     $.post("/check_participant_termination", postData, function(seconds) {
                         if (parseInt(seconds) < 0) {
-                            clearInterval(setIntervalHandle)
+                            clearInterval(setIntervalHandle);
                             $("#consent-rejected").click();
                         }
                     });
