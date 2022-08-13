@@ -353,6 +353,10 @@ class MediaSpec:
             for key, value in modality.items():
                 if isinstance(value, Asset):
                     modality[key] = value.url
+                elif isinstance(value, dict):
+                    for _key, _value in value.items():
+                        if isinstance(_value, Asset):
+                            value[_key] = _value.url
 
         assert list(self.data) == self.modalities
 

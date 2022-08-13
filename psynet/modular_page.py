@@ -9,6 +9,7 @@ from dominate import tags
 from dominate.util import raw
 from flask import Markup
 
+from .asset import Asset
 from .bot import BotResponse
 from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list_of
 from .utils import (
@@ -2213,15 +2214,24 @@ class AudioRecordControl(RecordControl):
 
             from .trial.record import Recording
 
+            label = self.page.label
+
             asset = Recording(
-                label=self.page.label,
+                label=label,
                 input_path=tmp_file.name,
                 extension=self.file_extension,
                 parent=parent,
                 variables=dict(),
                 personal=self.personal,
             )
-            asset.deposit(async_=True, delete_input=True)
+
+            try:
+                asset.deposit(async_=True, delete_input=True)
+            except Asset.InconsistentContentError:
+                raise ValueError(
+                    f"This participant already has an asset with the label '{label}'. "
+                    "You should update your AudioRecordControl labels to make them distinct."
+                )
 
         return {
             "origin": "AudioRecordControl",
@@ -2379,7 +2389,14 @@ class VideoRecordControl(RecordControl):
                     parent=parent,
                     personal=self.personal,
                 )
-                asset.deposit(async_=True, delete_input=True)
+
+                try:
+                    asset.deposit(async_=True, delete_input=True)
+                except Asset.InconsistentContentError:
+                    raise ValueError(
+                        f"This participant already has an asset with the label '{label}'. "
+                        "You should update your VideoRecordControl labels to make them distinct."
+                    )
 
                 summary[source + "_key"] = asset.key
                 summary[source + "_url"] = asset.url

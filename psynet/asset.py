@@ -426,7 +426,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             raise cls.InconsistentContentError(
                 f"Initiated a new deposit for pre-existing asset ({new.key}), "
                 "but replace=False and the content IDs did not match "
-                f"(old: {_old}, new: {_new}), implying that their content differs."
+                f"(old: {_old}, new: {_new}), implying that their content differs. "
             )
 
     def get_content_id(self):

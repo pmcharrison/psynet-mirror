@@ -1,7 +1,7 @@
 import flask
 
 import psynet.experiment
-from psynet.asset import DebugStorage
+from psynet.asset import CachedAsset, DebugStorage
 from psynet.consent import AudiovisualConsent, MainConsent
 from psynet.js_synth import Chord, InstrumentTimbre, JSSynth, Note, Rest, ShepardTimbre
 from psynet.modular_page import (
@@ -14,7 +14,7 @@ from psynet.modular_page import (
     VideoPrompt,
     VideoRecordControl,
 )
-from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.page import InfoPage, SuccessfulEndPage, wait_while
 from psynet.timeline import (
     Event,
     MediaSpec,
@@ -27,6 +27,25 @@ from psynet.timeline import (
 from psynet.utils import get_logger
 
 logger = get_logger()
+
+all_assets = join(
+    CachedAsset(
+        key="bier.wav",
+        input_path="assets/bier.wav",
+    ),
+    CachedAsset(
+        key="file-concatenated.mp3",
+        input_path="assets/file_concatenated.mp3",
+    ),
+    CachedAsset(
+        key="funk-game-loop.mp3",
+        input_path="assets/funk-game-loop.mp3",
+    ),
+    CachedAsset(
+        key="train-1.wav",
+        input_path="assets/train1.wav",
+    ),
+)
 
 example_js_synth_1 = ModularPage(
     "js_synth",
@@ -104,9 +123,10 @@ example_js_synth_4 = ModularPage(
     time_estimate=5,
 )
 
-example_preloading = InfoPage(
-    flask.Markup(
-        """
+example_preloading = PageMaker(
+    lambda assets: InfoPage(
+        flask.Markup(
+            """
         <p>
             This page demonstrates audio preloading.
             A progress bar fills up on the bottom of the screen
@@ -137,25 +157,26 @@ example_preloading = InfoPage(
             <li> <button type="button" class="btn btn-primary wait-for-media-load" onclick="psynet.audio.there_it_is.stop();">Stop 'there_it_is'.</button></li>
         </ul>
         """
-    ),
-    time_estimate=5,
-    media=MediaSpec(
-        audio={
-            "bier": "/static/audio/bier.wav",
-            "batch": {
-                "url": "/static/audio/file_concatenated.mp3",
-                "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
-                "type": "batch",
-            },
-        }
-    ),
-    css=[
-        """
+        ),
+        media=MediaSpec(
+            audio={
+                "bier": assets.get("bier.wav"),
+                "batch": {
+                    "url": assets.get("file-concatenated.mp3"),
+                    "ids": ["funk_game_loop", "honey_bee", "there_it_is"],
+                    "type": "batch",
+                },
+            }
+        ),
+        css=[
+            """
         .btn {
             margin: 2px
         }
         """
-    ],
+        ],
+    ),
+    time_estimate=5,
 )
 
 example_audio_meter = ModularPage(
@@ -174,25 +195,29 @@ example_audio_meter_calibrate = ModularPage(
     time_estimate=5,
 )
 
-example_audio_meter_calibrate_with_audio = ModularPage(
-    "audio_meter",
-    AudioPrompt(
-        "/static/audio/train1.wav",
-        "The default meter parameters are designed to work well for music playback.",
-        loop=True,
+example_audio_meter_calibrate_with_audio = PageMaker(
+    lambda assets: ModularPage(
+        "audio_meter",
+        AudioPrompt(
+            assets.get("train-1.wav"),
+            "The default meter parameters are designed to work well for music playback.",
+            loop=True,
+        ),
+        AudioMeterControl(calibrate=True),
     ),
-    AudioMeterControl(calibrate=True),
     time_estimate=5,
 )
 
-example_audio_meter_with_audio = ModularPage(
-    "audio_meter",
-    AudioPrompt(
-        "/static/audio/train1.wav",
-        "This page shows an audio meter alongside an audio stimulus.",
-        loop=True,
+example_audio_meter_with_audio = PageMaker(
+    lambda assets: ModularPage(
+        "audio_meter",
+        AudioPrompt(
+            assets.get("train-1.wav"),
+            "This page shows an audio meter alongside an audio stimulus.",
+            loop=True,
+        ),
+        AudioMeterControl(calibrate=True),
     ),
-    AudioMeterControl(calibrate=True),
     time_estimate=5,
 )
 
@@ -210,63 +235,71 @@ example_audio_meter_calibrate_with_tapping = ModularPage(
     time_estimate=5,
 )
 
-example_audio_page = ModularPage(
-    "audio_page",
-    AudioPrompt(
-        "/static/audio/bier.wav",
-        "This page illustrates a simple audio page with one stimulus.",
-        loop=False,
-        controls=False,
+example_audio_page = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        AudioPrompt(
+            assets.get("bier.wav"),
+            "This page illustrates a simple audio page with one stimulus.",
+            loop=False,
+            controls=False,
+        ),
     ),
     time_estimate=5,
 )
 
-example_audio_page_1 = ModularPage(
-    "audio_page",
-    AudioPrompt(
-        "/static/audio/bier.wav",
-        "This page loops the same stimulus.",
-        loop=True,
-        controls=False,
+example_audio_page_1 = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        AudioPrompt(
+            assets.get("bier.wav"),
+            "This page loops the same stimulus.",
+            loop=True,
+            controls=False,
+        ),
     ),
     time_estimate=5,
 )
 
-example_audio_page_2 = ModularPage(
-    "audio_page",
-    AudioPrompt(
-        "/static/audio/bier.wav",
-        """
+example_audio_page_2 = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        AudioPrompt(
+            assets.get("bier.wav"),
+            """
         This page adds audio playback controls.
         We've also set start_trial_automatically=False, meaning that the
         user will have to start the audio themselves.
         """,
-        controls=True,
-        loop=False,
+            controls=True,
+            loop=False,
+        ),
+        start_trial_automatically=False,
     ),
     time_estimate=5,
-    start_trial_automatically=False,
 )
 
-example_audio_page_3 = ModularPage(
-    "audio_page",
-    AudioPrompt(
-        "/static/audio/train1.wav",
-        """
+example_audio_page_3 = PageMaker(
+    lambda assets: ModularPage(
+        "audio_page",
+        AudioPrompt(
+            assets.get("train-1.wav"),
+            """
         This page illustrates a 'play window' combined with fade-in, fade-out, and loop.
         """,
-        play_window=[5, 9],
-        fade_in=0.75,
-        fade_out=0.75,
-        loop=True,
-        controls=True,
+            play_window=[5, 9],
+            fade_in=0.75,
+            fade_out=0.75,
+            loop=True,
+            controls=True,
+        ),
     ),
     time_estimate=5,
 )
 
 example_record_page = join(
     ModularPage(
-        "record_page",
+        "audio_record_page_1",
         "This page lets you record audio.",
         AudioRecordControl(
             duration=3.0,
@@ -282,35 +315,29 @@ example_record_page = join(
             ],
         ),
     ),
+    wait_while(
+        lambda participant: not participant.assets["audio_record_page_1"].deposited,
+        expected_wait=5.0,
+        log_message="Waiting for the recording to finish uploading",
+    ),
     PageMaker(
-        lambda participant: debug(participant),
-        # lambda participant: ModularPage(
-        #     "playback",
-        #     AudioPrompt(
-        #         participant.answer["url"], "Here's the recording you just made."
-        #     ),
-        # ),
+        lambda participant: ModularPage(
+            "playback",
+            AudioPrompt(
+                participant.assets["audio_record_page_1"],
+                "Here's the recording you just made.",
+            ),
+        ),
         time_estimate=5,
     ),
 )
 
 
-def debug(participant):
-    return (
-        ModularPage(
-            "playback",
-            AudioPrompt(
-                participant.answer["url"], "Here's the recording you just made."
-            ),
-        ),
-    )
-
-
-example_listen_then_record_page = join(
-    ModularPage(
-        "record_page",
+example_listen_then_record_page = PageMaker(
+    lambda assets: ModularPage(
+        "audio_record_page_2",
         AudioPrompt(
-            "https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
+            assets.get("funk-game-loop.mp3"),
             text="""
             Here we play audio then activate the recorder 3 seconds afterwards.
             """,
@@ -323,7 +350,6 @@ example_listen_then_record_page = join(
             auto_advance=False,
             bot_response_media="example_recordings/response_4__record_page.wav",
         ),
-        time_estimate=5,
         events={"recordStart": Event(is_triggered_by="trialStart", delay=3.0)},
         progress_display=ProgressDisplay(
             stages=[
@@ -335,82 +361,75 @@ example_listen_then_record_page = join(
             ],
         ),
     ),
+    time_estimate=5,
 )
 
 
 example_record_audio_video = join(
-    ModularPage(
-        "record_page",
-        AudioPrompt(
-            "https://headphone-check.s3.amazonaws.com/funk_game_loop.wav",
-            text="""
-            This page plays audio and records video after a couple of seconds.
-            It'll work best if you wear headphones.
-            The red portion of the progress bar identifies the period when the video
-            will be recording.
-            Note how we overrode the 'trialPrepare' event, meaning that the
-            trial does not start itself automatically;
-            instead the trial only starts once the user explicitly presses the
-            'Start recording' button.
-            """,
-            play_window=[0, 4.6],
-            fade_in=0.2,
+    PageMaker(
+        lambda assets: ModularPage(
+            "video_record_page",
+            AudioPrompt(
+                assets.get("funk-game-loop.mp3"),
+                text="""
+                This page plays audio and records video after a couple of seconds.
+                It'll work best if you wear headphones.
+                The red portion of the progress bar identifies the period when the video
+                will be recording.
+                Note how we overrode the 'trialPrepare' event, meaning that the
+                trial does not start itself automatically;
+                instead the trial only starts once the user explicitly presses the
+                'Start recording' button.
+                """,
+                play_window=[0, 4.6],
+                fade_in=0.2,
+            ),
+            VideoRecordControl(
+                duration=2.0,
+                recording_source="camera",
+                show_preview=True,
+                show_meter=False,
+                controls=True,
+                loop_playback=False,
+                auto_advance=True,
+                bot_response_media="example_recordings/response_5__record_page.wav",
+            ),
+            progress_display=ProgressDisplay(
+                stages=[
+                    ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
+                    ProgressStage([2.6, 4.0], "Recording!", color="red"),
+                    ProgressStage([4.0, 4.6], "Recording finished.", color="green"),
+                ],
+            ),
+            events={
+                "trialPrepare": Event(is_triggered_by=None),
+                "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
+                "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
+            },
         ),
-        VideoRecordControl(
-            duration=2.0,
-            recording_source="camera",
-            show_preview=True,
-            show_meter=False,
-            controls=True,
-            loop_playback=False,
-            auto_advance=True,
-            bot_response_media="example_recordings/response_5__record_page.wav",
-        ),
-        progress_display=ProgressDisplay(
-            stages=[
-                ProgressStage([0.0, 2.6], "Waiting to record...", color="grey"),
-                ProgressStage([2.6, 4.0], "Recording!", color="red"),
-                ProgressStage([4.0, 4.6], "Recording finished.", color="green"),
-            ],
-        ),
-        events={
-            "trialPrepare": Event(is_triggered_by=None),
-            "audioStart": Event(is_triggered_by="trialStart", delay=0.0),
-            "recordStart": Event(is_triggered_by="trialStart", delay=2.6),
-        },
         time_estimate=5,
     ),
     PageMaker(
         lambda participant: ModularPage(
             "playback",
             VideoPrompt(
-                participant.answer["camera_url"], "Here's the recording you just made."
+                participant.assets["video_record_page"],
+                "Here's the recording you just made.",
             ),
-            # You can alternatively use an AudioPrompt here to play back just the
-            # audio component of the recording.
-            # AudioPrompt(
-            #     participant.answer["camera_url"], "Here's the recording you just made."
-            # ),
         ),
         time_estimate=5,
     ),
 )
 
 
-# Weird bug: if you instead import Experiment from psynet.experiment,
-# Dallinger won't allow you to override the bonus method
-# (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Audio demo"
     asset_storage = DebugStorage()
 
-    variables = {
-        "wage_per_hour": 12.0,
-    }
-
     timeline = Timeline(
         MainConsent(),
         AudiovisualConsent(),
+        all_assets,
         example_js_synth_1,
         example_js_synth_2,
         example_js_synth_3,
