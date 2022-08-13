@@ -925,11 +925,6 @@ class ChainTrial(Trial):
         return self.node.phase
 
     @property
-    @extra_var(__extra_vars__)
-    def node_id(self):
-        return self.origin_id
-
-    @property
     def node(self):
         return self.origin
 
@@ -941,8 +936,8 @@ class ChainTrial(Trial):
     def failure_cascade(self):
         to_fail = []
         if self.propagate_failure:
-            if self.child:
-                to_fail.append(lambda: [self.child])
+            if self.node.child:
+                to_fail.append(lambda: [self.node.child])
         return to_fail
 
 

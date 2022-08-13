@@ -99,6 +99,26 @@ class InheritedAssets(AssetCollection):
             )
 
 
+def get_asset(key):
+    from .experiment import is_experiment_launched
+
+    if not is_experiment_launched():
+        raise RuntimeError(
+            "You can't call get_asset before the experiment is launched. "
+            "The usual solution is to wrap this code in a PageMaker or a CodeBlock."
+        )
+
+    matches = Asset.query.filter_by(key=key).all()
+    if len(matches) == 0:
+        raise KeyError
+    elif len(matches) == 1:
+        return matches[0]
+    else:
+        raise ValueError(
+            f"Unexpected number of assets found with key = {key} ({len(matches)})"
+        )
+
+
 @register_table
 class Asset(AssetSpecification, SQLBase, SQLMixin):
     # Inheriting from SQLBase and SQLMixin means that the Asset object is stored in the database.
@@ -660,7 +680,9 @@ class ManagedAsset(Asset):
         return True
 
     def after_deposit(self):
-        pass
+        if self.trial:
+            self.trial.check_if_can_run_async_post_trial()
+            self.trial.check_if_can_mark_as_finalized()
 
     def get_url(self, storage: "AssetStorage"):
         return storage.get_url(self.host_path)
@@ -757,12 +779,13 @@ class ManagedAsset(Asset):
         filename = ""
         identifiers = []
         ancestors = self.get_ancestors()
-        if ancestors["trial"] is not None:
-            identifiers.append(f"trial_{ancestors['trial'].id}")
-        if ancestors["node"] is not None:
-            identifiers.append(f"node_{ancestors['node'].id}")
         if ancestors["network"] is not None:
             identifiers.append(f"network_{ancestors['network'].id}")
+        if ancestors["node"] is not None:
+            identifiers.append(f"node_{ancestors['node'].id}")
+        if ancestors["trial"] is not None:
+            identifiers.append(f"trial_{ancestors['trial'].id}")
+
         if self.label:
             identifiers.append(f"{self.label}")
 
@@ -1763,15 +1786,7 @@ class AssetRegistry:
         return self.storage.receive_deposit(asset, host_path, async_, delete_input)
 
     def get(self, key):
-        matches = Asset.query.filter_by(key=key).all()
-        if len(matches) == 0:
-            raise KeyError
-        elif len(matches) == 1:
-            return matches[0]
-        else:
-            raise ValueError(
-                f"Unexpected number of assets found with key = {key} ({len(matches)})"
-            )
+        return get_asset(key)
 
     def prepare_for_deployment(self):
         self.prepare_assets_for_deployment()

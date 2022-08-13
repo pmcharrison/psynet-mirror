@@ -269,10 +269,14 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     }
 
     # Properties ###
+    node_id = claim_field("node_id", __extra_vars__, int)
     participant_id = claim_field("participant_id", __extra_vars__, int)
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     complete = claim_field("complete", __extra_vars__, bool)
     finalized = claim_field("finalized", __extra_vars__, bool)
+    post_trial_process_started = claim_field(
+        "post_trial_process_started", __extra_vars__, bool
+    )
     is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
     score = claim_field("score", __extra_vars__, float)
     bonus = claim_field("bonus", __extra_vars__, float)
@@ -284,11 +288,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
     time_taken = claim_field("time_taken", __extra_vars__, float)
     _initial_assets = Column(PythonDict)
-
-    @property
-    @extra_var(__extra_vars__)
-    def node_id(self):
-        return self.origin_id
 
     @property
     @extra_var(__extra_vars__)
@@ -455,8 +454,10 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         num_repeat_trials=None,  # Only relevant if the trial is a repeat trial
     ):
         super().__init__(origin=node)
+        self.node_id = node.id
         self.complete = False
         self.finalized = False
+        self.post_trial_process_started = False
         self.participant_id = participant.id
         self.propagate_failure = propagate_failure
         self.is_repeat_trial = is_repeat_trial
@@ -705,11 +706,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         raise NotImplementedError
 
     def call_async_post_trial(self):
-        experiment = dallinger.experiment.load()
-        trial_maker = experiment.timeline.get_trial_maker(self.trial_maker_id)
+        dallinger.experiment.load()
         self.async_post_trial()
-        self.mark_as_finalized()
-        trial_maker._grow_network(self.network, self.participant, experiment)
+        self.check_if_can_mark_as_finalized()
 
     def fail_async_processes(self, reason):
         super().fail_async_processes(reason)
@@ -727,6 +726,35 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             num_repeat_trials=num_repeat_trials,
         )
         return repeat_trial
+
+    def check_if_can_mark_as_finalized(self):
+        if self.awaiting_asset_deposit or self.awaiting_async_process:
+            pass
+        else:
+            self.finalized = True
+            db.session.commit()
+            self.on_finalized()
+
+    def check_if_can_run_async_post_trial(self):
+        if (
+            self.run_async_post_trial
+            and not self.post_trial_process_started
+            and not self.awaiting_asset_deposit
+        ):
+            WorkerAsyncProcess(
+                self.call_async_post_trial,
+                label="post_trial",
+                timeout=self.trial_maker.async_timeout_sec,
+                trial=self,
+            )
+            self.post_trial_process_started = True
+            db.session.commit()
+
+    def on_finalized(self):
+        from psynet.experiment import get_experiment
+
+        experiment = get_experiment()
+        self.trial_maker._grow_network(self.network, self.participant, experiment)
 
 
 class TrialMaker(Module):
@@ -1508,9 +1536,8 @@ class TrialMaker(Module):
         self.finalize_trial(
             answer=answer, trial=trial, experiment=experiment, participant=participant
         )
-        if not trial.awaiting_async_process:
-            trial.mark_as_finalized()
-        self._grow_network(trial.network, participant, experiment)
+        trial.check_if_can_run_async_post_trial()
+        trial.check_if_can_mark_as_finalized()
 
     def _construct_feedback_logic(self):
         return conditional(
@@ -1952,20 +1979,6 @@ class NetworkTrialMaker(TrialMaker):
         db.session.add(trial)
         db.session.commit()
         return trial
-
-    def finalize_trial(self, answer, trial, experiment, participant):
-        # pylint: disable=unused-argument,no-self-use,no-member
-        super().finalize_trial(answer, trial, experiment, participant)
-        db.session.commit()
-        if trial.run_async_post_trial:
-            WorkerAsyncProcess(
-                trial.call_async_post_trial,
-                label="post_trial",
-                timeout=self.async_timeout_sec,
-                trial=trial,
-            )
-            db.session.commit()
-        self._grow_network(trial.network, participant, experiment)
 
     def _grow_network(self, network, participant, experiment):
         # pylint: disable=no-member
@@ -2433,6 +2446,14 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def fail(self, reason=None):
         if not self.failed:
             super().fail(reason=reason)
+
+    def trials(self, failed=False, complete=True, is_repeat_trial=False):
+        return Trial.query.filter_by(
+            node_id=self.id,
+            failed=failed,
+            complete=complete,
+            is_repeat_trial=is_repeat_trial,
+        ).all()
 
 
 class TrialSource(TrialNode):

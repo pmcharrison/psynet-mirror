@@ -2,10 +2,9 @@
 Video Imitation Chain Demo
 """
 import random
-import shutil
 
 import psynet.experiment
-from psynet.asset import S3Storage
+from psynet.asset import CachedAsset, DebugStorage, S3Storage, get_asset  # noqa
 from psynet.consent import NoConsent
 from psynet.modular_page import (
     AudioMeterControl,
@@ -27,8 +26,6 @@ from psynet.utils import get_logger
 
 logger = get_logger()
 
-SILENT_RECORDING = "./static/5s_silence.wav"
-
 
 class CustomNetwork(CameraImitationChainNetwork):
     pass
@@ -41,14 +38,14 @@ class CustomSource(CameraImitationChainSource):
 
 
 class CustomVideoRecordControl(VideoRecordControl):
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__(
-            label="webcam_recording",
             duration=5.0,
             recording_source="camera",
             audio_num_channels=2,
             controls=True,
             show_preview=True,
+            **kwargs,
         )
 
 
@@ -59,7 +56,7 @@ def custom_progress_display():
             ProgressStage([1.5, 1.5 + 5.0], "Make your gesture!", color="red"),
             ProgressStage(
                 [1.5 + 5.0, 1.5 + 5.0],
-                "Click 'upload' if you're happy with your recording.",
+                "Click 'Next' if you're happy with your recording.",
                 color="green",
                 persistent=True,
             ),
@@ -75,9 +72,11 @@ class CustomTrial(CameraImitationChainTrial):
             instruction = f"Please trace out a {self.origin.seed} in the air \
                             for the camera using your hands or fingers."
             return ModularPage(
-                "first-iteration-record",
+                "webcam_recording",
                 Prompt(text=instruction, text_align="center"),
-                CustomVideoRecordControl(),
+                CustomVideoRecordControl(
+                    bot_response_media="assets/example_recording.webm",
+                ),
                 time_estimate=5,
                 progress_display=custom_progress_display(),
                 events={"recordStart": Event(is_triggered_by="trialStart", delay=1.5)},
@@ -86,7 +85,7 @@ class CustomTrial(CameraImitationChainTrial):
             return join(
                 [
                     ModularPage(
-                        "subsequent-iteration-prompt",
+                        "webcam_prompt",
                         VideoPrompt(
                             self.origin.target_url,
                             "When you are ready, press next to imitate the figure that you see.",
@@ -96,7 +95,7 @@ class CustomTrial(CameraImitationChainTrial):
                         time_estimate=5,
                     ),
                     ModularPage(
-                        "subsequent-iteration-record",
+                        "webcam_recording",
                         prompt="",
                         control=CustomVideoRecordControl(),
                         time_estimate=5,
@@ -124,20 +123,25 @@ class CustomNode(CameraImitationChainNode):
         This code can be modified to introduce custom video editing before reuploading the video.
         """
         if self.degree == 1:
-            shutil.copyfile(SILENT_RECORDING, output_file)
+            get_asset("5s_silence.wav").export(output_file)
             return output_file
         else:
-            input_recording = self.parent.assets["webcam_recording"]
+            input_recording = self.parent.trials()[0].assets["webcam_recording"]
             input_recording.export(output_file)
 
 
 ####################################################################################################
 class Exp(psynet.experiment.Experiment):
     label = "Video imitation chain demo"
-    asset_storage = S3Storage("psynet-demos", "video-imitation-chain")
+
+    # asset_storage = S3Storage("psynet-demos", "video-imitation-chain")
+    asset_storage = DebugStorage()
+
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         NoConsent(),
+        CachedAsset(key="5s_silence.wav", input_path="assets/5s_silence.wav"),
         ModularPage(
             "record_calibrate",
             """
@@ -170,7 +174,3 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
