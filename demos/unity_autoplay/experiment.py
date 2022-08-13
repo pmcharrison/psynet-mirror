@@ -25,7 +25,6 @@ stimulus_set = StimulusSet(
     [
         Stimulus(
             definition={"mGame": 1, "rule": mType},
-            phase="experiment",
             participant_group=mType,
         )
         for mType in rules
@@ -50,6 +49,7 @@ class UnityGamePage(UnityPage):
             time_estimate=time_estimate,
             game_container_width="960px",
             game_container_height="600px",
+            **kwargs,
         )
 
     def format_answer(self, raw_answer, **kwargs):
@@ -76,6 +76,7 @@ class GameTrial(StaticTrial):
             # We stay in the same session.
             session_id=SAME_SESSION_ID,
             time_estimate=1,
+            bot_response={"reward": 50, "expire": True},
         )
         return page  # list_of_pages
 
@@ -120,7 +121,7 @@ trial_maker = GameTrialMaker(
     id_="game",
     trial_class=GameTrial,
     phase="experiment",
-    stimulus_set=stimulus_set,
+    stimuli=stimulus_set,
     max_trials_per_block=3,
     allow_repeated_stimuli=True,
     max_unique_stimuli_per_block=None,
@@ -136,6 +137,7 @@ trial_maker = GameTrialMaker(
 # Experiment
 class Exp(psynet.experiment.Experiment):
     label = "Unity autoplay demo"
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         MainConsent(),
@@ -143,7 +145,3 @@ class Exp(psynet.experiment.Experiment):
         InfoPage("You finished the experiment!", time_estimate=0),
         SuccessfulEndPage(),
     )
-
-    def __init__(self, session=None):
-        super().__init__(session)
-        self.initial_recruitment_size = 1
