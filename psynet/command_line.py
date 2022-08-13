@@ -1049,6 +1049,7 @@ def generate_config(ctx):
             raise click.Abort
 
     with open(path, "w") as file:
+        file.write("[Config variables]\n")
         assert len(ctx.args) % 2 == 0
         while len(ctx.args) > 0:
             value = ctx.args.pop()
