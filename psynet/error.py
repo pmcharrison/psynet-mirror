@@ -18,7 +18,9 @@ class ErrorRecord(SQLBase, SQLMixin):
     traceback = Column(String)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
-    participant = relationship("psynet.participant.Participant", backref="errors")
+    participant = relationship(
+        "psynet.participant.Participant", back_populates="errors"
+    )
 
     network_id = Column(Integer, ForeignKey("network.id"))
     network = relationship("TrialNetwork", back_populates="errors")
@@ -37,6 +39,9 @@ class ErrorRecord(SQLBase, SQLMixin):
 
     asset_key = Column(String, ForeignKey("asset.key"))
     asset = relationship("Asset", back_populates="errors")
+
+    process_id = Column(Integer, ForeignKey("process.id"))
+    process = relationship("AsyncProcess", back_populates="errors")
 
     def __init__(self, error, **kwargs):
         self.error = str(error)

@@ -1347,8 +1347,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         return cls.HandledError(**kwargs)
 
     class HandledError(Exception):
-        def __init__(self, participant, *args, **kwargs):
-            super().__init__(*args, **kwargs)
+        def __init__(self, message=None, participant=None, **kwargs):
+            super().__init__(message)
             self.participant = participant
 
         def error_page(self):
