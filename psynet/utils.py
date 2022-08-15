@@ -378,15 +378,17 @@ def json_to_data_frame(json_data):
     return data_frame
 
 
-def wait_until(condition, max_wait, poll_interval=0.5, error_message=None):
-    if condition():
+def wait_until(
+    condition, max_wait, poll_interval=0.5, error_message=None, *args, **kwargs
+):
+    if condition(*args, **kwargs):
         return True
     else:
         waited = 0.0
         while waited <= max_wait:
             time.sleep(poll_interval)
             waited += poll_interval
-            if condition():
+            if condition(*args, **kwargs):
                 return True
         if error_message is None:
             error_message = (
@@ -729,3 +731,13 @@ def clear_all_caches():
 
     for func in cached_functions:
         func.cache_clear()
+
+
+@contextlib.contextmanager
+def log_pexpect_errors(process):
+    try:
+        yield
+    except (pexpect.EOF, pexpect.TIMEOUT) as err:
+        print(f"A {err} error occurred. Printing process logs:")
+        print(process.before)
+        raise

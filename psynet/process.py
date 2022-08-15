@@ -1,7 +1,5 @@
-import contextlib
 import datetime
 import inspect
-import io
 import threading
 import time
 
@@ -24,6 +22,7 @@ logger = get_logger()
 @register_table
 class AsyncProcess(SQLBase, SQLMixin):
     __tablename__ = "process"
+    __extra_vars__ = SQLMixin.__extra_vars__.copy()
 
     label = Column(String)
     function = Column(PythonObject)
@@ -58,8 +57,6 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     asset_key = Column(String, ForeignKey("asset.key"))
     asset = relationship("Asset", back_populates="async_processes")
-
-    errors = relationship("ErrorRecord")
 
     def __init__(
         self,
@@ -209,15 +206,16 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     @classmethod
     def call_function_with_logger(cls, process_id):
-        with cls.log_output():
-            cls.call_function(process_id)
+        cls.call_function(process_id)
 
     @classmethod
     def call_function(cls, process_id):
         """
         Calls the defining function of a given process
         """
-        cls.log(f"Calling function for process_id: {process_id}")
+        # cls.log(f"Calling function for process_id: {process_id}")
+        print("\n")
+        logger.info(f"Calling function for process_id: {process_id}")
 
         from psynet.experiment import get_experiment
 
@@ -278,19 +276,10 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     @classmethod
     def log_to_redis(cls, msg):
+        return
         cls.redis_queue.enqueue_call(
             func=logger.info, args=(), kwargs=dict(msg=msg), timeout=1e10, at_front=True
         )
-
-    @classmethod
-    @contextlib.contextmanager
-    def log_output(cls):
-        log = io.StringIO()
-        try:
-            with contextlib.redirect_stdout(log):
-                yield
-        finally:
-            cls.log(log.getvalue())
 
 
 class LocalAsyncProcess(AsyncProcess):
@@ -304,20 +293,38 @@ class LocalAsyncProcess(AsyncProcess):
     def thread_function(cls, process_id):
         try:
             cls.call_function_with_logger(process_id)
-
-            # log = io.StringIO()
-            #
-            # with contextlib.redirect_stdout(log):
-            #     cls.call_function(process_id)
-            #
-            # cls.log(log.getvalue())
         finally:
             db.session.commit()
             db.session.close()
 
     @classmethod
-    def log(cls, msg):
-        cls.log_to_redis(msg)
+    def call_function_with_logger(cls, process_id):
+        cls.call_function(process_id)
+
+        # log = io.StringIO()
+        # try:
+        #     with contextlib.redirect_stdout(log):
+        #         # yield
+        #         cls.call_function(process_id)
+        # finally:
+        #     cls.log_to_redis(log.getvalue())
+
+        # with cls.log_output():
+        #     cls.call_function(process_id)
+
+    # @classmethod
+    # @contextlib.contextmanager
+    # def log_output(cls):
+    #     log = io.StringIO()
+    #     try:
+    #         with contextlib.redirect_stdout(log):
+    #             yield
+    #     finally:
+    #         cls.log_to_redis(log.getvalue())
+
+    # @classmethod
+    # def log(cls, msg):
+    #     cls.log_to_redis(msg)
 
 
 class WorkerAsyncProcess(AsyncProcess):
@@ -392,6 +399,6 @@ class WorkerAsyncProcess(AsyncProcess):
         self.job.cancel()
         db.session.commit()
 
-    @classmethod
-    def log(cls, msg):
-        cls.log_to_stdout(msg)
+    # @classmethod
+    # def log(cls, msg):
+    #     cls.log_to_stdout(msg)

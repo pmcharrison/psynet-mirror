@@ -24,7 +24,7 @@ from dallinger.compat import unicode
 from dallinger.config import get_config
 from dallinger.experiment import experiment_route, scheduled_task
 from dallinger.experiment_server.dashboard import dashboard_tab
-from dallinger.experiment_server.utils import error_response, success_response
+from dallinger.experiment_server.utils import success_response
 from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
@@ -50,7 +50,6 @@ from .recruiters import (  # noqa: F401
     StagingCapRecruiter,
 )
 from .redis import redis_vars
-from .serialize import serialize
 from .timeline import (
     DatabaseCheck,
     FailedValidation,
@@ -69,8 +68,10 @@ from .utils import (
     NoArgumentProvided,
     cached_class_property,
     call_function,
+    disable_logger,
     error_page,
     get_arg_from_dict,
+    get_from_config,
     get_logger,
     pretty_log_dict,
     serialise,
@@ -81,6 +82,15 @@ from .utils import (
 logger = get_logger()
 
 database_template_path = "deploy/database_template.zip"
+
+
+def error_response(*args, **kwargs):
+    from dallinger.experiment_server.utils import (
+        error_response as dallinger_error_response,
+    )
+
+    with disable_logger():
+        return dallinger_error_response(*args, **kwargs)
 
 
 def is_experiment_launched():
@@ -280,6 +290,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def on_every_launch(self):
         logger.info("Calling Exp.on_every_launch()...")
         self.var.server_working_directory = os.getcwd()
+        self.var.dashboard_user = get_from_config("dashboard_user")
+        self.var.dashboard_password = get_from_config("dashboard_password")
         self.grow_all_networks()
 
     def participant_constructor(self, *args, **kwargs):
@@ -1343,8 +1355,33 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @classmethod
     def handle_error(cls, error, **kwargs):
-        cls.report_error(error, **kwargs)
-        return cls.HandledError(**kwargs)
+        parents = cls._compile_error_parents(**kwargs)
+        cls.report_error(error, **parents)
+        return cls.HandledError(**parents)
+
+    @staticmethod
+    def _compile_error_parents(**kwargs):
+        parents = {**kwargs}
+        types = [
+            "process",
+            "asset",
+            "response",
+            "trial",
+            "node",
+            "network",
+            "participant",
+        ]
+        for i, parent_type in enumerate(types):
+            if parent_type in parents:
+                parent = parents[parent_type]
+                for grandparent_type in types[(i + 1) :]:
+                    if (
+                        grandparent_type not in parents
+                        and hasattr(parent, grandparent_type)
+                        and getattr(parent, grandparent_type) is not None
+                    ):
+                        parents[grandparent_type] = getattr(parent, grandparent_type)
+        return parents
 
     class HandledError(Exception):
         def __init__(self, message=None, participant=None, **kwargs):
@@ -1360,23 +1397,31 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         error,
         **kwargs,
     ):
-        cls.log_to_stdout(error, **kwargs)
-        cls.log_to_db(error, **kwargs)
+        token = cls.generate_error_token()
+        cls.log_to_stdout(error, token, **kwargs)
+        cls.log_to_db(error, token, **kwargs)
 
     @classmethod
-    def log_to_stdout(cls, error, **kwargs):
+    def generate_error_token(cls):
+        return str(uuid.uuid4())[:8]
+
+    @classmethod
+    def log_to_stdout(cls, error, token, **kwargs):
         _ = error
         context = cls.serialize_error_context(**kwargs)
+        print("\n")
         logger.error(
-            "An error occurred in the following context: %s",
+            "err-%s:%s",
+            token,
             context,
             exc_info=True,
         )
+        print("\n")
 
     @classmethod
-    def log_to_db(cls, error, **kwargs):
+    def log_to_db(cls, error, token, **kwargs):
         trace = traceback.format_exc()
-        record = ErrorRecord(error=error, traceback=trace, **kwargs)
+        record = ErrorRecord(error=error, traceback=trace, token=token, **kwargs)
         db.session.add(record)
         db.session.commit()
 
@@ -1396,17 +1441,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             context["participant_id"] = participant.id
             context["worker_id"] = participant.worker_id
         if response:
-            context["response"] = serialize(response)
+            context["response_id"] = response.id
         if trial:
-            context["trial"] = serialize(trial)
+            context["trial_id"] = trial.id
         if node:
-            context["node"] = serialize(node)
+            context["node_id"] = node.id
         if network:
-            context["network"] = serialize(network)
+            context["network_id"] = network.id
         if process:
-            context["process"] = serialize(process)
+            context["process_id"] = process.id
         if asset:
-            context["asset"] = serialize(asset)
+            context["asset_key"] = asset.key
         return context
 
     class AuthTokenError(PermissionError):

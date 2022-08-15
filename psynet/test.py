@@ -14,7 +14,7 @@ from dallinger.bots import BotBase
 from dallinger.config import get_config
 from dallinger.models import Network, Node
 from dallinger.pytest_dallinger import flush_output
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
@@ -28,7 +28,7 @@ from psynet.command_line import (
     working_directory,
 )
 from psynet.data import init_db
-from psynet.experiment import Experiment
+from psynet.experiment import Experiment, get_experiment
 from psynet.trial.main import TrialSource
 from psynet.utils import clear_all_caches, disable_logger
 
@@ -39,7 +39,18 @@ warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
 
 
 def assert_text(driver, element_id, value):
-    element = driver.find_element(By.ID, element_id)
+    def get_element():
+        try:
+            return driver.find_element(By.ID, element_id)
+        except NoSuchElementException:
+            pass
+
+    wait_until(
+        get_element,
+        max_wait=5,
+        error_message=f"Could not find element with ID {element_id}",
+    )
+    element = get_element()
 
     def sanitize(x):
         pattern = re.compile(r"\s+")
@@ -123,6 +134,25 @@ def bot_class(headless=None):
     return PYTEST_BOT_CLASS
 
 
+def page_loaded(driver):
+    return driver.execute_script("return document.readyState == 'complete'")
+
+
+def psynet_loaded(driver):
+    psynet_loaded = driver.execute_script(
+        "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
+    )
+    if psynet_loaded:
+        page_loaded = driver.execute_script("return psynet.pageLoaded")
+        if page_loaded:
+            response_enabled = driver.execute_script(
+                "return psynet.trial.events.responseEnable.happened"
+            )
+            if response_enabled:
+                return True
+    return False
+
+
 def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.0):
     def get_uuid():
         return driver.execute_script("return pageUuid")
@@ -131,31 +161,18 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
         button = driver.find_element(By.ID, button_id)
         button.click()
 
-    def is_page_ready():
-        psynet_loaded = driver.execute_script(
-            "try { return psynet != undefined } catch(e) { if (e instanceof ReferenceError) { return false }}"
-        )
-        if psynet_loaded:
-            page_loaded = driver.execute_script("return psynet.pageLoaded")
-            if page_loaded:
-                response_enabled = driver.execute_script(
-                    "return psynet.trial.events.responseEnable.happened"
-                )
-                if response_enabled:
-                    return True
-        return False
-
     wait_until(
-        is_page_ready,
+        psynet_loaded,
         max_wait=15.0,
         error_message="Page never became ready.",
+        driver=driver,
     )
 
     old_uuid = get_uuid()
     click_button()
     if not finished:
         wait_until(
-            lambda: is_page_ready() and get_uuid() != old_uuid,
+            lambda: psynet_loaded(driver) and get_uuid() != old_uuid,
             max_wait=1000.0,  # todo - revert to `max_wait`
             error_message="Failed to load new page.",
         )
@@ -205,9 +222,7 @@ def in_experiment_directory(experiment_directory):
 
 
 @pytest.fixture
-def launched_experiment(
-    request, env, clear_workers, in_experiment_directory, db_session
-):
+def debug_experiment(request, env, clear_workers, in_experiment_directory, db_session):
     """
     This overrides the debug_experiment fixture in Dallinger to
     use PsyNet debug instead. Note that we use legacy mode for now.
@@ -227,7 +242,7 @@ def launched_experiment(
     if not config.ready:
         config.load()
 
-    exp = psynet.experiment.get_experiment()
+    psynet.experiment.get_experiment()
 
     # Make sure debug server runs to completion with bots
     p = pexpect.spawn(
@@ -239,9 +254,13 @@ def launched_experiment(
     p.logfile = sys.stdout
 
     try:
+        # assert_logs_contain(
+        #     "Experiment launch complete!",
+        #     process=p,
+        #     timeout=timeout,
+        # )
         p.expect_exact("Experiment launch complete!", timeout=timeout)
-
-        yield exp
+        yield p
     finally:
         try:
             flush_output(p, timeout=0.1)
@@ -255,6 +274,16 @@ def launched_experiment(
         kill_psynet_chrome_processes()
         kill_chromedriver_processes()
         clear_all_caches()
+
+
+@pytest.fixture
+def launched_experiment(debug_experiment):
+    return get_experiment()
+
+
+@pytest.fixture
+def server_process(debug_experiment):
+    return debug_experiment
 
 
 @pytest.fixture
@@ -354,3 +383,17 @@ def deployment_id():
     Experiment.deployment_id = id_
     yield id_
     Experiment.deployment_id = old_id
+
+
+# def assert_logs_contain(text, process, regex=False, timeout=5):
+#     try:
+#         if regex:
+#             process.expect(text, timeout=timeout)
+#         else:
+#             process.expect_exact(text, timeout=timeout)
+#     except (pexpect.EOF, pexpect.TIMEOUT):
+#         print("Failed to find match in server logs.")
+#         # print("History:")
+#         # wrapper = textwrap.TextWrapper(initial_indent=4, subsequent_indent=4)
+#         # print(wrapper.fill(str(process.before)))
+#         raise

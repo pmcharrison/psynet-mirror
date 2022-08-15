@@ -11,6 +11,7 @@ from . import (  # noqa
     asset,
     bot,
     data,
+    error,
     field,
     participant,
     prescreen,

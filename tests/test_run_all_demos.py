@@ -28,6 +28,7 @@ def find_demo_dirs():
 demos = find_demo_dirs()
 
 skip = [
+    "error_handling",  # Purposefully causes errors
     "singing_iterated",  # Relies on melody package, which needs updating
     "timeline_with_error",  # Purposefully causes an error
 ]

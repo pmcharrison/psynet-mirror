@@ -14,7 +14,9 @@ class ErrorRecord(SQLBase, SQLMixin):
     failed_reason = None
     time_of_death = None
 
-    error = Column(String)
+    token = Column(String)
+    kind = Column(String)
+    message = Column(String)
     traceback = Column(String)
 
     participant_id = Column(Integer, ForeignKey("participant.id"))
@@ -44,5 +46,4 @@ class ErrorRecord(SQLBase, SQLMixin):
     process = relationship("AsyncProcess", back_populates="errors")
 
     def __init__(self, error, **kwargs):
-        self.error = str(error)
-        super().__init__(**kwargs)
+        super().__init__(message=str(error), kind=type(error).__name__, **kwargs)
