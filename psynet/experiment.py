@@ -8,7 +8,6 @@ import urllib.parse
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from functools import cache
 from platform import python_version
 from smtplib import SMTPAuthenticationError
 from typing import List
@@ -66,6 +65,7 @@ from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class
 from .trial.static import StaticStimulusRegistry
 from .utils import (
     NoArgumentProvided,
+    cache,
     cached_class_property,
     call_function,
     disable_logger,

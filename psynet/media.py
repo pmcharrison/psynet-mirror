@@ -3,13 +3,12 @@ import os
 import shutil
 import struct
 import tempfile
-from functools import cache
 
 import boto3
 import parselmouth
 from dallinger.config import get_config
 
-from .utils import get_logger
+from .utils import cache, get_logger
 
 logger = get_logger()
 

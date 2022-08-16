@@ -11,7 +11,7 @@ import re
 import sys
 import time
 from datetime import datetime
-from functools import cache, reduce, wraps
+from functools import lru_cache, reduce, wraps
 from pathlib import Path
 from typing import Union
 from urllib.parse import ParseResult, urlparse
@@ -566,6 +566,12 @@ def get_extension(path):
         pydevd_pycharm.settrace(
             "localhost", port=12345, stdoutToServer=True, stderrToServer=True
         )
+
+
+# Backported from Python 3.9
+def cache(user_function, /):
+    'Simple lightweight unbounded cache.  Sometimes called "memoize".'
+    return lru_cache(maxsize=None)(user_function)
 
 
 def cached_class_property(f):

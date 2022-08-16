@@ -7,7 +7,7 @@ import time
 import urllib
 import urllib.request
 import uuid
-from functools import cache, cached_property
+from functools import cached_property
 from typing import Optional
 
 import boto3
@@ -27,6 +27,7 @@ from .media import get_aws_credentials
 from .process import AsyncProcess, LocalAsyncProcess
 from .timeline import NullElt
 from .utils import (
+    cache,
     cached_class_property,
     get_extension,
     get_file_size_mb,
