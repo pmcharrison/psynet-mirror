@@ -485,6 +485,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
+    def create_generic_trial_source(self):
+        from .trial.main import GenericTrialNetwork, GenericTrialSource
+
+        network = GenericTrialNetwork(
+            trial_maker_id="generic", phase="default", experiment=self
+        )
+        source = GenericTrialSource(network)
+        db.session.add(network)
+        db.session.add(source)
+        db.session.commit()
+
     def process_timeline(self):
         for elt in self.timeline.elts:
             if isinstance(elt, DatabaseCheck):
@@ -503,6 +514,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
+        self.create_generic_trial_source()
         self.static_stimuli.prepare_for_deployment()
         self.assets.prepare_for_deployment()
         for routine in self.pre_deploy_routines:

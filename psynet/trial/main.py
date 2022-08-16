@@ -490,7 +490,8 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     def trial_maker(self):
         from ..experiment import get_trial_maker
 
-        return get_trial_maker(self.trial_maker_id)
+        if self.trial_maker_id:
+            return get_trial_maker(self.trial_maker_id)
 
     def mark_as_finalized(self):
         """
@@ -750,6 +751,128 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         experiment = get_experiment()
         self.trial_maker._grow_network(self.network, self.participant, experiment)
+
+    @classmethod
+    def cue(cls, definition):
+        """
+        Use this method to add a trial directly into a timeline,
+        without needing to create a corresponding trial maker.
+        """
+
+        def _register_trial(experiment, participant):
+            parent = GenericTrialSource.query.one()
+            trial = cls(
+                experiment,
+                parent,
+                participant,
+                propagate_failure=False,
+                is_repeat_trial=False,
+            )
+            db.session.add(trial)
+            participant.current_trial = trial
+            db.session.commit()
+
+        return join(
+            CodeBlock(_register_trial),
+            cls.trial_logic(),
+        )
+
+    @classmethod
+    def trial_logic(cls, trial_maker=None):
+        if trial_maker:
+            time_estimate = trial_maker._get_trial_time_estimate(cls)
+        else:
+            time_estimate = cls.time_estimate
+
+        return join(
+            CodeBlock(cls._log_time_credit_before_trial),
+            PageMaker(
+                cls._show_trial,
+                time_estimate=time_estimate,
+                accumulate_answers=cls.accumulate_answers,
+            ),
+            cls.finalize_trial(trial_maker),
+            cls._construct_feedback_logic(trial_maker),
+            CodeBlock(cls._log_time_credit_after_trial),
+        )
+
+    @classmethod
+    def _show_trial(cls, experiment, participant):
+        trial = participant.current_trial
+        return call_function(
+            trial.show_trial,
+            {
+                "experiment": experiment,
+                "participant": participant,
+                "trial_maker": trial.trial_maker,
+            },
+        )
+        return trial.show_trial(experiment=experiment, participant=participant)
+
+    @classmethod
+    def _get_current_time_credit(cls, participant):
+        return participant.time_credit.confirmed_credit
+
+    @classmethod
+    def _log_time_credit_before_trial(cls, participant):
+        trial = participant.current_trial
+        trial.time_credit_before_trial = cls._get_current_time_credit(participant)
+
+    @classmethod
+    def _log_time_credit_after_trial(cls, participant):
+        trial = participant.current_trial
+        trial.time_credit_after_trial = cls._get_current_time_credit(participant)
+        trial.time_credit_from_trial = (
+            trial.time_credit_after_trial - trial.time_credit_before_trial
+        )
+        if trial.check_time_credit_received:
+            original_estimate = cls._get_trial_time_estimate(trial.__class__)
+            actual = trial.time_credit_from_trial
+            if actual != original_estimate:
+                logger.info(
+                    f"Warning: Trial {trial.id} received an unexpected amount of time credit "
+                    f"(expected = {original_estimate} seconds; "
+                    f"actual = {actual} seconds). "
+                    f"Consider setting the trial's `time_estimate` parameter to {trial.time_credit_from_trial}."
+                    "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
+                )
+
+        @classmethod
+        def finalize_trial(cls, trial_maker):
+            if trial_maker:
+                return CodeBlock(trial_maker._finalize_trial)
+
+        @classmethod
+        def _construct_feedback_logic(cls, trial_maker):
+            if trial_maker:
+                label = trial_maker.with_namespace("feedback")
+            else:
+                label = f"{cls.__name__}__feedback"
+
+            return conditional(
+                label=label,
+                condition=lambda experiment, participant: (
+                    participant.current_trial.gives_feedback(experiment, participant)
+                ),
+                logic_if_true=join(
+                    wait_while(
+                        lambda participant: not participant.current_trial.ready_for_feedback,
+                        expected_wait=0,
+                        log_message="Waiting for feedback to be ready.",
+                        check_interval=1.0,
+                    ),
+                    PageMaker(
+                        lambda experiment, participant: (
+                            participant.current_trial.show_feedback(
+                                experiment=experiment, participant=participant
+                            )
+                        ),
+                        time_estimate=0,
+                    ),
+                ),
+                fix_time_credit=False,
+                log_chosen_branch=False,
+            )
 
 
 class TrialMaker(Module):
@@ -1505,26 +1628,6 @@ class TrialMaker(Module):
         )
         participant.var.set(self.with_namespace("repeat_trial_index"), 0)
 
-    def _show_trial(self, experiment, participant):
-        trial = participant.current_trial
-        return call_function(
-            trial.show_trial,
-            {
-                "experiment": experiment,
-                "participant": participant,
-                "trial_maker": self,
-            },
-        )
-        return trial.show_trial(experiment=experiment, participant=participant)
-
-    def postprocess_answer(self, answer, trial, participant):
-        return answer
-
-    def _postprocess_answer(self, experiment, participant):
-        answer = participant.answer
-        trial = participant.current_trial
-        participant.answer = self.postprocess_answer(answer, trial, participant)
-
     def _finalize_trial(self, experiment, participant):
         trial = participant.current_trial
         answer = participant.answer
@@ -1533,57 +1636,6 @@ class TrialMaker(Module):
         )
         trial.check_if_can_run_async_post_trial()
         trial.check_if_can_mark_as_finalized()
-
-    def _construct_feedback_logic(self):
-        return conditional(
-            label=self.with_namespace("feedback"),
-            condition=lambda experiment, participant: (
-                participant.current_trial.gives_feedback(experiment, participant)
-            ),
-            logic_if_true=join(
-                wait_while(
-                    lambda participant: not participant.current_trial.ready_for_feedback,
-                    expected_wait=0,
-                    log_message="Waiting for feedback to be ready.",
-                    check_interval=1.0,
-                ),
-                PageMaker(
-                    lambda experiment, participant: (
-                        participant.current_trial.show_feedback(
-                            experiment=experiment, participant=participant
-                        )
-                    ),
-                    time_estimate=0,
-                ),
-            ),
-            fix_time_credit=False,
-            log_chosen_branch=False,
-        )
-
-    def _get_current_time_credit(self, participant):
-        return participant.time_credit.confirmed_credit
-
-    def _log_time_credit_before_trial(self, participant):
-        trial = participant.current_trial
-        trial.time_credit_before_trial = self._get_current_time_credit(participant)
-
-    def _log_time_credit_after_trial(self, participant):
-        trial = participant.current_trial
-        trial.time_credit_after_trial = self._get_current_time_credit(participant)
-        trial.time_credit_from_trial = (
-            trial.time_credit_after_trial - trial.time_credit_before_trial
-        )
-        if trial.check_time_credit_received:
-            original_estimate = self._get_trial_time_estimate(trial.__class__)
-            actual = trial.time_credit_from_trial
-            if actual != original_estimate:
-                logger.info(
-                    f"Warning: Trial {trial.id} received an unexpected amount of time credit "
-                    f"(expected = {original_estimate} seconds; "
-                    f"actual = {actual} seconds). "
-                    f"Consider setting the trial's `time_estimate` parameter to {trial.time_credit_from_trial}."
-                    "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
-                )
 
     def _wait_for_trial(self, experiment, participant):
         return False
@@ -1611,16 +1663,7 @@ class TrialMaker(Module):
                 self.with_namespace("trial_loop"),
                 lambda participant: participant.current_trial is not None,
                 logic=join(
-                    CodeBlock(self._log_time_credit_before_trial),
-                    PageMaker(
-                        self._show_trial,
-                        time_estimate=self._get_trial_time_estimate(self.trial_class),
-                        accumulate_answers=self.trial_class.accumulate_answers,
-                    ),
-                    CodeBlock(self._postprocess_answer),
-                    CodeBlock(self._finalize_trial),
-                    self._construct_feedback_logic(),
-                    CodeBlock(self._log_time_credit_after_trial),
+                    self.trial_class.trial_logic(trial_maker=self),
                     (
                         self._check_performance_logic(type="trial")
                         if self.check_performance_every_trial
@@ -2378,6 +2421,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
         )
 
 
+class GenericTrialNetwork(TrialNetwork):
+    pass
+
+
 class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
@@ -2456,4 +2503,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
 
 class TrialSource(TrialNode):
+    pass
+
+
+class GenericTrialSource(TrialSource):
     pass

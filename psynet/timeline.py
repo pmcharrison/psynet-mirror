@@ -2377,3 +2377,45 @@ def get_trial_maker(trial_maker_id):
     raise ImportError(
         "get_trial_maker has moved from psynet.timeline to psynet.experiment, please update your import statements."
     )
+
+
+def for_loop(lst, logic, time_estimate_per_iteration):
+    def setup(experiment, participant):
+        global lst
+        if callable(lst):
+            lst = call_function(
+                lst,
+                {
+                    "experiment": experiment,
+                    "participant": participant,
+                },
+            )
+        for_loop = {"lst": lst, "index": 0}
+        participant.for_loops.append(for_loop)
+
+    def content(participant):
+        for_loop = participant.for_loops[-1]
+        lst = for_loop["lst"]
+        index = for_loop["index"]
+        input = lst[index]
+        return logic(input)
+
+    def should_stay_in_loop(participant):
+        for_loop = participant.for_loops[-1]
+        return for_loop["index"] < len(for_loop["lst"])
+
+    def increment_counter(participant):
+        for_loop = participant.for_loops[-1]
+        for_loop["index"] += 1
+
+    return join(
+        CodeBlock(setup),
+        while_loop(
+            "for_loop",
+            should_stay_in_loop,
+            join(
+                PageMaker(content, time_estimate_per_iteration),
+                CodeBlock(increment_counter),
+            ),
+        ),
+    )
