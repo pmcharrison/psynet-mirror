@@ -116,9 +116,14 @@ class AdjectiveTrial(ImitationChainTrial):
         Prints the feedback if the participant discovered a completely new word. This method can easily be overwritten.
         """
         html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
+        monetary_feedback = (
+            f"We award you with a bonus of {trial_maker.new_word_bonus}$!"
+            if trial_maker.monetary_feedback
+            else ""
+        )
         return f"""
             You just unlocked an entirely new word: "{tag}" for {html_emb}<br><br>
-            We award you with a bonus of {trial_maker.new_word_bonus}$!
+            {monetary_feedback}
             <br><br>
             <div class="alert alert-warning" role="alert">
             <strong>Note:</strong> Please keep in mind that if your tags are later flagged as irrelevant,
@@ -284,9 +289,14 @@ class AdjectiveTrial(ImitationChainTrial):
         users = ", ".join(self.get_usernames(worker_ids))
         stimulus_type = self.get_stimulus_type(url, trial_maker.file_extensions)
         html_emb = self.preview_stimulus_in_html(url, trial_maker.file_extensions)
+        monetary_feedback = (
+            f"<b>You will receive a bonus of {bonus} $</b>"
+            if trial_maker.monetary_feedback
+            else ""
+        )
         return f"""
             {users} upvoted your label "{tag}" for {stimulus_type} {html_emb}<br><br>
-            <b>You will receive a bonus of {bonus} $</b>
+            {monetary_feedback}
             """
 
     def check_upvoted(self, participant, trial_maker, feedback_dictionary):
@@ -417,12 +427,14 @@ class AdjectiveTrial(ImitationChainTrial):
                     participant.var.set(
                         "upvoted_creations", available_feedback[key]["history"]
                     )
-                    participant.inc_performance_bonus(trial_maker.upvote_bonus)
+                    if trial_maker.monetary_feedback:
+                        participant.inc_performance_bonus(trial_maker.upvote_bonus)
                 elif key == "new_word":
                     participant.var.set(
                         "bonused_unique_words", available_feedback[key]["history"]
                     )
-                    participant.inc_performance_bonus(trial_maker.new_word_bonus)
+                    if trial_maker.monetary_feedback:
+                        participant.inc_performance_bonus(trial_maker.new_word_bonus)
 
                 participant.var.set(
                     "feedback", escape(available_feedback[key]["message"])
@@ -770,6 +782,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         new_word_bonus: Optional[float] = None,
         upvote_bonus: Optional[float] = None,
         show_positive_feedback_every: int = 0,
+        monetary_feedback: bool = True,
         practice_threshold: int = 0,
         template_args=None,
         prepopulate_networks=False,
@@ -809,6 +822,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         new_word_bonus: Optional[float] = None,
         upvote_bonus: Optional[float] = None,
         show_positive_feedback_every: int = 0,
+        monetary_feedback: bool = True,
         practice_threshold: int = 0,
         template_args=None,
         allow_revisiting: bool = False,
@@ -885,12 +899,16 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             + max_iterations * max_rating * tag_rating_time_estimate,
         )
 
+        self.monetary_feedback = monetary_feedback
+
         assert flagging_threshold >= 0
 
         prepare_n_bonus = sum([b is not None for b in [new_word_bonus, upvote_bonus]])
 
-        assert (show_positive_feedback_every == 0 and prepare_n_bonus == 0) or (
-            show_positive_feedback_every > 0 and prepare_n_bonus > 0
+        assert (
+            (not monetary_feedback)
+            or (show_positive_feedback_every == 0 and prepare_n_bonus == 0)
+            or (show_positive_feedback_every > 0 and prepare_n_bonus > 0)
         ), "If you want to show a bonus to the participant, you need to specify at least one bonus amount!"
 
         assert practice_threshold >= 0
@@ -1071,7 +1089,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         )
         n_given_ratings = len(answer["ratings"])
         n_ratings = min(self.max_rating, n_given_ratings)
-        if n_given_ratings > self.max_rating:
+        if trial_maker.monetary_feedback and n_given_ratings > self.max_rating:
             logger.warning(
                 f"Participant {participant.id} in trial {trial.id} rated {n_given_ratings} tags which is more than"
                 f" the maximum allowed number of ratings per trial, which is {self.max_rating}."
@@ -1084,7 +1102,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         )
         n_given_tags = len(answer["new_tags"])
         n_new_tags = min(self.max_new_tags, n_given_tags)
-        if n_given_tags > self.max_new_tags:
+        if trial_maker.monetary_feedback and n_given_tags > self.max_new_tags:
             logger.warning(
                 f"Participant {participant.id} in trial {trial.id} entered {n_given_tags} new tags which is more than"
                 f" the maximum allowed number of tags, which is {self.max_new_tags}."
@@ -1102,14 +1120,14 @@ class AdjectivePipeline(ImitationChainTrialMaker):
 
         append_payment_line(n_ratings, full_rating_bonus, "rating", "ratings")
         append_payment_line(n_new_tags, full_new_tag_bonus, "new tag", "new tags")
-
-        logger.info(
-            f"""
-            Paying participant {participant.id} a total performance bonus of {total_performance_bonus}$ consisting of:
-            {' and '.join(bonus_payment_lines)}.
-            """
-        )
-        participant.inc_performance_bonus(total_performance_bonus)
+        if trial_maker.monetary_feedback:
+            logger.info(
+                f"""
+                Paying participant {participant.id} a total performance bonus of {total_performance_bonus}$ consisting of:
+                {' and '.join(bonus_payment_lines)}.
+                """
+            )
+            participant.inc_performance_bonus(total_performance_bonus)
 
     def seconds_to_dollars(self, seconds, wage_per_hour):
         return wage_per_hour * (seconds / 60**2)
