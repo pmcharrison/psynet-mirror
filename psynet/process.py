@@ -58,6 +58,8 @@ class AsyncProcess(SQLBase, SQLMixin):
     asset_key = Column(String, ForeignKey("asset.key"))
     asset = relationship("Asset", back_populates="async_processes")
 
+    errors = relationship("ErrorRecord")
+
     def __init__(
         self,
         function,
