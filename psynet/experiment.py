@@ -948,7 +948,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant_id = request.form.get("participant_id")
         participant = None
         if participant_id:
-            participant = participant = Participant.query.first()
+            participant = Participant.query.filter_by(id=participant_id).one()
         return error_page(participant=participant, request_data=request_data)
 
     @experiment_route("/module", methods=["POST"])
