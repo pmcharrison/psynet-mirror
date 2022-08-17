@@ -2373,9 +2373,15 @@ def get_trial_maker(trial_maker_id):
     )
 
 
-def for_loop(lst, logic, time_estimate_per_iteration):
+FOR_LOOP_STACK_DEPTH = -1
+
+
+def for_loop(label, lst, logic, time_estimate_per_iteration):
     def setup(experiment, participant):
-        global lst
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        nonlocal lst
+        nonlocal label
         if callable(lst):
             lst = call_function(
                 lst,
@@ -2384,19 +2390,27 @@ def for_loop(lst, logic, time_estimate_per_iteration):
                 assets=experiment.assets,
                 stimuli=experiment.stimuli,
             )
-        for_loop = {"lst": lst, "index": 0}
-        participant.for_loops.append(for_loop)
-        flag_modified(participant.for_loops)
+        state = {"lst": lst, "index": 0}
+        # participant.for_loops.append(state)
+        participant.for_loops[label] = state
+        flag_modified(participant, "for_loops")
 
     def wrapup(experiment, participant):
-        participant.for_loops.pop()
-        flag_modified(participant.for_loops)
+        nonlocal label
+        del participant.for_loops[label]
+        flag_modified(participant, "for_loops")
 
     def content(experiment, participant):
-        for_loop = participant.for_loops[-1]
-        lst = for_loop["lst"]
-        index = for_loop["index"]
+        # global FOR_LOOP_STACK_DEPTH
+        # FOR_LOOP_STACK_DEPTH += 1
+        # state = participant.for_loops[FOR_LOOP_STACK_DEPTH]
+        nonlocal label
+        state = participant.for_loops[label]
+        lst = state["lst"]
+        index = state["index"]
         input = lst[index]
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
         return call_function(
             logic,
             input,
@@ -2407,13 +2421,19 @@ def for_loop(lst, logic, time_estimate_per_iteration):
         )
 
     def should_stay_in_loop(participant):
-        for_loop = participant.for_loops[-1]
-        return for_loop["index"] < len(for_loop["lst"])
+        nonlocal label
+        # state = participant.for_loops[-1]
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
+        state = participant.for_loops[label]
+        return state["index"] < len(state["lst"])
 
     def increment_counter(participant):
-        for_loop = participant.for_loops[-1]
-        for_loop["index"] += 1
-        flag_modified(participant.for_loops)
+        # state = participant.for_loops[-1]
+        nonlocal label
+        state = participant.for_loops[label]
+        state["index"] += 1
+        flag_modified(participant, "for_loops")
 
     return join(
         CodeBlock(setup),

@@ -17,8 +17,10 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         for_loop(
+            "Looping over letters A-C",
             ["A", "B", "C"],
             lambda letter: for_loop(
+                "Looping over numbers 1-3",
                 [1, 2, 3],
                 lambda number: InfoPage(f"{letter}{number}"),
                 time_estimate_per_iteration=5,
@@ -26,6 +28,7 @@ class Exp(psynet.experiment.Experiment):
             time_estimate_per_iteration=15,
         ),
         for_loop(
+            "Looping over letters D-F",
             ["D", "E", "F"],
             lambda letter: InfoPage(f"{letter}"),
             time_estimate_per_iteration=5,

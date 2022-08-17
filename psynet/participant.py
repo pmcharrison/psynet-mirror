@@ -165,7 +165,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     answer_accumulators = field.claim_field("answer_accumulators", __extra_vars__, list)
     branch_log = field.claim_field("branch_log", __extra_vars__)
 
-    for_loops = Column(PythonObject, default=lambda: [])
+    for_loops = Column(PythonObject, default=lambda: {})
 
     failure_tags = claim_var(
         "failure_tags", __extra_vars__, use_default=True, default=lambda: []
