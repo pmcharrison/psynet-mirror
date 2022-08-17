@@ -1796,7 +1796,7 @@ def while_loop(
 
     def condition_wrapped(participant, experiment):
         result = call_function(
-            condition, {"participant": participant, "experiment": experiment}
+            condition, participant=participant, experiment=experiment
         )
         logger.info(f"Evaluating while_loop ({label}) condition: result = {result}")
         return result
