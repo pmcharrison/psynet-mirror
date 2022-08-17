@@ -8,10 +8,10 @@ from pathlib import Path
 from statistics import mean
 from typing import List, Optional, Union
 
-import dallinger.models
 from dallinger import db
 from dallinger.models import Vector
-from sqlalchemy import Column, Integer, String, func
+from sqlalchemy import Column, Integer, String, UniqueConstraint, func
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 
 from ..asset import CachedAsset
@@ -35,62 +35,44 @@ class StaticStimulusRegistry:
     def __init__(self, experiment):
         self.experiment = experiment
         self.timeline = experiment.timeline
-        self.stimulus_sets = {}
+        self.stimuli = {}
         self.compile_stimulus_sets()
         # self.compile_stimuli()
 
-    @property
-    def stimuli(self):
-        return [
-            s
-            for _stimulus_set in self.stimulus_sets.values()
-            for s in _stimulus_set.stimuli
-        ]
+    # @property
+    # def stimuli(self):
+    #     return [
+    #         s
+    #         for _stimulus_set in self.stimulus_sets.values()
+    #         for s in _stimulus_set.stimuli
+    #     ]
 
     def compile_stimulus_sets(self):
         for elt in self.timeline.elts:
             if isinstance(elt, StimulusSet):
                 id_ = elt.stimulus_set_id
                 assert id_ is not None
-                if id_ in self.stimulus_sets and elt != self.stimulus_sets[id_]:
+                if id_ in self.stimuli and elt != self.stimuli[id_]:
                     raise RuntimeError(
                         f"Tried to register two non-identical stimulus sets with the same ID: {id_}"
                     )
-                self.stimulus_sets[id_] = elt
+                self.stimuli[id_] = elt
 
     def prepare_for_deployment(self):
         self.create_networks()
-        # self.add_stimuli_to_db()
         self.stage_assets()
 
     def create_networks(self):
-        for s in self.stimulus_sets.values():
-            s.create_networks(self.experiment)
+        for stimulus_set in self.stimuli.values():
+            for stimulus in stimulus_set.values():
+                stimulus.create_networks(self.experiment)
         db.session.commit()
-
-    # def add_stimuli_to_db(self):
-    #     for stimulus in self.stimuli:
-    #         db.session.add(stimulus)
-    #     db.session.commit()
 
     def stage_assets(self):
-        for stimulus in self.stimuli:
-            stimulus.stage_assets(self.experiment)
+        for stimulus_set in self.stimuli.values():
+            for stimulus in stimulus_set.values():
+                stimulus.stage_assets(self.experiment)
         db.session.commit()
-
-    # def export_db_spec(self):
-    #     self.assert_node_table_only_contains_stimuli()
-    #     copy_db_table_to_csv("node", self.csv_path)
-
-    @staticmethod
-    def assert_node_table_only_contains_stimuli(self):
-        n_nodes = dallinger.models.Node.query.count()
-        n_stimuli = Stimulus.query.count()
-        if n_nodes != n_stimuli:
-            raise RuntimeError(
-                "The local database's Node table contained objects that aren't stimuli. We didn't anticipate this "
-                "and haven't accounted for it."
-            )
 
 
 # TOOD - should this really be in the global namespace?
@@ -122,6 +104,11 @@ class Stimulus(TrialNode, HasDefinition):
         The associated block.
         Defaults to a single block for all trials.
 
+    key
+        Optional key that can be used to access the asset from the timeline.
+        If left blank this will be populated automatically so as to be
+        unique within a given stimulus set.
+
     Attributes
     ----------
 
@@ -148,18 +135,21 @@ class Stimulus(TrialNode, HasDefinition):
         **HasDefinition.__extra_vars__.copy(),
     }
 
-    stimulus_set_id = Column(String)
+    stimulus_set_id = Column(String, index=True)
     target_num_trials = Column(Integer)
     participant_group = Column(String)
     phase = Column(String)
     block = Column(String)
+    key = Column(String, unique=True, index=True)
 
     def __init__(
         self,
         definition: dict,
+        *,
         participant_group="default",
         block="default",
         assets=None,
+        key=None,
     ):
         # Note: We purposefully do not call super().__init__(), because this parent constructor
         # requires the prior existence of the node's parent network, which is impractical for us.
@@ -176,6 +166,7 @@ class Stimulus(TrialNode, HasDefinition):
         self.participant_group = participant_group
         self.block = block
         self._staged_assets = assets
+        self.key = key
 
     def stage_assets(self, experiment):
         stimulus_id = self.id
@@ -239,6 +230,13 @@ class Stimulus(TrialNode, HasDefinition):
         return self.target_num_trials - self.num_completed_trials
 
 
+UniqueConstraint(Stimulus.stimulus_set_id, Stimulus.key)
+
+# __table_args__ = (
+#     UniqueConstraint("stimulus_set_id", "key", name='_stimulus_set_id__key_uc'),
+# )
+
+
 class StimulusSet(NullElt):
     """
     Defines a stimulus set for a static experiment.
@@ -270,10 +268,13 @@ class StimulusSet(NullElt):
         participant_groups = set()
         self.num_stimuli = dict()
 
-        for s in stimuli:
+        for i, s in enumerate(stimuli):
             assert isinstance(s, Stimulus)
 
             s.stimulus_set_id = self.stimulus_set_id
+
+            if s.key is None:
+                s.key = f"stimulus_{i}"
 
             network_specs.add((s.phase, s.participant_group, s.block))
 
@@ -313,6 +314,16 @@ class StimulusSet(NullElt):
                 target_num_trials_per_stimulus=self.trial_maker.target_num_trials_per_stimulus,
             )
             db.session.commit()
+
+    def __getitem__(self, item):
+        try:
+            return Stimulus.query.filter_by(
+                stimulus_set_id=self.stimulus_set_id, key=item
+            ).one()
+        except NoResultFound:
+            return [stimulus for stimulus in self.stimuli if stimulus.key == "item"][0]
+        except IndexError:
+            raise KeyError
 
 
 class VirtualStimulusSet:

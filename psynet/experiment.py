@@ -260,7 +260,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.static_stimuli = StaticStimulusRegistry(self)
+        self.stimuli = StaticStimulusRegistry(self)
 
         if (
             request
@@ -322,7 +322,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def test_run_bots(self, bots):
         for bot in bots:
             db.session.add(bot)  # Protects against DetachedInstanceErrors
-            bot.take_experiment(render_pages=True)
+            self.run_bot(bot)
+
+    def run_bot(self, bot):
+        bot.take_experiment(render_pages=True)
 
     def test_check_bots(self, bots: List[Bot]):
         for b in bots:
@@ -515,11 +518,11 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.setup_experiment_config()
         self.setup_experiment_variables()
         self.create_generic_trial_source()
-        self.static_stimuli.prepare_for_deployment()
+        self.stimuli.prepare_for_deployment()
         self.assets.prepare_for_deployment()
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")
-            call_function(routine.function, {"experiment": self, **routine.args})
+            call_function(routine.function, experiment=self, **routine.args)
         self.create_database_snapshot()
 
     @classmethod
@@ -603,7 +606,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             )
             call_function(
                 routine.function,
-                {"participant": participant, "experiment": self, "assets": self.assets},
+                participant=participant,
+                experiment=self,
+                assets=self.assets,
             )
 
     @property
@@ -631,7 +636,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
                 i + 1,
                 len(self.recruitment_criteria),
             )
-            res = call_function(criterion.function, {"experiment": self})
+            res = call_function(criterion.function, experiment=self)
             assert isinstance(res, bool)
             logger.info(
                 "Recruitment criterion %i/%i ('%s') %s.",

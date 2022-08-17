@@ -1,6 +1,7 @@
 # pylint: disable=abstract-method
 
 import json
+import random
 import time
 import warnings
 from collections import Counter
@@ -16,6 +17,7 @@ from dallinger.config import get_config
 from dominate import tags
 from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm.attributes import flag_modified
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
@@ -198,12 +200,10 @@ class CodeBlock(Elt):
     def consume(self, experiment, participant):
         call_function(
             self.function,
-            {
-                "self": self,
-                "experiment": experiment,
-                "participant": participant,
-                "assets": experiment.assets,
-            },
+            self=self,
+            experiment=experiment,
+            participant=participant,
+            assets=experiment.assets,
         )
 
 
@@ -282,7 +282,9 @@ class ReactiveGoTo(GoTo):
     def get_target(self, experiment, participant):
         val = call_function(
             self.function,
-            {"self": self, "experiment": experiment, "participant": participant},
+            self=self,
+            experiment=experiment,
+            participant=participant,
         )
         try:
             return self.targets[val]
@@ -749,13 +751,11 @@ class Page(Elt):
         elif callable(self._bot_response):
             res = call_function(
                 self._bot_response,
-                args={
-                    "experiment": experiment,
-                    "bot": bot,
-                    "participant": bot,
-                    "page": self,
-                    "assets": experiment.assets,
-                },
+                experiment=experiment,
+                bot=bot,
+                participant=bot,
+                page=self,
+                assets=experiment.assets,
             )
         else:
             res = self._bot_response
@@ -1150,12 +1150,10 @@ class PageMaker(Elt):
         """
         res = call_function(
             self.function,
-            {
-                "self": self,
-                "experiment": experiment,
-                "participant": participant,
-                "assets": experiment.assets,
-            },
+            self=self,
+            experiment=experiment,
+            participant=participant,
+            assets=experiment.assets,
         )
         res = join(res)
         self.impute_time_estimates(res)
@@ -1842,11 +1840,9 @@ def while_loop(
             "max_loop_time_condition",
             lambda participant, experiment: call_function(
                 max_loop_time_condition,
-                {
-                    "participant": participant,
-                    "experiment": experiment,
-                    "assets": experiment.assets,
-                },
+                participant=participant,
+                experiment=experiment,
+                assets=experiment.assets,
             ),
             after_timeout_logic,
             fix_time_credit=False,
@@ -1971,11 +1967,9 @@ class StartSwitch(ReactiveGoTo):
             def function_2(experiment, participant):
                 val = call_function(
                     function,
-                    {
-                        "experiment": experiment,
-                        "participant": participant,
-                        "assets": experiment.assets,
-                    },
+                    experiment=experiment,
+                    participant=participant,
+                    assets=experiment.assets,
                 )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
@@ -2385,20 +2379,32 @@ def for_loop(lst, logic, time_estimate_per_iteration):
         if callable(lst):
             lst = call_function(
                 lst,
-                {
-                    "experiment": experiment,
-                    "participant": participant,
-                },
+                experiment=experiment,
+                participant=participant,
+                assets=experiment.assets,
+                stimuli=experiment.stimuli,
             )
         for_loop = {"lst": lst, "index": 0}
         participant.for_loops.append(for_loop)
+        flag_modified(participant.for_loops)
 
-    def content(participant):
+    def wrapup(experiment, participant):
+        participant.for_loops.pop()
+        flag_modified(participant.for_loops)
+
+    def content(experiment, participant):
         for_loop = participant.for_loops[-1]
         lst = for_loop["lst"]
         index = for_loop["index"]
         input = lst[index]
-        return logic(input)
+        return call_function(
+            logic,
+            input,
+            experiment=experiment,
+            participant=participant,
+            assets=experiment.assets,
+            stimuli=experiment.stimuli,
+        )
 
     def should_stay_in_loop(participant):
         for_loop = participant.for_loops[-1]
@@ -2407,6 +2413,7 @@ def for_loop(lst, logic, time_estimate_per_iteration):
     def increment_counter(participant):
         for_loop = participant.for_loops[-1]
         for_loop["index"] += 1
+        flag_modified(participant.for_loops)
 
     return join(
         CodeBlock(setup),
@@ -2417,5 +2424,14 @@ def for_loop(lst, logic, time_estimate_per_iteration):
                 PageMaker(content, time_estimate_per_iteration),
                 CodeBlock(increment_counter),
             ),
+            expected_repetitions=len(lst),
+            fix_time_credit=False,
         ),
+        CodeBlock(wrapup),
     )
+
+
+def randomize(logic):
+    assert isinstance(logic, list)
+    n = len(list)
+    return for_loop(lst=random.sample(range(n), n), logic=lambda i: logic[i])

@@ -16,7 +16,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 from . import field
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import claim_var, extra_var, register_extra_var
+from .field import PythonObject, claim_var, extra_var, register_extra_var
 from .process import AsyncProcess
 from .utils import get_logger, serialise_datetime, unserialise_datetime
 
@@ -164,6 +164,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     answer = field.claim_field("answer", __extra_vars__, object)
     answer_accumulators = field.claim_field("answer_accumulators", __extra_vars__, list)
     branch_log = field.claim_field("branch_log", __extra_vars__)
+
+    for_loops = Column(PythonObject, default=lambda: [])
 
     failure_tags = claim_var(
         "failure_tags", __extra_vars__, use_default=True, default=lambda: []

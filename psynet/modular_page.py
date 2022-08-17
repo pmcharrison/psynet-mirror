@@ -661,14 +661,12 @@ class Control:
         elif callable(self._bot_response):
             res = call_function(
                 self._bot_response,
-                args={
-                    "experiment": experiment,
-                    "bot": bot,
-                    "participant": bot,
-                    "page": page,
-                    "prompt": prompt,
-                    "assets": experiment.assets,
-                },
+                experiment=experiment,
+                bot=bot,
+                participant=bot,
+                page=page,
+                prompt=prompt,
+                assets=experiment.assets,
             )
         else:
             res = self._bot_response
@@ -2136,12 +2134,10 @@ class RecordControl(Control):
         elif callable(self.bot_response_media):
             return call_function(
                 self.bot_response_media,
-                {
-                    "bot": bot,
-                    "experiment": experiment,
-                    "page": page,
-                    "prompt": prompt,
-                },
+                bot=bot,
+                experiment=experiment,
+                page=page,
+                prompt=prompt,
             )
         else:
             return self.bot_response_media

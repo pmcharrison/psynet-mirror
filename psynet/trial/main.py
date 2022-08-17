@@ -451,6 +451,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         parent_trial=None,  # If the trial is a repeat trial, what is its parent?
         repeat_trial_index=None,  # Only relevant if the trial is a repeat trial
         num_repeat_trials=None,  # Only relevant if the trial is a repeat trial
+        assets=None,
     ):
         super().__init__(origin=node)
         self.node_id = node.id
@@ -467,12 +468,18 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         self.time_taken = None
         self.trial_maker_id = node.network.trial_maker_id
 
+        if assets is None:
+            assets = {}
+
         if is_repeat_trial:
             self.definition = parent_trial.definition
             for k, v in parent_trial._initial_assets.items():
                 self.assets[k] = v
         else:
-            self.assets = {**node.assets}
+            self.assets = {
+                **node.assets,
+                **assets,
+            }
             self.definition = self.make_definition(experiment, participant)
             assert self.definition is not None
 
@@ -801,11 +808,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         trial = participant.current_trial
         return call_function(
             trial.show_trial,
-            {
-                "experiment": experiment,
-                "participant": participant,
-                "trial_maker": trial.trial_maker,
-            },
+            experiment=experiment,
+            participant=participant,
+            trial_maker=trial.trial_maker,
         )
         return trial.show_trial(experiment=experiment, participant=participant)
 
@@ -1197,7 +1202,7 @@ class TrialMaker(Module):
         if self.recruit_mode not in self.recruit_criteria:
             raise ValueError(f"Invalid recruitment mode: {self.recruit_mode}")
         function = self.recruit_criteria[self.recruit_mode]
-        return call_function(function, {"self": self, "experiment": experiment})
+        return call_function(function, self=self, experiment=experiment)
 
     def null_criterion(self, experiment):
         logger.info("Recruitment is disabled for this module.")

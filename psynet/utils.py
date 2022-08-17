@@ -68,10 +68,13 @@ def dict_to_js_vars(x):
     return reduce(lambda a, b: a + b, y)
 
 
-def call_function(function, args: dict):
-    requested_args = get_function_args(function)
-    arg_values = [args[requested] for requested in requested_args if requested in args]
-    return function(*arg_values)
+def call_function(function, *args, **kwargs):
+    """
+    Calls a function with *args and **kwargs, but omits any **kwargs that are
+    not requested explicitly.
+    """
+    kwargs = {key: value for key, value in kwargs.items() if key in get_args(function)}
+    return function(*args, **kwargs)
 
 
 config_defaults = {
@@ -92,7 +95,7 @@ def get_from_config(key):
         return config.get(key)
 
 
-def get_function_args(f):
+def get_args(f):
     return [str(x) for x in inspect.signature(f).parameters]
 
 

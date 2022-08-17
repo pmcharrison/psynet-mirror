@@ -29,10 +29,10 @@ from .timeline import NullElt
 from .utils import (
     cache,
     cached_class_property,
+    get_args,
     get_extension,
     get_file_size_mb,
     get_folder_size_mb,
-    get_function_args,
     get_logger,
     md5_directory,
     md5_file,
@@ -988,7 +988,7 @@ class FunctionAssetMixin:
 
     def receive_stimulus_definition(self, definition):
         super().receive_stimulus_definition(definition)
-        requested_args = get_function_args(self.function)
+        requested_args = get_args(self.function)
         for key, value in definition.items():
             if key in requested_args:
                 self.arguments[key] = value

@@ -4,6 +4,7 @@ import uuid
 import requests
 from cached_property import cached_property
 from dallinger import db
+from sqlalchemy import Column, Integer
 
 from .participant import Participant
 from .timeline import EndPage, Page
@@ -13,6 +14,8 @@ logger = get_logger()
 
 
 class Bot(Participant):
+    page_count = Column(Integer, default=1)
+
     def __init__(
         self,
         recruiter_id="bot_recruiter",
@@ -67,6 +70,9 @@ class Bot(Participant):
     def timeline(self):
         return self.experiment.timeline
 
+    def get_current_page(self):
+        return self.experiment.get_current_page(self.experiment, self)
+
     @log_time_taken
     def take_experiment(self, time_factor=0, render_pages: bool = False):
         """
@@ -83,8 +89,9 @@ class Bot(Participant):
             This is generally only useful for testing.
         """
         logger.info(f"Bot {self.id} is starting the experiment.")
-        counter = 1  # You start already on a page
+        self.run_to_completion(time_factor, render_pages)
 
+    def run_to_completion(self, time_factor=0, render_pages: bool = False):
         # We tried the following code to simulate the Flask server and thereby
         # run Page.render() functions directly. However the approach fails
         # when we try to run multiple tests in succession, because Flask
@@ -96,24 +103,23 @@ class Bot(Participant):
         # app = util.import_app("dallinger.experiment_server.sockets:app")
         # with app.app_context(), app.test_request_context():
         while True:
-            page = self.experiment.get_current_page(self.experiment, self)
             if render_pages:
                 req = requests.get(
                     f"http://localhost:5000/timeline?participant_id={self.id}&auth_token={self.auth_token}"
                 )
                 assert req.status_code == 200
-            self.take_page(page, time_factor)
-            counter += 1
+            self.take_page(time_factor)
             db.session.commit()
             if not self.status == "working":
                 break
         logger.info(
-            f"Bot {self.id} has finished the experiment (took {counter} page(s))."
+            f"Bot {self.id} has finished the experiment (took {self.page_count} page(s))."
         )
 
-    def take_page(self, page, time_factor):
+    def take_page(self, time_factor=0):
         from .page import WaitPage
 
+        page = self.get_current_page()
         bot = self
         experiment = self.experiment
         assert isinstance(page, Page)
@@ -141,6 +147,9 @@ class Bot(Participant):
                 client_ip_address=response.client_ip_address,
                 answer=response.answer,
             )
+
+        self.page_count += 1
+
         db.session.commit()
 
 
