@@ -11,12 +11,14 @@ logger = get_logger()
 # Dallinger won't allow you to override the bonus method
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
-    label = "For loop demo"
+    label = "Randomize demo"
     initial_recruitment_size = 1
 
     timeline = Timeline(
         NoConsent(),
-        randomize([InfoPage(f"{i}", time_estimate=5) for i in range(100)]),
+        randomize(
+            "Numbers from 0-99", [InfoPage(f"{i}", time_estimate=5) for i in range(100)]
+        ),
         SuccessfulEndPage(),
     )
 

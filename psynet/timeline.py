@@ -2451,7 +2451,13 @@ def for_loop(label, lst, logic, time_estimate_per_iteration):
     )
 
 
-def randomize(logic):
+def randomize(label, logic):
     assert isinstance(logic, list)
-    n = len(list)
-    return for_loop(lst=random.sample(range(n), n), logic=lambda i: logic[i])
+    n = len(logic)
+    total_time = sum(elt.time_estimate for elt in logic)
+    return for_loop(
+        label,
+        lst=random.sample(range(n), n),
+        logic=lambda i: logic[i],
+        time_estimate_per_iteration=total_time / n,
+    )
