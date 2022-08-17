@@ -492,7 +492,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         from .trial.main import GenericTrialNetwork, GenericTrialSource
 
         network = GenericTrialNetwork(
-            trial_maker_id="generic", phase="default", experiment=self
+            trial_maker_id=None, phase="default", experiment=self
         )
         source = GenericTrialSource(network)
         db.session.add(network)
