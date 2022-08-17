@@ -545,8 +545,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if len(networks) > 0:
             logger.info("Growing networks...")
             for n in networks:
-                trial_maker = self.timeline.trial_makers[n.trial_maker_id]
-                trial_maker._grow_network(n, participant=None, experiment=self)
+                n.grow(experiment=self, participant=None)
             db.session.commit()
 
     @classmethod
