@@ -20,8 +20,6 @@ from psynet.trial.main import Trial
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
-from . import test_imports  # noqa  (this is for PsyNet's regression tests)
-
 
 class RateTrial(Trial):
     time_estimate = 3
@@ -55,12 +53,14 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         for_loop(
+            "Randomly sample three words from the word list",
             random.sample(WORDS, 3),
             lambda word: RateTrial.cue(
                 {
                     "word": word,
                 }
             ),
+            time_estimate_per_iteration=3,
         ),
         SuccessfulEndPage(),
     )
@@ -71,5 +71,7 @@ class Exp(psynet.experiment.Experiment):
         assert not bot.failed
         trials = bot.trials()
         assert len(trials) == 3
-        assert len(set(trials)) == 3
+        assert len(set([t.definition["word"] for t in trials])) == 3
         assert all([t.definition["word"] in WORDS for t in trials])
+        assert all([t.complete for t in trials])
+        assert all([t.finalized for t in trials])

@@ -48,7 +48,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import call_function, corr, get_logger
+from ..utils import NoArgumentProvided, call_function, corr, get_logger
 
 logger = get_logger()
 
@@ -452,6 +452,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         repeat_trial_index=None,  # Only relevant if the trial is a repeat trial
         num_repeat_trials=None,  # Only relevant if the trial is a repeat trial
         assets=None,
+        definition=NoArgumentProvided,  # If provided, overrides make definition
     ):
         super().__init__(origin=node)
         self.node_id = node.id
@@ -480,13 +481,16 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 **node.assets,
                 **assets,
             }
-            self.definition = self.make_definition(experiment, participant)
-            assert self.definition is not None
+            if definition == NoArgumentProvided:
+                self.definition = self.make_definition(experiment, participant)
+                assert self.definition is not None
 
-            self.definition = self.finalize_definition(
-                self.definition, experiment, participant
-            )
-            assert self.definition is not None
+                self.definition = self.finalize_definition(
+                    self.definition, experiment, participant
+                )
+                assert self.definition is not None
+            else:
+                self.definition = definition
 
             db.session.add(self)
             db.session.commit()
@@ -754,10 +758,11 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             )
 
     def on_finalized(self):
-        from psynet.experiment import get_experiment
+        if self.trial_maker:
+            from psynet.experiment import get_experiment
 
-        experiment = get_experiment()
-        self.trial_maker._grow_network(self.network, self.participant, experiment)
+            experiment = get_experiment()
+            self.trial_maker._grow_network(self.network, self.participant, experiment)
 
     @classmethod
     def cue(cls, definition):
@@ -774,6 +779,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 participant,
                 propagate_failure=False,
                 is_repeat_trial=False,
+                definition=definition,
             )
             db.session.add(trial)
             participant.current_trial = trial
@@ -786,10 +792,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
     @classmethod
     def trial_logic(cls, trial_maker=None):
-        if trial_maker:
-            time_estimate = trial_maker._get_trial_time_estimate(cls)
-        else:
-            time_estimate = cls.time_estimate
+        time_estimate = cls._get_trial_time_estimate(trial_maker)
 
         return join(
             CodeBlock(cls._log_time_credit_before_trial),
@@ -798,10 +801,22 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
             ),
-            cls.finalize_trial(trial_maker),
+            cls._finalize_trial(trial_maker),
             cls._construct_feedback_logic(trial_maker),
             CodeBlock(cls._log_time_credit_after_trial),
         )
+
+    @classmethod
+    def _get_trial_time_estimate(cls, trial_maker=None):
+        if cls.time_estimate is not None:
+            return cls.time_estimate
+        elif trial_maker and trial_maker.time_estimate_per_trial is not None:
+            return trial_maker.time_estimate_per_trial
+        else:
+            raise AttributeError(
+                f"You need to provide either time_estimate as a class attribute of {cls.__name__} "
+                "or time_estimate_per_trial as a class/instance attribute of the corresponding trial maker."
+            )
 
     @classmethod
     def _show_trial(cls, experiment, participant):
@@ -842,42 +857,60 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                     "You can disable this warning message by setting `Trial.check_time_credit_received = False`."
                 )
 
-        @classmethod
-        def finalize_trial(cls, trial_maker):
-            if trial_maker:
-                return CodeBlock(trial_maker._finalize_trial)
+    @classmethod
+    def _finalize_trial(cls, trial_maker=None):
+        def f(participant, experiment):
+            trial = participant.current_trial
+            answer = participant.answer
 
-        @classmethod
-        def _construct_feedback_logic(cls, trial_maker):
-            if trial_maker:
-                label = trial_maker.with_namespace("feedback")
-            else:
-                label = f"{cls.__name__}__feedback"
+            trial.answer = answer
+            trial.complete = True
+            trial.response_id = participant.last_response_id
+            trial.time_taken = trial.response.metadata["time_taken"]
 
-            return conditional(
-                label=label,
-                condition=lambda experiment, participant: (
-                    participant.current_trial.gives_feedback(experiment, participant)
+            if trial_maker:
+                trial_maker.finalize_trial(
+                    answer=trial.answer,
+                    trial=trial,
+                    experiment=experiment,
+                    participant=participant,
+                )
+            trial.check_if_can_run_async_post_trial()
+            trial.check_if_can_mark_as_finalized()
+
+        return CodeBlock(f)
+
+    @classmethod
+    def _construct_feedback_logic(cls, trial_maker):
+        if trial_maker:
+            label = trial_maker.with_namespace("feedback")
+        else:
+            label = f"{cls.__name__}__feedback"
+
+        return conditional(
+            label=label,
+            condition=lambda experiment, participant: (
+                participant.current_trial.gives_feedback(experiment, participant)
+            ),
+            logic_if_true=join(
+                wait_while(
+                    lambda participant: not participant.current_trial.ready_for_feedback,
+                    expected_wait=0,
+                    log_message="Waiting for feedback to be ready.",
+                    check_interval=1.0,
                 ),
-                logic_if_true=join(
-                    wait_while(
-                        lambda participant: not participant.current_trial.ready_for_feedback,
-                        expected_wait=0,
-                        log_message="Waiting for feedback to be ready.",
-                        check_interval=1.0,
+                PageMaker(
+                    lambda experiment, participant: (
+                        participant.current_trial.show_feedback(
+                            experiment=experiment, participant=participant
+                        )
                     ),
-                    PageMaker(
-                        lambda experiment, participant: (
-                            participant.current_trial.show_feedback(
-                                experiment=experiment, participant=participant
-                            )
-                        ),
-                        time_estimate=0,
-                    ),
+                    time_estimate=0,
                 ),
-                fix_time_credit=False,
-                log_chosen_branch=False,
-            )
+            ),
+            fix_time_credit=False,
+            log_chosen_branch=False,
+        )
 
 
 class TrialMaker(Module):
@@ -1449,10 +1482,6 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
-        trial.answer = answer
-        trial.complete = True
-        trial.response_id = participant.last_response_id
-        trial.time_taken = trial.response.metadata["time_taken"]
         self.increment_num_completed_trials_in_phase(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
@@ -1633,28 +1662,8 @@ class TrialMaker(Module):
         )
         participant.var.set(self.with_namespace("repeat_trial_index"), 0)
 
-    def _finalize_trial(self, experiment, participant):
-        trial = participant.current_trial
-        answer = participant.answer
-        self.finalize_trial(
-            answer=answer, trial=trial, experiment=experiment, participant=participant
-        )
-        trial.check_if_can_run_async_post_trial()
-        trial.check_if_can_mark_as_finalized()
-
     def _wait_for_trial(self, experiment, participant):
         return False
-
-    def _get_trial_time_estimate(self, trial_class):
-        if trial_class.time_estimate is not None:
-            return trial_class.time_estimate
-        elif self.time_estimate_per_trial is not None:
-            return self.time_estimate_per_trial
-        else:
-            raise AttributeError(
-                f"You need to provide either time_estimate as a class attribute of {trial_class.__name__} "
-                f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
-            )
 
     def _trial_loop(self):
         return join(
