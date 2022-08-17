@@ -2284,6 +2284,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     errors = relationship("ErrorRecord")
 
+    def grow(self, experiment, participant):
+        trial_maker = experiment.timeline.trial_makers[self.trial_maker_id]
+        trial_maker._grow_network(self, participant=participant, experiment=experiment)
+
     @property
     def trial_maker(self):
         from ..experiment import get_trial_maker
@@ -2427,7 +2431,8 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
 
 class GenericTrialNetwork(TrialNetwork):
-    pass
+    def grow(self, experiment, participant):
+        pass
 
 
 class TrialNode(SQLMixinDallinger, dallinger.models.Node):
