@@ -29,6 +29,7 @@ from psynet.command_line import (
 )
 from psynet.data import init_db
 from psynet.experiment import Experiment, get_experiment
+from psynet.redis import redis_vars
 from psynet.trial.main import TrialSource
 from psynet.utils import clear_all_caches, disable_logger
 
@@ -215,6 +216,7 @@ def experiment_directory(request):
 
 @pytest.fixture()
 def in_experiment_directory(experiment_directory):
+    redis_vars.clear()
     with working_directory(experiment_directory):
         yield experiment_directory
     clean_sys_modules()

@@ -552,7 +552,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         if not asset.has_key:
             asset.label = label
-            asset.key = self.generate_asset_key(asset)
+            asset.key = asset.generate_key()
 
         if not asset.parent:
             asset.parent = self
@@ -564,9 +564,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         self.assets[label] = asset
 
         db.session.commit()
-
-    def generate_asset_key(self, asset):
-        return f"{self.trial_maker_id}/network_{asset.network_id}__node_{asset.node_id}__trial_{asset.trial_id}__{asset.label}{asset.extension}"
 
     def score_answer(self, answer, definition):
         """
@@ -772,7 +769,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             self.trial_maker._grow_network(self.network, self.participant, experiment)
 
     @classmethod
-    def cue(cls, definition):
+    def cue(cls, definition, assets=None):
         """
         Use this method to add a trial directly into a timeline,
         without needing to create a corresponding trial maker.
@@ -785,6 +782,10 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             Alternatively, it can be a ``Stimulus`` object, in which case the ``Stimulus`` object
             will be saved to ``trial.stimulus``, and ``stimulus.definition`` will be saved
             to ``trial.definition``.
+
+        assets :
+            Optional dictionary of assets to add to the trial (in addition to any provided by
+            providing a ``Stimulus`` containing assets to the ``definition`` parameter).
         """
         from psynet.trial.static import Stimulus
 
@@ -814,6 +815,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             db.session.add(trial)
             participant.current_trial = trial
             db.session.commit()
+
+            if assets:
+                trial.add_assets(assets)
 
         return join(
             CodeBlock(_register_trial),

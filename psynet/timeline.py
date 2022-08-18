@@ -426,6 +426,14 @@ class MediaSpec:
                 ids.add(file_id)
                 if not isinstance(file, str):
                     if not isinstance(file, dict):
+                        import pydevd_pycharm
+
+                        pydevd_pycharm.settrace(
+                            "localhost",
+                            port=12345,
+                            stdoutToServer=True,
+                            stderrToServer=True,
+                        )
                         raise TypeError(
                             f"Media entry must either be a string URL or a dict (got {file})."
                         )

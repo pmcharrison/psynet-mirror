@@ -348,7 +348,7 @@ class StimulusSet(NullElt):
             raise KeyError
 
     def items(self):
-        from ..experiment import is_experiment_launched
+        from psynet.experiment import is_experiment_launched
 
         if is_experiment_launched():
             stimuli = Stimulus.query.filter_by(
@@ -356,6 +356,7 @@ class StimulusSet(NullElt):
             ).all()
         else:
             stimuli = self.stimuli
+
         return [(stim.key, stim) for stim in stimuli]
 
     def keys(self):

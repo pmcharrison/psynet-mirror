@@ -13,35 +13,13 @@ from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
 from psynet.timeline import Timeline, for_loop
 from psynet.trial.main import Trial
-from psynet.trial.static import Stimulus, StimulusSet
 
 from .custom_synth import synth_prosody
 
-##########################################################################################
-# Stimuli
-##########################################################################################
 
-
-def synth_stimulus(path, frequencies):
+def synth_stimulus(path, frequency_gradient, start_frequency):
+    frequencies = [start_frequency + i * frequency_gradient for i in range(5)]
     synth_prosody(vector=frequencies, output_path=path)
-
-
-stimulus_set = StimulusSet(
-    "rating_stimuli",
-    [
-        Stimulus(
-            definition={
-                "frequency_gradient": frequency_gradient,
-                "start_frequency": start_frequency,
-                "frequencies": [
-                    start_frequency + i * frequency_gradient for i in range(5)
-                ],
-            },
-        )
-        for frequency_gradient in [-100, -50, 0, 50, 100]
-        for start_frequency in [-100, 0, 100]
-    ],
-)
 
 
 class RateTrial(Trial):
@@ -51,7 +29,7 @@ class RateTrial(Trial):
         return ModularPage(
             "audio_rating",
             AudioPrompt(
-                self.stimulus.assets["audio"],
+                self.assets["audio"],
                 text="How happy is the following word?",
             ),
             PushButtonControl(
@@ -66,9 +44,16 @@ class Exp(psynet.experiment.Experiment):
     timeline = Timeline(
         NoConsent(),
         for_loop(
-            random.sample(stimulus_set.keys(), 5),
-            lambda key, stimuli: RateTrial.cue(
-                stimuli["rating_stimuli"][key],
+            "Deliver 5 trials with randomly sampled parameters",
+            [
+                {
+                    "frequency_gradient": random.uniform(-100, 100),
+                    "start_frequency": random.uniform(-100, 100),
+                }
+                for _ in range(5)
+            ],
+            lambda definition: RateTrial.cue(
+                definition,
                 assets={
                     "audio": FastFunctionAsset(
                         function=synth_stimulus,
@@ -76,6 +61,7 @@ class Exp(psynet.experiment.Experiment):
                     ),
                 },
             ),
+            time_estimate_per_iteration=RateTrial.time_estimate,
         ),
         SuccessfulEndPage(),
     )
