@@ -39,6 +39,14 @@ class StaticStimulusRegistry:
         self.compile_stimulus_sets()
         # self.compile_stimuli()
 
+    def __getitem__(self, item):
+        try:
+            return self.stimuli[item]
+        except KeyError:
+            raise KeyError(
+                f"Can't find the stimulus set '{item}' in the timeline. Are you sure you remembered to add it?"
+            )
+
     # @property
     # def stimuli(self):
     #     return [
@@ -64,8 +72,7 @@ class StaticStimulusRegistry:
 
     def create_networks(self):
         for stimulus_set in self.stimuli.values():
-            for stimulus in stimulus_set.values():
-                stimulus.create_networks(self.experiment)
+            stimulus_set.create_networks(self.experiment)
         db.session.commit()
 
     def stage_assets(self):
@@ -300,7 +307,14 @@ class StimulusSet(NullElt):
         self.participant_groups = sorted(list(participant_groups))
 
     def create_networks(self, experiment):
-        assert self.trial_maker is not None
+        try:
+            assert self.trial_maker is not None
+        except Exception:
+            import pydevd_pycharm
+
+            pydevd_pycharm.settrace(
+                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+            )
 
         for network_spec in self.network_specs:
             network = network_spec.create_network(
@@ -321,9 +335,26 @@ class StimulusSet(NullElt):
                 stimulus_set_id=self.stimulus_set_id, key=item
             ).one()
         except NoResultFound:
-            return [stimulus for stimulus in self.stimuli if stimulus.key == "item"][0]
+            return [stimulus for stimulus in self.stimuli if stimulus.key == item][0]
         except IndexError:
             raise KeyError
+
+    def items(self):
+        from ..experiment import is_experiment_launched
+
+        if is_experiment_launched():
+            stimuli = Stimulus.query.filter_by(
+                stimulus_set_id=self.stimulus_set_id,
+            ).all()
+        else:
+            stimuli = self.stimuli
+        return [(stim.key, stim) for stim in stimuli]
+
+    def keys(self):
+        return [stim[0] for stim in self.items()]
+
+    def values(self):
+        return [stim[1] for stim in self.items()]
 
 
 class VirtualStimulusSet:
