@@ -29,7 +29,7 @@ from .main import (
 logger = get_logger()
 
 
-class StaticStimulusRegistry:
+class StimulusRegistry:
     csv_path = "stimulus_registry.csv"
 
     def __init__(self, experiment):
@@ -73,6 +73,14 @@ class StaticStimulusRegistry:
     def create_networks(self):
         for stimulus_set in self.stimuli.values():
             stimulus_set.create_networks(self.experiment)
+        null_network = StaticNetwork(
+            trial_maker_id=None,
+            phase="experiment",
+            participant_group="default",
+            block="default",
+            experiment=self.experiment,
+        )
+        db.session.add(null_network)
         db.session.commit()
 
     def stage_assets(self):
@@ -307,25 +315,25 @@ class StimulusSet(NullElt):
         self.participant_groups = sorted(list(participant_groups))
 
     def create_networks(self, experiment):
-        try:
-            assert self.trial_maker is not None
-        except Exception:
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=12345, stdoutToServer=True, stderrToServer=True
+        if self.trial_maker is None:
+            trial_maker_id = None
+            target_num_trials_per_stimulus = None
+        else:
+            trial_maker_id = self.trial_maker.id
+            target_num_trials_per_stimulus = (
+                self.trial_maker.target_num_trials_per_stimulus
             )
 
         for network_spec in self.network_specs:
             network = network_spec.create_network(
-                trial_maker_id=self.trial_maker.id,
+                trial_maker_id=trial_maker_id,
                 experiment=experiment,
-                target_num_trials_per_stimulus=self.trial_maker.target_num_trials_per_stimulus,
+                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
             )
             db.session.commit()
             network.populate(
                 stimulus_set=self,
-                target_num_trials_per_stimulus=self.trial_maker.target_num_trials_per_stimulus,
+                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
             )
             db.session.commit()
 
@@ -414,9 +422,7 @@ class NetworkSpec:
             phase=self.phase,
             participant_group=self.participant_group,
             block=self.block,
-            stimulus_set=self.stimulus_set,
             experiment=experiment,
-            target_num_trials_per_stimulus=target_num_trials_per_stimulus,
         )
         db.session.add(network)
         return network
@@ -1180,9 +1186,7 @@ class StaticNetwork(TrialNetwork):
         phase,
         participant_group,
         block,
-        stimulus_set,
         experiment,
-        target_num_trials_per_stimulus,
     ):
         self.participant_group = participant_group
         self.block = block

@@ -472,6 +472,13 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         if assets is None:
             assets = {}
 
+        from psynet.trial.static import Stimulus
+
+        if isinstance(node, Stimulus):
+            self.var.stimulus_set_id = node.stimulus_set_id
+            self.var.stimulus_id = node.id
+            self.var.stimulus_key = node.key
+
         if is_repeat_trial:
             self.definition = parent_trial.definition
             for k, v in parent_trial._initial_assets.items():
@@ -769,13 +776,36 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         """
         Use this method to add a trial directly into a timeline,
         without needing to create a corresponding trial maker.
+
+        Parameters
+        ----------
+
+        definition :
+            This can be a ``dict`` object, which will then be saved to the trial's ``definition`` slot.
+            Alternatively, it can be a ``Stimulus`` object, in which case the ``Stimulus`` object
+            will be saved to ``trial.stimulus``, and ``stimulus.definition`` will be saved
+            to ``trial.definition``.
         """
+        from psynet.trial.static import Stimulus
+
+        if isinstance(definition, Stimulus):
+            stimulus = definition
+            cls.check_stimulus_is_valid(stimulus)
+            definition = stimulus.definition
+        elif isinstance(definition, dict):
+            stimulus = None
+        else:
+            raise TypeError(f"Invalid definition type: {type(definition)}")
 
         def _register_trial(experiment, participant):
-            parent = GenericTrialSource.query.one()
+            if stimulus:
+                parent_node = stimulus
+            else:
+                parent_node = GenericTrialSource.query.one()
+
             trial = cls(
                 experiment,
-                parent,
+                parent_node,
                 participant,
                 propagate_failure=False,
                 is_repeat_trial=False,
@@ -789,6 +819,28 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             CodeBlock(_register_trial),
             cls.trial_logic(),
         )
+
+    @property
+    def stimulus(self):
+        from psynet.trial.static import Stimulus
+
+        if isinstance(self.node, Stimulus):
+            return self.node
+
+    @classmethod
+    def check_stimulus_is_valid(cls, stimulus):
+        from sqlalchemy import inspect
+
+        if not inspect(stimulus).persistent:
+            raise ValueError(
+                f"The stimulus with definition {stimulus.definition} looks like it hasn't "
+                "been registered in the database. This normally means that you are trying to "
+                "access the stimulus object in the wrong way. You should access it by writing "
+                "experiment.stimuli['your_stimulus_set_id']['your_stimulus_key'], "
+                "or (within a PageMaker or CodeBlock) as "
+                "lambda stimuli: stimuli['your_stimulus_set_id']['your_stimulus_key'], "
+                "or by writing a SQLAlchemy query, e.g. Stimulus.query.filter_by(...).one()."
+            )
 
     @classmethod
     def trial_logic(cls, trial_maker=None):
@@ -807,10 +859,10 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         )
 
     @classmethod
-    def _get_trial_time_estimate(cls, trial_maker=None):
+    def _get_trial_time_estimate(cls, trial_maker):
         if cls.time_estimate is not None:
             return cls.time_estimate
-        elif trial_maker and trial_maker.time_estimate_per_trial is not None:
+        elif trial_maker.time_estimate_per_trial is not None:
             return trial_maker.time_estimate_per_trial
         else:
             raise AttributeError(
@@ -1099,11 +1151,7 @@ class TrialMaker(Module):
                 "If <recruit_mode> == 'num_trials', then <target_num_participants> must be None."
             )
 
-        if trial_class.time_estimate is None and self.time_estimate_per_trial is None:
-            raise AttributeError(
-                f"You need to provide either time_estimate as a class attribute of {trial_class.__name__} "
-                f"or time_estimate_per_trial as an instance or class attribute of trial maker {id_}."
-            )
+        self.check_time_estimates()
 
         self.trial_class = trial_class
         self.id = id_
@@ -1716,6 +1764,16 @@ class TrialMaker(Module):
             participant, self.get_num_completed_trials_in_phase(participant) + 1
         )
 
+    def check_time_estimates(self):
+        if (
+            self.trial_class.time_estimate is None
+            and self.time_estimate_per_trial is None
+        ):
+            raise AttributeError(
+                f"You need to provide either time_estimate as a class attribute of {self.trial_class.__name__} "
+                f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
+            )
+
 
 class NetworkTrialMaker(TrialMaker):
     """
@@ -2294,14 +2352,17 @@ class TrialNetwork(SQLMixinDallinger, Network):
     errors = relationship("ErrorRecord")
 
     def grow(self, experiment, participant):
-        trial_maker = experiment.timeline.trial_makers[self.trial_maker_id]
-        trial_maker._grow_network(self, participant=participant, experiment=experiment)
+        if self.trial_maker:
+            self.trial_maker._grow_network(
+                self, participant=participant, experiment=experiment
+            )
 
     @property
     def trial_maker(self):
         from ..experiment import get_trial_maker
 
-        return get_trial_maker(self.trial_maker_id)
+        if self.trial_maker_id:
+            return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
         "A more efficient version of Dallinger's built-in calculate_full method."
@@ -2439,11 +2500,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
         )
 
 
-class GenericTrialNetwork(TrialNetwork):
-    def grow(self, experiment, participant):
-        pass
-
-
 class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     __extra_vars__ = {
         **SQLMixinDallinger.__extra_vars__.copy(),
@@ -2523,6 +2579,55 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
 class TrialSource(TrialNode):
     pass
+
+
+# class NullTrialMaker(NetworkTrialMaker):
+#     """
+#     A 'null' trial  maker used for trials that are administered
+#     independently (i.e. with ``.cue()``) rather than with a
+#     fully fledged trial maker.
+#     """
+#     def __init__(self):
+#         super().__init__(
+#             id_="null",
+#             trial_class=Trial,
+#             network_class=GenericTrialNetwork,
+#             phase="experiment",
+#             expected_num_trials=None,
+#             check_performance_at_end=False,
+#             check_performance_every_trial=False,
+#             fail_trials_on_premature_exit=False,
+#             fail_trials_on_participant_performance_check=False,
+#             propagate_failure=False,
+#             recruit_mode=None,
+#             target_num_participants=None,
+#             num_repeat_trials=0,
+#             wait_for_networks=False,
+#         )
+#
+#     def check_time_estimates(self):
+#         pass
+#
+#     def pre_deploy_routine(self, experiment):
+#         network = GenericTrialNetwork(
+#             trial_maker_id="null", phase="default", experiment=experiment
+#         )
+#         source = GenericTrialSource(network)
+#         db.session.add(network)
+#         db.session.add(source)
+#         db.session.commit()
+
+
+class GenericTrialNetwork(TrialNetwork):
+    def __init__(self, experiment):
+        super().__init__(
+            trial_maker_id=None,
+            phase="experiment",
+            experiment=experiment,
+        )
+
+    def grow(self, experiment, participant):
+        pass
 
 
 class GenericTrialSource(TrialSource):

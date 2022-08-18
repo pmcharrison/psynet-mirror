@@ -153,6 +153,7 @@ def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive):
     """
     log(header)
 
+    redis_vars.clear()
     make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
 
@@ -403,6 +404,7 @@ def deploy(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to MTurk.
     """
+    redis_vars.clear()
     make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
 
@@ -519,6 +521,7 @@ def sandbox(ctx, verbose, app, archive, force_prepare):
     """
     Deploy app using Heroku to the MTurk Sandbox.
     """
+    redis_vars.clear()
     make_deploy_dir()
     deployment_info.init(redeploying_from_archive=archive is not None)
 

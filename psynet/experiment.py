@@ -58,11 +58,11 @@ from .timeline import (
     Response,
     Timeline,
 )
-from .trial.main import Trial, TrialMaker
+from .trial.main import GenericTrialNetwork, GenericTrialSource, Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
-from .trial.static import StaticStimulusRegistry
+from .trial.static import StimulusRegistry
 from .utils import (
     NoArgumentProvided,
     cache,
@@ -260,7 +260,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.stimuli = StaticStimulusRegistry(self)
+        self.stimuli = StimulusRegistry(self)
 
         if (
             request
@@ -488,13 +488,9 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
-    def create_generic_trial_source(self):
-        from .trial.main import GenericTrialNetwork, GenericTrialSource
-
-        network = GenericTrialNetwork(
-            trial_maker_id=None, phase="default", experiment=self
-        )
-        source = GenericTrialSource(network)
+    def prepare_generic_trial_network(self):
+        network = GenericTrialNetwork(experiment=self)
+        source = GenericTrialSource(network=network)
         db.session.add(network)
         db.session.add(source)
         db.session.commit()
@@ -517,7 +513,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
-        self.create_generic_trial_source()
+        self.prepare_generic_trial_network()
         self.stimuli.prepare_for_deployment()
         self.assets.prepare_for_deployment()
         for routine in self.pre_deploy_routines:
