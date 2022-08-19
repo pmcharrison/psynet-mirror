@@ -33,7 +33,6 @@ logger = get_logger()
 
 
 # Global parameters
-BUCKET_NAME = "iterated-tapping-demo"
 config = ConfigUpdater.create_config(
     sms_tapping,
     {
@@ -137,6 +136,7 @@ class CustomTrial(CustomTrialAnalysis):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
+                bot_response_media="example_tapping_memory_recording.wav",
             ),
             time_estimate=duration_rec_sec + 5,
             events={
@@ -208,7 +208,7 @@ class CustomSource(AudioImitationChainSource):
 
 # Timeline
 class Exp(psynet.experiment.Experiment):
-    label = "Tapping (memory) demo"
+    label = "Tapping memory demo"
 
     asset_storage = DebugStorage()
     # asset_storage = S3Storage("psynet-demos", "iterated-tapping")

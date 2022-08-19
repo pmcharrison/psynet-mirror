@@ -172,6 +172,7 @@ class TapTrial(TapTrialAnalysis):
                 show_meter=False,
                 controls=False,
                 auto_advance=False,
+                bot_response_media=self.get_bot_response_media(),
             ),
             time_estimate=duration_rec + 5,
             progress_display=ProgressDisplay(
@@ -203,13 +204,28 @@ class TapTrial(TapTrialAnalysis):
             ),
         )
 
+    def get_bot_response_media(self):
+        raise NotImplementedError
+
 
 class TapTrialISO(TapTrial):
     time_estimate = DURATION_ESTIMATED_TRIAL
 
+    def get_bot_response_media(self):
+        return {
+            "iso_800ms": "example_iso_slow_tap.wav",
+            "iso_600ms": "example_iso_fast_tap.wav",
+        }[self.definition["stim_name"]]
+
 
 class TapTrialMusic(TapTrial):
     time_estimate = DURATION_ESTIMATED_TRIAL
+
+    def get_bot_response_media(self):
+        return {
+            "track1": "example_music_tapping_track_1.wav",
+            "track2": "example_music_tapping_track_7.wav",
+        }[self.definition["stim_name"]]
 
 
 # Tapping tasks
