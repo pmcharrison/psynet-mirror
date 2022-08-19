@@ -1205,6 +1205,9 @@ class AssetStorage:
     def deployment_id(self):
         return self.experiment.deployment_id
 
+    def on_every_launch(self):
+        pass
+
     def update_asset_metadata(self, asset: Asset):
         pass
 
@@ -1353,9 +1356,15 @@ class DebugStorage(AssetStorage):
         self.label = "debug_storage"
         self.public_path = self._create_public_path()
 
-    def prepare_for_deployment(self):
+    def setup_files(self):
         self._ensure_root_dir_exists()
         self._create_symlink()
+
+    def prepare_for_deployment(self):
+        self.setup_files()
+
+    def on_every_launch(self):
+        self.setup_files()
 
     @cached_property
     def root(self):
@@ -1399,10 +1408,9 @@ class DebugStorage(AssetStorage):
 
         os.makedirs("static", exist_ok=True)
 
-        try:
-            os.symlink(self.root, self.public_path)
-        except FileExistsError:
-            pass
+        os.symlink(self.root, self.public_path)
+        # except FileExistsError:
+        #     pass
 
     def update_asset_metadata(self, asset: Asset):
         host_path = asset.host_path

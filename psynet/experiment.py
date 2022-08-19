@@ -292,6 +292,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.var.server_working_directory = os.getcwd()
         self.var.dashboard_user = get_from_config("dashboard_user")
         self.var.dashboard_password = get_from_config("dashboard_password")
+        self.asset_storage.on_every_launch()
         self.grow_all_networks()
 
     def participant_constructor(self, *args, **kwargs):
