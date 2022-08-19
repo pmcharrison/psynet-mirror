@@ -1329,7 +1329,7 @@ class AdjectiveExporter:
         data_dir, csv_out_path=None, export_only="experiment"
     ):
         assert export_only in ["experiment", "practice", None]
-        network_query = "type=='adjective_network'"
+        network_query = "type=='AdjectiveNetwork'"
         if export_only is not None:
             network_query += f" and role=='{export_only}'"
         networks = (
