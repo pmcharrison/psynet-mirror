@@ -1157,8 +1157,6 @@ class TrialMaker(Module):
                 "If <recruit_mode> == 'num_trials', then <target_num_participants> must be None."
             )
 
-        self.check_time_estimates()
-
         self.trial_class = trial_class
         self.id = id_
         self.phase = phase
@@ -1176,6 +1174,8 @@ class TrialMaker(Module):
 
         elts = self.compile_elts()
         label = self.with_namespace()
+
+        self.check_time_estimates()
 
         super().__init__(label, elts)
 
