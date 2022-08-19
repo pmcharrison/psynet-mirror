@@ -1,5 +1,8 @@
 # CHANGELOG
 
+# [9.1.2] Released on 2022-08-13
+- Fixed a bug that caused incorrect participant details in error messages (author: Peter Harrison, reviewer: Frank Höger).
+
 # [9.1.1] Released on 2022-08-03
 
 ## Fixed
