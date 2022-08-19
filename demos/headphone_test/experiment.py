@@ -6,6 +6,7 @@
 
 
 import psynet.experiment
+from psynet.asset import DebugStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage, VolumeCalibration
@@ -22,6 +23,7 @@ from psynet.timeline import Timeline
 # (or at least you can override it but it won't work).
 class Exp(psynet.experiment.Experiment):
     label = "Headphone test demo"
+    asset_storage = DebugStorage()
 
     timeline = Timeline(
         NoConsent(),
