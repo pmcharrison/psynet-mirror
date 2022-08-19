@@ -19,21 +19,17 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-import psynet.experiment
-import psynet.utils
-from psynet.command_line import (
+from .command_line import (
     clean_sys_modules,
     kill_chromedriver_processes,
     kill_psynet_chrome_processes,
     working_directory,
 )
-from psynet.data import init_db
-from psynet.experiment import Experiment, get_experiment
-from psynet.redis import redis_vars
-from psynet.trial.main import TrialSource
-from psynet.utils import clear_all_caches, disable_logger
-
-from .utils import wait_until
+from .data import init_db
+from .experiment import Experiment, get_experiment, import_local_experiment
+from .redis import redis_vars
+from .trial.main import TrialSource
+from .utils import clear_all_caches, disable_logger, wait_until
 
 logger = logging.getLogger(__file__)
 warnings.filterwarnings("ignore", category=sqlalchemy.exc.SAWarning)
@@ -244,7 +240,7 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
     if not config.ready:
         config.load()
 
-    psynet.experiment.get_experiment()
+    get_experiment()
 
     # Make sure debug server runs to completion with bots
     p = pexpect.spawn(
@@ -303,7 +299,7 @@ def db_session(in_experiment_directory):
 
 @pytest.fixture
 def imported_experiment(launched_experiment):
-    return psynet.experiment.import_local_experiment()
+    return import_local_experiment()
 
 
 @pytest.fixture
