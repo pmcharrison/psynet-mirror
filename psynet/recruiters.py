@@ -314,7 +314,7 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         Delegate to the experiment for possible values to show to the
         participant and complete the survey if no more participants are needed.
         """
-        external_submit_url = self.external_submit_url(participant)
+        external_submit_url = self.external_submit_url(participant=participant)
         self.lucidservice.log(f"Exit redirect: {external_submit_url}")
 
         return flask.render_template(
@@ -325,15 +325,16 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def external_submit_url(self, participant, should_terminate=False):
-        if participant.failed or should_terminate:
+    def external_submit_url(self, participant=None, should_terminate=False, rid=None):
+        if participant is None or participant.failed or should_terminate:
             redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
+            redirect_url += rid + "&"
         else:
             redirect_url = (
                 "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
             )
+            redirect_url += participant.assignment_id + "&"
 
-        redirect_url += participant.assignment_id + "&"
         hash = self.lucidservice.sha1_hash(redirect_url)
         redirect_url += f"hash={hash}"
         return redirect_url

@@ -34,10 +34,18 @@
 
 {% block body %}
     <div id="container">
-      <div class="well">
+      <div>
         <h1>Lucid Survey Submission</h1>
         <hr>
-        <p>Completing survey...</p>
+          <p>Completing survey...</p>
+          <noscript>
+            Click the button below to return to Lucid Marketplace.
+            <p>
+            <form method="GET" action="{{ external_submit_url|safe }}">
+              <input type="submit" class="btn btn-primary btn-lg" value="Close">
+            </form>
+          </p>
+          </noscript>
       </div>
     </div>
 {% endblock %}
@@ -46,4 +54,5 @@
 <script>
     window.location = "{{ external_submit_url|safe }}";
 </script>
+
 {% endblock %}

@@ -921,6 +921,29 @@ class Experiment(dallinger.experiment.Experiment):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
+    @experiment_route("/verify_js", methods=["POST"])
+    @staticmethod
+    def verify_js():
+        js_activated = request.values["js_activated"]
+        if js_activated == "1":
+            return render_template(
+                "consent.html",
+                query_string=request.values["query_string"],
+            )
+        else:
+            rid = request.values["rid"]
+            exp = dallinger.experiment.load().new(db.session)
+            recruiter = exp.recruiter
+            external_submit_url = None
+            if hasattr(recruiter, "external_submit_url"):
+                external_submit_url = recruiter.external_submit_url(rid=rid)
+            if hasattr(recruiter, "terminate_participant"):
+                recruiter.terminate_participant(rid)
+            return render_template(
+                "exit_recruiter_lucid.html",
+                external_submit_url=external_submit_url,
+            )
+
     @experiment_route("/get_participant_info_for_debug_mode", methods=["GET"])
     @staticmethod
     def get_participant_info_for_debug_mode():
@@ -955,7 +978,7 @@ class Experiment(dallinger.experiment.Experiment):
         recruiter = exp.recruiter
         external_submit_url = None
         if hasattr(recruiter, "external_submit_url"):
-            external_submit_url = recruiter.external_submit_url(participant)
+            external_submit_url = recruiter.external_submit_url(participant=participant)
         return error_page(
             participant=participant,
             recruiter=cls.new(db.session).recruiter.nickname,
@@ -1197,7 +1220,7 @@ class Experiment(dallinger.experiment.Experiment):
                 external_submit_url = None
                 if hasattr(recruiter, "external_submit_url"):
                     external_submit_url = recruiter.external_submit_url(
-                        participant, should_terminate=True
+                        participant=participant, should_terminate=True
                     )
                 return error_page(
                     participant=participant,
