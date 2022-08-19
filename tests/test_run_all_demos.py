@@ -1,7 +1,9 @@
 import os
 import pathlib
 
-from psynet.utils import run_subprocess_with_live_output, working_directory
+import pytest
+
+from psynet.utils import run_subprocess_with_live_output
 
 psynet_root = pathlib.Path(__file__).parent.parent.resolve()
 demo_root = os.path.join(psynet_root, "demos")
@@ -35,11 +37,11 @@ skip = [
 
 demos = [d for d in demos if not d.endswith("singing_iterated")]
 
-for demo in demos:
-    path = os.path.join(demo, "test.py")
 
-    with working_directory(demo):
-        run_subprocess_with_live_output("pytest -x -s -q test.py")
+@pytest.mark.parametrize("experiment_directory", demos, indirect=True)
+def test_all_demos(in_experiment_directory):
+    run_subprocess_with_live_output("pytest -x -s -q test.py")
+
 
 # We run the tests in subprocesses to avoid tests contaminating subsequent tests.
 # This happens in particular in the context of SQLAlchemy, which can throw strange errors
