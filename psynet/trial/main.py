@@ -935,6 +935,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                     experiment=experiment,
                     participant=participant,
                 )
+
+            db.session.commit()
+
             trial.check_if_can_run_async_post_trial()
             trial.check_if_can_mark_as_finalized()
 

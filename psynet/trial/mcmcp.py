@@ -117,7 +117,6 @@ class MCMCPNode(ChainNode):
 
     def summarize_trials(self, trials: list, experiment, participant):
         """
-        (Abstract method, to be overridden)
         This method should summarize the answers to the provided trials.
         A default method is implemented for cases when there is
         just one trial per node; in this case, the method extracts and returns
@@ -147,7 +146,6 @@ class MCMCPNode(ChainNode):
         object
             The derived seed. Should be suitable for serialisation to JSON.
         """
-
         counts = Counter([t.answer["role"] for t in trials])
         max_count = max(counts.values())
         candidates = [item[0] for item in counts.items() if item[1] == max_count]
@@ -193,6 +191,7 @@ class MCMCPTrialMaker(ChainTrialMaker):
             "role": trial.definition["ordered"][position]["role"],
             "value": trial.definition["ordered"][position]["value"],
         }
+        trial.answer = answer
         super().finalize_trial(answer, trial, experiment, participant)
 
     def get_answer_for_consistency_check(self, trial):
