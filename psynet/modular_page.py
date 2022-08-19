@@ -177,6 +177,7 @@ class AudioPrompt(Prompt):
 
         if isinstance(audio, Asset):
             url = audio.url
+            assert url is not None
         elif isinstance(audio, str):
             url = audio
         else:

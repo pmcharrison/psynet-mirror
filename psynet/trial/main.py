@@ -550,20 +550,22 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         db.session.add(self)
         db.session.commit()
 
-        if not asset.has_key:
-            asset.label = label
-            asset.key = asset.generate_key()
-
         if not asset.parent:
             asset.parent = self
 
         asset.receive_stimulus_definition(self.definition)
+
+        if not asset.has_key:
+            asset.label = label
+            asset.key = asset.generate_key()
 
         db.session.add(asset)
 
         self.assets[label] = asset
 
         db.session.commit()
+
+        asset.deposit()
 
     def score_answer(self, answer, definition):
         """

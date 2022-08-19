@@ -947,10 +947,7 @@ class FunctionAssetMixin:
         replace=None,
         async_: bool = False,
     ):
-        if self.is_folder:
-            self.input_path = tempfile.mkdtemp()
-        else:
-            self.input_path = tempfile.NamedTemporaryFile(delete=False).name
+        self.input_path = self.generate_input_path()
 
         super().deposit(
             storage,
@@ -958,6 +955,12 @@ class FunctionAssetMixin:
             async_,
             delete_input=True,
         )
+
+    def generate_input_path(self):
+        if self.is_folder:
+            return tempfile.mkdtemp()
+        else:
+            return tempfile.NamedTemporaryFile(delete=False).name
 
     @property
     def instructions(self):
@@ -1042,6 +1045,9 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
 
     def _needs_depositing(self):
         return False
+
+    def generate_input_path(self):
+        return None
 
     def export(self, path):
         self.function(path=path, **self.arguments)
