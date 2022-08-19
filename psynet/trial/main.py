@@ -904,7 +904,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             trial.time_credit_after_trial - trial.time_credit_before_trial
         )
         if trial.check_time_credit_received:
-            original_estimate = cls._get_trial_time_estimate(trial.__class__)
+            original_estimate = cls._get_trial_time_estimate(
+                trial_maker=trial.trial_maker
+            )
             actual = trial.time_credit_from_trial
             if actual != original_estimate:
                 logger.info(

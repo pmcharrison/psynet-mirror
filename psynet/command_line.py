@@ -104,10 +104,10 @@ def reset_console():
 ###########
 @psynet.command()
 def prepare():
-    """
-    Prepares all stimulus sets defined in experiment.py,
-    uploading all media files to Amazon S3.
-    """
+    _prepare()
+
+
+def _prepare():
     try:
         from dallinger import db
 

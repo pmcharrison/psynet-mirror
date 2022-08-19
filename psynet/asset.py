@@ -648,7 +648,9 @@ class ManagedAsset(Asset):
     def _deposit(self, storage: "AssetStorage", async_: bool, delete_input: bool):
         if self.needs_storage_backend and isinstance(storage, NoStorage):
             raise RuntimeError(
-                "Cannot perform this deposit without an asset storage backend. "
+                "Cannot deposit this asset "
+                f"(type = {type(self).__name__}, key = {self.key}) "
+                "without an asset storage backend. "
                 "Please add one to your experiment class, for example by writing "
                 "asset_storage = S3Storage('your-s3-bucket', 'your-subdirectory') "
                 "in your experiment class."

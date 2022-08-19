@@ -6,6 +6,7 @@
 
 
 import psynet.experiment
+from psynet.asset import DebugStorage
 from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
@@ -65,6 +66,7 @@ class ReadAudioTest(AudioForcedChoiceTest):
 
 class Exp(psynet.experiment.Experiment):
     label = "Audio forced choice demo"
+    asset_storage = DebugStorage()
 
     timeline = Timeline(
         NoConsent(),
