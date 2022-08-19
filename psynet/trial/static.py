@@ -155,7 +155,7 @@ class Stimulus(TrialNode, HasDefinition):
     participant_group = Column(String)
     phase = Column(String)
     block = Column(String)
-    key = Column(String, unique=True, index=True)
+    key = Column(String, index=True)
 
     def __init__(
         self,
