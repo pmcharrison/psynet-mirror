@@ -103,12 +103,13 @@ class Bot(Participant):
         # app = util.import_app("dallinger.experiment_server.sockets:app")
         # with app.app_context(), app.test_request_context():
         while True:
+            page = self.get_current_page()
             if render_pages:
                 req = requests.get(
                     f"http://localhost:5000/timeline?participant_id={self.id}&auth_token={self.auth_token}"
                 )
                 assert req.status_code == 200
-            self.take_page(time_factor)
+            self.take_page(page, time_factor)
             db.session.commit()
             if not self.status == "working":
                 break
@@ -116,10 +117,12 @@ class Bot(Participant):
             f"Bot {self.id} has finished the experiment (took {self.page_count} page(s))."
         )
 
-    def take_page(self, time_factor=0):
+    def take_page(self, page=None, time_factor=0):
         from .page import WaitPage
 
-        page = self.get_current_page()
+        if page is None:
+            page = self.get_current_page()
+
         bot = self
         experiment = self.experiment
         assert isinstance(page, Page)
