@@ -13,6 +13,7 @@ EXPERIMENT = None
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/timeline"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_variables(self, db_session):
         from psynet.experiment import get_experiment

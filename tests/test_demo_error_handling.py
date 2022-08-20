@@ -19,6 +19,7 @@ experiment_dir = "../demos/error_handling"
 
 
 @pytest.mark.parametrize("experiment_directory", [experiment_dir], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_exp(
         self, launched_experiment, server_process, bot_recruits, db_session

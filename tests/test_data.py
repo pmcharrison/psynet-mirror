@@ -8,6 +8,7 @@ from psynet.utils import json_to_data_frame
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 def test_jsonpickle(trial):
     assert jsonpickle.encode(trial) == dict(cls="Trial", keys=dict(id=1))
 

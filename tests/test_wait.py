@@ -12,7 +12,7 @@ EXPERIMENT = None
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/wait"], indirect=True)
 class TestExp:
-    def test_exp(self, active_config, debug_experiment):
+    def test_exp(self, active_config, launched_experiment):
         bot = Bot()
 
         bot.take_experiment()

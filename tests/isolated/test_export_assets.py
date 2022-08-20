@@ -47,6 +47,7 @@ def generate_text_file(path):
 
 # @pytest.mark.usefixtures("db_session")  # Assuming we don't need this
 @pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 class TestAssetExport:
     def test_exp(
         self,

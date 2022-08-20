@@ -13,6 +13,7 @@ EXPERIMENT = None
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/mcmpc"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant_id, bot in enumerate(bot_recruits):

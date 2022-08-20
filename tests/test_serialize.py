@@ -8,6 +8,7 @@ from psynet.trial.static import StaticTrial, Stimulus
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 class Test:
     def test_psynet_method(self):
         import psynet.trial.main

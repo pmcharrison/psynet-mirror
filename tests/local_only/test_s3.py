@@ -72,6 +72,7 @@ def test_list_files_nonexistent_bucket():
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 def test_s3_asset_file(s3_storage, text_file_1):
     asset = ExperimentAsset(
         "test_asset",
@@ -89,6 +90,7 @@ def test_s3_asset_file(s3_storage, text_file_1):
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 def test_s3_asset_folder(s3_storage, text_folder):
     asset = ExperimentAsset(
         "test_folder_asset",

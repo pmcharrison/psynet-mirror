@@ -189,6 +189,7 @@ class AssetTests:
 
 
 @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
 def test_access_assets(
     node,
     trial_class,
