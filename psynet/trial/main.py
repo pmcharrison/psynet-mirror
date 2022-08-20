@@ -48,7 +48,13 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import NoArgumentProvided, call_function, corr, get_logger
+from ..utils import (
+    NoArgumentProvided,
+    call_function,
+    corr,
+    disallow_random_functions,
+    get_logger,
+)
 
 logger = get_logger()
 
@@ -705,9 +711,13 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         """
         return None
 
+    def _show_feedback(self, experiment, participant):
+        with disallow_random_functions("show_feedback"):
+            return self.show_feedback(experiment=experiment, participant=participant)
+
     def gives_feedback(self, experiment, participant):
         return (
-            self.show_feedback(experiment=experiment, participant=participant)
+            self._show_feedback(experiment=experiment, participant=participant)
             is not None
         )
 
@@ -855,7 +865,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         return join(
             CodeBlock(cls._log_time_credit_before_trial),
             PageMaker(
-                cls._show_trial,
+                lambda experiment, participant: participant.current_trial._show_trial(
+                    experiment, participant
+                ),
                 time_estimate=time_estimate,
                 accumulate_answers=cls.accumulate_answers,
             ),
@@ -876,16 +888,14 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 "or time_estimate_per_trial as a class/instance attribute of the corresponding trial maker."
             )
 
-    @classmethod
-    def _show_trial(cls, experiment, participant):
-        trial = participant.current_trial
-        return call_function(
-            trial.show_trial,
-            experiment=experiment,
-            participant=participant,
-            trial_maker=trial.trial_maker,
-        )
-        return trial.show_trial(experiment=experiment, participant=participant)
+    def _show_trial(self, experiment, participant):
+        with disallow_random_functions("show_trial"):
+            return call_function(
+                self.show_trial,
+                experiment=experiment,
+                participant=participant,
+                trial_maker=self.trial_maker,
+            )
 
     @classmethod
     def _get_current_time_credit(cls, participant):

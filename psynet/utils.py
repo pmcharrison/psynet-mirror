@@ -7,6 +7,7 @@ import inspect
 import json
 import logging
 import os
+import random
 import re
 import sys
 import time
@@ -17,6 +18,7 @@ from typing import Union
 from urllib.parse import ParseResult, urlparse
 
 import jsonpickle
+import numpy.random
 import pexpect
 from _hashlib import HASH as Hash
 from dallinger.config import config, get_config
@@ -750,3 +752,23 @@ def log_pexpect_errors(process):
         print(f"A {err} error occurred. Printing process logs:")
         print(process.before)
         raise
+
+
+@contextlib.contextmanager
+def disallow_random_functions(func_name):
+    random_state = random.getstate
+    numpy_random_state = numpy.random.get_state()
+
+    yield
+
+    if (
+        random.getstate() != random_state
+        or numpy.random.get_state() != numpy_random_state
+    ):
+        raise RuntimeError(
+            "It looks like you used Python's random number generator within "
+            f"your {func_name} code. This is disallowed because it allows your "
+            "experiment to get into inconsistent states. Instead you should generate "
+            "call any random number generators within code blocks, ``for_loop()`` constructs, "
+            "Trial.make_definition methods, or similar."
+        )
