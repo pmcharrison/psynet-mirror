@@ -29,16 +29,11 @@ def find_demo_dirs():
 
 demos = find_demo_dirs()
 
-skip = [
-    "error_handling",  # Purposefully causes errors
-    "singing_iterated",  # Relies on melody package, which needs updating
-    "timeline_with_error",  # Purposefully causes an error
-]
-
-# start_after = None
-start_after = "tapping_static"
-index = [i for i, demo in enumerate(demos) if demo.endswith(start_after)][0]
-demos = demos[(index + 1) :]
+# Uncomment this code if you want to start the test sequence at a particular point
+#
+# start_after = "video"
+# index = [i for i, demo in enumerate(demos) if demo.endswith(start_after)][0]
+# demos = demos[(index + 1) :]
 
 
 @pytest.mark.parametrize("experiment_directory", demos, indirect=True)
