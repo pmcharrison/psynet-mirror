@@ -22,7 +22,7 @@ experiment_dir = "../demos/error_handling"
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_exp(
-        self, launched_experiment, server_process, bot_recruits, db_session
+        self, launched_experiment, debug_server_process, bot_recruits, db_session
     ):  # two_iterations, bot_recruits):
         for i in range(4):
             url = launched_experiment.recruiter.recruit()[0]
@@ -57,15 +57,15 @@ class TestExp(object):
                     "There has been an error and so you are unable to continue, sorry!",
                 )
 
-                with log_pexpect_errors(server_process):
-                    server_process.expect_exact(
+                with log_pexpect_errors(debug_server_process):
+                    debug_server_process.expect_exact(
                         f"'participant_id': 1, 'worker_id': '{participant.worker_id}'",
                         timeout=5,
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "Traceback (most recent call last):", timeout=5
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "ValueError: Error code 38574", timeout=5
                     )
 
@@ -91,15 +91,15 @@ class TestExp(object):
                     "There has been an error and so you are unable to continue, sorry!",
                 )
 
-                with log_pexpect_errors(server_process):
-                    server_process.expect_exact(
+                with log_pexpect_errors(debug_server_process):
+                    debug_server_process.expect_exact(
                         f"'participant_id': 2, 'worker_id': '{participant.worker_id}'",
                         timeout=5,
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "Traceback (most recent call last):", timeout=5
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "RuntimeError: Error code 82626", timeout=5
                     )
 
@@ -117,15 +117,15 @@ class TestExp(object):
                 # The third participant triggers an error in a worker asynchronous process'
                 next_page(driver, "next-button", finished=True)
 
-                with log_pexpect_errors(server_process):
-                    server_process.expect_exact(
+                with log_pexpect_errors(debug_server_process):
+                    debug_server_process.expect_exact(
                         f"'participant_id': 3, 'worker_id': '{participant.worker_id}', 'process_id': ",
                         timeout=5,
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "Traceback (most recent call last):", timeout=5
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "AssertionError: Error code 48473", timeout=5
                     )
 
@@ -144,15 +144,15 @@ class TestExp(object):
                 # The third participant triggers an error in a worker asynchronous process'
                 next_page(driver, "next-button", finished=True)
 
-                with log_pexpect_errors(server_process):
-                    server_process.expect_exact(
+                with log_pexpect_errors(debug_server_process):
+                    debug_server_process.expect_exact(
                         f"'participant_id': 4, 'worker_id': '{participant.worker_id}', 'process_id': ",
                         timeout=5,
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "Traceback (most recent call last):", timeout=5
                     )
-                    server_process.expect_exact(
+                    debug_server_process.expect_exact(
                         "AssertionError: Error code 73722", timeout=5
                     )
 

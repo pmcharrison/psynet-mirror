@@ -280,7 +280,7 @@ def launched_experiment(debug_experiment):
 
 
 @pytest.fixture
-def server_process(debug_experiment):
+def debug_server_process(debug_experiment):
     return debug_experiment
 
 

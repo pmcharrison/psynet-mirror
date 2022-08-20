@@ -46,7 +46,6 @@ class TestExp:
     def test_exp(
         self,
         active_config,
-        debug_experiment,
         data_root_dir,
         data_dir,
         database_zip_file,

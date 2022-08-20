@@ -51,7 +51,6 @@ def generate_text_file(path):
 class TestAssetExport:
     def test_exp(
         self,
-        debug_experiment,
         data_root_dir,
         data_csv_dir,
         data_zip_file,
