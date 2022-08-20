@@ -143,6 +143,7 @@ video_pages = join(
             AudioRecordControl(
                 controls=True,
                 duration=4.0,
+                bot_response_media="example_audio_recording.wav",
             ),
             progress_display=ProgressDisplay(stages=[ProgressStage(time=4)]),
             media=MediaSpec(audio={"soundtrack": assets.get("funk-game-loop.mp3")}),
@@ -165,7 +166,7 @@ video_pages = join(
         lambda assets: ModularPage(
             "video_prompt_plus_video_record",
             VideoPrompt(
-                url=assets.get("birds.mp4"),  # TODO - rename this argument as 'video'
+                assets.get("birds.mp4"),
                 text="""
                 Here we play a video and instruct the user to record a video response after a countdown.
                 The soundtrack also has a 0.5 second fade-in and fade-out.
@@ -174,7 +175,12 @@ video_pages = join(
                 play_window=[0, 4],
                 width="180px",
             ),
-            VideoRecordControl(controls=True, duration=4.0, show_preview=True),
+            VideoRecordControl(
+                controls=True,
+                duration=4.0,
+                show_preview=True,
+                bot_response_media="example_video_recording.webm",
+            ),
             progress_display=ProgressDisplay(
                 stages=[
                     ProgressStage(
@@ -216,6 +222,10 @@ video_pages = join(
             recording_source="both",
             show_preview=True,
             controls=True,
+            bot_response_media={
+                "camera": "example_video_recording.webm",
+                "screen": "example_video_recording.webm",  # This isn't actually a screen recording
+            },
         ),
         time_estimate=5,
         progress_display=ProgressDisplay([ProgressStage(time=5.0)]),
