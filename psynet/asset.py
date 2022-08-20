@@ -1492,7 +1492,7 @@ def get_boto3_s3_session():
 
 @cache
 def get_boto3_s3_client():
-    return boto3.client("s3")
+    return boto3.client("s3", **get_aws_credentials())
 
 
 @cache
@@ -1683,7 +1683,15 @@ class S3Storage(AssetStorage):
     def run_aws_command(self, cmd):
         logger.info(f"Running AWS CLI command: {cmd}")
         try:
-            subprocess.run(cmd, check=True, capture_output=True)
+            subprocess.run(
+                cmd,
+                check=True,
+                capture_output=True,
+                env={
+                    **os.environ,
+                    **get_aws_credentials(capitalize=True),
+                },
+            )
         except subprocess.CalledProcessError as err:
             message = err.stderr.decode("utf8")
             raise AwsCliError(message)

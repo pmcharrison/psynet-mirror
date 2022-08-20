@@ -23,15 +23,18 @@ def make_batch_file(in_files, output_path):
 
 
 @cache
-def get_aws_credentials():
+def get_aws_credentials(capitalize=False):
     config = get_config()
     if not config.ready:
         config.load()
-    return {
+    cred = {
         "aws_access_key_id": config.get("aws_access_key_id"),
         "aws_secret_access_key": config.get("aws_secret_access_key"),
         "region_name": config.get("aws_region"),
     }
+    if capitalize:
+        cred = {key.upper(): value for key, value in cred.items()}
+    return cred
 
 
 def new_s3_client():
