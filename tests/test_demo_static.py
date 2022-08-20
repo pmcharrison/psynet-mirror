@@ -22,7 +22,7 @@ class TestExp:
             driver = bot.driver
             time.sleep(1)
 
-            networks = StaticNetwork.query.all()
+            networks = StaticNetwork.query.filter_by(trial_maker_id="animals").all()
             stimuli = Stimulus.query.all()
 
             assert networks[0].type == "StaticNetwork"

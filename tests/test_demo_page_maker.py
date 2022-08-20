@@ -10,9 +10,7 @@ logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 
 
-@pytest.mark.parametrize(
-    "experiment_directory", ["../demos/multi_page_maker"], indirect=True
-)
+@pytest.mark.parametrize("experiment_directory", ["../demos/page_maker"], indirect=True)
 class TestExp:
     def test_exp(self, bot_recruits):
         for participant, bot in enumerate(bot_recruits):

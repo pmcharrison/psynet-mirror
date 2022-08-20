@@ -10,7 +10,9 @@ EXPERIMENT = None
 
 
 @pytest.mark.parametrize(
-    "experiment_directory", ["../demos/gmsi_two_modules_with_subscales"], indirect=True
+    "experiment_directory",
+    ["../demos/demography/gmsi_two_modules_with_subscales"],
+    indirect=True,
 )
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session):
