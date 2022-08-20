@@ -141,15 +141,26 @@ class Bot(Participant):
             response.metadata["time_taken"] = time_taken
 
         if not isinstance(page, EndPage):
-            experiment.process_response(
-                participant_id=self.id,
-                raw_answer=response.raw_answer,
-                blobs=response.blobs,
-                metadata=response.metadata,
-                page_uuid=self.page_uuid,
-                client_ip_address=response.client_ip_address,
-                answer=response.answer,
-            )
+            try:
+                experiment.process_response(
+                    participant_id=self.id,
+                    raw_answer=response.raw_answer,
+                    blobs=response.blobs,
+                    metadata=response.metadata,
+                    page_uuid=self.page_uuid,
+                    client_ip_address=response.client_ip_address,
+                    answer=response.answer,
+                )
+            except RuntimeError as err:
+                if "Working outside of request context" in str(err):
+                    err.args = (
+                        err.args[0]
+                        + "\n\nNote: The 'working outside of request context' error can usually be ignored "
+                        "during testing as it typically comes from Flask trying to construct an "
+                        "error page without a valid request context. The real error probably "
+                        "happened earlier though.",
+                    )
+                    raise
 
         self.page_count += 1
 
