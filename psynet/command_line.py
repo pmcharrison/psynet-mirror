@@ -831,10 +831,10 @@ def export_(
 
     if export_path is None:
         try:
-            export_root = config.get("export_root")
+            export_root = config.get("default_export_root")
         except KeyError:
             raise ValueError(
-                "No value for export_path was provided and no value for export_root was found in "
+                "No value for export_path was provided and no value for default_export_root was found in "
                 ".dallingerconfig or config.txt. Please provide either one of these and try again."
             )
 

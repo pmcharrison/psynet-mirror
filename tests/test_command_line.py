@@ -262,9 +262,3 @@ class TestExport:
     def export_data(self):
         with patch("psynet.command_line.export_data") as mock_export_data:
             yield mock_export_data
-
-    def test_export_missing_app_param(self, export):
-        result = CliRunner().invoke(export, catch_exceptions=False)
-        assert b"Usage: export [OPTIONS]" in result.stdout_bytes
-        assert b"Error: Missing option '--app'." in result.stdout_bytes
-        assert result.exit_code == 2

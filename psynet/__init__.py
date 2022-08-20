@@ -53,7 +53,7 @@ with open(os.path.join(here, "VERSION")) as version_file:
 #         self.register("lucid_api_key", unicode)
 #         self.register("lucid_sha1_hashing_key", unicode)
 #         self.register("lucid_recruitment_config", unicode)
-#         self.register("export_root", unicode)
+#         self.register("default_export_root", unicode)
 #
 #     Configuration.register_extra_parameters = register_extra_parameters
 #
