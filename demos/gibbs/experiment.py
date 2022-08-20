@@ -259,6 +259,7 @@ def _collect_coin(participant):
 class Exp(psynet.experiment.Experiment):
     label = "Gibbs demo"
     asset_storage = DebugStorage()
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         NoConsent(),
@@ -279,8 +280,4 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    def __init__(self, session=None):
-        super().__init__(session)
-
-        # Change this if you want to simulate multiple simultaneous participants.
-        self.initial_recruitment_size = 1
+    test_num_bots = 4

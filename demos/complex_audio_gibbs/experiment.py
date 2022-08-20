@@ -175,7 +175,7 @@ class Exp(psynet.experiment.Experiment):
         SuccessfulEndPage(),
     )
 
-    num_test_bots = 2
+    test_num_bots = 2
 
     def test_check_bot(self, bot: Bot):
         assert not bot.failed

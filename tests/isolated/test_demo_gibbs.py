@@ -14,12 +14,10 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", ["../../demos/gibbs"], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
-    def test_exp(
-        self, bot_recruits, db_session, data_root_dir, data_csv_dir, data_zip_file
-    ):
+    def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):
             driver = bot.driver
             time.sleep(1)
@@ -52,7 +50,6 @@ class TestExp:
             ]
             for p in post_trial_processes:
                 assert p.trial is not None
-                assert p.network is not None
                 assert p.trial_maker_id == "gibbs_demo"
 
             post_grow_network_processes = [
@@ -67,9 +64,7 @@ class TestExp:
             assert pt.var.test_variable == 123
 
             trials = pt.trials()
-            trials.sort(key=lambda x: x.id)
-            network_ids = [t.network.id for t in trials]
-            assert network_ids == sorted(network_ids)
+            assert len(trials) == 4
 
             with pytest.raises(UndefinedVariableError):
                 pt.var.get("uninitialized_variable")
