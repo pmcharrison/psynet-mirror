@@ -2,8 +2,8 @@ import pytest
 
 
 def test_old_imports():
-    from psynet.experiment import get_experiment, import_local_experiment
     from psynet.timeline import get_trial_maker
+    from psynet.utils import get_experiment, import_local_experiment
 
     with pytest.raises(
         ImportError,

@@ -1,9 +1,3 @@
-import shutil
-import tempfile
-
-import parselmouth
-
-from psynet.media import recode_wav
 from psynet.timeline import MediaSpec
 
 
@@ -24,12 +18,3 @@ def test_ids():
         "image": set(),
         "video": {"vid1"},
     }
-
-
-def test_recode_wav():
-    example = "tests/static/64_bit.wav"
-    with tempfile.NamedTemporaryFile() as temp_file:
-        shutil.copyfile(example, temp_file.name)
-        recode_wav(temp_file.name)
-        sound = parselmouth.Sound(temp_file.name)
-        assert type(sound) == parselmouth.Sound

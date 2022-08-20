@@ -35,7 +35,10 @@ class TestProcesses:
         assert participant.awaiting_async_process
 
     def test_awaiting_async_process_trial(self, trial, node, network, participant):
-        owners = [trial, node, network, participant]
+        # When a trial spawns an async process, this async process also is 'owned'
+        # by the participant. The trial's node and network do not count as owners
+        # of the process, however.
+        owners = [trial, participant]
         for o in owners:
             assert not o.awaiting_async_process
 
