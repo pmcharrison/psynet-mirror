@@ -160,7 +160,7 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
 
     wait_until(
         psynet_loaded,
-        max_wait=15.0,
+        max_wait=max_wait,
         error_message="Page never became ready.",
         driver=driver,
     )
@@ -168,9 +168,14 @@ def next_page(driver, button_id, finished=False, poll_interval=0.25, max_wait=5.
     old_uuid = get_uuid()
     click_button()
     if not finished:
+        if driver.current_url == "http://localhost:5000/error-page":
+            raise RuntimeError(
+                "Unexpectedly hit an error page, check the server logs for details."
+            )
+
         wait_until(
             lambda: psynet_loaded(driver) and get_uuid() != old_uuid,
-            max_wait=1000.0,  # todo - revert to `max_wait`
+            max_wait=max_wait,
             error_message="Failed to load new page.",
         )
 

@@ -48,13 +48,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import (
-    NoArgumentProvided,
-    call_function,
-    corr,
-    disallow_random_functions,
-    get_logger,
-)
+from ..utils import NoArgumentProvided, call_function, corr, get_logger
 
 logger = get_logger()
 
@@ -712,8 +706,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         return None
 
     def _show_feedback(self, experiment, participant):
-        with disallow_random_functions("show_feedback"):
-            return self.show_feedback(experiment=experiment, participant=participant)
+        return self.show_feedback(experiment=experiment, participant=participant)
 
     def gives_feedback(self, experiment, participant):
         return (
@@ -889,13 +882,12 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             )
 
     def _show_trial(self, experiment, participant):
-        with disallow_random_functions("show_trial"):
-            return call_function(
-                self.show_trial,
-                experiment=experiment,
-                participant=participant,
-                trial_maker=self.trial_maker,
-            )
+        return call_function(
+            self.show_trial,
+            experiment=experiment,
+            participant=participant,
+            trial_maker=self.trial_maker,
+        )
 
     @classmethod
     def _get_current_time_credit(cls, participant):

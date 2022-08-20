@@ -27,7 +27,6 @@ from .utils import (
     call_function,
     check_function_args,
     dict_to_js_vars,
-    disallow_random_functions,
     format_datetime_string,
     get_logger,
     merge_dicts,
@@ -1157,14 +1156,13 @@ class PageMaker(Elt):
 
         A list of ``Elt`` objects.
         """
-        with disallow_random_functions("PageMaker"):
-            res = call_function(
-                self.function,
-                self=self,
-                experiment=experiment,
-                participant=participant,
-                assets=experiment.assets,
-            )
+        res = call_function(
+            self.function,
+            self=self,
+            experiment=experiment,
+            participant=participant,
+            assets=experiment.assets,
+        )
         res = join(res)
         self.impute_time_estimates(res)
         self.check_time_estimates(res)
