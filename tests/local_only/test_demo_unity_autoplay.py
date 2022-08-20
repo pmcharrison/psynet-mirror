@@ -13,7 +13,9 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_unity_autoplay")
+@pytest.mark.parametrize(
+    "experiment_directory", ["../demos/unity_autoplay"], indirect=True
+)
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):

@@ -45,7 +45,8 @@ def generate_text_file(path):
         file.write("Lorem ipsum")
 
 
-@pytest.mark.usefixtures("demo_gibbs", "db_session")
+# @pytest.mark.usefixtures("db_session")  # Assuming we don't need this
+@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
 class TestAssetExport:
     def test_exp(
         self,

@@ -7,7 +7,7 @@ import psynet.data  # noqa - for the jsonpickle registration
 from psynet.utils import json_to_data_frame
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 def test_jsonpickle(trial):
     assert jsonpickle.encode(trial) == dict(cls="Trial", keys=dict(id=1))
 

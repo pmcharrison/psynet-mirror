@@ -11,7 +11,9 @@ logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 
 
-@pytest.mark.usefixtures("demo_custom_table_complex")
+@pytest.mark.parametrize(
+    "experiment_directory", ["../demos/custom_table_complex"], indirect=True
+)
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session, experiment_module):
         for i, bot in enumerate(bot_recruits):

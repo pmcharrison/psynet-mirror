@@ -81,8 +81,8 @@ def folder_asset_clone(debug_storage):
         yield asset
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 @pytest.mark.usefixtures("in_experiment_directory")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class AssetTests:
     def test_lambda_function(self):
         with pytest.raises(ValueError) as e:

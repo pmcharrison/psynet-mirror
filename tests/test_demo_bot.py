@@ -10,7 +10,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_bot")
+@pytest.mark.parametrize("experiment_directory", ["../demos/bot"], indirect=True)
 class TestExp:
     def test_exp(self, active_config, debug_experiment):
         bots = [Bot() for _ in range(2)]

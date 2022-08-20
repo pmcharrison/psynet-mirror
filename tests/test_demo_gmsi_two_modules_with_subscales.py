@@ -9,7 +9,9 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_gmsi_two_modules_with_subscales")
+@pytest.mark.parametrize(
+    "experiment_directory", ["../demos/gmsi_two_modules_with_subscales"], indirect=True
+)
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):

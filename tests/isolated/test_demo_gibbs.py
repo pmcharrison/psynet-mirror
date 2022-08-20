@@ -14,7 +14,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_gibbs")
+@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
 class TestExp:
     def test_exp(
         self, bot_recruits, db_session, data_root_dir, data_csv_dir, data_zip_file

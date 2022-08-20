@@ -3,7 +3,7 @@ import pytest
 from psynet.redis import RedisVarStore
 
 
-@pytest.mark.usefixtures("demo_mcmcp")
+@pytest.mark.parametrize("experiment_directory", ["../demos/mcmpc"], indirect=True)
 class TestExp:
     def test_redis(self, active_config, debug_experiment):
         store = RedisVarStore()

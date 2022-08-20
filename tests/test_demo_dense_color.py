@@ -10,7 +10,9 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_dense_color")
+@pytest.mark.parametrize(
+    "experiment_directory", ["../demos/dense_color"], indirect=True
+)
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
         for participant, bot in enumerate(bot_recruits):

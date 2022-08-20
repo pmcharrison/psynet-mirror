@@ -8,7 +8,9 @@ from psynet.command_line import run_prepare_in_subprocess
 from psynet.experiment import get_experiment
 
 
-@pytest.mark.usefixtures("demo_static_audio")
+@pytest.mark.parametrize(
+    "experiment_directory", ["../demos/static_audio"], indirect=True
+)
 def test_s3_asset_preparation():
     exp = get_experiment()
     exp.asset_storage.delete_all()

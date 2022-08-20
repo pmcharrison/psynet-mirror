@@ -7,7 +7,7 @@ from psynet.serialize import serialize, unserialize
 from psynet.trial.static import StaticTrial, Stimulus
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class Test:
     def test_psynet_method(self):
         import psynet.trial.main

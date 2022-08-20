@@ -40,7 +40,7 @@ def coin_class(experiment_module):
     return experiment_module.Coin
 
 
-@pytest.mark.usefixtures("demo_gibbs", "db_session")
+@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
 class TestExp:
     def test_exp(
         self,

@@ -10,7 +10,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_wait")
+@pytest.mark.parametrize("experiment_directory", ["../demos/wait"], indirect=True)
 class TestExp:
     def test_exp(self, active_config, debug_experiment):
         bot = Bot()

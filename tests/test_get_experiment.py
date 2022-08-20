@@ -24,7 +24,7 @@ def test_old_imports():
         get_trial_maker("test")
 
 
-@pytest.mark.usefixtures("demo_mcmcp")
+@pytest.mark.parametrize("experiment_directory", ["../demos/mcmpc"], indirect=True)
 def test_get_experiment():
     from psynet.experiment import Experiment, get_experiment
 

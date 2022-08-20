@@ -71,7 +71,7 @@ def test_list_files_nonexistent_bucket():
     assert storage.list_files_with_prefix("", use_cache=False) == []
 
 
-@pytest.mark.usefixtures("demo_gibbs")
+@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
 def test_s3_asset_file(s3_storage, text_file_1):
     asset = ExperimentAsset(
         "test_asset",
@@ -88,7 +88,7 @@ def test_s3_asset_file(s3_storage, text_file_1):
             assert reader.read() == "Hello!"
 
 
-@pytest.mark.usefixtures("demo_gibbs")
+@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
 def test_s3_asset_folder(s3_storage, text_folder):
     asset = ExperimentAsset(
         "test_folder_asset",

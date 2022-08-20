@@ -12,7 +12,9 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_timeline_with_error")
+@pytest.mark.parametrize(
+    "experiment_directory", ["../demos/timeline_with_error"], indirect=True
+)
 class TestExp:
     def test_variables(self, db_session):
         from psynet.experiment import get_experiment

@@ -22,7 +22,7 @@ class TestCommandLine(object):
         assert b"Commands:" in output
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class TestDebug:
     # Note:
     # We do not test non-legacy debug here because of an issue whereby you
@@ -79,7 +79,7 @@ class TestDebug:
         )
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class TestDeploy:
     @pytest.fixture
     def deploy(self):
@@ -127,7 +127,7 @@ class TestDeploy:
         )
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class TestSandbox:
     @pytest.fixture
     def sandbox(self):
@@ -175,7 +175,7 @@ class TestSandbox:
         )
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class TestEstimate:
     @pytest.fixture
     def estimate(self):
@@ -211,7 +211,7 @@ class TestEstimate:
         pretty_format_seconds.assert_called_once()
 
 
-@pytest.mark.usefixtures("demo_static")
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
 class TestExport:
     @pytest.fixture
     def export(self):

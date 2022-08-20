@@ -9,7 +9,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.usefixtures("demo_gmsi")
+@pytest.mark.parametrize("experiment_directory", ["../demos/gmsi"], indirect=True)
 class TestExp(object):
     def test_exp(self, bot_recruits, db_session):
         for i, bot in enumerate(bot_recruits):
