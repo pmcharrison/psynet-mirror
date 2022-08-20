@@ -200,7 +200,7 @@ class TestEstimate:
     @pytest.fixture
     def import_local_experiment(self):
         with patch(
-            "psynet.command_line.import_local_experiment"
+            "psynet.experiment.import_local_experiment"
         ) as mock_import_local_experiment:
             yield mock_import_local_experiment
 
@@ -244,7 +244,7 @@ class TestExport:
     @pytest.fixture
     def import_local_experiment(self):
         with patch(
-            "psynet.command_line.import_local_experiment"
+            "psynet.experiment.import_local_experiment"
         ) as mock_import_local_experiment:
             yield mock_import_local_experiment
 
