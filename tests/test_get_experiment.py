@@ -29,5 +29,5 @@ def test_old_imports():
 def test_get_experiment():
     from psynet.experiment import Experiment, get_experiment
 
-    exp = get_experiment
+    exp = get_experiment()
     assert isinstance(exp, Experiment)
