@@ -31,26 +31,10 @@ class Test:
         net_serialized = serialize(network)
         assert (
             net_serialized
-            == '{"py/object": "dallinger.models.Network", "identifiers": {"id": 4}}'
+            == '{"py/object": "dallinger.models.Network", "identifiers": {"id": 6}}'
         )
         network_2 = unserialize(net_serialized)
         assert network_2.id == network.id
-
-    # def test_custom_sql_classes(self, trial, node, network, participant):
-    #     unserialize('{"py/function": "dallinger_experiment.test.my_add"}')
-    #
-    #     self.check_mappers()
-    #
-    #     classes = get_custom_sql_classes()
-    #
-    #     desired = [
-    #         "AnimalTrial",
-    #     ]
-    #
-    #     assert desired == list(classes.keys())
-    #     assert desired == list([c.__name__ for c in classes.values()])
-    #
-    #     self.check_mappers()
 
     def test_config(self, trial, node, network, participant):
         # Checking that loading Dallinger config doesn't mess up the mappers in the way it used to
@@ -85,10 +69,13 @@ class Test:
     def test_serialize_custom_function(self):
         exp = import_local_experiment()
 
-        f = exp["module"].test.my_add
+        f = exp["module"].test_imports.my_add
         f_serialized = serialize(f)
 
-        assert f_serialized == '{"py/function": "dallinger_experiment.test.my_add"}'
+        assert (
+            f_serialized
+            == '{"py/function": "dallinger_experiment.test_imports.my_add"}'
+        )
 
         f_unserialized = unserialize(f_serialized)
         assert f_unserialized(1, 4) == 5
@@ -98,32 +85,32 @@ class Test:
     def test_serialize_custom_object(self):
         exp = import_local_experiment()
 
-        obj = exp["module"].test.MyClass(x=3)
+        obj = exp["module"].test_imports.MyClass(x=3)
         obj_serialized = serialize(obj)
 
         assert (
             obj_serialized
-            == '{"py/object": "dallinger_experiment.test.MyClass", "x": 3}'
+            == '{"py/object": "dallinger_experiment.test_imports.MyClass", "x": 3}'
         )
 
         obj_unserialized = unserialize(obj_serialized)
-        assert isinstance(obj_unserialized, exp["module"].test.MyClass)
+        assert isinstance(obj_unserialized, exp["module"].test_imports.MyClass)
 
         self.check_mappers()
 
     def test_serialize_custom_method(self):
         exp = import_local_experiment()
 
-        method = exp["module"].test.MyClass.add
+        method = exp["module"].test_imports.MyClass.add
         method_serialized = serialize(method)
 
         assert (
             method_serialized
-            == '{"py/function": "dallinger_experiment.test.MyClass.add"}'
+            == '{"py/function": "dallinger_experiment.test_imports.MyClass.add"}'
         )
 
         method_unserialized = unserialize(method_serialized)
-        assert method_unserialized == exp["module"].test.MyClass.add
+        assert method_unserialized == exp["module"].test_imports.MyClass.add
 
         self.check_mappers()
 
@@ -141,14 +128,14 @@ class Test:
         self.check_mappers()
 
     def test_serialize_unknown_object(self):
-        object_serialized = '{"py/object": "dallinger_experiment.test.ABC"}'
+        object_serialized = '{"py/object": "dallinger_experiment.test_imports.ABC"}'
 
         with pytest.raises(AttributeError):
             unserialize(object_serialized)
 
         # assert (
         #     str(e.value)
-        #     == f"Tried to unserialize a custom object (dallinger_experiment.test.ABC) but couldn't find the requested object: 'ABC'"
+        #     == f"Tried to unserialize a custom object (dallinger_experiment.test_imports.ABC) but couldn't find the requested object: 'ABC'"
         # )
 
         self.check_mappers()
@@ -160,8 +147,3 @@ class Test:
         from dallinger.db import Base
 
         assert Base.registry.mappers
-
-        # animal_trial_mappers = [
-        #     m for m in Base.registry.mappers if m.class_.__name__ == "AnimalTrial"
-        # ]
-        # assert len(animal_trial_mappers) == 1
