@@ -414,3 +414,6 @@ class Exp(psynet.experiment.Experiment):
         SingingMainTask1,
         SuccessfulEndPage(),
     )
+
+    def test_experiment(self):
+        pass

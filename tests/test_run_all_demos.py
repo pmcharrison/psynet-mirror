@@ -35,7 +35,10 @@ skip = [
     "timeline_with_error",  # Purposefully causes an error
 ]
 
-demos = [d for d in demos if not d.endswith("singing_iterated")]
+# start_after = None
+start_after = "tapping_static"
+index = [i for i, demo in enumerate(demos) if demo.endswith(start_after)][0]
+demos = demos[(index + 1) :]
 
 
 @pytest.mark.parametrize("experiment_directory", demos, indirect=True)

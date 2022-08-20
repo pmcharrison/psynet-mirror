@@ -55,3 +55,6 @@ class Exp(psynet.experiment.Experiment):
         ),
         SuccessfulEndPage(),
     )
+
+    def test_experiment(self):
+        pass
