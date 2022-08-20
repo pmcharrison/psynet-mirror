@@ -1,6 +1,7 @@
 import logging
 import os
 import re
+import subprocess
 import sys
 import time
 import warnings
@@ -10,7 +11,7 @@ import pexpect
 import pytest
 import sqlalchemy.exc
 from cached_property import cached_property
-from dallinger import db
+from dallinger import db, pytest_dallinger
 from dallinger.bots import BotBase
 from dallinger.config import get_config
 from dallinger.models import Network, Node
@@ -211,18 +212,40 @@ def deployment_info():
     deployment_info.delete()
 
 
-@pytest.fixture()
+@pytest.fixture(scope="class")
 def experiment_directory(request):
     return request.param
 
 
-@pytest.fixture()
+@pytest.fixture(scope="class")
 def in_experiment_directory(experiment_directory):
     redis_vars.clear()
     with working_directory(experiment_directory):
         yield experiment_directory
     clean_sys_modules()
     clear_all_caches()
+
+
+# dallinger_clear_workers = pytest_dallinger.clear_workers.__wrapped__
+
+
+@pytest.fixture(scope="class")
+def clear_workers():
+    def _zap():
+        kills = [["pkill", "-f", "heroku"]]
+        for kill in kills:
+            try:
+                subprocess.check_call(kill)
+            except Exception as e:
+                if e.returncode != 1:
+                    raise
+
+    _zap()
+    yield
+    _zap()
+
+
+pytest_dallinger.clear_workers = clear_workers
 
 
 @pytest.fixture(scope="class")
@@ -283,17 +306,17 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
 dallinger.pytest_dallinger.debug_experiment = debug_experiment
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def launched_experiment(debug_experiment):
     return get_experiment()
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def debug_server_process(debug_experiment):
     return debug_experiment
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def db_session(in_experiment_directory):
     import dallinger.db
 
@@ -309,22 +332,22 @@ def db_session(in_experiment_directory):
 dallinger.pytest_dallinger.db_session = db_session
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def imported_experiment(launched_experiment):
     return import_local_experiment()
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def experiment_module(imported_experiment):
     return imported_experiment["module"]
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def experiment_class(imported_experiment):
     return imported_experiment["class"]
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def experiment_object(experiment_class):
     return experiment_class()
 
@@ -340,14 +363,14 @@ def experiment_object(experiment_class):
 #         run_prepare_in_subprocess()
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def participant(launched_experiment):
     from psynet.bot import Bot
 
     return Bot()
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def node(launched_experiment):
     nodes = Node.query.all()
     return [
@@ -355,12 +378,12 @@ def node(launched_experiment):
     ][0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def network(launched_experiment):
     return Network.query.all()[0]
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def trial_class(experiment_module):
     return experiment_module.AnimalTrial
 
@@ -370,7 +393,7 @@ def trial_maker(experiment_module):
     return experiment_module.trial_maker
 
 
-@pytest.fixture
+@pytest.fixture(scope="class")
 def trial(launched_experiment, trial_class, node, participant):
     t = trial_class(
         experiment=launched_experiment,
