@@ -52,7 +52,10 @@ setuptools.setup(
             "sphinx_rtd_theme",
         ]
     },
-    entry_points={"console_scripts": ["psynet = psynet.command_line:psynet"]},
+    entry_points={
+        "console_scripts": ["psynet = psynet.command_line:psynet"],
+        "pytest11": ["pytest_psynet = psynet.pytest_psynet"],
+    },
 )
 
 # python3.7 setup.py sdist bdist_wheel

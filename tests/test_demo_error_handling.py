@@ -7,7 +7,13 @@ from dallinger.bots import BotBase
 
 from psynet.error import ErrorRecord
 from psynet.participant import Participant
-from psynet.test import assert_text, bot_class, next_page, psynet_loaded, wait_until
+from psynet.pytest_psynet import (
+    assert_text,
+    bot_class,
+    next_page,
+    psynet_loaded,
+    wait_until,
+)
 from psynet.utils import log_pexpect_errors
 
 logger = logging.getLogger(__file__)

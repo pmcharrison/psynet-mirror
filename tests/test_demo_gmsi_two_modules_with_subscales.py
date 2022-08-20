@@ -3,7 +3,7 @@ import time
 import pytest
 
 from psynet.participant import get_participant
-from psynet.test import bot_class, next_page
+from psynet.pytest_psynet import bot_class, next_page
 
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None

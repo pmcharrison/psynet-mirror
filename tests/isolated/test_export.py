@@ -10,7 +10,7 @@ import pytest
 from psynet.bot import Bot
 from psynet.command_line import export_, populate_db_from_zip_file
 from psynet.participant import Participant
-from psynet.test import bot_class
+from psynet.pytest_psynet import bot_class
 from psynet.timeline import Response
 from psynet.trial.main import Trial
 

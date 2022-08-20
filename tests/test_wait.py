@@ -3,7 +3,7 @@ import logging
 import pytest
 
 from psynet.bot import Bot
-from psynet.test import bot_class
+from psynet.pytest_psynet import bot_class
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()

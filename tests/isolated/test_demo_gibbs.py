@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from psynet.field import UndefinedVariableError
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
-from psynet.test import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()

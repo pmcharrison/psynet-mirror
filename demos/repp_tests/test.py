@@ -21,7 +21,7 @@ import os
 
 import pytest
 
-pytest_plugins = ["pytest_dallinger", "psynet.test"]
+pytest_plugins = ["pytest_dallinger", "pytest_psynet"]
 experiment_dir = os.path.dirname(__file__)
 
 
