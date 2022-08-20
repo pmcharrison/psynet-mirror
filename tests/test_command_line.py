@@ -47,6 +47,7 @@ class TestDebug:
             proxy=None,
             no_browsers=False,
             exp_config={"threads": "1"},
+            archive=None,
         )
 
     @patch("psynet.command_line.prepare")
