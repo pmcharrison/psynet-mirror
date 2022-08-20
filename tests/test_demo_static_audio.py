@@ -11,7 +11,7 @@ from psynet.experiment import get_experiment
 @pytest.mark.parametrize(
     "experiment_directory", ["../demos/static_audio"], indirect=True
 )
-def test_s3_asset_preparation():
+def test_s3_asset_preparation(in_experiment_directory):
     exp = get_experiment()
     exp.asset_storage.delete_all()
     run_prepare_in_subprocess()
