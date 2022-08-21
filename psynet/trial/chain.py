@@ -134,6 +134,8 @@ class ChainNetwork(TrialNetwork):
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)
 
+    source = relationship("ChainSource", uselist=False)
+
     def __init__(
         self,
         trial_maker_id: str,
