@@ -63,7 +63,7 @@ class TestExp:
             # This variable is set in a code block within the trial
             assert pt.var.test_variable == 123
 
-            trials = pt.trials()
+            trials = pt.trials
             assert len(trials) == 4
 
             with pytest.raises(UndefinedVariableError):

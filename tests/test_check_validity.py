@@ -18,8 +18,8 @@ def test_define_in_function():
 
 def test_define_in_class():
     with pytest.raises(InvalidDefinitionError):
-        from . import example_invalid_class_definition  # noqa
+        from .examples import example_invalid_class_definition  # noqa
 
 
 def test_define_in_module():
-    from . import example_valid_class_definition  # noqa
+    from .examples import example_valid_class_definition  # noqa

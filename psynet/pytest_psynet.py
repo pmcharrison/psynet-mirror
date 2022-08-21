@@ -14,7 +14,7 @@ from cached_property import cached_property
 from dallinger import db, pytest_dallinger
 from dallinger.bots import BotBase
 from dallinger.config import get_config
-from dallinger.models import Network, Node
+from dallinger.models import Node
 from dallinger.pytest_dallinger import flush_output
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
@@ -30,7 +30,7 @@ from .command_line import (
 from .data import init_db
 from .experiment import Experiment, get_experiment, import_local_experiment
 from .redis import redis_vars
-from .trial.main import TrialSource
+from .trial.main import TrialNetwork, TrialSource
 from .utils import clear_all_caches, disable_logger, wait_until
 
 logger = logging.getLogger(__file__)
@@ -380,7 +380,7 @@ def node(launched_experiment):
 
 @pytest.fixture(scope="class")
 def network(launched_experiment):
-    return Network.query.all()[0]
+    return TrialNetwork.query.all()[0]
 
 
 @pytest.fixture(scope="class")

@@ -34,10 +34,15 @@ class TestProcesses:
         db.session.refresh(participant)
         assert participant.awaiting_async_process
 
+
+@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.usefixtures("launched_experiment")
+class TestProcesses2:
     def test_awaiting_async_process_trial(self, trial, node, network, participant):
         # When a trial spawns an async process, this async process also is 'owned'
         # by the participant. The trial's node and network do not count as owners
         # of the process, however.
+        db.session.commit()
         owners = [trial, participant]
         for o in owners:
             assert not o.awaiting_async_process

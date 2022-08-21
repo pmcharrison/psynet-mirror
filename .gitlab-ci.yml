@@ -31,6 +31,8 @@ before_script:
   - apt -f -y install ./chrome.deb
   - unzip chrome-driver.zip chromedriver -d /usr/local/bin/
   - pip install "git+https://gitlab+deploy-token-478431:98jnkW1yq_AYWLYpRNtN@gitlab.com/computational-audition-lab/melody/melody-experiments@master#egg=melody_experiments[extract]"
+  - pip install "git+https://repp:tvKi4cirMxgnuf9s4Vma@gitlab.com/computational-audition-lab/repp@master#egg=repp"
+  - pip install "git+https://reppextension:s_Ux2u-2emzHPK4kVq6g@gitlab.com/computational-audition-lab/repp-technology/reppextension#egg=reppextension"
   - pip install pytest-test-groups
   - export HEADLESS=TRUE
 # Install and setup PostgreSQL
