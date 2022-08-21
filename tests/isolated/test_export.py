@@ -84,6 +84,7 @@ class TestExp:
         def test_prepare_db_export():
             json = _prepare_db_export(scrub_pii=False)
             assert sorted(list(json)) == [
+                "AssetTrial",
                 "Bot",
                 "Coin",
                 "CustomNetwork",
@@ -92,6 +93,9 @@ class TestExp:
                 "CustomTrial",
                 "ExperimentAsset",
                 "ExperimentConfig",
+                "GenericStimulusNetwork",
+                "GenericTrialNetwork",
+                "GenericTrialSource",
                 "Response",
                 "Vector",
                 "WorkerAsyncProcess",
@@ -103,6 +107,7 @@ class TestExp:
 
         def test_psynet_exports(data_dir):
             assert sorted(os.listdir(data_dir)) == [
+                "AssetTrial.csv",
                 "Bot.csv",
                 "Coin.csv",
                 "CustomNetwork.csv",
@@ -111,6 +116,9 @@ class TestExp:
                 "CustomTrial.csv",
                 "ExperimentAsset.csv",
                 "ExperimentConfig.csv",
+                "GenericStimulusNetwork.csv",
+                "GenericTrialNetwork.csv",
+                "GenericTrialSource.csv",
                 # "Notification.csv",  # Bots don't produce notifications
                 "Response.csv",
                 "Vector.csv",
