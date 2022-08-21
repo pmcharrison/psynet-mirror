@@ -385,7 +385,7 @@ class GraphChainTrialMaker(ChainTrialMaker):
         dependent_vertex_ids = [e["origin"] for e in edges if e["target"] == target]
         return dependent_vertex_ids
 
-    def grow_network(self, network, participant, experiment):
+    def grow_network(self, network, experiment):
         # We set participant = None because of Dallinger's constraint of not allowing participants
         # to create nodes after they have finished working.
         participant = None

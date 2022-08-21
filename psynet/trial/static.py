@@ -198,16 +198,8 @@ class Stimulus(TrialNode, HasDefinition):
 
             asset.parent = self
 
-            # asset.node = self
-            # asset.node_id = self.id
-            #
-            # asset.network = self.network
-            # asset.network_id = self.network_id
-
             asset.receive_stimulus_definition(self.definition)
             asset.deposit()
-            # experiment.assets.stage(asset)
-            # db.session.add(asset)
 
             self.assets[label] = asset
 
@@ -963,7 +955,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         participant_groups = self.stimulus_set.participant_groups
         return random.choice(participant_groups)
 
-    def find_networks(self, participant, experiment, ignore_async_processes=False):
+    def find_networks(self, participant, experiment):
         # pylint: disable=protected-access
         block_order = participant.var.get(self.with_namespace("block_order"))
         networks = StaticNetwork.query.filter_by(
@@ -974,13 +966,11 @@ class StaticTrialMaker(NetworkTrialMaker):
             #
             # phase=self.phase,
         ).filter(StaticNetwork.block.in_(block_order))
-        if not ignore_async_processes:
-            networks = networks.filter_by(awaiting_async_process=False)
         networks = networks.all()
         networks.sort(key=lambda network: block_order.index(network.block))
         return networks
 
-    def grow_network(self, network, participant, experiment):
+    def grow_network(self, network, experiment):
         """
         Does nothing, because networks never get expanded in a static experiment.
         """

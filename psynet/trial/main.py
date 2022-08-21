@@ -9,10 +9,10 @@ import dallinger.experiment
 import dallinger.models
 import dallinger.nodes
 from dallinger import db
-from dallinger.models import Info, Network, Node
+from dallinger.models import Info, Network
 from dominate import tags
 from flask import Markup
-from sqlalchemy import Column, String, select
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
@@ -25,9 +25,9 @@ from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
 from ..field import (
     PythonDict,
+    PythonObject,
     UndefinedVariableError,
     VarStore,
-    claim_field,
     extra_var,
     register_extra_var,
 )
@@ -42,7 +42,6 @@ from ..timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
-    Response,
     conditional,
     join,
     switch,
@@ -268,38 +267,30 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         **HasDefinition.__extra_vars__.copy(),
     }
 
-    # Properties ###
-    node_id = claim_field("node_id", __extra_vars__, int)
-    participant_id = claim_field("participant_id", __extra_vars__, int)
-    trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
-    complete = claim_field("complete", __extra_vars__, bool)
-    finalized = claim_field("finalized", __extra_vars__, bool)
-    is_repeat_trial = claim_field("is_repeat_trial", __extra_vars__, bool)
-    score = claim_field("score", __extra_vars__, float)
-    bonus = claim_field("bonus", __extra_vars__, float)
-    parent_trial_id = claim_field("parent_trial_id", __extra_vars__, int)
-    answer = claim_field("answer", __extra_vars__)
-    propagate_failure = claim_field("propagate_failure", __extra_vars__, bool)
-    response_id = claim_field("response_id", __extra_vars__, int)
-    repeat_trial_index = claim_field("repeat_trial_index", __extra_vars__, int)
-    num_repeat_trials = claim_field("num_repeat_trials", __extra_vars__, int)
-    time_taken = claim_field("time_taken", __extra_vars__, float)
+    node_id = Column(Integer, ForeignKey("node.id"))
+    participant_id = Column(Integer, ForeignKey("participant.id"))
+    trial_maker_id = Column(String)
+    complete = Column(Boolean)
+    finalized = Column(Boolean)
+    is_repeat_trial = Column(Boolean)
+    score = Column(Float)
+    bonus = Column(Float)
+    parent_trial_id = Column(Integer, ForeignKey("info.id"))
+    answer = Column(PythonObject)
+    propagate_failure = Column(Boolean)
+    response_id = Column(Integer, ForeignKey("response.id"))
+    repeat_trial_index = Column(Integer)
+    num_repeat_trials = Column(Integer)
+    time_taken = Column(Float)
     _initial_assets = Column(PythonDict)
+    time_credit_before_trial = Column(Float)
+    time_credit_after_trial = Column(Float)
+    time_credit_from_trial = Column(Float)
 
-    @property
-    @extra_var(__extra_vars__)
-    def node(self):
-        return self.origin
-
-    time_credit_before_trial = claim_field(
-        "time_credit_before_trial", __extra_vars__, float
-    )
-    time_credit_after_trial = claim_field(
-        "time_credit_after_trial", __extra_vars__, float
-    )
-    time_credit_from_trial = claim_field(
-        "time_credit_from_trial", __extra_vars__, float
-    )
+    node = relationship("Node")
+    participant = relationship("psynet.participant.Participant")
+    parent_trial = relationship("Trial")
+    response = relationship("Response")
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
@@ -321,54 +312,16 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
     errors = relationship("ErrorRecord")
 
-    # assets = relationship("Asset", collection_class=attribute_mapped_collection("label_or_key"))
-
-    # @property
-    # def assets(self):
-    #     network_assets = Asset.query.filter(
-    #         Asset.network_id == self.network_id,
-    #         Asset.node_id == None,
-    #         Asset.trial_id == None
-    #     ).all()
-    #     node_assets = Asset.query.filter(
-    #         Asset.node_id == self.node_id,
-    #         Asset.trial_id == None
-    #     ).all()
-    #     trial_assets = Asset.query.filter_by(trial_id=self.id).all()
-    #
-    #     assets = {}
-    #     for asset in network_assets + node_assets + trial_assets:
-    #         assets[asset.label_or_key] = asset
-    #
-    #     return assets
-
-    # It is compulsory to override this time_estimate parameter for the specific experiment implementation.
     time_estimate = None
-
     check_time_credit_received = True
 
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
 
-    @property
-    def parent_trial(self):
-        assert self.parent_trial_id is not None
-        return Trial.query.filter_by(id=self.parent_trial_id).one()
-
-    @property
-    def response(self):
-        if self.response_id is None:
-            return None
-        return Response.query.filter_by(id=self.response_id).one()
-
     # VarStore occupies the <details> slot.
     @property
     def var(self):
         return VarStore(self)
-
-    @property
-    def participant(self):
-        return Participant.query.filter_by(id=self.participant_id).one()
 
     @property
     def position(self):
@@ -1676,22 +1629,29 @@ class TrialMaker(Module):
         ).all()
         return [t for t in all_participant_trials if t.trial_maker_id == self.id]
 
+    # def _wait_for_prepared_trial(self, experiment, participant):
+    #     while_loop(
+    #         self.with_namespace("wait_for_prepared_trial"),
+    #         lambda participant, experiment:
+    #     )
+
     def _prepare_trial(self, experiment, participant):
-        if participant.var.get(self.with_namespace("in_repeat_phase")):
-            trial = None
-        else:
-            # Returns None if there are no more experiment trials available.
+        in_repeat_phase = participant.var.get(self.with_namespace("in_repeat_phase"))
+
+        if not in_repeat_phase:
             trial = self.prepare_trial(experiment=experiment, participant=participant)
-        if trial is None and self.num_repeat_trials > 0:
-            participant.var.set(self.with_namespace("in_repeat_phase"), True)
+            if trial == "exit" and self.num_repeat_trials > 0:
+                in_repeat_phase = True
+                participant.var.set(self.with_namespace("in_repeat_phase"), True)
+
+        if in_repeat_phase:
             trial = self._prepare_repeat_trial(
                 experiment=experiment, participant=participant
             )
-        participant.current_trial = trial
-        participant.current_trial_id = (
-            trial.id if trial else None
-        )  # shouldn't really be necessary...
+
         db.session.commit()
+
+        return trial
 
     def _prepare_repeat_trial(self, experiment, participant):
         if not participant.var.has(self.with_namespace("trials_to_repeat")):
@@ -1711,7 +1671,7 @@ class TrialMaker(Module):
             participant.var.inc(self.with_namespace("repeat_trial_index"))
             experiment.save(trial)
         except IndexError:
-            trial = None
+            trial = "exit"
         return trial
 
     def _init_trials_to_repeat(self, participant):
@@ -1723,20 +1683,12 @@ class TrialMaker(Module):
         )
         participant.var.set(self.with_namespace("repeat_trial_index"), 0)
 
-    def _wait_for_trial(self, experiment, participant):
-        return False
-
     def _trial_loop(self):
         return join(
-            wait_while(
-                self._wait_for_trial,
-                expected_wait=0.0,
-                log_message="Waiting for trial to be ready.",
-            ),
-            CodeBlock(self._prepare_trial),
+            self._wait_for_trial(),
             while_loop(
                 self.with_namespace("trial_loop"),
-                lambda participant: participant.current_trial is not None,
+                condition=lambda participant: participant.current_trial != "exit",
                 logic=join(
                     self.trial_class.trial_logic(trial_maker=self),
                     (
@@ -1744,15 +1696,30 @@ class TrialMaker(Module):
                         if self.check_performance_every_trial
                         else None
                     ),
-                    wait_while(
-                        self._wait_for_trial,
-                        expected_wait=0.0,
-                        log_message="Waiting for trial to be ready.",
-                    ),
-                    CodeBlock(self._prepare_trial),
+                    self._wait_for_trial(),
                 ),
                 expected_repetitions=self.expected_num_trials,
                 fix_time_credit=False,
+            ),
+        )
+
+    def _wait_for_trial(self):
+        def _try_to_prepare_trial(experiment, participant):
+            self._grow_all_networks()
+            trial = self._prepare_trial(experiment, participant)
+            assert isinstance(trial, Trial) or trial in ["wait", "exit"]
+            participant.current_trial = trial
+            participant.current_trial_id = trial.id if trial else None
+
+        def try_to_prepare_trial():
+            return CodeBlock(_try_to_prepare_trial)
+
+        return join(
+            try_to_prepare_trial,
+            while_loop(
+                "Waiting for trial",
+                lambda participant: participant.current_trial == "wait",
+                logic=try_to_prepare_trial,
             ),
         )
 
@@ -2001,19 +1968,25 @@ class NetworkTrialMaker(TrialMaker):
         self.network_class = network_class
         self.wait_for_networks = wait_for_networks
 
-    # The following methods are overwritten from TrialMaker.
-    # Returns None if no trials could be found (this may not yet be supported by TrialMaker)
+    def _grow_all_networks(self, experiment):
+        logger.info("Making sure all networks have grown.")
+        networks = TrialNetwork.query.filter_by(trial_maker_id=self.id)
+        for network in networks:
+            self.grow_network(network, experiment)
+
     def prepare_trial(self, experiment, participant):
         logger.info("Preparing trial for participant %i.", participant.id)
+        self._grow_all_networks(experiment)
         networks = self.find_networks(participant=participant, experiment=experiment)
         logger.info(
             "Found %i network(s) for participant %i.", len(networks), participant.id
         )
+        if networks in ["wait", "exit"]:
+            return networks
 
-        # Used to grow all available networks, but this was unscalable.
+        assert len(networks) > 0
 
         for network in networks:
-            self._grow_network(network, participant, experiment)
             node = self.find_node(
                 network=network, participant=participant, experiment=experiment
             )
@@ -2025,13 +1998,14 @@ class NetworkTrialMaker(TrialMaker):
                     node=node, participant=participant, experiment=experiment
                 )
         logger.info(
-            "Found no available nodes for participant %i, exiting.", participant.id
+            "Failed to create any nodes from these networks for participant %i, exiting.",
+            participant.id,
         )
-        return None
+        return "exit"
 
     ####
 
-    def find_networks(self, participant, experiment, ignore_async_processes=False):
+    def find_networks(self, participant, experiment):
         """
         Returns a list of all available networks for the participant's next trial, ordered
         in preference (most preferred to least preferred).
@@ -2049,7 +2023,7 @@ class NetworkTrialMaker(TrialMaker):
         """
         raise NotImplementedError
 
-    def grow_network(self, network, participant, experiment):
+    def grow_network(self, network, experiment):
         """
         Extends the network if necessary by adding one or more nodes.
         Returns ``True`` if any nodes were added.
@@ -2059,10 +2033,6 @@ class NetworkTrialMaker(TrialMaker):
 
         network
             The network to be potentially extended.
-
-        participant
-            An instantiation of :class:`psynet.participant.Participant`,
-            corresponding to the current participant.
 
         experiment
             An instantiation of :class:`psynet.experiment.Experiment`,
@@ -2241,43 +2211,6 @@ class NetworkTrialMaker(TrialMaker):
             res[parent_id].append(trial)
         return res
 
-    def _wait_for_trial(self, experiment, participant):
-        if not self.wait_for_networks:
-            logger.info(
-                "wait_for_networks == False so will proceed with trial construction."
-            )
-            return False
-        else:
-            logger.info(
-                "Investigating whether we need to wait for any networks before beginning the next trial."
-            )
-            num_networks_available_now = len(
-                self.find_networks(participant, experiment)
-            )
-            if num_networks_available_now > 0:
-                logger.info(
-                    "There are %i networks available now, will assign the trial to one of these.",
-                    num_networks_available_now,
-                )
-                return False
-            else:
-                num_networks_available_in_future = len(
-                    self.find_networks(
-                        participant, experiment, ignore_async_processes=True
-                    )
-                )
-                if num_networks_available_in_future > 0:
-                    logger.info(
-                        "There are no networks available now but there should be %i available in the future, will wait.",
-                        num_networks_available_in_future,
-                    )
-                    return True
-                else:
-                    logger.info(
-                        "It doesn't look like there will be any networks available in the future, so we won't wait."
-                    )
-                    return False
-
 
 class TrialNetwork(SQLMixinDallinger, Network):
     """
@@ -2347,8 +2280,20 @@ class TrialNetwork(SQLMixinDallinger, Network):
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
 
-    trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
-    target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
+    trial_maker_id = Column(String)
+    target_num_trials = Column(Integer)
+
+    source = relationship("TrialSource", uselist=False)
+    nodes = relationship("TrialNode")
+    trials = relationship("Trial")
+
+    @property
+    def num_nodes(self):
+        return len(self.active_nodes)
+
+    @property
+    def active_nodes(self):
+        return [node for node in self.nodes if not self.failed]
 
     async_processes = relationship("AsyncProcess")
 
@@ -2378,9 +2323,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
             return get_trial_maker(self.trial_maker_id)
 
     def calculate_full(self):
-        "A more efficient version of Dallinger's built-in calculate_full method."
-        n_nodes = Node.query.filter_by(network_id=self.id, failed=False).count()
-        self.full = n_nodes >= (self.max_size or 0)
+        self.full = len(self.active_nodes) >= (self.max_size or 0)
 
     def add_node(self, node):
         """
@@ -2443,22 +2386,14 @@ class TrialNetwork(SQLMixinDallinger, Network):
         return source.participant
 
     @property
-    def num_nodes(self):
-        return TrialNode.query.filter_by(network_id=self.id, failed=False).count()
-
-    def trials(self, failed=False, complete=True, is_repeat_trial=False):
-        return Trial.query.filter_by(
-            network_id=self.id,
-            failed=failed,
-            complete=complete,
-            is_repeat_trial=is_repeat_trial,
-        ).all()
-
-    @property
     def num_completed_trials(self):
-        return Trial.query.filter_by(
-            network_id=self.id, failed=False, complete=True, is_repeat_trial=False
-        ).count()
+        return len(
+            [
+                t
+                for t in self.trials
+                if (not t.failed and t.complete and not t.is_repeat_trial)
+            ]
+        )
 
     run_async_post_grow_network = False
 
@@ -2541,6 +2476,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     errors = relationship("ErrorRecord")
 
+    trials = relationship("Trial")
+
     # assets = Column(PythonDict)
 
     # @property
@@ -2580,14 +2517,6 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def fail(self, reason=None):
         if not self.failed:
             super().fail(reason=reason)
-
-    def trials(self, failed=False, complete=True, is_repeat_trial=False):
-        return Trial.query.filter_by(
-            node_id=self.id,
-            failed=failed,
-            complete=complete,
-            is_repeat_trial=is_repeat_trial,
-        ).all()
 
 
 class TrialSource(TrialNode):
