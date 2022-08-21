@@ -28,6 +28,7 @@ from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
+from sqlalchemy.orm.attributes import flag_modified
 
 from psynet import __version__
 
@@ -1279,19 +1280,18 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_set_participant_as_aborted(cls, assignment_id):
         participant = cls.get_participant_from_assignment_id(assignment_id)
         participant.aborted = True
-        modules = participant.modules.copy()
         try:
-            current_module_log = modules[participant.current_module]
+            log = participant.modules[participant.current_module]
         except KeyError:
-            current_module_log = {
+            log = {
                 "time_started": [],
                 "time_finished": [],
                 "time_aborted": [],
             }
+            participant.modules[participant.current_module] = log
         time_now = serialise_datetime(datetime.now())
-        current_module_log["time_aborted"] = [time_now]
-        modules[participant.current_module] = current_module_log.copy()
-        participant.modules = modules.copy()
+        log["time_aborted"] = [time_now]
+        flag_modified(participant, "modules")
         db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
