@@ -73,13 +73,7 @@ class StimulusRegistry:
     def create_networks(self):
         for stimulus_set in self.stimuli.values():
             stimulus_set.create_networks(self.experiment)
-        null_network = StaticNetwork(
-            trial_maker_id=None,
-            phase="experiment",
-            participant_group="default",
-            block="default",
-            experiment=self.experiment,
-        )
+        null_network = GenericStimulusNetwork(self.experiment)
         db.session.add(null_network)
         db.session.commit()
 
@@ -1221,6 +1215,17 @@ class StaticNetwork(TrialNetwork):
     @property
     def num_stimuli(self):
         return self.stimulus_query.count()
+
+
+class GenericStimulusNetwork(StaticNetwork):
+    def __init__(self, experiment):
+        super().__init__(
+            trial_maker_id=None,
+            phase="experiment",
+            participant_group="default",
+            block="default",
+            experiment=experiment,
+        )
 
 
 class StimulusSetFromDir(StimulusSet):
