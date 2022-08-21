@@ -31,7 +31,7 @@ from ..field import (
     extra_var,
     register_extra_var,
 )
-from ..page import InfoPage, UnsuccessfulEndPage, wait_while
+from ..page import InfoPage, UnsuccessfulEndPage, WaitPage, wait_while
 from ..participant import Participant
 from ..process import AsyncProcess, WorkerAsyncProcess
 from ..timeline import (
@@ -88,6 +88,10 @@ class HasDefinition:
 
     __extra_vars__ = {}
     register_extra_var(__extra_vars__, "definition", field_type=dict)
+
+
+# Patch the missing foreign_keys argument for the Info.origin relationship
+Info.origin = relationship("Node", foreign_keys=[Info.origin_id])
 
 
 class Trial(SQLMixinDallinger, Info, HasDefinition):
@@ -287,10 +291,14 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     time_credit_after_trial = Column(Float)
     time_credit_from_trial = Column(Float)
 
-    node = relationship("Node")
-    participant = relationship("psynet.participant.Participant")
-    parent_trial = relationship("Trial")
-    response = relationship("Response")
+    node = relationship("TrialNode", foreign_keys=[node_id], back_populates="trials")
+    participant = relationship(
+        "psynet.participant.Participant",
+        foreign_keys=[participant_id],
+        backref="trials",
+    )
+    parent_trial = relationship("Trial", foreign_keys=[parent_trial_id])
+    response = relationship("psynet.timeline.Response")
 
     async_processes = relationship("AsyncProcess")
     awaiting_async_process = column_property(
@@ -717,6 +725,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 trial=self,
                 unique=True,
                 unique_violation_raises_error=False,  # Pass silently if the process has already been started
+                on_finish=self.check_if_can_mark_as_finalized,
             )
 
     def on_finalized(self):
@@ -1705,21 +1714,24 @@ class TrialMaker(Module):
 
     def _wait_for_trial(self):
         def _try_to_prepare_trial(experiment, participant):
-            self._grow_all_networks()
+            self._grow_all_networks(experiment)
             trial = self._prepare_trial(experiment, participant)
             assert isinstance(trial, Trial) or trial in ["wait", "exit"]
             participant.current_trial = trial
-            participant.current_trial_id = trial.id if trial else None
 
         def try_to_prepare_trial():
             return CodeBlock(_try_to_prepare_trial)
 
         return join(
-            try_to_prepare_trial,
+            try_to_prepare_trial(),
             while_loop(
                 "Waiting for trial",
                 lambda participant: participant.current_trial == "wait",
-                logic=try_to_prepare_trial,
+                logic=join(
+                    try_to_prepare_trial(),
+                    WaitPage(wait_time=2.0),
+                ),
+                expected_repetitions=0,
             ),
         )
 
@@ -1978,11 +1990,16 @@ class NetworkTrialMaker(TrialMaker):
         logger.info("Preparing trial for participant %i.", participant.id)
         self._grow_all_networks(experiment)
         networks = self.find_networks(participant=participant, experiment=experiment)
-        logger.info(
-            "Found %i network(s) for participant %i.", len(networks), participant.id
-        )
+
         if networks in ["wait", "exit"]:
+            logger.info("Outcome of find_networks: %s", networks)
             return networks
+
+        logger.info(
+            "Outcome: found %i candidate network(s) for participant %i.",
+            len(networks),
+            participant.id,
+        )
 
         assert len(networks) > 0
 
@@ -1992,7 +2009,10 @@ class NetworkTrialMaker(TrialMaker):
             )
             if node is not None:
                 logger.info(
-                    "Attached node %i to participant %i.", node.id, participant.id
+                    "Selected node %i from network %i to give to participant %i.",
+                    node.id,
+                    node.network.id,
+                    participant.id,
                 )
                 return self._create_trial(
                     node=node, participant=participant, experiment=experiment
@@ -2073,9 +2093,9 @@ class NetworkTrialMaker(TrialMaker):
         db.session.commit()
         return trial
 
-    def _grow_network(self, network, participant, experiment):
+    def _grow_network(self, network, experiment):
         # pylint: disable=no-member
-        grown = self.grow_network(network, participant, experiment)
+        grown = self.grow_network(network, experiment)
         assert isinstance(grown, bool)
         if grown and network.run_async_post_grow_network:
             WorkerAsyncProcess(
@@ -2280,6 +2300,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
         **SQLMixinDallinger.__extra_vars__.copy(),
     }
 
+    def __repr__(self):
+        return ("<Network-{}-{} with {} nodes>").format(
+            self.id, self.type, len(self.nodes)
+        )
+
     trial_maker_id = Column(String)
     target_num_trials = Column(Integer)
     participant_group = Column(String)
@@ -2310,11 +2335,9 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     errors = relationship("ErrorRecord")
 
-    def grow(self, experiment, participant):
+    def grow(self, experiment):
         if self.trial_maker:
-            self.trial_maker._grow_network(
-                self, participant=participant, experiment=experiment
-            )
+            self.trial_maker._grow_network(self, experiment=experiment)
 
     @property
     def trial_maker(self):
@@ -2372,19 +2395,10 @@ class TrialNetwork(SQLMixinDallinger, Network):
         self.assets = {}
 
     @property
-    def source(self):
-        sources = TrialSource.query.filter_by(network_id=self.id, failed=False)
-        if len(sources) == 0:
-            return None
-        if len(sources) > 1:
-            raise RuntimeError(f"Network {self.id} has more than one source!")
-        return sources[0]
-
-    @property
     def participant(self):
         source = self.source
-        assert source is not None
-        return source.participant
+        if source:
+            return source.participant
 
     @property
     def num_completed_trials(self):
@@ -2477,7 +2491,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     errors = relationship("ErrorRecord")
 
-    trials = relationship("Trial")
+    trials = relationship("Trial", foreign_keys=[Trial.node_id])
 
     # assets = Column(PythonDict)
 
@@ -2569,7 +2583,7 @@ class GenericTrialNetwork(TrialNetwork):
             experiment=experiment,
         )
 
-    def grow(self, experiment, participant):
+    def grow(self, experiment):
         pass
 
 

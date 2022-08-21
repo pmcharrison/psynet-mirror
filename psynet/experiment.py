@@ -542,7 +542,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         if len(networks) > 0:
             logger.info("Growing networks...")
             for n in networks:
-                n.grow(experiment=self, participant=None)
+                n.grow(experiment=self)
             db.session.commit()
 
     @classmethod

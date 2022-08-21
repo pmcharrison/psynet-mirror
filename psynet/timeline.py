@@ -15,13 +15,13 @@ import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
-from sqlalchemy import Column, ForeignKey, Integer
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.attributes import flag_modified
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import claim_field
+from .field import PythonObject
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -1615,20 +1615,22 @@ class Response(_Response):
 
     __extra_vars__ = {}
 
-    participant = relationship(
-        "psynet.participant.Participant", backref="all_responses"
-    )
     participant_id = Column(Integer, ForeignKey("participant.id"))
+    participant = relationship(
+        "psynet.participant.Participant",
+        backref="all_responses",
+        foreign_keys=[participant_id],
+    )
 
-    question = claim_field("question", __extra_vars__, str)
-    answer = claim_field("answer", __extra_vars__)
-    page_type = claim_field("page_type", __extra_vars__, str)
-    successful_validation = claim_field("successful_validation", __extra_vars__, bool)
-    client_ip_address = claim_field("client_ip_address", __extra_vars__, str)
+    question = Column(String)
+    answer = Column(PythonObject)
+    page_type = Column(String)
+    successful_validation = Column(Boolean)
+    client_ip_address = Column(String)
 
     # metadata is a protected attribute in SQLAlchemy, hence the underscore
     # and the functional setter/getter.
-    metadata_ = claim_field("metadata", __extra_vars__)
+    metadata_ = Column(PythonObject)
 
     @property
     def metadata(self):

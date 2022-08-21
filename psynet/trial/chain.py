@@ -12,14 +12,7 @@ from sqlalchemy.sql.expression import not_
 from ..field import PythonObject, VarStore, extra_var, register_extra_var
 from ..page import wait_while
 from ..utils import get_logger, negate
-from .main import (
-    HasDefinition,
-    NetworkTrialMaker,
-    Trial,
-    TrialNetwork,
-    TrialNode,
-    TrialSource,
-)
+from .main import HasDefinition, NetworkTrialMaker, Trial, TrialNetwork, TrialNode
 
 logger = get_logger()
 
@@ -302,9 +295,6 @@ class ChainNetwork(TrialNetwork):
             return self.get_node_with_degree(degree)
 
     def get_node_with_degree(self, degree):
-        assert degree >= 0
-        if degree == 0:
-            return self.source
         nodes = [n for n in self.active_nodes if n.degree == degree]
         nodes.sort(key=lambda n: n.id)
 
@@ -554,8 +544,12 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
     parent_id = Column(Integer, ForeignKey("node.id"))
     propagate_failure = Column(Boolean)
 
-    child = relationship("ChainNode", foreign_keys=[child_id])
-    parent = relationship("ChainNode", foreign_keys=[parent_id])
+    child = relationship(
+        "ChainNode", foreign_keys=[child_id], uselist=False, post_update=True
+    )
+    parent = relationship(
+        "ChainNode", foreign_keys=[parent_id], uselist=False, post_update=True
+    )
 
     @property
     def var(self):
@@ -603,7 +597,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         return to_fail
 
 
-class ChainSource(TrialSource, HasSeed):
+class ChainSource(ChainNode, HasSeed):
     """
     Represents a source in a chain network.
     The source provides the seed from which the rest of the chain is ultimately derived.
@@ -659,30 +653,22 @@ class ChainSource(TrialSource, HasSeed):
 
     # pylint: disable=abstract-method
     __extra_vars__ = {
-        **TrialSource.__extra_vars__.copy(),
+        **ChainNode.__extra_vars__.copy(),
         **HasSeed.__extra_vars__.copy(),
     }
 
     ready_to_spawn = True
-    degree = 0
 
     def __init__(self, network, experiment, participant):
-        super().__init__(network, participant)
-        self.seed = self.generate_seed(network, experiment, participant)
-
-    @property
-    @extra_var(__extra_vars__)
-    def degree(self):
-        return 0
-
-    @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.network.phase
-
-    @property
-    def var(self):  # occupies the <details> attribute
-        return VarStore(self)
+        seed = self.generate_seed(network, experiment, participant)
+        super().__init__(
+            seed,
+            degree=0,
+            network=network,
+            experiment=experiment,
+            propagate_failure=False,
+            participant=participant,
+        )
 
     def create_seed(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -713,6 +699,9 @@ class ChainSource(TrialSource, HasSeed):
             The generated seed. It must be suitable for serialisation to JSON.
         """
         raise NotImplementedError
+
+    def create_definition_from_seed(self, seed, experiment, participant):
+        return seed
 
 
 class ChainTrial(Trial):
@@ -1339,10 +1328,13 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if len(networks) > 0 and len(networks_with_head_space) == 0:
             logger.info(
-                "None of these chains have space for new trials right now, but they might do in a little while."
+                "All of these chains have head nodes that have already received their full complement of trials. "
+                "They need to grow before a new participant can join them."
             )
             if self.wait_for_networks:
                 return "wait"
+            else:
+                return "exit"
 
         networks = networks_with_head_space
 

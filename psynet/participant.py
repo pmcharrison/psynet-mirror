@@ -8,15 +8,14 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Column, ForeignKey, Integer, desc, select
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
-from . import field
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonObject, claim_var, extra_var, register_extra_var
+from .field import PythonDict, PythonList, PythonObject, extra_var, register_extra_var
 from .process import AsyncProcess
 from .utils import get_logger, serialise_datetime, unserialise_datetime
 
@@ -154,45 +153,34 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     polymorphic_identity = "PsyNetParticipant"
     __extra_vars__ = {}
 
-    elt_id = field.claim_field("elt_id", __extra_vars__, list)
-    elt_id_max = field.claim_field("elt_id_max", __extra_vars__, list)
-    page_uuid = field.claim_field("page_uuid", __extra_vars__, str)
-    aborted = claim_var(
-        "aborted", __extra_vars__, use_default=True, default=lambda: False
-    )
-    complete = field.claim_field("complete", __extra_vars__, bool)
-    answer = field.claim_field("answer", __extra_vars__, object)
-    answer_accumulators = field.claim_field("answer_accumulators", __extra_vars__, list)
-    branch_log = field.claim_field("branch_log", __extra_vars__)
-
+    elt_id = Column(PythonList)
+    elt_id_max = Column(PythonList)
+    page_uuid = Column(String)
+    aborted = Column(Boolean, default=False)
+    complete = Column(Boolean, default=False)
+    answer = Column(PythonObject)
+    answer_accumulators = Column(PythonList)
+    branch_log = Column(PythonObject)
     for_loops = Column(PythonObject, default=lambda: {})
+    failure_tags = Column(PythonList, default=lambda: [])
+    last_response_id = Column(Integer, ForeignKey("response.id"))
+    base_payment = Column(Float)
+    performance_bonus = Column(Float)
+    unpaid_bonus = Column(Float)
+    modules = Column(PythonDict, default=lambda: {})
+    client_ip_address = Column(String, default=lambda: "")
+    auth_token = Column(String)
+    answer_is_fresh = Column(Boolean, default=False)
+    browser_platform = Column(String, default="")
+    current_trial = Column(PythonObject)
 
-    failure_tags = claim_var(
-        "failure_tags", __extra_vars__, use_default=True, default=lambda: []
-    )
-    last_response_id = claim_var(
-        "last_response_id", __extra_vars__, use_default=True, default=lambda: None
-    )
-    base_payment = claim_var("base_payment", __extra_vars__)
-    performance_bonus = claim_var("performance_bonus", __extra_vars__)
-    unpaid_bonus = claim_var("unpaid_bonus", __extra_vars__)
-    modules = claim_var("modules", __extra_vars__, use_default=True, default=lambda: {})
-    client_ip_address = claim_var(
-        "client_ip_address", __extra_vars__, use_default=True, default=lambda: ""
-    )
-    auth_token = claim_var("auth_token", __extra_vars__)
-    answer_is_fresh = claim_var(
-        "answer_is_fresh", __extra_vars__, use_default=True, default=lambda: False
-    )
-    browser_platform = claim_var(
-        "browser_platform", __extra_vars__, use_default=True, default=lambda: ""
+    last_response = relationship(
+        "psynet.timeline.Response", foreign_keys=[last_response_id]
     )
 
-    all_trials = relationship("psynet.trial.main.Trial")
-
-    current_trial_id = Column(
-        Integer, ForeignKey("info.id")
-    )  # 'info.id' because trials are stored in the info table
+    # current_trial_id = Column(
+    #     Integer, ForeignKey("info.id")
+    # )  # 'info.id' because trials are stored in the info table
 
     # This should work but it's buggy, don't know why.
     # current_trial = relationship(
@@ -202,26 +190,27 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     #
     # Instead we resort to the below...
 
-    @property
-    def current_trial(self):
-        from dallinger.models import Info
-
-        # from .trial.main import Trial
-
-        if self.current_trial_id is None:
-            return None
-        else:
-            # We should just be able to use Trial for the query, but using Info seems
-            # to avoid an annoying SQLAlchemy bug that comes when we run multiple demos
-            # in one session. When this happens, what we see is that Trial.query.all()
-            # sees all trials appropriately, but Trial.query.filter_by(id=1).all() fails.
-            #
-            # return Trial.query.filter_by(id=self.current_trial_id).one()
-            return Info.query.filter_by(id=self.current_trial_id).one()
-
-    @current_trial.setter
-    def current_trial(self, trial):
-        self.current_trial_id = trial.id if trial else None
+    # @property
+    # def current_trial(self):
+    #     from dallinger.models import Info
+    #
+    #     # from .trial.main import Trial
+    #
+    #     if self.current_trial_id is None:
+    #         return None
+    #     else:
+    #         # We should just be able to use Trial for the query, but using Info seems
+    #         # to avoid an annoying SQLAlchemy bug that comes when we run multiple demos
+    #         # in one session. When this happens, what we see is that Trial.query.all()
+    #         # sees all trials appropriately, but Trial.query.filter_by(id=1).all() fails.
+    #         #
+    #         # return Trial.query.filter_by(id=self.current_trial_id).one()
+    #         return Info.query.filter_by(id=self.current_trial_id).one()
+    #
+    # @current_trial.setter
+    # def current_trial(self, trial):
+    #     from psynet.trial.main import Trial
+    #     self.current_trial_id = trial.id if isinstance(trial, Trial) else None
 
     awaiting_async_process = column_property(
         select(AsyncProcess)
@@ -249,24 +238,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         x = SQLMixinDallinger.__json__(self)
         del x["modules"]
         return x
-
-    def trials(self, failed=False, complete=True, is_repeat_trial=False):
-        from .trial.main import Trial
-
-        return Trial.query.filter_by(
-            participant_id=self.id,
-            failed=failed,
-            complete=complete,
-            is_repeat_trial=is_repeat_trial,
-        ).all()
-
-    @property
-    def last_response(self):
-        if self.last_response_id is None:
-            return None
-        from .timeline import Response
-
-        return Response.query.filter_by(id=self.last_response_id).one()
 
     @property
     @extra_var(__extra_vars__)

@@ -10,7 +10,7 @@ from typing import List, Optional, Union
 
 from dallinger import db
 from dallinger.models import Vector
-from sqlalchemy import Column, Integer, String, UniqueConstraint, func
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint, func
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.orm import relationship
 
@@ -485,8 +485,9 @@ class StaticTrial(Trial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = Column(Integer)
-    stimulus = relationship(Stimulus)
+    stimulus_id = Column(Integer, ForeignKey("node.id"))
+    stimulus = relationship("Stimulus", foreign_keys=[stimulus_id])
+
     phase = Column(String)
     participant_group = Column(String)
     block = Column(String)
