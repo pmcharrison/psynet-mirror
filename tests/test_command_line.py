@@ -4,6 +4,8 @@ import pytest
 from click.testing import CliRunner
 from mock import patch
 
+from psynet.pytest_psynet import path_to_demo
+
 
 class TestCommandLine(object):
     @pytest.fixture
@@ -26,7 +28,7 @@ class TestCommandLine(object):
 # the necessary Dallinger commands. I think this is fine, I don't
 # think these tests add much value.
 #
-# @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("static")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # class TestDebug:
 #     # Note:
@@ -85,7 +87,7 @@ class TestCommandLine(object):
 #         )
 #
 #
-# @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("static")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # class TestDeploy:
 #     @pytest.fixture
@@ -134,7 +136,7 @@ class TestCommandLine(object):
 #         )
 #
 #
-# @pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("static")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # class TestSandbox:
 #     @pytest.fixture
@@ -183,7 +185,9 @@ class TestCommandLine(object):
 #         )
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 @pytest.mark.usefixtures("in_experiment_directory")
 class TestEstimate:
     @pytest.fixture
@@ -220,7 +224,9 @@ class TestEstimate:
         pretty_format_seconds.assert_called_once()
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 @pytest.mark.usefixtures("in_experiment_directory")
 class TestExport:
     @pytest.fixture

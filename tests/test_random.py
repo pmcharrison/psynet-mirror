@@ -26,7 +26,7 @@
 #         )
 #
 #
-# @pytest.mark.parametrize("experiment_directory", ["../demos/mcmcp"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 # def test_trial(launched_experiment, participant):
 #     trial = CustomTrial(
 #         launched_experiment,

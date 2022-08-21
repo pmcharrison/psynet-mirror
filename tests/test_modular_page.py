@@ -32,7 +32,7 @@ def test_import_templates():
 # but it has proved tricky to maintain compatibility between the tests and the demo.
 # Long-term we should rewrite these.
 
-# @pytest.mark.parametrize("experiment_directory", ["../demos/singing_iterated"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("singing_iterated")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # def test_visualize_audio_prompt(trial):
 #     prompt = AudioPrompt("test.url", "This is the prompt.", play_window=[1, 10])
@@ -42,7 +42,7 @@ def test_import_templates():
 #     )
 #
 #
-# @pytest.mark.parametrize("experiment_directory", ["../demos/singing_iterated"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("singing_iterated")], indirect=True)
 # @pytest.mark.usefixtures("in_experiment_directory")
 # def test_visualize_trial(trial):
 #     import psynet.media

@@ -4,13 +4,15 @@ import time
 import pytest
 from selenium.webdriver.common.by import By
 
-from psynet.pytest_psynet import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/page_maker"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("page_maker")], indirect=True
+)
 class TestExp:
     def test_exp(self, bot_recruits):
         for participant, bot in enumerate(bot_recruits):

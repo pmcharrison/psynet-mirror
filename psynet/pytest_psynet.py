@@ -5,6 +5,7 @@ import subprocess
 import sys
 import time
 import warnings
+from pathlib import Path
 
 import dallinger.pytest_dallinger
 import pexpect
@@ -430,3 +431,7 @@ def deployment_id():
 #         # wrapper = textwrap.TextWrapper(initial_indent=4, subsequent_indent=4)
 #         # print(wrapper.fill(str(process.before)))
 #         raise
+
+
+def path_to_demo(demo):
+    return Path(__file__).parent.parent.joinpath("demos").joinpath(demo).__str__()

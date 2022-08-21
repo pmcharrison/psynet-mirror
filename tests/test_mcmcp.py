@@ -1,5 +1,6 @@
 import pytest
 
+from psynet.pytest_psynet import path_to_demo
 from psynet.trial.main import TrialNetwork
 
 
@@ -47,7 +48,7 @@ def summarize_trials(trial_class, experiment_object, node, participant, answers)
 
 
 @pytest.mark.usefixtures("in_experiment_directory")
-@pytest.mark.parametrize("experiment_directory", ["../demos/mcmcp"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 def test_summarize(experiment_module, experiment_object, participant):
     node = make_mcmcp_node(experiment_module.CustomNode, experiment_object)
 

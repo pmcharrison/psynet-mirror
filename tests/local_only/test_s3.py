@@ -5,6 +5,7 @@ import uuid
 import pytest
 
 from psynet.asset import ExperimentAsset, S3Storage
+from psynet.pytest_psynet import path_to_demo
 
 
 @pytest.fixture
@@ -71,7 +72,7 @@ def test_list_files_nonexistent_bucket():
     assert storage.list_files_with_prefix("", use_cache=False) == []
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 def test_s3_asset_file(s3_storage, text_file_1):
     asset = ExperimentAsset(
@@ -89,7 +90,7 @@ def test_s3_asset_file(s3_storage, text_file_1):
             assert reader.read() == "Hello!"
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 def test_s3_asset_folder(s3_storage, text_folder):
     asset = ExperimentAsset(

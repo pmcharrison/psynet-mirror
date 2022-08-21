@@ -6,7 +6,7 @@ import pytest
 from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant
-from psynet.pytest_psynet import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 from psynet.trial.static import StaticNetwork, StaticTrial, Stimulus
 
 logger = logging.getLogger(__file__)
@@ -14,7 +14,9 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self, bot_recruits, db_session, trial_maker):

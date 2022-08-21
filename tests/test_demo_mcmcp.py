@@ -4,7 +4,7 @@ import time
 import pytest
 
 from psynet.participant import Participant
-from psynet.pytest_psynet import bot_class, next_page
+from psynet.pytest_psynet import bot_class, next_page, path_to_demo
 from psynet.trial.mcmcp import MCMCPNetwork
 
 logger = logging.getLogger(__file__)
@@ -12,7 +12,7 @@ PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/mcmcp"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self, bot_recruits, db_session):

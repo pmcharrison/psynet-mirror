@@ -3,11 +3,14 @@ from dallinger import db
 
 import psynet.field  # noqa
 from psynet.experiment import import_local_experiment
+from psynet.pytest_psynet import path_to_demo
 from psynet.serialize import serialize, unserialize
 from psynet.trial.static import StaticTrial, Stimulus
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class Test:
     def test_psynet_method(self):

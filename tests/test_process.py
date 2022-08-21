@@ -6,6 +6,7 @@ from dallinger import db
 
 import psynet.experiment  # noqa -- to ensure that all SQLAlchemy classes are registered
 from psynet.process import LocalAsyncProcess
+from psynet.pytest_psynet import path_to_demo
 
 
 def sleep_for_1s():
@@ -16,7 +17,9 @@ def failing_function():
     assert False, "This is an intentional error thrown for testing purposes."
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses:
     def test_process_that_fails(self):
@@ -35,7 +38,9 @@ class TestProcesses:
         assert participant.awaiting_async_process
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/static"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("static")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestProcesses2:
     def test_awaiting_async_process_trial(self, trial, node, network, participant):

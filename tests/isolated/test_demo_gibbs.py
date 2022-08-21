@@ -7,14 +7,14 @@ from selenium.webdriver.common.by import By
 from psynet.field import UndefinedVariableError
 from psynet.participant import Participant
 from psynet.process import AsyncProcess
-from psynet.pytest_psynet import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.parametrize("experiment_directory", ["../../demos/gibbs"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(self, bot_recruits, db_session):
@@ -64,7 +64,7 @@ class TestExp:
             assert pt.var.test_variable == 123
 
             trials = pt.trials
-            assert len(trials) == 4
+            assert len(trials) == 7  # .trials now includes repeat trials
 
             with pytest.raises(UndefinedVariableError):
                 pt.var.get("uninitialized_variable")

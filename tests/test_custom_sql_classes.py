@@ -3,7 +3,7 @@
 # from psynet.utils import get_custom_sql_classes
 #
 #
-# @pytest.mark.parametrize("experiment_directory", ["../demos/mcmcp"], indirect=True)
+# @pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 # def test_custom_sql_classes():
 #     classes = get_custom_sql_classes()
 #

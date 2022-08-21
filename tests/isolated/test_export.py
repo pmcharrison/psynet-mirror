@@ -10,7 +10,7 @@ import pytest
 from psynet.bot import Bot
 from psynet.command_line import export_, populate_db_from_zip_file
 from psynet.participant import Participant
-from psynet.pytest_psynet import bot_class
+from psynet.pytest_psynet import bot_class, path_to_demo
 from psynet.timeline import Response
 from psynet.trial.main import Trial
 
@@ -40,7 +40,7 @@ def coin_class(experiment_module):
     return experiment_module.Coin
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_exp(

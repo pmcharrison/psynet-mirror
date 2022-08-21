@@ -1,9 +1,10 @@
 import pytest
 
+from psynet.pytest_psynet import path_to_demo
 from psynet.redis import RedisVarStore
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/mcmcp"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("mcmcp")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp:
     def test_redis(self, active_config):

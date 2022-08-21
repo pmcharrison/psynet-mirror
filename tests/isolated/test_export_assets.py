@@ -9,7 +9,7 @@ from dallinger import db
 
 from psynet.asset import Asset, ExperimentAsset, ExternalAsset, FastFunctionAsset
 from psynet.bot import Bot
-from psynet.pytest_psynet import bot_class
+from psynet.pytest_psynet import bot_class, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
@@ -46,7 +46,7 @@ def generate_text_file(path):
 
 
 # @pytest.mark.usefixtures("db_session")  # Assuming we don't need this
-@pytest.mark.parametrize("experiment_directory", ["../demos/gibbs"], indirect=True)
+@pytest.mark.parametrize("experiment_directory", [path_to_demo("gibbs")], indirect=True)
 @pytest.mark.usefixtures("launched_experiment")
 class TestAssetExport:
     def test_exp(

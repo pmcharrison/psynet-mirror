@@ -6,14 +6,16 @@ import pytest
 from selenium.webdriver.common.by import By
 
 from psynet.participant import Participant, get_participant
-from psynet.pytest_psynet import assert_text, bot_class, next_page
+from psynet.pytest_psynet import assert_text, bot_class, next_page, path_to_demo
 
 logger = logging.getLogger(__file__)
 PYTEST_BOT_CLASS = bot_class()
 EXPERIMENT = None
 
 
-@pytest.mark.parametrize("experiment_directory", ["../demos/timeline"], indirect=True)
+@pytest.mark.parametrize(
+    "experiment_directory", [path_to_demo("timeline")], indirect=True
+)
 @pytest.mark.usefixtures("launched_experiment")
 class TestExp(object):
     def test_variables(self, db_session):
