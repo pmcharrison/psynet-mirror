@@ -214,6 +214,11 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
 
     exp_config = {"threads": str(threads)}
 
+    if archive:
+        raise ValueError(
+            "Legacy debug mode doesn't currently support loading from archive"
+        )
+
     db.session.commit()
 
     try:
@@ -224,7 +229,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
             proxy=proxy,
             no_browsers=no_browsers,
             exp_config=exp_config,
-            archive=archive,
+            # archive=archive,  # Not currently supported by Dallinger
         )
     finally:
         db.session.commit()
