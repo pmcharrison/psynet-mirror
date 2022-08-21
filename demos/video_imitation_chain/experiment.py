@@ -126,7 +126,7 @@ class CustomNode(CameraImitationChainNode):
             get_asset("5s_silence.wav").export(output_file)
             return output_file
         else:
-            input_recording = self.parent.trials()[0].assets["webcam_recording"]
+            input_recording = self.parent.trials[0].assets["webcam_recording"]
             input_recording.export(output_file)
 
 
