@@ -137,7 +137,6 @@ class ChainNetwork(TrialNetwork):
     participant_id = Column(Integer)
     id_within_participant = Column(Integer)
 
-    participant_group = Column(String)
     chain_type = Column(String)
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)

@@ -2282,6 +2282,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     trial_maker_id = Column(String)
     target_num_trials = Column(Integer)
+    participant_group = Column(String)
 
     source = relationship("TrialSource", uselist=False)
     nodes = relationship("TrialNode")

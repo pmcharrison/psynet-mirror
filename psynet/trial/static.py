@@ -1167,7 +1167,6 @@ class StaticNetwork(TrialNetwork):
 
     __extra_vars__ = TrialNetwork.__extra_vars__.copy()
 
-    participant_group = Column(String)
     block = Column(String)
 
     def __init__(
