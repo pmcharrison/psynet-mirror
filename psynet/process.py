@@ -26,7 +26,6 @@ class AsyncProcess(SQLBase, SQLMixin):
 
     label = Column(String)
     function = Column(PythonObject)
-    on_finish = Column(PythonObject)
     arguments = Column(PythonDict)
     pending = Column(Boolean)
     finished = Column(Boolean, default=False)
@@ -74,7 +73,6 @@ class AsyncProcess(SQLBase, SQLMixin):
         label=None,
         unique=False,
         unique_violation_raises_error=False,
-        on_finish=None,
     ):
         db.session.commit()
 
@@ -94,7 +92,6 @@ class AsyncProcess(SQLBase, SQLMixin):
 
         self.label = label
         self.function = function
-        self.on_finish = on_finish
         self.arguments = arguments
 
         self.asset = asset
@@ -243,8 +240,11 @@ class AsyncProcess(SQLBase, SQLMixin):
             process.pending = False
             process.finished = True
 
-            if process.on_finish:
-                process.on_finish()
+            from psynet.trial.main import Trial
+
+            if "self" in arguments and isinstance(arguments["self"], Trial):
+                arguments["self"].check_if_can_mark_as_finalized()
+
         except Exception as err:
             if not isinstance(err, experiment.HandledError):
                 experiment.handle_error(err, process=process)
@@ -354,7 +354,6 @@ class WorkerAsyncProcess(AsyncProcess):
         label=None,
         unique=False,
         unique_violation_raises_error=False,
-        on_finish=None,
         timeout=None,  # <-- new argument for this class
     ):
         self.timeout = timeout
@@ -374,7 +373,6 @@ class WorkerAsyncProcess(AsyncProcess):
             label=label,
             unique=unique,
             unique_violation_raises_error=unique_violation_raises_error,
-            on_finish=on_finish,
         )
 
     def launch(self):

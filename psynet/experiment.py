@@ -1238,7 +1238,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         network = TrialNetwork.query.filter_by(id=network_id).one()
         trial_maker = exp.timeline.get_trial_maker(network.trial_maker_id)
-        trial_maker._grow_network(network, participant=None, experiment=exp)
+        trial_maker._grow_network(network, experiment=exp)
         db.session.commit()
         return success_response()
 

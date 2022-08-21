@@ -16,12 +16,14 @@ from sqlalchemy.orm import relationship
 
 import psynet.experiment
 from psynet.asset import DebugStorage, ExperimentAsset
+from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.data import SQLBase, SQLMixin, register_table
 from psynet.demography.general import ExperimentFeedback
 from psynet.modular_page import ModularPage, PushButtonControl, SliderControl
 from psynet.page import InfoPage, Prompt, SuccessfulEndPage
 from psynet.participant import Participant
+from psynet.process import AsyncProcess
 from psynet.timeline import CodeBlock, Timeline
 from psynet.trial.gibbs import (
     GibbsNetwork,
@@ -281,3 +283,13 @@ class Exp(psynet.experiment.Experiment):
     )
 
     test_num_bots = 4
+
+    def test_check_bots(self, bots: List[Bot]):
+        time.sleep(2.0)
+        for b in bots:
+            assert all([t.finalized for t in b.trials])
+
+        processes = AsyncProcess.query.all()
+        assert all([not p.failed for p in processes])
+
+        super().test_check_bots(bots)

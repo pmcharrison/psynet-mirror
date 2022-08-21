@@ -725,7 +725,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
                 trial=self,
                 unique=True,
                 unique_violation_raises_error=False,  # Pass silently if the process has already been started
-                on_finish=self.check_if_can_mark_as_finalized,
             )
 
     def on_finalized(self):
@@ -733,7 +732,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             from psynet.experiment import get_experiment
 
             experiment = get_experiment()
-            self.trial_maker._grow_network(self.network, self.participant, experiment)
+            self.trial_maker._grow_network(self.network, experiment)
 
     @classmethod
     def cue(cls, definition, assets=None):
