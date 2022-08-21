@@ -11,6 +11,7 @@ from dallinger.notifications import admin_notifier
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
+from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
@@ -279,23 +280,20 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return None if not self.started_modules else self.started_modules[-1]
 
     def start_module(self, label):
-        modules = self.modules.copy()
         try:
-            log = modules[label]
+            log = self.modules[label]
         except KeyError:
             log = {"time_started": [], "time_finished": []}
+            self.modules[label] = log
         time_now = serialise_datetime(datetime.datetime.now())
         log["time_started"] = log["time_started"] + [time_now]
-        modules[label] = log.copy()
-        self.modules = modules.copy()
+        flag_modified(self, "modules")
 
     def end_module(self, label):
-        modules = self.modules.copy()
-        log = modules[label]
+        log = self.modules[label]
         time_now = serialise_datetime(datetime.datetime.now())
         log["time_finished"] = log["time_finished"] + [time_now]
-        modules[label] = log.copy()
-        self.modules = modules.copy()
+        flag_modified(self, "modules")
 
     def set_answer(self, value):
         self.answer = value
