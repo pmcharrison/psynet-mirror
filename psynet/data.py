@@ -502,12 +502,26 @@ def drop_all_db_tables(bind=db.engine):
 
     con = engine.connect()
     trans = con.begin()
-    inspector = sqlalchemy.inspect(engine)
+
+    all_fkeys, tables = list_fkeys()
+
+    for fkey in all_fkeys:
+        con.execute(DropConstraint(fkey))
+
+    for table in tables:
+        con.execute(DropTable(table))
+
+    trans.commit()
+
+
+def list_fkeys():
+    inspector = sqlalchemy.inspect(db.engine)
 
     # We need to re-create a minimal metadata with only the required things to
     # successfully emit drop constraints and tables commands for postgres (based
     # on the actual schema of the running instance)
     meta = MetaData()
+
     tables = []
     all_fkeys = []
 
@@ -523,16 +537,32 @@ def drop_all_db_tables(bind=db.engine):
         tables.append(Table(table_name, meta, *fkeys))
         all_fkeys.extend(fkeys)
 
-    for fkey in all_fkeys:
-        con.execute(DropConstraint(fkey))
-
-    for table in tables:
-        con.execute(DropTable(table))
-
-    trans.commit()
+    return all_fkeys, tables
 
 
 dallinger.db.Base.metadata.drop_all = drop_all_db_tables
+
+
+# This would have been useful for importing data, however in practice
+# it caused the import process to hang.
+#
+# @contextlib.contextmanager
+# def disable_foreign_key_constraints():
+#     db.session.commit()
+#     con = db.engine.connect()
+#     trans = con.begin()
+#
+#     all_fkeys, tables = list_fkeys()
+#
+#     for fkey in all_fkeys:
+#         con.execute(DropConstraint(fkey))
+#
+#     yield
+#
+#     for fkey in all_fkeys:
+#         con.execute(AddConstraint(fkey))
+#
+#     trans.commit()
 
 
 def _sql_dallinger_base_classes():
@@ -670,9 +700,12 @@ def ingest_to_model(
         inspector = sqlalchemy.inspect(db.engine)
         reader = csv.reader(file)
         columns = tuple('"{}"'.format(n) for n in next(reader))
+
+        # with disable_foreign_key_constraints():
         postgres_copy.copy_from(
             file, model, engine, columns=columns, format="csv", HEADER=False
         )
+
         column_names = [x["name"] for x in inspector.get_columns(model.__table__)]
         if "id" in column_names:
             fix_autoincrement(engine, model.__table__.name)

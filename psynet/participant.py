@@ -8,7 +8,7 @@ import dallinger.models
 from dallinger import db
 from dallinger.config import get_config
 from dallinger.notifications import admin_notifier
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, desc, select
+from sqlalchemy import Boolean, Column, Float, Integer, String, desc, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.attributes import flag_modified
@@ -164,7 +164,11 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     branch_log = Column(PythonObject)
     for_loops = Column(PythonObject, default=lambda: {})
     failure_tags = Column(PythonList, default=lambda: [])
-    last_response_id = Column(Integer, ForeignKey("response.id"))
+
+    # Ideally we wold make this a foreign key but this creates a circular dependency
+    # when importing CSVs
+    last_response_id = Column(Integer)
+
     base_payment = Column(Float)
     performance_bonus = Column(Float)
     unpaid_bonus = Column(Float)
@@ -175,9 +179,18 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     browser_platform = Column(String, default="")
     current_trial = Column(PythonObject)
 
-    last_response = relationship(
-        "psynet.timeline.Response", foreign_keys=[last_response_id]
-    )
+    @property
+    def last_response(self):
+        from psynet.timeline import Response
+
+        return Response.query.filter_by(id=self.last_response_id)
+
+    # This would be better, but we end up with a circular import problem
+    # if we try and read csv files using this foreign key...
+    #
+    # last_response = relationship(
+    #     "psynet.timeline.Response", foreign_keys=[last_response_id]
+    # )
 
     # current_trial_id = Column(
     #     Integer, ForeignKey("info.id")
