@@ -1,5 +1,6 @@
 import pytest
-from dallinger.models import Network
+
+from psynet.trial.main import TrialNetwork
 
 
 def make_mcmcp_node(cls, experiment):
@@ -7,7 +8,16 @@ def make_mcmcp_node(cls, experiment):
     return cls(
         seed=seed,
         degree=1,
-        network=Network(),
+        network=TrialNetwork("mcmcp", "experiment", experiment),
+        # network=MCMCPNetwork(
+        #     "mcmcp",
+        #     MCMCPSource,
+        #     "experiment",
+        #     experiment,
+        #     chain_type="within",
+        #     trials_per_node=1,
+        #     target_num_nodes=5,
+        # ),
         experiment=experiment,
         propagate_failure=False,
         participant=None,
