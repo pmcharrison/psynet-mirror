@@ -71,7 +71,7 @@ class Exp(psynet.experiment.Experiment):
         stimulus_set,
         for_loop(
             "Deliver 5 random samples from the stimulus set",
-            random.sample(stimulus_set.keys(), 5),
+            lambda: random.sample(stimulus_set.keys(), 5),
             lambda key, stimuli: RateTrial.cue(stimuli["rating_stimuli"][key]),
             time_estimate_per_iteration=RateTrial.time_estimate,
         ),

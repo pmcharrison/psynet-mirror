@@ -45,7 +45,7 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         for_loop(
             "Deliver 5 trials with randomly sampled parameters",
-            [
+            lambda: [
                 {
                     "frequency_gradient": random.uniform(-100, 100),
                     "start_frequency": random.uniform(-100, 100),

@@ -54,7 +54,7 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         for_loop(
             "Randomly sample three words from the word list",
-            random.sample(WORDS, 3),
+            lambda: random.sample(WORDS, 3),
             lambda word: RateTrial.cue(
                 {
                     "word": word,
