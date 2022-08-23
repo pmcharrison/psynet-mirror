@@ -1021,62 +1021,62 @@ class AdjectivePipeline(ImitationChainTrialMaker):
             ),
         )
 
-    # def experiment_setup_routine(self, experiment):
-    #     n_stimuli = len(self.targets)
-    #     # For each stimuli we only do the minimum number of iterations
-    #     # and pay participants for watching the stimulus + giving one rating or new tag
-    #
-    #     min_payment_trial_maker = self.seconds_to_dollars(
-    #         n_stimuli
-    #         * self.min_iterations
-    #         * (
-    #             self.base_time_estimate
-    #             + max(self.new_tag_time_estimate, self.tag_rating_time_estimate)
-    #         ),
-    #         experiment.var.wage_per_hour,
-    #     )
-    #
-    #     # For each stimulus we do the MAXIMUM number of iterations
-    #     # and pay participants for watching the stimulus
-    #     # participants give the maximum number of tags
-    #     # participants give the maximum number of ratings
-    #     # assume payment of a bonus (upvote or new word) after every trial
-    #     max_payment_trial_maker = (
-    #         n_stimuli
-    #         * self.max_iterations
-    #         * (
-    #             self.seconds_to_dollars(
-    #                 self.base_time_estimate
-    #                 + self.max_new_tags * self.new_tag_time_estimate
-    #                 + self.max_rating * self.tag_rating_time_estimate,
-    #                 experiment.var.wage_per_hour,
-    #             )
-    #             + max(
-    #                 [
-    #                     self.new_word_bonus if self.new_word_bonus is not None else 0,
-    #                     self.upvote_bonus if self.upvote_bonus is not None else 0,
-    #                 ]
-    #             )
-    #         )
-    #     )
-    #
-    #     logger.info(
-    #         f"Setting the response timeout for trialmaker {self.id} to {(self.response_timeout_sec / 60):.2f} minutes"
-    #     )
-    #
-    #     if self.allow_revisiting_networks_in_across_chains:
-    #         logger.warning(
-    #             """
-    #         You set `allow_revisiting` to True. This should only be used for debugging. NEVER USE THIS WHEN DEPLOYING!
-    #         """
-    #         )
-    #
-    #     logger.info(
-    #         f"""
-    #                 In the best case scenario we pay {min_payment_trial_maker:.2f}$ to annotate {n_stimuli} stimuli in
-    #                 trialmaker {self.id}. In the worst case we pay {max_payment_trial_maker:.2f}$.
-    #                 """
-    #     )
+    def experiment_setup_routine(self, experiment):
+        n_stimuli = len(self.targets)
+        # For each stimuli we only do the minimum number of iterations
+        # and pay participants for watching the stimulus + giving one rating or new tag
+
+        min_payment_trial_maker = self.seconds_to_dollars(
+            n_stimuli
+            * self.min_iterations
+            * (
+                self.base_time_estimate
+                + max(self.new_tag_time_estimate, self.tag_rating_time_estimate)
+            ),
+            experiment.var.wage_per_hour,
+        )
+
+        # For each stimulus we do the MAXIMUM number of iterations
+        # and pay participants for watching the stimulus
+        # participants give the maximum number of tags
+        # participants give the maximum number of ratings
+        # assume payment of a bonus (upvote or new word) after every trial
+        max_payment_trial_maker = (
+            n_stimuli
+            * self.max_iterations
+            * (
+                self.seconds_to_dollars(
+                    self.base_time_estimate
+                    + self.max_new_tags * self.new_tag_time_estimate
+                    + self.max_rating * self.tag_rating_time_estimate,
+                    experiment.var.wage_per_hour,
+                )
+                + max(
+                    [
+                        self.new_word_bonus if self.new_word_bonus is not None else 0,
+                        self.upvote_bonus if self.upvote_bonus is not None else 0,
+                    ]
+                )
+            )
+        )
+
+        logger.info(
+            f"Setting the response timeout for trialmaker {self.id} to {(self.response_timeout_sec / 60):.2f} minutes"
+        )
+
+        if self.allow_revisiting_networks_in_across_chains:
+            logger.warning(
+                """
+            You set `allow_revisiting` to True. This should only be used for debugging. NEVER USE THIS WHEN DEPLOYING!
+            """
+            )
+
+        logger.info(
+            f"""
+                    In the best case scenario we pay {min_payment_trial_maker:.2f}$ to annotate {n_stimuli} stimuli in
+                    trialmaker {self.id}. In the worst case we pay {max_payment_trial_maker:.2f}$.
+                    """
+        )
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
