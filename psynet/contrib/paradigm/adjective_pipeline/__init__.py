@@ -468,7 +468,7 @@ class AdjectiveTrial(ImitationChainTrial):
                                 <div class="alert alert-primary" role="alert">
                                 Type in tags describing the {stimulus_type}. You can either select tags from a dropdown
                                  list or create entirely new ones. Submit your response for a new tag by pressing the
-                                enter key. <strong>You can add more than one tag.</strong>
+                                <kbd>enter</kbd> key. <strong>You can add more than one tag.</strong>
                                 </div>
                                 """
                 )
@@ -484,8 +484,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 <div class="alert alert-primary" role="alert">
                 Type in words describing the {stimulus_type}, that are missing above. You can either select tags
                 from a dropdown list or create entirely new ones. Submit your response for a new tag by pressing the
-                 enter key.
-                <strong>You can add more than one tag.</strong>
+                <kbd>enter</kbd> key. <strong>You can add more than one tag.</strong>
                 </div>
                 """
                 )
