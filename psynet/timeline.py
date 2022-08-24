@@ -2415,6 +2415,12 @@ def for_loop(
             )
         state = {"lst": lst, "index": 0}
         # participant.for_loops.append(state)
+        if label in participant.for_loops:
+            raise ValueError(
+                f"Duplicated for_loop label detected: {label}. "
+                "This suggests that you have tried to nest two for loops with the same label, "
+                "which is not permitted. Please disambiguate the labels."
+            )
         participant.for_loops[label] = state
         flag_modified(participant, "for_loops")
 
