@@ -24,6 +24,8 @@ class ErrorRecord(SQLBase, SQLMixin):
         "psynet.participant.Participant", back_populates="errors"
     )
 
+    worker_id = Column(String)
+
     network_id = Column(Integer, ForeignKey("network.id"))
     network = relationship("TrialNetwork", back_populates="errors")
 
@@ -47,3 +49,6 @@ class ErrorRecord(SQLBase, SQLMixin):
 
     def __init__(self, error, **kwargs):
         super().__init__(message=str(error), kind=type(error).__name__, **kwargs)
+
+        if self.participant:
+            self.worker_id = self.participant.worker_id
