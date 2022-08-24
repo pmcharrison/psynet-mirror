@@ -38,7 +38,7 @@ class Language(Module):
             MotherTongue(),
             MoreThanOneLanguage(),
             conditional(
-                "more_than_one_language",
+                "Does the participant speak more than one language?",
                 lambda experiment, participant: participant.answer == "yes",
                 LanguagesInOrderOfProficiency(),
             ),
