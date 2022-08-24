@@ -28,6 +28,7 @@ from .utils import (
     check_function_args,
     dict_to_js_vars,
     format_datetime_string,
+    get_args,
     get_logger,
     merge_dicts,
     serialise,
@@ -2386,7 +2387,17 @@ def get_trial_maker(trial_maker_id):
 FOR_LOOP_STACK_DEPTH = -1
 
 
-def for_loop(label, lst, logic, time_estimate_per_iteration):
+def for_loop(label, lst, logic, time_estimate_per_iteration, expected_repetitions=None):
+    assert callable(lst)
+
+    def estimate_num_repetitions(lst):
+        if len(get_args(lst)) > 0:
+            raise ValueError(
+                "If lst takes arguments then expected_repetitions cannot be inferred automatically "
+                "and must be provided explicitly."
+            )
+        return len(lst())
+
     def setup(experiment, participant):
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
@@ -2454,7 +2465,9 @@ def for_loop(label, lst, logic, time_estimate_per_iteration):
                 PageMaker(content, time_estimate_per_iteration),
                 CodeBlock(increment_counter),
             ),
-            expected_repetitions=len(lst),
+            expected_repetitions=expected_repetitions
+            if expected_repetitions
+            else estimate_num_repetitions(lst),
             fix_time_credit=False,
         ),
         CodeBlock(wrapup),
@@ -2467,7 +2480,7 @@ def randomize(label, logic):
     total_time = sum(elt.time_estimate for elt in logic)
     return for_loop(
         label,
-        lst=random.sample(range(n), n),
+        lst=lambda: random.sample(range(n), n),
         logic=lambda i: logic[i],
         time_estimate_per_iteration=total_time / n,
     )
