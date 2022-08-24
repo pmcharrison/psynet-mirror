@@ -2387,25 +2387,27 @@ def get_trial_maker(trial_maker_id):
 FOR_LOOP_STACK_DEPTH = -1
 
 
-def for_loop(label, lst, logic, time_estimate_per_iteration, expected_repetitions=None):
-    assert callable(lst)
+def for_loop(
+    label, iterate_over, logic, time_estimate_per_iteration, expected_repetitions=None
+):
+    assert callable(iterate_over)
 
-    def estimate_num_repetitions(lst):
-        if len(get_args(lst)) > 0:
+    def estimate_num_repetitions(iterate_over):
+        if len(get_args(iterate_over)) > 0:
             raise ValueError(
-                "If lst takes arguments then expected_repetitions cannot be inferred automatically "
+                "If iterate_over takes arguments then expected_repetitions cannot be inferred automatically "
                 "and must be provided explicitly."
             )
-        return len(lst())
+        return len(iterate_over())
 
     def setup(experiment, participant):
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-        nonlocal lst
+        nonlocal iterate_over
         nonlocal label
-        if callable(lst):
+        if callable(iterate_over):
             lst = call_function(
-                lst,
+                iterate_over,
                 experiment=experiment,
                 participant=participant,
                 assets=experiment.assets,
@@ -2467,7 +2469,7 @@ def for_loop(label, lst, logic, time_estimate_per_iteration, expected_repetition
             ),
             expected_repetitions=expected_repetitions
             if expected_repetitions
-            else estimate_num_repetitions(lst),
+            else estimate_num_repetitions(iterate_over),
             fix_time_credit=False,
         ),
         CodeBlock(wrapup),
