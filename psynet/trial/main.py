@@ -15,11 +15,12 @@ from dallinger.models import Info, Network, Node
 from dominate import tags
 from flask import Markup
 from rq import Queue
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.sql.expression import cast
+from sqlalchemy.orm import column_property
+from sqlalchemy.sql.expression import cast, select
 
 from ..data import SQLMixinDallinger
 from ..field import (
@@ -2148,6 +2149,17 @@ class NetworkTrialMaker(TrialMaker):
                     return False
 
 
+class TrialNode(SQLMixinDallinger, dallinger.models.Node, AsyncProcessOwner):
+    __extra_vars__ = {
+        **SQLMixinDallinger.__extra_vars__.copy(),
+        **AsyncProcessOwner.__extra_vars__.copy(),
+    }
+
+    def __init__(self, network, participant=None):
+        super().__init__(network=network, participant=participant)
+        AsyncProcessOwner.__init__(self)
+
+
 class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
     """
     A network class to be used by :class:`~psynet.trial.main.NetworkTrialMaker`.
@@ -2220,6 +2232,34 @@ class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
 
     trial_maker_id = claim_field("trial_maker_id", __extra_vars__, str)
     target_num_trials = claim_field("target_num_trials", __extra_vars__, int)
+
+    register_extra_var(__extra_vars__, "n_active_nodes")
+    n_active_nodes = column_property(
+        select(func.count(TrialNode.id))
+        .where(TrialNode.network_id == Network.id)
+        .where(~TrialNode.failed)
+    )
+
+    register_extra_var(__extra_vars__, "n_failed_nodes")
+    n_failed_nodes = column_property(
+        select(func.count(TrialNode.id))
+        .where(TrialNode.network_id == Network.id)
+        .where(TrialNode.failed)
+    )
+
+    register_extra_var(__extra_vars__, "n_active_trials")
+    n_active_trials = column_property(
+        select(func.count(Trial.id))
+        .where(Trial.network_id == Network.id)
+        .where(~Trial.failed)
+    )
+
+    register_extra_var(__extra_vars__, "n_failed_trials")
+    n_failed_trials = column_property(
+        select(func.count(Trial.id))
+        .where(Trial.network_id == Network.id)
+        .where(Trial.failed)
+    )
 
     def calculate_full(self):
         "A more efficient version of Dallinger's built-in calculate_full method."
@@ -2314,47 +2354,8 @@ class TrialNetwork(SQLMixinDallinger, Network, AsyncProcessOwner):
 
     @property
     @extra_var(__extra_vars__)
-    def n_active_nodes(self):
-        return len([node for node in self.all_nodes if not node.failed])
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_failed_nodes(self):
-        return len([node for node in self.all_nodes if node.failed])
-
-    @property
-    @extra_var(__extra_vars__)
     def n_trials(self):
         return len([info for info in self.all_infos if isinstance(info, Trial)])
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_active_trials(self):
-        return len(
-            [
-                info
-                for info in self.all_infos
-                if isinstance(info, Trial) and not info.failed
-            ]
-        )
-
-    @property
-    @extra_var(__extra_vars__)
-    def n_failed_trials(self):
-        return len(
-            [info for info in self.all_infos if isinstance(info, Trial) and info.failed]
-        )
-
-
-class TrialNode(SQLMixinDallinger, dallinger.models.Node, AsyncProcessOwner):
-    __extra_vars__ = {
-        **SQLMixinDallinger.__extra_vars__.copy(),
-        **AsyncProcessOwner.__extra_vars__.copy(),
-    }
-
-    def __init__(self, network, participant=None):
-        super().__init__(network=network, participant=participant)
-        AsyncProcessOwner.__init__(self)
 
 
 class TrialSource(TrialNode):

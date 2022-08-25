@@ -753,6 +753,12 @@ class Experiment(dallinger.experiment.Experiment):
                 "/static/scripts/dashboard_timeline.js",
             ),
             (
+                resource_filename(
+                    "psynet", "resources/scripts/psynet-network-monitor.js"
+                ),
+                "/static/scripts/psynet-network-monitor.js",
+            ),
+            (
                 resource_filename("psynet", "resources/css/consent.css"),
                 "/static/css/consent.css",
             ),
@@ -813,6 +819,128 @@ class Experiment(dallinger.experiment.Experiment):
         config.register("lucid_sha1_hashing_key", unicode)
         config.register("lucid_recruitment_config", unicode)
         # config.register("keep_old_chrome_windows_in_debug_mode", bool)
+
+    # TODO define a custom route to dynamically load the defintions
+
+    def get_network_structure(self):
+        from dallinger.models import Node, Vector
+
+        from psynet.participant import Participant
+        from psynet.trial.main import Trial, TrialNetwork
+
+        jnetworks = [
+            {
+                "id": n.id,
+                "failed": n.failed,
+                "role": n.role,
+                "trial_maker_id": n.trial_maker_id,
+                "n_active_nodes": n.n_active_nodes,
+                "n_failed_nodes": n.n_failed_nodes,
+                "n_active_trials": n.n_active_trials,
+                "n_failed_trials": n.n_failed_trials,
+            }
+            for n in TrialNetwork.query.with_entities(
+                TrialNetwork.id,
+                TrialNetwork.failed,
+                TrialNetwork.role,
+                TrialNetwork.trial_maker_id,
+                TrialNetwork.n_active_nodes,
+                TrialNetwork.n_failed_nodes,
+                TrialNetwork.n_active_trials,
+                TrialNetwork.n_failed_trials,
+            ).all()
+        ]
+
+        jnodes = [
+            {
+                "id": n.id,
+                "failed": n.failed,
+                "type": n.type,
+                "participant_id": n.participant_id,
+                "network_id": n.network_id,
+            }
+            for n in Node.query.with_entities(
+                Node.id, Node.failed, Node.type, Node.participant_id, Node.network_id
+            ).all()
+        ]
+        jinfos = [
+            {
+                "id": n.id,
+                "failed": n.failed,
+                "type": n.type,
+                "participant_id": n.participant_id,
+                "network_id": n.network_id,
+                "origin_id": n.origin_id,
+            }
+            for n in Trial.query.with_entities(
+                Trial.id,
+                Trial.failed,
+                Trial.type,
+                Trial.participant_id,
+                Trial.network_id,
+                Trial.origin_id,
+            ).all()
+        ]
+        # We don't filter participants because they aren't directly connected to specific networks
+        jparticipants = [
+            {
+                "id": n.id,
+                "failed": n.failed,
+                "status": n.status,
+            }
+            for n in Participant.query.with_entities(
+                Participant.id, Participant.failed, Participant.status
+            ).all()
+        ]
+
+        jvectors = [
+            {
+                "origin_id": v.origin_id,
+                "destination_id": v.destination_id,
+                "id": v.id,
+                "failed": v.failed,
+            }
+            for v in Vector.query.all()
+        ]
+
+        return {
+            "networks": jnetworks,
+            "nodes": jnodes,
+            "vectors": jvectors,
+            "infos": jinfos,
+            "participants": jparticipants,
+        }
+
+    @dashboard_tab("PsyNet monitor", after_route="monitoring")
+    @classmethod
+    def dashboard_monitor(cls):
+        from dallinger.experiment_server.experiment_server import Experiment, session
+        from dallinger.experiment_server.utils import date_handler
+        from dallinger.models import Network
+        from sqlalchemy import distinct
+
+        exp = Experiment(session)
+        panes = exp.monitoring_panels(**request.args.to_dict(flat=False))
+        network_structure = exp.get_network_structure()
+        vis_options = exp.node_visualization_options()
+        trial_maker_ids = list(
+            set(
+                [network["trial_maker_id"] for network in network_structure["networks"]]
+            )
+        )
+        net_ids = [
+            i[0] for i in session.query(distinct(Network.id)).order_by(Network.id).all()
+        ]
+
+        return render_template(
+            "dashboard_psynet_monitor.html",
+            title="PsyNet Monitor",
+            panes=panes,
+            network_structure=json.dumps(network_structure, default=date_handler),
+            trial_maker_ids=trial_maker_ids,
+            net_ids=net_ids,
+            vis_options=json.dumps(vis_options),
+        )
 
     @dashboard_tab("Timeline", after_route="monitoring")
     @classmethod
