@@ -185,6 +185,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         return Response.query.filter_by(id=self.last_response_id).one()
 
+    trials = relationship("Trial")
+
     # This would be better, but we end up with a circular import problem
     # if we try and read csv files using this foreign key...
     #
