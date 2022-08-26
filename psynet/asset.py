@@ -59,7 +59,7 @@ class AssetSpecification(NullElt):
     def __init__(self, key, label, description):
         if key is None:
             key = f"pending--{uuid.uuid4()}"
-        self.key = key
+        self.set_key(key)
         self.label = label
         self.description = description
 
@@ -705,17 +705,20 @@ class ManagedAsset(Asset):
         else:
             return get_file_size_mb(self.input_path)
 
+    def set_key(self, key):
+        self.key = key
+        self.generate_export_path()
+
     def generate_key(self):
-        self.key = os.path.join(self.generate_key_parents(), self.generate_key_child())
-        if not self.export_path:
-            self.generate_export_path()
+        key = os.path.join(self.generate_key_parents(), self.generate_key_child())
+        self.set_key(key)
 
     def generate_key_parents(self):
         ids = []
         if self.trial_maker_id:
             ids.append(f"{self.trial_maker_id}")
         if self.participant:
-            ids.append(f"participant_{self.participant.id}")
+            ids.append(f"participants/participant_{self.participant.id}")
         return "/".join(ids)
 
     def generate_key_child(self):
@@ -735,7 +738,7 @@ class ManagedAsset(Asset):
     def generate_export_path(self):
         assert self.key is not None
         path = self.key
-        if not path.endswith(self.extension):
+        if self.extension and not path.endswith(self.extension):
             path += self.extension
         self.export_path = path
 

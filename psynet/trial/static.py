@@ -188,7 +188,9 @@ class Stimulus(TrialNode, HasDefinition):
                 asset.label = label
 
             if not asset.has_key:
-                asset.key = f"{self.stimulus_set_id}/stimulus_{stimulus_id}__{asset.label}{asset.extension}"
+                asset.set_key(
+                    f"{self.stimulus_set_id}/stimuli/stimulus_{stimulus_id}__{asset.label}"
+                )
 
             asset.parent = self
 
