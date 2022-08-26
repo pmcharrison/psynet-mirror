@@ -1,8 +1,9 @@
 import random
 import warnings
-from typing import Optional, List
+from typing import Optional, List, Set
 
 from dallinger import db
+from psynet.timeline import join
 from psynet.trial.static import SourceCollection
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
@@ -970,6 +971,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         such that trials are preferentially sourced from chains with
         fewer valid trials.
 
+    balance_strategy
+        A two-element list that determines how balancing occurs, if ``balance_across_chains`` is ``True``.
+        If the list contains "across", then the balancing will take into account trials from other participants.
+        If it contains "within", then the balancing will take into account trials from the present participant.
+        If both are selected, then the balancing strategy will prioritize balancing within the current participant,
+        but will use counts from other participants as a tie breaker.
+
     check_performance_at_end
         If ``True``, the participant's performance
         is evaluated at the end of the series of trials.
@@ -1079,10 +1087,11 @@ class ChainTrialMaker(NetworkTrialMaker):
         num_chains_per_experiment: Optional[int],
         trials_per_node: int,
         balance_across_chains: bool,
-        check_performance_at_end: bool,
-        check_performance_every_trial: bool,
-        recruit_mode: str,
-        target_num_participants=Optional[int],
+        balance_strategy: Set[str] = {"within", "across"},
+        check_performance_at_end: bool = False,
+        check_performance_every_trial: bool = False,
+        recruit_mode: str = "num_participants",
+        target_num_participants: Optional[int] = None,
         num_iterations_per_chain: Optional[int] = None,
         num_nodes_per_chain: Optional[int] = None,
         fail_trials_on_premature_exit: bool = False,
@@ -1147,6 +1156,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             raise ValueError(f"Invalid chain_type: {chain_type}")
 
+        assert len(balance_strategy <= 2)
+        assert all([x in ["across", "within"] for x in balance_strategy])
+
         self.node_class = node_class
         self.source_class = source_class
         self.trial_class = trial_class
@@ -1159,6 +1171,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.num_nodes_per_chain = num_iterations_per_chain + 1
         self.trials_per_node = trials_per_node
         self.balance_across_chains = balance_across_chains
+        self.balance_strategy = balance_strategy
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
         self.propagate_failure = propagate_failure
@@ -1182,6 +1195,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             num_repeat_trials=num_repeat_trials,
             wait_for_networks=wait_for_networks,
         )
+
+    def compile_elts(self):
+        return join(self.source_collection, super().compile_elts())
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
@@ -1443,7 +1459,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         random.shuffle(networks)
 
         if self.balance_across_chains:
-            networks.sort(key=lambda network: network.num_completed_trials)
+            if "across" in self.balance_strategy:
+                networks.sort(key=lambda network: network.num_completed_trials)
+            if "within" in self.balance_strategy:
+                networks.sort(
+                    key=lambda network: len([t for t in network.trials if t.participant_id == participant.id])
+                )
 
         current_block = self.get_current_block(participant)
         block_order = self.get_block_order(participant)

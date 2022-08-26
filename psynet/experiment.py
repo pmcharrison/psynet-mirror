@@ -261,7 +261,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.stimuli = SourceRegistry(self)
+        self.sources = SourceRegistry(self)
 
         if (
             request
@@ -516,7 +516,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.setup_experiment_config()
         self.setup_experiment_variables()
         self.prepare_generic_trial_network()
-        self.stimuli.prepare_for_deployment()
+        self.sources.prepare_for_deployment()
         self.assets.prepare_for_deployment()
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")

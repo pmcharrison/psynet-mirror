@@ -2588,3 +2588,14 @@ class GenericTrialNetwork(TrialNetwork):
 
 class GenericTrialSource(TrialSource):
     pass
+
+
+# class GenericNetwork(TrialNetwork):
+#     def __init__(self, experiment):
+#         super().__init__(
+#             trial_maker_id=None,
+#             phase="experiment",
+#             participant_group="default",
+#             block="default",
+#             experiment=experiment,
+#         )
