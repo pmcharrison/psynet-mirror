@@ -34,7 +34,7 @@ class StimulusRegistry:
         self.experiment = experiment
         self.timeline = experiment.timeline
         self.stimuli = {}
-        self.compile_stimulus_sets()
+        self.compile_source_collections()
         # self.compile_stimuli()
 
     def __getitem__(self, item):
@@ -49,14 +49,14 @@ class StimulusRegistry:
     # def stimuli(self):
     #     return [
     #         s
-    #         for _stimulus_set in self.stimulus_sets.values()
-    #         for s in _stimulus_set.stimuli
+    #         for _source_collection in self.source_collections.values()
+    #         for s in _source_collection.stimuli
     #     ]
 
-    def compile_stimulus_sets(self):
+    def compile_source_collections(self):
         for elt in self.timeline.elts:
-            if isinstance(elt, StimulusSet):
-                id_ = elt.stimulus_set_id
+            if isinstance(elt, SourceCollection):
+                id_ = elt.source_collection_id
                 assert id_ is not None
                 if id_ in self.stimuli and elt != self.stimuli[id_]:
                     raise RuntimeError(
@@ -69,15 +69,15 @@ class StimulusRegistry:
         self.stage_assets()
 
     def create_networks(self):
-        for stimulus_set in self.stimuli.values():
-            stimulus_set.create_networks(self.experiment)
+        for source_collection in self.stimuli.values():
+            source_collection.create_networks(self.experiment)
         null_network = GenericStimulusNetwork(self.experiment)
         db.session.add(null_network)
         db.session.commit()
 
     def stage_assets(self):
-        for stimulus_set in self.stimuli.values():
-            for stimulus in stimulus_set.values():
+        for source_collection in self.stimuli.values():
+            for stimulus in source_collection.values():
                 stimulus.stage_assets(self.experiment)
         db.session.commit()
 
@@ -142,7 +142,7 @@ class Stimulus(TrialNode, HasDefinition):
         **HasDefinition.__extra_vars__.copy(),
     }
 
-    stimulus_set_id = Column(String, index=True)
+    source_collection_id = Column(String, index=True)
     target_num_trials = Column(Integer)
     participant_group = Column(String)
     phase = Column(String)
@@ -187,7 +187,7 @@ class Stimulus(TrialNode, HasDefinition):
 
             if not asset.has_key:
                 asset.set_key(
-                    f"{self.stimulus_set_id}/stimuli/stimulus_{stimulus_id}__{asset.label}"
+                    f"{self.source_collection_id}/stimuli/stimulus_{stimulus_id}__{asset.label}"
                 )
 
             asset.parent = self
@@ -201,7 +201,7 @@ class Stimulus(TrialNode, HasDefinition):
         self.assets = self._staged_assets
         db.session.commit()
 
-    def add_to_network(self, network, source, target_num_trials, stimulus_set):
+    def add_to_network(self, network, source, target_num_trials, source_collection):
         assert network.phase == self.phase
         assert network.participant_group == self.participant_group
         assert network.block == self.block
@@ -231,14 +231,14 @@ class Stimulus(TrialNode, HasDefinition):
         return self.target_num_trials - self.num_completed_trials
 
 
-UniqueConstraint(Stimulus.stimulus_set_id, Stimulus.key)
+UniqueConstraint(Stimulus.source_collection_id, Stimulus.key)
 
 # __table_args__ = (
-#     UniqueConstraint("stimulus_set_id", "key", name='_stimulus_set_id__key_uc'),
+#     UniqueConstraint("source_collection_id", "key", name='_source_collection_id__key_uc'),
 # )
 
 
-class StimulusSet(NullElt):
+class SourceCollection(NullElt):
     """
     Defines a stimulus set for a static experiment.
     This stimulus set is defined as a collection of
@@ -260,7 +260,7 @@ class StimulusSet(NullElt):
         assert isinstance(id_, str)
 
         self.stimuli = stimuli
-        self.stimulus_set_id = id_
+        self.source_collection_id = id_
         self.phase = None
         self.trial_maker = None
 
@@ -272,7 +272,7 @@ class StimulusSet(NullElt):
         for i, s in enumerate(stimuli):
             assert isinstance(s, Stimulus)
 
-            s.stimulus_set_id = self.stimulus_set_id
+            s.source_collection_id = self.source_collection_id
 
             if s.key is None:
                 s.key = f"stimulus_{i}"
@@ -292,7 +292,7 @@ class StimulusSet(NullElt):
 
         self.network_specs = [
             NetworkSpec(
-                phase=x[0], participant_group=x[1], block=x[2], stimulus_set=self
+                phase=x[0], participant_group=x[1], block=x[2], source_collection=self
             )
             for x in network_specs
         ]
@@ -318,7 +318,7 @@ class StimulusSet(NullElt):
             )
             db.session.commit()
             network.populate(
-                stimulus_set=self,
+                source_collection=self,
                 target_num_trials_per_stimulus=target_num_trials_per_stimulus,
             )
             db.session.commit()
@@ -326,7 +326,7 @@ class StimulusSet(NullElt):
     def __getitem__(self, item):
         try:
             return Stimulus.query.filter_by(
-                stimulus_set_id=self.stimulus_set_id, key=item
+                source_collection_id=self.source_collection_id, key=item
             ).one()
         except NoResultFound:
             return [stimulus for stimulus in self.stimuli if stimulus.key == item][0]
@@ -338,7 +338,7 @@ class StimulusSet(NullElt):
 
         if is_experiment_launched():
             stimuli = Stimulus.query.filter_by(
-                stimulus_set_id=self.stimulus_set_id,
+                source_collection_id=self.source_collection_id,
             ).all()
         else:
             stimuli = self.stimuli
@@ -353,12 +353,12 @@ class StimulusSet(NullElt):
 
 
 class NetworkSpec:
-    def __init__(self, phase, participant_group, block, stimulus_set):
+    def __init__(self, phase, participant_group, block, source_collection):
         self.phase = phase
         self.participant_group = participant_group
         self.block = block
-        self.stimulus_set = (
-            stimulus_set  # note: this includes stimuli outside this network too!
+        self.source_collection = (
+            source_collection  # note: this includes stimuli outside this network too!
         )
 
     def create_network(
@@ -488,11 +488,11 @@ class StaticTrialMaker(NetworkTrialMaker):
     The user must also define their stimulus set
     using the following built-in classes:
 
-    * :class:`~psynet.trial.static.StimulusSet`;
+    * :class:`~psynet.trial.static.SourceCollection`;
 
     * :class:`~psynet.trial.static.Stimulus`;
 
-    In particular, a :class:`~psynet.trial.static.StimulusSet`
+    In particular, a :class:`~psynet.trial.static.SourceCollection`
     contains a list of :class:`~psynet.trial.static.Stimulus` objects.
 
     The user may also override the following methods, if desired:
@@ -653,7 +653,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         id_: str,
         trial_class,
         phase: str,
-        stimuli: Union[List[Stimulus], StimulusSet],
+        stimuli: Union[List[Stimulus], SourceCollection],
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_stimulus: Optional[int] = None,
@@ -667,11 +667,11 @@ class StaticTrialMaker(NetworkTrialMaker):
         fail_trials_on_premature_exit: bool = True,
         fail_trials_on_participant_performance_check: bool = True,
         num_repeat_trials: int = 0,
-        stimulus_set=None,
+        source_collection=None,
     ):
-        if stimulus_set is not None:
+        if source_collection is not None:
             raise ValueError(
-                "The StaticTrialMaker 'stimulus_set' argument has been renamed to 'stimuli'."
+                "The StaticTrialMaker 'source_collection' argument has been renamed to 'stimuli'."
             )
 
         if recruit_mode == "num_participants" and target_num_participants is None:
@@ -689,12 +689,14 @@ class StaticTrialMaker(NetworkTrialMaker):
                 "<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided."
             )
 
-        stimulus_set = (
-            stimuli if isinstance(stimuli, StimulusSet) else StimulusSet(id_, stimuli)
+        source_collection = (
+            stimuli
+            if isinstance(stimuli, SourceCollection)
+            else SourceCollection(id_, stimuli)
         )
-        stimulus_set.trial_maker = self
+        source_collection.trial_maker = self
 
-        self.stimulus_set = stimulus_set
+        self.source_collection = source_collection
         self.target_num_participants = target_num_participants
         self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
         self.max_trials_per_block = max_trials_per_block
@@ -723,7 +725,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         )
 
     def compile_elts(self):
-        return join(self.stimulus_set, super().compile_elts())
+        return join(self.source_collection, super().compile_elts())
 
     @property
     def num_trials_still_required(self):
@@ -788,7 +790,7 @@ class StaticTrialMaker(NetworkTrialMaker):
                             for num_stimuli_in_block in num_stimuli_by_block.values()
                         ]
                     )
-                    for participant_group, num_stimuli_by_block in self.stimulus_set.num_stimuli.items()
+                    for participant_group, num_stimuli_by_block in self.source_collection.num_stimuli.items()
                 ]
             )
             + num_repeat_trials
@@ -824,7 +826,7 @@ class StaticTrialMaker(NetworkTrialMaker):
     def init_completed_stimuli_in_phase(self, participant):
         participant.var.set(
             self.with_namespace("completed_stimuli_in_phase"),
-            {block: Counter() for block in self.stimulus_set.blocks},
+            {block: Counter() for block in self.source_collection.blocks},
         )
 
     def get_completed_stimuli_in_phase(self, participant):
@@ -878,7 +880,7 @@ class StaticTrialMaker(NetworkTrialMaker):
             A list of blocks in order of presentation,
             where each block is identified by a string label.
         """
-        blocks = self.stimulus_set.blocks
+        blocks = self.source_collection.blocks
         random.shuffle(blocks)
         return blocks
 
@@ -907,7 +909,7 @@ class StaticTrialMaker(NetworkTrialMaker):
 
         A string label identifying the selected participant group.
         """
-        participant_groups = self.stimulus_set.participant_groups
+        participant_groups = self.source_collection.participant_groups
         return random.choice(participant_groups)
 
     def find_networks(self, participant, experiment):
@@ -1137,13 +1139,13 @@ class StaticNetwork(TrialNetwork):
         self.block = block
         super().__init__(trial_maker_id, phase, experiment)
 
-    def populate(self, stimulus_set, target_num_trials_per_stimulus):
+    def populate(self, source_collection, target_num_trials_per_stimulus):
         logger.info("Creating stimulus network (id = %i)...", self.id)
         source = TrialSource(network=self)
         db.session.add(source)
         stimuli = [
             x
-            for x in stimulus_set.stimuli
+            for x in source_collection.stimuli
             if x.phase == self.phase
             and x.participant_group == self.participant_group
             and x.block == self.block
@@ -1155,7 +1157,7 @@ class StaticNetwork(TrialNetwork):
                 network=self,
                 source=source,
                 target_num_trials=target_num_trials_per_stimulus,
-                stimulus_set=stimulus_set,
+                source_collection=source_collection,
             )
             n = i + 1
             if n % 100 == 0:
@@ -1188,7 +1190,7 @@ class GenericStimulusNetwork(StaticNetwork):
         )
 
 
-class StimulusSetFromDir(StimulusSet):
+class SourceCollectionFromDir(SourceCollection):
     def __init__(
         self, id_: str, input_dir: str, media_ext: str, asset_label: str = "prompt"
     ):
