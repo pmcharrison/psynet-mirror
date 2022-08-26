@@ -36,7 +36,7 @@ stimuli = [
             )
         },
     )
-    for frequency_gradient in [-100, -50, 0, 50, 100]
+    for frequency_gradient in [-100, 0, 100]
     for start_frequency in [-100, 0, 100]
 ]
 
