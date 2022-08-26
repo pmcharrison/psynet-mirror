@@ -1,10 +1,8 @@
 import operator
 import os
-import pickle
 import random
 from collections import Counter
 from functools import reduce
-from pathlib import Path
 from statistics import mean
 from typing import List, Optional, Union
 
@@ -352,46 +350,6 @@ class StimulusSet(NullElt):
 
     def values(self):
         return [stim[1] for stim in self.items()]
-
-
-class VirtualStimulusSet:
-    # TODO - revisit, this probably won't work any more
-    def __init__(self, id_: str, version: str, construct):
-        self.id = id_
-        self.version = version
-        self.construct = construct
-
-        if not self.cache_exists:
-            self.build_cache()
-
-        # if len(sys.argv) > 1 and sys.argv[1] == "prepare":
-        #     self.prepare_media()
-
-    def build_cache(self):
-        # logger.info("(%s) Building stimulus set cache...", self.id)
-        stimulus_set = self.construct()
-        self.save_to_cache(stimulus_set)
-
-    @property
-    def cache_dir(self):
-        return os.path.join("_stimulus_sets", self.id)
-
-    @property
-    def cache_path(self):
-        return os.path.join(self.cache_dir, f"{self.version}.pickle")
-
-    @property
-    def cache_exists(self):
-        return os.path.isfile(self.cache_path)
-
-    def save_to_cache(self, stimulus_set):
-        Path(self.cache_dir).mkdir(parents=True, exist_ok=True)
-        with open(self.cache_path, "wb") as f:
-            pickle.dump(stimulus_set, f)
-
-    def load(self):
-        with open(self.cache_path, "rb") as f:
-            return pickle.load(f)
 
 
 class NetworkSpec:
