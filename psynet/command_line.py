@@ -146,11 +146,35 @@ def _prepare():
     help="Number of threads to spawn. Fewer threads means faster start-up time.",
 )
 @click.option("--archive", default=None, help="Optional path to an experiment archive")
+@click.option(
+    "--skip-flask",
+    is_flag=True,
+    help="Skip launching Flask, so that Flask can be managed externally. Does not apply when legacy=True",
+)
 @click.pass_context
-def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive):
+def debug(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask):
+    debug_(ctx, legacy, verbose, bot, proxy, no_browsers, threads, archive, skip_flask)
+
+
+def debug_(
+    ctx=None,
+    legacy=False,
+    verbose=True,
+    bot=False,
+    proxy=None,
+    no_browsers=False,
+    threads=1,
+    archive=None,
+    skip_flask=False,
+):
     """
     Run the experiment locally.
     """
+    if not ctx:
+        from click import Context
+
+        ctx = Context(debug)
+
     log(header)
 
     redis_vars.clear()
@@ -236,7 +260,7 @@ def _debug_legacy(ctx, verbose, bot, proxy, no_browsers, threads, archive, **kwa
         reset_console()
 
 
-def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, **kwargs):
+def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, skip_flask, **kwargs):
     run_pre_auto_reload_checks()
 
     for var, var_name in [
@@ -255,7 +279,7 @@ def _debug_auto_reload(ctx, bot, proxy, no_browsers, archive, **kwargs):
     patch_dallinger_develop()
 
     try:
-        ctx.invoke(dallinger_debug)
+        ctx.invoke(dallinger_debug, skip_flask=skip_flask)
     finally:
         db.session.commit()
         reset_console()
