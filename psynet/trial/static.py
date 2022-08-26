@@ -42,7 +42,7 @@ class SourceRegistry:
             return self.stimuli[item]
         except KeyError:
             raise KeyError(
-                f"Can't find the stimulus set '{item}' in the timeline. Are you sure you remembered to add it?"
+                f"Can't find the source set '{item}' in the timeline. Are you sure you remembered to add it?"
             )
 
     # @property
@@ -60,7 +60,7 @@ class SourceRegistry:
                 assert id_ is not None
                 if id_ in self.stimuli and elt != self.stimuli[id_]:
                     raise RuntimeError(
-                        f"Tried to register two non-identical stimulus sets with the same ID: {id_}"
+                        f"Tried to register two non-identical source collections with the same ID: {id_}"
                     )
                 self.stimuli[id_] = elt
 
@@ -77,8 +77,8 @@ class SourceRegistry:
 
     def stage_assets(self):
         for source_collection in self.stimuli.values():
-            for stimulus in source_collection.values():
-                stimulus.stage_assets(self.experiment)
+            for source in source_collection.values():
+                source.stage_assets(self.experiment)
         db.session.commit()
 
 
@@ -95,13 +95,13 @@ def query_all_completed_trials():
 
 class Stimulus(TrialNode, HasDefinition):
     """
-    Defines a stimulus for a static experiment.
+    Defines a source for a static experiment.
 
     Parameters
     ----------
 
     definition
-        A dictionary of parameters defining the stimulus.
+        A dictionary of parameters defining the source.
 
     participant_group
         The associated participant group.
@@ -114,13 +114,13 @@ class Stimulus(TrialNode, HasDefinition):
     key
         Optional key that can be used to access the asset from the timeline.
         If left blank this will be populated automatically so as to be
-        unique within a given stimulus set.
+        unique within a given source collection.
 
     Attributes
     ----------
 
     definition : dict
-        A dictionary containing the parameter values for the stimulus.
+        A dictionary containing the parameter values for the source.
 
     participant_group : str
         The associated participant group.
@@ -129,11 +129,11 @@ class Stimulus(TrialNode, HasDefinition):
         The associated block.
 
     num_completed_trials : int
-        The number of completed trials that this stimulus has received,
+        The number of completed trials that this source has received,
         excluding failed trials.
 
     num_trials_still_required : int
-        The number of trials still required for this stimulus before the experiment
+        The number of trials still required for this source before the experiment
         can complete, if such a quota exists.
     """
 
@@ -176,8 +176,8 @@ class Stimulus(TrialNode, HasDefinition):
         self.key = key
 
     def stage_assets(self, experiment):
-        stimulus_id = self.id
-        assert isinstance(stimulus_id, int)
+        source_id = self.id
+        assert isinstance(source_id, int)
 
         self.assets = {**self.network.assets}
 
@@ -187,12 +187,12 @@ class Stimulus(TrialNode, HasDefinition):
 
             if not asset.has_key:
                 asset.set_key(
-                    f"{self.source_collection_id}/stimuli/stimulus_{stimulus_id}__{asset.label}"
+                    f"{self.source_collection_id}/stimuli/source_{source_id}__{asset.label}"
                 )
 
             asset.parent = self
 
-            asset.receive_stimulus_definition(self.definition)
+            asset.receive_source_definition(self.definition)
             asset.deposit()
 
             self.assets[label] = asset
@@ -215,7 +215,7 @@ class Stimulus(TrialNode, HasDefinition):
 
     @property
     def _query_completed_trials(self):
-        return query_all_completed_trials().filter_by(stimulus_id=self.id)
+        return query_all_completed_trials().filter_by(source_id=self.id)
 
     @property
     def num_completed_trials(self):
@@ -240,8 +240,8 @@ UniqueConstraint(Stimulus.source_collection_id, Stimulus.key)
 
 class SourceCollection(NullElt):
     """
-    Defines a stimulus set for a static experiment.
-    This stimulus set is defined as a collection of
+    Defines a source collection for a static experiment.
+    This source collection is defined as a collection of
     :class:`~psynet.trial.static.Stimulus` objects.
 
     Parameters
@@ -254,12 +254,12 @@ class SourceCollection(NullElt):
     def __init__(
         self,
         id_: str,
-        stimuli,
+        sources,
     ):
-        assert isinstance(stimuli, list)
+        assert isinstance(sources, list)
         assert isinstance(id_, str)
 
-        self.stimuli = stimuli
+        self.sources = sources
         self.source_collection_id = id_
         self.phase = None
         self.trial_maker = None
@@ -267,15 +267,15 @@ class SourceCollection(NullElt):
         network_specs = set()
         blocks = set()
         participant_groups = set()
-        self.num_stimuli = dict()
+        self.num_sources = dict()
 
-        for i, s in enumerate(stimuli):
+        for i, s in enumerate(sources):
             assert isinstance(s, Stimulus)
 
             s.source_collection_id = self.source_collection_id
 
             if s.key is None:
-                s.key = f"stimulus_{i}"
+                s.key = f"source_{i}"
 
             network_specs.add((s.phase, s.participant_group, s.block))
 
@@ -283,12 +283,12 @@ class SourceCollection(NullElt):
             participant_groups.add(s.participant_group)
 
             # This logic could be refactored by defining a special dictionary class
-            if s.participant_group not in self.num_stimuli:
-                self.num_stimuli[s.participant_group] = dict()
-            if s.block not in self.num_stimuli[s.participant_group]:
-                self.num_stimuli[s.participant_group][s.block] = 0
+            if s.participant_group not in self.num_sources:
+                self.num_sources[s.participant_group] = dict()
+            if s.block not in self.num_sources[s.participant_group]:
+                self.num_sources[s.participant_group][s.block] = 0
 
-            self.num_stimuli[s.participant_group][s.block] += 1
+            self.num_sources[s.participant_group][s.block] += 1
 
         self.network_specs = [
             NetworkSpec(
@@ -303,23 +303,21 @@ class SourceCollection(NullElt):
     def create_networks(self, experiment):
         if self.trial_maker is None:
             trial_maker_id = None
-            target_num_trials_per_stimulus = None
+            target_num_trials_per_source = None
         else:
             trial_maker_id = self.trial_maker.id
-            target_num_trials_per_stimulus = (
-                self.trial_maker.target_num_trials_per_stimulus
-            )
+            target_num_trials_per_source = self.trial_maker.target_num_trials_per_source
 
         for network_spec in self.network_specs:
             network = network_spec.create_network(
                 trial_maker_id=trial_maker_id,
                 experiment=experiment,
-                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
+                target_num_trials_per_source=target_num_trials_per_source,
             )
             db.session.commit()
             network.populate(
                 source_collection=self,
-                target_num_trials_per_stimulus=target_num_trials_per_stimulus,
+                target_num_trials_per_source=target_num_trials_per_source,
             )
             db.session.commit()
 
@@ -329,7 +327,7 @@ class SourceCollection(NullElt):
                 source_collection_id=self.source_collection_id, key=item
             ).one()
         except NoResultFound:
-            return [stimulus for stimulus in self.stimuli if stimulus.key == item][0]
+            return [source for source in self.sources if source.key == item][0]
         except IndexError:
             raise KeyError
 
@@ -337,13 +335,13 @@ class SourceCollection(NullElt):
         from psynet.experiment import is_experiment_launched
 
         if is_experiment_launched():
-            stimuli = Stimulus.query.filter_by(
+            sources = Stimulus.query.filter_by(
                 source_collection_id=self.source_collection_id,
             ).all()
         else:
-            stimuli = self.stimuli
+            sources = self.sources
 
-        return [(stim.key, stim) for stim in stimuli]
+        return [(stim.key, stim) for stim in sources]
 
     def keys(self):
         return [stim[0] for stim in self.items()]
@@ -358,12 +356,10 @@ class NetworkSpec:
         self.participant_group = participant_group
         self.block = block
         self.source_collection = (
-            source_collection  # note: this includes stimuli outside this network too!
+            source_collection  # note: this includes sources outside this network too!
         )
 
-    def create_network(
-        self, trial_maker_id, experiment, target_num_trials_per_stimulus
-    ):
+    def create_network(self, trial_maker_id, experiment, target_num_trials_per_source):
         network = StaticNetwork(
             trial_maker_id=trial_maker_id,
             phase=self.phase,
@@ -423,7 +419,7 @@ class StaticTrial(Trial):
         A dictionary of parameters defining the trial,
         inherited from the respective :class:`~psynet.trial.static.Stimulus` object.
 
-    stimulus
+    source
         The corresponding :class:`~psynet.trial.static.Stimulus`
         object.
 
@@ -439,43 +435,31 @@ class StaticTrial(Trial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    stimulus_id = Column(Integer, ForeignKey("node.id"))
-    stimulus = relationship("Stimulus", foreign_keys=[stimulus_id])
+    source_id = Column(Integer, ForeignKey("node.id"))
+    source = relationship("Stimulus", foreign_keys=[source_id])
 
     phase = Column(String)
     participant_group = Column(String)
     block = Column(String)
 
     def __init__(self, experiment, node, *args, **kwargs):
-        self.stimulus = node
-        self.stimulus_id = node.id
+        self.source = node
+        self.source_id = node.id
         super().__init__(experiment, node, *args, **kwargs)
-        self.phase = self.stimulus.phase
-        self.participant_group = self.stimulus.participant_group
-        self.block = self.stimulus.block
+        self.phase = self.source.phase
+        self.participant_group = self.source.participant_group
+        self.block = self.source.block
 
     def generate_asset_key(self, asset):
-        return f"{self.trial_maker_id}/block_{self.block}__stimulus_{self.stimulus_id}__trial_{self.id}__{asset.label}{asset.extension}"
+        return f"{self.trial_maker_id}/block_{self.block}__source_{self.source_id}__trial_{self.id}__{asset.label}{asset.extension}"
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
 
     def make_definition(self, experiment, participant):
-        for k, v in self.stimulus.assets.items():
+        for k, v in self.source.assets.items():
             self.assets[k] = v
-        return deep_copy(self.stimulus.definition)
-
-    def summarize(self):
-        return {
-            "participant_group": self.participant_group,
-            "phase": self.phase,
-            "block": self.block,
-            "definition": self.definition,
-            "media_url": self.media_url,
-            "trial_id": self.id,
-            "stimulus_id": self.stimulus.id,
-            "stimulus_version_id": self.stimulus_version.id,
-        }
+        return deep_copy(self.source.definition)
 
 
 class StaticTrialMaker(NetworkTrialMaker):
@@ -483,9 +467,9 @@ class StaticTrialMaker(NetworkTrialMaker):
     Administers a sequence of trials in a static experiment.
     The class is intended for use with the
     :class:`~psynet.trial.static.StaticTrial` helper class.
-    which should be customised to show the relevant stimulus
+    which should be customised to show the relevant source
     for the experimental paradigm.
-    The user must also define their stimulus set
+    The user must also define their source collection
     using the following built-in classes:
 
     * :class:`~psynet.trial.static.SourceCollection`;
@@ -529,8 +513,8 @@ class StaticTrialMaker(NetworkTrialMaker):
         Arbitrary label for this phase of the experiment, e.g.
         "practice", "train", "test".
 
-    stimuli
-        The stimulus set to be administered.
+    sources
+        The source collection to be administered.
 
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
@@ -543,31 +527,31 @@ class StaticTrialMaker(NetworkTrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    target_num_trials_per_stimulus
-        Target number of trials to recruit for each stimulus in the experiment
-        (as opposed to for each stimulus version). This target is only relevant if
+    target_num_trials_per_source
+        Target number of trials to recruit for each source in the experiment
+        (as opposed to for each source version). This target is only relevant if
         ``recruit_mode="num_trials"``.
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.
 
-    allow_repeated_stimuli
-        Determines whether the participant can be administered the same stimulus more than once.
+    allow_repeated_sources
+        Determines whether the participant can be administered the same source more than once.
 
-    max_unique_stimuli_per_block
-        Determines the maximum number of unique stimuli that a participant will be allowed to experience
+    max_unique_sources_per_block
+        Determines the maximum number of unique sources that a participant will be allowed to experience
         in each block. Once this quota is reached, the participant will be forced to repeat
-        previously experienced stimuli.
+        previously experienced sources.
 
     active_balancing_within_participants
         If ``True`` (default), active balancing within participants is enabled, meaning that
-        stimulus selection always favours the stimuli that have been presented fewest times
+        source selection always favours the sources that have been presented fewest times
         to that participant so far.
 
     active_balancing_across_participants
         If ``True`` (default), active balancing across participants is enabled, meaning that
-        stimulus selection favours stimuli that have been presented fewest times to any participant
+        source selection favours sources that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
         if both ``active_balancing_within_participants=True``
@@ -653,13 +637,13 @@ class StaticTrialMaker(NetworkTrialMaker):
         id_: str,
         trial_class,
         phase: str,
-        stimuli: Union[List[Stimulus], SourceCollection],
+        sources: Union[List[Stimulus], SourceCollection],
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
-        target_num_trials_per_stimulus: Optional[int] = None,
+        target_num_trials_per_source: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
-        allow_repeated_stimuli: bool = False,
-        max_unique_stimuli_per_block: Optional[int] = None,
+        allow_repeated_sources: bool = False,
+        max_unique_sources_per_block: Optional[int] = None,
         active_balancing_within_participants: bool = True,
         active_balancing_across_participants: bool = True,
         check_performance_at_end: bool = False,
@@ -671,37 +655,37 @@ class StaticTrialMaker(NetworkTrialMaker):
     ):
         if source_collection is not None:
             raise ValueError(
-                "The StaticTrialMaker 'source_collection' argument has been renamed to 'stimuli'."
+                "The StaticTrialMaker 'source_collection' argument has been renamed to 'sources'."
             )
 
         if recruit_mode == "num_participants" and target_num_participants is None:
             raise ValueError(
                 "<target_num_participants> cannot be None if recruit_mode == 'num_participants'."
             )
-        if recruit_mode == "num_trials" and target_num_trials_per_stimulus is None:
+        if recruit_mode == "num_trials" and target_num_trials_per_source is None:
             raise ValueError(
-                "<target_num_trials_per_stimulus> cannot be None if recruit_mode == 'num_trials'."
+                "<target_num_trials_per_source> cannot be None if recruit_mode == 'num_trials'."
             )
         if (target_num_participants is not None) and (
-            target_num_trials_per_stimulus is not None
+            target_num_trials_per_source is not None
         ):
             raise ValueError(
-                "<target_num_participants> and <target_num_trials_per_stimulus> cannot both be provided."
+                "<target_num_participants> and <target_num_trials_per_source> cannot both be provided."
             )
 
         source_collection = (
-            stimuli
-            if isinstance(stimuli, SourceCollection)
-            else SourceCollection(id_, stimuli)
+            sources
+            if isinstance(sources, SourceCollection)
+            else SourceCollection(id_, sources)
         )
         source_collection.trial_maker = self
 
         self.source_collection = source_collection
         self.target_num_participants = target_num_participants
-        self.target_num_trials_per_stimulus = target_num_trials_per_stimulus
+        self.target_num_trials_per_source = target_num_trials_per_source
         self.max_trials_per_block = max_trials_per_block
-        self.allow_repeated_stimuli = allow_repeated_stimuli
-        self.max_unique_stimuli_per_block = max_unique_stimuli_per_block
+        self.allow_repeated_sources = allow_repeated_sources
+        self.max_unique_sources_per_block = max_unique_sources_per_block
         self.active_balancing_within_participants = active_balancing_within_participants
         self.active_balancing_across_participants = active_balancing_across_participants
 
@@ -730,29 +714,29 @@ class StaticTrialMaker(NetworkTrialMaker):
     @property
     def num_trials_still_required(self):
         # Old version:
-        # return sum([stimulus.num_trials_still_required for stimulus in self.stimuli])
+        # return sum([source.num_trials_still_required for source in self.sources])
 
-        stimuli = self.stimuli
-        stimulus_actual_counts = self.get_trial_counts(stimuli)
-        stimulus_target_counts = [s.target_num_trials for s in stimuli]
-        stimulus_remaining_trials = [
+        sources = self.sources
+        source_actual_counts = self.get_trial_counts(sources)
+        source_target_counts = [s.target_num_trials for s in sources]
+        source_remaining_trials = [
             max(0, target - actual)
-            for target, actual in zip(stimulus_target_counts, stimulus_actual_counts)
+            for target, actual in zip(source_target_counts, source_actual_counts)
         ]
 
-        return sum(stimulus_remaining_trials)
+        return sum(source_remaining_trials)
 
     @property
-    def stimuli(self):
-        return [stimulus for network in self.networks for stimulus in network.stimuli]
-        return reduce(operator.add, [n.stimuli for n in self.networks])
+    def sources(self):
+        return [source for network in self.networks for source in network.sources]
+        return reduce(operator.add, [n.sources for n in self.networks])
 
     def init_participant(self, experiment, participant):
         """
         Initializes the participant at the beginning of the sequence of trials.
         This includes choosing the block order, choosing the participant group
         (if relevant), and initialising a record of the participant's completed
-        stimuli.
+        sources.
         If you override this, make sure you call ``super().init_particiant(...)``
         somewhere in your new method.
 
@@ -769,16 +753,16 @@ class StaticTrialMaker(NetworkTrialMaker):
         """
         super().init_participant(experiment, participant)
         self.init_block_order(experiment, participant)
-        self.init_completed_stimuli_in_phase(participant)
+        self.init_completed_sources_in_phase(participant)
 
-    def estimate_num_trials_in_block(self, num_stimuli_in_block):
-        if self.allow_repeated_stimuli:
+    def estimate_num_trials_in_block(self, num_sources_in_block):
+        if self.allow_repeated_sources:
             return self.max_trials_per_block
         else:
             if self.max_trials_per_block is None:
-                return num_stimuli_in_block
+                return num_sources_in_block
             else:
-                return min(num_stimuli_in_block, self.max_trials_per_block)
+                return min(num_sources_in_block, self.max_trials_per_block)
 
     def estimate_num_trials(self, num_repeat_trials):
         return (
@@ -786,11 +770,11 @@ class StaticTrialMaker(NetworkTrialMaker):
                 [
                     sum(
                         [
-                            self.estimate_num_trials_in_block(num_stimuli_in_block)
-                            for num_stimuli_in_block in num_stimuli_by_block.values()
+                            self.estimate_num_trials_in_block(num_sources_in_block)
+                            for num_sources_in_block in num_sources_by_block.values()
                         ]
                     )
-                    for participant_group, num_stimuli_by_block in self.source_collection.num_stimuli.items()
+                    for participant_group, num_sources_by_block in self.source_collection.num_sources.items()
                 ]
             )
             + num_repeat_trials
@@ -799,13 +783,13 @@ class StaticTrialMaker(NetworkTrialMaker):
     def finalize_trial(self, answer, trial, experiment, participant):
         """
         This calls the base class's ``finalize_trial`` method,
-        then increments the number of completed stimuli in the phase and the block.
+        then increments the number of completed sources in the phase and the block.
         """
         super().finalize_trial(answer, trial, experiment, participant)
-        self.increment_completed_stimuli_in_phase_and_block(
-            participant, trial.block, trial.stimulus_id
+        self.increment_completed_sources_in_phase_and_block(
+            participant, trial.block, trial.source_id
         )
-        # trial.stimulus.num_completed_trials += 1
+        # trial.source.num_completed_trials += 1
 
     def init_block_order(self, experiment, participant):
         self.set_block_order(
@@ -823,15 +807,15 @@ class StaticTrialMaker(NetworkTrialMaker):
     def get_block_order(self, participant):
         return participant.var.get(self.with_namespace("block_order"))
 
-    def init_completed_stimuli_in_phase(self, participant):
+    def init_completed_sources_in_phase(self, participant):
         participant.var.set(
-            self.with_namespace("completed_stimuli_in_phase"),
+            self.with_namespace("completed_sources_in_phase"),
             {block: Counter() for block in self.source_collection.blocks},
         )
 
-    def get_completed_stimuli_in_phase(self, participant):
+    def get_completed_sources_in_phase(self, participant):
         all_counters = participant.var.get(
-            self.with_namespace("completed_stimuli_in_phase")
+            self.with_namespace("completed_sources_in_phase")
         )
 
         def load_counter(input):
@@ -839,17 +823,17 @@ class StaticTrialMaker(NetworkTrialMaker):
 
         return {block: load_counter(counter) for block, counter in all_counters.items()}
 
-    def get_completed_stimuli_in_phase_and_block(self, participant, block):
-        all_counters = self.get_completed_stimuli_in_phase(participant)
+    def get_completed_sources_in_phase_and_block(self, participant, block):
+        all_counters = self.get_completed_sources_in_phase(participant)
         return all_counters[block]
 
-    def increment_completed_stimuli_in_phase_and_block(
-        self, participant, block, stimulus_id
+    def increment_completed_sources_in_phase_and_block(
+        self, participant, block, source_id
     ):
-        all_counters = self.get_completed_stimuli_in_phase(participant)
-        all_counters[block][stimulus_id] += 1
+        all_counters = self.get_completed_sources_in_phase(participant)
+        all_counters[block][source_id] += 1
         participant.var.set(
-            self.with_namespace("completed_stimuli_in_phase"), all_counters
+            self.with_namespace("completed_sources_in_phase"), all_counters
         )
 
     def on_complete(self, experiment, participant):
@@ -934,7 +918,7 @@ class StaticTrialMaker(NetworkTrialMaker):
         return False
 
     def find_node(self, network, participant, experiment):
-        return self.find_stimulus(network, participant, experiment)
+        return self.find_source(network, participant, experiment)
 
     def count_completed_trials_in_network(self, network, participant):
         return self.trial_class.query.filter_by(
@@ -944,7 +928,7 @@ class StaticTrialMaker(NetworkTrialMaker):
             is_repeat_trial=False,
         ).count()
 
-    def find_stimulus(self, network, participant, experiment):
+    def find_source(self, network, participant, experiment):
         # pylint: disable=unused-argument,protected-access
         if (
             self.max_trials_per_block is not None
@@ -952,46 +936,46 @@ class StaticTrialMaker(NetworkTrialMaker):
             >= self.max_trials_per_block
         ):
             return None
-        completed_stimuli = self.get_completed_stimuli_in_phase_and_block(
+        completed_sources = self.get_completed_sources_in_phase_and_block(
             participant, block=network.block
         )
-        allow_new_stimulus = self.check_allow_new_stimulus(completed_stimuli)
+        allow_new_source = self.check_allow_new_source(completed_sources)
         candidates = Stimulus.query.filter_by(
             network_id=network.id
         ).all()  # networks are guaranteed to be from the correct phase
-        if not self.allow_repeated_stimuli:
-            candidates = self.filter_out_repeated_stimuli(candidates, completed_stimuli)
-        if not allow_new_stimulus:
-            candidates = self.filter_out_new_stimuli(candidates, completed_stimuli)
+        if not self.allow_repeated_sources:
+            candidates = self.filter_out_repeated_sources(candidates, completed_sources)
+        if not allow_new_source:
+            candidates = self.filter_out_new_sources(candidates, completed_sources)
 
-        candidates = self.custom_stimulus_filter(
+        candidates = self.custom_source_filter(
             candidates=candidates, participant=participant
         )
         if not isinstance(candidates, list):
-            return ValueError("custom_stimulus_filter must return a list of stimuli")
+            return ValueError("custom_source_filter must return a list of sources")
 
         if self.active_balancing_within_participants:
-            candidates = self.balance_within_participants(candidates, completed_stimuli)
+            candidates = self.balance_within_participants(candidates, completed_sources)
         if self.active_balancing_across_participants:
             candidates = self.balance_across_participants(candidates)
         if len(candidates) == 0:
             return None
         return random.choice(candidates)
 
-    def check_allow_new_stimulus(self, completed_stimuli):
-        if self.max_unique_stimuli_per_block is None:
+    def check_allow_new_source(self, completed_sources):
+        if self.max_unique_sources_per_block is None:
             return True
-        num_unique_completed_stimuli = len(completed_stimuli)
-        return num_unique_completed_stimuli < self.max_unique_stimuli_per_block
+        num_unique_completed_sources = len(completed_sources)
+        return num_unique_completed_sources < self.max_unique_sources_per_block
 
-    def custom_stimulus_filter(self, candidates, participant):
+    def custom_source_filter(self, candidates, participant):
         """
-        Override this function to define a custom filter for choosing the participant's next stimulus.
+        Override this function to define a custom filter for choosing the participant's next source.
 
         Parameters
         ----------
         candidates:
-            The current list of candidate stimuli as defined by the built-in static experiment procedure.
+            The current list of candidate sources as defined by the built-in static experiment procedure.
 
         participant:
             The current participant.
@@ -999,23 +983,23 @@ class StaticTrialMaker(NetworkTrialMaker):
         Returns
         -------
 
-        An updated list of candidate stimuli. The default implementation simply returns the original list.
-        The experimenter might alter this function to remove certain stimuli from the list.
+        An updated list of candidate sources. The default implementation simply returns the original list.
+        The experimenter might alter this function to remove certain sources from the list.
         """
         return candidates
 
     @staticmethod
-    def filter_out_repeated_stimuli(candidates, completed_stimuli):
-        return [x for x in candidates if x.id not in completed_stimuli.keys()]
+    def filter_out_repeated_sources(candidates, completed_sources):
+        return [x for x in candidates if x.id not in completed_sources.keys()]
 
     @staticmethod
-    def filter_out_new_stimuli(candidates, completed_stimuli):
-        return [x for x in candidates if x.id in completed_stimuli.keys()]
+    def filter_out_new_sources(candidates, completed_sources):
+        return [x for x in candidates if x.id in completed_sources.keys()]
 
     @staticmethod
-    def balance_within_participants(candidates, completed_stimuli):
+    def balance_within_participants(candidates, completed_sources):
         candidate_counts_within = [
-            completed_stimuli[candidate.id] for candidate in candidates
+            completed_sources[candidate.id] for candidate in candidates
         ]
         min_count_within = (
             0 if len(candidate_counts_within) == 0 else min(candidate_counts_within)
@@ -1028,21 +1012,21 @@ class StaticTrialMaker(NetworkTrialMaker):
             if candidate_count_within == min_count_within
         ]
 
-    def get_trial_counts(self, stimuli):
-        n_trials_all_stimuli = filter_for_completed_trials(
+    def get_trial_counts(self, sources):
+        n_trials_all_sources = filter_for_completed_trials(
             db.session.query(
-                StaticTrial.stimulus_id, func.count(StaticTrial.id)
-            ).group_by(StaticTrial.stimulus_id)
+                StaticTrial.source_id, func.count(StaticTrial.id)
+            ).group_by(StaticTrial.source_id)
         ).all()
-        n_trials_all_stimuli = {x[0]: x[1] for x in n_trials_all_stimuli}
+        n_trials_all_sources = {x[0]: x[1] for x in n_trials_all_sources}
 
-        def get_count(stimulus):
+        def get_count(source):
             try:
-                return n_trials_all_stimuli[stimulus.id]
+                return n_trials_all_sources[source.id]
             except KeyError:
                 return 0
 
-        return [get_count(stim) for stim in stimuli]
+        return [get_count(stim) for stim in sources]
 
     def balance_across_participants(self, candidates):
         candidate_counts_across = self.get_trial_counts(candidates)
@@ -1110,11 +1094,11 @@ class StaticNetwork(TrialNetwork):
         irrespective of asynchronous processes,
         but excluding end-of-phase repeat trials.
 
-    stimuli : list
-        Returns the stimuli associated with the network.
+    sources : list
+        Returns the sources associated with the network.
 
-    num_stimuli : int
-        Returns the number of stimuli associated with the network.
+    num_sources : int
+        Returns the number of sources associated with the network.
 
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
@@ -1139,44 +1123,44 @@ class StaticNetwork(TrialNetwork):
         self.block = block
         super().__init__(trial_maker_id, phase, experiment)
 
-    def populate(self, source_collection, target_num_trials_per_stimulus):
-        logger.info("Creating stimulus network (id = %i)...", self.id)
+    def populate(self, source_collection, target_num_trials_per_source):
+        logger.info("Creating source network (id = %i)...", self.id)
         source = TrialSource(network=self)
         db.session.add(source)
-        stimuli = [
+        sources = [
             x
-            for x in source_collection.stimuli
+            for x in source_collection.sources
             if x.phase == self.phase
             and x.participant_group == self.participant_group
             and x.block == self.block
         ]
-        N = len(stimuli)
+        N = len(sources)
         n = 0
-        for i, stimulus in enumerate(stimuli):
-            stimulus.add_to_network(
+        for i, source in enumerate(sources):
+            source.add_to_network(
                 network=self,
                 source=source,
-                target_num_trials=target_num_trials_per_stimulus,
+                target_num_trials=target_num_trials_per_source,
                 source_collection=source_collection,
             )
             n = i + 1
             if n % 100 == 0:
-                logger.info("Populated network %i with %i/%i stimuli...", self.id, n, N)
+                logger.info("Populated network %i with %i/%i sources...", self.id, n, N)
                 db.session.commit()
-        logger.info("Finished populating network %i with %i/%i stimuli.", self.id, n, N)
+        logger.info("Finished populating network %i with %i/%i sources.", self.id, n, N)
         db.session.commit()
 
     @property
-    def stimulus_query(self):
+    def source_query(self):
         return Stimulus.query.filter_by(network_id=self.id)
 
     @property
-    def stimuli(self):
-        return self.stimulus_query.all()
+    def sources(self):
+        return self.source_query.all()
 
     @property
-    def num_stimuli(self):
-        return self.stimulus_query.count()
+    def num_sources(self):
+        return self.source_query.count()
 
 
 class GenericStimulusNetwork(StaticNetwork):
@@ -1194,7 +1178,7 @@ class SourceCollectionFromDir(SourceCollection):
     def __init__(
         self, id_: str, input_dir: str, media_ext: str, asset_label: str = "prompt"
     ):
-        stimuli = []
+        sources = []
         participant_groups = [
             (f.name, f.path) for f in os.scandir(input_dir) if f.is_dir()
         ]
@@ -1207,7 +1191,7 @@ class SourceCollectionFromDir(SourceCollection):
                     if f.is_file() and f.path.endswith(media_ext)
                 ]
                 for media_name, media_path in media_files:
-                    stimuli.append(
+                    sources.append(
                         Stimulus(
                             definition={
                                 "name": media_name,
@@ -1222,4 +1206,4 @@ class SourceCollectionFromDir(SourceCollection):
                             block=block,
                         )
                     )
-        return super().__init__(id_, stimuli)
+        return super().__init__(id_, sources)
