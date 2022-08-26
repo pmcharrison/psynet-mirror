@@ -545,9 +545,9 @@ def classproperty(func):
     return ClassPropertyDescriptor(func)
 
 
-def run_subprocess_with_live_output(command, timeout=None):
+def run_subprocess_with_live_output(command, timeout=None, cwd=None):
     _command = command.replace('"', '\\"').replace("'", "\\'")
-    p = pexpect.spawn(f'bash -c "{_command}"', timeout=timeout)
+    p = pexpect.spawn(f'bash -c "{_command}"', timeout=timeout, cwd=cwd)
     while not p.eof():
         line = p.readline().decode("utf-8")
         print(line, end="")
