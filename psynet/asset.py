@@ -68,6 +68,9 @@ class AssetSpecification(NullElt):
 
     null_key_pattern = re.compile("^pending--.*")
 
+    def set_key(self, key):
+        raise NotImplementedError
+
     @property
     def has_key(self):
         return self.key is not None and not self.null_key_pattern.match(self.key)
@@ -82,6 +85,9 @@ class InheritedAssets(AssetCollection):
         super().__init__(key, label=None, description=None)
 
         self.path = path
+
+    def set_key(self, key):
+        self.key = key
 
     def prepare_for_deployment(self, registry):
         self.ingest_specification_to_db()
@@ -248,6 +254,10 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.set_variables(variables)
         self.personal = personal
+
+    def set_key(self, key):
+        self.key = key
+        self.generate_export_path()
 
     def consume(self, experiment, participant):
         if not self.has_key:
@@ -704,10 +714,6 @@ class ManagedAsset(Asset):
             return get_folder_size_mb(self.input_path)
         else:
             return get_file_size_mb(self.input_path)
-
-    def set_key(self, key):
-        self.key = key
-        self.generate_export_path()
 
     def generate_key(self):
         key = os.path.join(self.generate_key_parents(), self.generate_key_child())
