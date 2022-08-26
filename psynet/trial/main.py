@@ -2308,9 +2308,9 @@ class TrialNetwork(SQLMixinDallinger, Network):
     target_num_trials = Column(Integer)
     participant_group = Column(String)
 
-    source = relationship("TrialSource", uselist=False, lazy="joined")
-    nodes = relationship("TrialNode", lazy="joined")
-    trials = relationship("Trial", lazy="joined")
+    source = relationship("TrialSource", uselist=False)
+    nodes = relationship("TrialNode")
+    trials = relationship("Trial")
 
     @property
     def num_nodes(self):
@@ -2490,7 +2490,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     errors = relationship("ErrorRecord")
 
-    trials = relationship("Trial", foreign_keys=[Trial.node_id], lazy="joined")
+    trials = relationship("Trial", foreign_keys=[Trial.node_id])
 
     # assets = Column(PythonDict)
 
