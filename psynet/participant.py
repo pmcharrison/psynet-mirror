@@ -183,7 +183,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def last_response(self):
         from psynet.timeline import Response
 
-        return Response.query.filter_by(id=self.last_response_id)
+        return Response.query.filter_by(id=self.last_response_id).one()
 
     # This would be better, but we end up with a circular import problem
     # if we try and read csv files using this foreign key...
