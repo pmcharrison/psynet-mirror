@@ -295,7 +295,7 @@ def patch_dallinger_develop():
 
         def new_run(self):
             old_run(self)
-            if self.archive:
+            if hasattr(self, "archive") and self.archive:
                 archive_path = os.path.abspath(self.archive)
                 if not os.path.exists(archive_path):
                     raise click.BadParameter(
