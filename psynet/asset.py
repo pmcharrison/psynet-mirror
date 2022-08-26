@@ -142,6 +142,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
+    export_path = Column(String, index=True, unique=True)
     label = Column(String)
     parent = Column(PythonObject)
     description = Column(String)
@@ -250,7 +251,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     def consume(self, experiment, participant):
         if not self.has_key:
-            self.key = self.generate_key()
+            self.generate_key()
         try:
             experiment.assets.get(self.key)
         except KeyError:
@@ -333,7 +334,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             self.content_id = self.get_content_id()
 
             if not self.has_key:
-                self.key = self.generate_key()
+                self.generate_key()
 
             asset_to_use = self
             duplicate = self.find_duplicate()
@@ -705,9 +706,38 @@ class ManagedAsset(Asset):
             return get_file_size_mb(self.input_path)
 
     def generate_key(self):
-        dir_ = self.generate_dir()
-        filename = self.generate_filename()
-        return os.path.join(dir_, filename)
+        self.key = os.path.join(self.generate_key_parents(), self.generate_key_child())
+        if not self.export_path:
+            self.generate_export_path()
+
+    def generate_key_parents(self):
+        ids = []
+        if self.trial_maker_id:
+            ids.append(f"{self.trial_maker_id}")
+        if self.participant:
+            ids.append(f"participant_{self.participant.id}")
+        return "/".join(ids)
+
+    def generate_key_child(self):
+        ancestors = self.get_ancestors()
+        ids = [
+            f"{id_type}_{ancestors[id_type].id}"
+            for id_type in ["network", "node", "trial"]
+            if ancestors[id_type] is not None
+        ]
+        if self.label:
+            ids.append(f"{self.label}")
+
+        return "__".join(
+            ids
+        )  # keys don't contain extensions by default  #  + self.extension
+
+    def generate_export_path(self):
+        assert self.key is not None
+        path = self.key
+        if not path.endswith(self.extension):
+            path += self.extension
+        self.export_path = path
 
     # def get_original_parent(self):
     #     candidates = self.trials + self.nodes + self.networks + self.participants
@@ -771,32 +801,6 @@ class ManagedAsset(Asset):
             "trial": self.trial,
             "participant": self.participant,
         }
-
-    def generate_dir(self):
-        dir_ = []
-        if self.trial_maker_id:
-            dir_.append(f"{self.trial_maker_id}")
-        if self.participant:
-            dir_.append(f"participant_{self.participant.id}")
-        return "/".join(dir_)
-
-    def generate_filename(self):
-        filename = ""
-        identifiers = []
-        ancestors = self.get_ancestors()
-        if ancestors["network"] is not None:
-            identifiers.append(f"network_{ancestors['network'].id}")
-        if ancestors["node"] is not None:
-            identifiers.append(f"node_{ancestors['node'].id}")
-        if ancestors["trial"] is not None:
-            identifiers.append(f"trial_{ancestors['trial'].id}")
-
-        if self.label:
-            identifiers.append(f"{self.label}")
-
-        filename += "__".join(identifiers)
-        filename += self.extension
-        return filename
 
     def generate_host_path(self, deployment_id: str):
         raise NotImplementedError

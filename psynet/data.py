@@ -812,9 +812,7 @@ def export_assets(
         backend="threading",
         # backend="multiprocessing", # Slow compared to threading
     )(
-        delayed(export_asset)(
-            key, os.path.join(path, key), include_fast_function_assets
-        )
+        delayed(export_asset)(key, path, include_fast_function_assets)
         for key in asset_keys
     )
     # Parallel(n_jobs=n_jobs)(delayed(db.session.close)() for _ in range(n_jobs))
@@ -823,7 +821,7 @@ def export_assets(
 # def close_parallel_db_sessions():
 
 
-def export_asset(key, path, include_fast_function_assets):
+def export_asset(key, root, include_fast_function_assets):
     from .asset import Asset, FastFunctionAsset
     from .experiment import import_local_experiment
     from .utils import make_parents
@@ -833,6 +831,8 @@ def export_asset(key, path, include_fast_function_assets):
 
     if not include_fast_function_assets and isinstance(a, FastFunctionAsset):
         return
+
+    path = os.path.join(root, a.export_path)
 
     make_parents(path)
 

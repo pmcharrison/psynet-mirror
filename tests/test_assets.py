@@ -167,7 +167,7 @@ class AssetTests:
         from psynet.utils import wait_until
 
         try:
-            file = tempfile.NamedTemporaryFile("w", delete=False)
+            file = tempfile.NamedTemporaryFile("w", delete=False, suffix=".txt")
             file.write("42")
             file.flush()
 
@@ -217,7 +217,7 @@ def test_access_assets(
         db.session.add(t)
     db.session.commit()
 
-    with tempfile.NamedTemporaryFile("w") as f:
+    with tempfile.NamedTemporaryFile("w", suffix=".txt") as f:
         f.write("Hello!")
         f.flush()
 
@@ -240,7 +240,10 @@ def test_access_assets(
 
     assert len(node.assets) == 1
     assert isinstance(node.assets["node_asset"], ExperimentAsset)
+    assert node.assets["node_asset"].export_path.endswith(".txt")
+    assert not node.assets["node_asset"].key.endswith(".txt")
 
     for t in trials:
         assert len(t.assets) == 1
         assert isinstance(t.assets["trial_asset"], ExperimentAsset)
+        assert t.assets["trial_asset"].export_path.endswith(".txt")

@@ -518,7 +518,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         if not asset.has_key:
             asset.label = label
-            asset.key = asset.generate_key()
+            asset.generate_key()
 
         db.session.add(asset)
 
