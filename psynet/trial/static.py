@@ -27,8 +27,8 @@ from .main import (
 logger = get_logger()
 
 
-class StimulusRegistry:
-    csv_path = "stimulus_registry.csv"
+class SourceRegistry:
+    csv_path = "source_registry.csv"
 
     def __init__(self, experiment):
         self.experiment = experiment

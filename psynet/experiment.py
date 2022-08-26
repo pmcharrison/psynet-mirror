@@ -63,7 +63,7 @@ from .trial.main import GenericTrialNetwork, GenericTrialSource, Trial, TrialMak
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
-from .trial.static import StimulusRegistry
+from .trial.static import SourceRegistry
 from .utils import (
     NoArgumentProvided,
     cache,
@@ -261,7 +261,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.stimuli = StimulusRegistry(self)
+        self.stimuli = SourceRegistry(self)
 
         if (
             request
