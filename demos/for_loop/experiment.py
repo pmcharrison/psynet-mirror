@@ -18,7 +18,7 @@ class Exp(psynet.experiment.Experiment):
         NoConsent(),
         for_loop(
             "Looping over letters A-C",
-            ["A", "B", "C"],
+            lambda: ["A", "B", "C"],
             lambda letter: for_loop(
                 "Looping over numbers 1-3",
                 [1, 2, 3],
