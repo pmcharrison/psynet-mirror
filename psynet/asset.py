@@ -56,6 +56,9 @@ def _get_experiment_if_available():
 
 
 class AssetSpecification(NullElt):
+    export_path = None
+    key = None
+
     def __init__(self, key, label, description):
         if key is None:
             key = f"pending--{uuid.uuid4()}"
@@ -69,7 +72,19 @@ class AssetSpecification(NullElt):
     null_key_pattern = re.compile("^pending--.*")
 
     def set_key(self, key):
-        raise NotImplementedError
+        self.key = key
+        self.generate_export_path()
+
+    def generate_export_path(self):
+        assert self.key is not None
+        path = self.key
+        if (
+            hasattr(self, "extension")
+            and self.extension
+            and not path.endswith(self.extension)
+        ):
+            path += self.extension
+        self.export_path = path
 
     @property
     def has_key(self):
@@ -85,9 +100,6 @@ class InheritedAssets(AssetCollection):
         super().__init__(key, label=None, description=None)
 
         self.path = path
-
-    def set_key(self, key):
-        self.key = key
 
     def prepare_for_deployment(self, registry):
         self.ingest_specification_to_db()
@@ -254,10 +266,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.set_variables(variables)
         self.personal = personal
-
-    def set_key(self, key):
-        self.key = key
-        self.generate_export_path()
 
     def consume(self, experiment, participant):
         if not self.has_key:
@@ -740,13 +748,6 @@ class ManagedAsset(Asset):
         return "__".join(
             ids
         )  # keys don't contain extensions by default  #  + self.extension
-
-    def generate_export_path(self):
-        assert self.key is not None
-        path = self.key
-        if self.extension and not path.endswith(self.extension):
-            path += self.extension
-        self.export_path = path
 
     # def get_original_parent(self):
     #     candidates = self.trials + self.nodes + self.networks + self.participants
