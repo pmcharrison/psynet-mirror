@@ -746,6 +746,7 @@ def ingest_zip(path, engine=None):
         "transformation",
         "vector",
         "transmission",
+        "asset",
     ]
 
     for n in all_table_names:
