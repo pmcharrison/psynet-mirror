@@ -42,7 +42,7 @@
 
   <form method="POST" action="/verify_js">
     <input type="hidden" id="js-activated" name="js_activated" value="0">
-    <input type="hidden" name="query_string" value="{{ query_string | safe }}">
+    <input type="hidden" name="query_string" value="{{query_string|safe}}">
     <input type="hidden" name="rid" value="{{assignmentid}}">
     <input type="submit" class="btn btn-primary btn-lg" value="Next">
   </form>
@@ -71,27 +71,95 @@
 
 {% block scripts %}
 <script>
-    {% if experiment.with_lucid_recruitment() %}
-      document.getElementById('js-activated').value = 1;
-    {% endif %}
-    function proceedToConsentPage(event) {
-      let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
-      if ("{{ experiment.recruiter.start_experiment_in_popup_window }}" == "True") {
-        window.location = url;
-      } else {
-        popup = window.open(
-        url,
-        "Popup",
-        "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no"
-        + ",width={{experiment.var.window_width}}"
-        + ",height={{experiment.var.window_height}}");
-        if (event) {
-            event.target.setAttribute("disabled", "");
+    {% if not experiment.with_lucid_recruitment() %}
+      function proceedToConsentPage(event) {
+        let url = "{{ url_for('consent', _external=True) }}?{{ query_string | safe }}";
+
+        if ("{{ experiment.recruiter.start_experiment_in_popup_window }}" == "True") {
+          window.location = url;
+        } else {
+          popup = window.open(
+          url,
+          "Popup",
+          "toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=no"
+          + ",width={{experiment.var.window_width}}"
+          + ",height={{experiment.var.window_height}}");
+          if (event) {
+              event.target.setAttribute("disabled", "");
+          }
         }
       }
-    }
-    {% if not experiment.with_lucid_recruitment() %}
+
       document.getElementById("begin-button").onclick = proceedToConsentPage;
+    {% else %}
+      document.getElementById('js-activated').value = 1;
+
+      // Terminate on no interaction
+      setInterval(terminate, 1000);
+      function terminate() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const rid = urlParams.get('RID')
+
+        postData = {};
+        postData["auth_token"] = "{{ auth_token }}";
+        postData["rid"] = rid;
+        $.post("/check_participant_termination", postData, function(data) {
+          console.log(data);
+          if (parseInt(data) >= 0) {
+            $("#termination-counter-text").show();
+            $("#termination-counter-seconds").text(data);
+            if (parseInt(data) == 0) {
+              document.getElementById("begin-button").disabled = true;
+              $("#termination-counter-text").text("Failed to begin experiment in time");
+            }
+          }
+        });
+      }
+
+      const INACTIVE_THRESHOLD = 60000;
+      const POLLING_FREQUENCY = 200;
+      const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
+      const cancelParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
+      var triedToLeave = false;
+      var noFocusSince = 0;
+      var rid = "{{assignmentid}}";
+      var url = "{{experiment.recruiter.external_submit_url(rid=assignmentid)|safe}}";
+      window.addEventListener("beforeunload", beforeunloadFunction);
+
+      function beforeunloadFunction(event){
+        event.returnValue = `Are you sure you want to leave?`;
+        triedToLeave = true;
+      }
+
+      function terminateParticipant() {
+        window.removeEventListener("beforeunload", beforeunloadFunction);
+        clearInterval(checkFocusInterval);
+        clearInterval(cancelParticipantInterval);
+        console.log("Sending beacon to " + url);
+        let returnValue = navigator.sendBeacon(url, {});
+        console.log("Result: " + returnValue);
+        return window.location.replace("/verify_js?js_activated=0&rid=" + rid);
+      }
+
+      function checkParticipant() {
+        if (triedToLeave) {
+          terminateParticipant();
+        }
+      }
+
+      function checkFocus() {
+        if (document.hasFocus()) {
+          noFocusSince = 0;
+          console.log("The document has the focus.");
+        } else {
+          noFocusSince += POLLING_FREQUENCY;
+          if (noFocusSince > INACTIVE_THRESHOLD) {
+            terminateParticipant();
+          } else {
+            console.log("The document doesn't have the focus since " + noFocusSince + "ms.");
+          }
+        }
+      }
     {% endif %}
 </script>
 {% endblock %}

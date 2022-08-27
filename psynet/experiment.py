@@ -932,7 +932,7 @@ class Experiment(dallinger.experiment.Experiment):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
-    @experiment_route("/verify_js", methods=["POST"])
+    @experiment_route("/verify_js", methods=["GET", "POST"])
     @staticmethod
     def verify_js():
         js_activated = request.values["js_activated"]

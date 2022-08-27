@@ -237,10 +237,12 @@ class LucidService(object):
     def terminate_respondent(self, rid):
         rid = getLucidRID(rid)
 
-        redirect_url = f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid}&"
+        redirect_url = (
+            f"https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID={rid.rid}&"
+        )
         redirect_url += f"hash={self.sha1_hash(redirect_url)}"
         self.log(
-            f"Terminating respondent with RID '{rid}' using redirect URL '{redirect_url}'."
+            f"Terminating respondent with RID '{rid.rid}' using redirect URL '{redirect_url}'."
         )
 
         try:
