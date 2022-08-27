@@ -468,7 +468,7 @@ class AdjectiveTrial(ImitationChainTrial):
                                 <div class="alert alert-primary" role="alert">
                                 Type in tags describing the {stimulus_type}. You can either select tags from a dropdown
                                  list or create entirely new ones. Submit your response for a new tag by pressing the
-                                enter key. <strong>You can add more than one tag.</strong>
+                                <kbd>enter</kbd> key. <strong>You can add more than one tag.</strong>
                                 </div>
                                 """
                 )
@@ -484,8 +484,7 @@ class AdjectiveTrial(ImitationChainTrial):
                 <div class="alert alert-primary" role="alert">
                 Type in words describing the {stimulus_type}, that are missing above. You can either select tags
                 from a dropdown list or create entirely new ones. Submit your response for a new tag by pressing the
-                 enter key.
-                <strong>You can add more than one tag.</strong>
+                <kbd>enter</kbd> key. <strong>You can add more than one tag.</strong>
                 </div>
                 """
                 )
@@ -782,6 +781,7 @@ class AdjectivePipeline(ImitationChainTrialMaker):
         new_word_bonus: Optional[float] = None,
         upvote_bonus: Optional[float] = None,
         show_positive_feedback_every: int = 0,
+        monetary_feedback: bool = True,
         practice_threshold: int = 0,
         template_args=None,
         prepopulate_networks=False,
@@ -1346,7 +1346,7 @@ class AdjectiveExporter:
         data_dir, csv_out_path=None, export_only="experiment"
     ):
         assert export_only in ["experiment", "practice", None]
-        network_query = "type=='adjective_network'"
+        network_query = "type=='AdjectiveNetwork'"
         if export_only is not None:
             network_query += f" and role=='{export_only}'"
         networks = (
