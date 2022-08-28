@@ -557,18 +557,11 @@ def run_subprocess_with_live_output(command, timeout=None, cwd=None):
 
 
 def get_extension(path):
-    try:
-        if path:
-            _, extension = os.path.splitext(path)
-            return extension
-        else:
-            return ""
-    except Exception:
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
+    if path:
+        _, extension = os.path.splitext(path)
+        return extension
+    else:
+        return ""
 
 
 # Backported from Python 3.9
@@ -663,14 +656,7 @@ def bytes_to_megabytes(bytes):
 
 
 def get_file_size_mb(path):
-    try:
-        bytes = os.path.getsize(path)
-    except Exception:
-        import pydevd_pycharm
-
-        pydevd_pycharm.settrace(
-            "localhost", port=12345, stdoutToServer=True, stderrToServer=True
-        )
+    bytes = os.path.getsize(path)
     return bytes_to_megabytes(bytes)
 
 

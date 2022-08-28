@@ -33,7 +33,8 @@ from .timeline import (
     join,
 )
 from .trial.audio import AudioRecordTrial
-from .trial.static import StaticTrial, StaticTrialMaker, Stimulus
+from .trial.source import Source
+from .trial.static import StaticTrial, StaticTrialMaker
 
 
 class REPPVolumeCalibration(Module):
@@ -476,8 +477,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(duration_rec_sec, min_num_detected_taps),
+            sources=self.get_sources(duration_rec_sec, min_num_detected_taps),
             num_repeat_trials=num_repeat_trials,
             fail_trials_on_premature_exit=False,
             fail_trials_on_participant_performance_check=False,
@@ -567,9 +567,9 @@ class FreeTappingRecordTest(StaticTrialMaker):
             ),
         )
 
-    def get_stimulus_set(self, duration_rec_sec: float, min_num_detected_taps: int):
+    def get_sources(self, duration_rec_sec: float, min_num_detected_taps: int):
         return [
-            Stimulus(
+            Source(
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
@@ -590,7 +590,7 @@ class RecordMarkersTrial(AudioRecordTrial, StaticTrial):
         return ModularPage(
             "markers_test_trial",
             AudioPrompt(
-                self.stimulus.assets["stimulus"],
+                self.source.assets["stimulus"],
                 Markup(
                     """
                     <h3>Recording test</h3>
@@ -738,8 +738,7 @@ class REPPMarkersTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(),
+            sources=self.get_sources(),
             check_performance_at_end=True,
         )
 
@@ -788,9 +787,9 @@ class REPPMarkersTest(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def get_stimulus_set(self):
+    def get_sources(self):
         return [
-            Stimulus(
+            Source(
                 definition={
                     "stim_name": asset.label,
                     "markers_onsets": [
@@ -903,22 +902,14 @@ class LanguageVocabularyTest(StaticTrialMaker):
         num_trials: int = 7,
         trial_class=LanguageVocabularyTrial,
     ):
-        self.introduction = join(
-            ExternalAsset(
-                "language_test_materials",
-                media_url,
-                is_folder=True,
-            ),
-            self.instruction_page(),
-        )
+        self.media_url = media_url
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url, language_code, self.words),
+            sources=self.get_sources(media_url, language_code, self.words),
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -940,24 +931,32 @@ class LanguageVocabularyTest(StaticTrialMaker):
         "turtle",
     ]
 
-    def instruction_page(self):
-        return InfoPage(
-            Markup(
-                """
-                <h3>Vocabulary test</h3>
-                <p>You will now perform a quick vocabulary test.</p>
-                <p>
-                    In each trial, you will hear one word and see 4 pictures.
-                    Your task is to match each word with the correct picture.
-                </p>
-                """
+    @property
+    def introduction(self):
+        return join(
+            ExternalAsset(
+                "language_test_materials",
+                self.media_url,
+                is_folder=True,
             ),
-            time_estimate=5,
+            InfoPage(
+                Markup(
+                    """
+                    <h3>Vocabulary test</h3>
+                    <p>You will now perform a quick vocabulary test.</p>
+                    <p>
+                        In each trial, you will hear one word and see 4 pictures.
+                        Your task is to match each word with the correct picture.
+                    </p>
+                    """
+                ),
+                time_estimate=5,
+            ),
         )
 
-    def get_stimulus_set(self, media_url: str, language_code: str, words: list):
+    def get_sources(self, media_url: str, language_code: str, words: list):
         return [
-            Stimulus(
+            Source(
                 definition={
                     "name": name,
                     "url_audio": f"{media_url}/recordings/{language_code}/{name}.wav",
@@ -977,7 +976,7 @@ class LextaleTrial(StaticTrial):
         return ModularPage(
             "lextale_trial",
             ImagePrompt(
-                self.stimulus.assets["word"].url,
+                self.source.assets["word"].url,
                 "Does this word exist?",
                 width="auto",
                 height="100px",
@@ -1053,8 +1052,7 @@ class LexTaleTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url),
+            sources=self.get_sources(media_url),
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -1075,9 +1073,9 @@ class LexTaleTest(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def get_stimulus_set(self, media_url: str):
+    def get_sources(self, media_url: str):
         return [
-            Stimulus(
+            Source(
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
@@ -1248,7 +1246,7 @@ class ColorBlindnessTrial(StaticTrial):
         return ModularPage(
             "color_blindness_trial",
             ImagePrompt(
-                self.stimulus.assets["image"].url,
+                self.source.assets["image"].url,
                 "Write down the number in the image.",
                 width="350px",
                 height="344px",
@@ -1311,23 +1309,20 @@ class ColorBlindnessTest(StaticTrialMaker):
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
-        self.introduction = self.instruction_page(self.hide_after)
-
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url),
+            sources=self.get_sources(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
 
-    def instruction_page(self, hide_after):
-        if hide_after is None:
+    def introduction(self):
+        if self.hide_after is None:
             hidden_instructions = ""
         else:
             hidden_instructions = (
-                f"This image will disappear after {hide_after} seconds."
+                f"This image will disappear after {self.hide_after} seconds."
             )
         return InfoPage(
             Markup(
@@ -1343,9 +1338,9 @@ class ColorBlindnessTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_stimulus_set(self, media_url: str):
+    def get_sources(self, media_url: str):
         return [
-            Stimulus(
+            Source(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1432,15 +1427,13 @@ class ColorVocabularyTest(StaticTrialMaker):
     ):
         if colors:
             self.colors = colors
-        self.introduction = self.instruction_page()
         self.performance_threshold = performance_threshold
         self.time_estimate_per_trial = time_estimate_per_trial
 
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(self.colors),
+            sources=self.get_sources(self.colors),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1454,7 +1447,7 @@ class ColorVocabularyTest(StaticTrialMaker):
         ("navy", [240, 100, 25]),
     ]
 
-    def instruction_page(self):
+    def introduction(self):
         return InfoPage(
             Markup(
                 """
@@ -1468,20 +1461,20 @@ class ColorVocabularyTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_stimulus_set(self, colors: list):
+    def get_sources(self, colors: list):
         stimuli = []
         words = [x[0] for x in colors]
         for (correct_answer, hsl) in colors:
             choices = words.copy()
             # Todo - think carefully about whether it's a good idea to have random
-            # functions inside get_stimulus_set
+            # functions inside get_sources
             random.shuffle(choices)
             definition = {
                 "target_hsl": hsl,
                 "choices": choices,
                 "correct_answer": correct_answer,
             }
-            stimuli.append(Stimulus(definition=definition))
+            stimuli.append(Source(definition=definition))
         return stimuli
 
 
@@ -1542,19 +1535,18 @@ class HeadphoneTest(StaticTrialMaker):
         performance_threshold: int = 4,
         trial_class=HeadphoneTrial,
     ):
-        self.introduction = self.instruction_page()
         self.time_estimate_per_trial = time_estimate_per_trial
         self.performance_threshold = performance_threshold
 
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(media_url),
+            sources=self.get_sources(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
 
+    @property
     def instruction_page(self):
         return InfoPage(
             Markup(
@@ -1570,9 +1562,9 @@ class HeadphoneTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_stimulus_set(self, media_url: str):
+    def get_sources(self, media_url: str):
         return [
-            Stimulus(
+            Source(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1601,7 +1593,7 @@ class AudioForcedChoiceTrial(StaticTrial):
         return ModularPage(
             "audio_forced_choice_trial",
             AudioPrompt(
-                self.stimulus.assets["stimulus"],
+                self.source.assets["stimulus"],
                 self.definition["question"],
             ),
             PushButtonControl(self.definition["answer_options"]),
@@ -1684,21 +1676,19 @@ class AudioForcedChoiceTest(StaticTrialMaker):
         self.answer_options = answer_options
         stimuli = self.load_stimuli(csv_path, question)
 
-        self.instructions = instructions
+        self._instructions = instructions
 
         self.n_stimuli_to_use = n_stimuli_to_use
 
         self.check_stimuli(stimuli, specific_stimuli)
 
         self.time_estimate_per_trial = time_estimate_per_trial
-        self.introduction = self.instruction_page()
         self.performance_threshold = performance_threshold
 
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            phase="screening",
-            stimuli=self.get_stimulus_set(label, stimuli, specific_stimuli),
+            sources=self.get_sources(label, stimuli, specific_stimuli),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1740,13 +1730,14 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             )  # Cannot select more stimuli than which are available
             assert self.n_stimuli_to_use > 0  # Must be an integer larger than 0
 
-    def instruction_page(self):
+    @property
+    def instructions(self):
         return InfoPage(
-            Markup(self.instructions),
+            Markup(self._instructions),
             time_estimate=10,
         )
 
-    def get_stimulus_set(self, label, stimuli, specific_stimuli):
+    def get_sources(self, label, stimuli, specific_stimuli):
         if self.n_stimuli_to_use is not None:
             shuffle(stimuli)
             stimuli = stimuli[: self.n_stimuli_to_use]
@@ -1755,7 +1746,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             stimuli = [stimuli[i] for i in specific_stimuli]
 
         return [
-            Stimulus(
+            Source(
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(

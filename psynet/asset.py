@@ -523,8 +523,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             )
             raise
 
-    def receive_stimulus_definition(self, definition):
-        self.var.stimulus_definition = definition
+    def receive_source_definition(self, definition):
+        self.var.source_definition = definition
 
     def read_text(self):
         assert not self.is_folder
@@ -1005,8 +1005,8 @@ class FunctionAssetMixin:
         time_end = time.perf_counter()
         self.computation_time_sec = time_end - time_start
 
-    def receive_stimulus_definition(self, definition):
-        super().receive_stimulus_definition(definition)
+    def receive_source_definition(self, definition):
+        super().receive_source_definition(definition)
         requested_args = get_args(self.function)
         for key, value in definition.items():
             if key in requested_args:

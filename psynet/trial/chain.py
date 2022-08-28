@@ -1,19 +1,20 @@
 import random
 import warnings
-from typing import Optional, List, Set
+from typing import List, Optional, Set
 
 from dallinger import db
-from psynet.timeline import join
-from psynet.trial.static import SourceCollection
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
+from psynet.timeline import join
+from psynet.trial.source import SourceCollection
+
 from ..field import PythonObject, VarStore, extra_var, register_extra_var
 from ..page import wait_while
-from ..utils import get_logger, negate, call_function
+from ..utils import call_function, get_logger, negate
 from .main import HasDefinition, NetworkTrialMaker, Trial, TrialNetwork, TrialNode
 
 logger = get_logger()
@@ -1087,6 +1088,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         num_chains_per_experiment: Optional[int],
         trials_per_node: int,
         balance_across_chains: bool,
+        max_trials_per_block: Optional[int] = None,
         balance_strategy: Set[str] = {"within", "across"},
         check_performance_at_end: bool = False,
         check_performance_every_trial: bool = False,
@@ -1138,8 +1140,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             )
 
         if chain_type == "within":
-            assert (
-                sources is None or callable(sources),
+            assert sources is None or callable(sources), (
                 "For within-participant chains, sources must either be None or "
                 "a function optionally taking the argument 'participant' and 'experiment'."
             )
@@ -1150,7 +1151,9 @@ class ChainTrialMaker(NetworkTrialMaker):
             assert sources is None or isinstance(sources, list)
             self.source_generator = None
             self.source_collection = (
-                sources if isinstance(sources, SourceCollection) else SourceCollection(id_, sources)
+                sources
+                if isinstance(sources, SourceCollection)
+                else SourceCollection(id_, sources)
             )
 
         else:
@@ -1201,13 +1204,57 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
-        self.init_block_order(experiment, participant)
         self.init_participated_networks(participant)
         if self.chain_type == "within":
-            self.create_networks_within(experiment, participant)
+            networks = self.create_networks_within(experiment, participant)
+        else:
+            self.networks
+        blocks = set([network.block for network in networks])
+        self.init_block_order(experiment, participant, blocks)
+
+    def init_block_order(self, experiment, participant, blocks):
+        call_function(
+            self.choose_block_order,
+            experiment=experiment,
+            participant=participant,
+            blocks=blocks,
+        )
+        self.set_block_order(
+            participant,
+            self.choose_block_order(experiment=experiment, participant=participant),
+        )
+
+    def choose_block_order(self, experiment, participant, blocks):
+        # pylint: disable=unused-argument
+        """
+        Determines the order of blocks for the current participant.
+        By default this function shuffles the blocks randomly for each participant.
+        The user is invited to override this function for alternative behaviour.
+
+        Parameters
+        ----------
+
+        experiment
+            An instantiation of :class:`psynet.experiment.Experiment`,
+            corresponding to the current experiment.
+
+        participant
+            An instantiation of :class:`psynet.participant.Participant`,
+            corresponding to the current participant.
+
+        Returns
+        -------
+
+        list
+            A list of blocks in order of presentation,
+            where each block is identified by a string label.
+        """
+        return random.sample(blocks, len(blocks))
 
     def init_blocks(self, experiment, participant):
-        block_order = self.choose_block_order(experiment=experiment, participant=participant),
+        block_order = (
+            self.choose_block_order(experiment=experiment, participant=participant),
+        )
         self.set_block_order(participant, block_order)
         self.set_current_block_position(participant, 0)
 
@@ -1227,7 +1274,9 @@ class ChainTrialMaker(NetworkTrialMaker):
         return block_order[index]
 
     def set_current_block_position(self, participant, block_position):
-        participant.var.set(self.with_namespace("current_block_position"), block_position)
+        participant.var.set(
+            self.with_namespace("current_block_position"), block_position
+        )
 
     def get_current_block_position(self, participant):
         return participant.var.get(self.with_namespace("current_block_position"))
@@ -1240,12 +1289,21 @@ class ChainTrialMaker(NetworkTrialMaker):
         current_block = self.get_current_block(participant)
         current_block_position = self.get_current_block_position(participant)
         trials_in_block = [
-            trial for trial in participant.trials
+            trial
+            for trial in participant.trials
             if trial.block_position == current_block_position
         ]
-        return self.should_finish_block(participant, current_block, current_block_position, trials_in_block)
+        return self.should_finish_block(
+            participant, current_block, current_block_position, trials_in_block
+        )
 
-    def should_finish_block(self, participant, current_block, current_block_position, participant_trials_in_block):  # noqa
+    def should_finish_block(
+        self,
+        participant,
+        current_block,
+        current_block_position,
+        participant_trials_in_block,
+    ):  # noqa
         return (
             len(participant_trials_in_block) >= self.max_trials_per_block
             or self.num_trials_per_participant >= self.num_trials_per_participant
@@ -1292,9 +1350,10 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def create_networks_within(self, experiment, participant):
         if self.source_generator:
-            sources = call_function(self.source_generator, experiment=experiment, participant=participant)
-            assert (
-                len(sources) == self.num_chains_per_participant,
+            sources = call_function(
+                self.source_generator, experiment=experiment, participant=participant
+            )
+            assert len(sources) == self.num_chains_per_participant, (
                 f"Problem with trial maker {self.id}: "
                 f"The number of sources generated by the provided function ({len(sources)} did not equal "
                 f"num_chains_per_participant ({self.num_chains_per_participant})."
@@ -1302,18 +1361,21 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             sources = [None for _ in range(self.num_chains_per_participant)]
 
+        networks = []
         for i in range(self.num_chains_per_participant):
             network = self.create_network(
                 experiment, participant, id_within_participant=i, source=sources[i]
             )
             self._grow_network(network, experiment)
+            networks.append(network)
+
+        return networks
 
     def create_networks_across(self, experiment):
         if len(self.source_collection) == 0:
             sources = [None for _ in range(self.num_chains_per_experiment)]
         else:
-            assert (
-                len(self.source_collection) == self.num_chains_per_experiment,
+            assert len(self.source_collection) == self.num_chains_per_experiment, (
                 f"Problem with trial maker {self.id}: "
                 f"The number of sources ({len(self.source_collection)}) did not equal 0 or "
                 f"num_chains_per_experiment ({self.num_chains_per_experiment})."
@@ -1322,9 +1384,13 @@ class ChainTrialMaker(NetworkTrialMaker):
         for i in range(self.num_chains_per_experiment):
             self.create_network(experiment, source=sources[i])
 
-    def create_network(self, experiment, participant=None, id_within_participant=None, source=None):
+    def create_network(
+        self, experiment, participant=None, id_within_participant=None, source=None
+    ):
         if not source:
-            source = self.source_class(network=None, experiment=experiment, participant=participant)
+            source = self.source_class(
+                network=None, experiment=experiment, participant=participant
+            )
 
         network = self.network_class(
             trial_maker_id=self.id,
@@ -1370,7 +1436,10 @@ class ChainTrialMaker(NetworkTrialMaker):
             return "exit"
 
         if self._should_finish_block(participant):
-            if self.get_current_block_position(participant) >= len(self.get_block_order(participant)) + 1:
+            if (
+                self.get_current_block_position(participant)
+                >= len(self.get_block_order(participant)) + 1
+            ):
                 return "exit"
             else:
                 self.go_to_next_block(participant)
@@ -1463,7 +1532,13 @@ class ChainTrialMaker(NetworkTrialMaker):
                 networks.sort(key=lambda network: network.num_completed_trials)
             if "within" in self.balance_strategy:
                 networks.sort(
-                    key=lambda network: len([t for t in network.trials if t.participant_id == participant.id])
+                    key=lambda network: len(
+                        [
+                            t
+                            for t in network.trials
+                            if t.participant_id == participant.id
+                        ]
+                    )
                 )
 
         current_block = self.get_current_block(participant)

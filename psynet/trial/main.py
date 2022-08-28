@@ -273,6 +273,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
     node_id = Column(Integer, ForeignKey("node.id"))
     participant_id = Column(Integer, ForeignKey("participant.id"))
+    module_id = Column(String)
     trial_maker_id = Column(String)
     complete = Column(Boolean)
     finalized = Column(Boolean)
@@ -295,7 +296,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     participant = relationship(
         "psynet.participant.Participant",
         foreign_keys=[participant_id],
-        backref="trials",
+        back_populates="trials",
     )
     parent_trial = relationship("Trial", foreign_keys=[parent_trial_id])
     response = relationship("psynet.timeline.Response")
@@ -428,17 +429,17 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         self.score = None
         self.response_id = None
         self.time_taken = None
-        self.trial_maker_id = node.network.trial_maker_id
+        self.trial_maker_id = node.trial_maker_id
+        self.module_id = node.module_id
 
         if assets is None:
             assets = {}
 
-        from psynet.trial.static import Stimulus
+        from psynet.trial.source import Source
 
-        if isinstance(node, Stimulus):
-            self.var.stimulus_set_id = node.stimulus_set_id
-            self.var.stimulus_id = node.id
-            self.var.stimulus_key = node.key
+        if isinstance(node, Source):
+            self.var.source_id = node.id
+            self.var.source_key = node.key
 
         if is_repeat_trial:
             self.definition = parent_trial.definition
@@ -514,7 +515,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         if not asset.parent:
             asset.parent = self
 
-        asset.receive_stimulus_definition(self.definition)
+        asset.receive_source_definition(self.definition)
 
         if not asset.has_key:
             asset.label = label
@@ -624,7 +625,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         db.session.commit()
         assert self.id is not None
         for _, asset in self.assets.items():
-            asset.receive_stimulus_definition(self.definition)
+            asset.receive_source_definition(self.definition)
             if not asset.deposited:
                 asset.deposit()
         db.session.commit()
@@ -745,28 +746,28 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         definition :
             This can be a ``dict`` object, which will then be saved to the trial's ``definition`` slot.
-            Alternatively, it can be a ``Stimulus`` object, in which case the ``Stimulus`` object
-            will be saved to ``trial.stimulus``, and ``stimulus.definition`` will be saved
+            Alternatively, it can be a ``Source`` object, in which case the ``Source`` object
+            will be saved to ``trial.source``, and ``source.definition`` will be saved
             to ``trial.definition``.
 
         assets :
             Optional dictionary of assets to add to the trial (in addition to any provided by
-            providing a ``Stimulus`` containing assets to the ``definition`` parameter).
+            providing a ``Source`` containing assets to the ``definition`` parameter).
         """
-        from psynet.trial.static import Stimulus
+        from psynet.trial.source import Source
 
-        if isinstance(definition, Stimulus):
-            stimulus = definition
-            cls.check_stimulus_is_valid(stimulus)
-            definition = stimulus.definition
+        if isinstance(definition, Source):
+            source = definition
+            cls.check_source_is_valid(source)
+            definition = source.definition
         elif isinstance(definition, dict):
-            stimulus = None
+            source = None
         else:
             raise TypeError(f"Invalid definition type: {type(definition)}")
 
         def _register_trial(experiment, participant):
-            if stimulus:
-                parent_node = stimulus
+            if source:
+                parent_node = source
             else:
                 parent_node = GenericTrialSource.query.one()
 
@@ -791,25 +792,25 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         )
 
     @property
-    def stimulus(self):
-        from psynet.trial.static import Stimulus
+    def source(self):
+        from psynet.trial.static import Source
 
-        if isinstance(self.node, Stimulus):
+        if isinstance(self.node, Source):
             return self.node
 
     @classmethod
-    def check_stimulus_is_valid(cls, stimulus):
+    def check_source_is_valid(cls, source):
         from sqlalchemy import inspect
 
-        if not inspect(stimulus).persistent:
+        if not inspect(source).persistent:
             raise ValueError(
-                f"The stimulus with definition {stimulus.definition} looks like it hasn't "
+                f"The source with definition {source.definition} looks like it hasn't "
                 "been registered in the database. This normally means that you are trying to "
-                "access the stimulus object in the wrong way. You should access it by writing "
-                "experiment.stimuli['your_stimulus_set_id']['your_stimulus_key'], "
+                "access the source object in the wrong way. You should access it by writing "
+                "experiment.sources['your_source_set_id']['your_source_key'], "
                 "or (within a PageMaker or CodeBlock) as "
-                "lambda stimuli: stimuli['your_stimulus_set_id']['your_stimulus_key'], "
-                "or by writing a SQLAlchemy query, e.g. Stimulus.query.filter_by(...).one()."
+                "lambda sources: sources['your_source_key'], "
+                "or by writing a SQLAlchemy query, e.g. Source.query.filter_by(...).one()."
             )
 
     @classmethod
@@ -2305,6 +2306,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
         )
 
     trial_maker_id = Column(String)
+    module_id = Column(String)
     target_num_trials = Column(Integer)
     participant_group = Column(String)
 
@@ -2387,11 +2389,22 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     ####
 
-    def __init__(self, trial_maker_id: str, phase: str, experiment):
+    def __init__(
+        self,
+        trial_maker_id: str,
+        phase: str,
+        experiment,
+        module_id: Optional[str] = None,
+    ):
         # pylint: disable=unused-argument
         self.trial_maker_id = trial_maker_id
         self.phase = phase
         self.assets = {}
+
+        if not module_id:
+            module_id = trial_maker_id
+
+        self.module_id = module_id
 
     @property
     def participant(self):
@@ -2468,6 +2481,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     }
 
     trial_maker_id = Column(String)
+    module_id = Column(String)
 
     async_processes = relationship("AsyncProcess")
 
@@ -2515,7 +2529,8 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.network = network
             self.network_id = network.id
             self.assets = {**network.assets}
-            self.trial_maker_id = self.network.trial_maker_id
+            self.trial_maker_id = network.trial_maker_id
+            self.module_id = network.module_id
             network.calculate_full()
 
         if participant is not None:

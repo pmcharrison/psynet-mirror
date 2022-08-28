@@ -1,15 +1,14 @@
+import os
+
 from dallinger import db
-from psynet.asset import CachedAsset
 from sqlalchemy import Column, String, UniqueConstraint
 from sqlalchemy.exc import NoResultFound
 
-from .main import (
-    HasDefinition,
-    TrialNode,
-    GenericTrialNetwork,
-)
-from ..timeline import NullElt
-from ..utils import get_logger
+from psynet.asset import CachedAsset
+
+from ..timeline import NullElt, StartModule
+from ..utils import NoArgumentProvided, get_logger
+from .main import GenericTrialNetwork, HasDefinition, TrialNode
 
 logger = get_logger()
 
@@ -55,6 +54,7 @@ class Source(TrialNode, HasDefinition):
         The number of trials still required for this source before the experiment
         can complete, if such a quota exists.
     """
+
     polymorphic_identity = "TrialSource"
 
     __extra_vars__ = {
@@ -62,7 +62,6 @@ class Source(TrialNode, HasDefinition):
         **HasDefinition.__extra_vars__.copy(),
     }
 
-    module_id = Column(String, index=True)
     participant_group = Column(String)
     block = Column(String)
     key = Column(String, index=True)
@@ -138,17 +137,23 @@ class SourceCollection(NullElt):
         sources,
     ):
         assert isinstance(sources, list)
-        assert isinstance(id_, str)
+        assert isinstance(module_id, str)
+
+        counter = 0
+        for source in sources:
+            source.module_id = module_id
+            if source.key is None:
+                source.key = f"source_{counter}"
+                counter += 1
 
         self.sources = sources
         self.module_id = module_id
         self.trial_maker = None
 
     def __getitem__(self, item):
+        assert item
         try:
-            return Source.query.filter_by(
-                module_id=self.module_id, key=item
-            ).one()
+            return Source.query.filter_by(module_id=self.module_id, key=item).one()
         except NoResultFound:
             return [source for source in self.sources if source.key == item][0]
         except IndexError:
@@ -172,6 +177,14 @@ class SourceCollection(NullElt):
     def values(self):
         return [stim[1] for stim in self.items()]
 
+    def create_networks(self, experiment):
+        for source in self.sources:
+            network = GenericTrialNetwork(experiment)
+            source.network = network
+            db.session.add(source)
+            db.session.add(network)
+        db.session.commit()
+
 
 class SourceRegistry:
     csv_path = "source_registry.csv"
@@ -179,13 +192,22 @@ class SourceRegistry:
     def __init__(self, experiment):
         self.experiment = experiment
         self.timeline = experiment.timeline
-        self.stimuli = {}
+        self.source_collections = {}
         self.compile_source_collections()
         # self.compile_stimuli()
 
+    def get(self, item, default=NoArgumentProvided):
+        try:
+            return self[item]
+        except KeyError:
+            if default == NoArgumentProvided:
+                raise
+            else:
+                return default
+
     def __getitem__(self, item):
         try:
-            return self.stimuli[item]
+            return self.source_collections[item]
         except KeyError:
             raise KeyError(
                 f"Can't find the source set '{item}' in the timeline. Are you sure you remembered to add it?"
@@ -201,28 +223,29 @@ class SourceRegistry:
 
     def compile_source_collections(self):
         for elt in self.timeline.elts:
-            if isinstance(elt, SourceCollection):
-                id_ = elt.module_id
-                assert id_ is not None
-                if id_ in self.stimuli and elt != self.stimuli[id_]:
-                    raise RuntimeError(
-                        f"Tried to register two non-identical source collections with the same ID: {id_}"
-                    )
-                self.stimuli[id_] = elt
+            if isinstance(elt, StartModule) and elt.module.sources is not None:
+                module_id = elt.module.id
+                assert module_id is not None
+                # sources = self.source_collections.get(module_id, [])
+                # sources.append(elt.module.sources)
+                sources = elt.module.sources
+                if not isinstance(sources, SourceCollection):
+                    sources = SourceCollection(module_id, sources)
+                self.source_collections[module_id] = sources
 
     def prepare_for_deployment(self):
         self.create_networks()
         self.stage_assets()
 
     def create_networks(self):
-        for source_collection in self.stimuli.values():
+        for source_collection in self.source_collections.values():
             source_collection.create_networks(self.experiment)
         generic_network = GenericTrialNetwork(self.experiment)
         db.session.add(generic_network)
         db.session.commit()
 
     def stage_assets(self):
-        for source_collection in self.stimuli.values():
+        for source_collection in self.source_collections.values():
             for source in source_collection.values():
                 source.stage_assets(self.experiment)
         db.session.commit()

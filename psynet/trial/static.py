@@ -1,32 +1,15 @@
-import operator
-import os
-import random
-from collections import Counter
-from functools import reduce
-from statistics import mean
 from typing import List, Optional, Union
 
-from dallinger import db
-from dallinger.models import Vector
-from psynet.trial.chain import ChainTrialMaker
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint, func
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
-from ..asset import CachedAsset
-from ..timeline import NullElt, join
+from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrialMaker
+from psynet.trial.source import Source, SourceCollection
+
 from ..utils import deep_copy, get_logger
-from .main import (
-    HasDefinition,
-    NetworkTrialMaker,
-    Trial,
-    TrialNetwork,
-    TrialNode,
-    TrialSource,
-)
+from .main import Trial
 
 logger = get_logger()
-
 
 
 class StaticTrial(Trial):
@@ -94,7 +77,7 @@ class StaticTrial(Trial):
     __extra_vars__ = Trial.__extra_vars__.copy()
 
     source_id = Column(Integer, ForeignKey("node.id"))
-    source = relationship("Stimulus", foreign_keys=[source_id])
+    source = relationship("psynet.trial.source.Source", foreign_keys=[source_id])
 
     phase = Column(String)
     participant_group = Column(String)
@@ -293,10 +276,11 @@ class StaticTrialMaker(ChainTrialMaker):
         *,
         id_: str,
         trial_class,
-        sources: Union[List[Stimulus], SourceCollection],
+        sources: Union[List[Source], SourceCollection],
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_source: Optional[int] = None,
+        max_trials_per_participant: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
         allow_repeated_sources: bool = False,
         active_balancing_within_participants: bool = True,
@@ -307,7 +291,9 @@ class StaticTrialMaker(ChainTrialMaker):
         fail_trials_on_participant_performance_check: bool = True,
         num_repeat_trials: int = 0,
     ):
-        balance_across_chains = active_balancing_across_participants or active_balancing_within_participants
+        balance_across_chains = (
+            active_balancing_across_participants or active_balancing_within_participants
+        )
         balance_strategy = set()
         if active_balancing_within_participants:
             balance_strategy.add("within")
@@ -321,11 +307,12 @@ class StaticTrialMaker(ChainTrialMaker):
             network_class=StaticNetwork,
             node_class=StaticNode,
             source_class=Source,
-            trial_class=StaticTrial,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
+            num_trials_per_participant=max_trials_per_participant,
             max_trials_per_block=max_trials_per_block,
             chain_type="across",
+            num_chains_per_participant=None,
             num_chains_per_experiment=len(sources),
             trials_per_node=target_num_trials_per_source,
             balance_across_chains=balance_across_chains,
@@ -340,7 +327,6 @@ class StaticTrialMaker(ChainTrialMaker):
             num_repeat_trials=num_repeat_trials,
         )
 
-
     # @property
     # def sources(self):
     #     return [source for network in self.networks for source in network.sources]
@@ -348,4 +334,8 @@ class StaticTrialMaker(ChainTrialMaker):
 
 
 class StaticNetwork(ChainNetwork):
+    pass
+
+
+class StaticNode(ChainNode):
     pass

@@ -205,6 +205,7 @@ class CodeBlock(Elt):
             experiment=experiment,
             participant=participant,
             assets=experiment.assets,
+            sources=experiment.sources.get(participant.current_module, {}),
         )
 
 
@@ -427,14 +428,6 @@ class MediaSpec:
                 ids.add(file_id)
                 if not isinstance(file, str):
                     if not isinstance(file, dict):
-                        import pydevd_pycharm
-
-                        pydevd_pycharm.settrace(
-                            "localhost",
-                            port=12345,
-                            stdoutToServer=True,
-                            stderrToServer=True,
-                        )
                         raise TypeError(
                             f"Media entry must either be a string URL or a dict (got {file})."
                         )
@@ -1163,6 +1156,7 @@ class PageMaker(Elt):
             experiment=experiment,
             participant=participant,
             assets=experiment.assets,
+            sources=experiment.sources.get(participant.current_module, {}),
         )
         res = join(res)
         self.impute_time_estimates(res)
@@ -1854,6 +1848,7 @@ def while_loop(
                 participant=participant,
                 experiment=experiment,
                 assets=experiment.assets,
+                sources=experiment.sources.get(participant.current_module, {}),
             ),
             after_timeout_logic,
             fix_time_credit=False,
@@ -1981,6 +1976,7 @@ class StartSwitch(ReactiveGoTo):
                     experiment=experiment,
                     participant=participant,
                     assets=experiment.assets,
+                    sources=experiment.sources.get(participant.current_module, {}),
                 )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
@@ -2099,7 +2095,7 @@ class Module:
     default_id = None
     default_elts = None
 
-    def __init__(self, id_: str = None, *args):
+    def __init__(self, id_: str = None, *args, sources=None):
         elts = join(*args)
 
         if self.default_id is None and id_ is None:
@@ -2109,6 +2105,7 @@ class Module:
 
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
+        self.sources = sources
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
@@ -2411,7 +2408,7 @@ def for_loop(
                 experiment=experiment,
                 participant=participant,
                 assets=experiment.assets,
-                stimuli=experiment.stimuli,
+                sources=experiment.sources.get(participant.current_module, {}),
             )
         state = {"lst": lst, "index": 0}
         # participant.for_loops.append(state)
@@ -2446,7 +2443,7 @@ def for_loop(
             experiment=experiment,
             participant=participant,
             assets=experiment.assets,
-            stimuli=experiment.stimuli,
+            sources=experiment.sources.get(participant.current_module, {}),
         )
 
     def should_stay_in_loop(participant):

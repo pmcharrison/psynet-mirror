@@ -126,7 +126,7 @@ stimulus_music_set = StimulusSet("music_tapping", stimulus_music)
 class TapTrialAnalysis(AudioRecordTrial, StaticTrial):
     def get_info(self):
         with tempfile.NamedTemporaryFile() as f:
-            self.stimulus.assets["stimulus"].export_subfile("info.json", f.name)
+            self.source.assets["stimulus"].export_subfile("info.json", f.name)
             with open(f.name, "r") as reader:
                 return json.loads(
                     json.load(reader)
@@ -159,7 +159,7 @@ class TapTrial(TapTrialAnalysis):
         return ModularPage(
             "trial_main_page",
             AudioPrompt(
-                self.stimulus.assets["stimulus"].url + "/audio.wav",
+                self.source.assets["stimulus"].url + "/audio.wav",
                 Markup(
                     f"""
                     <br><h3>Tap in time with the metronome.</h3>

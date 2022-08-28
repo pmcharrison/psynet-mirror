@@ -264,13 +264,11 @@ def debug_experiment(request, env, clear_workers, in_experiment_directory, db_se
     # timeout = request.config.getvalue("recruiter_timeout", 120)
     timeout = 45
 
-    # Seems to be important to load config before initializing the experiment,
-    # something to do with duplicated SQLAlchemy imports
+    get_experiment()
+
     config = get_config()
     if not config.ready:
         config.load()
-
-    get_experiment()
 
     # Make sure debug server runs to completion with bots
     p = pexpect.spawn(

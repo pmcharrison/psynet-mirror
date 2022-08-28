@@ -31,6 +31,7 @@ from pkg_resources import resource_filename
 from sqlalchemy.orm.attributes import flag_modified
 
 from psynet import __version__
+from psynet.trial.source import SourceRegistry
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
@@ -63,7 +64,6 @@ from .trial.main import GenericTrialNetwork, GenericTrialSource, Trial, TrialMak
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
-from .trial.static import SourceRegistry
 from .utils import (
     NoArgumentProvided,
     cache,
