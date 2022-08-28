@@ -695,6 +695,26 @@ def verify_experiment_id(ctx, param, app):
     return verify_id(ctx, param, app)
 
 
+########################
+# generate-constraints #
+########################
+@psynet.command()
+@click.pass_context
+def generate_constraints(ctx):
+    """
+    Generate the constraints.txt file from requirements.txt.
+    """
+    from dallinger.command_line import (
+        generate_constraints as dallinger_generate_constraints,
+    )
+
+    log(header)
+    try:
+        ctx.invoke(dallinger_generate_constraints)
+    finally:
+        reset_console()
+
+
 ##########
 # export #
 ##########
