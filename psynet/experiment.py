@@ -949,7 +949,7 @@ class Experiment(dallinger.experiment.Experiment):
         participant_id = request.form.get("participant_id")
         participant = None
         if participant_id:
-            participant = participant = Participant.query.first()
+            participant = Participant.query.filter_by(id=participant_id).one()
 
         exp = cls.new(db.session)
         recruiter = exp.recruiter
