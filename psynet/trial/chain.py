@@ -154,9 +154,19 @@ class ChainNetwork(TrialNetwork):
         self.target_num_nodes = target_num_nodes
         # The last node in the chain doesn't receive any trials
         self.target_num_trials = (target_num_nodes - 1) * trials_per_node
+
         self.definition = self.make_definition()
         self.block = source.block
-        self.participant_group = self.get_participant_group()
+
+        if source.participant_group:
+            self.participant_group = source.participant_group
+        elif isinstance(self.definition, dict):
+            try:
+                self.participant_group = self.definition["participant_group"]
+            except KeyError:
+                pass
+        else:
+            self.participant_group = "default"
 
         db.session.add(source)
         self.add_node(source)
@@ -167,8 +177,8 @@ class ChainNetwork(TrialNetwork):
         db.session.commit()
 
     def get_participant_group(self):
-        if self.source.block:
-            return self.source_block
+        if self.source.participant_group:
+            return self.source.participant_group
         elif isinstance(self.definition, dict):
             try:
                 return self.definition["participant_group"]
@@ -1067,6 +1077,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if (
             chain_type == "across"
+            and num_trials_per_participant
             and num_trials_per_participant > num_chains_per_experiment
             and not allow_revisiting_networks_in_across_chains
         ):
@@ -1119,7 +1130,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         else:
             raise ValueError(f"Invalid chain_type: {chain_type}")
 
-        assert len(balance_strategy <= 2)
+        assert len(balance_strategy) <= 2
         assert all([x in ["across", "within"] for x in balance_strategy])
 
         self.node_class = node_class
@@ -1127,6 +1138,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.trial_class = trial_class
         self.chain_type = chain_type
         self.num_trials_per_participant = num_trials_per_participant
+        self.max_trials_per_block = max_trials_per_block
         self.num_chains_per_participant = num_chains_per_participant
         self.num_chains_per_experiment = num_chains_per_experiment
         self.num_iterations_per_chain = num_iterations_per_chain

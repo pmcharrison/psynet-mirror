@@ -125,6 +125,7 @@ trial_maker = AnimalTrialMaker(
     id_="animals",
     trial_class=AnimalTrial,
     sources=sources,
+    num_trials_per_participant=6,
     max_trials_per_block=2,
     allow_repeated_sources=True,
     active_balancing_within_participants=True,

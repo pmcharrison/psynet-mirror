@@ -177,6 +177,9 @@ class SourceCollection(NullElt):
     def values(self):
         return [stim[1] for stim in self.items()]
 
+    def __len__(self):
+        return len(self.items())
+
     def create_networks(self, experiment):
         for source in self.sources:
             network = GenericTrialNetwork(experiment)
@@ -212,14 +215,6 @@ class SourceRegistry:
             raise KeyError(
                 f"Can't find the source set '{item}' in the timeline. Are you sure you remembered to add it?"
             )
-
-    # @property
-    # def stimuli(self):
-    #     return [
-    #         s
-    #         for _source_collection in self.source_collections.values()
-    #         for s in _source_collection.stimuli
-    #     ]
 
     def compile_source_collections(self):
         for elt in self.timeline.elts:
