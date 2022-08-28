@@ -4,7 +4,8 @@ from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, StimulusSetFromDir
+from psynet.trial.source import SourceCollectionFromDir
+from psynet.trial.static import StaticTrial, StaticTrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -32,8 +33,7 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="audio_practice",
             trial_class=CustomTrial,
-            phase="practice",
-            stimuli=StimulusSetFromDir(
+            sources=SourceCollectionFromDir(
                 id_="practice", input_dir="input/practice", media_ext=".wav"
             ),
             target_num_participants=0,
@@ -43,8 +43,7 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="audio_experiment",
             trial_class=CustomTrial,
-            phase="experiment",
-            stimuli=StimulusSetFromDir(
+            sources=SourceCollectionFromDir(
                 id_="experiment", input_dir="input/experiment", media_ext=".wav"
             ),
             target_num_participants=10,

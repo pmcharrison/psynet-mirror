@@ -204,7 +204,6 @@ trial_maker = CustomTrialMaker(
     trial_class=CustomTrial,
     node_class=CustomNode,
     source_class=CustomSource,
-    phase="experiment",  # can be whatever you like
     chain_type="across",  # can be "within" or "across"
     num_trials_per_participant=4,
     num_iterations_per_chain=2,

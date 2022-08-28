@@ -117,7 +117,7 @@ class CustomTrial(CustomTrialAnalysis):
         info_stimulus = self.origin.var.info_stimulus
         duration_rec_sec = info_stimulus["duration_rec_sec"]
         trial_number = self.position + 1
-        num_trials = NUM_TRIALS_PARTICIPANT if self.phase == "experiment" else 2
+        num_trials = self.trial_maker.num_trials_per_participant
         return ModularPage(
             "tapping_page",
             AudioPrompt(
@@ -194,16 +194,26 @@ class CustomNode(AudioImitationChainNode):
 
 class CustomSource(AudioImitationChainSource):
     def generate_seed(self, network, experiment, participant):
-        if self.network.phase == "practice":
-            config.DURATION_RANGE = [500, 2000]
-            ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
-            random_seed = [as_native_type(value) for value in ioi_seed]
-            return random_seed
-        else:
-            config.DURATION_RANGE = [250, 2000]
-            ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
-            random_seed = [as_native_type(value) for value in ioi_seed]
-            return random_seed
+        config.DURATION_RANGE = self.duration_range
+        ioi_seed = stimulus.make_ioi_seed(config.IS_FIXED_DURATION)
+        random_seed = [as_native_type(value) for value in ioi_seed]
+        return random_seed
+
+    @property
+    def duration_range(self):
+        raise NotImplementedError
+
+
+class PracticeSource(AudioImitationChainSource):
+    @property
+    def duration_range(self):
+        return [500, 2000]
+
+
+class ExperimentSource(AudioImitationChainSource):
+    @property
+    def duration_range(self):
+        return [250, 2000]
 
 
 # Timeline
@@ -238,7 +248,7 @@ class Exp(psynet.experiment.Experiment):
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
+            source_class=ExperimentSource,
             phase="experiment",
             chain_type="within",
             num_trials_per_participant=NUM_TRIALS_PARTICIPANT,

@@ -64,9 +64,6 @@ class StaticTrial(Trial):
         The corresponding :class:`~psynet.trial.static.Stimulus`
         object.
 
-    phase
-        The phase of the experiment, e.g. ``"training"`` or ``"main"``.
-
     participant_group
         The associated participant group.
 
@@ -79,7 +76,6 @@ class StaticTrial(Trial):
     source_id = Column(Integer, ForeignKey("node.id"))
     source = relationship("psynet.trial.source.Source", foreign_keys=[source_id])
 
-    phase = Column(String)
     participant_group = Column(String)
     block = Column(String)
 
@@ -148,10 +144,6 @@ class StaticTrialMaker(ChainTrialMaker):
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.static.StaticTrial`).
-
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
 
     sources
         The source collection to be administered.

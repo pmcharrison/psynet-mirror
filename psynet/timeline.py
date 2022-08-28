@@ -2177,8 +2177,6 @@ class Module:
         return join(StartModule(self.id, module=self), self.elts, EndModule(self.id))
 
     def visualize(self):
-        phase = self.phase if hasattr(self, "phase") else None
-
         if self.started_participants:
             time_started_last = self.started_participants[-1].modules[self.id][
                 "time_started"
@@ -2200,9 +2198,6 @@ class Module:
             with tags.h4("Module"):
                 tags.i(self.id)
             with tags.ul(cls="details"):
-                if phase is not None:
-                    tags.li(f"Phase: {phase}")
-                    tags.br()
                 tags.li(f"Participants started: {len(self.started_participants)}")
                 tags.li(f"Participants finished: {len(self.finished_participants)}")
                 tags.li(f"Participants aborted: {len(self.aborted_participants)}")

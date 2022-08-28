@@ -113,7 +113,6 @@ class Exp(psynet.experiment.Experiment):
         StaticTrialMaker(
             id_="static_audio",
             trial_class=CustomTrial,
-            phase="experiment",
             stimuli=stimuli,
             target_num_participants=3,
             recruit_mode="num_participants",

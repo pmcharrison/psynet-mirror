@@ -47,10 +47,6 @@ class ChainNetwork(TrialNetwork):
         The class object for network sources. A source is the 'seed' for a network,
         providing some data which is somehow propagated to other nodes.
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
@@ -84,11 +80,6 @@ class ChainNetwork(TrialNetwork):
     target_num_trials : int or None
         Indicates the target number of trials for that network.
         Left empty by default, but can be set by custom ``__init__`` functions.
-
-    phase : str
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set by default in the ``__init__`` function.
 
     awaiting_async_process : bool
         Whether the network is currently waiting for an asynchronous process to complete.
@@ -143,7 +134,6 @@ class ChainNetwork(TrialNetwork):
         self,
         trial_maker_id: str,
         source,
-        phase: str,
         experiment,
         chain_type: str,
         trials_per_node: int,
@@ -151,7 +141,7 @@ class ChainNetwork(TrialNetwork):
         participant=None,
         id_within_participant: Optional[int] = None,
     ):
-        super().__init__(trial_maker_id, phase, experiment)
+        super().__init__(trial_maker_id, experiment)
         db.session.add(self)
         db.session.commit()
 
@@ -425,11 +415,6 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         The node's child (i.e. direct descendant) in the chain, or
         ``None`` if no child exists.
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
-
     target_num_trials
         The target number of trials for the node,
         set from :attr:`psynet.trial.chain.ChainNetwork.trials_per_node`.
@@ -566,11 +551,6 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         return self.network.source
 
     @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.network.phase
-
-    @property
     def target_num_trials(self):
         return self.network.trials_per_node
 
@@ -647,11 +627,6 @@ class ChainSource(ChainNode, HasSeed):
 
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
-
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set from :attr:`psynet.trial.chain.ChainNetwork.phase`.
 
     ready_to_spawn
         Always returns ``True`` for :class:`~psynet.trial.chain.ChainSource` objects.
@@ -819,11 +794,6 @@ class ChainTrial(Trial):
         :class:`~psynet.trial.chain.ChainNetwork`
         to which the :class:`~psynet.trial.chain.ChainTrial` belongs.
 
-    phase : str
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Pulled from the :attr:`~psynet.trial.chain.ChainTrial.node` attribute.
-
     propagate_failure : bool
         Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
@@ -849,11 +819,6 @@ class ChainTrial(Trial):
     @extra_var(__extra_vars__)
     def degree(self):
         return self.node.degree
-
-    @property
-    @extra_var(__extra_vars__)
-    def phase(self):
-        return self.node.phase
 
     @property
     def node(self):
@@ -927,10 +892,6 @@ class ChainTrialMaker(NetworkTrialMaker):
     trial_class
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.chain.ChainTrial`).
-
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
 
     chain_type
         Either ``"within"`` for within-participant chains,
@@ -1081,7 +1042,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         node_class,
         source_class,
         trial_class,
-        phase: str,
         chain_type: str,
         num_trials_per_participant: int,
         num_chains_per_participant: Optional[int],
@@ -1165,7 +1125,6 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.node_class = node_class
         self.source_class = source_class
         self.trial_class = trial_class
-        self.phase = phase
         self.chain_type = chain_type
         self.num_trials_per_participant = num_trials_per_participant
         self.num_chains_per_participant = num_chains_per_participant
@@ -1186,7 +1145,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             id_=id_,
             trial_class=trial_class,
             network_class=network_class,
-            phase=phase,
             expected_num_trials=num_trials_per_participant + num_repeat_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
@@ -1321,7 +1279,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def all_participant_networks_ready(self, participant):
         networks = self.network_class.query.filter_by(
-            participant_id=participant.id, phase=self.phase, trial_maker_id=self.id
+            participant_id=participant.id, trial_maker_id=self.id
         ).all()
         return all([not x.awaiting_async_process for x in networks])
 
@@ -1424,13 +1382,11 @@ class ChainTrialMaker(NetworkTrialMaker):
             "Looking for networks for participant %i.",
             participant.id,
         )
-        n_completed_trials_in_phase = self.get_num_completed_trials_in_phase(
-            participant
-        )
-        if n_completed_trials_in_phase >= self.num_trials_per_participant:
+        n_completed_trials = self.get_num_completed_trials(participant)
+        if n_completed_trials >= self.num_trials_per_participant:
             logger.info(
-                "N completed trials in phase (%i) >= N trials per participant (%i), skipping forward",
-                n_completed_trials_in_phase,
+                "N completed trials (%i) >= N trials per participant (%i), skipping forward",
+                n_completed_trials,
                 self.num_trials_per_participant,
             )
             return "exit"
@@ -1445,14 +1401,13 @@ class ChainTrialMaker(NetworkTrialMaker):
                 self.go_to_next_block(participant)
 
         networks = self.network_class.query.filter_by(
-            trial_maker_id=self.id, block=self.phase, full=False
+            trial_maker_id=self.id, full=False
         )
 
         logger.info(
-            "There are %i non-full networks for trialmaker %s and phase %s.",
+            "There are %i non-full networks for trialmaker %s.",
             networks.count(),
             self.id,
-            self.phase,
         )
 
         if self.chain_type == "within":
@@ -1542,8 +1497,9 @@ class ChainTrialMaker(NetworkTrialMaker):
                 )
 
         current_block = self.get_current_block(participant)
-        block_order = self.get_block_order(participant)
-        networks.sort(key=lambda network: block_order.index(network.block))
+        current_block_position = self.get_current_block_position(participant)
+        remaining_blocks = self.get_block_order(participant)[current_block_position:]
+        networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
         chosen = networks[0]
         if chosen.block != current_block:

@@ -16,10 +16,8 @@ from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, sele
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
-from sqlalchemy.sql.expression import cast
 
 from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
@@ -1013,10 +1011,6 @@ class TrialMaker(Module):
     trial_class
         The class object for trials administered by this maker.
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-
     expected_num_trials
         Expected number of trials that the participant will take,
         including repeat trials
@@ -1105,7 +1099,6 @@ class TrialMaker(Module):
         self,
         id_: str,
         trial_class,
-        phase: str,
         expected_num_trials: Union[int, float],
         check_performance_at_end: bool,
         check_performance_every_trial: bool,
@@ -1128,7 +1121,6 @@ class TrialMaker(Module):
 
         self.trial_class = trial_class
         self.id = id_
-        self.phase = phase
         self.expected_num_trials = expected_num_trials
         self.check_performance_at_end = check_performance_at_end
         self.check_performance_every_trial = check_performance_every_trial
@@ -1376,9 +1368,7 @@ class TrialMaker(Module):
         raise NotImplementedError
 
     def estimate_num_pending_trials(self, participant):
-        return self.expected_num_trials - self.get_num_completed_trials_in_phase(
-            participant
-        )
+        return self.expected_num_trials - self.get_num_completed_trials(participant)
 
     @property
     def working_participants(self):
@@ -1424,7 +1414,7 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
-        self.init_num_completed_trials_in_phase(participant)
+        self.init_num_completed_trials(participant)
         participant.var.set(self.with_namespace("in_repeat_phase"), False)
         self.init_participant_group(experiment, participant)
 
@@ -1505,7 +1495,7 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
-        self.increment_num_completed_trials_in_phase(participant)
+        self.increment_num_completed_trials(participant)
 
     def performance_check(self, experiment, participant, participant_trials):
         # pylint: disable=unused-argument
@@ -1623,7 +1613,7 @@ class TrialMaker(Module):
     def get_participant_trials(self, participant):
         """
         Returns all trials (complete and incomplete) owned by the current participant,
-        including repeat trials, in the current phase. Not intended for overriding.
+        including repeat trials. Not intended for overriding.
 
         Parameters
         ----------
@@ -1736,24 +1726,24 @@ class TrialMaker(Module):
         )
 
     @property
-    def num_completed_trials_in_phase_var_id(self):
-        return self.with_namespace("num_completed_trials_in_phase")
+    def num_completed_trials_var_id(self):
+        return self.with_namespace("num_completed_trials")
 
-    def set_num_completed_trials_in_phase(self, participant, value):
-        participant.var.set(self.num_completed_trials_in_phase_var_id, value)
+    def set_num_completed_trials(self, participant, value):
+        participant.var.set(self.num_completed_trials_var_id, value)
 
-    def get_num_completed_trials_in_phase(self, participant):
+    def get_num_completed_trials(self, participant):
         try:
-            return participant.var.get(self.num_completed_trials_in_phase_var_id)
+            return participant.var.get(self.num_completed_trials_var_id)
         except UndefinedVariableError:
             return 0
 
-    def init_num_completed_trials_in_phase(self, participant):
-        self.set_num_completed_trials_in_phase(participant, 0)
+    def init_num_completed_trials(self, participant):
+        self.set_num_completed_trials(participant, 0)
 
-    def increment_num_completed_trials_in_phase(self, participant):
-        self.set_num_completed_trials_in_phase(
-            participant, self.get_num_completed_trials_in_phase(participant) + 1
+    def increment_num_completed_trials(self, participant):
+        self.set_num_completed_trials(
+            participant, self.get_num_completed_trials(participant) + 1
         )
 
     def check_time_estimates(self):
@@ -1845,10 +1835,6 @@ class NetworkTrialMaker(TrialMaker):
     network_class
         The class object for the networks used by this maker.
         This should subclass :class`~psynet.trial.main.TrialNetwork`.
-
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
 
     expected_num_trials
         Expected number of trials that the participant will take,
@@ -1950,7 +1936,6 @@ class NetworkTrialMaker(TrialMaker):
         id_,
         trial_class,
         network_class,
-        phase,
         expected_num_trials,
         check_performance_at_end,
         check_performance_every_trial,
@@ -1966,7 +1951,6 @@ class NetworkTrialMaker(TrialMaker):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
-            phase=phase,
             expected_num_trials=expected_num_trials,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
@@ -2108,9 +2092,7 @@ class NetworkTrialMaker(TrialMaker):
 
     @property
     def network_query(self):
-        return self.network_class.query.filter_by(
-            trial_maker_id=self.id, phase=self.phase
-        )
+        return self.network_class.query.filter_by(trial_maker_id=self.id)
 
     @property
     def num_networks(self):
@@ -2127,7 +2109,7 @@ class NetworkTrialMaker(TrialMaker):
 
     def compute_bonus(self, score, passed):
         """
-        Computes the bonus to allocate to the participant at the end of a phase
+        Computes the bonus to allocate to the participant at the end of a trial maker
         on the basis of the results of the final performance check.
         Note: if `check_performance_at_end = False`, then this function will not be run
         and the bonus will not be assigned.
@@ -2243,10 +2225,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     Parameters
     ----------
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
         corresponding to the current experiment.
@@ -2261,12 +2239,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     awaiting_async_process : bool
         Whether the network is currently closed and waiting for an asynchronous process to complete.
-
-    phase : str
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Set by default in the ``__init__`` function.
-        Stored as the field ``role`` in the database.
 
     source : Optional[TrialSource]
         Returns the network's :class:`~psynet.trial.main.TrialSource`,
@@ -2365,19 +2337,6 @@ class TrialNetwork(SQLMixinDallinger, Network):
     def var(self):
         return VarStore(self)
 
-    # Phase ####
-    @hybrid_property
-    def phase(self):
-        return self.role
-
-    @phase.setter
-    def phase(self, value):
-        self.role = value
-
-    @phase.expression
-    def phase(self):
-        return cast(self.role, String)
-
     awaiting_async_process = column_property(
         select(AsyncProcess)
         .where(
@@ -2392,13 +2351,11 @@ class TrialNetwork(SQLMixinDallinger, Network):
     def __init__(
         self,
         trial_maker_id: str,
-        phase: str,
         experiment,
         module_id: Optional[str] = None,
     ):
         # pylint: disable=unused-argument
         self.trial_maker_id = trial_maker_id
-        self.phase = phase
         self.assets = {}
 
         if not module_id:
@@ -2563,7 +2520,6 @@ class TrialSource(TrialNode):
 #             id_="null",
 #             trial_class=Trial,
 #             network_class=GenericTrialNetwork,
-#             phase="experiment",
 #             expected_num_trials=None,
 #             check_performance_at_end=False,
 #             check_performance_every_trial=False,
@@ -2593,7 +2549,6 @@ class GenericTrialNetwork(TrialNetwork):
     def __init__(self, experiment):
         super().__init__(
             trial_maker_id=None,
-            phase="experiment",
             experiment=experiment,
         )
 

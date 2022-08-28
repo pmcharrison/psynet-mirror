@@ -45,8 +45,8 @@ DESIGN_PARAMS = {
 
 
 # experiment parts
-class CustomTrial(AudioImitationChainTrial):
-    time_estimate = TIME_ESTIMATE_TRIAL
+class IteratedSingingTrial(AudioImitationChainTrial):
+    time_estimate = None
 
     def make_definition(self, experiment, participant):
         definition = super().make_definition(experiment, participant)
@@ -74,22 +74,6 @@ class CustomTrial(AudioImitationChainTrial):
         return definition
 
     def show_trial(self, experiment, participant):
-        trial_number = self.position + 1
-        if self.phase == "experiment":
-            message = Markup(
-                f"""
-                <i>Trial number {trial_number} out of {DESIGN_PARAMS["num_trials_per_participant"]} required trials.
-                The maximum number of possible trials is {DESIGN_PARAMS["max_trials_per_participant"]}.</i>
-                """
-            )
-
-        else:
-            message = Markup(
-                f"""
-                <i>Trial number {trial_number} out of {DESIGN_PARAMS["num_trials_practice"]} trials.</i>
-                """
-            )
-
         return ModularPage(
             "singing_page",
             JSSynth(
@@ -98,7 +82,7 @@ class CustomTrial(AudioImitationChainTrial):
                     <h3>Imitate the melody</h3>
                     Listen to the melody and sing it back to the syllable 'Ta'.
                     <br><br>
-                    {message}
+                    {self.progress_message}
                     """
                 ),
                 sequence=[Note(x) for x in self.definition["target_pitches"]],
@@ -132,6 +116,10 @@ class CustomTrial(AudioImitationChainTrial):
                 ],
             ),
         )
+
+    @property
+    def progress_message(self):
+        raise NotImplementedError
 
     def analyze_recording(self, audio_file: str, output_plot: str):
         raw = sing.analyze(
@@ -181,13 +169,23 @@ class CustomTrial(AudioImitationChainTrial):
         }
 
 
-class CustomTrialPractice(CustomTrial):
+class CustomTrialPractice(IteratedSingingTrial):
     wait_for_feedback = True
 
     def gives_feedback(self, experiment, participant):
         return True
 
     time_estimate = 10
+
+    @property
+    def progress_message(self):
+        trial_number = self.position + 1
+
+        return Markup(
+            f"""
+            <i>Trial number {trial_number} out of {DESIGN_PARAMS["num_trials_practice"]} trials.</i>
+            """
+        )
 
     def show_feedback(self, experiment, participant):
         feedback = utils.feedback_generator(self.details["analysis"])
@@ -241,6 +239,21 @@ class CustomTrialPractice(CustomTrial):
                 ),
                 time_estimate=5,
             )
+
+
+class IteratedSingingTrialExperiment(IteratedSingingTrial):
+    time_estimate = TIME_ESTIMATE_TRIAL
+
+    @property
+    def progress_message(self):
+        trial_number = self.position + 1
+
+        return Markup(
+            f"""
+            <i>Trial number {trial_number} out of {DESIGN_PARAMS["num_trials_per_participant"]} required trials.
+            The maximum number of possible trials is {DESIGN_PARAMS["max_trials_per_participant"]}.</i>
+            """
+        )
 
 
 class CustomNetwork(AudioImitationChainNetwork):
@@ -324,7 +337,6 @@ SingingFeedback = join(
         trial_class=CustomTrialPractice,
         node_class=CustomNode,
         source_class=CustomSource,
-        phase="practice",
         chain_type="within",
         num_iterations_per_chain=1,
         num_trials_per_participant=DESIGN_PARAMS["num_trials_practice"],
@@ -372,7 +384,7 @@ SingingMainTask1 = join(
     AudioImitationChainTrialMaker(
         id_="first_trial_maker",
         network_class=CustomNetwork,
-        trial_class=CustomTrial,
+        trial_class=IteratedSingingTrialExperiment,
         node_class=CustomNode,
         source_class=CustomSource,
         phase="experiment",

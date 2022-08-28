@@ -96,7 +96,7 @@ class TestExp:
             participant = Participant.query.filter_by(id=1).one()
             p_trials = trial_maker.get_participant_trials(participant=participant)
 
-            completed_stimuli = trial_maker.get_completed_stimuli_in_phase(participant)
+            completed_stimuli = trial_maker.get_completed_stimuli(participant)
             for counter in completed_stimuli.values():
                 for id_ in counter.keys():
                     assert isinstance(id_, int)

@@ -70,7 +70,6 @@ def new_trial_maker(**kwarg):
         node_class=ChainNode,
         source_class=ChainSource,
         trial_class=CustomTrial,
-        phase="test",
         chain_type="across",
         num_iterations_per_chain=10,
         num_trials_per_participant=5,

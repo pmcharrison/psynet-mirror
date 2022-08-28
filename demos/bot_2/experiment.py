@@ -11,7 +11,7 @@ from statistics import mean
 import psynet.experiment
 from psynet.bot import Bot
 from psynet.consent import NoConsent
-from psynet.experiment import get_experiment, scheduled_task
+from psynet.experiment import scheduled_task
 from psynet.modular_page import ModularPage, Prompt, TextControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import FailedValidation, Timeline
@@ -124,7 +124,6 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
-            phase="experiment",
             chain_type="within",
             num_iterations_per_chain=5,
             num_trials_per_participant=5,

@@ -14,7 +14,8 @@ from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import InfoPage, SuccessfulEndPage
 from psynet.timeline import CodeBlock, Timeline
-from psynet.trial.static import StaticTrial, StaticTrialMaker, Stimulus
+from psynet.trial.source import Source
+from psynet.trial.static import StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -25,8 +26,8 @@ from . import test_imports  # noqa  (this is for PsyNet's regression tests)
 # Stimuli
 ##########################################################################################
 
-stimuli = [
-    Stimulus(
+sources = [
+    Source(
         definition={"animal": animal},
         block=block,
     )
@@ -123,17 +124,15 @@ class AnimalTrialMaker(StaticTrialMaker):
 trial_maker = AnimalTrialMaker(
     id_="animals",
     trial_class=AnimalTrial,
-    phase="experiment",
-    stimuli=stimuli,
+    sources=sources,
     max_trials_per_block=2,
-    allow_repeated_stimuli=True,
-    max_unique_stimuli_per_block=None,
+    allow_repeated_sources=True,
     active_balancing_within_participants=True,
     active_balancing_across_participants=True,
     check_performance_at_end=True,
     check_performance_every_trial=True,
     target_num_participants=1,
-    target_num_trials_per_stimulus=None,
+    target_num_trials_per_source=None,
     recruit_mode="num_participants",
     num_repeat_trials=3,
 )

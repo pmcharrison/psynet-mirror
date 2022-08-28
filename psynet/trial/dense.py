@@ -75,11 +75,6 @@ class DenseTrialMaker(StaticTrialMaker):
     conditions
         Defines a collection of conditions to be administered to the participants.
 
-    phase
-        Arbitrary label for this phase of the experiment, e.g.
-        "practice", "train", "test".
-        Defaults to ``"default"``.
-
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
@@ -198,7 +193,6 @@ class DenseTrialMaker(StaticTrialMaker):
         id_: str,
         trial_class,
         conditions: "List[Condition]",
-        phase: str = "default",
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
         target_num_trials_per_condition: Optional[int] = None,
@@ -215,7 +209,6 @@ class DenseTrialMaker(StaticTrialMaker):
         super().__init__(
             id_=id_,
             trial_class=trial_class,
-            phase=phase,
             stimuli=conditions,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
@@ -246,11 +239,6 @@ class Condition(Source):
         Crucially, this dictionary must contain an item called "dimensions",
         corresponding to a list of :class:`~psynet.trial.dense.Dimension` objects
         which combine to define the stimulus space.
-
-    phase
-        The associated phase of the experiment,
-        e.g. ``"practice"`` or ``"main"``.
-        Make sure to match this with the corresponding argument in the trial maker.
 
     participant_group
         The associated participant group.

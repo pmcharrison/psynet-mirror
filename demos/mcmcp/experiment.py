@@ -95,7 +95,6 @@ class Exp(psynet.experiment.Experiment):
             trial_class=CustomTrial,
             node_class=CustomNode,
             source_class=CustomSource,
-            phase="experiment",  # can be whatever you like
             chain_type="within",  # can be "within" or "across"
             num_trials_per_participant=10,
             num_chains_per_participant=2,  # set to None if chain_type="across"
