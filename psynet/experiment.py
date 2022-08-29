@@ -932,24 +932,27 @@ class Experiment(dallinger.experiment.Experiment):
         """
         return Participant.query.filter_by(worker_id=worker_id).one()
 
-    @experiment_route("/verify_js", methods=["GET", "POST"])
+    @experiment_route("/approve_participant", methods=["GET", "POST"])
     @staticmethod
-    def verify_js():
-        js_activated = request.values["js_activated"]
-        if js_activated == "1":
+    def approve_participant():
+        approve = request.values["approve"]
+        assignment_id = request.values["assignment_id"]
+        if approve == "1":
             return render_template(
                 "consent.html",
+                participant_id=request.values["assignment_id"],
                 query_string=request.values["query_string"],
             )
         else:
-            rid = request.values["rid"]
             exp = dallinger.experiment.load().new(db.session)
             recruiter = exp.recruiter
             external_submit_url = None
             if hasattr(recruiter, "external_submit_url"):
-                external_submit_url = recruiter.external_submit_url(rid=rid)
+                external_submit_url = recruiter.external_submit_url(
+                    assignment_id=assignment_id
+                )
             if hasattr(recruiter, "terminate_participant"):
-                recruiter.terminate_participant(rid)
+                recruiter.terminate_participant(assignment_id)
             return render_template(
                 "exit_recruiter_lucid.html",
                 external_submit_url=external_submit_url,
