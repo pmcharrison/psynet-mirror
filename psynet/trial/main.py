@@ -793,7 +793,7 @@ class Trial(SQLMixinDallinger, Info):
         try:
             return TrialNode.query.filter_by(
                 module_id=participant.current_module_id,
-            )
+            ).one()
         except NoResultFound:
             node = GenericTrialNode()
             db.session.add(node)
