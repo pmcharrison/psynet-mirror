@@ -95,7 +95,7 @@ class GibbsTrial(ChainTrial):
         reverse_scale = self.choose_reverse_scale()
 
         if self.resample_free_parameter:
-            vector[active_index] = self.network.random_sample(active_index)
+            vector[active_index] = self.node.random_sample(active_index)
 
         definition = {
             "vector": vector,

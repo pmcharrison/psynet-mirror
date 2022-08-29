@@ -90,13 +90,6 @@ class ColorSliderPage(ModularPage):
 class CustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
-    # TODO - migrate this to start_nodes
-    def make_definition(self):
-        return {
-            "target": self.balance_across_networks(TARGETS),
-            "participant_group": self.balance_across_networks(["A", "B"]),
-        }
-
     def async_post_grow_network(self):
         from psynet.field import UndefinedVariableError
 
@@ -114,7 +107,7 @@ class CustomTrial(GibbsTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
-        target = self.network.definition["target"]
+        target = self.context["target"]
         prompt = Markup(
             f"<h3 id='participant-group'>Participant group = {participant.get_participant_group('gibbs_demo')}</h3>"
             "<p>Adjust the slider to match the following word as well as possible: "
@@ -187,8 +180,15 @@ class CustomTrialMaker(GibbsTrialMaker):
         return sorted(candidates, key=lambda x: x.id)
 
 
+start_nodes = [
+    CustomNode(context={"target": target}, participant_group=participant_group)
+    for target in TARGETS
+    for participant_group in ["A", "B"]
+]
+
 trial_maker = CustomTrialMaker(
     id_="gibbs_demo",
+    start_nodes=start_nodes,
     network_class=CustomNetwork,
     trial_class=CustomTrial,
     node_class=CustomNode,

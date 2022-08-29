@@ -273,7 +273,8 @@ class Trial(SQLMixinDallinger, Info):
 
     node_id = Column(Integer, ForeignKey("node.id"))
     participant_id = Column(Integer, ForeignKey("participant.id"))
-    module_id = Column(String)
+    # module_id = Column(String)
+    module_id = association_proxy("node", "module_id")
     trial_maker_id = Column(String)
     definition = Column(PythonDict)
     complete = Column(Boolean)
@@ -420,7 +421,8 @@ class Trial(SQLMixinDallinger, Info):
         definition=NoArgumentProvided,  # If provided, overrides make definition
     ):
         super().__init__(origin=node)
-        self.node_id = node.id
+        self.node = node
+        # self.node_id = node.id
         self.complete = False
         self.finalized = False
         self.participant_id = participant.id
@@ -433,7 +435,7 @@ class Trial(SQLMixinDallinger, Info):
         self.response_id = None
         self.time_taken = None
         self.trial_maker_id = node.trial_maker_id
-        self.module_id = node.module_id
+        # self.module_id = node.module_id
 
         if assets is None:
             assets = {}

@@ -28,15 +28,14 @@ SAMPLE_RANGE = 5
 
 
 class CustomNetwork(MCMCPNetwork):
-    def make_definition(self):
-        return {"occupation": self.balance_across_networks(OCCUPATIONS)}
+    pass
 
 
 class CustomTrial(MCMCPTrial):
     time_estimate = 5
 
     def show_trial(self, experiment, participant):
-        occupation = self.network.definition["occupation"]
+        occupation = self.context["occupation"]
         age_1 = self.first_stimulus["age"]
         age_2 = self.second_stimulus["age"]
         prompt = (
@@ -64,6 +63,17 @@ class CustomNode(MCMCPNode):
         return {"age": age}
 
 
+def start_nodes(participant):
+    return [
+        MCMCPNode(
+            context={
+                "occupation": occupation,
+            },
+        )
+        for occupation in OCCUPATIONS
+    ]
+
+
 ##########################################################################################
 # Experiment
 ##########################################################################################
@@ -83,6 +93,7 @@ class Exp(psynet.experiment.Experiment):
         MainConsent(),
         MCMCPTrialMaker(
             id_="mcmcp_demo",
+            start_nodes=start_nodes,
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,

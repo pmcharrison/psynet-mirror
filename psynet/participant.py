@@ -288,7 +288,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         else:
             unfinished = [x for x in self.module_states if not x.finished]
             unfinished.sort(key=lambda x: x.time_started)
-            return unfinished[-1]
+            if len(unfinished) == 0:
+                return None
+            else:
+                return unfinished[-1]
 
     @property
     @extra_var(__extra_vars__)

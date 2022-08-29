@@ -4,12 +4,14 @@ from typing import List, Optional, Set, Type
 
 from dallinger import db
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
-from ..field import PythonObject, VarStore, extra_var
+from ..field import PythonObject, VarStore
 from ..page import wait_while
-from ..utils import call_function, call_function_with_context, get_logger, negate
+from ..timeline import is_list_of
+from ..utils import call_function_with_context, get_logger, negate
 from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode
 
 logger = get_logger()
@@ -429,6 +431,7 @@ class ChainNode(TrialNode):
     parent_id = Column(Integer, ForeignKey("node.id"))
     seed = Column(PythonObject, default=lambda: {})
     definition = Column(PythonObject, default=lambda: {})
+    context = Column(PythonObject)
     participant_group = Column(String)
     block = Column(String)
     propagate_failure = Column(Boolean)
@@ -444,6 +447,7 @@ class ChainNode(TrialNode):
         self,
         *,
         definition=None,
+        context=None,
         seed=None,
         parent=None,
         participant_group=None,
@@ -481,8 +485,10 @@ class ChainNode(TrialNode):
         if module_id is None:
             if parent:
                 module_id = parent.module_id
-            else:
-                module_id = None
+
+        if context is None:
+            if parent:
+                context = parent.context
 
         if not definition and not seed:
             seed = self.create_initial_seed(experiment, participant)
@@ -500,6 +506,7 @@ class ChainNode(TrialNode):
         self.module_id = module_id
         self.seed = seed
         self.definition = definition
+        self.context = context
         self.propagate_failure = propagate_failure
         self._staged_assets = assets
 
@@ -765,24 +772,27 @@ class ChainTrial(Trial):
     # pylint: disable=abstract-method
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    participant_group = Column(String)
-    block = Column(String)
+    block = association_proxy("node", "block")
+    participant_group = association_proxy("node", "participant_group")
+    degree = association_proxy("node", "degree")
+    context = association_proxy("node", "context")
+
     block_position = Column(Integer)
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
-        self.participant_group = self.node.participant_group
-        self.block = self.node.block
+        # self.participant_group = self.node.participant_group
+        # self.block = self.node.block
         self.block_position = self.trial_maker.get_current_block_position(participant)
 
-    @property
-    @extra_var(__extra_vars__)
-    def degree(self):
-        return self.node.degree
-
-    @property
-    def node(self):
-        return self.origin
+    # @property
+    # @extra_var(__extra_vars__)
+    # def degree(self):
+    #     return self.node.degree
+    #
+    # @property
+    # def node(self):
+    #     return self.origin
 
     @property
     def failure_cascade(self):
@@ -1055,7 +1065,17 @@ class ChainTrialMaker(NetworkTrialMaker):
                 "one of num_nodes_per_chain and num_iterations_per_chain must be provided"
             )
 
-        assert start_nodes is None or callable(start_nodes)
+        if chain_type == "within":
+            assert start_nodes is None or callable(start_nodes)
+        elif chain_type == "across":
+            assert (
+                start_nodes is None
+                or callable(start_nodes)
+                or is_list_of(start_nodes, ChainNode)
+            )
+        else:
+            raise ValueError(f"Unrecognized chain type: {chain_type}")
+
         self.start_nodes = start_nodes
 
         assert len(balance_strategy) <= 2
@@ -1203,8 +1223,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         participant_trials_in_trial_maker,
     ):  # noqa
         return (
-            len(participant_trials_in_block) >= self.max_trials_per_block
-            or len(participant_trials_in_trial_maker) >= self.num_trials_per_participant
+            self.max_trials_per_block is not None
+            and len(participant_trials_in_block) >= self.max_trials_per_block
+        ) or (
+            self.num_trials_per_participant is not None
+            and len(participant_trials_in_trial_maker)
+            >= self.num_trials_per_participant
         )
 
     @property
@@ -1272,13 +1296,16 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def create_networks_across(self, experiment):
         if self.start_nodes:
-            nodes = call_function(
-                self.start_nodes,
-                experiment=experiment,
-            )
+            if callable(self.start_nodes):
+                nodes = call_function_with_context(
+                    self.start_nodes, experiment=experiment
+                )
+            else:
+                nodes = self.start_nodes
+                assert isinstance(nodes, list)
             assert len(nodes) == self.num_chains_per_experiment, (
                 f"Problem with trial maker {self.id}: "
-                f"The number of nodes created by start_nodes ({len(nodes)}) did not equal 0 or "
+                f"The number of nodes provided by start_nodes ({len(nodes)}) did not equal 0 or "
                 f"num_chains_per_experiment ({self.num_chains_per_experiment})."
             )
         else:

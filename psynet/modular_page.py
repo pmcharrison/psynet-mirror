@@ -15,6 +15,7 @@ from .timeline import Event, FailedValidation, MediaSpec, Page, Trigger, is_list
 from .utils import (
     NoArgumentProvided,
     call_function,
+    call_function_with_context,
     get_logger,
     is_valid_html5_id,
     linspace,
