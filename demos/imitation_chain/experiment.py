@@ -17,7 +17,6 @@ from psynet.timeline import FailedValidation, Timeline
 from psynet.trial.imitation_chain import (
     ImitationChainNetwork,
     ImitationChainNode,
-    ImitationChainSource,
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
@@ -60,14 +59,14 @@ class CustomTrial(ImitationChainTrial):
 
     def show_trial(self, experiment, participant):
         page_1 = InfoPage(
-            f"Try to remember this 7-digit number: {self.definition:07d}",
+            f"Try to remember this 7-digit number: {self.definition['number']:07d}",
             time_estimate=2,
         )
         page_2 = FixedDigitInputPage(
             "number",
             "What was the number?",
             time_estimate=3,
-            bot_response=lambda: self.definition,
+            bot_response=lambda: self.definition["number"],
         )
 
         return [page_1, page_2]
@@ -78,13 +77,11 @@ class CustomNetwork(ImitationChainNetwork):
 
 
 class CustomNode(ImitationChainNode):
+    def create_initial_seed(self, experiment, participant):
+        return {"number": random.randint(0, 9999999)}
+
     def summarize_trials(self, trials: list, experiment, paricipant):
-        return round(mean([trial.answer for trial in trials]))
-
-
-class CustomSource(ImitationChainSource):
-    def generate_seed(self, network, experiment, participant):
-        return random.randint(0, 9999999)
+        return {"number": round(mean([trial.answer for trial in trials]))}
 
 
 class CustomTrialMaker(ImitationChainTrialMaker):
@@ -111,7 +108,6 @@ class Exp(psynet.experiment.Experiment):
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
             chain_type="within",
             num_iterations_per_chain=5,
             num_trials_per_participant=5,
