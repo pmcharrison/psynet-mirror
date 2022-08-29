@@ -39,12 +39,11 @@
   <div class="alert alert-warning">
     <span style="font-weight: bold;">Warning</span>: Please disable pop-up blockers before continuing.
   </div>
-
-  <form method="POST" action="/verify_js">
-    <input type="hidden" id="js-activated" name="js_activated" value="0">
+  <form method="POST" action="/approve_participant">
+    <input type="hidden" id="approve" name="approve" value="0">
     <input type="hidden" name="query_string" value="{{query_string|safe}}">
-    <input type="hidden" name="rid" value="{{assignmentid}}">
-    <input type="submit" class="btn btn-primary btn-lg" value="Next">
+    <input type="hidden" name="assignment_id" value="{{assignmentid}}">
+    <input type="submit" id="form-submit" class="btn btn-primary btn-lg" value="Next">
   </form>
   {% endif %}
   {% if experiment.var.show_abort_button %}
@@ -92,17 +91,15 @@
 
       document.getElementById("begin-button").onclick = proceedToConsentPage;
     {% else %}
-      document.getElementById('js-activated').value = 1;
+      document.getElementById('approve').value = 1;
 
       // Terminate on no interaction
       setInterval(terminate, 1000);
       function terminate() {
         const urlParams = new URLSearchParams(window.location.search);
-        const rid = urlParams.get('RID')
-
         postData = {};
         postData["auth_token"] = "{{ auth_token }}";
-        postData["rid"] = rid;
+        postData["rid"] = urlParams.get('RID');
         $.post("/check_participant_termination", postData, function(data) {
           console.log(data);
           if (parseInt(data) >= 0) {
@@ -116,15 +113,21 @@
         });
       }
 
-      const INACTIVE_THRESHOLD = 60000;
+      // Terminate on interaction (page reload, window/tab close, no focus)
+      const INACTIVE_THRESHOLD = {{experiment.recruiter.ad_page_inactivity_timeout_in_s}} * 1000;
       const POLLING_FREQUENCY = 200;
       const checkFocusInterval = setInterval(checkFocus, POLLING_FREQUENCY);
       const cancelParticipantInterval = setInterval(checkParticipant, POLLING_FREQUENCY);
       var triedToLeave = false;
       var noFocusSince = 0;
-      var rid = "{{assignmentid}}";
-      var url = "{{experiment.recruiter.external_submit_url(rid=assignmentid)|safe}}";
+      var assignment_id = "{{assignmentid}}";
+      var url = "{{experiment.recruiter.external_submit_url(assignment_id=assignmentid)|safe}}";
       window.addEventListener("beforeunload", beforeunloadFunction);
+
+      // Proceed to consent
+      document.getElementById("form-submit").onclick = function() {
+        window.removeEventListener("beforeunload", beforeunloadFunction);
+      }
 
       function beforeunloadFunction(event){
         event.returnValue = `Are you sure you want to leave?`;
@@ -136,9 +139,8 @@
         clearInterval(checkFocusInterval);
         clearInterval(cancelParticipantInterval);
         console.log("Sending beacon to " + url);
-        let returnValue = navigator.sendBeacon(url, {});
-        console.log("Result: " + returnValue);
-        return window.location.replace("/verify_js?js_activated=0&rid=" + rid);
+        navigator.sendBeacon(url, {});
+        return window.location.replace("/approve_participant?approve=0&assignment_id=" + assignment_id);
       }
 
       function checkParticipant() {

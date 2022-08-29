@@ -314,7 +314,13 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         Delegate to the experiment for possible values to show to the
         participant and complete the survey if no more participants are needed.
         """
-        external_submit_url = self.external_submit_url(participant=participant)
+        if participant is not None:
+            external_submit_url = self.external_submit_url(
+                participant=participant, assignment_id=participant.assignment_id
+            )
+        else:
+            external_submit_url = self.external_submit_url(participant=participant)
+
         self.lucidservice.log(f"Exit redirect: {external_submit_url}")
 
         return flask.render_template(
@@ -325,10 +331,12 @@ class BaseLucidRecruiter(PsyNetRecruiter):
     def _record_current_survey_number(self, survey_number):
         self.store.set(self.survey_number_storage_key, survey_number)
 
-    def external_submit_url(self, participant=None, should_terminate=False, rid=None):
+    def external_submit_url(
+        self, participant=None, should_terminate=False, assignment_id=None
+    ):
         if participant is None or participant.failed or should_terminate:
             redirect_url = "https://samplicio.us/s/ClientCallBack.aspx?RIS=20&RID="
-            redirect_url += rid + "&"
+            redirect_url += assignment_id + "&"
         else:
             redirect_url = (
                 "https://www.samplicio.us/router/ClientCallBack.aspx?RIS=10&RID="
@@ -356,6 +364,14 @@ class BaseLucidRecruiter(PsyNetRecruiter):
         )
 
         return lucid_recruitment_config.get("termination_time_in_s")
+
+    @property
+    def ad_page_inactivity_timeout_in_s(self):
+        lucid_recruitment_config = json.loads(
+            self.config.get("lucid_recruitment_config")
+        )
+
+        return lucid_recruitment_config.get("ad_page_inactivity_timeout_in_s")
 
 
 class DevLucidRecruiter(BaseLucidRecruiter):
