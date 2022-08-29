@@ -311,6 +311,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     test_num_bots = 1
 
     def test_experiment(self):
+        os.environ["PASSTHROUGH_ERRORS"] = "True"
         bots = self.test_create_bots()
         self.test_run_bots(bots)
         self.test_check_bots(bots)
@@ -857,6 +858,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
             self.timeline.advance_page(self, participant)
             return self.response_approved(participant)
         except Exception as err:
+            if os.getenv("PASSTHROUGH_ERRORS"):
+                raise
             if not isinstance(err, self.HandledError):
                 self.handle_error(
                     err,
@@ -1346,6 +1349,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         except cls.HandledError as err:
             return err.error_page()
         except Exception as err:
+            if os.getenv("PASSTHROUGH_ERRORS"):
+                raise
             handled_error = cls.handle_error(
                 err,
                 participant=participant,

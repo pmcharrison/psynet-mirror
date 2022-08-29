@@ -1,5 +1,6 @@
 import datetime
 import inspect
+import os
 import threading
 import time
 
@@ -246,6 +247,8 @@ class AsyncProcess(SQLBase, SQLMixin):
                 arguments["self"].check_if_can_mark_as_finalized()
 
         except Exception as err:
+            if os.getenv("PASSTHROUGH_ERRORS"):
+                raise
             if not isinstance(err, experiment.HandledError):
                 experiment.handle_error(err, process=process)
             try:

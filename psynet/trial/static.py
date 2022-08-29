@@ -1,8 +1,6 @@
 from typing import List, Optional
 
-from sqlalchemy import Column, String
-
-from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrialMaker
+from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 from ..utils import deep_copy, get_logger
 from .main import Trial
@@ -10,7 +8,7 @@ from .main import Trial
 logger = get_logger()
 
 
-class StaticTrial(Trial):
+class StaticTrial(ChainTrial):
     """
     A Trial class for static experiments.
 
@@ -66,14 +64,6 @@ class StaticTrial(Trial):
     """
 
     __extra_vars__ = Trial.__extra_vars__.copy()
-
-    participant_group = Column(String)
-    block = Column(String)
-
-    def __init__(self, experiment, node, *args, **kwargs):
-        super().__init__(experiment, node, *args, **kwargs)
-        self.participant_group = self.node.participant_group
-        self.block = self.node.block
 
     def generate_asset_key(self, asset):
         return f"{self.trial_maker_id}/block_{self.block}__node_{self.node_id}__trial_{self.id}__{asset.label}{asset.extension}"
@@ -270,7 +260,7 @@ class StaticTrialMaker(ChainTrialMaker):
 
         super().__init__(
             id_=id_,
-            nodes=nodes,
+            start_nodes=lambda: nodes,
             trial_class=trial_class,
             network_class=StaticNetwork,
             node_class=StaticNode,

@@ -93,7 +93,9 @@ def call_function_with_context(function, *args, **kwargs):
             nodes = participant.current_module_state.nodes
 
     if trial_maker == NoArgumentProvided:
-        if isinstance(participant.current_trial, Trial):
+        if participant != NoArgumentProvided and isinstance(
+            participant.current_trial, Trial
+        ):
             trial_maker = participant.current_trial.trial_maker
 
     kwargs = {

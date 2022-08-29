@@ -118,6 +118,7 @@ class ChainNetwork(TrialNetwork):
     chain_type = Column(String)
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)
+    block = Column(String, index=True)
 
     def __init__(
         self,
@@ -428,7 +429,7 @@ class ChainNode(TrialNode):
     parent_id = Column(Integer, ForeignKey("node.id"))
     seed = Column(PythonObject, default=lambda: {})
     definition = Column(PythonObject, default=lambda: {})
-    participant_group = (Column(String),)
+    participant_group = Column(String)
     block = Column(String)
     propagate_failure = Column(Boolean)
 
@@ -510,7 +511,10 @@ class ChainNode(TrialNode):
         raise NotImplementedError
 
     def stage_assets(self, experiment):
-        self.assets = {**self.network.assets}
+        self.assets = {}
+
+        if self.network:
+            self.assets.update(**self.network.assets)
 
         for label, asset in self._staged_assets.items():
             if asset.label is None:
@@ -761,6 +765,16 @@ class ChainTrial(Trial):
     # pylint: disable=abstract-method
     __extra_vars__ = Trial.__extra_vars__.copy()
 
+    participant_group = Column(String)
+    block = Column(String)
+    block_position = Column(Integer)
+
+    def __init__(self, experiment, node, participant, *args, **kwargs):
+        super().__init__(experiment, node, participant, *args, **kwargs)
+        self.participant_group = self.node.participant_group
+        self.block = self.node.block
+        self.block_position = self.trial_maker.get_current_block_position(participant)
+
     @property
     @extra_var(__extra_vars__)
     def degree(self):
@@ -777,6 +791,10 @@ class ChainTrial(Trial):
             if self.node.child:
                 to_fail.append(lambda: [self.node.child])
         return to_fail
+
+    @property
+    def trial_maker(self):
+        return self.node.trial_maker
 
 
 class ChainTrialMaker(NetworkTrialMaker):
@@ -1087,18 +1105,16 @@ class ChainTrialMaker(NetworkTrialMaker):
             networks = self.networks
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
+        self.set_current_block_position(participant, 0)
 
     def init_block_order(self, experiment, participant, blocks):
-        call_function_with_context(
+        block_order = call_function_with_context(
             self.choose_block_order,
             experiment=experiment,
             participant=participant,
             blocks=blocks,
         )
-        self.set_block_order(
-            participant,
-            self.choose_block_order(experiment=experiment, participant=participant),
-        )
+        self.set_block_order(participant, block_order)
 
     def choose_block_order(self, experiment, participant, blocks):
         # pylint: disable=unused-argument
@@ -1126,13 +1142,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             where each block is identified by a string label.
         """
         return random.sample(blocks, len(blocks))
-
-    def init_blocks(self, experiment, participant):
-        block_order = (
-            self.choose_block_order(experiment=experiment, participant=participant),
-        )
-        self.set_block_order(participant, block_order)
-        self.set_current_block_position(participant, 0)
 
     @property
     def block_order_var_id(self):
@@ -1164,25 +1173,38 @@ class ChainTrialMaker(NetworkTrialMaker):
     def _should_finish_block(self, participant):
         current_block = self.get_current_block(participant)
         current_block_position = self.get_current_block_position(participant)
+
+        assert current_block is not None
+        assert current_block_position is not None
+
+        trials_in_trial_maker = [
+            trial for trial in participant.trials if trial.trial_maker_id == self.id
+        ]
         trials_in_block = [
             trial
-            for trial in participant.trials
+            for trial in trials_in_trial_maker
             if trial.block_position == current_block_position
         ]
+
         return self.should_finish_block(
-            participant, current_block, current_block_position, trials_in_block
+            participant,
+            current_block,
+            current_block_position,
+            trials_in_block,
+            trials_in_trial_maker,
         )
 
     def should_finish_block(
         self,
-        participant,
-        current_block,
-        current_block_position,
+        participant,  # noqa
+        current_block,  # noqa
+        current_block_position,  # noqa
         participant_trials_in_block,
+        participant_trials_in_trial_maker,
     ):  # noqa
         return (
             len(participant_trials_in_block) >= self.max_trials_per_block
-            or self.num_trials_per_participant >= self.num_trials_per_participant
+            or len(participant_trials_in_trial_maker) >= self.num_trials_per_participant
         )
 
     @property
@@ -1284,6 +1306,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             id_within_participant=id_within_participant,
         )
         db.session.add(network)
+        start_node.set_network(network)
         db.session.commit()
         return network
 
@@ -1301,6 +1324,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         Either "exit", "wait", or a list of networks.
 
         """
+        db.session.commit()
         logger.info(
             "Looking for networks for participant %i.",
             participant.id,
@@ -1422,6 +1446,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         current_block = self.get_current_block(participant)
         current_block_position = self.get_current_block_position(participant)
         remaining_blocks = self.get_block_order(participant)[current_block_position:]
+        networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
         chosen = networks[0]

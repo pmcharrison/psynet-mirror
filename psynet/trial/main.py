@@ -2486,21 +2486,24 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def __init__(self, network=None, participant=None, module_id=None):
         # Note: We purposefully do not call super().__init__(), because this parent constructor
         # requires the prior existence of the node's parent network, which is impractical for us.
-        if network is not None:
-            self.network = network
-            self.network_id = network.id
-            self.assets = {**network.assets}
-            self.trial_maker_id = network.trial_maker_id
-            network.calculate_full()
-
-            if not module_id:
-                module_id = network.module_id
-
         self.module_id = module_id
+
+        if network is not None:
+            self.set_network(network)
 
         if participant is not None:
             self.participant = participant
             self.participant_id = participant.id
+
+    def set_network(self, network):
+        self.network = network
+        # self.network_id = network.id
+        self.assets.update(network.assets)
+        self.trial_maker_id = network.trial_maker_id
+        network.calculate_full()
+
+        if not self.module_id:
+            self.module_id = network.module_id
 
     @property
     def trial_maker(self):
@@ -2515,10 +2518,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def add_default_network(self):
         from psynet.experiment import get_experiment
 
-        self.network = GenericTrialNetwork(
+        network = GenericTrialNetwork(
             experiment=get_experiment(), module_id=self.module_id
         )
-        db.session.add(self.network)
+        db.session.add(network)
+        self.set_network(network)
         db.session.commit()
 
 
