@@ -36,7 +36,7 @@ class TestExp:
             assert network.participant.id == participant_id
 
             # Iterating through the trials
-            for i in range(10):
+            for i in range(9):
                 next_page(driver, "1")
 
             next_page(driver, "next-button")

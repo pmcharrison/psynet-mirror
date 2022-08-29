@@ -296,7 +296,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     @extra_var(__extra_vars__)
     def current_module_id(self):
-        return self.current_module_state.module_id
+        if self.current_module_state:
+            return self.current_module_state.module_id
 
     def set_answer(self, value):
         self.answer = value

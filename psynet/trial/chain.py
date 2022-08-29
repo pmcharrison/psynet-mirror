@@ -1,6 +1,6 @@
 import random
 import warnings
-from typing import List, Optional, Set, Type
+from typing import Optional, Set, Type
 
 from dallinger import db
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
@@ -1003,7 +1003,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self,
         *,
         id_,
-        start_nodes: List,
+        start_nodes,
         network_class: Type[ChainNetwork],
         node_class: Type[ChainNode],
         trial_class: Type[ChainTrial],
