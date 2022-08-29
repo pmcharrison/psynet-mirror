@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import not_
 
 from ..field import PythonObject, VarStore, extra_var
 from ..page import wait_while
-from ..utils import call_function, get_logger, negate
+from ..utils import call_function, get_logger, negate, call_function_with_context
 from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode
 
 logger = get_logger()
@@ -1082,7 +1082,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         self.init_block_order(experiment, participant, blocks)
 
     def init_block_order(self, experiment, participant, blocks):
-        call_function(
+        call_function_with_context(
             self.choose_block_order,
             experiment=experiment,
             participant=participant,
@@ -1220,7 +1220,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def create_networks_within(self, experiment, participant):
         if self.start_nodes:
-            nodes = call_function(
+            nodes = call_function_with_context(
                 self.start_nodes, experiment=experiment, participant=participant
             )
             assert len(nodes) == self.num_chains_per_participant, (

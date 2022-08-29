@@ -43,7 +43,7 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import NoArgumentProvided, call_function, corr, get_logger
+from ..utils import NoArgumentProvided, call_function, corr, get_logger, call_function_with_context
 
 logger = get_logger()
 
@@ -826,7 +826,7 @@ class Trial(SQLMixinDallinger, Info):
             )
 
     def _show_trial(self, experiment, participant):
-        return call_function(
+        return call_function_with_context(
             self.show_trial,
             experiment=experiment,
             participant=participant,

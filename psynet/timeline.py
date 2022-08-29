@@ -32,7 +32,7 @@ from .utils import (
     get_logger,
     merge_dicts,
     serialise,
-    unserialise_datetime,
+    unserialise_datetime, call_function_with_context,
 )
 
 logger = get_logger()
@@ -199,13 +199,11 @@ class CodeBlock(Elt):
         self.function = function
 
     def consume(self, experiment, participant):
-        call_function(
+        call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
-            assets=experiment.assets,
-            nodes=participant.current_module_state.nodes,
         )
 
 
@@ -282,7 +280,7 @@ class ReactiveGoTo(GoTo):
             raise TypeError("<targets> must be a dictionary of Elt objects.")
 
     def get_target(self, experiment, participant):
-        val = call_function(
+        val = call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
@@ -751,13 +749,12 @@ class Page(Elt):
         if self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot)
         elif callable(self._bot_response):
-            res = call_function(
+            res = call_function_with_context(
                 self._bot_response,
                 experiment=experiment,
                 bot=bot,
                 participant=bot,
                 page=self,
-                assets=experiment.assets,
             )
         else:
             res = self._bot_response
@@ -1150,13 +1147,11 @@ class PageMaker(Elt):
 
         A list of ``Elt`` objects.
         """
-        res = call_function(
+        res = call_function_with_context(
             self.function,
             self=self,
             experiment=experiment,
             participant=participant,
-            assets=experiment.assets,
-            nodes=participant.current_module_state.nodes,
         )
         res = join(res)
         self.impute_time_estimates(res)
@@ -1811,7 +1806,7 @@ def while_loop(
     logic = multiply_expected_repetitions(logic, expected_repetitions)
 
     def condition_wrapped(participant, experiment):
-        result = call_function(
+        result = call_function_with_context(
             condition, participant=participant, experiment=experiment
         )
         logger.info(f"Evaluating while_loop ({label}) condition: result = {result}")
@@ -1854,12 +1849,10 @@ def while_loop(
         start_while,
         conditional(
             "max_loop_time_condition",
-            lambda participant, experiment: call_function(
+            lambda participant, experiment: call_function_with_context(
                 max_loop_time_condition,
                 participant=participant,
                 experiment=experiment,
-                assets=experiment.assets,
-                nodes=participant.current_module_state.nodes,
             ),
             after_timeout_logic,
             fix_time_credit=False,
@@ -1982,12 +1975,10 @@ class StartSwitch(ReactiveGoTo):
         if log_chosen_branch:
 
             def function_2(experiment, participant):
-                val = call_function(
+                val = call_function_with_context(
                     function,
                     experiment=experiment,
                     participant=participant,
-                    assets=experiment.assets,
-                    nodes=participant.current_module_state.nodes,
                 )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
@@ -2105,6 +2096,7 @@ def multiply_expected_repetitions(logic, factor: float):
 class ModuleState(SQLBase, SQLMixin):
     __tablename__ = "module_state"
 
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     module_id = Column(String, primary_key=True)
     participant_id = Column(
         Integer,
@@ -2112,7 +2104,7 @@ class ModuleState(SQLBase, SQLMixin):
         primary_key=True,
         back_populates="module_states",
     )
-    var = Column(PythonDotDict, default={})
+    # var = Column(PythonDotDict, default={})  # todo - needs fixing, maybe something to do with the default value
 
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
@@ -2126,36 +2118,40 @@ class ModuleState(SQLBase, SQLMixin):
         # We see assets that belong to that module,
         # and either belong to that participant, or belong to no other participants
         "psynet.asset.Asset",
-        primaryjoin="and_(ModuleState.module_id==psynet.asset.Asset.module_id, "
+        primaryjoin="and_(foreign(ModuleState.module_id)==remote(psynet.asset.Asset.module_id), "
         "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
         "psynet.asset.Asset.participant_id.is_(None)))",
     )
 
     nodes = relationship(
-        # We see assets that belong to that module,
+        # We see nodes that belong to that module,
         # and either belong to that participant, or belong to no other participants
         "psynet.trial.main.TrialNode",
-        primaryjoin="and_(ModuleState.module_id==psynet.trial.main.TrialNode.module_id, "
+        primaryjoin="and_(foreign(ModuleState.module_id)==remote(psynet.trial.main.TrialNode.module_id), "
         "or_(ModuleState.participant_id==psynet.trial.main.TrialNode.participant_id, "
-        "psynet.trial.main.TrialNode.participant_id.is_(None))",
+        "psynet.trial.main.TrialNode.participant_id.is_(None)))",
     )
 
+    def __init__(self, module, participant):
+        self.module_id = module.id
+        self.participant = participant
+
     def start(self):
-        self.time_started = datetime.datetime.now()
+        self.time_started = datetime.now()
 
     def finish(self):
-        self.time_finished = datetime.datetime.now()
+        self.time_finished = datetime.now()
         self.finished = True
 
     def abort(self):
-        self.time_finished = datetime.datetime.now()
+        self.time_finished = datetime.now()
         self.aborted = True
 
 
 class Module:
     default_id = None
     default_elts = None
-    log_class = ModuleState  # type: Type[ModuleState]
+    state_class = ModuleState  # type: Type[ModuleState]
 
     def __init__(self, id_: str = None, *args, nodes=None):
         elts = join(*args)
@@ -2187,23 +2183,23 @@ class Module:
         db.session.commit()
 
     def start(self, participant):
-        log = self.log_class(self, participant)
-        log.start()
-        db.session.add(log)
+        state = self.state_class(self, participant)
+        state.start()
+        db.session.add(state)
         db.session.commit()
 
     def end(self, participant):
         # This should only fail (delivering multiple logs) if the experimenter has perversely
         # defined a recursive module (or is reusing module ID)
-        log = self.log_class.query.filter_by(
+        state = self.state_class.query.filter_by(
             participant_id=participant.id, finished=False
         ).one()
-        log.finish()
+        state.finish()
         db.session.commit()
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
-        logs = cls.log_class.query.filter_by(module_id=module_id, finished=True).all()
+        logs = cls.state_class.query.filter_by(module_id=module_id, finished=True).all()
         return [
             {"time_started": log.time_started, "time_finished": log.time_finished}
             # "time_aborted": log.time_aborted,
@@ -2241,8 +2237,8 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(self.log_class.module_id == self.id, self.log_class.aborted)
-            .order_by(self.log_class.time_aborted)
+            .query.filter(self.state_class.module_id == self.id, self.state_class.aborted)
+            .order_by(self.state_class.time_aborted)
         )
 
         # participants = Participant.query.all()
@@ -2256,8 +2252,8 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(self.log_class.module_id == self.id, self.log_class.started)
-            .order_by(self.log_class.time_started)
+            .query.filter(self.state_class.module_id == self.id, self.state_class.started)
+            .order_by(self.state_class.time_started)
         )
 
         # participants = Participant.query.all()
@@ -2271,8 +2267,8 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(self.log_class.module_id == self.id, self.log_class.finished)
-            .order_by(self.log_class.time_finished)
+            .query.filter(self.state_class.module_id == self.id, self.state_class.finished)
+            .order_by(self.state_class.time_finished)
         )
 
         # participants = Participant.query.all()
@@ -2517,12 +2513,10 @@ def for_loop(
         nonlocal iterate_over
         nonlocal label
         if callable(iterate_over):
-            lst = call_function(
+            lst = call_function_with_context(
                 iterate_over,
                 experiment=experiment,
                 participant=participant,
-                assets=experiment.assets,
-                nodes=participant.current_module_state.nodes,
             )
         state = {"lst": lst, "index": 0}
         # participant.for_loops.append(state)
@@ -2551,13 +2545,11 @@ def for_loop(
         input = lst[index]
         # import pydevd_pycharm
         # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
-        return call_function(
+        return call_function_with_context(
             logic,
             input,
             experiment=experiment,
             participant=participant,
-            assets=experiment.assets,
-            nodes=participant.current_module_state.nodes,
         )
 
     def should_stay_in_loop(participant):

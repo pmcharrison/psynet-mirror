@@ -161,6 +161,8 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     inherited_from = Column(String)
     key = Column(String, primary_key=True, index=True)
     export_path = Column(String, index=True, unique=True)
+    module_id = Column(String, index=True)
+    participant_id = Column(Integer, ForeignKey("participant.id"))
     label = Column(String)
     parent = Column(PythonObject)
     description = Column(String)
@@ -244,6 +246,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         data_type=None,
         extension=None,
         parent=None,
+        module_id=None,
         replace_existing=False,
         variables: Optional[dict] = None,
         personal=False,
@@ -263,6 +266,17 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.data_type = data_type
         self.parent = parent
+
+        from psynet.participant import Participant
+
+        if isinstance(parent, Participant):
+            self.participant_id = parent.id
+
+        if module_id:
+            self.module_id = module_id
+        else:
+            if self.parent:
+                self.module_id = self.parent.module_id
 
         self.set_variables(variables)
         self.personal = personal
@@ -729,8 +743,8 @@ class ManagedAsset(Asset):
 
     def generate_key_parents(self):
         ids = []
-        if self.trial_maker_id:
-            ids.append(f"{self.trial_maker_id}")
+        if self.module_id:
+            ids.append(self.module_id)
         if self.participant:
             ids.append(f"participants/participant_{self.participant.id}")
         return "/".join(ids)
@@ -759,14 +773,14 @@ class ManagedAsset(Asset):
     #         candidates.sort(key=lambda x: x.creation_time)
     #         return candidates[0]
 
-    @property
-    def trial_maker_id(self):
-        from .participant import Participant
-
-        if self.parent is None or isinstance(self.parent, Participant):
-            return None
-        else:
-            return self.parent.trial_maker_id
+    # @property
+    # def trial_maker_id(self):
+    #     from .participant import Participant
+    #
+    #     if self.parent is None or isinstance(self.parent, Participant):
+    #         return None
+    #     else:
+    #         return self.parent.trial_maker_id
 
     @property
     def trial(self):

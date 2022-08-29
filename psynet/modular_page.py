@@ -660,7 +660,7 @@ class Control:
         if self._bot_response == NoArgumentProvided:
             res = self.get_bot_response(experiment, bot, page, prompt)
         elif callable(self._bot_response):
-            res = call_function(
+            res = call_function_with_context(
                 self._bot_response,
                 experiment=experiment,
                 bot=bot,

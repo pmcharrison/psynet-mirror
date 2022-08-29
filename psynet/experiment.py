@@ -74,7 +74,7 @@ from .utils import (
     get_logger,
     pretty_log_dict,
     serialise,
-    working_directory,
+    working_directory, call_function_with_context,
 )
 
 logger = get_logger()
@@ -520,7 +520,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")
-            call_function(routine.function, experiment=self, **routine.args)
+            call_function_with_context(routine.function, experiment=self, **routine.args)
 
         self.create_database_snapshot()
 
@@ -1281,7 +1281,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
         participant = cls.get_participant_from_assignment_id(assignment_id)
         participant.aborted = True
-        participant.current_module_state.abort()
+        if participant.current_module_state:
+            participant.current_module_state.abort()
         db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
