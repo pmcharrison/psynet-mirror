@@ -58,7 +58,7 @@ from .timeline import (
     Response,
     Timeline,
 )
-from .trial.main import GenericTrialNetwork, GenericTrialSource, Trial, TrialMaker
+from .trial.main import Trial, TrialMaker
 from .trial.record import (  # noqa -- this is to make sure the SQLAlchemy class is registered
     Recording,
 )
@@ -67,6 +67,7 @@ from .utils import (
     cache,
     cached_class_property,
     call_function,
+    call_function_with_context,
     disable_logger,
     error_page,
     get_arg_from_dict,
@@ -74,7 +75,7 @@ from .utils import (
     get_logger,
     pretty_log_dict,
     serialise,
-    working_directory, call_function_with_context,
+    working_directory,
 )
 
 logger = get_logger()
@@ -486,12 +487,12 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
-    def prepare_generic_trial_network(self):
-        network = GenericTrialNetwork(experiment=self)
-        source = GenericTrialSource(network=network)
-        db.session.add(network)
-        db.session.add(source)
-        db.session.commit()
+    # def prepare_generic_trial_network(self):
+    #     network = GenericTrialNetwork(experiment=self)
+    #     source = GenericTrialSource(network=network)
+    #     db.session.add(network)
+    #     db.session.add(source)
+    #     db.session.commit()
 
     def process_timeline(self):
         for elt in self.timeline.elts:
@@ -511,16 +512,17 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.update_deployment_id()
         self.setup_experiment_config()
         self.setup_experiment_variables()
-        self.prepare_generic_trial_network()
 
         for module in self.timeline.modules.values():
-            module.prepare_for_deployment()
+            module.prepare_for_deployment(experiment=self)
 
         self.assets.prepare_for_deployment()
 
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")
-            call_function_with_context(routine.function, experiment=self, **routine.args)
+            call_function_with_context(
+                routine.function, experiment=self, **routine.args
+            )
 
         self.create_database_snapshot()
 

@@ -77,14 +77,16 @@ def call_function(function, *args, **kwargs):
     return function(*args, **kwargs)
 
 
-def call_function_with_context(function, experiment, participant=None, **kwargs):
+def call_function_with_context(function, *args, **kwargs):
     from psynet.trial.main import Trial
 
+    participant = kwargs.get("participant", NoArgumentProvided)
+    experiment = kwargs.get("experiment", NoArgumentProvided)
     assets = kwargs.get("assets", NoArgumentProvided)
     nodes = kwargs.get("nodes", NoArgumentProvided)
     trial_maker = kwargs.get("trial_maker", NoArgumentProvided)
 
-    if participant and participant.current_module_state:
+    if participant != NoArgumentProvided and participant.current_module_state:
         if assets == NoArgumentProvided:
             assets = participant.current_module_state.assets
         if nodes == NoArgumentProvided:
@@ -94,17 +96,16 @@ def call_function_with_context(function, experiment, participant=None, **kwargs)
         if isinstance(participant.current_trial, Trial):
             trial_maker = participant.current_trial.trial_maker
 
-    return call_function(
-        function,
-        {
-            "experiment": experiment,
-            "participant": participant,
-            "assets": assets,
-            "nodes": nodes,
-            "trial_maker": trial_maker,
-            **kwargs,
-        }
-    )
+    kwargs = {
+        "experiment": experiment,
+        "participant": participant,
+        "assets": assets,
+        "nodes": nodes,
+        "trial_maker": trial_maker,
+        **kwargs,
+    }
+
+    return call_function(function, *args, **kwargs)
 
 
 config_defaults = {

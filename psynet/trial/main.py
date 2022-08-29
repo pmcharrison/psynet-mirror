@@ -43,7 +43,13 @@ from ..timeline import (
     switch,
     while_loop,
 )
-from ..utils import NoArgumentProvided, call_function, corr, get_logger, call_function_with_context
+from ..utils import (
+    NoArgumentProvided,
+    call_function,
+    call_function_with_context,
+    corr,
+    get_logger,
+)
 
 logger = get_logger()
 
@@ -2489,7 +2495,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             super().fail(reason=reason)
 
     def add_default_network(self):
-        self.network = GenericTrialNetwork()
+        from psynet.experiment import get_experiment
+
+        self.network = GenericTrialNetwork(
+            experiment=get_experiment(), module_id=self.module_id
+        )
         db.session.add(self.network)
         db.session.commit()
 
@@ -2535,9 +2545,10 @@ class TrialSource(TrialNode):
 
 
 class GenericTrialNetwork(TrialNetwork):
-    def __init__(self, experiment):
+    def __init__(self, module_id, experiment):
         super().__init__(
             trial_maker_id=None,
+            module_id=module_id,
             experiment=experiment,
         )
 

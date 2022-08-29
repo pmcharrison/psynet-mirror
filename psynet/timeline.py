@@ -21,10 +21,10 @@ from sqlalchemy.orm.attributes import flag_modified
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import PythonDotDict, PythonObject
+from .field import PythonObject
 from .utils import (
     NoArgumentProvided,
-    call_function,
+    call_function_with_context,
     check_function_args,
     dict_to_js_vars,
     format_datetime_string,
@@ -32,7 +32,7 @@ from .utils import (
     get_logger,
     merge_dicts,
     serialise,
-    unserialise_datetime, call_function_with_context,
+    unserialise_datetime,
 )
 
 logger = get_logger()
@@ -2165,9 +2165,9 @@ class Module:
         self.elts = elts if elts is not None else self.default_elts
         self.nodes = nodes if nodes else []
 
-    def prepare_for_deployment(self):
+    def prepare_for_deployment(self, experiment):
         self.nodes_register_in_db()
-        self.nodes_stage_assets()
+        self.nodes_stage_assets(experiment)
 
     def nodes_register_in_db(self):
         for node in self.nodes:
@@ -2177,9 +2177,9 @@ class Module:
                 node.add_default_network()
         db.session.commit()
 
-    def nodes_stage_assets(self):
+    def nodes_stage_assets(self, experiment):
         for node in self.nodes:
-            node.stage_assets()
+            node.stage_assets(experiment)
         db.session.commit()
 
     def start(self, participant):
@@ -2237,7 +2237,9 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(self.state_class.module_id == self.id, self.state_class.aborted)
+            .query.filter(
+                self.state_class.module_id == self.id, self.state_class.aborted
+            )
             .order_by(self.state_class.time_aborted)
         )
 
@@ -2252,7 +2254,9 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(self.state_class.module_id == self.id, self.state_class.started)
+            .query.filter(
+                self.state_class.module_id == self.id, self.state_class.started
+            )
             .order_by(self.state_class.time_started)
         )
 
@@ -2267,7 +2271,9 @@ class Module:
 
         return (
             db.session.query(Participant)
-            .query.filter(self.state_class.module_id == self.id, self.state_class.finished)
+            .query.filter(
+                self.state_class.module_id == self.id, self.state_class.finished
+            )
             .order_by(self.state_class.time_finished)
         )
 

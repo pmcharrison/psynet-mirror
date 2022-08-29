@@ -9,7 +9,7 @@ from sqlalchemy.sql.expression import not_
 
 from ..field import PythonObject, VarStore, extra_var
 from ..page import wait_while
-from ..utils import call_function, get_logger, negate, call_function_with_context
+from ..utils import call_function, call_function_with_context, get_logger, negate
 from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode
 
 logger = get_logger()
@@ -457,7 +457,7 @@ class ChainNode(TrialNode):
     ):
         super().__init__(network=network, participant=participant)
 
-        assert not definition and seed
+        assert not (definition and seed)
 
         if parent:
             parent.child = self
