@@ -9,7 +9,7 @@
 #
 # from psynet.page import InfoPage
 # from psynet.timeline import PageMaker
-# from psynet.trial.main import GenericTrialSource, Trial
+# from psynet.trial.main import GenericTrialNode, Trial
 #
 #
 # class CustomTrial(Trial):
@@ -30,7 +30,7 @@
 # def test_trial(launched_experiment, participant):
 #     trial = CustomTrial(
 #         launched_experiment,
-#         node=GenericTrialSource.query.one(),
+#         node=GenericTrialNode.query.one(),
 #         participant=participant,
 #         propagate_failure=False,
 #         is_repeat_trial=False,

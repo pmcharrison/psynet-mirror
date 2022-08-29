@@ -489,7 +489,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     # def prepare_generic_trial_network(self):
     #     network = GenericTrialNetwork(experiment=self)
-    #     source = GenericTrialSource(network=network)
+    #     source = GenericTrialNode(network=network)
     #     db.session.add(network)
     #     db.session.add(source)
     #     db.session.commit()

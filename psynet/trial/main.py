@@ -13,6 +13,7 @@ from dallinger.models import Info, Network
 from dominate import tags
 from flask import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
@@ -757,19 +758,19 @@ class Trial(SQLMixinDallinger, Info):
             cls.check_node_is_valid(node)
             definition = node.definition
         elif isinstance(definition, dict):
-            source = None
+            node = None
         else:
             raise TypeError(f"Invalid definition type: {type(definition)}")
 
         def _register_trial(experiment, participant):
-            if source:
-                parent_node = source
-            else:
-                parent_node = GenericTrialSource.query.one()
+            nonlocal node
+
+            if not node:
+                node = cls.get_default_parent_node(participant)
 
             trial = cls(
                 experiment,
-                parent_node,
+                node,
                 participant,
                 propagate_failure=False,
                 is_repeat_trial=False,
@@ -786,6 +787,18 @@ class Trial(SQLMixinDallinger, Info):
             CodeBlock(_register_trial),
             cls.trial_logic(),
         )
+
+    @classmethod
+    def get_default_parent_node(cls, participant):
+        try:
+            return TrialNode.query.filter_by(
+                module_id=participant.current_module_id,
+            )
+        except NoResultFound:
+            node = GenericTrialNode()
+            db.session.add(node)
+            db.session.commit()
+            return node
 
     @classmethod
     def check_node_is_valid(cls, source):
@@ -2469,7 +2482,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     #         **assets,
     #     }
 
-    def __init__(self, network=None, participant=None):
+    def __init__(self, network=None, participant=None, module_id=None):
         # Note: We purposefully do not call super().__init__(), because this parent constructor
         # requires the prior existence of the node's parent network, which is impractical for us.
         if network is not None:
@@ -2477,8 +2490,12 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
             self.network_id = network.id
             self.assets = {**network.assets}
             self.trial_maker_id = network.trial_maker_id
-            self.module_id = network.module_id
             network.calculate_full()
+
+            if not module_id:
+                module_id = network.module_id
+
+        self.module_id = module_id
 
         if participant is not None:
             self.participant = participant
@@ -2538,7 +2555,7 @@ class TrialSource(TrialNode):
 #         network = GenericTrialNetwork(
 #             trial_maker_id="null", phase="default", experiment=experiment
 #         )
-#         source = GenericTrialSource(network)
+#         source = GenericTrialNode(network)
 #         db.session.add(network)
 #         db.session.add(source)
 #         db.session.commit()
@@ -2556,8 +2573,17 @@ class GenericTrialNetwork(TrialNetwork):
         pass
 
 
-class GenericTrialSource(TrialSource):
-    pass
+class GenericTrialNode(TrialNode):
+    def __init__(self, module_id, experiment):
+        super().__init__(
+            network=self.get_default_network(module_id, experiment),
+            participant=None,
+        )
+
+    def get_default_network(self, module_id, experiment):
+        network = GenericTrialNetwork(module_id, experiment)
+        db.session.add(network)
+        return network
 
 
 # class GenericNetwork(TrialNetwork):

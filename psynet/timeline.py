@@ -2118,18 +2118,24 @@ class ModuleState(SQLBase, SQLMixin):
         # We see assets that belong to that module,
         # and either belong to that participant, or belong to no other participants
         "psynet.asset.Asset",
-        primaryjoin="and_(foreign(ModuleState.module_id)==remote(psynet.asset.Asset.module_id), "
-        "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
-        "psynet.asset.Asset.participant_id.is_(None)))",
+        primaryjoin=(
+            "and_(foreign(ModuleState.module_id)==remote(psynet.asset.Asset.module_id), "
+            "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
+            "psynet.asset.Asset.participant_id.is_(None)))"
+        ),
+        uselist=True,
     )
 
     nodes = relationship(
         # We see nodes that belong to that module,
         # and either belong to that participant, or belong to no other participants
         "psynet.trial.main.TrialNode",
-        primaryjoin="and_(foreign(ModuleState.module_id)==remote(psynet.trial.main.TrialNode.module_id), "
-        "or_(ModuleState.participant_id==psynet.trial.main.TrialNode.participant_id, "
-        "psynet.trial.main.TrialNode.participant_id.is_(None)))",
+        primaryjoin=(
+            "and_(foreign(ModuleState.module_id)==remote(psynet.trial.main.TrialNode.module_id), "
+            "or_(ModuleState.participant_id==psynet.trial.main.TrialNode.participant_id, "
+            "psynet.trial.main.TrialNode.participant_id.is_(None)))"
+        ),
+        uselist=True,
     )
 
     def __init__(self, module, participant):

@@ -95,7 +95,7 @@ class TestExp:
                 "ExperimentConfig",
                 "GenericStimulusNetwork",
                 "GenericTrialNetwork",
-                "GenericTrialSource",
+                "GenericTrialNode",
                 "Response",
                 "Vector",
                 "WorkerAsyncProcess",
@@ -118,7 +118,7 @@ class TestExp:
                 "ExperimentConfig.csv",
                 "GenericStimulusNetwork.csv",
                 "GenericTrialNetwork.csv",
-                "GenericTrialSource.csv",
+                "GenericTrialNode.csv",
                 # "Notification.csv",  # Bots don't produce notifications
                 "Response.csv",
                 "Vector.csv",
