@@ -63,7 +63,7 @@ class TestExp(object):
                 "introduction",
             ]
             assert participant.finished_modules == ["main_consent"]
-            assert participant.current_module == "introduction"
+            assert participant.current_module_id == "introduction"
 
             assert re.search(
                 "The current time is [0-9][0-9]:[0-9][0-9]:[0-9][0-9].",
@@ -178,7 +178,7 @@ class TestExp(object):
                 "introduction",
                 "weight",
             ]
-            assert participant.current_module == "chocolate"
+            assert participant.current_module_id == "chocolate"
 
             assert_text(driver, "main-body", "Do you like chocolate? Yes No")
             next_page(driver, "Yes")

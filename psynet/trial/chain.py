@@ -1,36 +1,31 @@
 import random
 import warnings
-from typing import List, Optional, Set
+from typing import List, Optional, Set, Type
 
 from dallinger import db
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
-from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
-from psynet.timeline import join
-from psynet.trial.source import SourceCollection
-
-from ..field import PythonObject, VarStore, extra_var, register_extra_var
+from ..field import PythonObject, VarStore, extra_var
 from ..page import wait_while
 from ..utils import call_function, get_logger, negate
-from .main import HasDefinition, NetworkTrialMaker, Trial, TrialNetwork, TrialNode
+from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode
 
 logger = get_logger()
 
 
-class HasSeed:
-    # Mixin class that provides a 'seed' slot.
-    # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
-    @declared_attr
-    def seed(cls):
-        return cls.__table__.c.get(
-            "seed", Column(JSONB, server_default="{}", default=lambda: {})
-        )
-
-    __extra_vars__ = {}
-    register_extra_var(__extra_vars__, "seed", field_type=dict)
+# class HasSeed:
+#     # Mixin class that provides a 'seed' slot.
+#     # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
+#     @declared_attr
+#     def seed(cls):
+#         return cls.__table__.c.get(
+#             "seed", Column(JSONB, server_default="{}", default=lambda: {})
+#         )
+#
+#     __extra_vars__ = {}
+#     register_extra_var(__extra_vars__, "seed", field_type=dict)
 
 
 class ChainNetwork(TrialNetwork):
@@ -42,10 +37,6 @@ class ChainNetwork(TrialNetwork):
 
     Parameters
     ----------
-
-    source_class
-        The class object for network sources. A source is the 'seed' for a network,
-        providing some data which is somehow propagated to other nodes.
 
     experiment
         An instantiation of :class:`psynet.experiment.Experiment`,
@@ -128,12 +119,10 @@ class ChainNetwork(TrialNetwork):
     trials_per_node = Column(Integer)
     definition = Column(PythonObject)
 
-    source = relationship("ChainSource", uselist=False)
-
     def __init__(
         self,
         trial_maker_id: str,
-        source,
+        start_node,
         experiment,
         chain_type: str,
         trials_per_node: int,
@@ -156,10 +145,10 @@ class ChainNetwork(TrialNetwork):
         self.target_num_trials = (target_num_nodes - 1) * trials_per_node
 
         self.definition = self.make_definition()
-        self.block = source.block
+        self.block = start_node.block
 
-        if source.participant_group:
-            self.participant_group = source.participant_group
+        if start_node.participant_group:
+            self.participant_group = start_node.participant_group
         elif isinstance(self.definition, dict):
             try:
                 self.participant_group = self.definition["participant_group"]
@@ -168,24 +157,13 @@ class ChainNetwork(TrialNetwork):
         else:
             self.participant_group = "default"
 
-        db.session.add(source)
-        self.add_node(source)
+        db.session.add(start_node)
+        self.add_node(start_node)
         db.session.commit()
 
         self.validate()
 
         db.session.commit()
-
-    def get_participant_group(self):
-        if self.source.participant_group:
-            return self.source.participant_group
-        elif isinstance(self.definition, dict):
-            try:
-                return self.definition["participant_group"]
-            except KeyError:
-                pass
-        else:
-            return "default"
 
     def validate(self):
         """
@@ -285,12 +263,11 @@ class ChainNetwork(TrialNetwork):
 
     @property
     def target_num_nodes(self):
-        # Subtract 1 to account for the source
-        return self.max_size - 1
+        return self.max_size
 
     @target_num_nodes.setter
     def target_num_nodes(self, target_num_nodes):
-        self.max_size = target_num_nodes + 1
+        self.max_size = target_num_nodes
 
     @property
     def degree(self):
@@ -300,11 +277,7 @@ class ChainNetwork(TrialNetwork):
 
     @property
     def head(self):
-        if self.num_nodes == 0:
-            return self.source
-        else:
-            degree = self.degree
-            return self.get_node_with_degree(degree)
+        return self.get_node_with_degree(self.degree)
 
     def get_node_with_degree(self, degree):
         nodes = [n for n in self.active_nodes if n.degree == degree]
@@ -334,7 +307,7 @@ class ChainNetwork(TrialNetwork):
             return self.target_num_trials - self.num_completed_trials
 
 
-class ChainNode(TrialNode, HasSeed, HasDefinition):
+class ChainNode(TrialNode):
     """
     Represents a node in a chain network.
     In an experimental context, the node represents a state in the experiment;
@@ -417,10 +390,6 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
     var : :class:`~psynet.field.VarStore`
         A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
 
-    source
-        The source of the chain, if one exists.
-        Should be an object of class :class:`~psynet.trial.chain.ChainSource`.
-
     child
         The node's child (i.e. direct descendant) in the chain, or
         ``None`` if no child exists.
@@ -451,36 +420,116 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         i.e. all trials that have not failed.
     """
 
-    __extra_vars__ = {
-        **HasSeed.__extra_vars__.copy(),
-        **HasDefinition.__extra_vars__.copy(),
-        **TrialNode.__extra_vars__.copy(),
-    }
+    __extra_vars__ = TrialNode.__extra_vars__.copy()
+
+    key = Column(String, index=True)
+    degree = Column(Integer)
+    child_id = Column(Integer, ForeignKey("node.id"))
+    parent_id = Column(Integer, ForeignKey("node.id"))
+    seed = Column(PythonObject, default=lambda: {})
+    definition = Column(PythonObject, default=lambda: {})
+    participant_group = (Column(String),)
+    block = Column(String)
+    propagate_failure = Column(Boolean)
+
+    child = relationship(
+        "ChainNode", foreign_keys=[child_id], uselist=False, post_update=True
+    )
+    parent = relationship(
+        "ChainNode", foreign_keys=[parent_id], uselist=False, post_update=True
+    )
 
     def __init__(
         self,
-        seed,
-        degree: int,
-        network,
-        experiment,
-        propagate_failure: bool,
+        *,
+        definition=None,
+        seed=None,
+        parent=None,
+        participant_group=None,
+        block=None,
+        assets=None,
+        degree=None,
+        module_id=None,
+        network=None,
+        experiment=None,
         participant=None,
+        propagate_failure=False,
     ):
-        # pylint: disable=unused-argument
         super().__init__(network=network, participant=participant)
+
+        assert not definition and seed
+
+        if parent:
+            parent.child = self
+            self.parent = parent
+
+        if participant_group is None:
+            if parent:
+                self.participant_group = parent.participant_group
+            else:
+                self.participant_group = "default"
+
+        if block is None:
+            if parent:
+                self.block = parent.block
+            else:
+                self.block = "default"
+
+        if degree is None:
+            if parent:
+                self.degree = parent.degree + 1
+            else:
+                self.degree = 0
+
+        if module_id is None:
+            if parent:
+                self.module_id = parent.module_id
+            else:
+                self.module_id = None
+
         self.seed = seed
-        self.degree = degree
-        self.definition = self.create_definition_from_seed(
-            seed, experiment, participant
-        )
         self.propagate_failure = propagate_failure
+
+        if not definition and not seed:
+            seed = self.create_initial_seed(experiment, participant)
+
+        if not definition:
+            self.definition = self.create_definition_from_seed(
+                seed, experiment, participant
+            )
+
+        if assets is None:
+            assets = {}
+        self._staged_assets = assets
+
+    def create_initial_seed(self, experiment, participant):
+        raise NotImplementedError
+
+    def stage_assets(self, experiment):
+        self.assets = {**self.network.assets}
+
+        for label, asset in self._staged_assets.items():
+            if asset.label is None:
+                asset.label = label
+
+            asset.parent = self
+
+            if not asset.has_key:
+                asset.generate_key()
+
+            asset.receive_node_definition(self.definition)
+
+            # asset.deposit()  # defer this so it can be done in parallel later on
+
+            experiment.assets.stage(asset)
+            self.assets[label] = asset
+
+        db.session.commit()
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
         Creates a node definition from a seed.
-        The seed comes from the previous state in the chain, which
-        will be either a :class:`~psynet.trial.chain.ChainSource`
-        or a :class:`~psynet.trial.chain.ChainNode`.
+        The seed comes from the previous node in the chain.
         In many cases (e.g. iterated reproduction) the definition
         will be trivially equal to the seed,
         but in some cases we may introduce some kind of stochastic alteration
@@ -540,25 +589,9 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         trials = self.completed_and_processed_trials
         return self.summarize_trials(trials, experiment, participant)
 
-    degree = Column(Integer)
-    child_id = Column(Integer, ForeignKey("node.id"))
-    parent_id = Column(Integer, ForeignKey("node.id"))
-    propagate_failure = Column(Boolean)
-
-    child = relationship(
-        "ChainNode", foreign_keys=[child_id], uselist=False, post_update=True
-    )
-    parent = relationship(
-        "ChainNode", foreign_keys=[parent_id], uselist=False, post_update=True
-    )
-
     @property
     def var(self):
         return VarStore(self)
-
-    @property
-    def source(self):
-        return self.network.source
 
     @property
     def target_num_trials(self):
@@ -593,106 +626,7 @@ class ChainNode(TrialNode, HasSeed, HasDefinition):
         return to_fail
 
 
-class ChainSource(ChainNode, HasSeed):
-    """
-    Represents a source in a chain network.
-    The source provides the seed from which the rest of the chain is ultimately derived.
-
-    This class is intended for use with :class:`~psynet.trial.chain.ChainTrialMaker`.
-    It subclasses :class:`dallinger.nodes.Source`.
-
-    The most important attribute is :attr:`~psynet.trial.chain.ChainSource.definition`.
-    This is the core information that represents the current state of the node.
-    In a transmission chain of drawings, this might be the initial drawing
-    that begins the transmission chain.
-
-    The user is required to override the following abstract method:
-
-    * :meth:`~psynet.trial.chain.ChainSource.generate_seed`,
-      which generates a seed for the :class:`~psynet.trial.chain.ChainSource`
-      which will then be stored in the :attr:`~psynet.trial.chain.ChainSource.seed` attribute.
-
-    Parameters
-    ----------
-
-    network
-        The network with which the node is to be associated.
-
-    experiment
-        An instantiation of :class:`psynet.experiment.Experiment`,
-        corresponding to the current experiment.
-
-    participant
-        Optional participant with which to associate the node.
-
-    Attributes
-    ----------
-
-    degree
-        The degree of a :class:`~psynet.trial.chain.ChainSource` object is always 0.
-
-    seed
-        The seed that is passed to the next node in the chain.
-        Created by :meth:`~psynet.trial.chain.ChainSource.generate_seed`.
-
-    var : :class:`~psynet.field.VarStore`
-        A repository for arbitrary variables; see :class:`~psynet.field.VarStore` for details.
-
-    ready_to_spawn
-        Always returns ``True`` for :class:`~psynet.trial.chain.ChainSource` objects.
-    """
-
-    # pylint: disable=abstract-method
-    __extra_vars__ = {
-        **ChainNode.__extra_vars__.copy(),
-        **HasSeed.__extra_vars__.copy(),
-    }
-
-    ready_to_spawn = True
-
-    def __init__(self, network, experiment, participant):
-        seed = self.generate_seed(network, experiment, participant)
-        super().__init__(
-            seed,
-            degree=0,
-            network=network,
-            experiment=experiment,
-            propagate_failure=False,
-            participant=participant,
-        )
-
-    def create_seed(self, experiment, participant):
-        # pylint: disable=unused-argument
-        return self.seed
-
-    def generate_seed(self, network, experiment, participant):
-        """
-        Generates a seed for the :class:`~psynet.trial.chain.ChainSource` and
-        correspondingly for the :class:`~psynet.trial.chain.ChainNetwork`.
-
-        Parameters
-        ----------
-
-        network
-            The network to which the :class:`~psynet.trial.chain.ChainSource` belongs.
-
-        experiment
-            An instantiation of :class:`psynet.experiment.Experiment`,
-            corresponding to the current experiment.
-
-        participant
-            The associated participant, if relevant.
-
-        Returns
-        -------
-
-        object
-            The generated seed. It must be suitable for serialisation to JSON.
-        """
-        raise NotImplementedError
-
-    def create_definition_from_seed(self, seed, experiment, participant):
-        return seed
+UniqueConstraint(ChainNode.module_id, ChainNode.key)
 
 
 class ChainTrial(Trial):
@@ -799,11 +733,6 @@ class ChainTrial(Trial):
     earliest_async_process_start_time : Optional[datetime]
         Time at which the earliest pending async process was called.
 
-    source
-        The :class:`~psynet.trial.chain.ChainSource of the
-        :class:`~psynet.trial.chain.ChainNetwork`
-        to which the :class:`~psynet.trial.chain.ChainTrial` belongs.
-
     propagate_failure : bool
         Whether failure of a trial should be propagated to other
         parts of the experiment depending on that trial
@@ -835,10 +764,6 @@ class ChainTrial(Trial):
         return self.origin
 
     @property
-    def source(self):
-        return self.node.source
-
-    @property
     def failure_cascade(self):
         to_fail = []
         if self.propagate_failure:
@@ -863,10 +788,6 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     * :class:`~psynet.trial.chain.ChainTrial`;
       a special type of :class:`~psynet.trial.main.NetworkTrial`
-
-    * :class:`~psynet.trial.chain.ChainSource`;
-      a special type of :class:`~dallinger.nodes.Source`, corresponding
-      to the initial state of the network.
 
     A chain is initialized with a :class:`~psynet.trial.chain.ChainSource` object.
     This :class:`~psynet.trial.chain.ChainSource` object provides
@@ -1047,11 +968,10 @@ class ChainTrialMaker(NetworkTrialMaker):
         self,
         *,
         id_,
-        sources: List,
-        network_class,
-        node_class,
-        source_class,
-        trial_class,
+        start_nodes: List,
+        network_class: Type[ChainNetwork],
+        node_class: Type[ChainNode],
+        trial_class: Type[ChainTrial],
         chain_type: str,
         num_trials_per_participant: int,
         num_chains_per_participant: Optional[int],
@@ -1110,31 +1030,13 @@ class ChainTrialMaker(NetworkTrialMaker):
                 "one of num_nodes_per_chain and num_iterations_per_chain must be provided"
             )
 
-        if chain_type == "within":
-            assert sources is None or callable(sources), (
-                "For within-participant chains, sources must either be None or "
-                "a function optionally taking the argument 'participant' and 'experiment'."
-            )
-            self.source_generator = sources
-            self.source_collection = SourceCollection(id_, [])
-
-        elif chain_type == "across":
-            assert sources is None or isinstance(sources, list)
-            self.source_generator = None
-            self.source_collection = (
-                sources
-                if isinstance(sources, SourceCollection)
-                else SourceCollection(id_, sources)
-            )
-
-        else:
-            raise ValueError(f"Invalid chain_type: {chain_type}")
+        assert start_nodes is None or callable(start_nodes)
+        self.start_nodes = start_nodes
 
         assert len(balance_strategy) <= 2
         assert all([x in ["across", "within"] for x in balance_strategy])
 
         self.node_class = node_class
-        self.source_class = source_class
         self.trial_class = trial_class
         self.chain_type = chain_type
         self.num_trials_per_participant = num_trials_per_participant
@@ -1169,16 +1071,13 @@ class ChainTrialMaker(NetworkTrialMaker):
             wait_for_networks=wait_for_networks,
         )
 
-    def compile_elts(self):
-        return join(self.source_collection, super().compile_elts())
-
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
         self.init_participated_networks(participant)
         if self.chain_type == "within":
             networks = self.create_networks_within(experiment, participant)
         else:
-            self.networks
+            networks = self.networks
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
 
@@ -1303,6 +1202,7 @@ class ChainTrialMaker(NetworkTrialMaker):
     #########################
     # Participated networks #
     #########################
+
     def init_participated_networks(self, participant):
         participant.var.set(self.with_namespace("participated_networks"), [])
 
@@ -1319,22 +1219,22 @@ class ChainTrialMaker(NetworkTrialMaker):
             self.create_networks_across(experiment)
 
     def create_networks_within(self, experiment, participant):
-        if self.source_generator:
-            sources = call_function(
-                self.source_generator, experiment=experiment, participant=participant
+        if self.start_nodes:
+            nodes = call_function(
+                self.start_nodes, experiment=experiment, participant=participant
             )
-            assert len(sources) == self.num_chains_per_participant, (
+            assert len(nodes) == self.num_chains_per_participant, (
                 f"Problem with trial maker {self.id}: "
-                f"The number of sources generated by the provided function ({len(sources)} did not equal "
+                f"The number of nodes generated by start_nodes ({len(nodes)} did not equal "
                 f"num_chains_per_participant ({self.num_chains_per_participant})."
             )
         else:
-            sources = [None for _ in range(self.num_chains_per_participant)]
+            nodes = [None for _ in range(self.num_chains_per_participant)]
 
         networks = []
         for i in range(self.num_chains_per_participant):
             network = self.create_network(
-                experiment, participant, id_within_participant=i, source=sources[i]
+                experiment, participant, id_within_participant=i, start_node=nodes[i]
             )
             self._grow_network(network, experiment)
             networks.append(network)
@@ -1342,29 +1242,33 @@ class ChainTrialMaker(NetworkTrialMaker):
         return networks
 
     def create_networks_across(self, experiment):
-        if len(self.source_collection) == 0:
-            sources = [None for _ in range(self.num_chains_per_experiment)]
-        else:
-            assert len(self.source_collection) == self.num_chains_per_experiment, (
+        if self.start_nodes:
+            nodes = call_function(
+                self.start_nodes,
+                experiment=experiment,
+            )
+            assert len(nodes) == self.num_chains_per_experiment, (
                 f"Problem with trial maker {self.id}: "
-                f"The number of sources ({len(self.source_collection)}) did not equal 0 or "
+                f"The number of nodes created by start_nodes ({len(nodes)}) did not equal 0 or "
                 f"num_chains_per_experiment ({self.num_chains_per_experiment})."
             )
-            sources = self.source_collection.values()
-        for i in range(self.num_chains_per_experiment):
-            self.create_network(experiment, source=sources[i])
+        else:
+            nodes = [None for _ in range(self.num_chains_per_experiment)]
+        for node in nodes:  # type: ChainNode
+            self.create_network(experiment, start_node=node)
+            node.stage_assets(experiment)
 
     def create_network(
-        self, experiment, participant=None, id_within_participant=None, source=None
+        self, experiment, participant=None, id_within_participant=None, start_node=None
     ):
-        if not source:
-            source = self.source_class(
+        if not start_node:
+            start_node = self.node_class(
                 network=None, experiment=experiment, participant=participant
             )
 
         network = self.network_class(
             trial_maker_id=self.id,
-            source=source,
+            start_node=start_node,
             experiment=experiment,
             chain_type=self.chain_type,
             trials_per_node=self.trials_per_node,
@@ -1570,12 +1474,12 @@ class ChainTrialMaker(NetworkTrialMaker):
         if head.ready_to_spawn:
             seed = head.create_seed(experiment, participant)
             node = self.node_class(
-                seed,
-                head.degree + 1,
-                network,
-                experiment,
-                self.propagate_failure,
-                participant,
+                seed=seed,
+                parent=head,
+                network=network,
+                experiment=experiment,
+                propagate_failure=self.propagate_failure,
+                participant=participant,
             )
             db.session.add(node)
             network.add_node(node)

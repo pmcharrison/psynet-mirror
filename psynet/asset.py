@@ -523,7 +523,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
             )
             raise
 
-    def receive_source_definition(self, definition):
+    def receive_node_definition(self, definition):
         self.var.source_definition = definition
 
     def read_text(self):
@@ -577,7 +577,7 @@ class AssetTrial(AssetLink, SQLBase, SQLMixin):
     __tablename__ = "asset_trial"
 
     trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
-    trial = relationship("Trial", back_populates="asset_links")
+    trial = relationship("psynet.trial.main.Trial", back_populates="asset_links")
 
     asset = relationship("Asset", back_populates="trial_links")
 
@@ -1005,8 +1005,8 @@ class FunctionAssetMixin:
         time_end = time.perf_counter()
         self.computation_time_sec = time_end - time_start
 
-    def receive_source_definition(self, definition):
-        super().receive_source_definition(definition)
+    def receive_node_definition(self, definition):
+        super().receive_node_definition(definition)
         requested_args = get_args(self.function)
         for key, value in definition.items():
             if key in requested_args:

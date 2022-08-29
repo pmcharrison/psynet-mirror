@@ -28,10 +28,7 @@ from dallinger.notifications import admin_notifier
 from dallinger.utils import get_base_url
 from flask import jsonify, render_template, request
 from pkg_resources import resource_filename
-from sqlalchemy.orm.attributes import flag_modified
-
 from psynet import __version__
-from psynet.trial.source import SourceRegistry
 
 from . import deployment_info
 from .asset import Asset, AssetRegistry, DebugStorage, FastFunctionAsset, NoStorage
@@ -76,7 +73,6 @@ from .utils import (
     get_logger,
     pretty_log_dict,
     serialise,
-    serialise_datetime,
     working_directory,
 )
 
@@ -261,7 +257,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
-        self.sources = SourceRegistry(self)
 
         if (
             request
@@ -516,11 +511,16 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.setup_experiment_config()
         self.setup_experiment_variables()
         self.prepare_generic_trial_network()
-        self.sources.prepare_for_deployment()
+
+        for module in self.timeline.modules.values():
+            module.prepare_for_deployment()
+
         self.assets.prepare_for_deployment()
+
         for routine in self.pre_deploy_routines:
             logger.info(f"Running pre-deployment routine '{routine.label}'...")
             call_function(routine.function, experiment=self, **routine.args)
+
         self.create_database_snapshot()
 
     @classmethod
@@ -1277,21 +1277,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     @experiment_route("/set_participant_as_aborted/<assignment_id>", methods=["GET"])
     @classmethod
-    def route_set_participant_as_aborted(cls, assignment_id):
+    def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
         participant = cls.get_participant_from_assignment_id(assignment_id)
         participant.aborted = True
-        try:
-            log = participant.modules[participant.current_module]
-        except KeyError:
-            log = {
-                "time_started": [],
-                "time_finished": [],
-                "time_aborted": [],
-            }
-            participant.modules[participant.current_module] = log
-        time_now = serialise_datetime(datetime.now())
-        log["time_aborted"] = [time_now]
-        flag_modified(participant, "modules")
+        participant.current_module_state.abort()
         db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()

@@ -8,20 +8,20 @@ from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
 from statistics import median
-from typing import Callable, Dict, List, Optional, Union
+from typing import Callable, Dict, List, Optional, Union, Type
 
 import flask
 import importlib_resources
 from dallinger import db
 from dallinger.config import get_config
 from dominate import tags
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.attributes import flag_modified
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import PythonObject
+from .field import PythonDotDict, PythonObject
 from .utils import (
     NoArgumentProvided,
     call_function,
@@ -205,7 +205,7 @@ class CodeBlock(Elt):
             experiment=experiment,
             participant=participant,
             assets=experiment.assets,
-            sources=experiment.sources.get(participant.current_module, {}),
+            nodes=participant.current_module_state.nodes,
         )
 
 
@@ -1156,7 +1156,7 @@ class PageMaker(Elt):
             experiment=experiment,
             participant=participant,
             assets=experiment.assets,
-            sources=experiment.sources.get(participant.current_module, {}),
+            nodes=participant.current_module_state.nodes,
         )
         res = join(res)
         self.impute_time_estimates(res)
@@ -1288,9 +1288,20 @@ class Timeline:
     def __init__(self, *args):
         elts = join(*args)
         self.elts = elts
+        self.modules = self.compile_modules()
         self.check_elts()
         self.add_elt_ids()
         self.estimated_time_credit = CreditEstimate(self.elts)
+
+    def compile_modules(self):
+        modules = {}
+        for elt in self.elts:
+            if isinstance(elt, StartModule):
+                module = elt.module
+                if module.id in modules:
+                    raise ValueError(f"Duplicated module name detected: {module.id}")
+                modules[module.id] = module
+        return modules
 
     def check_elts(self):
         assert isinstance(self.elts, list)
@@ -1848,7 +1859,7 @@ def while_loop(
                 participant=participant,
                 experiment=experiment,
                 assets=experiment.assets,
-                sources=experiment.sources.get(participant.current_module, {}),
+                nodes=participant.current_module_state.nodes,
             ),
             after_timeout_logic,
             fix_time_credit=False,
@@ -1976,7 +1987,7 @@ class StartSwitch(ReactiveGoTo):
                     experiment=experiment,
                     participant=participant,
                     assets=experiment.assets,
-                    sources=experiment.sources.get(participant.current_module, {}),
+                    nodes=participant.current_module_state.nodes,
                 )
                 log_entry = [label, val]
                 participant.append_branch_log(log_entry)
@@ -2091,11 +2102,62 @@ def multiply_expected_repetitions(logic, factor: float):
     return logic
 
 
+class ModuleState(SQLBase, SQLMixin):
+    __tablename__ = "module_state"
+
+    module_id = Column(String, primary_key=True)
+    participant_id = Column(
+        Integer,
+        ForeignKey("participant.id"),
+        primary_key=True,
+        back_populates="module_states",
+    )
+    var = Column(PythonDotDict, default={})
+
+    time_started = Column(DateTime)
+    time_finished = Column(DateTime)
+    time_aborted = Column(DateTime)
+    finished = Column(Boolean, default=False)
+    aborted = Column(Boolean, default=False)
+
+    participant = relationship("psynet.participant.Participant")
+
+    assets = relationship(
+        # We see assets that belong to that module,
+        # and either belong to that participant, or belong to no other participants
+        "psynet.asset.Asset",
+        primaryjoin="and_(ModuleState.module_id==psynet.asset.Asset.module_id, "
+        "or_(ModuleState.participant_id==psynet.asset.Asset.participant_id, "
+        "psynet.asset.Asset.participant_id.is_(None)))",
+    )
+
+    nodes = relationship(
+        # We see assets that belong to that module,
+        # and either belong to that participant, or belong to no other participants
+        "psynet.trial.main.TrialNode",
+        primaryjoin="and_(ModuleState.module_id==psynet.trial.main.TrialNode.module_id, "
+        "or_(ModuleState.participant_id==psynet.trial.main.TrialNode.participant_id, "
+        "psynet.trial.main.TrialNode.participant_id.is_(None))",
+    )
+
+    def start(self):
+        self.time_started = datetime.datetime.now()
+
+    def finish(self):
+        self.time_finished = datetime.datetime.now()
+        self.finished = True
+
+    def abort(self):
+        self.time_finished = datetime.datetime.now()
+        self.aborted = True
+
+
 class Module:
     default_id = None
     default_elts = None
+    log_class = ModuleState  # type: Type[ModuleState]
 
-    def __init__(self, id_: str = None, *args, sources=None):
+    def __init__(self, id_: str = None, *args, nodes=None):
         elts = join(*args)
 
         if self.default_id is None and id_ is None:
@@ -2105,18 +2167,47 @@ class Module:
 
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
-        self.sources = sources
+        self.nodes = nodes if nodes else []
+
+    def prepare_for_deployment(self):
+        self.nodes_register_in_db()
+        self.nodes_stage_assets()
+
+    def nodes_register_in_db(self):
+        for node in self.nodes:
+            db.session.add(node)
+            node.module_id = self.id
+            if node.network is None:
+                node.add_default_network()
+        db.session.commit()
+
+    def nodes_stage_assets(self):
+        for node in self.nodes:
+            node.stage_assets()
+        db.session.commit()
+
+    def start(self, participant):
+        log = self.log_class(self, participant)
+        log.start()
+        db.session.add(log)
+        db.session.commit()
+
+    def end(self, participant):
+        # This should only fail (delivering multiple logs) if the experimenter has perversely
+        # defined a recursive module (or is reusing module ID)
+        log = self.log_class.query.filter_by(
+            participant_id=participant.id, finished=False
+        ).one()
+        log.finish()
+        db.session.commit()
 
     @classmethod
     def started_and_finished_times(cls, participants, module_id):
+        logs = cls.log_class.query.filter_by(module_id=module_id, finished=True).all()
         return [
-            {
-                "time_started": participant.modules[module_id]["time_started"][0],
-                "time_finished": participant.modules[module_id]["time_finished"][0],
-                "time_aborted": participant.modules[module_id]["time_finished"][0],
-            }
-            for participant in participants
-            if module_id in participant.finished_modules
+            {"time_started": log.time_started, "time_finished": log.time_finished}
+            # "time_aborted": log.time_aborted,
+            for log in logs
         ]
 
     @classmethod
@@ -2148,33 +2239,55 @@ class Module:
     def aborted_participants(self):
         from .participant import Participant
 
-        participants = Participant.query.all()
-        aborted_participants = [p for p in participants if self.id in p.aborted_modules]
-        aborted_participants.sort(key=lambda p: p.modules[self.id]["time_aborted"][0])
-        return aborted_participants
+        return (
+            db.session.query(Participant)
+            .query.filter(self.log_class.module_id == self.id, self.log_class.aborted)
+            .order_by(self.log_class.time_aborted)
+        )
+
+        # participants = Participant.query.all()
+        # aborted_participants = [p for p in participants if self.id in p.aborted_modules]
+        # aborted_participants.sort(key=lambda p: p.modules[self.id]["time_aborted"][0])
+        # return aborted_participants
 
     @property
     def started_participants(self):
         from .participant import Participant
 
-        participants = Participant.query.all()
-        started_participants = [p for p in participants if self.id in p.started_modules]
-        started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
-        return started_participants
+        return (
+            db.session.query(Participant)
+            .query.filter(self.log_class.module_id == self.id, self.log_class.started)
+            .order_by(self.log_class.time_started)
+        )
+
+        # participants = Participant.query.all()
+        # started_participants = [p for p in participants if self.id in p.started_modules]
+        # started_participants.sort(key=lambda p: p.modules[self.id]["time_started"][0])
+        # return started_participants
 
     @property
     def finished_participants(self):
         from .participant import Participant
 
-        participants = Participant.query.all()
-        finished_participants = [
-            p for p in participants if self.id in p.finished_modules
-        ]
-        finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
-        return finished_participants
+        return (
+            db.session.query(Participant)
+            .query.filter(self.log_class.module_id == self.id, self.log_class.finished)
+            .order_by(self.log_class.time_finished)
+        )
+
+        # participants = Participant.query.all()
+        # finished_participants = [
+        #     p for p in participants if self.id in p.finished_modules
+        # ]
+        # finished_participants.sort(key=lambda p: p.modules[self.id]["time_finished"][0])
+        # return finished_participants
 
     def resolve(self):
-        return join(StartModule(self.id, module=self), self.elts, EndModule(self.id))
+        return join(
+            StartModule(self.id, module=self),
+            self.elts,
+            EndModule(self.id, module=self),
+        )
 
     def visualize(self):
         if self.started_participants:
@@ -2275,16 +2388,17 @@ class StartModule(NullElt):
         self.module = module
 
     def consume(self, experiment, participant):
-        participant.start_module(self.label)
+        self.module.start(participant)
 
 
 class EndModule(NullElt):
-    def __init__(self, label):
+    def __init__(self, label, module):
         super().__init__()
         self.label = label
+        self.module = module
 
     def consume(self, experiment, participant):
-        participant.end_module(self.label)
+        self.module.end(participant)
 
 
 class StartAccumulateAnswers(NullElt):
@@ -2380,7 +2494,12 @@ FOR_LOOP_STACK_DEPTH = -1
 
 
 def for_loop(
-    label, iterate_over, logic, time_estimate_per_iteration, expected_repetitions=None
+    *,
+    label,
+    iterate_over,
+    logic,
+    time_estimate_per_iteration,
+    expected_repetitions=None,
 ):
     assert callable(iterate_over)
 
@@ -2403,7 +2522,7 @@ def for_loop(
                 experiment=experiment,
                 participant=participant,
                 assets=experiment.assets,
-                sources=experiment.sources.get(participant.current_module, {}),
+                nodes=participant.current_module_state.nodes,
             )
         state = {"lst": lst, "index": 0}
         # participant.for_loops.append(state)
@@ -2438,7 +2557,7 @@ def for_loop(
             experiment=experiment,
             participant=participant,
             assets=experiment.assets,
-            sources=experiment.sources.get(participant.current_module, {}),
+            nodes=participant.current_module_state.nodes,
         )
 
     def should_stay_in_loop(participant):
@@ -2474,7 +2593,7 @@ def for_loop(
     )
 
 
-def randomize(label, logic):
+def randomize(*, label, logic):
     assert isinstance(logic, list)
     n = len(logic)
     total_time = sum(elt.time_estimate for elt in logic)

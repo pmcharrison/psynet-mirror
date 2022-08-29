@@ -1,6 +1,6 @@
 # pylint: disable=unused-argument,abstract-method
 
-from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 
 class ImitationChainNetwork(ChainNetwork):
@@ -46,6 +46,9 @@ class ImitationChainNode(ChainNode):
     """
     A Node class for imitation chains.
     """
+
+    def create_initial_seed(self, experiment, participant):
+        raise NotImplementedError
 
     def create_definition_from_seed(self, seed, experiment, participant):
         """
@@ -111,15 +114,6 @@ class ImitationChainNode(ChainNode):
 
         if len(trials) == 1:
             return trials[0].answer
-        raise NotImplementedError
-
-
-class ImitationChainSource(ChainSource):
-    """
-    A Source class for imitation chains.
-    """
-
-    def generate_seed(self, network, experiment, participant):
         raise NotImplementedError
 
 

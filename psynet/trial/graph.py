@@ -5,7 +5,7 @@ from typing import List, Optional
 from dallinger import db
 
 from ..field import claim_field
-from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 # from psynet.trial.main import with_trial_maker_namespace
 from .main import with_trial_maker_namespace

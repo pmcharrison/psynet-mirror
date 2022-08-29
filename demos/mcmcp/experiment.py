@@ -11,13 +11,7 @@ from psynet.consent import MainConsent
 from psynet.modular_page import PushButtonControl
 from psynet.page import InfoPage, ModularPage, Prompt, SuccessfulEndPage
 from psynet.timeline import Timeline
-from psynet.trial.mcmcp import (
-    MCMCPNetwork,
-    MCMCPNode,
-    MCMCPSource,
-    MCMCPTrial,
-    MCMCPTrialMaker,
-)
+from psynet.trial.mcmcp import MCMCPNetwork, MCMCPNode, MCMCPTrial, MCMCPTrialMaker
 from psynet.utils import get_logger
 
 logger = get_logger()
@@ -36,11 +30,6 @@ SAMPLE_RANGE = 5
 class CustomNetwork(MCMCPNetwork):
     def make_definition(self):
         return {"occupation": self.balance_across_networks(OCCUPATIONS)}
-
-
-class CustomSource(MCMCPSource):
-    def generate_seed(self, network, experiment, participant):
-        return {"age": random.randint(0, MAX_AGE)}
 
 
 class CustomTrial(MCMCPTrial):
@@ -66,6 +55,9 @@ class CustomTrial(MCMCPTrial):
 
 
 class CustomNode(MCMCPNode):
+    def create_initial_seed(self, experiment, participant):
+        return {"age": random.randint(0, MAX_AGE)}
+
     def get_proposal(self, state, experiment, participant):
         age = state["age"] + random.randint(-SAMPLE_RANGE, SAMPLE_RANGE)
         age = age % (MAX_AGE + 1)
@@ -94,7 +86,6 @@ class Exp(psynet.experiment.Experiment):
             network_class=CustomNetwork,
             trial_class=CustomTrial,
             node_class=CustomNode,
-            source_class=CustomSource,
             chain_type="within",  # can be "within" or "across"
             num_trials_per_participant=10,
             num_chains_per_participant=2,  # set to None if chain_type="across"

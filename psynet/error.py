@@ -36,7 +36,7 @@ class ErrorRecord(SQLBase, SQLMixin):
     response = relationship("psynet.timeline.Response", back_populates="errors")
 
     trial_id = Column(Integer, ForeignKey("info.id"))
-    trial = relationship("Trial", back_populates="errors")
+    trial = relationship("psynet.trial.main.Trial", back_populates="errors")
 
     response_id = Column(Integer, ForeignKey("response.id"))
     response = relationship("psynet.timeline.Response", back_populates="errors")

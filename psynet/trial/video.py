@@ -4,7 +4,6 @@ from ..utils import get_logger
 from .record import (
     MediaImitationChainNetwork,
     MediaImitationChainNode,
-    MediaImitationChainSource,
     MediaImitationChainTrial,
     MediaImitationChainTrialMaker,
     RecordTrial,
@@ -52,14 +51,6 @@ class CameraImitationChainNode(MediaImitationChainNode):
     A Node class for camera imitation chains.
     Users must override the
     :meth:`~psynet.trial.audio.VideoImitationChainNode.synthesize_target` method.
-    """
-
-    pass
-
-
-class CameraImitationChainSource(MediaImitationChainSource):
-    """
-    A Source class for camera imitation chains.
     """
 
     pass

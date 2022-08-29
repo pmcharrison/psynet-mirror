@@ -6,8 +6,7 @@ import random
 from typing import List, Optional
 
 from ..utils import sample_from_surface_of_unit_sphere
-from .source import Source
-from .static import StaticTrial, StaticTrialMaker
+from .static import StaticNode, StaticTrial, StaticTrialMaker
 
 
 class DenseTrialMaker(StaticTrialMaker):
@@ -226,7 +225,7 @@ class DenseTrialMaker(StaticTrialMaker):
         )
 
 
-class Condition(Source):
+class Condition(StaticNode):
     """
     Defines a Condition within the dense experiment paradigm.
 
@@ -319,7 +318,7 @@ class DenseTrial(StaticTrial):
 
     @property
     def condition(self):
-        return self.source
+        return self.node
 
     @property
     def n_dimensions(self):

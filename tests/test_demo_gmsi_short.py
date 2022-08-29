@@ -61,7 +61,7 @@ class TestExp(object):
             assert len(modules["gmsi"]["time_finished"]) == 1
             assert participant.started_modules == ["gmsi"]
             assert participant.finished_modules == ["gmsi"]
-            assert participant.current_module == "gmsi"
+            assert participant.current_module_id == "gmsi"
             assert participant.var.gmsi["mean_scores_per_scale"] == {
                 "General": 2.866667,
                 "Emotions": 4.2,

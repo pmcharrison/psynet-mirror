@@ -14,11 +14,21 @@ from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
-from psynet.timeline import Timeline, for_loop
+from psynet.timeline import Module, Timeline, for_loop
 from psynet.trial.main import Trial
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
+
+
+WORDS = [
+    "cat",
+    "dog",
+    "fish",
+    "monkey",
+    "giraffe",
+    "octopus",
+]
 
 
 class RateTrial(Trial):
@@ -36,14 +46,19 @@ class RateTrial(Trial):
         )
 
 
-WORDS = [
-    "cat",
-    "dog",
-    "fish",
-    "monkey",
-    "giraffe",
-    "octopus",
-]
+word_ratings = Module(
+    "word_ratings",
+    for_loop(
+        label="Randomly sample three words from the word list",
+        iterate_over=lambda: random.sample(WORDS, 3),
+        logic=lambda word: RateTrial.cue(
+            {
+                "word": word,
+            }
+        ),
+        time_estimate_per_iteration=3,
+    ),
+)
 
 
 class Exp(psynet.experiment.Experiment):
@@ -52,16 +67,7 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        for_loop(
-            "Randomly sample three words from the word list",
-            lambda: random.sample(WORDS, 3),
-            lambda word: RateTrial.cue(
-                {
-                    "word": word,
-                }
-            ),
-            time_estimate_per_iteration=3,
-        ),
+        word_ratings,
         SuccessfulEndPage(),
     )
 

@@ -1,6 +1,5 @@
 # pylint: disable=attribute-defined-outside-init
 
-import datetime
 import json
 from smtplib import SMTPAuthenticationError
 
@@ -11,14 +10,13 @@ from dallinger.notifications import admin_notifier
 from sqlalchemy import Boolean, Column, Float, Integer, String, desc, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
-from sqlalchemy.orm.attributes import flag_modified
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
 from .field import PythonDict, PythonList, PythonObject, extra_var, register_extra_var
 from .process import AsyncProcess
-from .utils import get_logger, serialise_datetime, unserialise_datetime
+from .utils import get_logger
 
 logger = get_logger()
 
@@ -185,7 +183,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
         return Response.query.filter_by(id=self.last_response_id).one()
 
-    trials = relationship("Trial")
+    trials = relationship("psynet.trial.main.Trial")
 
     # This would be better, but we end up with a circular import problem
     # if we try and read csv files using this foreign key...
@@ -249,6 +247,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
 
     errors = relationship("ErrorRecord")
+    module_states = relationship("ModuleState")
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
@@ -258,57 +257,43 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     @property
     @extra_var(__extra_vars__)
     def aborted_modules(self):
-        modules = [
-            (key, value)
-            for key, value in self.modules.items()
-            if value.get("time_aborted") is not None
-            and len(value.get("time_aborted")) > 0
+        return [
+            log.module_id
+            for log in sorted(self.module_states, key=lambda x: x.time_started)
+            if log.aborted
         ]
-        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
-        return [m[0] for m in modules]
 
     @property
     @extra_var(__extra_vars__)
     def started_modules(self):
-        modules = [
-            (key, value)
-            for key, value in self.modules.items()
-            if len(value["time_started"]) > 0
+        return [
+            log.module_id
+            for log in sorted(self.module_states, key=lambda x: x.time_started)
+            if log.started
         ]
-        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
-        return [m[0] for m in modules]
 
     @property
     @extra_var(__extra_vars__)
     def finished_modules(self):
-        modules = [
-            (key, value)
-            for key, value in self.modules.items()
-            if len(value["time_finished"]) > 0
+        return [
+            log.module_id
+            for log in sorted(self.module_states, key=lambda x: x.time_started)
+            if log.finished
         ]
-        modules.sort(key=lambda x: unserialise_datetime(x[1]["time_started"][0]))
-        return [m[0] for m in modules]
+
+    @property
+    def current_module_state(self):
+        if len(self.modules) == 0:
+            return None
+        else:
+            unfinished = [x for x in self.module_states if not x.finished]
+            unfinished.sort(key=lambda x: x.time_started)
+            return unfinished[-1]
 
     @property
     @extra_var(__extra_vars__)
-    def current_module(self):
-        return None if not self.started_modules else self.started_modules[-1]
-
-    def start_module(self, label):
-        try:
-            log = self.modules[label]
-        except KeyError:
-            log = {"time_started": [], "time_finished": []}
-            self.modules[label] = log
-        time_now = serialise_datetime(datetime.datetime.now())
-        log["time_started"] = log["time_started"] + [time_now]
-        flag_modified(self, "modules")
-
-    def end_module(self, label):
-        log = self.modules[label]
-        time_now = serialise_datetime(datetime.datetime.now())
-        log["time_finished"] = log["time_finished"] + [time_now]
-        flag_modified(self, "modules")
+    def current_module_id(self):
+        return self.current_module_state.module_id
 
     def set_answer(self, value):
         self.answer = value

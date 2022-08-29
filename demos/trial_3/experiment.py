@@ -11,7 +11,7 @@ from psynet.bot import Bot
 from psynet.consent import NoConsent
 from psynet.modular_page import AudioPrompt, ModularPage, PushButtonControl
 from psynet.page import SuccessfulEndPage
-from psynet.timeline import Timeline, for_loop
+from psynet.timeline import Module, Timeline, for_loop
 from psynet.trial.main import Trial
 
 from .custom_synth import synth_prosody
@@ -38,31 +38,37 @@ class RateTrial(Trial):
         )
 
 
+audio_ratings = Module(
+    "audio_ratings",
+    for_loop(
+        label="Deliver 5 trials with randomly sampled parameters",
+        iterate_over=lambda: [
+            {
+                "frequency_gradient": random.uniform(-100, 100),
+                "start_frequency": random.uniform(-100, 100),
+            }
+            for _ in range(5)
+        ],
+        logic=lambda definition: RateTrial.cue(
+            definition,
+            assets={
+                "audio": FastFunctionAsset(
+                    function=synth_stimulus,
+                    extension=".wav",
+                ),
+            },
+        ),
+        time_estimate_per_iteration=RateTrial.time_estimate,
+    ),
+)
+
+
 class Exp(psynet.experiment.Experiment):
     label = "Simple trial demo (3)"
 
     timeline = Timeline(
         NoConsent(),
-        for_loop(
-            "Deliver 5 trials with randomly sampled parameters",
-            lambda: [
-                {
-                    "frequency_gradient": random.uniform(-100, 100),
-                    "start_frequency": random.uniform(-100, 100),
-                }
-                for _ in range(5)
-            ],
-            lambda definition: RateTrial.cue(
-                definition,
-                assets={
-                    "audio": FastFunctionAsset(
-                        function=synth_stimulus,
-                        extension=".wav",
-                    ),
-                },
-            ),
-            time_estimate_per_iteration=RateTrial.time_estimate,
-        ),
+        audio_ratings,
         SuccessfulEndPage(),
     )
 

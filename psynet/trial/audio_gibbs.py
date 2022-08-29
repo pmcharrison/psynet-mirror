@@ -1,20 +1,17 @@
 # pylint: disable=unused-argument,abstract-method
 
-import json
 import os
 import random
 import tempfile
 from uuid import uuid4
 
-from flask import Markup, escape
-
+from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
 from ..timeline import MediaSpec
 from ..utils import get_logger, get_object_from_module, linspace
-from .gibbs import GibbsNetwork, GibbsNode, GibbsSource, GibbsTrial, GibbsTrialMaker
 
 logger = get_logger()
 
@@ -149,49 +146,41 @@ class AudioGibbsNetwork(GibbsNetwork):
 
         node = self.head
 
-        if isinstance(node, AudioGibbsSource):
-            logger.info(
-                "Network %i only contains a Source, no audio to be synthesised.",
-                self.id,
+        granularity = self.granularity
+        vector = node.definition["vector"]
+        active_index = node.definition["active_index"]
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
+            os.mkdir(individual_stimuli_dir)
+
+            batch_file = f"{uuid4()}.batch"
+            batch_path = os.path.join(temp_dir, batch_file)
+
+            args = {
+                "vector": vector,
+                "active_index": active_index,
+                "range_to_sample": self.vector_ranges[active_index],
+                "chain_definition": self.definition,
+                "output_dir": individual_stimuli_dir,
+                "synth_function": self.synth_function,
+                "n_jobs": self.n_jobs,
+            }
+
+            if granularity == "custom":
+                stimuli = make_audio_custom_intervals(**args)
+            else:
+                stimuli = make_audio_regular_intervals(granularity=granularity, **args)
+
+            make_audio_batch_file(stimuli, batch_path)
+            asset = ExperimentAsset(
+                label="slider_stimulus",
+                input_path=batch_path,
+                parent=node,
             )
-        else:
-            granularity = self.granularity
-            vector = node.definition["vector"]
-            active_index = node.definition["active_index"]
+            asset.deposit()
 
-            with tempfile.TemporaryDirectory() as temp_dir:
-                individual_stimuli_dir = os.path.join(temp_dir, "individual_stimuli")
-                os.mkdir(individual_stimuli_dir)
-
-                batch_file = f"{uuid4()}.batch"
-                batch_path = os.path.join(temp_dir, batch_file)
-
-                args = {
-                    "vector": vector,
-                    "active_index": active_index,
-                    "range_to_sample": self.vector_ranges[active_index],
-                    "chain_definition": self.definition,
-                    "output_dir": individual_stimuli_dir,
-                    "synth_function": self.synth_function,
-                    "n_jobs": self.n_jobs,
-                }
-
-                if granularity == "custom":
-                    stimuli = make_audio_custom_intervals(**args)
-                else:
-                    stimuli = make_audio_regular_intervals(
-                        granularity=granularity, **args
-                    )
-
-                make_audio_batch_file(stimuli, batch_path)
-                asset = ExperimentAsset(
-                    label="slider_stimulus",
-                    input_path=batch_path,
-                    parent=node,
-                )
-                asset.deposit()
-
-                node.slider_stimuli = {"url": asset.url, "all": stimuli}
+            node.slider_stimuli = {"url": asset.url, "all": stimuli}
 
 
 class AudioGibbsTrial(GibbsTrial):
@@ -350,15 +339,6 @@ class AudioGibbsNode(GibbsNode):
     __extra_vars__ = GibbsNode.__extra_vars__.copy()
 
     slider_stimuli = claim_var("slider_stimuli", __extra_vars__)
-
-
-class AudioGibbsSource(GibbsSource):
-    """
-    A Source class for Audio Gibbs sampler chains.
-    The user should not have to modify this.
-    """
-
-    pass
 
 
 class AudioGibbsTrialMaker(GibbsTrialMaker):

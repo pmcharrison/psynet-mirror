@@ -4,7 +4,7 @@ import random
 from collections import Counter
 
 from ..field import extra_var
-from .chain import ChainNetwork, ChainNode, ChainSource, ChainTrial, ChainTrialMaker
+from .chain import ChainNetwork, ChainNode, ChainTrial, ChainTrialMaker
 
 
 class MCMCPNetwork(ChainNetwork):
@@ -158,13 +158,7 @@ class MCMCPNode(ChainNode):
             "proposal": self.get_proposal(seed, experiment, participant),
         }
 
-
-class MCMCPSource(ChainSource):
-    """
-    A Source class for MCMCP chains.
-    """
-
-    def generate_seed(self, network, experiment, participant):
+    def create_initial_seed(self, experiment, participant):
         raise NotImplementedError
 
 

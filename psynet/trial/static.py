@@ -1,13 +1,10 @@
-from typing import List, Optional, Union
-
-from sqlalchemy import Column, ForeignKey, Integer, String
-from sqlalchemy.orm import relationship
+from typing import List, Optional
 
 from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrialMaker
-from psynet.trial.source import Source, SourceCollection
+from sqlalchemy import Column, String
 
-from ..utils import deep_copy, get_logger
 from .main import Trial
+from ..utils import deep_copy, get_logger
 
 logger = get_logger()
 
@@ -60,10 +57,6 @@ class StaticTrial(Trial):
         A dictionary of parameters defining the trial,
         inherited from the respective :class:`~psynet.trial.static.Stimulus` object.
 
-    source
-        The corresponding :class:`~psynet.trial.static.Stimulus`
-        object.
-
     participant_group
         The associated participant group.
 
@@ -73,29 +66,24 @@ class StaticTrial(Trial):
 
     __extra_vars__ = Trial.__extra_vars__.copy()
 
-    source_id = Column(Integer, ForeignKey("node.id"))
-    source = relationship("psynet.trial.source.Source", foreign_keys=[source_id])
-
     participant_group = Column(String)
     block = Column(String)
 
     def __init__(self, experiment, node, *args, **kwargs):
-        self.source = node
-        self.source_id = node.id
         super().__init__(experiment, node, *args, **kwargs)
-        self.participant_group = self.source.participant_group
-        self.block = self.source.block
+        self.participant_group = self.node.participant_group
+        self.block = self.node.block
 
     def generate_asset_key(self, asset):
-        return f"{self.trial_maker_id}/block_{self.block}__source_{self.source_id}__trial_{self.id}__{asset.label}{asset.extension}"
+        return f"{self.trial_maker_id}/block_{self.block}__node_{self.node_id}__trial_{self.id}__{asset.label}{asset.extension}"
 
     def show_trial(self, experiment, participant):
         raise NotImplementedError
 
     def make_definition(self, experiment, participant):
-        for k, v in self.source.assets.items():
+        for k, v in self.node.assets.items():
             self.assets[k] = v
-        return deep_copy(self.source.definition)
+        return deep_copy(self.node.definition)
 
 
 class StaticTrialMaker(ChainTrialMaker):
@@ -103,17 +91,8 @@ class StaticTrialMaker(ChainTrialMaker):
     Administers a sequence of trials in a static experiment.
     The class is intended for use with the
     :class:`~psynet.trial.static.StaticTrial` helper class.
-    which should be customised to show the relevant source
+    which should be customised to show the relevant node
     for the experimental paradigm.
-    The user must also define their source collection
-    using the following built-in classes:
-
-    * :class:`~psynet.trial.static.SourceCollection`;
-
-    * :class:`~psynet.trial.static.Stimulus`;
-
-    In particular, a :class:`~psynet.trial.static.SourceCollection`
-    contains a list of :class:`~psynet.trial.static.Stimulus` objects.
 
     The user may also override the following methods, if desired:
 
@@ -145,9 +124,6 @@ class StaticTrialMaker(ChainTrialMaker):
         The class object for trials administered by this maker
         (should subclass :class:`~psynet.trial.static.StaticTrial`).
 
-    sources
-        The source collection to be administered.
-
     recruit_mode
         Selects a recruitment criterion for determining whether to recruit
         another participant. The built-in criteria are ``"num_participants"``
@@ -159,31 +135,30 @@ class StaticTrialMaker(ChainTrialMaker):
         towards this quota. This target is only relevant if
         ``recruit_mode="num_participants"``.
 
-    target_num_trials_per_source
-        Target number of trials to recruit for each source in the experiment
-        (as opposed to for each source version). This target is only relevant if
+    target_num_trials_per_node
+        Target number of trials to recruit for each node in the experiment. This target is only relevant if
         ``recruit_mode="num_trials"``.
 
     max_trials_per_block
         Determines the maximum number of trials that a participant will be allowed to experience in each block,
         including failed trials. Note that this number does not include repeat trials.
 
-    allow_repeated_sources
-        Determines whether the participant can be administered the same source more than once.
+    allow_repeated_nodes
+        Determines whether the participant can be administered the same node more than once.
 
-    max_unique_sources_per_block
-        Determines the maximum number of unique sources that a participant will be allowed to experience
+    max_unique_nodes_per_block
+        Determines the maximum number of unique nodes that a participant will be allowed to experience
         in each block. Once this quota is reached, the participant will be forced to repeat
-        previously experienced sources.
+        previously experienced nodes.
 
     active_balancing_within_participants
         If ``True`` (default), active balancing within participants is enabled, meaning that
-        source selection always favours the sources that have been presented fewest times
+        node selection always favours the nodes that have been presented fewest times
         to that participant so far.
 
     active_balancing_across_participants
         If ``True`` (default), active balancing across participants is enabled, meaning that
-        source selection favours sources that have been presented fewest times to any participant
+        node selection favours nodes that have been presented fewest times to any participant
         in the experiment, excluding failed trials.
         This criterion defers to ``active_balancing_within_participants``;
         if both ``active_balancing_within_participants=True``
@@ -268,13 +243,13 @@ class StaticTrialMaker(ChainTrialMaker):
         *,
         id_: str,
         trial_class,
-        sources: Union[List[Source], SourceCollection],
+        nodes: List[ChainNode],
         num_trials_per_participant: int,
         recruit_mode: Optional[str] = None,
         target_num_participants: Optional[int] = None,
-        target_num_trials_per_source: Optional[int] = None,
+        target_num_trials_per_node: Optional[int] = None,
         max_trials_per_block: Optional[int] = None,
-        allow_repeated_sources: bool = False,
+        allow_repeated_nodes: bool = False,
         active_balancing_within_participants: bool = True,
         active_balancing_across_participants: bool = True,
         check_performance_at_end: bool = False,
@@ -294,26 +269,25 @@ class StaticTrialMaker(ChainTrialMaker):
 
         super().__init__(
             id_=id_,
-            sources=sources,
+            nodes=nodes,
             trial_class=trial_class,
             network_class=StaticNetwork,
             node_class=StaticNode,
-            source_class=Source,
             recruit_mode=recruit_mode,
             target_num_participants=target_num_participants,
             num_trials_per_participant=num_trials_per_participant,
             max_trials_per_block=max_trials_per_block,
             chain_type="across",
             num_chains_per_participant=None,
-            num_chains_per_experiment=len(sources),
-            trials_per_node=target_num_trials_per_source
-            if target_num_trials_per_source
+            num_chains_per_experiment=len(nodes),
+            trials_per_node=target_num_trials_per_node
+            if target_num_trials_per_node
             else 1e6,
             balance_across_chains=balance_across_chains,
             balance_strategy=balance_strategy,
             num_iterations_per_chain=1,
-            num_nodes_per_chain=target_num_trials_per_source,
-            allow_revisiting_networks_in_across_chains=allow_repeated_sources,
+            num_nodes_per_chain=target_num_trials_per_node,
+            allow_revisiting_networks_in_across_chains=allow_repeated_nodes,
             check_performance_at_end=check_performance_at_end,
             check_performance_every_trial=check_performance_every_trial,
             fail_trials_on_premature_exit=fail_trials_on_premature_exit,
@@ -322,9 +296,9 @@ class StaticTrialMaker(ChainTrialMaker):
         )
 
     # @property
-    # def sources(self):
-    #     return [source for network in self.networks for source in network.sources]
-    #     return reduce(operator.add, [n.sources for n in self.networks])
+    # def nodes(self):
+    #     return [node for network in self.networks for node in network.nodes]
+    #     return reduce(operator.add, [n.nodes for n in self.networks])
 
 
 class StaticNetwork(ChainNetwork):

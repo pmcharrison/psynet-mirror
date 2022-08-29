@@ -13,9 +13,7 @@ from dallinger.models import Info, Network
 from dominate import tags
 from flask import Markup
 from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.associationproxy import association_proxy
-from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
@@ -75,24 +73,24 @@ def has_participant_group(trial_maker_id, participant):
     )
 
 
-class HasDefinition:
-    # Mixin class that provides a 'definition' slot.
-    # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
-    @declared_attr
-    def definition(cls):
-        return cls.__table__.c.get(
-            "definition", Column(JSONB, server_default="{}", default=lambda: {})
-        )
-
-    __extra_vars__ = {}
-    register_extra_var(__extra_vars__, "definition", field_type=dict)
+# class HasDefinition:
+#     # Mixin class that provides a 'definition' slot.
+#     # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
+#     @declared_attr
+#     def definition(cls):
+#         return cls.__table__.c.get(
+#             "definition", Column(JSONB, server_default="{}", default=lambda: {})
+#         )
+#
+#     __extra_vars__ = {}
+#     register_extra_var(__extra_vars__, "definition", field_type=dict)
 
 
 # Patch the missing foreign_keys argument for the Info.origin relationship
-Info.origin = relationship("Node", foreign_keys=[Info.origin_id])
+Info.origin = relationship("dallinger.models.Node", foreign_keys=[Info.origin_id])
 
 
-class Trial(SQLMixinDallinger, Info, HasDefinition):
+class Trial(SQLMixinDallinger, Info):
     """
     Represents a trial in the experiment.
     The user is expected to override the following methods:
@@ -264,15 +262,13 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
     """
 
     # pylint: disable=unused-argument
-    __extra_vars__ = {
-        **SQLMixinDallinger.__extra_vars__.copy(),
-        **HasDefinition.__extra_vars__.copy(),
-    }
+    __extra_vars__ = SQLMixinDallinger.__extra_vars__.copy()
 
     node_id = Column(Integer, ForeignKey("node.id"))
     participant_id = Column(Integer, ForeignKey("participant.id"))
     module_id = Column(String)
     trial_maker_id = Column(String)
+    definition = Column(PythonDict)
     complete = Column(Boolean)
     finalized = Column(Boolean)
     is_repeat_trial = Column(Boolean)
@@ -296,7 +292,9 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         foreign_keys=[participant_id],
         back_populates="trials",
     )
-    parent_trial = relationship("Trial", foreign_keys=[parent_trial_id])
+    parent_trial = relationship(
+        "psynet.trial.main.Trial", foreign_keys=[parent_trial_id]
+    )
     response = relationship("psynet.timeline.Response")
 
     async_processes = relationship("AsyncProcess")
@@ -433,12 +431,6 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         if assets is None:
             assets = {}
 
-        from psynet.trial.source import Source
-
-        if isinstance(node, Source):
-            self.var.source_id = node.id
-            self.var.source_key = node.key
-
         if is_repeat_trial:
             self.definition = parent_trial.definition
             for k, v in parent_trial._initial_assets.items():
@@ -513,7 +505,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         if not asset.parent:
             asset.parent = self
 
-        asset.receive_source_definition(self.definition)
+        asset.receive_node_definition(self.definition)
 
         if not asset.has_key:
             asset.label = label
@@ -623,7 +615,7 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
         db.session.commit()
         assert self.id is not None
         for _, asset in self.assets.items():
-            asset.receive_source_definition(self.definition)
+            asset.receive_node_definition(self.definition)
             if not asset.deposited:
                 asset.deposit()
         db.session.commit()
@@ -744,20 +736,20 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
 
         definition :
             This can be a ``dict`` object, which will then be saved to the trial's ``definition`` slot.
-            Alternatively, it can be a ``Source`` object, in which case the ``Source`` object
-            will be saved to ``trial.source``, and ``source.definition`` will be saved
+            Alternatively, it can be a ``Node`` object, in which case the ``Node`` object
+            will be saved to ``trial.node``, and ``node.definition`` will be saved
             to ``trial.definition``.
 
         assets :
             Optional dictionary of assets to add to the trial (in addition to any provided by
             providing a ``Source`` containing assets to the ``definition`` parameter).
         """
-        from psynet.trial.source import Source
+        from psynet.trial.chain import ChainNode
 
-        if isinstance(definition, Source):
-            source = definition
-            cls.check_source_is_valid(source)
-            definition = source.definition
+        if isinstance(definition, ChainNode):
+            node = definition
+            cls.check_node_is_valid(node)
+            definition = node.definition
         elif isinstance(definition, dict):
             source = None
         else:
@@ -789,26 +781,18 @@ class Trial(SQLMixinDallinger, Info, HasDefinition):
             cls.trial_logic(),
         )
 
-    @property
-    def source(self):
-        from psynet.trial.static import Source
-
-        if isinstance(self.node, Source):
-            return self.node
-
     @classmethod
-    def check_source_is_valid(cls, source):
+    def check_node_is_valid(cls, source):
         from sqlalchemy import inspect
 
         if not inspect(source).persistent:
             raise ValueError(
-                f"The source with definition {source.definition} looks like it hasn't "
+                f"The node with definition {source.definition} looks like it hasn't "
                 "been registered in the database. This normally means that you are trying to "
-                "access the source object in the wrong way. You should access it by writing "
-                "experiment.sources['your_source_set_id']['your_source_key'], "
-                "or (within a PageMaker or CodeBlock) as "
-                "lambda sources: sources['your_source_key'], "
-                "or by writing a SQLAlchemy query, e.g. Source.query.filter_by(...).one()."
+                "access the node object in the wrong way. You should access it by writing "
+                "(within a PageMaker or CodeBlock) "
+                "lambda nodes: nodes['your_node_key'], "
+                "or by writing a SQLAlchemy query, e.g. Node.query.filter_by(...).one()."
             )
 
     @classmethod
@@ -2284,7 +2268,7 @@ class TrialNetwork(SQLMixinDallinger, Network):
 
     source = relationship("TrialSource", uselist=False)
     nodes = relationship("TrialNode")
-    trials = relationship("Trial")
+    trials = relationship("psynet.trial.main.Trial")
 
     @property
     def num_nodes(self):
@@ -2461,7 +2445,7 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
 
     errors = relationship("ErrorRecord")
 
-    trials = relationship("Trial", foreign_keys=[Trial.node_id])
+    trials = relationship("psynet.trial.main.Trial", foreign_keys=[Trial.node_id])
 
     # assets = Column(PythonDict)
 
@@ -2503,6 +2487,11 @@ class TrialNode(SQLMixinDallinger, dallinger.models.Node):
     def fail(self, reason=None):
         if not self.failed:
             super().fail(reason=reason)
+
+    def add_default_network(self):
+        self.network = GenericTrialNetwork()
+        db.session.add(self.network)
+        db.session.commit()
 
 
 class TrialSource(TrialNode):

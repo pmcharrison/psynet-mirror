@@ -19,12 +19,11 @@ from . import (  # noqa
     serialize,
     trial,
 )
-from .trial import (  # noqa
+from .trial import (  # noqa; graph,  # temporarily commented out so we can test other parts of the codebase before refactoring this
     audio,
     audio_gibbs,
     chain,
     dense,
-    graph,
     imitation_chain,
     main,
     mcmcp,

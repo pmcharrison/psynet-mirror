@@ -9,6 +9,8 @@ import pandas as pd
 from flask import Markup
 from pkg_resources import resource_filename
 
+from psynet.trial import Node
+
 from .asset import ExternalAsset
 from .modular_page import (
     AudioMeterControl,
@@ -33,7 +35,6 @@ from .timeline import (
     join,
 )
 from .trial.audio import AudioRecordTrial
-from .trial.source import Source
 from .trial.static import StaticTrial, StaticTrialMaker
 
 
@@ -477,7 +478,7 @@ class FreeTappingRecordTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(duration_rec_sec, min_num_detected_taps),
+            nodes=self.get_nodes(duration_rec_sec, min_num_detected_taps),
             num_repeat_trials=num_repeat_trials,
             fail_trials_on_premature_exit=False,
             fail_trials_on_participant_performance_check=False,
@@ -567,9 +568,9 @@ class FreeTappingRecordTest(StaticTrialMaker):
             ),
         )
 
-    def get_sources(self, duration_rec_sec: float, min_num_detected_taps: int):
+    def get_nodes(self, duration_rec_sec: float, min_num_detected_taps: int):
         return [
-            Source(
+            Node(
                 definition={
                     "duration_rec_sec": duration_rec_sec,
                     "min_num_detected_taps": min_num_detected_taps,
@@ -738,7 +739,7 @@ class REPPMarkersTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(),
+            nodes=self.get_nodes(),
             check_performance_at_end=True,
         )
 
@@ -787,9 +788,9 @@ class REPPMarkersTest(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def get_sources(self):
+    def get_nodes(self):
         return [
-            Source(
+            Node(
                 definition={
                     "stim_name": asset.label,
                     "markers_onsets": [
@@ -909,7 +910,7 @@ class LanguageVocabularyTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(media_url, language_code, self.words),
+            nodes=self.get_nodes(media_url, language_code, self.words),
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -954,9 +955,9 @@ class LanguageVocabularyTest(StaticTrialMaker):
             ),
         )
 
-    def get_sources(self, media_url: str, language_code: str, words: list):
+    def get_nodes(self, media_url: str, language_code: str, words: list):
         return [
-            Source(
+            Node(
                 definition={
                     "name": name,
                     "url_audio": f"{media_url}/recordings/{language_code}/{name}.wav",
@@ -1052,7 +1053,7 @@ class LexTaleTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(media_url),
+            nodes=self.get_nodes(media_url),
             max_trials_per_block=num_trials,
             check_performance_at_end=True,
         )
@@ -1073,9 +1074,9 @@ class LexTaleTest(StaticTrialMaker):
             time_estimate=5,
         )
 
-    def get_sources(self, media_url: str):
+    def get_nodes(self, media_url: str):
         return [
-            Source(
+            Node(
                 definition={
                     "label": label,
                     "correct_answer": correct_answer,
@@ -1312,7 +1313,7 @@ class ColorBlindnessTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(media_url),
+            nodes=self.get_nodes(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1338,9 +1339,9 @@ class ColorBlindnessTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_sources(self, media_url: str):
+    def get_nodes(self, media_url: str):
         return [
-            Source(
+            Node(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1433,7 +1434,7 @@ class ColorVocabularyTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(self.colors),
+            nodes=self.get_nodes(self.colors),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1461,20 +1462,20 @@ class ColorVocabularyTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_sources(self, colors: list):
+    def get_nodes(self, colors: list):
         stimuli = []
         words = [x[0] for x in colors]
         for (correct_answer, hsl) in colors:
             choices = words.copy()
             # Todo - think carefully about whether it's a good idea to have random
-            # functions inside get_sources
+            # functions inside get_nodes
             random.shuffle(choices)
             definition = {
                 "target_hsl": hsl,
                 "choices": choices,
                 "correct_answer": correct_answer,
             }
-            stimuli.append(Source(definition=definition))
+            stimuli.append(Node(definition=definition))
         return stimuli
 
 
@@ -1541,7 +1542,7 @@ class HeadphoneTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(media_url),
+            nodes=self.get_nodes(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1562,9 +1563,9 @@ class HeadphoneTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_sources(self, media_url: str):
+    def get_nodes(self, media_url: str):
         return [
-            Source(
+            Node(
                 definition={
                     "label": label,
                     "correct_answer": answer,
@@ -1688,7 +1689,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
         super().__init__(
             id_=label,
             trial_class=trial_class,
-            sources=self.get_sources(label, stimuli, specific_stimuli),
+            nodes=self.get_nodes(label, stimuli, specific_stimuli),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
         )
@@ -1737,7 +1738,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             time_estimate=10,
         )
 
-    def get_sources(self, label, stimuli, specific_stimuli):
+    def get_nodes(self, label, stimuli, specific_stimuli):
         if self.n_stimuli_to_use is not None:
             shuffle(stimuli)
             stimuli = stimuli[: self.n_stimuli_to_use]
@@ -1746,7 +1747,7 @@ class AudioForcedChoiceTest(StaticTrialMaker):
             stimuli = [stimuli[i] for i in specific_stimuli]
 
         return [
-            Source(
+            Node(
                 definition=stimulus,
                 assets={
                     "stimulus": ExternalAsset(

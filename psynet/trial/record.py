@@ -10,7 +10,6 @@ from ..utils import get_logger
 from .imitation_chain import (
     ImitationChainNetwork,
     ImitationChainNode,
-    ImitationChainSource,
     ImitationChainTrial,
     ImitationChainTrialMaker,
 )
@@ -230,25 +229,19 @@ class MediaImitationChainNetwork(ImitationChainNetwork):
 
         node = self.head
 
-        if isinstance(node, MediaImitationChainSource):
-            logger.info(
-                "Network %i only contains a Source, no media to be synthesized.",
-                self.id,
-            )
-        else:
-            with tempfile.NamedTemporaryFile() as temp_file:
-                from ..asset import ExperimentAsset
+        with tempfile.NamedTemporaryFile() as temp_file:
+            from ..asset import ExperimentAsset
 
-                node.synthesize_target(temp_file.name)
-                asset = ExperimentAsset(
-                    label="stimulus",
-                    input_path=temp_file.name,
-                    extension=self.media_extension,
-                    parent=node,
-                )
-                asset.deposit()
-                node.target_url = asset.url
-                db.session.commit()
+            node.synthesize_target(temp_file.name)
+            asset = ExperimentAsset(
+                label="stimulus",
+                input_path=temp_file.name,
+                extension=self.media_extension,
+                parent=node,
+            )
+            asset.deposit()
+            node.target_url = asset.url
+            db.session.commit()
 
 
 class MediaImitationChainTrial(RecordTrial, ImitationChainTrial):
@@ -280,14 +273,6 @@ class MediaImitationChainNode(ImitationChainNode):
         Generates the target stimulus (i.e. the stimulus to be imitated by the participant).
         """
         raise NotImplementedError
-
-
-class MediaImitationChainSource(ImitationChainSource):
-    """
-    A Source class for media imitation chains.
-    """
-
-    pass
 
 
 class MediaImitationChainTrialMaker(ImitationChainTrialMaker):

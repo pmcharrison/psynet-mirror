@@ -54,6 +54,22 @@ class _PythonDict(PythonObject):
 PythonDict = MutableDict.as_mutable(_PythonDict)
 
 
+class DotDict(dict):
+    def __setattr__(self, key, value):
+        self[key] = value
+
+    def __getattr__(self, key):
+        return self[key]
+
+
+class _PythonDotDict(_PythonDict):
+    def sanitize(self, value):
+        return DotDict(value)
+
+
+PythonDotDict = MutableDict.as_mutable(_PythonDotDict)
+
+
 class _PythonList(PythonObject):
     def sanitize(self, value):
         return list(value)
