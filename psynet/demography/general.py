@@ -1,3 +1,5 @@
+from flask import Markup
+
 from psynet.modular_page import (
     DropdownControl,
     ModularPage,
@@ -123,15 +125,42 @@ class Gender(ModularPage):
     def __init__(
         self,
         label="gender",
-        prompt="What is your gender?",
+        prompt=Markup(
+            """
+        <script>
+            psynet.trial.onEvent("responseEnable", function(){
+                var elem = $('#free_text')
+                $('#free_text_input').change(function(event){
+                    elem[0].id = event['currentTarget'].value;
+                    elem[0].checked = true;
+                })
+            });
+        </script>
+        How do you identify yourself?
+        """
+        ),
     ):
         self.label = label
         self.prompt = prompt
         self.time_estimate = 5
 
         control = RadioButtonControl(
-            ["male", "female", "other", "prefer_not_to_say"],
-            ["Male", "Female", "Other", "Prefer not to say"],
+            [
+                "female",
+                "male",
+                "non_binary",
+                "not_specified",
+                "prefer_not_to_say",
+                "free_text",
+            ],
+            [
+                "Female",
+                "Male",
+                "Non-binary",
+                "Not specified",
+                "I prefer not to answer",
+                Markup("<input id='free_text_input' type='text'>"),
+            ],
             name="gender",
         )
         super().__init__(
