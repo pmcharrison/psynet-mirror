@@ -766,7 +766,7 @@ class Trial(SQLMixinDallinger, Info):
             nonlocal node
 
             if not node:
-                node = cls.get_default_parent_node(participant)
+                node = cls.get_default_parent_node(participant, experiment)
 
             trial = cls(
                 experiment,
@@ -789,13 +789,14 @@ class Trial(SQLMixinDallinger, Info):
         )
 
     @classmethod
-    def get_default_parent_node(cls, participant):
+    def get_default_parent_node(cls, participant, experiment):
+        module_id = participant.current_module_id
         try:
             return TrialNode.query.filter_by(
-                module_id=participant.current_module_id,
+                module_id=module_id,
             ).one()
         except NoResultFound:
-            node = GenericTrialNode()
+            node = GenericTrialNode(module_id, experiment)
             db.session.add(node)
             db.session.commit()
             return node
