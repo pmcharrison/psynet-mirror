@@ -940,29 +940,30 @@ class VolumeCalibration(Module):
     def __init__(
         self,
         url=resource_filename("psynet", "resources/audio/brown_noise.wav"),
-        audio_id="volume_calibration_audio",
         min_time=2.5,
         time_estimate=5.0,
-        page_id="volume_calibration",
+        id_="volume_calibration",
     ):
 
         super().__init__(
-            page_id,
-            self.asset(url, audio_id),
-            self.page(min_time, time_estimate, page_id, audio_id),
+            id_,
+            self.page(min_time, time_estimate, id_),
+            assets=[
+                self.asset(url),
+            ],
         )
 
-    def asset(self, url, audio_id):
+    def asset(self, url):
         if url.startswith("http"):
-            return ExternalAsset(key=audio_id, url=url)
+            return ExternalAsset(key="volume_calibration_audio", url=url)
         else:
-            return CachedAsset(key=audio_id, input_path=url)
+            return CachedAsset(key="volume_calibration_audio", input_path=url)
 
-    def page(self, min_time, time_estimate, page_id, audio_id):
+    def page(self, min_time, time_estimate, id_):
         return PageMaker(
             lambda assets: ModularPage(
-                page_id,
-                AudioPrompt(assets.get(audio_id), self.text(), loop=True),
+                id_,
+                AudioPrompt(assets["volume_calibration_audio"], self.text(), loop=True),
                 events={
                     "submitEnable": Event(is_triggered_by="trialStart", delay=min_time)
                 },

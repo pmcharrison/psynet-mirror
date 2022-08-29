@@ -245,7 +245,6 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     __extra_vars__ = {}
 
     variables = {}
-    pre_deploy_routines = []
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
@@ -259,6 +258,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         self.database_checks = []
         self.participant_fail_routines = []
         self.recruitment_criteria = []
+        self.pre_deploy_routines = []
 
         if (
             request

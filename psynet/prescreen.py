@@ -1545,6 +1545,7 @@ class HeadphoneTest(StaticTrialMaker):
             nodes=self.get_nodes(media_url),
             check_performance_at_end=True,
             fail_trials_on_premature_exit=False,
+            num_trials_per_participant=6,
         )
 
     @property

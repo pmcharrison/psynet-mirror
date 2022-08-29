@@ -16,7 +16,17 @@ import requests
 import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
-from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
+from sqlalchemy import (
+    Boolean,
+    Column,
+    Float,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Integer,
+    String,
+    UniqueConstraint,
+    select,
+)
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, relationship
@@ -77,7 +87,10 @@ class AssetSpecification(NullElt):
 
     def generate_export_path(self):
         assert self.key is not None
-        path = self.key
+        if self.module_id:
+            path = os.path.join(self.module_id, self.key)
+        else:
+            path = self.key
         if (
             hasattr(self, "extension")
             and self.extension
@@ -144,6 +157,25 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
     __tablename__ = "asset"
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["module_id", "key"],
+            ["asset_participant.asset_module_id", "asset_participant.asset_key"],
+        ),
+        ForeignKeyConstraint(
+            ["module_id", "key"],
+            ["asset_trial.asset_module_id", "asset_trial.asset_key"],
+        ),
+        ForeignKeyConstraint(
+            ["module_id", "key"], ["asset_node.asset_module_id", "asset_node.asset_key"]
+        ),
+        ForeignKeyConstraint(
+            ["module_id", "key"],
+            ["asset_network.asset_module_id", "asset_network.asset_key"],
+        ),
+    )
+
     __extra_vars__ = {}
 
     # Remove default SQL columns
@@ -159,9 +191,15 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     deposited = Column(Boolean)
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
-    key = Column(String, primary_key=True, index=True)
+    module_id = Column(
+        String,
+        ForeignKey("module_state.module_id"),
+        primary_key=True,
+        index=True,
+        onupdate="cascade",
+    )
+    key = Column(String, primary_key=True, index=True, onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
-    module_id = Column(String, index=True)
     participant_id = Column(Integer, ForeignKey("participant.id"))
     label = Column(String)
     parent = Column(PythonObject)
@@ -214,17 +252,27 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     register_extra_var(__extra_vars__, "awaiting_async_process")
 
     participant_links = relationship(
-        "AssetParticipant", order_by="AssetParticipant.creation_time"
+        "AssetParticipant",
+        order_by="AssetParticipant.creation_time",
+        foreign_keys=[module_id, key],
     )
     participants = association_proxy("participant_links", "participant")
 
-    trial_links = relationship("AssetTrial", order_by="AssetTrial.creation_time")
+    trial_links = relationship(
+        "AssetTrial", order_by="AssetTrial.creation_time", foreign_keys=[module_id, key]
+    )
     trials = association_proxy("trial_links", "trial")
 
-    node_links = relationship("AssetNode", order_by="AssetNode.creation_time")
+    node_links = relationship(
+        "AssetNode", order_by="AssetNode.creation_time", foreign_keys=[module_id, key]
+    )
     nodes = association_proxy("node_links", "node")
 
-    network_links = relationship("AssetNetwork", order_by="AssetNetwork.creation_time")
+    network_links = relationship(
+        "AssetNetwork",
+        order_by="AssetNetwork.creation_time",
+        foreign_keys=[module_id, key],
+    )
     networks = association_proxy("network_links", "network")
 
     errors = relationship("ErrorRecord")
@@ -280,6 +328,12 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
         self.set_variables(variables)
         self.personal = personal
+
+    def __setattr__(self, key, value):
+        super().__setattr__(key, value)
+        if key == "parent":
+            if self.module_id is None and hasattr(value, "module_id"):
+                self.module_id = value.module_id
 
     def consume(self, experiment, participant):
         if not self.has_key:
@@ -548,13 +602,7 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 return reader.read()
 
 
-class MockAsset(Asset):
-    @property
-    def url(self):
-        return "The asset database has not yet loaded, so here is a placeholder URL."
-
-    def get_extension(self):
-        return ""
+UniqueConstraint(Asset.module_id, Asset.key)
 
 
 class AssetLink:
@@ -567,7 +615,19 @@ class AssetLink:
 
     @declared_attr
     def asset_key(cls):
-        return Column(String, ForeignKey("asset.key"), primary_key=True)
+        return Column(String, primary_key=True)
+
+    @declared_attr
+    def asset_module_id(cls):
+        return Column(String, primary_key=True)
+
+    @declared_attr
+    def __table_args__(cls):
+        return (
+            ForeignKeyConstraint(
+                ["asset_key", "asset_module_id"], ["asset.key", "asset.module_id"]
+            ),
+        )
 
     def __init__(self, label, asset):
         self.label = label
@@ -583,7 +643,9 @@ class AssetParticipant(AssetLink, SQLBase, SQLMixin):
         "psynet.participant.Participant", back_populates="asset_links"
     )
 
-    asset = relationship("Asset", back_populates="participant_links")
+    asset = relationship(
+        "Asset", back_populates="participant_links"
+    )  # , foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key])
 
 
 @register_table
@@ -593,7 +655,9 @@ class AssetTrial(AssetLink, SQLBase, SQLMixin):
     trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
     trial = relationship("psynet.trial.main.Trial", back_populates="asset_links")
 
-    asset = relationship("Asset", back_populates="trial_links")
+    asset = relationship(
+        "Asset", back_populates="trial_links"
+    )  # , foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key])
 
     # def __init__(self, label, asset, trial):
     #     super().__init__(label, asset)
@@ -607,7 +671,11 @@ class AssetNode(AssetLink, SQLBase, SQLMixin):
     node_id = Column(Integer, ForeignKey("node.id"), primary_key=True)
     node = relationship("TrialNode", back_populates="asset_links")
 
-    asset = relationship("Asset", back_populates="node_links")
+    asset = relationship(
+        "Asset",
+        back_populates="node_links",
+        foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key],
+    )
 
 
 @register_table
@@ -617,7 +685,11 @@ class AssetNetwork(AssetLink, SQLBase, SQLMixin):
     network_id = Column(Integer, ForeignKey("network.id"), primary_key=True)
     network = relationship("TrialNetwork", back_populates="asset_links")
 
-    asset = relationship("Asset", back_populates="network_links")
+    asset = relationship(
+        "Asset",
+        back_populates="network_links",
+        foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key],
+    )
 
 
 class ManagedAsset(Asset):
@@ -743,8 +815,8 @@ class ManagedAsset(Asset):
 
     def generate_key_parents(self):
         ids = []
-        if self.module_id:
-            ids.append(self.module_id)
+        # if self.module_id:
+        #     ids.append(self.module_id)
         if self.participant:
             ids.append(f"participants/participant_{self.participant.id}")
         return "/".join(ids)

@@ -18,6 +18,7 @@ from dominate import tags
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm.attributes import flag_modified
+from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
@@ -2124,6 +2125,7 @@ class ModuleState(SQLBase, SQLMixin):
             "psynet.asset.Asset.participant_id.is_(None)))"
         ),
         uselist=True,
+        collection_class=attribute_mapped_collection("key"),
     )
 
     nodes = relationship(
@@ -2159,7 +2161,7 @@ class Module:
     default_elts = None
     state_class = ModuleState  # type: Type[ModuleState]
 
-    def __init__(self, id_: str = None, *args, nodes=None):
+    def __init__(self, id_: str = None, *args, assets=None, nodes=None):
         elts = join(*args)
 
         if self.default_id is None and id_ is None:
@@ -2170,10 +2172,21 @@ class Module:
         self.id = id_ if id_ is not None else self.default_id
         self.elts = elts if elts is not None else self.default_elts
         self.nodes = nodes if nodes else []
+        self.assets = assets if assets else []
 
     def prepare_for_deployment(self, experiment):
+        self.prepare_nodes_for_deployment(experiment)
+        self.prepare_assets_for_deployment(experiment)
+
+    def prepare_nodes_for_deployment(self, experiment):
         self.nodes_register_in_db()
         self.nodes_stage_assets(experiment)
+
+    def prepare_assets_for_deployment(self, experiment):
+        for asset in self.assets:
+            asset.module_id = self.id
+            experiment.assets.stage(asset)
+        db.session.commit()
 
     def nodes_register_in_db(self):
         for node in self.nodes:
