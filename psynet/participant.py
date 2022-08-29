@@ -283,7 +283,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def current_module_state(self):
-        if len(self.modules) == 0:
+        if len(self.module_states) == 0:
             return None
         else:
             unfinished = [x for x in self.module_states if not x.finished]
