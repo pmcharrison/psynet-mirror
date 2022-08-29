@@ -459,48 +459,52 @@ class ChainNode(TrialNode):
 
         assert not (definition and seed)
 
-        if parent:
-            parent.child = self
-            self.parent = parent
-
         if participant_group is None:
             if parent:
-                self.participant_group = parent.participant_group
+                participant_group = parent.participant_group
             else:
-                self.participant_group = "default"
+                participant_group = "default"
 
         if block is None:
             if parent:
-                self.block = parent.block
+                block = parent.block
             else:
-                self.block = "default"
+                block = "default"
 
         if degree is None:
             if parent:
-                self.degree = parent.degree + 1
+                degree = parent.degree + 1
             else:
-                self.degree = 0
+                degree = 0
 
         if module_id is None:
             if parent:
-                self.module_id = parent.module_id
+                module_id = parent.module_id
             else:
-                self.module_id = None
-
-        self.seed = seed
-        self.propagate_failure = propagate_failure
+                module_id = None
 
         if not definition and not seed:
             seed = self.create_initial_seed(experiment, participant)
 
         if not definition:
-            self.definition = self.create_definition_from_seed(
-                seed, experiment, participant
-            )
+            definition = self.create_definition_from_seed(seed, experiment, participant)
 
         if assets is None:
             assets = {}
+
+        self.assets = assets
+        self.block = block
+        self.participant_group = participant_group
+        self.degree = degree
+        self.module_id = module_id
+        self.seed = seed
+        self.definition = definition
+        self.propagate_failure = propagate_failure
         self._staged_assets = assets
+
+        if parent:
+            parent.child = self
+            self.parent = parent
 
     def create_initial_seed(self, experiment, participant):
         raise NotImplementedError
@@ -516,6 +520,9 @@ class ChainNode(TrialNode):
 
             if not asset.has_key:
                 asset.generate_key()
+
+            # import pydevd_pycharm
+            # pydevd_pycharm.settrace('localhost', port=12345, stdoutToServer=True, stderrToServer=True)
 
             asset.receive_node_definition(self.definition)
 
