@@ -8,7 +8,7 @@ from collections import Counter
 from datetime import datetime
 from functools import cached_property, reduce
 from statistics import median
-from typing import Callable, Dict, List, Optional, Union, Type
+from typing import Callable, Dict, List, Optional, Type, Union
 
 import flask
 import importlib_resources

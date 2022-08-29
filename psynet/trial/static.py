@@ -1,10 +1,11 @@
 from typing import List, Optional
 
-from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrialMaker
 from sqlalchemy import Column, String
 
-from .main import Trial
+from psynet.trial.chain import ChainNetwork, ChainNode, ChainTrialMaker
+
 from ..utils import deep_copy, get_logger
+from .main import Trial
 
 logger = get_logger()
 

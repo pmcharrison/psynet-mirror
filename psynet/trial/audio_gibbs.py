@@ -5,13 +5,13 @@ import random
 import tempfile
 from uuid import uuid4
 
-from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 from ..asset import ExperimentAsset
 from ..field import claim_var
 from ..media import make_batch_file
 from ..modular_page import AudioSliderControl, ModularPage
 from ..timeline import MediaSpec
 from ..utils import get_logger, get_object_from_module, linspace
+from .gibbs import GibbsNetwork, GibbsNode, GibbsTrial, GibbsTrialMaker
 
 logger = get_logger()
 
