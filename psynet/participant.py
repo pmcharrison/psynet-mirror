@@ -278,7 +278,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def aborted_modules(self):
         return [
             log.module_id
-            for log in sorted(self.module_states, key=lambda x: x.time_started)
+            for log in sorted(self._module_states, key=lambda x: x.time_started)
             if log.aborted
         ]
 
@@ -287,7 +287,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def started_modules(self):
         return [
             log.module_id
-            for log in sorted(self.module_states, key=lambda x: x.time_started)
+            for log in sorted(self._module_states, key=lambda x: x.time_started)
             if log.started
         ]
 
@@ -296,7 +296,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def finished_modules(self):
         return [
             log.module_id
-            for log in sorted(self.module_states, key=lambda x: x.time_started)
+            for log in sorted(self._module_states, key=lambda x: x.time_started)
             if log.finished
         ]
 
