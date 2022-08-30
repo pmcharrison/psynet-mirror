@@ -91,11 +91,9 @@ class CustomNetwork(GibbsNetwork):
     run_async_post_grow_network = True
 
     def async_post_grow_network(self):
-        from psynet.field import UndefinedVariableError
-
         try:
             self.var.growth_counter += 1
-        except UndefinedVariableError:
+        except KeyError:
             self.var.growth_counter = 1
 
 
