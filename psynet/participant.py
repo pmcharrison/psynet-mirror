@@ -14,7 +14,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonList, PythonObject, extra_var, register_extra_var
+from .field import PythonList, PythonObject, VarStore, extra_var, register_extra_var
 from .process import AsyncProcess
 from .utils import get_logger, organize_by_key
 
@@ -255,6 +255,18 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             key=lambda x: x.module_id,
             sort_key=lambda x: x.time_started,
         )
+
+    @property
+    def var(self):
+        return self.globals
+
+    @property
+    def globals(self):
+        return VarStore(self)
+
+    @property
+    def locals(self):
+        return self.current_module_state.var
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
