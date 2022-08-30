@@ -235,6 +235,7 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     os.environ["OBJC_DISABLE_INITIALIZE_FORK_SAFETY"] = "YES"
 
     label = None
+    initial_recruitment_size = 1
 
     timeline = Timeline(
         InfoPage("Placeholder timeline", time_estimate=5), SuccessfulEndPage()
@@ -248,6 +249,10 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
 
     def __init__(self, session=None):
         super(Experiment, self).__init__(session)
+
+        # Ignore the default initial_recruitment_size set by Dallinger
+        # and use our own (by default just taken from the class attribute)
+        self.initial_recruitment_size = self.__class__.initial_recruitment_size
 
         if not self.label:
             raise RuntimeError(
