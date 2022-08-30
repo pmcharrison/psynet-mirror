@@ -782,7 +782,9 @@ class ManagedAsset(Asset):
         self.set_key(key)
 
     def generate_local_key(self):
-        return os.path.join(self.generate_key_parents(), self.generate_key_child())
+        return os.path.join(
+            self.generate_local_key_parents(), self.generate_local_key_child()
+        )
 
     def generate_local_key_parents(self):
         ids = []
