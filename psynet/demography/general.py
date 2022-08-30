@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from flask import Markup
 
 from psynet.modular_page import (
@@ -7,7 +5,6 @@ from psynet.modular_page import (
     ModularPage,
     NumberControl,
     PushButtonControl,
-    RadioButton,
     RadioButtonControl,
     TextControl,
 )
@@ -124,38 +121,6 @@ class ExperimentFeedback(Module):
 
 
 # Basic demography #
-class RadioButtonWithFreeTextControl(RadioButtonControl):
-    def __init__(
-        self,
-        choices: List[str],
-        labels: Optional[List[str]] = None,
-        style: str = "cursor: pointer;",
-        name: str = "radiobuttons",
-        arrange_vertically: bool = True,
-        force_selection: bool = True,
-        show_reset_button: str = "never",
-    ):
-        super().__init__(
-            choices,
-            labels,
-            style,
-            name,
-            arrange_vertically,
-            force_selection,
-            show_reset_button,
-        )
-        self.radiobuttons.append(
-            RadioButton(
-                name=self.name,
-                id_="free_text",
-                label=Markup("<input id='free_text_input' type='text'>"),
-                style=self.style,
-            )
-        )
-
-    macro = "radiobuttons_with_free_text"
-
-
 class Gender(ModularPage):
     def __init__(
         self,
@@ -170,10 +135,11 @@ class Gender(ModularPage):
         self.prompt = prompt
         self.time_estimate = 5
 
-        control = RadioButtonWithFreeTextControl(
+        control = RadioButtonControl(
             ["female", "male", "non_binary", "not_specified", "prefer_not_to_say"],
             ["Female", "Male", "Non-binary", "Not specified", "I prefer not to answer"],
             name="gender",
+            show_free_text_option=True,
         )
         super().__init__(
             self.label, self.prompt, control=control, time_estimate=self.time_estimate
