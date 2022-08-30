@@ -20,14 +20,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
-from ..field import (
-    PythonDict,
-    PythonObject,
-    UndefinedVariableError,
-    VarStore,
-    extra_var,
-    register_extra_var,
-)
+from ..field import PythonDict, PythonObject, VarStore, extra_var, register_extra_var
 from ..page import InfoPage, UnsuccessfulEndPage, WaitPage, wait_while
 from ..participant import Participant
 from ..process import AsyncProcess, WorkerAsyncProcess
@@ -35,6 +28,7 @@ from ..timeline import (
     CodeBlock,
     DatabaseCheck,
     Module,
+    ModuleState,
     PageMaker,
     ParticipantFailRoutine,
     PreDeployRoutine,
@@ -59,38 +53,6 @@ def with_trial_maker_namespace(trial_maker_id: str, x: Optional[str] = None):
     if x is None:
         return trial_maker_id
     return f"{trial_maker_id}__{x}"
-
-
-def set_participant_group(trial_maker_id, participant, participant_group):
-    participant.var.new(
-        with_trial_maker_namespace(trial_maker_id, "participant_group"),
-        participant_group,
-    )
-
-
-def get_participant_group(trial_maker_id, participant):
-    return participant.var.get(
-        with_trial_maker_namespace(trial_maker_id, "participant_group")
-    )
-
-
-def has_participant_group(trial_maker_id, participant):
-    return participant.var.has(
-        with_trial_maker_namespace(trial_maker_id, "participant_group")
-    )
-
-
-# class HasDefinition:
-#     # Mixin class that provides a 'definition' slot.
-#     # See https://docs.sqlalchemy.org/en/14/orm/inheritance.html#resolving-column-conflicts
-#     @declared_attr
-#     def definition(cls):
-#         return cls.__table__.c.get(
-#             "definition", Column(JSONB, server_default="{}", default=lambda: {})
-#         )
-#
-#     __extra_vars__ = {}
-#     register_extra_var(__extra_vars__, "definition", field_type=dict)
 
 
 # Patch the missing foreign_keys argument for the Info.origin relationship
@@ -943,6 +905,16 @@ class Trial(SQLMixinDallinger, Info):
         )
 
 
+class TrialMakerState(ModuleState):
+    participant_group = Column(String)
+    in_repeat_phase = Column(Boolean)
+    performance_check = Column(PythonDict)
+    trials_to_repeat = Column(PythonObject)
+    repeat_trial_index = Column(Integer)
+    current_trial = Column(PythonObject)
+    num_completed_trials = Column(Integer, default=0, server_default=0)
+
+
 class TrialMaker(Module):
     """
     Generic trial generation module, to be inserted
@@ -1099,6 +1071,8 @@ class TrialMaker(Module):
         If ``True`` (default), then the final performance check waits until all trials no
         longer have any pending asynchronous processes.
     """
+
+    state_class = TrialMakerState
 
     def __init__(
         self,
@@ -1420,18 +1394,14 @@ class TrialMaker(Module):
             corresponding to the current participant.
         """
         self.init_num_completed_trials(participant)
-        participant.var.set(self.with_namespace("in_repeat_phase"), False)
+        participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
 
     def init_participant_group(self, experiment, participant):
-        if participant.has_participant_group(self.id):
-            return None
-        participant.set_participant_group(
-            self.id,
-            self.choose_participant_group(
+        if not participant.module_state.participant_group:
+            participant.module_state.participant_group = self.choose_participant_group(
                 experiment=experiment, participant=participant
-            ),
-        )
+            )
 
     def choose_participant_group(self, experiment, participant):
         # pylint: disable=unused-argument
@@ -1579,11 +1549,11 @@ class TrialMaker(Module):
             )
 
             assert isinstance(results["passed"], bool)
-            participant.var.set(self.with_namespace("performance_check"), results)
+            participant.current_module.performance_check = results
 
             if type == "end":
                 bonus = self.compute_bonus(**results)
-                participant.var.set(self.with_namespace("performance_bonus"), bonus)
+                participant.current_module.performance_bonus = bonus
                 participant.inc_performance_bonus(bonus)
 
             return results["passed"]
@@ -1640,15 +1610,12 @@ class TrialMaker(Module):
     #     )
 
     def _prepare_trial(self, experiment, participant):
-        in_repeat_phase = participant.var.get(self.with_namespace("in_repeat_phase"))
-
-        if not in_repeat_phase:
+        if not participant.module_state.in_repeat_phase:
             trial = self.prepare_trial(experiment=experiment, participant=participant)
             if trial == "exit" and self.num_repeat_trials > 0:
-                in_repeat_phase = True
-                participant.var.set(self.with_namespace("in_repeat_phase"), True)
+                participant.module_state.in_repeat_phase = True
 
-        if in_repeat_phase:
+        if participant.module_state.in_repeat_phase:
             trial = self._prepare_repeat_trial(
                 experiment=experiment, participant=participant
             )
@@ -1658,12 +1625,12 @@ class TrialMaker(Module):
         return trial
 
     def _prepare_repeat_trial(self, experiment, participant):
-        if not participant.var.has(self.with_namespace("trials_to_repeat")):
+        if not participant.module_state.trials_to_repeat:
             self._init_trials_to_repeat(participant)
-        trials_to_repeat = participant.var.get(self.with_namespace("trials_to_repeat"))
-        repeat_trial_index = participant.var.get(
-            self.with_namespace("repeat_trial_index")
-        )
+
+        trials_to_repeat = participant.module_state.trials_to_repeat
+        repeat_trial_index = participant.module_state.repeat_trial_index
+
         try:
             trial_to_repeat_id = trials_to_repeat[repeat_trial_index]
             trial_to_repeat = self.trial_class.query.filter_by(
@@ -1672,8 +1639,9 @@ class TrialMaker(Module):
             trial = trial_to_repeat.new_repeat_trial(
                 experiment, repeat_trial_index, len(trials_to_repeat)
             )
-            participant.var.inc(self.with_namespace("repeat_trial_index"))
-            experiment.save(trial)
+            participant.module_state.repeat_trial_index += 1
+            db.session.add(trial)
+            db.session.commit()
         except IndexError:
             trial = "exit"
         return trial
@@ -1681,11 +1649,10 @@ class TrialMaker(Module):
     def _init_trials_to_repeat(self, participant):
         completed_trial_ids = [t.id for t in self.get_participant_trials(participant)]
         actual_num_repeat_trials = min(len(completed_trial_ids), self.num_repeat_trials)
-        participant.var.set(
-            self.with_namespace("trials_to_repeat"),
-            random.sample(completed_trial_ids, actual_num_repeat_trials),
+        participant.module_state.trials_to_repeat = random.sample(
+            completed_trial_ids, actual_num_repeat_trials
         )
-        participant.var.set(self.with_namespace("repeat_trial_index"), 0)
+        participant.module_state.repeat_trial_index = 0
 
     def _trial_loop(self):
         return join(
@@ -1721,34 +1688,13 @@ class TrialMaker(Module):
             try_to_prepare_trial(),
             while_loop(
                 "Waiting for trial",
-                lambda participant: participant.current_trial == "wait",
+                lambda participant: participant.module_state.current_trial == "wait",
                 logic=join(
                     try_to_prepare_trial(),
                     WaitPage(wait_time=2.0),
                 ),
                 expected_repetitions=0,
             ),
-        )
-
-    @property
-    def num_completed_trials_var_id(self):
-        return self.with_namespace("num_completed_trials")
-
-    def set_num_completed_trials(self, participant, value):
-        participant.var.set(self.num_completed_trials_var_id, value)
-
-    def get_num_completed_trials(self, participant):
-        try:
-            return participant.var.get(self.num_completed_trials_var_id)
-        except UndefinedVariableError:
-            return 0
-
-    def init_num_completed_trials(self, participant):
-        self.set_num_completed_trials(participant, 0)
-
-    def increment_num_completed_trials(self, participant):
-        self.set_num_completed_trials(
-            participant, self.get_num_completed_trials(participant) + 1
         )
 
     def check_time_estimates(self):
@@ -1760,6 +1706,10 @@ class TrialMaker(Module):
                 f"You need to provide either time_estimate as a class attribute of {self.trial_class.__name__} "
                 f"or time_estimate_per_trial as an instance or class attribute of trial maker {self.id}."
             )
+
+
+class NetworkTrialMakerState(TrialMakerState):
+    pass
 
 
 class NetworkTrialMaker(TrialMaker):
@@ -1935,6 +1885,8 @@ class NetworkTrialMaker(TrialMaker):
         The performance threshold that is used in the
         :meth:`~psynet.trial.main.NetworkTrialMaker.performance_check` method.
     """
+
+    state_class = NetworkTrialMakerState
 
     def __init__(
         self,

@@ -8,11 +8,17 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql.expression import not_
 
-from ..field import PythonObject, VarStore
+from ..field import PythonList, PythonObject, VarStore
 from ..page import wait_while
 from ..timeline import is_list_of
 from ..utils import call_function_with_context, get_logger, negate
-from .main import NetworkTrialMaker, Trial, TrialNetwork, TrialNode
+from .main import (
+    NetworkTrialMaker,
+    NetworkTrialMakerState,
+    Trial,
+    TrialNetwork,
+    TrialNode,
+)
 
 logger = get_logger()
 
@@ -807,6 +813,27 @@ class ChainTrial(Trial):
         return self.node.trial_maker
 
 
+class ChainTrialMakerState(NetworkTrialMakerState):
+    block_order = Column(PythonList)
+    current_block_position = Column(Integer)
+    participated_networks = Column(PythonList, default=lambda: [])
+
+    @property
+    def current_block(self):
+        return self.block_order[self.current_block_position]
+
+    @property
+    def n_blocks(self):
+        return len(self.block_order)
+
+    @property
+    def remaining_blocks(self):
+        return self.block_order[self.current_block_position :]
+
+    def go_to_next_block(self):
+        self.current_block_position += 1
+
+
 class ChainTrialMaker(NetworkTrialMaker):
     """
     Administers a sequence of trials in a chain-based paradigm.
@@ -999,6 +1026,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         longer have any pending asynchronous processes.
     """
 
+    state_class = ChainTrialMakerState
+
     def __init__(
         self,
         *,
@@ -1118,14 +1147,14 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def init_participant(self, experiment, participant):
         super().init_participant(experiment, participant)
-        self.init_participated_networks(participant)
+        participant.module_state.participated_networks = []
         if self.chain_type == "within":
             networks = self.create_networks_within(experiment, participant)
         else:
             networks = self.networks
         blocks = set([network.block for network in networks])
         self.init_block_order(experiment, participant, blocks)
-        self.set_current_block_position(participant, 0)
+        participant.module_state.current_block_position = 0
 
     def init_block_order(self, experiment, participant, blocks):
         block_order = call_function_with_context(
@@ -1134,7 +1163,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             participant=participant,
             blocks=blocks,
         )
-        self.set_block_order(participant, block_order)
+        participant.module_state.block_order = block_order
 
     def choose_block_order(self, experiment, participant, blocks):
         # pylint: disable=unused-argument
@@ -1162,33 +1191,6 @@ class ChainTrialMaker(NetworkTrialMaker):
             where each block is identified by a string label.
         """
         return random.sample(blocks, len(blocks))
-
-    @property
-    def block_order_var_id(self):
-        return self.with_namespace("block_order")
-
-    def set_block_order(self, participant, block_order):
-        participant.var.new(self.block_order_var_id, block_order)
-
-    def get_block_order(self, participant):
-        return participant.var.get(self.with_namespace("block_order"))
-
-    def get_current_block(self, participant):
-        block_order = self.get_block_order(participant)
-        index = self.get_current_block_position(participant)
-        return block_order[index]
-
-    def set_current_block_position(self, participant, block_position):
-        participant.var.set(
-            self.with_namespace("current_block_position"), block_position
-        )
-
-    def get_current_block_position(self, participant):
-        return participant.var.get(self.with_namespace("current_block_position"))
-
-    def go_to_next_block(self, participant):
-        current = self.get_current_block_position(participant)
-        self.set_current_block_position(participant, current + 1)
 
     def _should_finish_block(self, participant):
         current_block = self.get_current_block(participant)
@@ -1255,17 +1257,6 @@ class ChainTrialMaker(NetworkTrialMaker):
     #########################
     # Participated networks #
     #########################
-
-    def init_participated_networks(self, participant):
-        participant.var.set(self.with_namespace("participated_networks"), [])
-
-    def get_participated_networks(self, participant):
-        return participant.var.get(self.with_namespace("participated_networks"))
-
-    def add_to_participated_networks(self, participant, network_id):
-        networks = self.get_participated_networks(participant)
-        networks.append(network_id)
-        participant.var.set(self.with_namespace("participated_networks"), networks)
 
     def pre_deploy_routine(self, experiment):
         if self.chain_type == "across":
@@ -1351,6 +1342,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         Either "exit", "wait", or a list of networks.
 
         """
+        participant.module_state  # type: ChainTrialMakerState
+
         db.session.commit()
         logger.info(
             "Looking for networks for participant %i.",
@@ -1367,12 +1360,12 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self._should_finish_block(participant):
             if (
-                self.get_current_block_position(participant)
-                >= len(self.get_block_order(participant)) + 1
+                self.participant.module_state.current_block_position
+                >= participant.module_state.n_blocks + 1
             ):
                 return "exit"
             else:
-                self.go_to_next_block(participant)
+                participant.module_state.go_to_next_block()
 
         networks = self.network_class.query.filter_by(
             trial_maker_id=self.id, full=False
@@ -1392,7 +1385,7 @@ class ChainTrialMaker(NetworkTrialMaker):
         ):
             networks = self.exclude_participated(networks, participant)
 
-        participant_group = participant.get_participant_group(self.id)
+        participant_group = participant.module_state.participant_group
         networks = networks.filter_by(participant_group=participant_group)
 
         logger.info(
@@ -1470,9 +1463,8 @@ class ChainTrialMaker(NetworkTrialMaker):
                     )
                 )
 
-        current_block = self.get_current_block(participant)
-        current_block_position = self.get_current_block_position(participant)
-        remaining_blocks = self.get_block_order(participant)[current_block_position:]
+        current_block = participant.module_state.current_block
+        remaining_blocks = participant.module_state.remaining_blocks
         networks = [n for n in networks if n.block in remaining_blocks]
         networks.sort(key=lambda network: remaining_blocks.index(network.block))
 
@@ -1517,7 +1509,11 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def exclude_participated(self, networks, participant):
         query = networks.filter(
-            not_(self.network_class.id.in_(self.get_participated_networks(participant)))
+            not_(
+                self.network_class.id.in_(
+                    participant.module_state.participated_networks
+                )
+            )
         )
         logger.info(
             "%i of these are available once you exclude already-visited networks.",
@@ -1555,4 +1551,4 @@ class ChainTrialMaker(NetworkTrialMaker):
 
     def finalize_trial(self, answer, trial, experiment, participant):
         super().finalize_trial(answer, trial, experiment, participant)
-        self.add_to_participated_networks(participant, trial.network_id)
+        participant.module_state.participated_networks.append(trial.network_id)
