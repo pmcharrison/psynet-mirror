@@ -488,6 +488,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
         for key, value in self.variables_initial_values.items():
             self.var.set(key, value)
 
+        db.session.commit()
+
     # def prepare_generic_trial_network(self):
     #     network = GenericTrialNetwork(experiment=self)
     #     source = GenericTrialNode(network=network)

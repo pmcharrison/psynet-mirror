@@ -331,7 +331,6 @@ class Trial(SQLMixinDallinger, Info):
     wait_for_feedback = True  # determines whether feedback waits for async_post_trial
     accumulate_answers = False
 
-    # VarStore occupies the <details> slot.
     @property
     def var(self):
         return VarStore(self)
@@ -2338,6 +2337,8 @@ class TrialNetwork(SQLMixinDallinger, Network):
     def fail(self, reason=None):
         if not self.failed:
             super().fail(reason=reason)
+
+    # vars = Column(PythonObject)
 
     @property
     def var(self):

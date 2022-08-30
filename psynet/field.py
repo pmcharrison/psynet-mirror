@@ -175,7 +175,7 @@ class BaseVarStore:
         """
         try:
             return self.__getattr__(name)
-        except UndefinedVariableError:
+        except KeyError:
             if default == marker:
                 raise
             else:
@@ -223,7 +223,7 @@ class BaseVarStore:
         try:
             self.get(name)
             return True
-        except UndefinedVariableError:
+        except KeyError:
             return False
 
     def inc(self, name, value=1):
@@ -344,58 +344,63 @@ class VarStore(BaseVarStore):
         self._owner = owner
 
     def __repr__(self):
-        data = {
-            key: self.decode_string(value) for key, value in self.get_vars().items()
-        }
-        return f"VarStore: {data}"
+        # data = {
+        #     key: self.decode_string(value) for key, value in self.get_vars().items()
+        # }
+        return f"VarStore: {self.__dict__['_owner'].vars}"
 
     def __getattr__(self, name):
         owner = self.__dict__["_owner"]
         if name == "_owner":
             return owner
-        elif name == "_all":
-            return self.get_vars()
         else:
-            return self.get_var(name)
+            return self.__dict__["_owner"].vars[name]
+            # return self[name]
+            # return self.get_var(name)
 
-    def encode_to_string(self, obj):
-        return serialize(obj)
+    def items(self):
+        return self.__dict__["_owner"].vars.items()
 
-    def decode_string(self, string):
-        return unserialize(string)
-
-    def get_var(self, name):
-        vars_ = self.get_vars()
-        try:
-            return self.decode_string(vars_[name])
-        except KeyError:
-            raise UndefinedVariableError(f"Undefined variable: {name}.")
+    # def serialize(self, obj):
+    #     return serialize(obj)
+    #
+    # def unserialize(self, string):
+    #     return unserialize(string)
+    #
+    # def get_var(self, name):
+    #     vars_ = self.get_vars()
+    #     try:
+    #         return self.unserialize(vars_[name])
+    #     except KeyError:
+    #         raise UndefinedVariableError(f"Undefined variable: {name}.")
 
     def __setattr__(self, name, value):
         if name == "_owner":
             self.__dict__["_owner"] = value
         else:
-            self.set_var(name, value)
+            self.__dict__["_owner"].vars[name] = value
+            # self[name] = value
+            # self.set_var(name, value)
 
-    def set_var(self, name, value):
-        vars_ = self.get_vars()
-        value_encoded = self.encode_to_string(value)
-        vars_[name] = value_encoded
-        self.set_vars(vars_)
+    # def set_var(self, name, value):
+    #     vars_ = self.get_vars()
+    #     value_encoded = self.serialize(value)
+    #     vars_[name] = value_encoded
+    #     self.set_vars(vars_)
+    #
+    # def get_vars(self):
+    #     vars_ = self.__dict__["_owner"].details
+    #     if vars_ is None:
+    #         vars_ = {}
+    #     return vars_.copy()
 
-    def get_vars(self):
-        vars_ = self.__dict__["_owner"].details
-        if vars_ is None:
-            vars_ = {}
-        return vars_.copy()
+    # def set_vars(self, vars_):
+    #     # We need to copy the dictionary otherwise
+    #     # SQLAlchemy won't notice if we change it later.
+    #     self.__dict__["_owner"].details = vars_.copy()
 
-    def set_vars(self, vars_):
-        # We need to copy the dictionary otherwise
-        # SQLAlchemy won't notice if we change it later.
-        self.__dict__["_owner"].details = vars_.copy()
-
-    def list(self):
-        return list(self._all.keys())
+    # def list(self):
+    #     return list(self._all.keys())
 
 
 # class DotDict(dict, BaseVarStore):
@@ -444,9 +449,9 @@ def json_add_extra_vars(x, obj):
             x[key] = val
 
     if hasattr(obj, "var") and isinstance(obj.var, VarStore):
-        for key in obj.var.list():
+        for key, value in obj.var.items():
             if valid_key(key):
-                x[key] = obj.var.get(key)
+                x[key] = value
 
     return x
 

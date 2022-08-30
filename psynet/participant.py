@@ -335,6 +335,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def __init__(self, experiment, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.vars = {}
         self.elt_id = [-1]
         self.elt_id_max = [len(experiment.timeline) - 1]
         self.answer_accumulators = []

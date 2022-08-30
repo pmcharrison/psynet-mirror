@@ -41,6 +41,7 @@ from sqlalchemy.schema import (
 from tqdm import tqdm
 
 from . import field
+from .field import PythonDict
 from .utils import classproperty, json_to_data_frame, organize_by_key
 
 
@@ -320,6 +321,8 @@ class SQLMixinDallinger(SharedMixin):
         self = super().__new__(cls)
         cls.check_validity()
         return self
+
+    vars = Column(PythonDict, default=lambda: {}, server_default="{}")
 
     @property
     def var(self):

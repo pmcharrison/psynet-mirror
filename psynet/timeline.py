@@ -2105,7 +2105,6 @@ class ModuleState(SQLBase, SQLMixin):
         primary_key=True,
         back_populates="_module_states",
     )
-    # var = Column(PythonDict, default=lambda: {})  # todo - needs fixing, maybe something to do with the default value
 
     @property
     def var(self):
