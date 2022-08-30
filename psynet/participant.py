@@ -270,8 +270,19 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
-        del x["modules"]
+        # x.update(self.locals_to_json())
         return x
+
+    def locals_to_json(self):
+        raise NotImplementedError
+        # output = {}
+        # for module_id, module_states in self.module_states.items():
+        #     for i, module_state in enumerate(module_states):
+        #         vars = module_state.var.get_vars()
+        #         if i == 0:
+        #             col = f"{module_id}__"
+
+        # pass
 
     @property
     @extra_var(__extra_vars__)
