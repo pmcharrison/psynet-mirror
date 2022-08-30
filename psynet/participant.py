@@ -177,7 +177,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def current_trial(self):
-        if self.in_module:
+        if self.in_module and hasattr(self.module_state, "current_trial"):
             return self.module_state.current_trial
 
     @current_trial.setter
