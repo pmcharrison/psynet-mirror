@@ -2125,7 +2125,7 @@ class ModuleState(SQLBase, SQLMixin):
             "psynet.asset.Asset.participant_id.is_(None)))"
         ),
         uselist=True,
-        collection_class=attribute_mapped_collection("key"),
+        collection_class=attribute_mapped_collection("local_key"),
     )
 
     nodes = relationship(

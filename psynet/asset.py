@@ -16,17 +16,7 @@ import requests
 import sqlalchemy
 from dallinger import db
 from joblib import Parallel, delayed
-from sqlalchemy import (
-    Boolean,
-    Column,
-    Float,
-    ForeignKey,
-    ForeignKeyConstraint,
-    Integer,
-    String,
-    UniqueConstraint,
-    select,
-)
+from sqlalchemy import Boolean, Column, Float, ForeignKey, Integer, String, select
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
 from sqlalchemy.orm import column_property, relationship
@@ -86,11 +76,11 @@ class AssetSpecification(NullElt):
         self.generate_export_path()
 
     def generate_export_path(self):
-        assert self.key is not None
-        if self.module_id:
-            path = os.path.join(self.module_id, self.key)
-        else:
-            path = self.key
+        # assert self.key is not None
+        # if self.module_id:
+        #     path = os.path.join(self.module_id, self.key)
+        # else:
+        path = self.key
         if (
             hasattr(self, "extension")
             and self.extension
@@ -157,25 +147,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     # Inheriting from NullElt means that the Asset object can be placed in the timeline.
 
     __tablename__ = "asset"
-
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["module_id", "key"],
-            ["asset_participant.asset_module_id", "asset_participant.asset_key"],
-        ),
-        ForeignKeyConstraint(
-            ["module_id", "key"],
-            ["asset_trial.asset_module_id", "asset_trial.asset_key"],
-        ),
-        ForeignKeyConstraint(
-            ["module_id", "key"], ["asset_node.asset_module_id", "asset_node.asset_key"]
-        ),
-        ForeignKeyConstraint(
-            ["module_id", "key"],
-            ["asset_network.asset_module_id", "asset_network.asset_key"],
-        ),
-    )
-
     __extra_vars__ = {}
 
     # Remove default SQL columns
@@ -191,14 +162,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     deposited = Column(Boolean)
     inherited = Column(Boolean, default=False)
     inherited_from = Column(String)
-    module_id = Column(
-        String,
-        ForeignKey("module_state.module_id"),
-        primary_key=True,
-        index=True,
-        onupdate="cascade",
-    )
-    key = Column(String, primary_key=True, index=True, onupdate="cascade")
+    module_id = Column(String, index=True)
+    local_key = Column(String, index=True)
+    key = Column(String, primary_key=True, index=True)  # £, onupdate="cascade")
     export_path = Column(String, index=True, unique=True)
     participant_id = Column(Integer, ForeignKey("participant.id"))
     label = Column(String)
@@ -254,24 +220,24 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
     participant_links = relationship(
         "AssetParticipant",
         order_by="AssetParticipant.creation_time",
-        foreign_keys=[module_id, key],
     )
     participants = association_proxy("participant_links", "participant")
 
     trial_links = relationship(
-        "AssetTrial", order_by="AssetTrial.creation_time", foreign_keys=[module_id, key]
+        "AssetTrial",
+        order_by="AssetTrial.creation_time",
     )
     trials = association_proxy("trial_links", "trial")
 
     node_links = relationship(
-        "AssetNode", order_by="AssetNode.creation_time", foreign_keys=[module_id, key]
+        "AssetNode",
+        order_by="AssetNode.creation_time",
     )
     nodes = association_proxy("node_links", "node")
 
     network_links = relationship(
         "AssetNetwork",
         order_by="AssetNetwork.creation_time",
-        foreign_keys=[module_id, key],
     )
     networks = association_proxy("network_links", "network")
 
@@ -287,18 +253,28 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
 
     def __init__(
         self,
-        key=None,
+        local_key=None,
         label=None,
         description=None,
         is_folder=False,
         data_type=None,
         extension=None,
         parent=None,
+        key=None,
         module_id=None,
         replace_existing=False,
         variables: Optional[dict] = None,
         personal=False,
     ):
+        self.local_key = local_key
+
+        if key is None:
+            if local_key:
+                if module_id:
+                    key = module_id + "/" + local_key
+                else:
+                    key = local_key
+
         super().__init__(key, label, description)
 
         from . import __version__ as psynet_version
@@ -334,6 +310,9 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
         if key == "parent":
             if self.module_id is None and hasattr(value, "module_id"):
                 self.module_id = value.module_id
+        elif key == "module_id":
+            if self.key and self.local_key:
+                self.set_key(os.path.join(value, self.local_key))
 
     def consume(self, experiment, participant):
         if not self.has_key:
@@ -602,9 +581,6 @@ class Asset(AssetSpecification, SQLBase, SQLMixin):
                 return reader.read()
 
 
-UniqueConstraint(Asset.module_id, Asset.key)
-
-
 class AssetLink:
     id = None
     failed = None
@@ -615,19 +591,7 @@ class AssetLink:
 
     @declared_attr
     def asset_key(cls):
-        return Column(String, primary_key=True)
-
-    @declared_attr
-    def asset_module_id(cls):
-        return Column(String, primary_key=True)
-
-    @declared_attr
-    def __table_args__(cls):
-        return (
-            ForeignKeyConstraint(
-                ["asset_key", "asset_module_id"], ["asset.key", "asset.module_id"]
-            ),
-        )
+        return Column(String, ForeignKey("asset.key"), primary_key=True)
 
     def __init__(self, label, asset):
         self.label = label
@@ -643,9 +607,7 @@ class AssetParticipant(AssetLink, SQLBase, SQLMixin):
         "psynet.participant.Participant", back_populates="asset_links"
     )
 
-    asset = relationship(
-        "Asset", back_populates="participant_links"
-    )  # , foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key])
+    asset = relationship("Asset", back_populates="participant_links")
 
 
 @register_table
@@ -655,9 +617,7 @@ class AssetTrial(AssetLink, SQLBase, SQLMixin):
     trial_id = Column(Integer, ForeignKey("info.id"), primary_key=True)
     trial = relationship("psynet.trial.main.Trial", back_populates="asset_links")
 
-    asset = relationship(
-        "Asset", back_populates="trial_links"
-    )  # , foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key])
+    asset = relationship("Asset", back_populates="trial_links")
 
     # def __init__(self, label, asset, trial):
     #     super().__init__(label, asset)
@@ -674,7 +634,6 @@ class AssetNode(AssetLink, SQLBase, SQLMixin):
     asset = relationship(
         "Asset",
         back_populates="node_links",
-        foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key],
     )
 
 
@@ -688,7 +647,6 @@ class AssetNetwork(AssetLink, SQLBase, SQLMixin):
     asset = relationship(
         "Asset",
         back_populates="network_links",
-        foreign_keys=[AssetLink.asset_module_id, AssetLink.asset_key],
     )
 
 
@@ -709,6 +667,8 @@ class ManagedAsset(Asset):
         data_type=None,
         extension=None,
         parent=None,
+        local_key=None,
+        module_id=None,
         key=None,
         variables: Optional[dict] = None,
         personal=False,
@@ -724,12 +684,14 @@ class ManagedAsset(Asset):
         # self.autogenerate_key = key is None
 
         super().__init__(
-            key=key,
+            local_key=local_key,
             label=label,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
+            key=key,
+            module_id=module_id,
             parent=parent,
             replace_existing=replace_existing,
             variables=variables,
@@ -810,18 +772,27 @@ class ManagedAsset(Asset):
             return get_file_size_mb(self.input_path)
 
     def generate_key(self):
-        key = os.path.join(self.generate_key_parents(), self.generate_key_child())
+        self.local_key = self.generate_local_key()
+
+        if self.module_id:
+            key = os.path.join(self.module_id, self.local_key)
+        else:
+            key = self.local_key
+
         self.set_key(key)
 
-    def generate_key_parents(self):
+    def generate_local_key(self):
+        return os.path.join(self.generate_key_parents(), self.generate_key_child())
+
+    def generate_local_key_parents(self):
         ids = []
-        # if self.module_id:
-        #     ids.append(self.module_id)
         if self.participant:
             ids.append(f"participants/participant_{self.participant.id}")
+        elif self.node:
+            ids.append(f"nodes/node_{self.node.id}")
         return "/".join(ids)
 
-    def generate_key_child(self):
+    def generate_local_key_child(self):
         ancestors = self.get_ancestors()
         ids = [
             f"{id_type}_{ancestors[id_type].id}"
@@ -1000,12 +971,14 @@ class FunctionAssetMixin:
     def __init__(
         self,
         function,
-        key: Optional[str] = None,
+        local_key: Optional[str] = None,
         arguments: Optional[dict] = None,
         is_folder=False,
         description=None,
         data_type=None,
         extension=None,
+        key=None,
+        module_id=None,
         parent=None,
         variables: Optional[dict] = None,
         replace_existing=False,
@@ -1026,6 +999,7 @@ class FunctionAssetMixin:
 
         super().__init__(
             label=label,
+            local_key=local_key,
             input_path=self.input_path,
             is_folder=is_folder,
             description=description,
@@ -1033,6 +1007,7 @@ class FunctionAssetMixin:
             extension=extension,
             parent=parent,
             key=key,
+            module_id=module_id,
             variables=variables,
             replace_existing=replace_existing,
             personal=personal,
@@ -1113,12 +1088,14 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     def __init__(
         self,
         function,
-        key: Optional[str] = None,
+        local_key: Optional[str] = None,
         arguments: Optional[dict] = None,
         is_folder: bool = False,
         description=None,
         data_type=None,
         extension=None,
+        key: Optional[str] = None,
+        module_id: Optional[str] = None,
         parent=None,
         variables: Optional[dict] = None,
         replace_existing=False,
@@ -1127,12 +1104,14 @@ class FastFunctionAsset(FunctionAssetMixin, ExperimentAsset):
     ):
         super().__init__(
             function=function,
-            key=key,
+            local_key=local_key,
             arguments=arguments,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
+            key=key,
+            module_id=module_id,
             parent=parent,
             variables=variables,
             replace_existing=replace_existing,
@@ -1187,7 +1166,7 @@ class CachedFunctionAsset(FunctionAssetMixin, CachedAsset):
 class ExternalAsset(Asset):
     def __init__(
         self,
-        key,
+        local_key,
         url,
         is_folder=False,
         description=None,
@@ -1195,6 +1174,8 @@ class ExternalAsset(Asset):
         extension=None,
         replace_existing=False,
         label=None,
+        module_id=None,
+        key=None,
         parent=None,
         variables: Optional[dict] = None,
         personal=False,
@@ -1204,12 +1185,14 @@ class ExternalAsset(Asset):
         self.deposited = True
 
         super().__init__(
-            key=key,
+            local_key=local_key,
             label=label,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             extension=extension,
+            module_id=module_id,
+            key=key,
             parent=parent,
             replace_existing=replace_existing,
             variables=variables,
@@ -1246,7 +1229,7 @@ class ExternalS3Asset(ExternalAsset):
 
     def __init__(
         self,
-        key,
+        local_key,
         s3_bucket: str,
         s3_key: str,
         is_folder=False,
@@ -1254,6 +1237,8 @@ class ExternalS3Asset(ExternalAsset):
         data_type=None,
         replace_existing=False,
         label=None,
+        module_id=None,
+        key=None,
         parent=None,
         variables: Optional[dict] = None,
         personal=False,
@@ -1263,13 +1248,15 @@ class ExternalS3Asset(ExternalAsset):
         url = self.generate_url()
 
         super().__init__(
-            key=key,
+            local_key=local_key,
             url=url,
             is_folder=is_folder,
             description=description,
             data_type=data_type,
             replace_existing=replace_existing,
             label=label,
+            module_id=module_id,
+            key=key,
             parent=parent,
             variables=variables,
             personal=personal,
