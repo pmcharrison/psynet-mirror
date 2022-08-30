@@ -607,7 +607,7 @@ def cached_class_property(f):
     return classmethod(property(cache(f)))
 
 
-def organize_by_key(lst, key):
+def organize_by_key(lst, key, sort_key=None):
     """
     Sorts a list of items into groups.
 
@@ -631,6 +631,9 @@ def organize_by_key(lst, key):
         if _key not in out:
             out[_key] = []
         out[_key].append(obj)
+    if sort_key:
+        for value in out.values():
+            value.sort(key=sort_key)
     return out
 
 

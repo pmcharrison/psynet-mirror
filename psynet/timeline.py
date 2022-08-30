@@ -22,7 +22,7 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from . import templates
 from .data import SQLBase, SQLMixin, register_table
-from .field import PythonObject
+from .field import PythonObject, VarStore
 from .utils import (
     NoArgumentProvided,
     call_function_with_context,
@@ -2103,9 +2103,13 @@ class ModuleState(SQLBase, SQLMixin):
         Integer,
         ForeignKey("participant.id"),
         primary_key=True,
-        back_populates="module_states",
+        back_populates="_module_states",
     )
-    # var = Column(PythonDotDict, default={})  # todo - needs fixing, maybe something to do with the default value
+    # var = Column(PythonDict, default=lambda: {})  # todo - needs fixing, maybe something to do with the default value
+
+    @property
+    def var(self):
+        return VarStore(self)
 
     time_started = Column(DateTime)
     time_finished = Column(DateTime)

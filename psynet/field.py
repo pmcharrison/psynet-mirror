@@ -25,12 +25,11 @@ class PythonObject(TypeDecorator):
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        sanitized = self.sanitize(value)
         try:
-            return serialize(sanitized)
+            return self.serialize(value)
         except Exception:
             logger.error(
-                f"An error occurred when trying to serialize the following Python object to the database: {sanitized}"
+                f"An error occurred when trying to serialize the following Python object to the database: {value}"
             )
             raise
 
@@ -41,38 +40,22 @@ class PythonObject(TypeDecorator):
         if value is None:
             return None
         try:
-            return unserialize(value)
+            return self.unserialize(value)
         except Exception:
             pass
 
+    @classmethod
+    def serialize(cls, value):
+        return serialize(value)
 
-class _PythonDict(PythonObject):
-    def sanitize(self, value):
-        return dict(value)
-
-
-PythonDict = MutableDict.as_mutable(_PythonDict)
-
-
-class DotDict(dict):
-    def __setattr__(self, key, value):
-        self[key] = value
-
-    def __getattr__(self, key):
-        return self[key]
-
-
-class _PythonDotDict(_PythonDict):
-    def sanitize(self, value):
-        return DotDict(value)
-
-
-PythonDotDict = MutableDict.as_mutable(_PythonDotDict)
+    @classmethod
+    def unserialize(cls, value):
+        return unserialize(value)
 
 
 class _PythonList(PythonObject):
-    def sanitize(self, value):
-        return list(value)
+    def serialize(self, value):
+        return super().serialize(list(value))
 
 
 PythonList = MutableList.as_mutable(_PythonList)
@@ -409,6 +392,22 @@ class VarStore(BaseVarStore):
         return list(self._all.keys())
 
 
+# class DotDict(dict, BaseVarStore):
+#     def __setattr__(self, key, value):
+#         self[key] = value
+#
+#     def __getattr__(self, key):
+#         return self[key]
+#
+#
+# class _PythonDotDict(_PythonDict):
+#     def unserialize(cls, value):
+#         return DotDict(super().unserialize(value))
+#
+#
+# PythonDotDict = MutableDict.as_mutable(_PythonDotDict)
+
+
 def json_clean(x, details=False, contents=False):
     for i in range(5):
         try:
@@ -464,3 +463,27 @@ def json_format_vars(x):
             value = serialize(value)
 
         x[key] = value
+
+
+# class MutableDotDict(MutableDict, dict, BaseVarStore):
+#     def __setattr__(self, key, value):
+#         if self.is_internal(key):
+#             super().__setattr__(key, value)
+#         else:
+#             self[key] = value
+#
+#     def __getattr__(self, item):
+#         if self.is_internal(item):
+#             return super().__getattr__(item)
+#         return self[item]
+#
+#     def is_internal(self, key):
+#         return key.startswith("_")
+
+
+class _PythonDict(PythonObject):
+    def serialize(cls, value):
+        return super().serialize(dict(value))
+
+
+PythonDict = MutableDict.as_mutable(_PythonDict)

@@ -14,9 +14,9 @@ from sqlalchemy.orm.collections import attribute_mapped_collection
 
 from .asset import AssetParticipant
 from .data import SQLMixinDallinger
-from .field import PythonDict, PythonList, PythonObject, extra_var, register_extra_var
+from .field import PythonList, PythonObject, extra_var, register_extra_var
 from .process import AsyncProcess
-from .utils import get_logger
+from .utils import get_logger, organize_by_key
 
 logger = get_logger()
 
@@ -170,7 +170,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     base_payment = Column(Float)
     performance_bonus = Column(Float)
     unpaid_bonus = Column(Float)
-    modules = Column(PythonDict, default=lambda: {})
     client_ip_address = Column(String, default=lambda: "")
     auth_token = Column(String)
     answer_is_fresh = Column(Boolean, default=False)
@@ -247,7 +246,15 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     )
 
     errors = relationship("ErrorRecord")
-    module_states = relationship("ModuleState")
+    _module_states = relationship("ModuleState")
+
+    @property
+    def module_states(self):
+        return organize_by_key(
+            self._module_states,
+            key=lambda x: x.module_id,
+            sort_key=lambda x: x.time_started,
+        )
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
@@ -283,10 +290,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def current_module_state(self):
-        if len(self.module_states) == 0:
+        if len(self._module_states) == 0:
             return None
         else:
-            unfinished = [x for x in self.module_states if not x.finished]
+            unfinished = [x for x in self._module_states if not x.finished]
             unfinished.sort(key=lambda x: x.time_started)
             if len(unfinished) == 0:
                 return None
