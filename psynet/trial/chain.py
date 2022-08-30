@@ -787,9 +787,7 @@ class ChainTrial(Trial):
 
     def __init__(self, experiment, node, participant, *args, **kwargs):
         super().__init__(experiment, node, participant, *args, **kwargs)
-        # self.participant_group = self.node.participant_group
-        # self.block = self.node.block
-        self.block_position = self.trial_maker.get_current_block_position(participant)
+        self.block_position = participant.module_state.current_block_position
 
     # @property
     # @extra_var(__extra_vars__)
@@ -1193,8 +1191,8 @@ class ChainTrialMaker(NetworkTrialMaker):
         return random.sample(blocks, len(blocks))
 
     def _should_finish_block(self, participant):
-        current_block = self.get_current_block(participant)
-        current_block_position = self.get_current_block_position(participant)
+        current_block = participant.module_state.current_block
+        current_block_position = participant.module_state.current_block_position
 
         assert current_block is not None
         assert current_block_position is not None
@@ -1349,7 +1347,7 @@ class ChainTrialMaker(NetworkTrialMaker):
             "Looking for networks for participant %i.",
             participant.id,
         )
-        n_completed_trials = self.get_num_completed_trials(participant)
+        n_completed_trials = participant.module_state.num_completed_trials
         if n_completed_trials >= self.num_trials_per_participant:
             logger.info(
                 "N completed trials (%i) >= N trials per participant (%i), skipping forward",
@@ -1360,7 +1358,7 @@ class ChainTrialMaker(NetworkTrialMaker):
 
         if self._should_finish_block(participant):
             if (
-                self.participant.module_state.current_block_position
+                participant.module_state.current_block_position
                 >= participant.module_state.n_blocks + 1
             ):
                 return "exit"

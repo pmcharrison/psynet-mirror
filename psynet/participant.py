@@ -175,7 +175,14 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
 
-    current_trial = association_proxy("module_state", "current_trial")
+    @property
+    def current_trial(self):
+        if self.in_module:
+            return self.module_state.current_trial
+
+    @current_trial.setter
+    def current_trial(self, value):
+        self.module_state.current_trial = value
 
     @property
     def last_response(self):
@@ -325,6 +332,10 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
                 return None
             else:
                 return unfinished[-1]
+
+    @property
+    def in_module(self):
+        return self.module_state is not None
 
     @property
     @extra_var(__extra_vars__)

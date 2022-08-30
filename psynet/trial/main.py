@@ -912,7 +912,7 @@ class TrialMakerState(ModuleState):
     trials_to_repeat = Column(PythonObject)
     repeat_trial_index = Column(Integer)
     current_trial = Column(PythonObject)
-    num_completed_trials = Column(Integer, default=0, server_default=0)
+    num_completed_trials = Column(Integer, default=0, server_default="0")
 
 
 class TrialMaker(Module):
@@ -1295,9 +1295,7 @@ class TrialMaker(Module):
         if self.give_end_feedback_passed:
 
             def f(participant):
-                score = participant.var.get(self.with_namespace("performance_check"))[
-                    "score"
-                ]
+                score = participant.module_state.performance_check["score"]
                 return self.get_end_feedback_passed_page(score)
 
             return PageMaker(f, time_estimate=5)
@@ -1347,7 +1345,7 @@ class TrialMaker(Module):
         raise NotImplementedError
 
     def estimate_num_pending_trials(self, participant):
-        return self.expected_num_trials - self.get_num_completed_trials(participant)
+        return self.expected_num_trials - participant.module_state.num_completed_trials
 
     @property
     def working_participants(self):
@@ -1393,7 +1391,7 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
-        self.init_num_completed_trials(participant)
+        participant.module_state.num_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
 
@@ -1470,7 +1468,7 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
-        self.increment_num_completed_trials(participant)
+        participant.module_state.num_completed_trials += 1
 
     def performance_check(self, experiment, participant, participant_trials):
         # pylint: disable=unused-argument
@@ -1549,11 +1547,11 @@ class TrialMaker(Module):
             )
 
             assert isinstance(results["passed"], bool)
-            participant.current_module.performance_check = results
+            participant.module_state.performance_check = results
 
             if type == "end":
                 bonus = self.compute_bonus(**results)
-                participant.current_module.performance_bonus = bonus
+                participant.module_state.performance_bonus = bonus
                 participant.inc_performance_bonus(bonus)
 
             return results["passed"]
