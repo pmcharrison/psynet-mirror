@@ -2114,6 +2114,7 @@ class ModuleState(SQLBase, SQLMixin):
     time_started = Column(DateTime)
     time_finished = Column(DateTime)
     time_aborted = Column(DateTime)
+    started = Column(Boolean, default=False)
     finished = Column(Boolean, default=False)
     aborted = Column(Boolean, default=False)
 
@@ -2150,6 +2151,7 @@ class ModuleState(SQLBase, SQLMixin):
 
     def start(self):
         self.time_started = datetime.now()
+        self.started = True
 
     def finish(self):
         self.time_finished = datetime.now()
