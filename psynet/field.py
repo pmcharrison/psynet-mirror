@@ -343,6 +343,12 @@ class VarStore(BaseVarStore):
     def __init__(self, owner):
         self._owner = owner
 
+    def __repr__(self):
+        data = {
+            key: self.decode_string(value) for key, value in self.get_vars().items()
+        }
+        return f"VarStore: {data}"
+
     def __getattr__(self, name):
         owner = self.__dict__["_owner"]
         if name == "_owner":
