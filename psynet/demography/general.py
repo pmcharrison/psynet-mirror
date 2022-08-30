@@ -124,7 +124,7 @@ class ExperimentFeedback(Module):
 
 
 # Basic demography #
-class GenderControl(RadioButtonControl):
+class RadioButtonWithFreeTextControl(RadioButtonControl):
     def __init__(
         self,
         choices: List[str],
@@ -134,7 +134,6 @@ class GenderControl(RadioButtonControl):
         arrange_vertically: bool = True,
         force_selection: bool = True,
         show_reset_button: str = "never",
-        allow_free_answer: bool = True,
     ):
         super().__init__(
             choices,
@@ -145,17 +144,16 @@ class GenderControl(RadioButtonControl):
             force_selection,
             show_reset_button,
         )
-        if allow_free_answer:
-            self.radiobuttons.append(
-                RadioButton(
-                    name=self.name,
-                    id_="free_text",
-                    label=Markup("<input id='free_text_input' type='text'>"),
-                    style=self.style,
-                )
+        self.radiobuttons.append(
+            RadioButton(
+                name=self.name,
+                id_="free_text",
+                label=Markup("<input id='free_text_input' type='text'>"),
+                style=self.style,
             )
+        )
 
-    macro = "gender"
+    macro = "radiobuttons_with_free_text"
 
 
 class Gender(ModularPage):
@@ -172,7 +170,7 @@ class Gender(ModularPage):
         self.prompt = prompt
         self.time_estimate = 5
 
-        control = GenderControl(
+        control = RadioButtonWithFreeTextControl(
             ["female", "male", "non_binary", "not_specified", "prefer_not_to_say"],
             ["Female", "Male", "Non-binary", "Not specified", "I prefer not to answer"],
             name="gender",

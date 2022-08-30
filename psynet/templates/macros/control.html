@@ -227,7 +227,7 @@
     </script>
 {% endmacro %}
 
-{% macro gender(config) %}
+{% macro radiobuttons_with_free_text(config) %}
     {{ radiobuttons(config) }}
     <script>
         psynet.trial.onEvent("responseEnable", function () {
@@ -242,11 +242,9 @@
         retrieveResponse = function () {
             let element = document.querySelector('input[name="{{ config.name }}"]:checked')
             var rawAnswer = (element != null) ? element.id : null;
-            {% if config.allow_free_answer != "never" %}
             if (rawAnswer === 'free_text') {
                 rawAnswer = $('#free_text_input').val()
             }
-            {% endif %}
             return {rawAnswer: rawAnswer}
         }
     </script>
