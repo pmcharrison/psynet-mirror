@@ -354,9 +354,11 @@ class VarStore(BaseVarStore):
         if name == "_owner":
             return owner
         else:
-            return self.__dict__["_owner"].vars[name]
-            # return self[name]
-            # return self.get_var(name)
+            data = self.__dict__["_owner"].vars
+            if data is None:
+                raise KeyError("The VarStore has not been initialized yet")
+            else:
+                return data[name]
 
     def items(self):
         return self.__dict__["_owner"].vars.items()
@@ -378,6 +380,8 @@ class VarStore(BaseVarStore):
         if name == "_owner":
             self.__dict__["_owner"] = value
         else:
+            if self.__dict__["_owner"].vars is None:
+                self.__dict__["_owner"].vars = {}
             self.__dict__["_owner"].vars[name] = value
             # self[name] = value
             # self.set_var(name, value)
