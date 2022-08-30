@@ -17,8 +17,12 @@ logger = logging.getLogger()
 
 def check_module_b(participant):
     assert not participant.locals.has("animal")
-    assert participant.locals.var.color == "blue"
+    assert participant.locals.color == "blue"
     assert participant.module_states["module_a"][0].var.animal == "cat"
+
+    export = participant.__json__()
+    assert export["module_a__animal"] == "cat"
+    # second rep would look like: module_a__1__animal
 
 
 class Exp(psynet.experiment.Experiment):
