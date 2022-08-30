@@ -109,7 +109,7 @@ class CustomTrial(GibbsTrial):
     def show_trial(self, experiment, participant):
         target = self.context["target"]
         prompt = Markup(
-            f"<h3 id='participant-group'>Participant group = {participant.get_participant_group('gibbs_demo')}</h3>"
+            f"<h3 id='participant-group'>Participant group = {participant.module_state.participant_group}</h3>"
             "<p>Adjust the slider to match the following word as well as possible: "
             f"<strong>{target}</strong></p>"
         )
@@ -178,6 +178,9 @@ class CustomTrialMaker(GibbsTrialMaker):
         # As an example, let's make the participant join networks
         # in order of increasing network ID.
         return sorted(candidates, key=lambda x: x.id)
+
+    def choose_participant_group(self, experiment, participant):
+        return participant.var.participant_group
 
 
 start_nodes = [
@@ -257,11 +260,7 @@ class Exp(psynet.experiment.Experiment):
             Prompt("What participant group would you like to join?"),
             control=PushButtonControl(["A", "B"], arrange_vertically=False),
             time_estimate=5,
-        ),
-        CodeBlock(
-            lambda participant: participant.set_participant_group(
-                "gibbs_demo", participant.answer
-            )
+            save_answer="participant_group",
         ),
         trial_maker,
         collect_coin(),
