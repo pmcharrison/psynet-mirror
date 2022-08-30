@@ -9,7 +9,7 @@ import logging
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.page import InfoPage, SuccessfulEndPage
-from psynet.timeline import CodeBlock, Module, PageMaker, Timeline
+from psynet.timeline import CodeBlock, Module, PageMaker, Timeline, for_loop
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
@@ -22,7 +22,7 @@ def check_module_b(participant):
 
     export = participant.__json__()
     assert export["module_a__animal"] == "cat"
-    # second rep would look like: module_a__1__animal
+    assert export["module_a__1__animal"] == "dog"
 
 
 class Exp(psynet.experiment.Experiment):
@@ -31,15 +31,20 @@ class Exp(psynet.experiment.Experiment):
 
     timeline = Timeline(
         NoConsent(),
-        Module(
-            "module_a",
-            CodeBlock(lambda participant: participant.locals.set("animal", "cat")),
-            PageMaker(
-                lambda participant: InfoPage(
-                    f"Animal = {participant.locals.animal}",
+        for_loop(
+            label="module_a_loop",
+            iterate_over=lambda: ["cat", "dog"],
+            logic=lambda animal: Module(
+                "module_a",
+                CodeBlock(lambda participant: participant.locals.set("animal", animal)),
+                PageMaker(
+                    lambda participant: InfoPage(
+                        f"Animal = {participant.locals.animal}",
+                    ),
+                    time_estimate=5,
                 ),
-                time_estimate=5,
             ),
+            time_estimate_per_iteration=5,
         ),
         Module(
             "module_b",
