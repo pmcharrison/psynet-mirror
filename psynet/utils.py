@@ -86,11 +86,11 @@ def call_function_with_context(function, *args, **kwargs):
     nodes = kwargs.get("nodes", NoArgumentProvided)
     trial_maker = kwargs.get("trial_maker", NoArgumentProvided)
 
-    if participant != NoArgumentProvided and participant.current_module_state:
+    if participant != NoArgumentProvided and participant.module_state:
         if assets == NoArgumentProvided:
-            assets = participant.current_module_state.assets
+            assets = participant.module_state.assets
         if nodes == NoArgumentProvided:
-            nodes = participant.current_module_state.nodes
+            nodes = participant.module_state.nodes
 
     if trial_maker == NoArgumentProvided:
         if participant != NoArgumentProvided and isinstance(

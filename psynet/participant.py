@@ -266,7 +266,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     def locals(self):
-        return self.current_module_state.var
+        return self.module_state.var
 
     def __json__(self):
         x = SQLMixinDallinger.__json__(self)
@@ -314,7 +314,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         ]
 
     @property
-    def current_module_state(self):
+    def module_state(self):
         if len(self._module_states) == 0:
             return None
         else:
@@ -327,9 +327,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
 
     @property
     @extra_var(__extra_vars__)
-    def current_module_id(self):
-        if self.current_module_state:
-            return self.current_module_state.module_id
+    def module_id(self):
+        if self.module_state:
+            return self.module_state.module_id
 
     def set_answer(self, value):
         self.answer = value

@@ -791,7 +791,7 @@ class Trial(SQLMixinDallinger, Info):
 
     @classmethod
     def get_default_parent_node(cls, participant, experiment):
-        module_id = participant.current_module_id
+        module_id = participant.module_id
         try:
             return TrialNode.query.filter_by(
                 module_id=module_id,

@@ -1288,8 +1288,8 @@ class Experiment(dallinger.experiment.Experiment, metaclass=ExperimentMeta):
     def route_set_participant_as_aborted(cls, assignment_id):  # TODO - update
         participant = cls.get_participant_from_assignment_id(assignment_id)
         participant.aborted = True
-        if participant.current_module_state:
-            participant.current_module_state.abort()
+        if participant.module_state:
+            participant.module_state.abort()
         db.session.commit()
         logger.info(f"Aborted participant with ID '{participant.id}'.")
         return success_response()
