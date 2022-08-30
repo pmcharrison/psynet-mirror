@@ -1,3 +1,5 @@
+from typing import List, Optional
+
 from flask import Markup
 
 from psynet.modular_page import (
@@ -5,6 +7,7 @@ from psynet.modular_page import (
     ModularPage,
     NumberControl,
     PushButtonControl,
+    RadioButton,
     RadioButtonControl,
     TextControl,
 )
@@ -121,21 +124,46 @@ class ExperimentFeedback(Module):
 
 
 # Basic demography #
+class GenderControl(RadioButtonControl):
+    def __init__(
+        self,
+        choices: List[str],
+        labels: Optional[List[str]] = None,
+        style: str = "cursor: pointer;",
+        name: str = "radiobuttons",
+        arrange_vertically: bool = True,
+        force_selection: bool = True,
+        show_reset_button: str = "never",
+        allow_free_answer: bool = True,
+    ):
+        super().__init__(
+            choices,
+            labels,
+            style,
+            name,
+            arrange_vertically,
+            force_selection,
+            show_reset_button,
+        )
+        if allow_free_answer:
+            self.radiobuttons.append(
+                RadioButton(
+                    name=self.name,
+                    id_="free_text",
+                    label=Markup("<input id='free_text_input' type='text'>"),
+                    style=self.style,
+                )
+            )
+
+    macro = "gender"
+
+
 class Gender(ModularPage):
     def __init__(
         self,
         label="gender",
         prompt=Markup(
             """
-        <script>
-            psynet.trial.onEvent("responseEnable", function(){
-                var elem = $('#free_text')
-                $('#free_text_input').change(function(event){
-                    elem[0].id = event['currentTarget'].value;
-                    elem[0].checked = true;
-                })
-            });
-        </script>
         How do you identify yourself?
         """
         ),
@@ -144,23 +172,9 @@ class Gender(ModularPage):
         self.prompt = prompt
         self.time_estimate = 5
 
-        control = RadioButtonControl(
-            [
-                "female",
-                "male",
-                "non_binary",
-                "not_specified",
-                "prefer_not_to_say",
-                "free_text",
-            ],
-            [
-                "Female",
-                "Male",
-                "Non-binary",
-                "Not specified",
-                "I prefer not to answer",
-                Markup("<input id='free_text_input' type='text'>"),
-            ],
+        control = GenderControl(
+            ["female", "male", "non_binary", "not_specified", "prefer_not_to_say"],
+            ["Female", "Male", "Non-binary", "Not specified", "I prefer not to answer"],
             name="gender",
         )
         super().__init__(
