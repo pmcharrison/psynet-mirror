@@ -274,7 +274,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         return x
 
     def locals_to_json(self):
-        raise NotImplementedError
         output = {}
         for module_id, module_states in self.module_states.items():
             module_states.sort(key=lambda x: x.time_started)

@@ -160,7 +160,7 @@ class Bot(Participant):
                         "error page without a valid request context. The real error probably "
                         "happened earlier though.",
                     )
-                    raise
+                raise
 
         self.page_count += 1
 
