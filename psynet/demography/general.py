@@ -1,5 +1,3 @@
-from flask import Markup
-
 from psynet.modular_page import (
     DropdownControl,
     ModularPage,
@@ -125,11 +123,7 @@ class Gender(ModularPage):
     def __init__(
         self,
         label="gender",
-        prompt=Markup(
-            """
-        How do you identify yourself?
-        """
-        ),
+        prompt="How do you identify yourself?",
     ):
         self.label = label
         self.prompt = prompt
