@@ -1686,7 +1686,7 @@ class TrialMaker(Module):
         )
         participant.module_state.repeat_trial_index = 0
 
-    def administer_trial(self):
+    def cue_trial(self):
         """
         You can use this in combination with init_participant to administer trials
         outside of a trialmaker.
