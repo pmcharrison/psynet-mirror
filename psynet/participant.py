@@ -174,6 +174,7 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     auth_token = Column(String)
     answer_is_fresh = Column(Boolean, default=False)
     browser_platform = Column(String, default="")
+    selected_module = Column(String)
 
     @property
     def current_trial(self):
@@ -267,6 +268,12 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
     def get_module_state(self, module_id: str):
         return self.module_states[module_id][-1]
 
+    def select_module(self, module_id: str):
+        self.selected_module = module_id
+
+    def deselect_module(self):
+        self.selected_module = None
+
     @property
     def var(self):
         return self.globals
@@ -331,6 +338,8 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         else:
             unfinished = [x for x in self._module_states if not x.finished]
             unfinished.sort(key=lambda x: x.time_started)
+            if self.selected_module:
+                unfinished.sort(key=lambda x: x.module_id == self.selected_module)
             if len(unfinished) == 0:
                 return None
             else:

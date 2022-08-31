@@ -33,6 +33,7 @@ from ..timeline import (
     ParticipantFailRoutine,
     PreDeployRoutine,
     RecruitmentCriterion,
+    RegisterTrialMaker,
     conditional,
     join,
     switch,
@@ -1126,26 +1127,56 @@ class TrialMaker(Module):
 
     introduction = None
 
-    def module(self, *args, assets=None, nodes=None):
-        return Module(self.id, *args, assets=assets, nodes=nodes)
-
     def compile_elts(self):
+        return join(
+            RegisterTrialMaker(self),
+            self._setup_core,
+            self._setup_extra,
+            self.introduction,
+            self._trial_loop(),
+            self._wrapup_core,
+            self._check_performance_logic(type="end")
+            if self.check_performance_at_end
+            else None,
+        )
+
+    def custom(self, *args, assets=None, nodes=None):
+        return Module(
+            self.id,
+            join(
+                RegisterTrialMaker(self),
+                CodeBlock(lambda participant: participant.select_module(self.id)),
+                self._setup_core,
+                *args,
+                CodeBlock(lambda participant: participant.select_module(self.id)),
+                self._wrapup_core,
+            ),
+            assets=assets,
+            nodes=nodes,
+            state_class=self.state_class,
+        )
+
+    @property
+    def _setup_core(self):
         return join(
             PreDeployRoutine(self.with_namespace(), self.pre_deploy_routine),
             ParticipantFailRoutine(
                 self.with_namespace(), self.participant_fail_routine
             ),
-            RecruitmentCriterion(
-                self.with_namespace(), self.selected_recruit_criterion
-            ),
             self.check_timeout_task,
             CodeBlock(self.init_participant),
-            self.introduction,
-            self._trial_loop(),
+        )
+
+    @property
+    def _setup_extra(self):
+        return join(
+            RecruitmentCriterion(self.with_namespace(), self.selected_recruit_criterion)
+        )
+
+    @property
+    def _wrapup_core(self):
+        return join(
             CodeBlock(self.on_complete),
-            self._check_performance_logic(type="end")
-            if self.check_performance_at_end
-            else None,
         )
 
     @property
@@ -1393,6 +1424,7 @@ class TrialMaker(Module):
             An instantiation of :class:`psynet.participant.Participant`,
             corresponding to the current participant.
         """
+        participant.select_module(self.id)
         participant.module_state.num_completed_trials = 0
         participant.module_state.in_repeat_phase = False
         self.init_participant_group(experiment, participant)
@@ -1660,6 +1692,7 @@ class TrialMaker(Module):
         outside of a trialmaker.
         """
         return join(
+            CodeBlock(lambda participant: participant.select_module(self.id)),
             self._wait_for_trial(),
             conditional(
                 "is_trial_available",

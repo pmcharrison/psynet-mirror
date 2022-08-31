@@ -1377,12 +1377,10 @@ class Timeline:
 
     @cached_property
     def trial_makers(self):
-        from .trial.main import TrialMaker
-
         return {
-            e.module.id: e.module
+            e.trial_maker_id: e.trial_maker
             for e in self.elts
-            if isinstance(e, StartModule) and isinstance(e.module, TrialMaker)
+            if isinstance(e, RegisterTrialMaker)
         }
 
     def get_trial_maker(self, trial_maker_id):
@@ -2169,7 +2167,9 @@ class Module:
     default_elts = None
     state_class = ModuleState  # type: Type[ModuleState]
 
-    def __init__(self, id_: str = None, *args, assets=None, nodes=None):
+    def __init__(
+        self, id_: str = None, *args, assets=None, nodes=None, state_class=None
+    ):
         elts = join(*args)
 
         if self.default_id is None and id_ is None:
@@ -2181,6 +2181,7 @@ class Module:
         self.elts = elts if elts is not None else self.default_elts
         self.nodes = nodes if nodes else []
         self.assets = assets if assets else []
+        self.state_class = state_class if state_class else self.__class__.state_class
 
     def prepare_for_deployment(self, experiment):
         self.prepare_nodes_for_deployment(experiment)
@@ -2219,7 +2220,7 @@ class Module:
         # This should only fail (delivering multiple logs) if the experimenter has perversely
         # defined a recursive module (or is reusing module ID)
         state = self.state_class.query.filter_by(
-            participant_id=participant.id, finished=False
+            module_id=self.id, participant_id=participant.id, finished=False
         ).one()
         state.finish()
         db.session.commit()
@@ -2531,6 +2532,7 @@ def for_loop(
     expected_repetitions=None,
 ):
     assert callable(iterate_over)
+    assert callable(logic)
 
     def estimate_num_repetitions(iterate_over):
         if len(get_args(iterate_over)) > 0:
@@ -2628,3 +2630,9 @@ def randomize(*, label, logic):
         logic=lambda i: logic[i],
         time_estimate_per_iteration=total_time / n,
     )
+
+
+class RegisterTrialMaker(NullElt):
+    def __init__(self, trial_maker):
+        self.trial_maker_id = trial_maker.id
+        self.trial_maker = trial_maker
