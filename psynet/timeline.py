@@ -2160,6 +2160,9 @@ class ModuleState(SQLBase, SQLMixin):
         self.time_finished = datetime.now()
         self.aborted = True
 
+    def get(self, module_id: str):
+        return self.participant.get_module_state(module_id)
+
 
 class Module:
     default_id = None

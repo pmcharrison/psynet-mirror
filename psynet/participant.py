@@ -264,6 +264,9 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
             sort_key=lambda x: x.time_started,
         )
 
+    def get_module_state(self, module_id: str):
+        return self.module_states[module_id][-1]
+
     @property
     def var(self):
         return self.globals

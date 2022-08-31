@@ -1113,11 +1113,10 @@ class TrialMaker(Module):
         self.num_repeat_trials = num_repeat_trials
 
         elts = self.compile_elts()
-        label = self.with_namespace()
 
         self.check_time_estimates()
 
-        super().__init__(label, elts)
+        super().__init__(id_, elts)
 
     participant_progress_threshold = 0.1
 
@@ -1126,6 +1125,9 @@ class TrialMaker(Module):
     time_estimate_per_trial = None
 
     introduction = None
+
+    def module(self, *args, assets=None, nodes=None):
+        return Module(self.id, *args, assets=assets, nodes=nodes)
 
     def compile_elts(self):
         return join(
@@ -1651,6 +1653,25 @@ class TrialMaker(Module):
             completed_trial_ids, actual_num_repeat_trials
         )
         participant.module_state.repeat_trial_index = 0
+
+    def administer_trial(self):
+        """
+        You can use this in combination with init_participant to administer trials
+        outside of a trialmaker.
+        """
+        return join(
+            self._wait_for_trial(),
+            conditional(
+                "is_trial_available",
+                condition=lambda participant: participant.current_trial != "exit",
+                logic_if_true=self.trial_class.trial_logic(trial_maker=self),
+                logic_if_false=CodeBlock(
+                    lambda: logger.info("No trial found, skipping")
+                ),
+                fix_time_credit=False,
+                log_chosen_branch=False,
+            ),
+        )
 
     def _trial_loop(self):
         return join(
