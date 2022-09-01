@@ -892,9 +892,11 @@ class Page(Elt):
         if self.save_answer:
             participant.last_response_id = resp.id
             if len(participant.answer_accumulators) > 0:
-                participant.answer_accumulators[-1] = participant.answer_accumulators[
-                    -1
-                ] + [resp.answer]
+                page_label = self.label
+                accumulator = participant.answer_accumulators[-1]
+                answer_label = self._find_answer_label(page_label, accumulator)
+                accumulator[answer_label] = resp.answer
+                flag_modified(participant, "answer_accumulators")
             else:
                 participant.answer = resp.answer
             participant.answer_is_fresh = True
@@ -909,6 +911,18 @@ class Page(Elt):
 
         db.session.commit()
         return resp
+
+    def _find_answer_label(self, page_label, accumulator):
+        if page_label not in accumulator:
+            return page_label
+        else:
+            i = 0
+            while i < 1e7:
+                i += 1
+                label = f"{page_label}_{i}"
+                if label not in accumulator:
+                    return label
+        raise ValueError("Failed to construct an appropriate answer label")
 
     def metadata(self, **kwargs):
         """
@@ -1119,11 +1133,13 @@ class PageMaker(Elt):
         function,
         time_estimate,
         accumulate_answers: bool = False,
+        label: str = "page_maker",
     ):
         self.function = function
         self.time_estimate = time_estimate
         self.accumulate_answers = accumulate_answers
         self.expected_repetitions = 1
+        self.label = label
 
     def resolve(self, experiment, participant, position):
         """
@@ -1225,7 +1241,7 @@ def multi_page_maker(
 
     accumulate_answers
         If ``False`` (default), then the final ``answer`` is simply the answer delivered by the final
-        page. If ``True``, then the answers to all the pages are accumulated in a list.
+        page. If ``True``, then the answers to all the pages are accumulated in a dict.
 
     check_num_pages
         IGNORED
@@ -2433,7 +2449,7 @@ class EndModule(NullElt):
 
 class StartAccumulateAnswers(NullElt):
     def consume(self, experiment, participant):
-        participant.answer_accumulators = participant.answer_accumulators + [[]]
+        participant.answer_accumulators = participant.answer_accumulators + [{}]
 
 
 class EndAccumulateAnswers(NullElt):

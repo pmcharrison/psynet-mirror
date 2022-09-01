@@ -202,7 +202,7 @@ class Trial(SQLMixinDallinger, Info):
 
     accumulate_answers : bool
         Set this class attribute to ``True`` if the trial contains multiple pages and you want
-        the answers to all of these pages to be stored as a list in ``participant.answer``.
+        the answers to all of these pages to be stored as a dict in ``participant.answer``.
         Otherwise, the default behaviour is to only store the answer from the final page.
 
     time_credit_before_trial: float

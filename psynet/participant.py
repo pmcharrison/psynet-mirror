@@ -94,22 +94,6 @@ class Participant(SQLMixinDallinger, dallinger.models.Participant):
         Can take any form that can be automatically serialized to JSON.
         Should not be modified directly.
 
-    answer_accumulators: list
-        This is an internal PsyNet variable that most users don't need to worry about.
-        See below for implementation details:
-
-        This list begins empty.
-        Each time the participant enters a page maker with ``accumulate_answers = True``,
-        an empty list is appended to ``answer_accumulators``.
-        Whenever a new answer is generated, this answer is appended to the last list in ``answer_accumulators``.
-        If the participant enters another page maker with ``accumulate_answers = True`` (i.e. nested page makers),
-        then another empty list is appended to ``answer_accumulators``.
-        Whenever the participant leaves a page maker with ``accumulate_answers = True``,
-        the last list in ``answer_accumulators`` is removed and is placed in the ``answer`` variable.
-        The net result is that all answers within a given page maker with ``accumulate_answers = True``
-        end up being stored as a single list in the ``answer`` variable once the participant leaves
-        the trial maker.
-
     response : Response
         An object of class :class:`~psynet.timeline.Response`
         providing detailed information about the last response submitted

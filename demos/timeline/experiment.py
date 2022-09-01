@@ -154,7 +154,7 @@ class Exp(psynet.experiment.Experiment):
             PageMaker(
                 lambda participant: [
                     ModularPage(
-                        "mp1",
+                        "shape",
                         Prompt(f"Participant {participant.id}, choose a shape:"),
                         control=PushButtonControl(
                             ["Square", "Circle"], arrange_vertically=False
@@ -162,7 +162,7 @@ class Exp(psynet.experiment.Experiment):
                         time_estimate=5,
                     ),
                     ModularPage(
-                        "mp2",
+                        "chord",
                         Prompt(f"Participant {participant.id}, choose a chord:"),
                         control=PushButtonControl(
                             ["Major", "Minor"], arrange_vertically=False
@@ -176,7 +176,7 @@ class Exp(psynet.experiment.Experiment):
             PageMaker(
                 lambda participant: InfoPage(
                     (
-                        "If accumulate_answers is True, then the answers are stored in a list, in this case: "
+                        "If accumulate_answers is True, then the answers are stored in a dictionary, in this case: "
                         + f"{participant.answer}."
                     ),
                     time_estimate=5,

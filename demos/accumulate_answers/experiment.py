@@ -9,8 +9,8 @@ import logging
 import psynet.experiment
 from psynet.consent import NoConsent
 from psynet.modular_page import ModularPage, PushButtonControl
-from psynet.page import SuccessfulEndPage
-from psynet.timeline import CodeBlock, PageMaker, Timeline, join
+from psynet.page import InfoPage, SuccessfulEndPage
+from psynet.timeline import CodeBlock, PageMaker, Timeline, for_loop, join
 from psynet.trial.static import StaticNode, StaticTrial, StaticTrialMaker
 
 logging.basicConfig(level=logging.INFO)
@@ -97,7 +97,7 @@ part_1_logic = PageMaker(
 
 
 def part_1_check(participant):
-    assert participant.answer == {"dog": "Very much", "color": "A little"}
+    assert participant.answer == {"animal": "Very much", "color": "A little"}
 
 
 part_1 = join(
@@ -117,6 +117,32 @@ part_2 = join(
     CodeBlock(part_2_check),
 )
 
+part_3_logic = PageMaker(
+    InfoPage(
+        "I'm going to ask you the same question 3 times in a row.", time_estimate=5
+    ),
+    lambda: for_loop(
+        label="Repeat 3 times",
+        iterate_over=lambda: range(3),
+        logic=lambda _: animal_page("dog", time_estimate=5, bot_response="Very much"),
+        time_estimate_per_iteration=5,
+    ),
+    accumulate_answers=True,
+)
+
+
+def part_3_check(participant):
+    assert participant.answer == {
+        "dog": "Very much",
+        "dog_1": "Very much",
+        "dog_2": "Very much",
+    }
+
+
+part_3 = join(
+    part_1_logic,
+    CodeBlock(part_1_check),
+)
 
 ##########################################################################################
 # Experiment
