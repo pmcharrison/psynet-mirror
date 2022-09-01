@@ -18,6 +18,8 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import column_property, relationship
 from sqlalchemy.orm.collections import attribute_mapped_collection
 
+from psynet import field
+
 from ..asset import AssetNetwork, AssetNode, AssetTrial
 from ..data import SQLMixinDallinger
 from ..field import PythonDict, PythonObject, VarStore, extra_var, register_extra_var
@@ -426,6 +428,11 @@ class Trial(SQLMixinDallinger, Info):
             db.session.commit()
 
             self._finalize_assets()
+
+    def __json__(self):
+        x = super().__json__()
+        field.json_unpack_answer(x)
+        return x
 
     @property
     def trial_maker(self):

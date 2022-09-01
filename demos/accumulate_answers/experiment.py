@@ -110,6 +110,8 @@ def part_2_check(participant):
     assert len(participant.trials) == 3
     trial = participant.trials[0]
     assert trial.answer == {"kindness": "Very much", "bravery": "A little"}
+    assert trial.__json__["answer__kindness"] == "Very much"
+    assert trial.__json__["answer__bravery"] == "Very much"
 
 
 part_2 = join(

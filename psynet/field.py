@@ -440,6 +440,16 @@ def json_clean(x, details=False, contents=False):
         del x["metadata_"]
 
 
+def json_unpack_answer(x):
+    if "answer" in x and isinstance(x["answer"], dict):
+        answer = x["answer"]
+        del x["answer"]
+        for key, value in answer.items():
+            x[f"answer__{key}"] = value
+
+    return x
+
+
 def json_add_extra_vars(x, obj):
     def valid_key(key):
         return not re.search("^_", key)
